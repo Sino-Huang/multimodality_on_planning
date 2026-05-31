@@ -396,4 +396,9 @@ Here's how our community has grown over time:
 [![Star History Chart](https://api.star-history.com/svg?repos=starVLA/starVLA&type=date&legend=bottom-right)](https://www.star-history.com/#starVLA/starVLA&type=date&legend=bottom-right)
 
 
+## Rules for OpenCode 
+note that you shall always run `source ~/cd_vlaplan && python <script>` to init the environment, though for the planimation image collection, I want you to use uv venv, and thus the command shall always starts from `source ~/cd_vlaplan && source .venv/bin/activate && <command>`
+
+After all the smoke test and Oracle consult finish, you need to save your implementation information into doc/detailed_implementation_summary folder and specify which phase you are working with in its file title prefix, also make sure you save the commands needed to run in the document too.
+
 <!-- *Chart updates automatically. Click to interact with the full timeline.* -->

@@ -1,0 +1,14 @@
+{
+  "animation_profile_path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/pddl_instances/flowfree/animation_profile.pddl",
+  "artifact_path": "outputs/phase1_planimation_vfg_all_domains/flowfree/problem1_5x5_pre-strategy/trace.vfg.json",
+  "domain_id": "flowfree",
+  "domain_path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/pddl_instances/flowfree/pre-strategy_domain.pddl",
+  "elapsed_seconds": 3.406,
+  "format": "vfg",
+  "png_count": 0,
+  "problem_id": "problem1_5x5_pre-strategy",
+  "problem_path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/pddl_instances/flowfree/problem1_5x5_pre-strategy.pddl",
+  "status": "success",
+  "used_pddl_url": "https://planimation.planning.domains/upload/pddl",
+  "used_vfg_url": null
+}

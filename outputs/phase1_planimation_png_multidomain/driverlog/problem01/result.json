@@ -1,0 +1,15 @@
+{
+  "animation_profile_path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/pddl_instances/driverlog/ap.pddl",
+  "artifact_path": "outputs/phase1_planimation_png_multidomain/driverlog/problem01/frames",
+  "domain_id": "driverlog",
+  "domain_path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/pddl_instances/driverlog/domain.pddl",
+  "elapsed_seconds": 3.56,
+  "format": "png",
+  "png_count": 4,
+  "problem_id": "problem01",
+  "problem_path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/pddl_instances/driverlog/problem01.pddl",
+  "status": "success",
+  "used_local_renderer": true,
+  "used_pddl_url": "https://planimation.planning.domains/upload/pddl",
+  "used_vfg_url": null
+}

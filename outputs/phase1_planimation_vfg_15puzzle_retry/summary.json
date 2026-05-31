@@ -1,0 +1,52 @@
+{
+  "failure_count": 0,
+  "manifest": "data/pddl_instances/manifest.json",
+  "min_successes": 1,
+  "mode": "render",
+  "output_verification": {
+    "other_visual_files": 0,
+    "output_dir": "outputs/phase1_planimation_vfg_15puzzle_retry",
+    "png_files": 0,
+    "result_files": 1,
+    "vfg_files": 1
+  },
+  "preflight": {
+    "elapsed_seconds": 0.024,
+    "reachable": true,
+    "root_url": "https://planimation.planning.domains",
+    "status_code": 200
+  },
+  "results": [
+    {
+      "animation_profile_path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/pddl_instances/15puzzle/15-puzzle_ap.pddl",
+      "artifact_path": "outputs/phase1_planimation_vfg_15puzzle_retry/15puzzle/15-puzzle_problem1/trace.vfg.json",
+      "domain_id": "15puzzle",
+      "domain_path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/pddl_instances/15puzzle/15-puzzle_domain.pddl",
+      "elapsed_seconds": 7.857,
+      "format": "vfg",
+      "png_count": 0,
+      "problem_id": "15-puzzle_problem1",
+      "problem_path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/pddl_instances/15puzzle/15-puzzle_problem1.pddl",
+      "status": "success",
+      "used_pddl_url": "https://planimation.planning.domains/upload/pddl",
+      "used_vfg_url": null
+    }
+  ],
+  "root_url": "https://planimation.planning.domains",
+  "selected_count": 1,
+  "selected_entries": [
+    {
+      "animation_profile_path": "15puzzle/15-puzzle_ap.pddl",
+      "animation_profile_source_url": "https://raw.githubusercontent.com/planimation/documentation/master/AnimationProfiles/15puzzle/15-puzzle_ap.pddl",
+      "domain_id": "15puzzle",
+      "domain_path": "15puzzle/15-puzzle_domain.pddl",
+      "domain_source_url": "https://raw.githubusercontent.com/planimation/documentation/master/AnimationProfiles/15puzzle/15-puzzle_domain.pddl",
+      "editor_session_id": "",
+      "notes": "Official Planimation 15-Puzzle example.",
+      "problem_id": "15-puzzle_problem1",
+      "problem_path": "15puzzle/15-puzzle_problem1.pddl",
+      "problem_source_url": "https://raw.githubusercontent.com/planimation/documentation/master/AnimationProfiles/15puzzle/15-puzzle_problem1.pddl"
+    }
+  ],
+  "success_count": 1
+}

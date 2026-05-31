@@ -1,3 +1,9 @@
 [submodule "modules/api-tools"]
 	path = modules/api-tools
 	url = git@github.com:planimation/api-tools.git
+[submodule "modules/pddl-generators"]
+	path = modules/pddl-generators
+	url = git@github.com:AI-Planning/pddl-generators.git
+[submodule "modules/downward"]
+	path = modules/downward
+	url = git@github.com:aibasel/downward.git

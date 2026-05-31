@@ -1,0 +1,15 @@
+{
+  "animation_profile_path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/pddl_instances/gripper/gripper_AP.pddl",
+  "artifact_path": "outputs/phase1_planimation_png_supported_minus_15puzzle/gripper/prob03/frames",
+  "domain_id": "gripper",
+  "domain_path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/pddl_instances/gripper/domain.pddl",
+  "elapsed_seconds": 3.614,
+  "format": "png",
+  "png_count": 4,
+  "problem_id": "prob03",
+  "problem_path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/pddl_instances/gripper/prob03.pddl",
+  "status": "success",
+  "used_local_renderer": true,
+  "used_pddl_url": "https://planimation.planning.domains/upload/pddl",
+  "used_vfg_url": null
+}

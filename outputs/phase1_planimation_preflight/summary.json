@@ -1,0 +1,73 @@
+{
+  "manifest": "data/pddl_instances/manifest.json",
+  "mode": "preflight",
+  "preflight": {
+    "elapsed_seconds": 0.028,
+    "reachable": true,
+    "root_url": "https://planimation.planning.domains",
+    "status_code": 200
+  },
+  "root_url": "https://planimation.planning.domains",
+  "selected_entries": [
+    {
+      "animation_profile_path": "grid/grid_AP.pddl",
+      "animation_profile_source_url": "https://raw.githubusercontent.com/planimation/documentation/master/AnimationProfiles/Grid/grid_AP.pddl",
+      "domain_id": "grid",
+      "domain_path": "grid/domain_grid.pddl",
+      "domain_source_url": "https://raw.githubusercontent.com/planimation/documentation/master/AnimationProfiles/Grid/domain_grid.pddl",
+      "editor_session_id": "PxrcHHw7rk",
+      "notes": "Official Planimation Grid example.",
+      "problem_id": "prob01",
+      "problem_path": "grid/prob01.pddl",
+      "problem_source_url": "https://raw.githubusercontent.com/planimation/documentation/master/AnimationProfiles/Grid/prob01.pddl"
+    },
+    {
+      "animation_profile_path": "logistics/logistics_ap.pddl",
+      "animation_profile_source_url": "https://raw.githubusercontent.com/planimation/documentation/master/AnimationProfiles/Logistics/logistics_ap.pddl",
+      "domain_id": "logistics",
+      "domain_path": "logistics/domain.pddl",
+      "domain_source_url": "https://raw.githubusercontent.com/planimation/documentation/master/AnimationProfiles/Logistics/domain.pddl",
+      "editor_session_id": "P1PMRZfHSZ",
+      "notes": "Official Planimation Logistics example.",
+      "problem_id": "prob01",
+      "problem_path": "logistics/prob01.pddl",
+      "problem_source_url": "https://raw.githubusercontent.com/planimation/documentation/master/AnimationProfiles/Logistics/prob01.pddl"
+    },
+    {
+      "animation_profile_path": "towers_of_hanoi/hanoi_ap.pddl",
+      "animation_profile_source_url": "https://raw.githubusercontent.com/planimation/documentation/master/AnimationProfiles/Towers-of-Hanoi/hanoi_ap.pddl",
+      "domain_id": "towers_of_hanoi",
+      "domain_path": "towers_of_hanoi/domain.pddl",
+      "domain_source_url": "https://raw.githubusercontent.com/planimation/documentation/master/AnimationProfiles/Towers-of-Hanoi/domain.pddl",
+      "editor_session_id": "7doJXh2b8N",
+      "notes": "Official Planimation Towers of Hanoi example.",
+      "problem_id": "pfile1",
+      "problem_path": "towers_of_hanoi/pfile1.pddl",
+      "problem_source_url": "https://raw.githubusercontent.com/planimation/documentation/master/AnimationProfiles/Towers-of-Hanoi/pfile1.pddl"
+    },
+    {
+      "animation_profile_path": "driverlog/ap.pddl",
+      "animation_profile_source_url": "https://raw.githubusercontent.com/planimation/documentation/master/AnimationProfiles/Driverlog/ap.pddl",
+      "domain_id": "driverlog",
+      "domain_path": "driverlog/domain.pddl",
+      "domain_source_url": "https://raw.githubusercontent.com/planimation/documentation/master/AnimationProfiles/Driverlog/domain.pddl",
+      "editor_session_id": "fu1QYGDLiZ",
+      "notes": "Official Planimation Driverlog example.",
+      "problem_id": "problem01",
+      "problem_path": "driverlog/problem01.pddl",
+      "problem_source_url": "https://raw.githubusercontent.com/planimation/documentation/master/AnimationProfiles/Driverlog/problem01.pddl"
+    },
+    {
+      "animation_profile_path": "freecell/freecell_AP.pddl",
+      "animation_profile_source_url": "https://raw.githubusercontent.com/planimation/documentation/master/AnimationProfiles/Freecell/freecell_AP.pddl",
+      "domain_id": "freecell",
+      "domain_path": "freecell/domain.pddl",
+      "domain_source_url": "https://raw.githubusercontent.com/planimation/documentation/master/AnimationProfiles/Freecell/domain.pddl",
+      "editor_session_id": "q8Rh3Y7sSE",
+      "notes": "Official Planimation Freecell example.",
+      "problem_id": "probfreecell-10-1",
+      "problem_path": "freecell/probfreecell-10-1.pddl",
+      "problem_source_url": "https://raw.githubusercontent.com/planimation/documentation/master/AnimationProfiles/Freecell/probfreecell-10-1.pddl"
+    }
+  ]
+}

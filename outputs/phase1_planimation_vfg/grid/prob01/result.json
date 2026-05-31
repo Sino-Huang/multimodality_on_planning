@@ -1,0 +1,14 @@
+{
+  "animation_profile_path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/pddl_instances/grid/grid_AP.pddl",
+  "domain_id": "grid",
+  "domain_path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/pddl_instances/grid/domain_grid.pddl",
+  "elapsed_seconds": 0.04,
+  "error": "Failed to submit PDDL bundle. Attempts: https://planimation.planning.domains/upload/(?P<filename>[^/]+)$ -> HTTP 405: <html>\r\n<head><title>405 Not Allowed</title></head>\r\n<body>\r\n<center><h1>405 Not Allowed</h1></center>\r\n<hr><center>nginx/1.20.2</center>\r\n</body>\r\n</html>\r\n | https://planimation.planning.domains/upload/ -> HTTP 405: <html>\r\n<head><title>405 Not Allowed</title></head>\r\n<body>\r\n<center><h1>405 Not Allowed</h1></center>\r\n<hr><center>nginx/1.20.2</center>\r\n</body>\r\n</html>\r\n",
+  "format": "vfg",
+  "png_count": 0,
+  "problem_id": "prob01",
+  "problem_path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/pddl_instances/grid/prob01.pddl",
+  "status": "failed",
+  "used_pddl_url": null,
+  "used_vfg_url": null
+}
