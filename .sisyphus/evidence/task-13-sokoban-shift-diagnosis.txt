@@ -1,0 +1,56 @@
+Conda environment 'ada_vla' is already activated.
+{
+  "failure_count": 0,
+  "manifest": "/tmp/sokoban_shift_diagnosis/manifest.json",
+  "min_successes": 0,
+  "mode": "render",
+  "output_verification": {
+    "other_visual_files": 0,
+    "output_dir": "/tmp/sokoban_shift_diagnosis/output",
+    "png_files": 4,
+    "result_files": 1,
+    "vfg_files": 0
+  },
+  "preflight": {
+    "elapsed_seconds": 0.028,
+    "reachable": true,
+    "root_url": "https://planimation.planning.domains",
+    "status_code": 200
+  },
+  "results": [
+    {
+      "animation_profile_path": "/tmp/sokoban_shift_diagnosis/shifted/ap.pddl",
+      "artifact_path": "/tmp/sokoban_shift_diagnosis/output/shifted/problem/frames",
+      "domain_id": "shifted",
+      "domain_path": "/tmp/sokoban_shift_diagnosis/shifted/domain.pddl",
+      "elapsed_seconds": 3.525,
+      "format": "png",
+      "png_count": 4,
+      "problem_id": "problem",
+      "problem_path": "/tmp/sokoban_shift_diagnosis/shifted/problem.pddl",
+      "status": "success",
+      "used_local_renderer": true,
+      "used_pddl_url": "https://planimation.planning.domains/upload/pddl",
+      "used_vfg_url": null
+    }
+  ],
+  "root_url": "https://planimation.planning.domains",
+  "selected_count": 1,
+  "selected_entries": [
+    {
+      "animation_profile_path": "shifted/ap.pddl",
+      "animation_profile_source_url": "",
+      "domain_id": "shifted",
+      "domain_path": "shifted/domain.pddl",
+      "domain_source_url": "",
+      "editor_session_id": "",
+      "notes": "Task 13 shifted generated diagnosis",
+      "problem_id": "problem",
+      "problem_path": "shifted/problem.pddl",
+      "problem_source_url": ""
+    }
+  ],
+  "success_count": 1
+}
+
+exit_status=0

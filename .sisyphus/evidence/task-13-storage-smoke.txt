@@ -1,0 +1,79 @@
+Conda environment 'ada_vla' is already activated.
+{
+  "accepted_manifest_path": "/tmp/curriculum_pddl_storage_smoke/accepted_manifest.jsonl",
+  "output_root": "/tmp/curriculum_pddl_storage_smoke",
+  "rejections_path": "/tmp/curriculum_pddl_storage_smoke/rejections.jsonl",
+  "summary": {
+    "accepted_by_bucket": {
+      "easy": 1,
+      "hard": 1,
+      "medium": 1
+    },
+    "accepted_by_domain": {
+      "storage": 3
+    },
+    "accepted_by_split": {
+      "train": 3
+    },
+    "accepted_total": 3,
+    "domains_completed": 1,
+    "duplicate_accepted_problem_hashes": 0,
+    "extra": {
+      "candidate_multiplier": 2,
+      "max_attempts_per_bucket": 120,
+      "selected_domains": [
+        "storage"
+      ],
+      "selected_splits": [
+        "train"
+      ],
+      "selection": {
+        "storage": {
+          "train": {
+            "attempt_counts": {
+              "easy": 2,
+              "hard": 2,
+              "medium": 2
+            },
+            "available_counts": {
+              "easy": 2,
+              "hard": 2,
+              "medium": 2
+            },
+            "incomplete_buckets": [],
+            "pool_size": 6,
+            "remaining_quotas": {
+              "easy": 1,
+              "hard": 1,
+              "medium": 1
+            },
+            "requested_counts": {
+              "easy": 1,
+              "hard": 1,
+              "medium": 1
+            },
+            "resumed_only": false,
+            "selected_counts": {
+              "easy": 1,
+              "hard": 1,
+              "medium": 1
+            },
+            "selected_pool_size": 3
+          }
+        }
+      }
+    },
+    "notes": "",
+    "rejected_by_reason": {
+      "selection_not_selected": 3
+    },
+    "rejected_total": 3,
+    "render_failed_accepted": 0,
+    "resumed_accepted_total": 0,
+    "schema_version": 1,
+    "status": "summary"
+  },
+  "summary_path": "/tmp/curriculum_pddl_storage_smoke/summary.json"
+}
+
+exit_status=0

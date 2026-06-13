@@ -1,0 +1,170 @@
+{
+  "schema_version": 1,
+  "dependency_groups": {
+    "npuzzle": {
+      "generator_domain_id": "npuzzle",
+      "python_runtime": "python3",
+      "python_packages": [],
+      "system_tools": ["make", "g++"],
+      "build": {
+        "required": true,
+        "commands": ["make"]
+      },
+      "notes": "Builds the compiled sliding-puzzle generator from modules/pddl-generators/npuzzle."
+    },
+    "blocksworld": {
+      "generator_domain_id": "blocksworld",
+      "python_runtime": "python3",
+      "python_packages": [],
+      "system_tools": ["make", "g++"],
+      "build": {
+        "required": true,
+        "commands": ["make"]
+      },
+      "notes": "Uses the Makefile-based Blocksworld generator and helper binaries."
+    },
+    "depots": {
+      "generator_domain_id": "depots",
+      "python_runtime": "python3",
+      "python_packages": [],
+      "system_tools": ["make", "g++"],
+      "build": {
+        "required": true,
+        "commands": ["make"]
+      },
+      "notes": "Builds the compiled depots generator under modules/pddl-generators/depots."
+    },
+    "driverlog": {
+      "generator_domain_id": "driverlog",
+      "python_runtime": "python3",
+      "python_packages": [],
+      "system_tools": ["make", "g++"],
+      "build": {
+        "required": true,
+        "commands": ["make"]
+      },
+      "notes": "Builds the compiled Driverlog generator from modules/pddl-generators/driverlog."
+    },
+    "miconic": {
+      "generator_domain_id": "miconic",
+      "python_runtime": "python3",
+      "python_packages": [],
+      "system_tools": ["make", "g++"],
+      "build": {
+        "required": true,
+        "commands": ["make"]
+      },
+      "notes": "Builds the compiled Miconic generator used by the Planimation elevators sample domain."
+    },
+    "ferry": {
+      "generator_domain_id": "ferry",
+      "python_runtime": "python3",
+      "python_packages": [],
+      "system_tools": ["make", "g++"],
+      "build": {
+        "required": true,
+        "commands": ["make"]
+      },
+      "notes": "Builds the compiled ferry generator from modules/pddl-generators/ferry."
+    },
+    "freecell": {
+      "generator_domain_id": "freecell",
+      "python_runtime": "python3",
+      "python_packages": [],
+      "system_tools": ["make", "g++"],
+      "build": {
+        "required": true,
+        "commands": ["make"]
+      },
+      "notes": "Builds the compiled Freecell generator from modules/pddl-generators/freecell."
+    },
+    "grid": {
+      "generator_domain_id": "grid",
+      "python_runtime": "python3",
+      "python_packages": [],
+      "system_tools": [],
+      "build": {
+        "required": false,
+        "commands": []
+      },
+      "notes": "Uses the stdlib-only Python generator at modules/pddl-generators/grid/generate.py."
+    },
+    "gripper": {
+      "generator_domain_id": "gripper",
+      "python_runtime": "python3",
+      "python_packages": [],
+      "system_tools": ["make", "g++"],
+      "build": {
+        "required": true,
+        "commands": ["make"]
+      },
+      "notes": "Builds the compiled Gripper generator from modules/pddl-generators/gripper."
+    },
+    "logistics": {
+      "generator_domain_id": "logistics",
+      "python_runtime": "python3",
+      "python_packages": [],
+      "system_tools": ["make", "g++"],
+      "build": {
+        "required": true,
+        "commands": ["make"]
+      },
+      "notes": "Builds the compiled logistics generator from modules/pddl-generators/logistics."
+    },
+    "snake": {
+      "generator_domain_id": "snake",
+      "python_runtime": "python3",
+      "python_packages": [],
+      "system_tools": [],
+      "build": {
+        "required": false,
+        "commands": []
+      },
+      "notes": "Uses the stdlib-only Python generator at modules/pddl-generators/snake/generate.py."
+    },
+    "sokoban": {
+      "generator_domain_id": "sokoban",
+      "python_runtime": "python3",
+      "python_packages": [],
+      "system_tools": ["make", "g++"],
+      "build": {
+        "required": true,
+        "commands": ["make"]
+      },
+      "notes": "Uses the Sokoban suite scripts together with the random generator binaries."
+    },
+    "storage": {
+      "generator_domain_id": "storage",
+      "python_runtime": "python3",
+      "python_packages": [],
+      "system_tools": ["make", "g++"],
+      "build": {
+        "required": true,
+        "commands": ["make"]
+      },
+      "notes": "Builds the compiled storage generator from modules/pddl-generators/storage."
+    },
+    "hanoi": {
+      "generator_domain_id": "hanoi",
+      "python_runtime": "python3",
+      "python_packages": [],
+      "system_tools": ["make", "g++"],
+      "build": {
+        "required": true,
+        "commands": ["make"]
+      },
+      "notes": "Builds the compiled Towers of Hanoi generator from modules/pddl-generators/hanoi."
+    },
+    "visitall": {
+      "generator_domain_id": "visitall",
+      "python_runtime": "python3",
+      "python_packages": [],
+      "system_tools": ["make", "g++"],
+      "build": {
+        "required": true,
+        "commands": ["make"]
+      },
+      "notes": "Builds the compiled visitall generator from modules/pddl-generators/visitall."
+    }
+  }
+}

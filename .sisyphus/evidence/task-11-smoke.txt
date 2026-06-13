@@ -1,0 +1,1 @@
+Generated 6 accepted / 36 rejected to /tmp/curriculum_pddl_smoke

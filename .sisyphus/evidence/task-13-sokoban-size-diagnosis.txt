@@ -1,0 +1,107 @@
+Conda environment 'ada_vla' is already activated.
+{
+  "failure_count": 3,
+  "manifest": "/tmp/sokoban_size_diagnosis/manifest.json",
+  "min_successes": 0,
+  "mode": "render",
+  "output_verification": {
+    "other_visual_files": 0,
+    "output_dir": "/tmp/sokoban_size_diagnosis/output",
+    "png_files": 0,
+    "result_files": 3,
+    "vfg_files": 0
+  },
+  "preflight": {
+    "elapsed_seconds": 0.025,
+    "reachable": true,
+    "root_url": "https://planimation.planning.domains",
+    "status_code": 200
+  },
+  "results": [
+    {
+      "animation_profile_path": "/tmp/sokoban_size_diagnosis/n4/ap.pddl",
+      "domain_id": "n4",
+      "domain_path": "/tmp/sokoban_size_diagnosis/n4/domain.pddl",
+      "elapsed_seconds": 3.231,
+      "error": "Failed to submit PDDL bundle. Attempts: https://planimation.planning.domains/upload/pddl -> API error: Failed to generate stages \n\n unhashable type: 'dict' | https://planimation.planning.domains/upload/(?P<filename>[^/]+)$ -> HTTP 405: <html>\r\n<head><title>405 Not Allowed</title></head>\r\n<body>\r\n<center><h1>405 Not Allowed</h1></center>\r\n<hr><center>nginx/1.20.2</center>\r\n</body>\r\n</html>\r\n | https://planimation.planning.domains/upload/ -> HTTP 405: <html>\r\n<head><title>405 Not Allowed</title></head>\r\n<body>\r\n<center><h1>405 Not Allowed</h1></center>\r\n<hr><center>nginx/1.20.2</center>\r\n</body>\r\n</html>\r\n",
+      "format": "png",
+      "png_count": 0,
+      "problem_id": "problem",
+      "problem_path": "/tmp/sokoban_size_diagnosis/n4/problem.pddl",
+      "status": "failed",
+      "used_pddl_url": null,
+      "used_vfg_url": null
+    },
+    {
+      "animation_profile_path": "/tmp/sokoban_size_diagnosis/n5/ap.pddl",
+      "domain_id": "n5",
+      "domain_path": "/tmp/sokoban_size_diagnosis/n5/domain.pddl",
+      "elapsed_seconds": 3.209,
+      "error": "Failed to submit PDDL bundle. Attempts: https://planimation.planning.domains/upload/pddl -> API error: Failed to generate stages \n\n unhashable type: 'dict' | https://planimation.planning.domains/upload/(?P<filename>[^/]+)$ -> HTTP 405: <html>\r\n<head><title>405 Not Allowed</title></head>\r\n<body>\r\n<center><h1>405 Not Allowed</h1></center>\r\n<hr><center>nginx/1.20.2</center>\r\n</body>\r\n</html>\r\n | https://planimation.planning.domains/upload/ -> HTTP 405: <html>\r\n<head><title>405 Not Allowed</title></head>\r\n<body>\r\n<center><h1>405 Not Allowed</h1></center>\r\n<hr><center>nginx/1.20.2</center>\r\n</body>\r\n</html>\r\n",
+      "format": "png",
+      "png_count": 0,
+      "problem_id": "problem",
+      "problem_path": "/tmp/sokoban_size_diagnosis/n5/problem.pddl",
+      "status": "failed",
+      "used_pddl_url": null,
+      "used_vfg_url": null
+    },
+    {
+      "animation_profile_path": "/tmp/sokoban_size_diagnosis/n6/ap.pddl",
+      "domain_id": "n6",
+      "domain_path": "/tmp/sokoban_size_diagnosis/n6/domain.pddl",
+      "elapsed_seconds": 3.215,
+      "error": "Failed to submit PDDL bundle. Attempts: https://planimation.planning.domains/upload/pddl -> API error: Failed to generate stages \n\n unhashable type: 'dict' | https://planimation.planning.domains/upload/(?P<filename>[^/]+)$ -> HTTP 405: <html>\r\n<head><title>405 Not Allowed</title></head>\r\n<body>\r\n<center><h1>405 Not Allowed</h1></center>\r\n<hr><center>nginx/1.20.2</center>\r\n</body>\r\n</html>\r\n | https://planimation.planning.domains/upload/ -> HTTP 405: <html>\r\n<head><title>405 Not Allowed</title></head>\r\n<body>\r\n<center><h1>405 Not Allowed</h1></center>\r\n<hr><center>nginx/1.20.2</center>\r\n</body>\r\n</html>\r\n",
+      "format": "png",
+      "png_count": 0,
+      "problem_id": "problem",
+      "problem_path": "/tmp/sokoban_size_diagnosis/n6/problem.pddl",
+      "status": "failed",
+      "used_pddl_url": null,
+      "used_vfg_url": null
+    }
+  ],
+  "root_url": "https://planimation.planning.domains",
+  "selected_count": 3,
+  "selected_entries": [
+    {
+      "animation_profile_path": "n4/ap.pddl",
+      "animation_profile_source_url": "",
+      "domain_id": "n4",
+      "domain_path": "n4/domain.pddl",
+      "domain_source_url": "",
+      "editor_session_id": "",
+      "notes": "Task 13 Sokoban size diagnosis",
+      "problem_id": "problem",
+      "problem_path": "n4/problem.pddl",
+      "problem_source_url": ""
+    },
+    {
+      "animation_profile_path": "n5/ap.pddl",
+      "animation_profile_source_url": "",
+      "domain_id": "n5",
+      "domain_path": "n5/domain.pddl",
+      "domain_source_url": "",
+      "editor_session_id": "",
+      "notes": "Task 13 Sokoban size diagnosis",
+      "problem_id": "problem",
+      "problem_path": "n5/problem.pddl",
+      "problem_source_url": ""
+    },
+    {
+      "animation_profile_path": "n6/ap.pddl",
+      "animation_profile_source_url": "",
+      "domain_id": "n6",
+      "domain_path": "n6/domain.pddl",
+      "domain_source_url": "",
+      "editor_session_id": "",
+      "notes": "Task 13 Sokoban size diagnosis",
+      "problem_id": "problem",
+      "problem_path": "n6/problem.pddl",
+      "problem_source_url": ""
+    }
+  ],
+  "success_count": 0
+}
+
+exit_status=0

@@ -1,0 +1,3 @@
+Output root already exists and is not empty: /data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/curriculum_pddl; pass --resume or --force
+
+exit_status=1

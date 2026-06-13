@@ -1,0 +1,83 @@
+{
+  "accepted_manifest_path": "/tmp/curriculum_pddl_sokoban_diversity_smoke/accepted_manifest.jsonl",
+  "output_root": "/tmp/curriculum_pddl_sokoban_diversity_smoke",
+  "rejections_path": "/tmp/curriculum_pddl_sokoban_diversity_smoke/rejections.jsonl",
+  "summary": {
+    "accepted_by_bucket": {
+      "easy": 2,
+      "hard": 2,
+      "medium": 2
+    },
+    "accepted_by_domain": {
+      "sokoban": 6
+    },
+    "accepted_by_split": {
+      "train": 6
+    },
+    "accepted_total": 6,
+    "domains_completed": 1,
+    "duplicate_accepted_problem_hashes": 0,
+    "extra": {
+      "candidate_multiplier": 2,
+      "max_attempts_per_bucket": 120,
+      "selected_domains": [
+        "sokoban"
+      ],
+      "selected_splits": [
+        "train"
+      ],
+      "selection": {
+        "sokoban": {
+          "train": {
+            "attempt_counts": {
+              "easy": 4,
+              "hard": 4,
+              "medium": 4
+            },
+            "available_counts": {
+              "easy": 4,
+              "hard": 4,
+              "medium": 4
+            },
+            "incomplete_buckets": [],
+            "pool_size": 12,
+            "remaining_quotas": {
+              "easy": 2,
+              "hard": 2,
+              "medium": 2
+            },
+            "requested_counts": {
+              "easy": 2,
+              "hard": 2,
+              "medium": 2
+            },
+            "resumed_only": false,
+            "selected_counts": {
+              "easy": 2,
+              "hard": 2,
+              "medium": 2
+            },
+            "selected_pool_size": 6
+          }
+        }
+      }
+    },
+    "notes": "",
+    "rejected_by_reason": {
+      "selection_not_selected": 6
+    },
+    "rejected_total": 6,
+    "render_failed_accepted": 0,
+    "resumed_accepted_total": 0,
+    "schema_version": 1,
+    "status": "summary"
+  },
+  "summary_path": "/tmp/curriculum_pddl_sokoban_diversity_smoke/summary.json"
+}
+
+=== uniqueness audit: 270 converted Sokoban variants ===
+raw_normalized_hash=c2a69977da2c8abb99e4d33147220ad2ed91cdf77c36d8d42f68b90a3e341bf2
+converted_variants=270
+unique_normalized_hashes=270
+first_problem_contains_template=True
+first_problem_contains_quantified_goal=True

@@ -1,0 +1,135 @@
+Conda environment 'ada_vla' is already activated.
+{
+  "failure_count": 2,
+  "manifest": "/tmp/sokoban_render_diagnosis/manifest.json",
+  "min_successes": 0,
+  "mode": "render",
+  "output_verification": {
+    "other_visual_files": 0,
+    "output_dir": "/tmp/sokoban_render_diagnosis/output",
+    "png_files": 8,
+    "result_files": 4,
+    "vfg_files": 0
+  },
+  "preflight": {
+    "elapsed_seconds": 0.026,
+    "reachable": true,
+    "root_url": "https://planimation.planning.domains",
+    "status_code": 200
+  },
+  "results": [
+    {
+      "animation_profile_path": "/tmp/sokoban_render_diagnosis/curated/ap.pddl",
+      "artifact_path": "/tmp/sokoban_render_diagnosis/output/curated/problem/frames",
+      "domain_id": "curated",
+      "domain_path": "/tmp/sokoban_render_diagnosis/curated/domain.pddl",
+      "elapsed_seconds": 3.614,
+      "format": "png",
+      "png_count": 4,
+      "problem_id": "problem",
+      "problem_path": "/tmp/sokoban_render_diagnosis/curated/problem.pddl",
+      "status": "success",
+      "used_local_renderer": true,
+      "used_pddl_url": "https://planimation.planning.domains/upload/pddl",
+      "used_vfg_url": null
+    },
+    {
+      "animation_profile_path": "/tmp/sokoban_render_diagnosis/curated_no_wall/ap.pddl",
+      "artifact_path": "/tmp/sokoban_render_diagnosis/output/curated_no_wall/problem/frames",
+      "domain_id": "curated_no_wall",
+      "domain_path": "/tmp/sokoban_render_diagnosis/curated_no_wall/domain.pddl",
+      "elapsed_seconds": 3.437,
+      "format": "png",
+      "png_count": 4,
+      "problem_id": "problem",
+      "problem_path": "/tmp/sokoban_render_diagnosis/curated_no_wall/problem.pddl",
+      "status": "success",
+      "used_local_renderer": true,
+      "used_pddl_url": "https://planimation.planning.domains/upload/pddl",
+      "used_vfg_url": null
+    },
+    {
+      "animation_profile_path": "/tmp/sokoban_render_diagnosis/generated/ap.pddl",
+      "domain_id": "generated",
+      "domain_path": "/tmp/sokoban_render_diagnosis/generated/domain.pddl",
+      "elapsed_seconds": 3.201,
+      "error": "Failed to submit PDDL bundle. Attempts: https://planimation.planning.domains/upload/pddl -> API error: Failed to generate stages \n\n unhashable type: 'dict' | https://planimation.planning.domains/upload/(?P<filename>[^/]+)$ -> HTTP 405: <html>\r\n<head><title>405 Not Allowed</title></head>\r\n<body>\r\n<center><h1>405 Not Allowed</h1></center>\r\n<hr><center>nginx/1.20.2</center>\r\n</body>\r\n</html>\r\n | https://planimation.planning.domains/upload/ -> HTTP 405: <html>\r\n<head><title>405 Not Allowed</title></head>\r\n<body>\r\n<center><h1>405 Not Allowed</h1></center>\r\n<hr><center>nginx/1.20.2</center>\r\n</body>\r\n</html>\r\n",
+      "format": "png",
+      "png_count": 0,
+      "problem_id": "problem",
+      "problem_path": "/tmp/sokoban_render_diagnosis/generated/problem.pddl",
+      "status": "failed",
+      "used_pddl_url": null,
+      "used_vfg_url": null
+    },
+    {
+      "animation_profile_path": "/tmp/sokoban_render_diagnosis/generated_with_wall/ap.pddl",
+      "domain_id": "generated_with_wall",
+      "domain_path": "/tmp/sokoban_render_diagnosis/generated_with_wall/domain.pddl",
+      "elapsed_seconds": 3.204,
+      "error": "Failed to submit PDDL bundle. Attempts: https://planimation.planning.domains/upload/pddl -> API error: Failed to generate stages \n\n unhashable type: 'dict' | https://planimation.planning.domains/upload/(?P<filename>[^/]+)$ -> HTTP 405: <html>\r\n<head><title>405 Not Allowed</title></head>\r\n<body>\r\n<center><h1>405 Not Allowed</h1></center>\r\n<hr><center>nginx/1.20.2</center>\r\n</body>\r\n</html>\r\n | https://planimation.planning.domains/upload/ -> HTTP 405: <html>\r\n<head><title>405 Not Allowed</title></head>\r\n<body>\r\n<center><h1>405 Not Allowed</h1></center>\r\n<hr><center>nginx/1.20.2</center>\r\n</body>\r\n</html>\r\n",
+      "format": "png",
+      "png_count": 0,
+      "problem_id": "problem",
+      "problem_path": "/tmp/sokoban_render_diagnosis/generated_with_wall/problem.pddl",
+      "status": "failed",
+      "used_pddl_url": null,
+      "used_vfg_url": null
+    }
+  ],
+  "root_url": "https://planimation.planning.domains",
+  "selected_count": 4,
+  "selected_entries": [
+    {
+      "animation_profile_path": "curated/ap.pddl",
+      "animation_profile_source_url": "",
+      "domain_id": "curated",
+      "domain_path": "curated/domain.pddl",
+      "domain_source_url": "",
+      "editor_session_id": "",
+      "notes": "Task 13 Sokoban render diagnosis",
+      "problem_id": "problem",
+      "problem_path": "curated/problem.pddl",
+      "problem_source_url": ""
+    },
+    {
+      "animation_profile_path": "curated_no_wall/ap.pddl",
+      "animation_profile_source_url": "",
+      "domain_id": "curated_no_wall",
+      "domain_path": "curated_no_wall/domain.pddl",
+      "domain_source_url": "",
+      "editor_session_id": "",
+      "notes": "Task 13 Sokoban render diagnosis",
+      "problem_id": "problem",
+      "problem_path": "curated_no_wall/problem.pddl",
+      "problem_source_url": ""
+    },
+    {
+      "animation_profile_path": "generated/ap.pddl",
+      "animation_profile_source_url": "",
+      "domain_id": "generated",
+      "domain_path": "generated/domain.pddl",
+      "domain_source_url": "",
+      "editor_session_id": "",
+      "notes": "Task 13 Sokoban render diagnosis",
+      "problem_id": "problem",
+      "problem_path": "generated/problem.pddl",
+      "problem_source_url": ""
+    },
+    {
+      "animation_profile_path": "generated_with_wall/ap.pddl",
+      "animation_profile_source_url": "",
+      "domain_id": "generated_with_wall",
+      "domain_path": "generated_with_wall/domain.pddl",
+      "domain_source_url": "",
+      "editor_session_id": "",
+      "notes": "Task 13 Sokoban render diagnosis",
+      "problem_id": "problem",
+      "problem_path": "generated_with_wall/problem.pddl",
+      "problem_source_url": ""
+    }
+  ],
+  "success_count": 2
+}
+
+exit_status=0

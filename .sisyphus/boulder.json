@@ -1,0 +1,145 @@
+{
+  "active_plan": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/.sisyphus/plans/curriculum-pddl-instance-generation.md",
+  "started_at": "2026-05-31T14:52:31.035Z",
+  "session_ids": [
+    "ses_1836de03dffeRNUtDENok2VXvm",
+    "ses_1490326b2ffeBDGXNdT9O07GSc",
+    "ses_148f5b280fferJCSgQN5Z20We3",
+    "ses_148f5b1f2ffeiZZW95pDoSDodk"
+  ],
+  "plan_name": "curriculum-pddl-instance-generation",
+  "session_origins": {
+    "ses_1836de03dffeRNUtDENok2VXvm": "direct",
+    "ses_148f5b280fferJCSgQN5Z20We3": "appended",
+    "ses_148f5b1f2ffeiZZW95pDoSDodk": "appended"
+  },
+  "task_sessions": {
+    "todo:1": {
+      "task_key": "todo:1",
+      "task_label": "1",
+      "task_title": "Define package skeleton, CLI contract, and test scaffolding",
+      "session_id": "ses_181788c05ffeAdiNJf0vNs7wTI",
+      "agent": "Sisyphus-Junior",
+      "category": "quick",
+      "updated_at": "2026-05-31T14:56:51.298Z"
+    },
+    "todo:2": {
+      "task_key": "todo:2",
+      "task_label": "2",
+      "task_title": "Implement curriculum config schema, render-profile mapping, and 15-domain default YAML",
+      "session_id": "ses_18172ec47ffetk9awiWYYryiIh",
+      "agent": "Sisyphus-Junior",
+      "category": "deep",
+      "updated_at": "2026-05-31T15:11:10.041Z"
+    },
+    "todo:4": {
+      "task_key": "todo:4",
+      "task_label": "4",
+      "task_title": "Implement tool/environment inspection with hard capability reporting",
+      "session_id": "ses_181662dd1ffejS8wNeV0g544d5",
+      "agent": "Sisyphus-Junior",
+      "category": "quick",
+      "updated_at": "2026-05-31T15:20:18.272Z"
+    },
+    "todo:5": {
+      "task_key": "todo:5",
+      "task_label": "5",
+      "task_title": "Build adapter interface and fake adapter TDD fixtures",
+      "session_id": "ses_1815b8492ffehmW4reYPe7nN80",
+      "agent": "Sisyphus-Junior",
+      "category": "deep",
+      "updated_at": "2026-05-31T15:31:52.055Z"
+    },
+    "todo:6": {
+      "task_key": "todo:6",
+      "task_label": "6",
+      "task_title": "Implement 15 domain adapter mappings with smoke readiness matrix",
+      "session_id": "ses_1814e440fffef59U7eghamUA2n",
+      "agent": "Sisyphus-Junior",
+      "category": "deep",
+      "updated_at": "2026-05-31T15:54:25.989Z"
+    },
+    "todo:7": {
+      "task_key": "todo:7",
+      "task_label": "7",
+      "task_title": "Implement rendering gate contract using existing Planimation patterns",
+      "session_id": "ses_1813f2b69ffeRxQDmPH95sLxry",
+      "agent": "Sisyphus-Junior",
+      "category": "deep",
+      "updated_at": "2026-05-31T16:11:02.282Z"
+    },
+    "todo:8": {
+      "task_key": "todo:8",
+      "task_label": "8",
+      "task_title": "Implement hybrid measured difficulty assignment and stratified selector",
+      "session_id": "ses_181302615ffeK29PdkwNSmeGNB",
+      "agent": "Sisyphus-Junior",
+      "category": "deep",
+      "updated_at": "2026-05-31T16:22:53.050Z"
+    },
+    "todo:9": {
+      "task_key": "todo:9",
+      "task_label": "9",
+      "task_title": "Implement candidate generation orchestration, rejection logs, and resumability",
+      "session_id": "ses_181236838ffeQOcL4w203NAXGx",
+      "agent": "Sisyphus-Junior",
+      "category": "deep",
+      "updated_at": "2026-05-31T16:40:59.833Z"
+    },
+    "todo:10": {
+      "task_key": "todo:10",
+      "task_label": "10",
+      "task_title": "Finalize CLI options and concrete commands",
+      "session_id": "ses_18114491affeEKBg6jzyIlHkmk",
+      "agent": "Sisyphus-Junior",
+      "category": "quick",
+      "updated_at": "2026-05-31T16:51:24.857Z"
+    },
+    "todo:11": {
+      "task_key": "todo:11",
+      "task_label": "11",
+      "task_title": "Add small real-generator/rendering smoke test command path",
+      "session_id": "ses_1810b38ddffe4ozgVySneHXyEV",
+      "agent": "Sisyphus-Junior",
+      "category": "unspecified-high",
+      "updated_at": "2026-05-31T17:01:53.137Z"
+    },
+    "todo:13": {
+      "task_key": "todo:13",
+      "task_label": "13",
+      "task_title": "Validate finalized shards and merge the final 15-domain curriculum dataset",
+      "session_id": "ses_148653f89ffehnl6cm53GzBhJX",
+      "agent": "oracle",
+      "category": "",
+      "updated_at": "2026-06-11T17:01:26.052Z"
+    },
+    "todo:14": {
+      "task_key": "todo:14",
+      "task_label": "14",
+      "task_title": "Add minimal planning benchmark slice under `examples/`",
+      "session_id": "ses_145f2334cffev8Pl6amu1VB9NL",
+      "agent": "Sisyphus-Junior",
+      "category": "quick",
+      "updated_at": "2026-06-12T04:26:01.446Z"
+    },
+    "todo:15": {
+      "task_key": "todo:15",
+      "task_label": "15",
+      "task_title": "Final verification, update docs with actual results, and produce handoff summary",
+      "session_id": "ses_145e6f3ebffer8SPe9xZ3JDZFP",
+      "agent": "Sisyphus-Junior",
+      "category": "unspecified-high",
+      "updated_at": "2026-06-12T04:36:53.597Z"
+    },
+    "final-wave:f1": {
+      "task_key": "final-wave:f1",
+      "task_label": "F1",
+      "task_title": "Plan Compliance Audit — oracle",
+      "session_id": "ses_145d8fa91ffeUmIhejnlZDyQb1",
+      "agent": "Sisyphus-Junior",
+      "category": "deep",
+      "updated_at": "2026-06-12T04:48:48.098Z"
+    }
+  },
+  "agent": "atlas"
+}

@@ -1,0 +1,7 @@
+{
+  "accepted_total": 6,
+  "domains_completed": 2,
+  "render_failed_accepted": 0,
+  "duplicate_accepted_problem_hashes": 0,
+  "candidate_multiplier": 2
+}

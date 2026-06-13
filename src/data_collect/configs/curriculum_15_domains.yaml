@@ -1,0 +1,140 @@
+{
+  "schema_version": 1,
+  "workspace_root": "../../..",
+  "generator_root": "modules/pddl-generators",
+  "manifest_path": "data/pddl_instances/manifest.json",
+  "dependency_config": "src/data_collect/configs/generator_dependencies.yaml",
+  "require_rendering": true,
+  "candidate_multiplier": 2,
+  "seed_range": {
+    "start": 0,
+    "stop": 2147483647
+  },
+  "timeouts": {
+    "generator_seconds": 30,
+    "render_seconds": 90
+  },
+  "output_policy": {
+    "accepted_dir": "accepted",
+    "rejected_dir": "rejected",
+    "summaries_dir": "summaries"
+  },
+  "splits": {
+    "train": {
+      "total": 200,
+      "buckets": {
+        "easy": 70,
+        "medium": 80,
+        "hard": 50
+      }
+    },
+    "dev": {
+      "total": 20,
+      "buckets": {
+        "easy": 7,
+        "medium": 8,
+        "hard": 5
+      }
+    },
+    "test": {
+      "total": 20,
+      "buckets": {
+        "easy": 5,
+        "medium": 7,
+        "hard": 8
+      }
+    }
+  },
+  "domains": [
+    {
+      "domain_id": "15puzzle",
+      "generator_domain_id": "npuzzle",
+      "render_profile_path": "data/pddl_instances/15puzzle/15-puzzle_ap.pddl",
+      "dependency_group": "npuzzle"
+    },
+    {
+      "domain_id": "blocksworld",
+      "generator_domain_id": "blocksworld",
+      "render_profile_path": "data/pddl_instances/blocksworld/blocksworld_AP.pddl",
+      "dependency_group": "blocksworld"
+    },
+    {
+      "domain_id": "depot",
+      "generator_domain_id": "depots",
+      "render_profile_path": "data/pddl_instances/depot/depot_ap.pddl",
+      "dependency_group": "depots"
+    },
+    {
+      "domain_id": "driverlog",
+      "generator_domain_id": "driverlog",
+      "render_profile_path": "data/pddl_instances/driverlog/ap.pddl",
+      "dependency_group": "driverlog"
+    },
+    {
+      "domain_id": "elevators",
+      "generator_domain_id": "miconic",
+      "render_profile_path": "data/pddl_instances/elevators/elevators_ap.pddl",
+      "dependency_group": "miconic"
+    },
+    {
+      "domain_id": "ferry",
+      "generator_domain_id": "ferry",
+      "render_profile_path": "data/pddl_instances/ferry/ap.pddl",
+      "dependency_group": "ferry"
+    },
+    {
+      "domain_id": "freecell",
+      "generator_domain_id": "freecell",
+      "render_profile_path": "data/pddl_instances/freecell/freecell_AP.pddl",
+      "dependency_group": "freecell"
+    },
+    {
+      "domain_id": "grid",
+      "generator_domain_id": "grid",
+      "render_profile_path": "data/pddl_instances/grid/grid_AP.pddl",
+      "dependency_group": "grid"
+    },
+    {
+      "domain_id": "gripper",
+      "generator_domain_id": "gripper",
+      "render_profile_path": "data/pddl_instances/gripper/gripper_AP.pddl",
+      "dependency_group": "gripper"
+    },
+    {
+      "domain_id": "logistics",
+      "generator_domain_id": "logistics",
+      "render_profile_path": "data/pddl_instances/logistics/logistics_ap.pddl",
+      "dependency_group": "logistics"
+    },
+    {
+      "domain_id": "snake",
+      "generator_domain_id": "snake",
+      "render_profile_path": "data/pddl_instances/snake/ap.pddl",
+      "dependency_group": "snake"
+    },
+    {
+      "domain_id": "sokoban",
+      "generator_domain_id": "sokoban",
+      "render_profile_path": "data/pddl_instances/sokoban/ap.pddl",
+      "dependency_group": "sokoban"
+    },
+    {
+      "domain_id": "storage",
+      "generator_domain_id": "storage",
+      "render_profile_path": "data/pddl_instances/storage/ap.pddl",
+      "dependency_group": "storage"
+    },
+    {
+      "domain_id": "towers_of_hanoi",
+      "generator_domain_id": "hanoi",
+      "render_profile_path": "data/pddl_instances/towers_of_hanoi/hanoi_ap.pddl",
+      "dependency_group": "hanoi"
+    },
+    {
+      "domain_id": "visitall",
+      "generator_domain_id": "visitall",
+      "render_profile_path": "data/pddl_instances/visitall/visitall_ap.pddl",
+      "dependency_group": "visitall"
+    }
+  ]
+}

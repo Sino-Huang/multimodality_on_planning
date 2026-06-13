@@ -1,0 +1,2 @@
+example-contract-ok
+{"frames": 1, "instance_id": "blocksworld-dev-easy-0000", "trace": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/curriculum_pddl/blocksworld/dev/easy/blocksworld-dev-easy-0000/render/trace.vfg.json"}

@@ -1,0 +1,1722 @@
+{
+  "adapter_matrix": [
+    {
+      "adapter_configured": true,
+      "adapter_id": "15puzzle",
+      "build_artifact_paths": [
+        "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/npuzzle/n-puzzle-generator"
+      ],
+      "build_commands": [
+        "make"
+      ],
+      "build_required": true,
+      "domain_file_source": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/npuzzle/domain.pddl",
+      "domain_id": "15puzzle",
+      "generator_domain_id": "npuzzle",
+      "generator_path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/npuzzle/n-puzzle-generator",
+      "output_policy": {
+        "filename_template": null,
+        "mode": "stdout",
+        "notes": "Generator prints exactly one problem to stdout."
+      },
+      "prep_command": [],
+      "problem_output_discovery": "Normalize the single stdout payload as the problem PDDL.",
+      "readiness_failures": [],
+      "ready": true,
+      "seed_policy": {
+        "mode": "flag",
+        "notes": "Seed is required via -s.",
+        "option": "-s",
+        "required": true,
+        "supported": true
+      },
+      "smoke_supported": true,
+      "target_parameter_presets": [
+        {
+          "command_arguments": [
+            "-n",
+            "3"
+          ],
+          "notes": "3x3 sliding puzzle.",
+          "parameters": {
+            "board_size": 3
+          },
+          "preset_id": "easy"
+        },
+        {
+          "command_arguments": [
+            "-n",
+            "4"
+          ],
+          "notes": "4x4 sliding puzzle.",
+          "parameters": {
+            "board_size": 4
+          },
+          "preset_id": "medium"
+        },
+        {
+          "command_arguments": [
+            "-n",
+            "4"
+          ],
+          "notes": "4x4 sliding puzzle reserved for the measured-hard tail because 5x5 uploads are too unstable for rendered curriculum generation.",
+          "parameters": {
+            "board_size": 4
+          },
+          "preset_id": "hard"
+        }
+      ]
+    },
+    {
+      "adapter_configured": true,
+      "adapter_id": "blocksworld",
+      "build_artifact_paths": [
+        "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/blocksworld/bwstates.1/bwstates",
+        "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/blocksworld/4ops/2pddl/2pddl"
+      ],
+      "build_commands": [
+        "make",
+        "4ops"
+      ],
+      "build_required": true,
+      "domain_file_source": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/blocksworld/4ops/domain.pddl",
+      "domain_id": "blocksworld",
+      "generator_domain_id": "blocksworld",
+      "generator_path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/blocksworld/blocksworld",
+      "output_policy": {
+        "filename_template": null,
+        "mode": "stdout",
+        "notes": "The shell wrapper emits one problem to stdout."
+      },
+      "prep_command": [
+        "make",
+        "4ops"
+      ],
+      "problem_output_discovery": "Normalize the stdout payload produced by the shell wrapper.",
+      "readiness_failures": [],
+      "ready": true,
+      "seed_policy": {
+        "mode": "positional",
+        "notes": "Seed is the third positional argument after operator count and block count.",
+        "option": null,
+        "required": true,
+        "supported": true
+      },
+      "smoke_supported": true,
+      "target_parameter_presets": [
+        {
+          "command_arguments": [
+            "4",
+            "4"
+          ],
+          "notes": "4-operator encoding with 4 blocks.",
+          "parameters": {
+            "blocks": 4,
+            "operators": 4
+          },
+          "preset_id": "easy"
+        },
+        {
+          "command_arguments": [
+            "4",
+            "8"
+          ],
+          "notes": "4-operator encoding with 8 blocks.",
+          "parameters": {
+            "blocks": 8,
+            "operators": 4
+          },
+          "preset_id": "medium"
+        },
+        {
+          "command_arguments": [
+            "4",
+            "12"
+          ],
+          "notes": "4-operator encoding with 12 blocks.",
+          "parameters": {
+            "blocks": 12,
+            "operators": 4
+          },
+          "preset_id": "hard"
+        }
+      ]
+    },
+    {
+      "adapter_configured": true,
+      "adapter_id": "depot",
+      "build_artifact_paths": [
+        "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/depots/depots"
+      ],
+      "build_commands": [
+        "make"
+      ],
+      "build_required": true,
+      "domain_file_source": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/depots/domain.pddl",
+      "domain_id": "depot",
+      "generator_domain_id": "depots",
+      "generator_path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/depots/depots",
+      "output_policy": {
+        "filename_template": null,
+        "mode": "stdout",
+        "notes": "Generator prints one problem to stdout."
+      },
+      "prep_command": [],
+      "problem_output_discovery": "Normalize the single stdout payload as the problem PDDL.",
+      "readiness_failures": [],
+      "ready": true,
+      "seed_policy": {
+        "mode": "flag",
+        "notes": "Optional random seed via -s.",
+        "option": "-s",
+        "required": false,
+        "supported": true
+      },
+      "smoke_supported": true,
+      "target_parameter_presets": [
+        {
+          "command_arguments": [
+            "-e",
+            "1",
+            "-i",
+            "2",
+            "-t",
+            "2",
+            "-p",
+            "3",
+            "-h",
+            "3",
+            "-c",
+            "3"
+          ],
+          "notes": "Small depots instance.",
+          "parameters": {
+            "crates": 3,
+            "depots": 1,
+            "distributors": 2,
+            "hoists": 3,
+            "pallets": 3,
+            "trucks": 2
+          },
+          "preset_id": "easy"
+        },
+        {
+          "command_arguments": [
+            "-e",
+            "2",
+            "-i",
+            "3",
+            "-t",
+            "3",
+            "-p",
+            "5",
+            "-h",
+            "4",
+            "-c",
+            "5"
+          ],
+          "notes": "Mid-sized depots instance.",
+          "parameters": {
+            "crates": 5,
+            "depots": 2,
+            "distributors": 3,
+            "hoists": 4,
+            "pallets": 5,
+            "trucks": 3
+          },
+          "preset_id": "medium"
+        },
+        {
+          "command_arguments": [
+            "-e",
+            "3",
+            "-i",
+            "4",
+            "-t",
+            "4",
+            "-p",
+            "8",
+            "-h",
+            "6",
+            "-c",
+            "8"
+          ],
+          "notes": "Larger depots instance.",
+          "parameters": {
+            "crates": 8,
+            "depots": 3,
+            "distributors": 4,
+            "hoists": 6,
+            "pallets": 8,
+            "trucks": 4
+          },
+          "preset_id": "hard"
+        }
+      ]
+    },
+    {
+      "adapter_configured": true,
+      "adapter_id": "driverlog",
+      "build_artifact_paths": [
+        "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/driverlog/dlgen"
+      ],
+      "build_commands": [
+        "make"
+      ],
+      "build_required": true,
+      "domain_file_source": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/driverlog/domain.pddl",
+      "domain_id": "driverlog",
+      "generator_domain_id": "driverlog",
+      "generator_path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/driverlog/dlgen",
+      "output_policy": {
+        "filename_template": null,
+        "mode": "stdout",
+        "notes": "Generator prints one problem to stdout."
+      },
+      "prep_command": [],
+      "problem_output_discovery": "Normalize the single stdout payload as the problem PDDL.",
+      "readiness_failures": [],
+      "ready": true,
+      "seed_policy": {
+        "mode": "positional",
+        "notes": "Seed is the first positional argument after any mode flags.",
+        "option": null,
+        "required": true,
+        "supported": true
+      },
+      "smoke_supported": true,
+      "target_parameter_presets": [
+        {
+          "command_arguments": [
+            "5",
+            "2",
+            "2",
+            "2"
+          ],
+          "notes": "Matches the Makefile smoke scale.",
+          "parameters": {
+            "drivers": 2,
+            "junctions": 5,
+            "packages": 2,
+            "trucks": 2
+          },
+          "preset_id": "easy"
+        },
+        {
+          "command_arguments": [
+            "8",
+            "3",
+            "4",
+            "3"
+          ],
+          "notes": "Moderate driverlog instance.",
+          "parameters": {
+            "drivers": 3,
+            "junctions": 8,
+            "packages": 4,
+            "trucks": 3
+          },
+          "preset_id": "medium"
+        },
+        {
+          "command_arguments": [
+            "12",
+            "4",
+            "6",
+            "4",
+            "8"
+          ],
+          "notes": "Larger instance with randomized edge distances.",
+          "parameters": {
+            "distance": 8,
+            "drivers": 4,
+            "junctions": 12,
+            "packages": 6,
+            "trucks": 4
+          },
+          "preset_id": "hard"
+        }
+      ]
+    },
+    {
+      "adapter_configured": true,
+      "adapter_id": "elevators",
+      "build_artifact_paths": [
+        "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/miconic/miconic"
+      ],
+      "build_commands": [
+        "make"
+      ],
+      "build_required": true,
+      "domain_file_source": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/miconic/domain.pddl",
+      "domain_id": "elevators",
+      "generator_domain_id": "miconic",
+      "generator_path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/miconic/miconic",
+      "output_policy": {
+        "filename_template": null,
+        "mode": "stdout",
+        "notes": "Miconic generator prints one problem to stdout."
+      },
+      "prep_command": [],
+      "problem_output_discovery": "Normalize the single stdout payload from the Miconic generator as the problem PDDL.",
+      "readiness_failures": [],
+      "ready": true,
+      "seed_policy": {
+        "mode": "flag",
+        "notes": "Optional random seed via -r.",
+        "option": "-r",
+        "required": false,
+        "supported": true
+      },
+      "smoke_supported": true,
+      "target_parameter_presets": [
+        {
+          "command_arguments": [
+            "-f",
+            "4",
+            "-p",
+            "2"
+          ],
+          "notes": "Small Miconic instance matching the Planimation elevators sample shape.",
+          "parameters": {
+            "floors": 4,
+            "passengers": 2
+          },
+          "preset_id": "easy"
+        },
+        {
+          "command_arguments": [
+            "-f",
+            "8",
+            "-p",
+            "4"
+          ],
+          "notes": "Moderate Miconic instance.",
+          "parameters": {
+            "floors": 8,
+            "passengers": 4
+          },
+          "preset_id": "medium"
+        },
+        {
+          "command_arguments": [
+            "-f",
+            "12",
+            "-p",
+            "6"
+          ],
+          "notes": "Larger Miconic instance.",
+          "parameters": {
+            "floors": 12,
+            "passengers": 6
+          },
+          "preset_id": "hard"
+        }
+      ]
+    },
+    {
+      "adapter_configured": true,
+      "adapter_id": "ferry",
+      "build_artifact_paths": [
+        "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/ferry/ferry"
+      ],
+      "build_commands": [
+        "make"
+      ],
+      "build_required": true,
+      "domain_file_source": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/ferry/domain.pddl",
+      "domain_id": "ferry",
+      "generator_domain_id": "ferry",
+      "generator_path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/ferry/ferry",
+      "output_policy": {
+        "filename_template": null,
+        "mode": "stdout",
+        "notes": "Generator prints one problem to stdout."
+      },
+      "prep_command": [],
+      "problem_output_discovery": "Normalize the single stdout payload as the problem PDDL.",
+      "readiness_failures": [],
+      "ready": true,
+      "seed_policy": {
+        "mode": "flag",
+        "notes": "Optional random seed via -s.",
+        "option": "-s",
+        "required": false,
+        "supported": true
+      },
+      "smoke_supported": true,
+      "target_parameter_presets": [
+        {
+          "command_arguments": [
+            "-l",
+            "3",
+            "-c",
+            "2"
+          ],
+          "notes": "Small ferry instance.",
+          "parameters": {
+            "cars": 2,
+            "locations": 3
+          },
+          "preset_id": "easy"
+        },
+        {
+          "command_arguments": [
+            "-l",
+            "5",
+            "-c",
+            "4"
+          ],
+          "notes": "Moderate ferry instance.",
+          "parameters": {
+            "cars": 4,
+            "locations": 5
+          },
+          "preset_id": "medium"
+        },
+        {
+          "command_arguments": [
+            "-l",
+            "7",
+            "-c",
+            "6"
+          ],
+          "notes": "Larger ferry instance.",
+          "parameters": {
+            "cars": 6,
+            "locations": 7
+          },
+          "preset_id": "hard"
+        }
+      ]
+    },
+    {
+      "adapter_configured": true,
+      "adapter_id": "freecell",
+      "build_artifact_paths": [
+        "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/freecell/freecell"
+      ],
+      "build_commands": [
+        "make"
+      ],
+      "build_required": true,
+      "domain_file_source": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/freecell/domain.pddl",
+      "domain_id": "freecell",
+      "generator_domain_id": "freecell",
+      "generator_path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/freecell/freecell",
+      "output_policy": {
+        "filename_template": null,
+        "mode": "stdout",
+        "notes": "Generator prints one problem to stdout."
+      },
+      "prep_command": [],
+      "problem_output_discovery": "Normalize the single stdout payload as the problem PDDL.",
+      "readiness_failures": [],
+      "ready": true,
+      "seed_policy": {
+        "mode": "flag",
+        "notes": "Optional random seed via -r.",
+        "option": "-r",
+        "required": false,
+        "supported": true
+      },
+      "smoke_supported": true,
+      "target_parameter_presets": [
+        {
+          "command_arguments": [
+            "-f",
+            "2",
+            "-c",
+            "2",
+            "-s",
+            "2",
+            "-0",
+            "2",
+            "-1",
+            "2",
+            "-i",
+            "1"
+          ],
+          "notes": "Small Freecell instance.",
+          "parameters": {
+            "cards_per_suit": [
+              2,
+              2
+            ],
+            "columns": 2,
+            "freecells": 2,
+            "initial_stacks": 1,
+            "suits": 2
+          },
+          "preset_id": "easy"
+        },
+        {
+          "command_arguments": [
+            "-f",
+            "4",
+            "-c",
+            "4",
+            "-s",
+            "4",
+            "-0",
+            "3",
+            "-1",
+            "3",
+            "-2",
+            "3",
+            "-3",
+            "3",
+            "-i",
+            "2"
+          ],
+          "notes": "Balanced 4-suit Freecell instance.",
+          "parameters": {
+            "cards_per_suit": [
+              3,
+              3,
+              3,
+              3
+            ],
+            "columns": 4,
+            "freecells": 4,
+            "initial_stacks": 2,
+            "suits": 4
+          },
+          "preset_id": "medium"
+        },
+        {
+          "command_arguments": [
+            "-f",
+            "4",
+            "-c",
+            "6",
+            "-s",
+            "4",
+            "-0",
+            "5",
+            "-1",
+            "5",
+            "-2",
+            "5",
+            "-3",
+            "5",
+            "-i",
+            "4"
+          ],
+          "notes": "Larger Freecell instance.",
+          "parameters": {
+            "cards_per_suit": [
+              5,
+              5,
+              5,
+              5
+            ],
+            "columns": 6,
+            "freecells": 4,
+            "initial_stacks": 4,
+            "suits": 4
+          },
+          "preset_id": "hard"
+        }
+      ]
+    },
+    {
+      "adapter_configured": true,
+      "adapter_id": "grid",
+      "build_artifact_paths": [],
+      "build_commands": [],
+      "build_required": false,
+      "domain_file_source": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/grid/domain.pddl",
+      "domain_id": "grid",
+      "generator_domain_id": "grid",
+      "generator_path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/grid/generate.py",
+      "output_policy": {
+        "filename_template": null,
+        "mode": "stdout",
+        "notes": "Python generator prints one problem to stdout."
+      },
+      "prep_command": [],
+      "problem_output_discovery": "Normalize the single stdout payload from generate.py as the problem PDDL.",
+      "readiness_failures": [],
+      "ready": true,
+      "seed_policy": {
+        "mode": "flag",
+        "notes": "Python generator accepts --seed.",
+        "option": "--seed",
+        "required": false,
+        "supported": true
+      },
+      "smoke_supported": true,
+      "target_parameter_presets": [
+        {
+          "command_arguments": [
+            "4",
+            "4",
+            "--shapes",
+            "2",
+            "--keys",
+            "2",
+            "--locks",
+            "2",
+            "--prob-goal",
+            "0.5"
+          ],
+          "notes": "Small grid instance.",
+          "parameters": {
+            "keys": 2,
+            "locks": 2,
+            "prob_goal": 0.5,
+            "shapes": 2,
+            "x": 4,
+            "y": 4
+          },
+          "preset_id": "easy"
+        },
+        {
+          "command_arguments": [
+            "5",
+            "5",
+            "--shapes",
+            "3",
+            "--keys",
+            "4",
+            "--locks",
+            "4",
+            "--prob-goal",
+            "0.6"
+          ],
+          "notes": "Moderate grid instance.",
+          "parameters": {
+            "keys": 4,
+            "locks": 4,
+            "prob_goal": 0.6,
+            "shapes": 3,
+            "x": 5,
+            "y": 5
+          },
+          "preset_id": "medium"
+        },
+        {
+          "command_arguments": [
+            "6",
+            "6",
+            "--shapes",
+            "4",
+            "--keys",
+            "6",
+            "--locks",
+            "6",
+            "--prob-goal",
+            "0.75"
+          ],
+          "notes": "Larger grid instance.",
+          "parameters": {
+            "keys": 6,
+            "locks": 6,
+            "prob_goal": 0.75,
+            "shapes": 4,
+            "x": 6,
+            "y": 6
+          },
+          "preset_id": "hard"
+        }
+      ]
+    },
+    {
+      "adapter_configured": true,
+      "adapter_id": "gripper",
+      "build_artifact_paths": [
+        "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/gripper/gripper"
+      ],
+      "build_commands": [
+        "make"
+      ],
+      "build_required": true,
+      "domain_file_source": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/gripper/domain.pddl",
+      "domain_id": "gripper",
+      "generator_domain_id": "gripper",
+      "generator_path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/gripper/gripper",
+      "output_policy": {
+        "filename_template": null,
+        "mode": "stdout",
+        "notes": "Generator prints one problem to stdout."
+      },
+      "prep_command": [],
+      "problem_output_discovery": "Normalize the single stdout payload as the problem PDDL.",
+      "readiness_failures": [],
+      "ready": true,
+      "seed_policy": {
+        "mode": "unsupported",
+        "notes": "Generator is deterministic and does not accept a seed.",
+        "option": null,
+        "required": false,
+        "supported": false
+      },
+      "smoke_supported": true,
+      "target_parameter_presets": [
+        {
+          "command_arguments": [
+            "-n",
+            "3"
+          ],
+          "notes": "Deterministic sweep over 3-13 balls with init-order variants for easy gripper instances.",
+          "parameters": {
+            "balls_start": 3,
+            "balls_stop": 13,
+            "variants_per_n": 8
+          },
+          "preset_id": "easy"
+        },
+        {
+          "command_arguments": [
+            "-n",
+            "14"
+          ],
+          "notes": "Deterministic sweep over 14-25 balls with init-order variants for medium gripper instances.",
+          "parameters": {
+            "balls_start": 14,
+            "balls_stop": 25,
+            "variants_per_n": 8
+          },
+          "preset_id": "medium"
+        },
+        {
+          "command_arguments": [
+            "-n",
+            "26"
+          ],
+          "notes": "Deterministic sweep over 26-33 balls with init-order variants for hard gripper instances.",
+          "parameters": {
+            "balls_start": 26,
+            "balls_stop": 33,
+            "variants_per_n": 8
+          },
+          "preset_id": "hard"
+        }
+      ]
+    },
+    {
+      "adapter_configured": true,
+      "adapter_id": "logistics",
+      "build_artifact_paths": [
+        "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/logistics/logistics"
+      ],
+      "build_commands": [
+        "make"
+      ],
+      "build_required": true,
+      "domain_file_source": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/logistics/domain.pddl",
+      "domain_id": "logistics",
+      "generator_domain_id": "logistics",
+      "generator_path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/logistics/logistics",
+      "output_policy": {
+        "filename_template": null,
+        "mode": "stdout",
+        "notes": "Generator prints one problem to stdout."
+      },
+      "prep_command": [],
+      "problem_output_discovery": "Normalize the single stdout payload as the problem PDDL.",
+      "readiness_failures": [],
+      "ready": true,
+      "seed_policy": {
+        "mode": "flag",
+        "notes": "Optional random seed via -r.",
+        "option": "-r",
+        "required": false,
+        "supported": true
+      },
+      "smoke_supported": true,
+      "target_parameter_presets": [
+        {
+          "command_arguments": [
+            "-a",
+            "1",
+            "-c",
+            "2",
+            "-s",
+            "2",
+            "-p",
+            "2",
+            "-t",
+            "2"
+          ],
+          "notes": "Matches the Makefile smoke scale with explicit trucks.",
+          "parameters": {
+            "airplanes": 1,
+            "cities": 2,
+            "city_size": 2,
+            "packages": 2,
+            "trucks": 2
+          },
+          "preset_id": "easy"
+        },
+        {
+          "command_arguments": [
+            "-a",
+            "1",
+            "-c",
+            "3",
+            "-s",
+            "3",
+            "-p",
+            "4",
+            "-t",
+            "3"
+          ],
+          "notes": "Moderate logistics instance.",
+          "parameters": {
+            "airplanes": 1,
+            "cities": 3,
+            "city_size": 3,
+            "packages": 4,
+            "trucks": 3
+          },
+          "preset_id": "medium"
+        },
+        {
+          "command_arguments": [
+            "-a",
+            "2",
+            "-c",
+            "4",
+            "-s",
+            "4",
+            "-p",
+            "8",
+            "-t",
+            "4"
+          ],
+          "notes": "Larger logistics instance.",
+          "parameters": {
+            "airplanes": 2,
+            "cities": 4,
+            "city_size": 4,
+            "packages": 8,
+            "trucks": 4
+          },
+          "preset_id": "hard"
+        }
+      ]
+    },
+    {
+      "adapter_configured": true,
+      "adapter_id": "snake",
+      "build_artifact_paths": [],
+      "build_commands": [],
+      "build_required": false,
+      "domain_file_source": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/snake/domain.pddl",
+      "domain_id": "snake",
+      "generator_domain_id": "snake",
+      "generator_path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/snake/generate.py",
+      "output_policy": {
+        "filename_template": null,
+        "mode": "stdout",
+        "notes": "Python generator prints one problem to stdout when output type is pddl."
+      },
+      "prep_command": [],
+      "problem_output_discovery": "Normalize the single stdout payload from generate.py when invoked with output_type=pddl.",
+      "readiness_failures": [],
+      "ready": true,
+      "seed_policy": {
+        "mode": "positional",
+        "notes": "Seed is the fifth positional argument before the output-type selector.",
+        "option": null,
+        "required": true,
+        "supported": true
+      },
+      "smoke_supported": true,
+      "target_parameter_presets": [
+        {
+          "command_arguments": [
+            "empty-6x6",
+            "2",
+            "1",
+            "1"
+          ],
+          "notes": "Empty 6x6 board with one spawn apple.",
+          "parameters": {
+            "board": "empty-6x6",
+            "initial_apples": 1,
+            "snake_size": 2,
+            "spawn_apples": 1
+          },
+          "preset_id": "easy"
+        },
+        {
+          "command_arguments": [
+            "boards/obstacles-6x6.txt",
+            "3",
+            "1",
+            "2"
+          ],
+          "notes": "Obstacle board with a slightly longer snake.",
+          "parameters": {
+            "board": "boards/obstacles-6x6.txt",
+            "initial_apples": 1,
+            "snake_size": 3,
+            "spawn_apples": 2
+          },
+          "preset_id": "medium"
+        },
+        {
+          "command_arguments": [
+            "boards/obstacles-8x8.txt",
+            "4",
+            "2",
+            "20%"
+          ],
+          "notes": "Larger obstacle board with percentage-based spawn apples.",
+          "parameters": {
+            "board": "boards/obstacles-8x8.txt",
+            "initial_apples": 2,
+            "snake_size": 4,
+            "spawn_apples": "20%"
+          },
+          "preset_id": "hard"
+        }
+      ]
+    },
+    {
+      "adapter_configured": true,
+      "adapter_id": "sokoban",
+      "build_artifact_paths": [
+        "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/sokoban/random/sokoban-generator-typed"
+      ],
+      "build_commands": [
+        "make",
+        "random"
+      ],
+      "build_required": true,
+      "domain_file_source": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/pddl_instances/sokoban/domain.pddl",
+      "domain_id": "sokoban",
+      "generator_domain_id": "sokoban",
+      "generator_path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/sokoban/random/sokoban-generator-typed",
+      "output_policy": {
+        "filename_template": null,
+        "mode": "stdout",
+        "notes": "Typed Sokoban generator prints one problem to stdout."
+      },
+      "prep_command": [
+        "make",
+        "random"
+      ],
+      "problem_output_discovery": "Normalize the single stdout payload produced by the typed random generator.",
+      "readiness_failures": [],
+      "ready": true,
+      "seed_policy": {
+        "mode": "flag",
+        "notes": "Optional random seed via -s.",
+        "option": "-s",
+        "required": false,
+        "supported": true
+      },
+      "smoke_supported": true,
+      "target_parameter_presets": [
+        {
+          "command_arguments": [
+            "-n",
+            "5",
+            "-b",
+            "1",
+            "-w",
+            "0"
+          ],
+          "notes": "Render-compatible one-box Sokoban instance.",
+          "parameters": {
+            "boxes": 1,
+            "grid_size": 5,
+            "walls": 0
+          },
+          "preset_id": "easy"
+        },
+        {
+          "command_arguments": [
+            "-n",
+            "5",
+            "-b",
+            "1",
+            "-w",
+            "0"
+          ],
+          "notes": "Render-compatible one-box Sokoban instance; measured percentile selection assigns final bucket.",
+          "parameters": {
+            "boxes": 1,
+            "grid_size": 5,
+            "walls": 0
+          },
+          "preset_id": "medium"
+        },
+        {
+          "command_arguments": [
+            "-n",
+            "5",
+            "-b",
+            "1",
+            "-w",
+            "0"
+          ],
+          "notes": "Render-compatible one-box Sokoban instance; measured percentile selection assigns final bucket.",
+          "parameters": {
+            "boxes": 1,
+            "grid_size": 5,
+            "walls": 0
+          },
+          "preset_id": "hard"
+        }
+      ]
+    },
+    {
+      "adapter_configured": true,
+      "adapter_id": "storage",
+      "build_artifact_paths": [
+        "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/storage/storage"
+      ],
+      "build_commands": [
+        "make",
+        "generator"
+      ],
+      "build_required": true,
+      "domain_file_source": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/storage/domain.pddl",
+      "domain_id": "storage",
+      "generator_domain_id": "storage",
+      "generator_path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/storage/storage",
+      "output_policy": {
+        "filename_template": "raw-problem.pddl",
+        "mode": "named_file",
+        "notes": "Generator writes exactly one problem to the output filename argument."
+      },
+      "prep_command": [
+        "make",
+        "generator"
+      ],
+      "problem_output_discovery": "Normalize the named file passed as the final CLI argument.",
+      "readiness_failures": [],
+      "ready": true,
+      "seed_policy": {
+        "mode": "flag",
+        "notes": "Optional random seed via -e; the binary falls back to time(0) otherwise.",
+        "option": "-e",
+        "required": false,
+        "supported": true
+      },
+      "smoke_supported": true,
+      "target_parameter_presets": [
+        {
+          "command_arguments": [
+            "-p",
+            "01",
+            "-o",
+            "1",
+            "-c",
+            "1",
+            "-n",
+            "1",
+            "-s",
+            "1",
+            "-d",
+            "1"
+          ],
+          "notes": "Matches the Makefile smoke scale.",
+          "parameters": {
+            "containers": 1,
+            "crates": 1,
+            "depots": 1,
+            "hoists": 1,
+            "problem_number": 1,
+            "store_areas": 1
+          },
+          "preset_id": "easy"
+        },
+        {
+          "command_arguments": [
+            "-p",
+            "02",
+            "-o",
+            "2",
+            "-c",
+            "4",
+            "-n",
+            "2",
+            "-s",
+            "8",
+            "-d",
+            "2"
+          ],
+          "notes": "Moderate storage instance.",
+          "parameters": {
+            "containers": 2,
+            "crates": 4,
+            "depots": 2,
+            "hoists": 2,
+            "problem_number": 2,
+            "store_areas": 8
+          },
+          "preset_id": "medium"
+        },
+        {
+          "command_arguments": [
+            "-p",
+            "03",
+            "-o",
+            "3",
+            "-c",
+            "9",
+            "-n",
+            "3",
+            "-s",
+            "18",
+            "-d",
+            "3"
+          ],
+          "notes": "Larger storage instance.",
+          "parameters": {
+            "containers": 3,
+            "crates": 9,
+            "depots": 3,
+            "hoists": 3,
+            "problem_number": 3,
+            "store_areas": 18
+          },
+          "preset_id": "hard"
+        }
+      ]
+    },
+    {
+      "adapter_configured": true,
+      "adapter_id": "towers_of_hanoi",
+      "build_artifact_paths": [
+        "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/hanoi/hanoi"
+      ],
+      "build_commands": [
+        "make"
+      ],
+      "build_required": true,
+      "domain_file_source": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/hanoi/domain.pddl",
+      "domain_id": "towers_of_hanoi",
+      "generator_domain_id": "hanoi",
+      "generator_path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/hanoi/hanoi",
+      "output_policy": {
+        "filename_template": null,
+        "mode": "stdout",
+        "notes": "Generator prints one problem to stdout."
+      },
+      "prep_command": [],
+      "problem_output_discovery": "Normalize the single stdout payload as the problem PDDL.",
+      "readiness_failures": [],
+      "ready": true,
+      "seed_policy": {
+        "mode": "unsupported",
+        "notes": "Generator is deterministic and does not accept a seed.",
+        "option": null,
+        "required": false,
+        "supported": false
+      },
+      "smoke_supported": true,
+      "target_parameter_presets": [
+        {
+          "command_arguments": [
+            "-n",
+            "3"
+          ],
+          "notes": "Deterministic sweep over 3-5 discs with render-safe object-renaming variants for easy Hanoi instances.",
+          "parameters": {
+            "discs_start": 3,
+            "discs_stop": 5,
+            "variants_per_n": 36
+          },
+          "preset_id": "easy"
+        },
+        {
+          "command_arguments": [
+            "-n",
+            "6"
+          ],
+          "notes": "Deterministic sweep over 6-7 discs with render-safe object-renaming variants for medium Hanoi instances.",
+          "parameters": {
+            "discs_start": 6,
+            "discs_stop": 7,
+            "variants_per_n": 48
+          },
+          "preset_id": "medium"
+        },
+        {
+          "command_arguments": [
+            "-n",
+            "8"
+          ],
+          "notes": "Deterministic sweep over 8-9 discs with render-safe object-renaming variants for hard Hanoi instances.",
+          "parameters": {
+            "discs_start": 8,
+            "discs_stop": 9,
+            "variants_per_n": 48
+          },
+          "preset_id": "hard"
+        }
+      ]
+    },
+    {
+      "adapter_configured": true,
+      "adapter_id": "visitall",
+      "build_artifact_paths": [
+        "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/visitall/grid"
+      ],
+      "build_commands": [
+        "make"
+      ],
+      "build_required": true,
+      "domain_file_source": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/visitall/domain.pddl",
+      "domain_id": "visitall",
+      "generator_domain_id": "visitall",
+      "generator_path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/visitall/grid",
+      "output_policy": {
+        "filename_template": null,
+        "mode": "stdout",
+        "notes": "Generator prints one problem to stdout."
+      },
+      "prep_command": [],
+      "problem_output_discovery": "Normalize the single stdout payload as the problem PDDL.",
+      "readiness_failures": [],
+      "ready": true,
+      "seed_policy": {
+        "mode": "flag",
+        "notes": "Optional random seed via -s.",
+        "option": "-s",
+        "required": false,
+        "supported": true
+      },
+      "smoke_supported": true,
+      "target_parameter_presets": [
+        {
+          "command_arguments": [
+            "-n",
+            "5",
+            "-r",
+            "0.5",
+            "-u",
+            "0"
+          ],
+          "notes": "Half-goal 5x5 instance.",
+          "parameters": {
+            "goal_ratio": 0.5,
+            "grid_size": 5,
+            "unavailable": 0
+          },
+          "preset_id": "easy"
+        },
+        {
+          "command_arguments": [
+            "-n",
+            "8",
+            "-r",
+            "1",
+            "-u",
+            "4"
+          ],
+          "notes": "Full-goal 8x8 instance with holes.",
+          "parameters": {
+            "goal_ratio": 1.0,
+            "grid_size": 8,
+            "unavailable": 4
+          },
+          "preset_id": "medium"
+        },
+        {
+          "command_arguments": [
+            "-n",
+            "12",
+            "-r",
+            "1",
+            "-u",
+            "12"
+          ],
+          "notes": "Larger full-goal instance with more unavailable cells.",
+          "parameters": {
+            "goal_ratio": 1.0,
+            "grid_size": 12,
+            "unavailable": 12
+          },
+          "preset_id": "hard"
+        }
+      ]
+    }
+  ],
+  "commands": {
+    "cmake": {
+      "available": true,
+      "name": "cmake",
+      "path": "/home/sukaih/miniconda3/envs/ada_vla/bin/cmake",
+      "version": "cmake version 4.1.3"
+    },
+    "g++": {
+      "available": true,
+      "name": "g++",
+      "path": "/usr/bin/g++",
+      "version": "g++ (GCC) 11.5.0 20240719 (Red Hat 11.5.0-14)"
+    },
+    "make": {
+      "available": true,
+      "name": "make",
+      "path": "/usr/bin/make",
+      "version": "GNU Make 4.3"
+    },
+    "uv": {
+      "available": true,
+      "name": "uv",
+      "path": "/home/sukaih/miniconda3/envs/ada_vla/bin/uv",
+      "version": "uv 0.11.3 (x86_64-unknown-linux-gnu)"
+    }
+  },
+  "config_path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/src/data_collect/configs/curriculum_15_domains.yaml",
+  "dependency_groups": [
+    {
+      "build_commands": [
+        "make"
+      ],
+      "build_required": true,
+      "generator_domain_id": "npuzzle",
+      "group_id": "npuzzle",
+      "missing_python_packages": [],
+      "notes": "Builds the compiled sliding-puzzle generator from modules/pddl-generators/npuzzle.",
+      "python_packages": [],
+      "python_runtime": "python3",
+      "system_tools": [
+        "make",
+        "g++"
+      ],
+      "uv_install_command": null
+    },
+    {
+      "build_commands": [
+        "make"
+      ],
+      "build_required": true,
+      "generator_domain_id": "blocksworld",
+      "group_id": "blocksworld",
+      "missing_python_packages": [],
+      "notes": "Uses the Makefile-based Blocksworld generator and helper binaries.",
+      "python_packages": [],
+      "python_runtime": "python3",
+      "system_tools": [
+        "make",
+        "g++"
+      ],
+      "uv_install_command": null
+    },
+    {
+      "build_commands": [
+        "make"
+      ],
+      "build_required": true,
+      "generator_domain_id": "depots",
+      "group_id": "depots",
+      "missing_python_packages": [],
+      "notes": "Builds the compiled depots generator under modules/pddl-generators/depots.",
+      "python_packages": [],
+      "python_runtime": "python3",
+      "system_tools": [
+        "make",
+        "g++"
+      ],
+      "uv_install_command": null
+    },
+    {
+      "build_commands": [
+        "make"
+      ],
+      "build_required": true,
+      "generator_domain_id": "driverlog",
+      "group_id": "driverlog",
+      "missing_python_packages": [],
+      "notes": "Builds the compiled Driverlog generator from modules/pddl-generators/driverlog.",
+      "python_packages": [],
+      "python_runtime": "python3",
+      "system_tools": [
+        "make",
+        "g++"
+      ],
+      "uv_install_command": null
+    },
+    {
+      "build_commands": [
+        "make"
+      ],
+      "build_required": true,
+      "generator_domain_id": "miconic",
+      "group_id": "miconic",
+      "missing_python_packages": [],
+      "notes": "Builds the compiled Miconic generator used by the Planimation elevators sample domain.",
+      "python_packages": [],
+      "python_runtime": "python3",
+      "system_tools": [
+        "make",
+        "g++"
+      ],
+      "uv_install_command": null
+    },
+    {
+      "build_commands": [
+        "make"
+      ],
+      "build_required": true,
+      "generator_domain_id": "ferry",
+      "group_id": "ferry",
+      "missing_python_packages": [],
+      "notes": "Builds the compiled ferry generator from modules/pddl-generators/ferry.",
+      "python_packages": [],
+      "python_runtime": "python3",
+      "system_tools": [
+        "make",
+        "g++"
+      ],
+      "uv_install_command": null
+    },
+    {
+      "build_commands": [
+        "make"
+      ],
+      "build_required": true,
+      "generator_domain_id": "freecell",
+      "group_id": "freecell",
+      "missing_python_packages": [],
+      "notes": "Builds the compiled Freecell generator from modules/pddl-generators/freecell.",
+      "python_packages": [],
+      "python_runtime": "python3",
+      "system_tools": [
+        "make",
+        "g++"
+      ],
+      "uv_install_command": null
+    },
+    {
+      "build_commands": [],
+      "build_required": false,
+      "generator_domain_id": "grid",
+      "group_id": "grid",
+      "missing_python_packages": [],
+      "notes": "Uses the stdlib-only Python generator at modules/pddl-generators/grid/generate.py.",
+      "python_packages": [],
+      "python_runtime": "python3",
+      "system_tools": [],
+      "uv_install_command": null
+    },
+    {
+      "build_commands": [
+        "make"
+      ],
+      "build_required": true,
+      "generator_domain_id": "gripper",
+      "group_id": "gripper",
+      "missing_python_packages": [],
+      "notes": "Builds the compiled Gripper generator from modules/pddl-generators/gripper.",
+      "python_packages": [],
+      "python_runtime": "python3",
+      "system_tools": [
+        "make",
+        "g++"
+      ],
+      "uv_install_command": null
+    },
+    {
+      "build_commands": [
+        "make"
+      ],
+      "build_required": true,
+      "generator_domain_id": "logistics",
+      "group_id": "logistics",
+      "missing_python_packages": [],
+      "notes": "Builds the compiled logistics generator from modules/pddl-generators/logistics.",
+      "python_packages": [],
+      "python_runtime": "python3",
+      "system_tools": [
+        "make",
+        "g++"
+      ],
+      "uv_install_command": null
+    },
+    {
+      "build_commands": [],
+      "build_required": false,
+      "generator_domain_id": "snake",
+      "group_id": "snake",
+      "missing_python_packages": [],
+      "notes": "Uses the stdlib-only Python generator at modules/pddl-generators/snake/generate.py.",
+      "python_packages": [],
+      "python_runtime": "python3",
+      "system_tools": [],
+      "uv_install_command": null
+    },
+    {
+      "build_commands": [
+        "make"
+      ],
+      "build_required": true,
+      "generator_domain_id": "sokoban",
+      "group_id": "sokoban",
+      "missing_python_packages": [],
+      "notes": "Uses the Sokoban suite scripts together with the random generator binaries.",
+      "python_packages": [],
+      "python_runtime": "python3",
+      "system_tools": [
+        "make",
+        "g++"
+      ],
+      "uv_install_command": null
+    },
+    {
+      "build_commands": [
+        "make"
+      ],
+      "build_required": true,
+      "generator_domain_id": "storage",
+      "group_id": "storage",
+      "missing_python_packages": [],
+      "notes": "Builds the compiled storage generator from modules/pddl-generators/storage.",
+      "python_packages": [],
+      "python_runtime": "python3",
+      "system_tools": [
+        "make",
+        "g++"
+      ],
+      "uv_install_command": null
+    },
+    {
+      "build_commands": [
+        "make"
+      ],
+      "build_required": true,
+      "generator_domain_id": "hanoi",
+      "group_id": "hanoi",
+      "missing_python_packages": [],
+      "notes": "Builds the compiled Towers of Hanoi generator from modules/pddl-generators/hanoi.",
+      "python_packages": [],
+      "python_runtime": "python3",
+      "system_tools": [
+        "make",
+        "g++"
+      ],
+      "uv_install_command": null
+    },
+    {
+      "build_commands": [
+        "make"
+      ],
+      "build_required": true,
+      "generator_domain_id": "visitall",
+      "group_id": "visitall",
+      "missing_python_packages": [],
+      "notes": "Builds the compiled visitall generator from modules/pddl-generators/visitall.",
+      "python_packages": [],
+      "python_runtime": "python3",
+      "system_tools": [
+        "make",
+        "g++"
+      ],
+      "uv_install_command": null
+    }
+  ],
+  "downward_root": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/downward",
+  "generator_root": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators",
+  "generator_root_exists": true,
+  "issues": [
+    "validator command missing: validate"
+  ],
+  "planner_command": {
+    "available": true,
+    "name": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/downward/fast-downward.py",
+    "path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/downward/fast-downward.py",
+    "version": "Fast Downward 24.06+"
+  },
+  "python": {
+    "available": true,
+    "name": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/.venv/bin/python",
+    "path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/.venv/bin/python",
+    "version": "3.11.14"
+  },
+  "ready": true,
+  "render_profiles": [
+    {
+      "domain_id": "15puzzle",
+      "exists": true,
+      "path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/pddl_instances/15puzzle/15-puzzle_ap.pddl"
+    },
+    {
+      "domain_id": "blocksworld",
+      "exists": true,
+      "path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/pddl_instances/blocksworld/blocksworld_AP.pddl"
+    },
+    {
+      "domain_id": "depot",
+      "exists": true,
+      "path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/pddl_instances/depot/depot_ap.pddl"
+    },
+    {
+      "domain_id": "driverlog",
+      "exists": true,
+      "path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/pddl_instances/driverlog/ap.pddl"
+    },
+    {
+      "domain_id": "elevators",
+      "exists": true,
+      "path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/pddl_instances/elevators/elevators_ap.pddl"
+    },
+    {
+      "domain_id": "ferry",
+      "exists": true,
+      "path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/pddl_instances/ferry/ap.pddl"
+    },
+    {
+      "domain_id": "freecell",
+      "exists": true,
+      "path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/pddl_instances/freecell/freecell_AP.pddl"
+    },
+    {
+      "domain_id": "grid",
+      "exists": true,
+      "path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/pddl_instances/grid/grid_AP.pddl"
+    },
+    {
+      "domain_id": "gripper",
+      "exists": true,
+      "path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/pddl_instances/gripper/gripper_AP.pddl"
+    },
+    {
+      "domain_id": "logistics",
+      "exists": true,
+      "path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/pddl_instances/logistics/logistics_ap.pddl"
+    },
+    {
+      "domain_id": "snake",
+      "exists": true,
+      "path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/pddl_instances/snake/ap.pddl"
+    },
+    {
+      "domain_id": "sokoban",
+      "exists": true,
+      "path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/pddl_instances/sokoban/ap.pddl"
+    },
+    {
+      "domain_id": "storage",
+      "exists": true,
+      "path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/pddl_instances/storage/ap.pddl"
+    },
+    {
+      "domain_id": "towers_of_hanoi",
+      "exists": true,
+      "path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/pddl_instances/towers_of_hanoi/hanoi_ap.pddl"
+    },
+    {
+      "domain_id": "visitall",
+      "exists": true,
+      "path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/pddl_instances/visitall/visitall_ap.pddl"
+    }
+  ],
+  "rendering_ready": true,
+  "require_rendering": true,
+  "validator_command": {
+    "available": false,
+    "name": "validate",
+    "path": null,
+    "version": null
+  },
+  "workspace_root": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning"
+}

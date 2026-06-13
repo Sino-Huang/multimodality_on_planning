@@ -1,0 +1,110 @@
+Conda environment 'ada_vla' is already activated.
+{
+  "failure_count": 0,
+  "manifest": "/tmp/sokoban_hand_grid_diagnosis/manifest.json",
+  "min_successes": 0,
+  "mode": "render",
+  "output_verification": {
+    "other_visual_files": 0,
+    "output_dir": "/tmp/sokoban_hand_grid_diagnosis/output",
+    "png_files": 12,
+    "result_files": 3,
+    "vfg_files": 0
+  },
+  "preflight": {
+    "elapsed_seconds": 0.026,
+    "reachable": true,
+    "root_url": "https://planimation.planning.domains",
+    "status_code": 200
+  },
+  "results": [
+    {
+      "animation_profile_path": "/tmp/sokoban_hand_grid_diagnosis/hand3/ap.pddl",
+      "artifact_path": "/tmp/sokoban_hand_grid_diagnosis/output/hand3/problem/frames",
+      "domain_id": "hand3",
+      "domain_path": "/tmp/sokoban_hand_grid_diagnosis/hand3/domain.pddl",
+      "elapsed_seconds": 3.459,
+      "format": "png",
+      "png_count": 4,
+      "problem_id": "problem",
+      "problem_path": "/tmp/sokoban_hand_grid_diagnosis/hand3/problem.pddl",
+      "status": "success",
+      "used_local_renderer": true,
+      "used_pddl_url": "https://planimation.planning.domains/upload/pddl",
+      "used_vfg_url": null
+    },
+    {
+      "animation_profile_path": "/tmp/sokoban_hand_grid_diagnosis/hand4/ap.pddl",
+      "artifact_path": "/tmp/sokoban_hand_grid_diagnosis/output/hand4/problem/frames",
+      "domain_id": "hand4",
+      "domain_path": "/tmp/sokoban_hand_grid_diagnosis/hand4/domain.pddl",
+      "elapsed_seconds": 3.449,
+      "format": "png",
+      "png_count": 4,
+      "problem_id": "problem",
+      "problem_path": "/tmp/sokoban_hand_grid_diagnosis/hand4/problem.pddl",
+      "status": "success",
+      "used_local_renderer": true,
+      "used_pddl_url": "https://planimation.planning.domains/upload/pddl",
+      "used_vfg_url": null
+    },
+    {
+      "animation_profile_path": "/tmp/sokoban_hand_grid_diagnosis/hand5/ap.pddl",
+      "artifact_path": "/tmp/sokoban_hand_grid_diagnosis/output/hand5/problem/frames",
+      "domain_id": "hand5",
+      "domain_path": "/tmp/sokoban_hand_grid_diagnosis/hand5/domain.pddl",
+      "elapsed_seconds": 3.488,
+      "format": "png",
+      "png_count": 4,
+      "problem_id": "problem",
+      "problem_path": "/tmp/sokoban_hand_grid_diagnosis/hand5/problem.pddl",
+      "status": "success",
+      "used_local_renderer": true,
+      "used_pddl_url": "https://planimation.planning.domains/upload/pddl",
+      "used_vfg_url": null
+    }
+  ],
+  "root_url": "https://planimation.planning.domains",
+  "selected_count": 3,
+  "selected_entries": [
+    {
+      "animation_profile_path": "hand3/ap.pddl",
+      "animation_profile_source_url": "",
+      "domain_id": "hand3",
+      "domain_path": "hand3/domain.pddl",
+      "domain_source_url": "",
+      "editor_session_id": "",
+      "notes": "Task 13 hand grid diagnosis",
+      "problem_id": "problem",
+      "problem_path": "hand3/problem.pddl",
+      "problem_source_url": ""
+    },
+    {
+      "animation_profile_path": "hand4/ap.pddl",
+      "animation_profile_source_url": "",
+      "domain_id": "hand4",
+      "domain_path": "hand4/domain.pddl",
+      "domain_source_url": "",
+      "editor_session_id": "",
+      "notes": "Task 13 hand grid diagnosis",
+      "problem_id": "problem",
+      "problem_path": "hand4/problem.pddl",
+      "problem_source_url": ""
+    },
+    {
+      "animation_profile_path": "hand5/ap.pddl",
+      "animation_profile_source_url": "",
+      "domain_id": "hand5",
+      "domain_path": "hand5/domain.pddl",
+      "domain_source_url": "",
+      "editor_session_id": "",
+      "notes": "Task 13 hand grid diagnosis",
+      "problem_id": "problem",
+      "problem_path": "hand5/problem.pddl",
+      "problem_source_url": ""
+    }
+  ],
+  "success_count": 3
+}
+
+exit_status=0

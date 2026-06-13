@@ -1,0 +1,74 @@
+{
+  "accepted_manifest_path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/curriculum_pddl/accepted_manifest.jsonl",
+  "output_root": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/curriculum_pddl",
+  "rejections_path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/curriculum_pddl/rejections.jsonl",
+  "summary": {
+    "accepted_by_bucket": {
+      "easy": 1230,
+      "hard": 945,
+      "medium": 1425
+    },
+    "accepted_by_domain": {
+      "15puzzle": 240,
+      "blocksworld": 240,
+      "depot": 240,
+      "driverlog": 240,
+      "elevators": 240,
+      "ferry": 240,
+      "freecell": 240,
+      "grid": 240,
+      "gripper": 240,
+      "logistics": 240,
+      "snake": 240,
+      "sokoban": 240,
+      "storage": 240,
+      "towers_of_hanoi": 240,
+      "visitall": 240
+    },
+    "accepted_by_split": {
+      "dev": 300,
+      "test": 300,
+      "train": 3000
+    },
+    "accepted_total": 3600,
+    "domains_completed": 15,
+    "duplicate_accepted_problem_hashes": 0,
+    "extra": {
+      "merge": {
+        "force": true,
+        "resume": false,
+        "shard_roots": [
+          "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/curriculum_pddl_shards/15puzzle",
+          "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/curriculum_pddl_shards/blocksworld",
+          "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/curriculum_pddl_shards/depot",
+          "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/curriculum_pddl_shards/driverlog",
+          "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/curriculum_pddl_shards/elevators",
+          "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/curriculum_pddl_shards/ferry",
+          "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/curriculum_pddl_shards/freecell",
+          "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/curriculum_pddl_shards/grid",
+          "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/curriculum_pddl_shards/gripper",
+          "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/curriculum_pddl_shards/logistics",
+          "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/curriculum_pddl_shards/snake",
+          "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/curriculum_pddl_shards/sokoban",
+          "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/curriculum_pddl_shards/storage",
+          "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/curriculum_pddl_shards/towers_of_hanoi",
+          "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/curriculum_pddl_shards/visitall"
+        ],
+        "shards_root": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/curriculum_pddl_shards"
+      }
+    },
+    "notes": "Merged from finalized curriculum PDDL shards.",
+    "rejected_by_reason": {
+      "deterministic_variants_exhausted": 5328,
+      "duplicate_hash": 7501,
+      "render_failed": 6079,
+      "selection_not_selected": 3476
+    },
+    "rejected_total": 22384,
+    "render_failed_accepted": 0,
+    "resumed_accepted_total": 0,
+    "schema_version": 1,
+    "status": "summary"
+  },
+  "summary_path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/data/curriculum_pddl/summary.json"
+}
