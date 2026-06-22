@@ -234,8 +234,6 @@ wandb/*
 **/*.npy
 **/*.parquet
 
-*/**/*.md
-*/*.md
 !examples/**/README.md
 
 # Whitelist specific docs that should be tracked
