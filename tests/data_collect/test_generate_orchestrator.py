@@ -446,3 +446,79 @@ def test_split_specific_resume_rejects_hashes_accepted_in_other_splits(tmp_path:
     assert dedupe_rejections[0].details["existing_split"] == "train"
     assert dedupe_rejections[0].duplicate_of_instance_id == "grid-train-easy-0000"
     assert len((output_root / "accepted_manifest.jsonl").read_text(encoding="utf-8").splitlines()) == 2
+
+
+def test_resume_extension_pool_uses_remaining_quota_not_absolute_target(tmp_path: Path) -> None:
+    curriculum_config = _build_curriculum_config(
+        tmp_path,
+        ["grid"],
+        split_buckets={"train": {"easy": 2, "medium": 0, "hard": 0}},
+    )
+    output_root = tmp_path / "dataset"
+    first_registry = {
+        "grid": ScriptedAdapter(
+            adapter_id="grid",
+            generator_dir=tmp_path / "generators" / "grid",
+            plans_by_bucket={
+                ("train", "easy"): [AttemptPlan(mode="success", object_count=1, variant="first")],
+            },
+        )
+    }
+    first = orchestrate_generation(
+        curriculum_config,
+        output_root=output_root,
+        renderer=FakeRenderer(frame_count=1),
+        max_attempts_per_bucket=1,
+        seed=123,
+        quotas_by_split={"train": {"easy": 1, "medium": 0, "hard": 0}},
+        candidate_multiplier=1,
+        registry=first_registry,
+    )
+
+    second_registry = {
+        "grid": ScriptedAdapter(
+            adapter_id="grid",
+            generator_dir=tmp_path / "generators" / "grid",
+            plans_by_bucket={
+                ("train", "easy"): [AttemptPlan(mode="success", object_count=2, variant="second")],
+            },
+        )
+    }
+    second = orchestrate_generation(
+        curriculum_config,
+        output_root=output_root,
+        renderer=FakeRenderer(frame_count=1),
+        max_attempts_per_bucket=2,
+        seed=123,
+        quotas_by_split={"train": {"easy": 2, "medium": 0, "hard": 0}},
+        candidate_multiplier=1,
+        registry=second_registry,
+    )
+
+    assert first.summary.accepted_total == 1
+    assert second.summary.accepted_total == 2
+    assert second.summary.extra["selection"]["grid"]["train"]["remaining_quotas"] == {"easy": 1, "medium": 0, "hard": 0}
+    assert second.summary.extra["selection"]["grid"]["train"]["pool_size"] == 1
+    assert second_registry["grid"].call_count == 1
+
+
+def test_candidate_multiplier_zero_is_rejected(tmp_path: Path) -> None:
+    curriculum_config = _build_curriculum_config(tmp_path, ["grid"])
+    registry = _build_registry(tmp_path, ["grid"])
+
+    try:
+        orchestrate_generation(
+            curriculum_config,
+            output_root=tmp_path / "dataset",
+            renderer=FakeRenderer(frame_count=1),
+            max_attempts_per_bucket=2,
+            seed=123,
+            candidate_multiplier=0,
+            registry=registry,
+        )
+    except ValueError as error:
+        message = str(error)
+    else:  # pragma: no cover - defensive
+        raise AssertionError("Expected candidate_multiplier=0 to be rejected")
+
+    assert message == "candidate_multiplier must be positive"

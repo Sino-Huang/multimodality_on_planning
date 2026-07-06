@@ -33,18 +33,35 @@ import logging
 import sys
 from pathlib import Path
 
-# Base registries (kept as fallback / seed values)
-from starVLA.dataloader.gr00t_lerobot.data_config import (
-    ROBOT_TYPE_CONFIG_MAP as _BASE_CONFIG_MAP,
+logger = logging.getLogger(__name__)
+
+OPTIONAL_REGISTRY_IMPORT_DEPENDENCIES = frozenset(
+    {
+        "accelerate",
+        "numpy",
+        "pandas",
+        "pydantic",
+        "torch",
+        "tqdm",
+    }
 )
+
+# Base registries (kept as fallback / seed values)
+try:
+    from starVLA.dataloader.gr00t_lerobot.data_config import (
+        ROBOT_TYPE_CONFIG_MAP as _BASE_CONFIG_MAP,
+    )
+except ModuleNotFoundError as exc:
+    if exc.name not in OPTIONAL_REGISTRY_IMPORT_DEPENDENCIES:
+        raise
+    _BASE_CONFIG_MAP = {}
+    logger.warning("[registry] Skipping base data_config import because optional dependency is missing: %s", exc)
 from starVLA.dataloader.gr00t_lerobot.embodiment_tags import (
     EmbodimentTag,  # re-export for convenience
 )
 from starVLA.dataloader.gr00t_lerobot.mixtures import (
     DATASET_NAMED_MIXTURES as _BASE_MIXTURES,
 )
-
-logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Mutable copies – will be extended by discovered modules
@@ -110,8 +127,20 @@ def _load_module_from_path(module_name: str, file_path: Path):
         return None
     mod = importlib.util.module_from_spec(spec)
     sys.modules[module_name] = mod
-    spec.loader.exec_module(mod)
+    try:
+        spec.loader.exec_module(mod)
+    except ModuleNotFoundError as exc:
+        if not _is_optional_dependency_error(exc):
+            sys.modules.pop(module_name, None)
+            raise
+        sys.modules.pop(module_name, None)
+        logger.warning("[registry] Skipping %s because optional dependency is missing: %s", file_path, exc)
+        return None
     return mod
+
+
+def _is_optional_dependency_error(exc: ModuleNotFoundError) -> bool:
+    return exc.name in OPTIONAL_REGISTRY_IMPORT_DEPENDENCIES
 
 
 def discover_and_merge() -> None:

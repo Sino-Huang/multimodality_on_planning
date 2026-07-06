@@ -1,0 +1,25 @@
+{
+  "action_validity": false,
+  "action_validity_details": {
+    "legal_actions": [
+      "pickup(a)",
+      "pickup(b)",
+      "pickup(c)"
+    ],
+    "next_action": "stack(a,b)"
+  },
+  "algorithm": "bfs",
+  "algorithmic_fidelity": true,
+  "algorithmic_fidelity_details": {
+    "contract_id": "bfs_fifo_frontier_step",
+    "missing_terms": []
+  },
+  "model_output": {
+    "algorithm": "bfs",
+    "confidence": 0.81,
+    "internal_state_update": "Apply FIFO queue discipline: dequeue the current state, then enqueue each legal successor state after expansion.",
+    "next_action": "stack(a,b)"
+  },
+  "score_label": "Action Error",
+  "syntactic_validity": true
+}

@@ -1,0 +1,9 @@
+2026-06-24 baseline before Wave 1 implementation
+
+Commands run:
+- source ~/cd_vlaplan && source .venv/bin/activate && pytest tests/test_planimation_phase1.py -q
+  Result: 8 passed in 0.64s
+- source ~/cd_vlaplan && source .venv/bin/activate && pytest tests/examples/test_planning_benchmark_slice.py -q
+  Result: 5 passed in 1.88s
+- source ~/cd_vlaplan && source .venv/bin/activate && pytest tests/data_collect -q
+  Result: 64 passed in 4.26s

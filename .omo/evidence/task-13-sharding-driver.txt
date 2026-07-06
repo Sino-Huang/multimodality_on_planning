@@ -1,0 +1,6 @@
+started 15puzzle pid=172471
+started blocksworld pid=172472
+started depot pid=172473
+started driverlog pid=172474
+started elevators pid=172475
+started ferry pid=172476

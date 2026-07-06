@@ -1,0 +1,117 @@
+{
+  "algorithms": [
+    "bfs",
+    "fast_forward",
+    "iterated_width",
+    "graphplan"
+  ],
+  "fixture": "tests/fixtures/planning/blocksworld_nontrivial.json",
+  "leakage_errors": [],
+  "modalities": [
+    "language",
+    "vision",
+    "vision_language",
+    "vision_language_tool"
+  ],
+  "output": "outputs/planning_artifacts/zero_shot_smoke",
+  "package_count": 16,
+  "packages": [
+    {
+      "algorithm": "bfs",
+      "modality": "vision",
+      "package_id": "blocksworld-dev-fixture-0000__bfs__vision",
+      "path": "outputs/planning_artifacts/zero_shot_smoke/blocksworld-dev-fixture-0000__bfs__vision.json"
+    },
+    {
+      "algorithm": "bfs",
+      "modality": "language",
+      "package_id": "blocksworld-dev-fixture-0000__bfs__language",
+      "path": "outputs/planning_artifacts/zero_shot_smoke/blocksworld-dev-fixture-0000__bfs__language.json"
+    },
+    {
+      "algorithm": "bfs",
+      "modality": "vision_language",
+      "package_id": "blocksworld-dev-fixture-0000__bfs__vision_language",
+      "path": "outputs/planning_artifacts/zero_shot_smoke/blocksworld-dev-fixture-0000__bfs__vision_language.json"
+    },
+    {
+      "algorithm": "bfs",
+      "modality": "vision_language_tool",
+      "package_id": "blocksworld-dev-fixture-0000__bfs__vision_language_tool",
+      "path": "outputs/planning_artifacts/zero_shot_smoke/blocksworld-dev-fixture-0000__bfs__vision_language_tool.json"
+    },
+    {
+      "algorithm": "fast_forward",
+      "modality": "vision",
+      "package_id": "blocksworld-dev-fixture-0000__fast_forward__vision",
+      "path": "outputs/planning_artifacts/zero_shot_smoke/blocksworld-dev-fixture-0000__fast_forward__vision.json"
+    },
+    {
+      "algorithm": "fast_forward",
+      "modality": "language",
+      "package_id": "blocksworld-dev-fixture-0000__fast_forward__language",
+      "path": "outputs/planning_artifacts/zero_shot_smoke/blocksworld-dev-fixture-0000__fast_forward__language.json"
+    },
+    {
+      "algorithm": "fast_forward",
+      "modality": "vision_language",
+      "package_id": "blocksworld-dev-fixture-0000__fast_forward__vision_language",
+      "path": "outputs/planning_artifacts/zero_shot_smoke/blocksworld-dev-fixture-0000__fast_forward__vision_language.json"
+    },
+    {
+      "algorithm": "fast_forward",
+      "modality": "vision_language_tool",
+      "package_id": "blocksworld-dev-fixture-0000__fast_forward__vision_language_tool",
+      "path": "outputs/planning_artifacts/zero_shot_smoke/blocksworld-dev-fixture-0000__fast_forward__vision_language_tool.json"
+    },
+    {
+      "algorithm": "iterated_width",
+      "modality": "vision",
+      "package_id": "blocksworld-dev-fixture-0000__iterated_width__vision",
+      "path": "outputs/planning_artifacts/zero_shot_smoke/blocksworld-dev-fixture-0000__iterated_width__vision.json"
+    },
+    {
+      "algorithm": "iterated_width",
+      "modality": "language",
+      "package_id": "blocksworld-dev-fixture-0000__iterated_width__language",
+      "path": "outputs/planning_artifacts/zero_shot_smoke/blocksworld-dev-fixture-0000__iterated_width__language.json"
+    },
+    {
+      "algorithm": "iterated_width",
+      "modality": "vision_language",
+      "package_id": "blocksworld-dev-fixture-0000__iterated_width__vision_language",
+      "path": "outputs/planning_artifacts/zero_shot_smoke/blocksworld-dev-fixture-0000__iterated_width__vision_language.json"
+    },
+    {
+      "algorithm": "iterated_width",
+      "modality": "vision_language_tool",
+      "package_id": "blocksworld-dev-fixture-0000__iterated_width__vision_language_tool",
+      "path": "outputs/planning_artifacts/zero_shot_smoke/blocksworld-dev-fixture-0000__iterated_width__vision_language_tool.json"
+    },
+    {
+      "algorithm": "graphplan",
+      "modality": "vision",
+      "package_id": "blocksworld-dev-fixture-0000__graphplan__vision",
+      "path": "outputs/planning_artifacts/zero_shot_smoke/blocksworld-dev-fixture-0000__graphplan__vision.json"
+    },
+    {
+      "algorithm": "graphplan",
+      "modality": "language",
+      "package_id": "blocksworld-dev-fixture-0000__graphplan__language",
+      "path": "outputs/planning_artifacts/zero_shot_smoke/blocksworld-dev-fixture-0000__graphplan__language.json"
+    },
+    {
+      "algorithm": "graphplan",
+      "modality": "vision_language",
+      "package_id": "blocksworld-dev-fixture-0000__graphplan__vision_language",
+      "path": "outputs/planning_artifacts/zero_shot_smoke/blocksworld-dev-fixture-0000__graphplan__vision_language.json"
+    },
+    {
+      "algorithm": "graphplan",
+      "modality": "vision_language_tool",
+      "package_id": "blocksworld-dev-fixture-0000__graphplan__vision_language_tool",
+      "path": "outputs/planning_artifacts/zero_shot_smoke/blocksworld-dev-fixture-0000__graphplan__vision_language_tool.json"
+    }
+  ],
+  "valid": true
+}

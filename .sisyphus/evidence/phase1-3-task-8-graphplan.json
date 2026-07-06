@@ -1,0 +1,43 @@
+{
+  "algorithms": {
+    "graphplan": {
+      "files": [
+        "outputs/planning_artifacts/expert_graphplan_smoke/blocksworld-dev-fixture-0000__graphplan.json"
+      ],
+      "goal_present_without_mutex": [
+        true,
+        true
+      ],
+      "layer_count": 8,
+      "mutex_pair_count": 42,
+      "record_count": 2,
+      "selected_actions": [
+        "pickup(a)",
+        "stack(a,b)"
+      ],
+      "trajectory_count": 1
+    }
+  },
+  "fixture": "tests/fixtures/planning/blocksworld_nontrivial.json",
+  "output": "outputs/planning_artifacts/expert_graphplan_smoke",
+  "schema_version": "planning_expert_generation_v1",
+  "valid": true,
+  "validation": {
+    "algorithms_validated": [
+      "graphplan"
+    ],
+    "by_algorithm": {
+      "graphplan": 2
+    },
+    "error_count": 0,
+    "errors": [],
+    "file_count": 1,
+    "files": [
+      "outputs/planning_artifacts/expert_graphplan_smoke/blocksworld-dev-fixture-0000__graphplan.json"
+    ],
+    "input": "outputs/planning_artifacts/expert_graphplan_smoke",
+    "schema_version": "planning_expert_trajectory_v1",
+    "trajectory_count": 2,
+    "valid": true
+  }
+}

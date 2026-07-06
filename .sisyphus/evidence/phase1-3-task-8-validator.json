@@ -1,0 +1,18 @@
+{
+  "algorithms_validated": [
+    "graphplan"
+  ],
+  "by_algorithm": {
+    "graphplan": 2
+  },
+  "error_count": 0,
+  "errors": [],
+  "file_count": 1,
+  "files": [
+    "outputs/planning_artifacts/expert_graphplan_smoke/blocksworld-dev-fixture-0000__graphplan.json"
+  ],
+  "input": "outputs/planning_artifacts/expert_graphplan_smoke",
+  "schema_version": "planning_expert_trajectory_v1",
+  "trajectory_count": 2,
+  "valid": true
+}

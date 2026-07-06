@@ -45,6 +45,7 @@ def test_generate_help_lists_expected_options_and_rendering_contract() -> None:
         "--quota",
         "--seed",
         "--max-attempts-per-bucket",
+        "--candidate-multiplier",
         "--require-rendering",
         "--dry-run",
         "--force",
@@ -145,6 +146,29 @@ def test_invalid_quota_override_rejected(tmp_path: Path, capsys: pytest.CaptureF
     assert "invalid quota override" in captured.err
 
 
+def test_invalid_candidate_multiplier_rejected(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    with pytest.raises(SystemExit) as excinfo:
+        cli.main(
+            [
+                "generate",
+                "--config",
+                str(Path("src/data_collect/configs/curriculum_15_domains.yaml")),
+                "--output",
+                str(tmp_path / "out"),
+                "--seed",
+                "123",
+                "--candidate-multiplier",
+                "0",
+                "--dry-run",
+            ]
+        )
+
+    captured = capsys.readouterr()
+
+    assert excinfo.value.code == 2
+    assert "--candidate-multiplier must be positive" in captured.err
+
+
 def test_require_rendering_cannot_be_combined_with_dry_run(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     with pytest.raises(SystemExit) as excinfo:
         cli.main(
@@ -216,6 +240,8 @@ def test_generate_parses_smoke_override_and_emits_json(
             "123",
             "--max-attempts-per-bucket",
             "10",
+            "--candidate-multiplier",
+            "1",
             "--json",
         ]
     )
@@ -229,6 +255,7 @@ def test_generate_parses_smoke_override_and_emits_json(
     assert calls["kwargs"]["splits"] == ("train",)
     assert calls["kwargs"]["quotas_by_split"] == {"train": {"easy": 1, "medium": 1, "hard": 1}}
     assert calls["kwargs"]["max_attempts_per_bucket"] == 10
+    assert calls["kwargs"]["candidate_multiplier"] == 1
     assert calls["kwargs"]["seed"] == 123
     assert payload["output_root"] == "/tmp/out"
     assert payload["summary"]["accepted_total"] == 2

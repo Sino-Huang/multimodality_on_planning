@@ -1,0 +1,188 @@
+{
+  "domain": "blocksworld",
+  "final_observation": {
+    "domain": "blocksworld",
+    "fixture": "tests/fixtures/planning/blocksworld_nontrivial.json",
+    "goal_atoms": [
+      "on(a,b)"
+    ],
+    "instance_id": "blocksworld-dev-fixture-0000",
+    "is_goal": true,
+    "legal_actions": [
+      "pickup(c)",
+      "unstack(a,b)"
+    ],
+    "max_steps": 20,
+    "schema_version": "planning_benchmark_observation_v1",
+    "state_atoms": [
+      "arm-empty",
+      "clear(a)",
+      "clear(c)",
+      "on(a,b)",
+      "on-table(b)",
+      "on-table(c)"
+    ],
+    "state_id": "743f05fdfceda47fdf564492572f23087cffe33da570471fa3a19f17bd8e9ae4",
+    "step_index": 2
+  },
+  "fixture": "tests/fixtures/planning/blocksworld_nontrivial.json",
+  "illegal_action_count": 0,
+  "initial_observation": {
+    "domain": "blocksworld",
+    "fixture": "tests/fixtures/planning/blocksworld_nontrivial.json",
+    "goal_atoms": [
+      "on(a,b)"
+    ],
+    "instance_id": "blocksworld-dev-fixture-0000",
+    "is_goal": false,
+    "legal_actions": [
+      "pickup(a)",
+      "pickup(b)",
+      "pickup(c)"
+    ],
+    "max_steps": 20,
+    "schema_version": "planning_benchmark_observation_v1",
+    "state_atoms": [
+      "arm-empty",
+      "clear(a)",
+      "clear(b)",
+      "clear(c)",
+      "on-table(a)",
+      "on-table(b)",
+      "on-table(c)"
+    ],
+    "state_id": "1a9d29632534933a4e96dac66132d6642fce9f13b23b7b4d7223698802b5ad0d",
+    "step_index": 0
+  },
+  "instance_id": "blocksworld-dev-fixture-0000",
+  "max_steps": 20,
+  "mode": "oracle",
+  "schema_version": "planning_benchmark_loop_run_v1",
+  "selected_actions": [
+    "pickup(a)",
+    "stack(a,b)"
+  ],
+  "solved": true,
+  "step_logs": [
+    {
+      "action": "pickup(a)",
+      "legal_action_check": {
+        "action": "pickup(a)",
+        "is_legal": true,
+        "legal_actions": [
+          "pickup(a)",
+          "pickup(b)",
+          "pickup(c)"
+        ]
+      },
+      "observation": {
+        "domain": "blocksworld",
+        "fixture": "tests/fixtures/planning/blocksworld_nontrivial.json",
+        "goal_atoms": [
+          "on(a,b)"
+        ],
+        "instance_id": "blocksworld-dev-fixture-0000",
+        "is_goal": false,
+        "legal_actions": [
+          "pickup(a)",
+          "pickup(b)",
+          "pickup(c)"
+        ],
+        "max_steps": 20,
+        "schema_version": "planning_benchmark_observation_v1",
+        "state_atoms": [
+          "arm-empty",
+          "clear(a)",
+          "clear(b)",
+          "clear(c)",
+          "on-table(a)",
+          "on-table(b)",
+          "on-table(c)"
+        ],
+        "state_id": "1a9d29632534933a4e96dac66132d6642fce9f13b23b7b4d7223698802b5ad0d",
+        "step_index": 0
+      },
+      "post_state_atoms": [
+        "clear(b)",
+        "clear(c)",
+        "holding(a)",
+        "on-table(b)",
+        "on-table(c)"
+      ],
+      "post_state_id": "77080652acee8566a76866d8a6beb96615a8dde1e6103a5c39c68f59d64a40e9",
+      "pre_state_id": "1a9d29632534933a4e96dac66132d6642fce9f13b23b7b4d7223698802b5ad0d",
+      "step_index": 0,
+      "terminal_status": {
+        "is_terminal": false,
+        "max_steps_reached": false,
+        "reason": "running",
+        "solved": false,
+        "step_index": 1
+      }
+    },
+    {
+      "action": "stack(a,b)",
+      "legal_action_check": {
+        "action": "stack(a,b)",
+        "is_legal": true,
+        "legal_actions": [
+          "putdown(a)",
+          "stack(a,b)",
+          "stack(a,c)"
+        ]
+      },
+      "observation": {
+        "domain": "blocksworld",
+        "fixture": "tests/fixtures/planning/blocksworld_nontrivial.json",
+        "goal_atoms": [
+          "on(a,b)"
+        ],
+        "instance_id": "blocksworld-dev-fixture-0000",
+        "is_goal": false,
+        "legal_actions": [
+          "putdown(a)",
+          "stack(a,b)",
+          "stack(a,c)"
+        ],
+        "max_steps": 20,
+        "schema_version": "planning_benchmark_observation_v1",
+        "state_atoms": [
+          "clear(b)",
+          "clear(c)",
+          "holding(a)",
+          "on-table(b)",
+          "on-table(c)"
+        ],
+        "state_id": "77080652acee8566a76866d8a6beb96615a8dde1e6103a5c39c68f59d64a40e9",
+        "step_index": 1
+      },
+      "post_state_atoms": [
+        "arm-empty",
+        "clear(a)",
+        "clear(c)",
+        "on(a,b)",
+        "on-table(b)",
+        "on-table(c)"
+      ],
+      "post_state_id": "743f05fdfceda47fdf564492572f23087cffe33da570471fa3a19f17bd8e9ae4",
+      "pre_state_id": "77080652acee8566a76866d8a6beb96615a8dde1e6103a5c39c68f59d64a40e9",
+      "step_index": 1,
+      "terminal_status": {
+        "is_terminal": true,
+        "max_steps_reached": false,
+        "reason": "goal",
+        "solved": true,
+        "step_index": 2
+      }
+    }
+  ],
+  "steps": 2,
+  "terminal_status": {
+    "is_terminal": true,
+    "max_steps_reached": false,
+    "reason": "goal",
+    "solved": true,
+    "step_index": 2
+  },
+  "valid": true
+}

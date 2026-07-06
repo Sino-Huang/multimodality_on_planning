@@ -1,0 +1,3 @@
+full-summary-ok
+
+exit_status=0

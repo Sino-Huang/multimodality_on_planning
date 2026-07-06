@@ -1,0 +1,42 @@
+{
+  "action_vocabulary": [
+    "pickup",
+    "putdown",
+    "stack",
+    "unstack"
+  ],
+  "already_solved": false,
+  "domain_name": "blocksworld-4ops",
+  "fixture": "tests/fixtures/planning/blocksworld_nontrivial.json",
+  "goal_atoms": [
+    "on(a,b)"
+  ],
+  "goal_is_empty": false,
+  "initial_atoms": [
+    "arm-empty",
+    "clear(a)",
+    "clear(b)",
+    "clear(c)",
+    "on-table(a)",
+    "on-table(b)",
+    "on-table(c)"
+  ],
+  "initial_state_id": "1a9d29632534933a4e96dac66132d6642fce9f13b23b7b4d7223698802b5ad0d",
+  "legal_actions": [
+    "pickup(a)",
+    "pickup(b)",
+    "pickup(c)"
+  ],
+  "legal_actions_count": 3,
+  "min_plan_length_requested": 2,
+  "min_plan_length_satisfied": true,
+  "objects": [
+    "a",
+    "b",
+    "c"
+  ],
+  "problem_domain_name": "blocksworld-4ops",
+  "problem_name": "bw-nontrivial-3",
+  "shortest_plan_length": 2,
+  "valid": true
+}

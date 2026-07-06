@@ -1,0 +1,35 @@
+{
+  "accepted_instances": 1,
+  "diagnostics": {
+    "instance_accounting": "diagnostics/instance_accounting.jsonl",
+    "pddl_feature_preflight": "diagnostics/pddl_feature_preflight.jsonl",
+    "planner_attempts": "diagnostics/planner_attempts.jsonl",
+    "replay_validation": "diagnostics/replay_validation.jsonl",
+    "vision_validation": "diagnostics/vision_validation.jsonl"
+  },
+  "emitted_examples": 4,
+  "fidelity_summary": {
+    "success_full_trace": 4
+  },
+  "planner_attempts": 4,
+  "planner_status_summary": {
+    "bfs": {
+      "success_full_trace": 1
+    },
+    "ff": {
+      "success_full_trace": 1
+    },
+    "graphplan": {
+      "success_full_trace": 1
+    },
+    "iw": {
+      "success_full_trace": 1
+    }
+  },
+  "schema_version": "phase3_supervised_planning_v1",
+  "split_examples": {
+    "dev": 4,
+    "test": 0,
+    "train": 0
+  }
+}

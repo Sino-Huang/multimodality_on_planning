@@ -1,0 +1,41 @@
+{
+  "generated_file_digests": {
+    "dev.jsonl": "7d5914d0ac5faf3285089844928932985ebe58fdc8acf5b8be76d5e9b89121f8",
+    "diagnostics/instance_accounting.jsonl": "c7987691a6cf863317c74f651ee9af9806ed64ccc27508800bc5a1f4c83d5cee",
+    "diagnostics/pddl_feature_preflight.jsonl": "64eaa1795e0efa01c3aa7ef5219e3944308fefae80bc20b5dd4f17f271e564fd",
+    "diagnostics/planner_attempts.jsonl": "bf7b526ec65ef4e14501424ab462ce447a86cabf13addb01a76780fecd9e17aa",
+    "diagnostics/replay_validation.jsonl": "26b9e81a2a3595bae6b6152a920572fd97f739b083a88da0bedf15f441212014",
+    "diagnostics/vision_validation.jsonl": "3d0cabc33ef050d5ddbd22389956458158efbf4e9891a6a89f9affe69d425064",
+    "test.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "train.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "ignored_nondeterministic_fields": [],
+  "input_root": "tmp/phase3_single_blocksworld-dev-easy-0004",
+  "output_root": "outputs/phase3_traces/blocksworld-dev-easy-0004",
+  "planners": [
+    "bfs",
+    "ff",
+    "graphplan",
+    "iw"
+  ],
+  "resource_limits": {
+    "bfs_max_depth": 200,
+    "bfs_max_expansions": 50000,
+    "grounding_timeout": 60,
+    "local_max_applicable_actions": 10000,
+    "local_max_mutex_pairs": 1000000,
+    "max_grounded_actions": 100000,
+    "max_grounded_atoms": 100000,
+    "max_jsonl_target_chars": 10000000,
+    "max_plan_length": 500,
+    "max_trace_steps": 500,
+    "planner_timeout": 60
+  },
+  "schema_version": "phase3_supervised_planning_v1",
+  "stable_sorting": [
+    "domain",
+    "split",
+    "instance_id",
+    "planner"
+  ]
+}

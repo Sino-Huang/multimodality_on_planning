@@ -1,0 +1,51 @@
+{
+  "algorithms": {
+    "bfs": {
+      "files": [
+        "outputs/planning_artifacts/expert_bfs_iw_smoke/blocksworld-dev-fixture-0000__bfs.json"
+      ],
+      "record_count": 2,
+      "selected_actions": [
+        "pickup(a)",
+        "stack(a,b)"
+      ],
+      "trajectory_count": 1
+    },
+    "iterated_width": {
+      "files": [
+        "outputs/planning_artifacts/expert_bfs_iw_smoke/blocksworld-dev-fixture-0000__iterated_width.json"
+      ],
+      "record_count": 2,
+      "selected_actions": [
+        "pickup(a)",
+        "stack(a,b)"
+      ],
+      "trajectory_count": 1
+    }
+  },
+  "fixture": "tests/fixtures/planning/blocksworld_nontrivial.json",
+  "output": "outputs/planning_artifacts/expert_bfs_iw_smoke",
+  "schema_version": "planning_expert_generation_v1",
+  "valid": true,
+  "validation": {
+    "algorithms_validated": [
+      "bfs",
+      "iterated_width"
+    ],
+    "by_algorithm": {
+      "bfs": 2,
+      "iterated_width": 2
+    },
+    "error_count": 0,
+    "errors": [],
+    "file_count": 2,
+    "files": [
+      "outputs/planning_artifacts/expert_bfs_iw_smoke/blocksworld-dev-fixture-0000__bfs.json",
+      "outputs/planning_artifacts/expert_bfs_iw_smoke/blocksworld-dev-fixture-0000__iterated_width.json"
+    ],
+    "input": "outputs/planning_artifacts/expert_bfs_iw_smoke",
+    "schema_version": "planning_expert_trajectory_v1",
+    "trajectory_count": 4,
+    "valid": true
+  }
+}

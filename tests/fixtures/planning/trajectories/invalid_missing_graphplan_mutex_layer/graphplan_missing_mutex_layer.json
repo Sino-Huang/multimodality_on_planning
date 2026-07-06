@@ -1,0 +1,18 @@
+{
+  "trajectory_id": "blocksworld-dev-fixture-0000__graphplan_invalid",
+  "algorithm": "graphplan",
+  "domain": "blocksworld",
+  "instance_id": "blocksworld-dev-fixture-0000",
+  "step_index": 0,
+  "state_id": "1a9d29632534933a4e96dac66132d6642fce9f13b23b7b4d7223698802b5ad0d",
+  "state_atoms": ["arm-empty", "clear(a)", "clear(b)", "clear(c)", "on-table(a)", "on-table(b)", "on-table(c)"],
+  "goal_atoms": ["on(a,b)"],
+  "legal_actions": ["pickup(a)", "pickup(b)", "pickup(c)"],
+  "selected_action": "pickup(a)",
+  "is_terminal": false,
+  "metadata": {"schema_version": "planning_expert_trajectory_v1"},
+  "graphplan": {
+    "action_layers": [{"layer_index": 0, "actions": ["pickup(a)", "pickup(b)", "pickup(c)"]}],
+    "extraction": {"goal_present_without_mutex": false}
+  }
+}

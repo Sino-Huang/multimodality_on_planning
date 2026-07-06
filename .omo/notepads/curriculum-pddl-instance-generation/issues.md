@@ -1,0 +1,16 @@
+
+- Resolved during Task 5 verification: `subprocess.TimeoutExpired.stdout/stderr` can arrive as bytes in this environment even when `text=True`, so adapter timeout handling now coerces captured timeout streams to UTF-8 text before writing `generator.stdout` / `generator.stderr` logs.
+- Tooling caveat carried forward: `lsp_diagnostics` still fails outside the repaired `.venv` execution path because the host LSP process resolves against the same Java/Graal stack mismatch (`UnsupportedClassVersionError`), so verification for this wave relied on direct code review, pytest, and `python -m compileall` after `.venv` repair.
+- Task 6 readiness verification shows that `validate` is still absent from `PATH`, so `inspect-tools` continues to surface validator readiness as a structured issue rather than treating planner/render readiness as sufficient.
+- Task 6 also confirmed that many vendored compiled generators have not been built in the current workspace state (`npuzzle`, `blocksworld` helpers, `depots`, `driverlog`, `ferry`, `freecell`, `gripper`, `logistics`, `sokoban`, `storage`, `hanoi`, `visitall`), which is now reported through `adapter_matrix.readiness_failures` instead of being silently skipped.
+- Task 7 verification exposed that the current `.venv` does not have `requests` installed, so importing `scripts.planimation_phase1` at module load breaks unit-test collection; `src.data_collect.rendering` now lazy-loads the hosted Planimation helpers and keeps the fake/injected test path import-safe without requiring network packages.
+- Task 8 did not uncover new blocking tooling issues: `lsp_diagnostics` completed successfully on the modified difficulty/selection/metadata/rendering files, and required pytest/compile verification passed under the mandated `.venv` flow.
+- Task 9 did not introduce new blockers: `lsp_diagnostics` completed successfully on `src/data_collect/generate.py` and `tests/data_collect/test_generate_orchestrator.py`, and the required targeted pytest plus `python -m compileall src/data_collect tests/data_collect` both passed under the mandated `.venv` flow.
+- Task 10 did not uncover new runtime blockers: `generate --help`, `python -m compileall src/data_collect tests/data_collect`, and `pytest tests/data_collect/test_cli.py -q` all passed after the CLI wiring fix; no additional CLI-specific tooling issues were observed.
+- Task 11 smoke verification in the mandated `.venv` failed safely before any acceptance because `scripts.planimation_phase1` currently cannot import `requests`; the exact smoke command now exits nonzero with `Planimation renderer dependencies unavailable: missing Python package 'requests' required by scripts.planimation_phase1`, and `/tmp/curriculum_pddl_smoke` is not created.
+
+## Task 13 consultation - blockers/failure criteria (2026-06-12T03:02:00+10:00)
+
+- Declare blocked if `storage` still cannot reach 240 accepted after structural preset variation and bounded attempts (for example 800 per bucket).
+- Declare blocked if curated Phase-1 Sokoban cannot render, indicating Planimation/environment failure.
+- Declare blocked if generated Sokoban still fails after schema alignment; remaining work is a proper generated-to-Planimation converter, not more runtime.

@@ -1,0 +1,1 @@
+determinism diff passed: generated BFS/IW JSON files are byte-identical across two /tmp runs

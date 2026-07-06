@@ -1,0 +1,8 @@
+{
+  "error": {
+    "code": "empty_goal",
+    "details": {},
+    "message": "Blocksworld problem has an empty goal"
+  },
+  "valid": false
+}

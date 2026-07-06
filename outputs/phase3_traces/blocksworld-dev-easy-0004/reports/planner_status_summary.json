@@ -1,0 +1,14 @@
+{
+  "bfs": {
+    "success_full_trace": 1
+  },
+  "ff": {
+    "success_full_trace": 1
+  },
+  "graphplan": {
+    "success_full_trace": 1
+  },
+  "iw": {
+    "success_full_trace": 1
+  }
+}

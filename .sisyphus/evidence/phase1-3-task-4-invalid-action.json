@@ -1,0 +1,44 @@
+{
+  "error": {
+    "code": "illegal_action",
+    "details": {
+      "action": "stack(a,b)",
+      "legal_actions": [
+        "pickup(a)",
+        "pickup(b)",
+        "pickup(c)"
+      ],
+      "observation": {
+        "domain": "blocksworld",
+        "fixture": "tests/fixtures/planning/blocksworld_nontrivial.json",
+        "goal_atoms": [
+          "on(a,b)"
+        ],
+        "instance_id": "blocksworld-dev-fixture-0000",
+        "is_goal": false,
+        "legal_actions": [
+          "pickup(a)",
+          "pickup(b)",
+          "pickup(c)"
+        ],
+        "max_steps": 64,
+        "schema_version": "planning_benchmark_observation_v1",
+        "state_atoms": [
+          "arm-empty",
+          "clear(a)",
+          "clear(b)",
+          "clear(c)",
+          "on-table(a)",
+          "on-table(b)",
+          "on-table(c)"
+        ],
+        "state_id": "1a9d29632534933a4e96dac66132d6642fce9f13b23b7b4d7223698802b5ad0d",
+        "step_index": 0
+      },
+      "pre_state_id": "1a9d29632534933a4e96dac66132d6642fce9f13b23b7b4d7223698802b5ad0d",
+      "step_index": 0
+    },
+    "message": "illegal action in current state: stack(a,b)"
+  },
+  "valid": false
+}

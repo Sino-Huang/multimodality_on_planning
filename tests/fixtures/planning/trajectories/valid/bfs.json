@@ -1,0 +1,62 @@
+{
+  "trajectory_id": "blocksworld-dev-fixture-0000__bfs",
+  "algorithm": "bfs",
+  "domain": "blocksworld",
+  "instance_id": "blocksworld-dev-fixture-0000",
+  "step_index": 0,
+  "state_id": "1a9d29632534933a4e96dac66132d6642fce9f13b23b7b4d7223698802b5ad0d",
+  "state_atoms": [
+    "arm-empty",
+    "clear(a)",
+    "clear(b)",
+    "clear(c)",
+    "on-table(a)",
+    "on-table(b)",
+    "on-table(c)"
+  ],
+  "goal_atoms": ["on(a,b)"],
+  "legal_actions": ["pickup(a)", "pickup(b)", "pickup(c)"],
+  "selected_action": "pickup(a)",
+  "is_terminal": false,
+  "metadata": {
+    "schema_version": "planning_expert_trajectory_v1",
+    "source": "task_5_committed_fixture",
+    "world_model": "deterministic_symbolic_v0"
+  },
+  "bfs": {
+    "frontier_before": ["1a9d29632534933a4e96dac66132d6642fce9f13b23b7b4d7223698802b5ad0d"],
+    "frontier_after": [
+      "2fa169abaf7d933b4b09a2541dd8e7e9dcbde84a9d796a41c2128f12e909e586",
+      "77080652acee8566a76866d8a6beb96615a8dde1e6103a5c39c68f59d64a40e9",
+      "ca68d321ce0fdf97e3b0f6b415120c8e27b6c30bd5887043481611fd43836bbf"
+    ],
+    "visited_before": ["1a9d29632534933a4e96dac66132d6642fce9f13b23b7b4d7223698802b5ad0d"],
+    "visited_after": [
+      "1a9d29632534933a4e96dac66132d6642fce9f13b23b7b4d7223698802b5ad0d",
+      "2fa169abaf7d933b4b09a2541dd8e7e9dcbde84a9d796a41c2128f12e909e586",
+      "77080652acee8566a76866d8a6beb96615a8dde1e6103a5c39c68f59d64a40e9",
+      "ca68d321ce0fdf97e3b0f6b415120c8e27b6c30bd5887043481611fd43836bbf"
+    ],
+    "dequeued_state_id": "1a9d29632534933a4e96dac66132d6642fce9f13b23b7b4d7223698802b5ad0d",
+    "successors": [
+      {
+        "action": "pickup(a)",
+        "state_id": "77080652acee8566a76866d8a6beb96615a8dde1e6103a5c39c68f59d64a40e9",
+        "state_atoms": ["clear(b)", "clear(c)", "holding(a)", "on-table(b)", "on-table(c)"],
+        "is_goal": false
+      },
+      {
+        "action": "pickup(b)",
+        "state_id": "2fa169abaf7d933b4b09a2541dd8e7e9dcbde84a9d796a41c2128f12e909e586",
+        "state_atoms": ["clear(a)", "clear(c)", "holding(b)", "on-table(a)", "on-table(c)"],
+        "is_goal": false
+      },
+      {
+        "action": "pickup(c)",
+        "state_id": "ca68d321ce0fdf97e3b0f6b415120c8e27b6c30bd5887043481611fd43836bbf",
+        "state_atoms": ["clear(a)", "clear(b)", "holding(c)", "on-table(a)", "on-table(b)"],
+        "is_goal": false
+      }
+    ]
+  }
+}

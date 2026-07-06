@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "domain": {
+      "type": "string"
+    },
+    "evaluation_metadata": {
+      "type": "object"
+    },
+    "example_id": {
+      "type": "string"
+    },
+    "instance_id": {
+      "type": "string"
+    },
+    "model_facing": {
+      "type": "object"
+    },
+    "plan_hash": {
+      "type": "string"
+    },
+    "planner": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "phase3_supervised_planning_v1"
+    },
+    "split": {
+      "type": "string"
+    },
+    "supervised_target": {
+      "type": "object"
+    },
+    "trace_fidelity": {
+      "type": "string"
+    },
+    "vision_supervision_available": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "schema_version",
+    "example_id",
+    "domain",
+    "instance_id",
+    "split",
+    "planner",
+    "plan_hash",
+    "trace_fidelity",
+    "vision_supervision_available",
+    "model_facing",
+    "supervised_target",
+    "evaluation_metadata"
+  ],
+  "schema_version": "phase3_supervised_planning_v1",
+  "title": "supervised_planning_example",
+  "type": "object"
+}

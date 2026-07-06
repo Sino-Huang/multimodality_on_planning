@@ -1,0 +1,16 @@
+{
+  "checked_decisions": [
+    "algorithm_matrix_decision",
+    "artifact_policy_decision",
+    "blocksworld_p0_scope_decision",
+    "frozen_world_model_decision",
+    "modality_matrix_decision",
+    "planimation_role_decision",
+    "zero_shot_gate_decision"
+  ],
+  "missing_decisions": [],
+  "missing_terms": {},
+  "path": "doc/detailed_implementation_summary/phase1_scope_lock_and_diagnostic_summary.md",
+  "required_decisions_present": true,
+  "valid": true
+}

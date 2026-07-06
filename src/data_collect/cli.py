@@ -130,6 +130,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Maximum generator attempts to spend on each bucket.",
     )
     generate_parser.add_argument(
+        "--candidate-multiplier",
+        type=int,
+        default=None,
+        help="Candidate pool multiplier for each remaining bucket quota; defaults to the config value.",
+    )
+    generate_parser.add_argument(
         "--require-rendering",
         action="store_true",
         help="Require rendering before accepting final outputs. Accepted final manifests require rendering.",
@@ -207,6 +213,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.command == "generate":
         if args.dry_run and args.require_rendering:
             parser.error("--require-rendering cannot be combined with --dry-run")
+        if args.candidate_multiplier is not None and args.candidate_multiplier <= 0:
+            parser.error("--candidate-multiplier must be positive")
 
         curriculum_config = load_curriculum_config(args.config)
         selected_domains = args.domains
@@ -224,6 +232,9 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "quotas_by_split": quotas_by_split,
                 "seed": args.seed,
                 "max_attempts_per_bucket": args.max_attempts_per_bucket,
+                "candidate_multiplier": args.candidate_multiplier
+                if args.candidate_multiplier is not None
+                else curriculum_config.candidate_multiplier,
                 "require_rendering": bool(args.require_rendering or curriculum_config.require_rendering),
                 "force": args.force,
                 "dry_run": True,
@@ -253,6 +264,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 domains=selected_domains,
                 splits=selected_splits,
                 quotas_by_split=quotas_by_split,
+                candidate_multiplier=args.candidate_multiplier,
             )
         except RuntimeError as error:
             parser.exit(status=1, message=f"{error}\n")

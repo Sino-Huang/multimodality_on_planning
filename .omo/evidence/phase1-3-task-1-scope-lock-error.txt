@@ -1,0 +1,26 @@
+missing required decisions: frozen_world_model_decision
+{
+  "checked_decisions": [
+    "algorithm_matrix_decision",
+    "artifact_policy_decision",
+    "blocksworld_p0_scope_decision",
+    "frozen_world_model_decision",
+    "modality_matrix_decision",
+    "planimation_role_decision",
+    "zero_shot_gate_decision"
+  ],
+  "missing_decisions": [
+    "frozen_world_model_decision"
+  ],
+  "missing_terms": {
+    "frozen_world_model_decision": [
+      "frozen_world_model_decision",
+      "frozen world model v0",
+      "deterministic symbolic representation",
+      "No learned encoder"
+    ]
+  },
+  "path": "tests/fixtures/planning/scope_lock_missing_world_model.md",
+  "required_decisions_present": false,
+  "valid": false
+}

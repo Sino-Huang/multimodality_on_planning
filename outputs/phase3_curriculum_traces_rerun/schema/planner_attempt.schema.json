@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "domain": {
+      "type": "string"
+    },
+    "domain_path": {},
+    "expansion_count": {},
+    "instance_id": {
+      "type": "string"
+    },
+    "plan_hash": {},
+    "plan_length": {},
+    "planner": {
+      "type": "string"
+    },
+    "planner_command": {},
+    "planner_version": {},
+    "problem_path": {},
+    "replay_validation_id": {},
+    "resource_gate": {},
+    "schema_errors": {},
+    "schema_version": {
+      "const": "phase3_supervised_planning_v1"
+    },
+    "split": {
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "failed_action_normalization",
+        "failed_grounding",
+        "failed_no_plan_extracted",
+        "failed_parse_domain",
+        "failed_parse_problem",
+        "failed_planner_error",
+        "failed_planner_timeout",
+        "failed_replay_goal_not_satisfied",
+        "failed_replay_invalid_action",
+        "failed_schema_validation",
+        "failed_vision_missing",
+        "skipped_grounding_limit",
+        "skipped_planner_unavailable",
+        "skipped_resource_limit",
+        "skipped_unsupported_pddl",
+        "success_full_trace",
+        "success_plan_replayed"
+      ]
+    },
+    "trace_fidelity": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "domain",
+    "instance_id",
+    "split",
+    "planner",
+    "status",
+    "trace_fidelity",
+    "replay_validation_id"
+  ],
+  "schema_version": "phase3_supervised_planning_v1",
+  "title": "planner_attempt",
+  "type": "object"
+}

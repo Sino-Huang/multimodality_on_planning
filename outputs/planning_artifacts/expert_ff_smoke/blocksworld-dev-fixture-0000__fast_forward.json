@@ -1,0 +1,239 @@
+{
+  "algorithm": "fast_forward",
+  "domain": "blocksworld",
+  "instance_id": "blocksworld-dev-fixture-0000",
+  "metadata": {
+    "schema_version": "planning_expert_trajectory_v1",
+    "source": "local_expert_generator",
+    "world_model": "deterministic_symbolic_v0"
+  },
+  "schema_version": "planning_expert_trajectory_v1",
+  "steps": [
+    {
+      "algorithm": "fast_forward",
+      "domain": "blocksworld",
+      "fast_forward": {
+        "failure_reason": null,
+        "heuristic_value": 2,
+        "relaxed_plan_metadata": {
+          "approximation": "deterministic_p0_hmax_relaxed_reachability",
+          "approximation_scope": "P0 Blocksworld-only symbolic approximation, not full Fast Downward FF",
+          "goal_costs": {
+            "on(a,b)": 2
+          },
+          "heuristic_definition": "Ground all Blocksworld operators, ignore delete effects after the current concrete state, propagate h_max-style relaxed atom costs, then count the deterministic supporter-action closure for unsatisfied goals as an approximate relaxed plan length.",
+          "ignored_delete_effects": true,
+          "is_exact_ff_delete_relaxation": false,
+          "relaxed_plan_actions": [
+            "pickup(a)",
+            "stack(a,b)"
+          ],
+          "relaxed_plan_length": 2,
+          "supporter_actions": {
+            "holding(a)": "pickup(a)",
+            "holding(b)": "pickup(b)",
+            "holding(c)": "pickup(c)",
+            "on(a,b)": "stack(a,b)",
+            "on(a,c)": "stack(a,c)",
+            "on(b,a)": "stack(b,a)",
+            "on(b,c)": "stack(b,c)",
+            "on(c,a)": "stack(c,a)",
+            "on(c,b)": "stack(c,b)"
+          },
+          "unreachable_goal_atoms": []
+        },
+        "selected_action": "pickup(a)",
+        "selected_successor_id": "77080652acee8566a76866d8a6beb96615a8dde1e6103a5c39c68f59d64a40e9",
+        "successor_heuristics": [
+          {
+            "action": "pickup(a)",
+            "heuristic_value": 1,
+            "is_goal": false,
+            "relaxed_plan_length": 1,
+            "state_atoms": [
+              "clear(b)",
+              "clear(c)",
+              "holding(a)",
+              "on-table(b)",
+              "on-table(c)"
+            ],
+            "state_id": "77080652acee8566a76866d8a6beb96615a8dde1e6103a5c39c68f59d64a40e9"
+          },
+          {
+            "action": "pickup(b)",
+            "heuristic_value": 3,
+            "is_goal": false,
+            "relaxed_plan_length": 3,
+            "state_atoms": [
+              "clear(a)",
+              "clear(c)",
+              "holding(b)",
+              "on-table(a)",
+              "on-table(c)"
+            ],
+            "state_id": "2fa169abaf7d933b4b09a2541dd8e7e9dcbde84a9d796a41c2128f12e909e586"
+          },
+          {
+            "action": "pickup(c)",
+            "heuristic_value": 3,
+            "is_goal": false,
+            "relaxed_plan_length": 3,
+            "state_atoms": [
+              "clear(a)",
+              "clear(b)",
+              "holding(c)",
+              "on-table(a)",
+              "on-table(b)"
+            ],
+            "state_id": "ca68d321ce0fdf97e3b0f6b415120c8e27b6c30bd5887043481611fd43836bbf"
+          }
+        ],
+        "tie_break_rule": "min_heuristic_then_action_lexicographic"
+      },
+      "goal_atoms": [
+        "on(a,b)"
+      ],
+      "instance_id": "blocksworld-dev-fixture-0000",
+      "is_terminal": false,
+      "legal_actions": [
+        "pickup(a)",
+        "pickup(b)",
+        "pickup(c)"
+      ],
+      "metadata": {
+        "fixture": "tests/fixtures/planning/blocksworld_nontrivial.json",
+        "schema_version": "planning_expert_trajectory_v1",
+        "source": "local_fast_forward_p0_expert_generator",
+        "world_model": "deterministic_symbolic_v0"
+      },
+      "selected_action": "pickup(a)",
+      "state_atoms": [
+        "arm-empty",
+        "clear(a)",
+        "clear(b)",
+        "clear(c)",
+        "on-table(a)",
+        "on-table(b)",
+        "on-table(c)"
+      ],
+      "state_id": "1a9d29632534933a4e96dac66132d6642fce9f13b23b7b4d7223698802b5ad0d",
+      "step_index": 0,
+      "trajectory_id": "blocksworld-dev-fixture-0000__fast_forward"
+    },
+    {
+      "algorithm": "fast_forward",
+      "domain": "blocksworld",
+      "fast_forward": {
+        "failure_reason": null,
+        "heuristic_value": 1,
+        "relaxed_plan_metadata": {
+          "approximation": "deterministic_p0_hmax_relaxed_reachability",
+          "approximation_scope": "P0 Blocksworld-only symbolic approximation, not full Fast Downward FF",
+          "goal_costs": {
+            "on(a,b)": 1
+          },
+          "heuristic_definition": "Ground all Blocksworld operators, ignore delete effects after the current concrete state, propagate h_max-style relaxed atom costs, then count the deterministic supporter-action closure for unsatisfied goals as an approximate relaxed plan length.",
+          "ignored_delete_effects": true,
+          "is_exact_ff_delete_relaxation": false,
+          "relaxed_plan_actions": [
+            "stack(a,b)"
+          ],
+          "relaxed_plan_length": 1,
+          "supporter_actions": {
+            "arm-empty": "putdown(a)",
+            "clear(a)": "putdown(a)",
+            "holding(b)": "pickup(b)",
+            "holding(c)": "pickup(c)",
+            "on(a,b)": "stack(a,b)",
+            "on(a,c)": "stack(a,c)",
+            "on(b,a)": "stack(b,a)",
+            "on(b,c)": "stack(b,c)",
+            "on(c,a)": "stack(c,a)",
+            "on(c,b)": "stack(c,b)",
+            "on-table(a)": "putdown(a)"
+          },
+          "unreachable_goal_atoms": []
+        },
+        "selected_action": "stack(a,b)",
+        "selected_successor_id": "743f05fdfceda47fdf564492572f23087cffe33da570471fa3a19f17bd8e9ae4",
+        "successor_heuristics": [
+          {
+            "action": "stack(a,b)",
+            "heuristic_value": 0,
+            "is_goal": true,
+            "relaxed_plan_length": 0,
+            "state_atoms": [
+              "arm-empty",
+              "clear(a)",
+              "clear(c)",
+              "on(a,b)",
+              "on-table(b)",
+              "on-table(c)"
+            ],
+            "state_id": "743f05fdfceda47fdf564492572f23087cffe33da570471fa3a19f17bd8e9ae4"
+          },
+          {
+            "action": "putdown(a)",
+            "heuristic_value": 2,
+            "is_goal": false,
+            "relaxed_plan_length": 2,
+            "state_atoms": [
+              "arm-empty",
+              "clear(a)",
+              "clear(b)",
+              "clear(c)",
+              "on-table(a)",
+              "on-table(b)",
+              "on-table(c)"
+            ],
+            "state_id": "1a9d29632534933a4e96dac66132d6642fce9f13b23b7b4d7223698802b5ad0d"
+          },
+          {
+            "action": "stack(a,c)",
+            "heuristic_value": 2,
+            "is_goal": false,
+            "relaxed_plan_length": 2,
+            "state_atoms": [
+              "arm-empty",
+              "clear(a)",
+              "clear(b)",
+              "on(a,c)",
+              "on-table(b)",
+              "on-table(c)"
+            ],
+            "state_id": "ce1687465ac2d16caa1c270bd7821b181c11fb0638950624c973b5ecdbe440cc"
+          }
+        ],
+        "tie_break_rule": "min_heuristic_then_action_lexicographic"
+      },
+      "goal_atoms": [
+        "on(a,b)"
+      ],
+      "instance_id": "blocksworld-dev-fixture-0000",
+      "is_terminal": false,
+      "legal_actions": [
+        "putdown(a)",
+        "stack(a,b)",
+        "stack(a,c)"
+      ],
+      "metadata": {
+        "fixture": "tests/fixtures/planning/blocksworld_nontrivial.json",
+        "schema_version": "planning_expert_trajectory_v1",
+        "source": "local_fast_forward_p0_expert_generator",
+        "world_model": "deterministic_symbolic_v0"
+      },
+      "selected_action": "stack(a,b)",
+      "state_atoms": [
+        "clear(b)",
+        "clear(c)",
+        "holding(a)",
+        "on-table(b)",
+        "on-table(c)"
+      ],
+      "state_id": "77080652acee8566a76866d8a6beb96615a8dde1e6103a5c39c68f59d64a40e9",
+      "step_index": 1,
+      "trajectory_id": "blocksworld-dev-fixture-0000__fast_forward"
+    }
+  ],
+  "trajectory_id": "blocksworld-dev-fixture-0000__fast_forward"
+}

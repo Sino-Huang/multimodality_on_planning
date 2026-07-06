@@ -76,7 +76,9 @@ def orchestrate_generation(
     selected_domains = _select_domains(curriculum_config, domains)
     selected_splits = _select_splits(curriculum_config, splits)
     resolved_quotas = _resolve_quotas(curriculum_config, selected_splits, quotas_by_split)
-    resolved_candidate_multiplier = candidate_multiplier or curriculum_config.candidate_multiplier
+    resolved_candidate_multiplier = (
+        curriculum_config.candidate_multiplier if candidate_multiplier is None else candidate_multiplier
+    )
     if resolved_candidate_multiplier <= 0:
         raise ValueError("candidate_multiplier must be positive")
 
@@ -141,7 +143,9 @@ def orchestrate_generation(
             }
 
             for target_bucket in DIFFICULTY_BUCKETS:
-                pool_target_size = int(resolved_quotas[split].get(target_bucket, 0)) * resolved_candidate_multiplier
+                pool_target_size = int(remaining_quotas.get(target_bucket, 0)) * resolved_candidate_multiplier
+                if pool_target_size == 0:
+                    continue
                 bucket_pool_count = 0
                 while bucket_pool_count < pool_target_size and current_attempt_counts[target_bucket] < max_attempts_per_bucket:
                     attempt_index = next_attempt_index[(domain.domain_id, split)]

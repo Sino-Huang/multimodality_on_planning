@@ -1,0 +1,38 @@
+{
+  "gold_scoring_metadata": {
+    "algorithm": "bfs",
+    "algorithm_contract": {
+      "contract_id": "bfs_fifo_frontier_step",
+      "description": "The update must describe FIFO dequeue/enqueue behavior for the frontier queue.",
+      "required_terms": [
+        "fifo",
+        "queue",
+        "dequeue",
+        "enqueue"
+      ]
+    },
+    "current_state_atoms": [
+      "arm-empty",
+      "clear(a)",
+      "clear(b)",
+      "clear(c)",
+      "on-table(a)",
+      "on-table(b)",
+      "on-table(c)"
+    ],
+    "goal_atoms": [
+      "on(a,b)"
+    ],
+    "legal_actions": [
+      "pickup(a)",
+      "pickup(b)",
+      "pickup(c)"
+    ]
+  },
+  "model_output": {
+    "algorithm": "bfs",
+    "confidence": 0.77,
+    "internal_state_update": "Choose the visually most promising block and move it greedily toward the target tower.",
+    "next_action": "pickup(a)"
+  }
+}

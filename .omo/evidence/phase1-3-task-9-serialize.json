@@ -1,0 +1,198 @@
+{
+  "counts_by_algorithm": {
+    "bfs": {
+      "language": 2,
+      "vision": 2,
+      "vision_language": 2,
+      "vision_language_tool": 2
+    },
+    "fast_forward": {
+      "language": 2,
+      "vision": 2,
+      "vision_language": 2,
+      "vision_language_tool": 2
+    },
+    "graphplan": {
+      "language": 2,
+      "vision": 2,
+      "vision_language": 2,
+      "vision_language_tool": 2
+    },
+    "iterated_width": {
+      "language": 2,
+      "vision": 2,
+      "vision_language": 2,
+      "vision_language_tool": 2
+    }
+  },
+  "counts_by_modality": {
+    "language": 8,
+    "vision": 8,
+    "vision_language": 8,
+    "vision_language_tool": 8
+  },
+  "input": "outputs/planning_artifacts/expert_smoke",
+  "leakage_errors": [],
+  "modalities": [
+    "vision",
+    "language",
+    "vision_language",
+    "vision_language_tool"
+  ],
+  "output": "outputs/planning_artifacts/dataset_smoke",
+  "output_paths": {
+    "language": "outputs/planning_artifacts/dataset_smoke/language.jsonl",
+    "vision": "outputs/planning_artifacts/dataset_smoke/vision.jsonl",
+    "vision_language": "outputs/planning_artifacts/dataset_smoke/vision_language.jsonl",
+    "vision_language_tool": "outputs/planning_artifacts/dataset_smoke/vision_language_tool.jsonl"
+  },
+  "record_count": 32,
+  "schema_version": "planning_modality_dataset_v1",
+  "valid": true,
+  "vision_skip_reasons": [
+    {
+      "code": "no_render_artifacts",
+      "message": "The source trajectory did not reference render artifacts for this step.",
+      "modality": "vision",
+      "record_id": "blocksworld-dev-fixture-0000__bfs__step_0000__vision"
+    },
+    {
+      "code": "no_render_artifacts",
+      "message": "The source trajectory did not reference render artifacts for this step.",
+      "modality": "vision",
+      "record_id": "blocksworld-dev-fixture-0000__bfs__step_0001__vision"
+    },
+    {
+      "code": "no_render_artifacts",
+      "message": "The source trajectory did not reference render artifacts for this step.",
+      "modality": "vision",
+      "record_id": "blocksworld-dev-fixture-0000__fast_forward__step_0000__vision"
+    },
+    {
+      "code": "no_render_artifacts",
+      "message": "The source trajectory did not reference render artifacts for this step.",
+      "modality": "vision",
+      "record_id": "blocksworld-dev-fixture-0000__fast_forward__step_0001__vision"
+    },
+    {
+      "code": "no_render_artifacts",
+      "message": "The source trajectory did not reference render artifacts for this step.",
+      "modality": "vision",
+      "record_id": "blocksworld-dev-fixture-0000__graphplan__step_0000__vision"
+    },
+    {
+      "code": "no_render_artifacts",
+      "message": "The source trajectory did not reference render artifacts for this step.",
+      "modality": "vision",
+      "record_id": "blocksworld-dev-fixture-0000__graphplan__step_0001__vision"
+    },
+    {
+      "code": "no_render_artifacts",
+      "message": "The source trajectory did not reference render artifacts for this step.",
+      "modality": "vision",
+      "record_id": "blocksworld-dev-fixture-0000__iterated_width__step_0000__vision"
+    },
+    {
+      "code": "no_render_artifacts",
+      "message": "The source trajectory did not reference render artifacts for this step.",
+      "modality": "vision",
+      "record_id": "blocksworld-dev-fixture-0000__iterated_width__step_0001__vision"
+    },
+    {
+      "code": "no_render_artifacts",
+      "message": "The source trajectory did not reference render artifacts for this step.",
+      "modality": "vision_language",
+      "record_id": "blocksworld-dev-fixture-0000__bfs__step_0000__vision_language"
+    },
+    {
+      "code": "no_render_artifacts",
+      "message": "The source trajectory did not reference render artifacts for this step.",
+      "modality": "vision_language",
+      "record_id": "blocksworld-dev-fixture-0000__bfs__step_0001__vision_language"
+    },
+    {
+      "code": "no_render_artifacts",
+      "message": "The source trajectory did not reference render artifacts for this step.",
+      "modality": "vision_language",
+      "record_id": "blocksworld-dev-fixture-0000__fast_forward__step_0000__vision_language"
+    },
+    {
+      "code": "no_render_artifacts",
+      "message": "The source trajectory did not reference render artifacts for this step.",
+      "modality": "vision_language",
+      "record_id": "blocksworld-dev-fixture-0000__fast_forward__step_0001__vision_language"
+    },
+    {
+      "code": "no_render_artifacts",
+      "message": "The source trajectory did not reference render artifacts for this step.",
+      "modality": "vision_language",
+      "record_id": "blocksworld-dev-fixture-0000__graphplan__step_0000__vision_language"
+    },
+    {
+      "code": "no_render_artifacts",
+      "message": "The source trajectory did not reference render artifacts for this step.",
+      "modality": "vision_language",
+      "record_id": "blocksworld-dev-fixture-0000__graphplan__step_0001__vision_language"
+    },
+    {
+      "code": "no_render_artifacts",
+      "message": "The source trajectory did not reference render artifacts for this step.",
+      "modality": "vision_language",
+      "record_id": "blocksworld-dev-fixture-0000__iterated_width__step_0000__vision_language"
+    },
+    {
+      "code": "no_render_artifacts",
+      "message": "The source trajectory did not reference render artifacts for this step.",
+      "modality": "vision_language",
+      "record_id": "blocksworld-dev-fixture-0000__iterated_width__step_0001__vision_language"
+    },
+    {
+      "code": "no_render_artifacts",
+      "message": "The source trajectory did not reference render artifacts for this step.",
+      "modality": "vision_language_tool",
+      "record_id": "blocksworld-dev-fixture-0000__bfs__step_0000__vision_language_tool"
+    },
+    {
+      "code": "no_render_artifacts",
+      "message": "The source trajectory did not reference render artifacts for this step.",
+      "modality": "vision_language_tool",
+      "record_id": "blocksworld-dev-fixture-0000__bfs__step_0001__vision_language_tool"
+    },
+    {
+      "code": "no_render_artifacts",
+      "message": "The source trajectory did not reference render artifacts for this step.",
+      "modality": "vision_language_tool",
+      "record_id": "blocksworld-dev-fixture-0000__fast_forward__step_0000__vision_language_tool"
+    },
+    {
+      "code": "no_render_artifacts",
+      "message": "The source trajectory did not reference render artifacts for this step.",
+      "modality": "vision_language_tool",
+      "record_id": "blocksworld-dev-fixture-0000__fast_forward__step_0001__vision_language_tool"
+    },
+    {
+      "code": "no_render_artifacts",
+      "message": "The source trajectory did not reference render artifacts for this step.",
+      "modality": "vision_language_tool",
+      "record_id": "blocksworld-dev-fixture-0000__graphplan__step_0000__vision_language_tool"
+    },
+    {
+      "code": "no_render_artifacts",
+      "message": "The source trajectory did not reference render artifacts for this step.",
+      "modality": "vision_language_tool",
+      "record_id": "blocksworld-dev-fixture-0000__graphplan__step_0001__vision_language_tool"
+    },
+    {
+      "code": "no_render_artifacts",
+      "message": "The source trajectory did not reference render artifacts for this step.",
+      "modality": "vision_language_tool",
+      "record_id": "blocksworld-dev-fixture-0000__iterated_width__step_0000__vision_language_tool"
+    },
+    {
+      "code": "no_render_artifacts",
+      "message": "The source trajectory did not reference render artifacts for this step.",
+      "modality": "vision_language_tool",
+      "record_id": "blocksworld-dev-fixture-0000__iterated_width__step_0001__vision_language_tool"
+    }
+  ]
+}

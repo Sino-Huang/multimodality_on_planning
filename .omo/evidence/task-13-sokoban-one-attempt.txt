@@ -1,0 +1,59 @@
+Conda environment 'ada_vla' is already activated.
+{
+  "accepted_manifest_path": "/tmp/curriculum_pddl_sokoban_one_attempt/accepted_manifest.jsonl",
+  "output_root": "/tmp/curriculum_pddl_sokoban_one_attempt",
+  "rejections_path": "/tmp/curriculum_pddl_sokoban_one_attempt/rejections.jsonl",
+  "summary": {
+    "accepted_by_bucket": {},
+    "accepted_by_domain": {},
+    "accepted_by_split": {},
+    "accepted_total": 0,
+    "domains_completed": 0,
+    "duplicate_accepted_problem_hashes": 0,
+    "extra": {
+      "candidate_multiplier": 2,
+      "max_attempts_per_bucket": 1,
+      "selected_domains": [
+        "sokoban"
+      ],
+      "selected_splits": [
+        "train"
+      ],
+      "selection": {
+        "sokoban": {
+          "train": {
+            "attempt_counts": {
+              "easy": 1,
+              "hard": 0,
+              "medium": 0
+            },
+            "available_counts": {},
+            "incomplete_buckets": [],
+            "pool_size": 0,
+            "remaining_quotas": {
+              "easy": 1,
+              "hard": 0,
+              "medium": 0
+            },
+            "requested_counts": {},
+            "resumed_only": false,
+            "selected_counts": {},
+            "selected_pool_size": 0
+          }
+        }
+      }
+    },
+    "notes": "",
+    "rejected_by_reason": {
+      "render_failed": 1
+    },
+    "rejected_total": 1,
+    "render_failed_accepted": 0,
+    "resumed_accepted_total": 0,
+    "schema_version": 1,
+    "status": "summary"
+  },
+  "summary_path": "/tmp/curriculum_pddl_sokoban_one_attempt/summary.json"
+}
+
+exit_status=0

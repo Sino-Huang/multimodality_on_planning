@@ -1,0 +1,18 @@
+# Phase 3 curriculum extension + Fast Downward plans (2026-06-28)
+
+- Current root `data/curriculum_pddl` has been extended in place through the shard/safety-merge workflow to 5,153 accepted instances with zero duplicate hashes.
+- Work should continue, if needed, in `data/curriculum_pddl_shards/<domain>`, followed by staged merge to `/tmp/opencode/...`; do not generate selected domains directly into `data/curriculum_pddl`.
+- Current final checkpoint: 5,153 accepted rows, zero missing normalized hashes, zero duplicate normalized hashes, no missing PDDL/render paths in latest checks.
+- The old `7995 = 533 * 15` target is now aspirational only. Several domains are low-yield or effectively exhausted under current generator settings, so prefer finalizing 5,153 unless generator configs/quotas/domains change.
+- Added `scripts/phase3/save_fast_downward_plans.py` to write `<instance>/plan/sas_plan*`, `diagnostics/fast_downward_plan_saves.jsonl`, and `reports/fast_downward_plan_saves_summary.json`.
+- Added `--candidate-multiplier` to `src.data_collect generate` and changed pool sizing in `src/data_collect/generate.py` to use remaining quotas during resume extension.
+- Review fixes added plan-path containment under the selected input root, symlinked `plan/` rejection, per-row planner launch diagnostics, non-positive candidate multiplier rejection, force-overwrite plan saver coverage, and doc coverage for the safe runbook.
+- Focused verification command passed with `30 passed`:
+  `source ~/cd_vlaplan && source .venv/bin/activate && pytest tests/data_collect/test_cli.py tests/data_collect/test_generate_orchestrator.py tests/data_collect/test_merge_shards.py tests/phase3/test_save_fast_downward_plans.py`
+- Fast Downward smoke on final-root baseline: `--limit 1` saved 1/1 plan.
+- Fast Downward smoke on staged candidate: `--limit 5` saved 5/5 plans.
+- Continue generation with shard-local absolute targets and bounded attempt ceilings, e.g. `--candidate-multiplier 1 --quota easy=155 --max-attempts-per-bucket <current_attempts+window>`.
+- If continuing generation despite diminishing returns, use a smaller target such as 5600 rather than 7995: `source ~/cd_vlaplan && source .venv/bin/activate && python -m scripts.phase3.extend_curriculum_workflow --target-total 5600 --candidate-root /tmp/opencode/curriculum_pddl_candidate_auto --final-root data/curriculum_pddl --update-root --max-generate-commands 60 --command-timeout-seconds 180 --attempt-window 120 --max-attempts-per-bucket 1600 --save-plans --plan-limit 5 --verbose --json`.
+- Recommended finalization/plan-saving command for the current checkpoint: `source ~/cd_vlaplan && source .venv/bin/activate && python -m scripts.phase3.extend_curriculum_workflow --target-total 5153 --candidate-root /tmp/opencode/curriculum_pddl_candidate_auto --final-root data/curriculum_pddl --update-root --max-generate-commands 0 --save-plans --verbose --json`. This omits `--plan-limit`, so it attempts plan saving for all accepted rows.
+- Avoid direct selected-domain generation into `data/curriculum_pddl`; it can rewrite the merged manifest for only selected domains. The workflow generates only into shards, safety-merges under `/tmp/opencode`, then updates `data/curriculum_pddl` from the complete shard set when `--update-root` is supplied.
+- 2026-06-30 fix: older `extend_curriculum_workflow` saved plans to `--candidate-root` before `--update-root`, so the final root had no plans after re-merging from shards; it also defaulted `--plan-limit` to 5. The workflow now saves plans after final-root update when `--update-root` is present, emits `plan_root`, and defaults omitted `--plan-limit` to all rows. Use `--plan-timeout-seconds`; `--timeout_seconds` is not a valid flag.

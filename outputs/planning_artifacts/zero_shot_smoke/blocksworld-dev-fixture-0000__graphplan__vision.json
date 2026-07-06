@@ -1,0 +1,60 @@
+{
+  "algorithm": "graphplan",
+  "domain": "blocksworld",
+  "gold_scoring_metadata": {
+    "algorithm": "graphplan",
+    "algorithm_contract": {
+      "contract_id": "graphplan_layer_mutex_step",
+      "description": "The update must describe proposition layers and mutex tracking.",
+      "required_terms": [
+        "proposition",
+        "layer",
+        "mutex"
+      ]
+    },
+    "current_state_atoms": [
+      "arm-empty",
+      "clear(a)",
+      "clear(b)",
+      "clear(c)",
+      "on-table(a)",
+      "on-table(b)",
+      "on-table(c)"
+    ],
+    "current_state_id": "1a9d29632534933a4e96dac66132d6642fce9f13b23b7b4d7223698802b5ad0d",
+    "fixture": "tests/fixtures/planning/blocksworld_nontrivial.json",
+    "goal_atoms": [
+      "on(a,b)"
+    ],
+    "initial_legal_action_count": 3,
+    "legal_actions": [
+      "pickup(a)",
+      "pickup(b)",
+      "pickup(c)"
+    ],
+    "modality": "vision",
+    "problem_name": "bw-nontrivial-3",
+    "shortest_plan_length": 2
+  },
+  "instance_id": "blocksworld-dev-fixture-0000",
+  "modality": "vision",
+  "modality_boundary_note": "Only model_facing is intended for model prompts; gold_scoring_metadata is evaluator-only.",
+  "model_facing": {
+    "algorithm_definition": "Graphplan: build proposition layers from the initial layer, add action/proposition layers, track mutex relations for incompatible propositions, and stop when non-mutex goals appear.",
+    "output_format": {
+      "algorithm": "graphplan",
+      "confidence": "number from 0.0 to 1.0",
+      "internal_state_update": "one-step planner-state update for the requested algorithm",
+      "next_action": "pickup(X), putdown(X), stack(X,Y), or unstack(X,Y)"
+    },
+    "system": "You are executing graphplan on one Blocksworld task.",
+    "task_instruction": "Execute the next step of graphplan and respond only with JSON.",
+    "visual_input": {
+      "kind": "rendered_blocksworld_observation",
+      "render_paths": [],
+      "text": "Use only the visual observation supplied by the evaluator."
+    }
+  },
+  "package_id": "blocksworld-dev-fixture-0000__graphplan__vision",
+  "schema_version": "zero_shot_prompt_package_v1"
+}

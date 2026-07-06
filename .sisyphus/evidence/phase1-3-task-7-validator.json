@@ -1,0 +1,18 @@
+{
+  "algorithms_validated": [
+    "fast_forward"
+  ],
+  "by_algorithm": {
+    "fast_forward": 2
+  },
+  "error_count": 0,
+  "errors": [],
+  "file_count": 1,
+  "files": [
+    "outputs/planning_artifacts/expert_ff_smoke/blocksworld-dev-fixture-0000__fast_forward.json"
+  ],
+  "input": "outputs/planning_artifacts/expert_ff_smoke",
+  "schema_version": "planning_expert_trajectory_v1",
+  "trajectory_count": 2,
+  "valid": true
+}

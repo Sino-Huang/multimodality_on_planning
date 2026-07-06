@@ -1,0 +1,21 @@
+{
+  "algorithms_validated": [],
+  "by_algorithm": {},
+  "error_count": 1,
+  "errors": [
+    {
+      "code": "missing_required_field",
+      "message": "missing required field: bfs.frontier_before",
+      "path": "bfs.frontier_before",
+      "source": "tests/fixtures/planning/trajectories/invalid_missing_bfs_frontier/bfs_missing_frontier.json"
+    }
+  ],
+  "file_count": 1,
+  "files": [
+    "tests/fixtures/planning/trajectories/invalid_missing_bfs_frontier/bfs_missing_frontier.json"
+  ],
+  "input": "tests/fixtures/planning/trajectories/invalid_missing_bfs_frontier",
+  "schema_version": "planning_expert_trajectory_v1",
+  "trajectory_count": 1,
+  "valid": false
+}

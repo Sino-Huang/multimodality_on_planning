@@ -25,12 +25,14 @@ The goal is to build the minimum complete research pipeline needed to test the p
 
 ### What is missing
 
-- A **planning benchmark package** for the proposal domains.
+- A **planning benchmark package** for the proposal's first runnable domain: Blocksworld with optional Planimation rendering.
 - A **Planimation-aware environment adapter** integrated into the StarVLA workflow.
-- A **data generation pipeline** for expert demonstrations across PDDL-native planners: BFS / DFS / Greedy / A* / Width-based / Planning Graph, with Partial Order Planning as a secondary extension.
+- A **zero-shot diagnostic path** that tests algorithmic knowledge vs. modality affordance before SFT.
+- A **data generation pipeline** for expert demonstrations across the four proposal-aligned P0 families: BFS / Fast Forward / Iterated Width / Graphplan.
 - A **planner framework** that consumes the chosen modality inputs and optionally uses tool memory.
 - A **scratchpad tool interface** (`read` / `write`) exposed to the planner.
-- A **proposal-specific evaluation suite** for success rate, search quality, generalization, and Pareto analysis.
+- A **frozen world-model interface** that can feed cached state representations into the planner without entangling planner training with world-model learning.
+- A **proposal-specific evaluation suite** for zero-shot diagnostics, success rate, sample efficiency, generalization, process metrics, and failure-taxonomy analysis.
 
 ---
 
@@ -44,22 +46,46 @@ In practice, that means:
 2. reuse StarVLA's config, training, and checkpointing infrastructure,
 3. keep Planimation as a visualization and environment-side utility rather than deeply coupling it into the model core,
 4. introduce the research-specific planner variants as new frameworks or framework extensions,
-5. stage the work so that the **P0 experiments** from the proposal become runnable first.
+5. stage the work so that the **zero-shot diagnostic and P0 experiments** from the proposal become runnable first.
 
 ---
 
 ## Recommended Phases
 
+## Phase 1-3 closeout status
+
+Phase 1, Phase 2, and the original Phase 3 smoke closure are complete for the Blocksworld-only P0 milestone. A later complete Phase 3 supervised-data corpus now exists under `data/phase3_supervised_planning` for all 15 curriculum domains with per-instance and per-planner accounting; this status still does not complete Phase 4 or any training/model work.
+
+Evidence index:
+
+- Phase 1 scope, symbolic core, and zero-shot diagnostic packaging: `.sisyphus/evidence/phase1-3-task-1-scope-lock.json`, `.sisyphus/evidence/phase1-3-task-2-valid-instance.json`, `.sisyphus/evidence/phase1-3-task-3-zero-shot-build.json`.
+- Phase 2 direct Python benchmark loop: `.sisyphus/evidence/phase1-3-task-4-oracle-loop.json`, `.sisyphus/evidence/phase1-3-task-4-invalid-action.json`.
+- Phase 3 expert schema, BFS, Fast Forward, Iterated Width, Graphplan, modality serializers, and registry smoke: `.sisyphus/evidence/phase1-3-task-5-schema-valid.json`, `.sisyphus/evidence/phase1-3-task-6-bfs-iw.json`, `.sisyphus/evidence/phase1-3-task-7-ff.json`, `.sisyphus/evidence/phase1-3-task-8-graphplan.json`, `.sisyphus/evidence/phase1-3-task-9-serialize.json`, `.sisyphus/evidence/phase1-3-task-10-registry.txt`.
+- Documentation closeout checks: `.sisyphus/evidence/phase1-3-task-11-docs-check.json` and `.sisyphus/evidence/phase1-3-task-11-no-overclaim.json`.
+
+Caveats:
+
+- The original Phase 1-3 smoke closure is Blocksworld-only P0. The complete Phase 3 supervised-data corpus is the separate 15-domain JSONL pipeline documented in `doc/detailed_implementation_summary/phase3_complete_supervised_planning_data_summary.md`.
+- The Phase 2 loop is a direct Python benchmark loop.
+- Generated smoke outputs under `outputs/planning_artifacts/**` are reproducible local artifacts. Do not commit large generated data unless explicitly requested.
+- No Phase 4 training, planner model implementation, SFT run, real VLM call, GPU run, API call, or external-service execution is complete.
+- `doc/detailed_implementation_summary/phase2_curriculum_pddl_generation_summary.md` documents curriculum PDDL generation. It is not itself proof of Phase 3 expert demonstrations.
+
+---
+
 ## Phase 1 - Pre-flight validation and scope lock
 
 ### Objective
 
-Confirm the research can be implemented in this repo without first solving unrelated architecture problems.
+Confirm the research can be implemented in this repo without first solving unrelated architecture problems, and lock the exact proposal-aligned P0 scope before broader build-out.
 
 ### Main tasks
 
 - Decide the first domain to operationalize.
   - Recommended order: **Blocksworld/Planimation first**, then expand to additional domains.
+- Lock the proposal's first-priority algorithm/modality matrix explicitly:
+  - **Algorithms:** BFS, Fast Forward, Iterated Width, Graphplan.
+  - **Modalities:** Vision-only, Language-only, VLA, VLA+Tool.
 - Decide whether Blocksworld is handled as:
   - a purely symbolic planning environment with rendered images added for vision input, or
   - a more general StarVLA-style embodied environment.
@@ -67,12 +93,24 @@ Confirm the research can be implemented in this repo without first solving unrel
   - visualization only,
   - state rendering source,
   - or both.
+- Define the **zero-shot diagnostic gate** before any large SFT run:
+  - fixed per-algorithm prompt format,
+  - modality-specific input packaging,
+  - JSON output schema for algorithm-state updates,
+  - pass/fail criteria for algorithmic fidelity vs. action validity.
+- Decide how the frozen world-model assumption is represented in the repo for P0:
+  - cached symbolic/state features only for the first Blocksworld milestone, or
+  - an explicit frozen encoder interface from the start.
 - Fix the practical Planimation integration assumption early:
   - `modules/api-tools/planimation_api.py` currently points to localhost-style endpoints and should be made configurable before it is used in experiments.
 
 ### Deliverable
 
-A frozen implementation scope for the first runnable benchmark and a written decision on domain representation, visualization source, and Planimation usage.
+A frozen implementation scope for the first runnable benchmark, plus a written go/no-go definition for the zero-shot diagnostic, domain representation, visualization source, and Planimation usage.
+
+### Status update
+
+Phase 1 complete for Blocksworld-only P0. Evidence: `.sisyphus/evidence/phase1-3-task-1-scope-lock.json`, `.sisyphus/evidence/phase1-3-task-2-valid-instance.json`, and `.sisyphus/evidence/phase1-3-task-3-zero-shot-build.json`. Caveat: this does not claim all 15 curriculum domains as acceptance scope and does not claim real VLM or GPU zero-shot execution.
 
 ---
 
@@ -111,6 +149,10 @@ Create a benchmark package that fits StarVLA's conventions but represents planni
 
 A minimal benchmark package that can load one planning instance and emit the modality views required by the proposal.
 
+### Status update
+
+Phase 2 complete for Blocksworld-only P0. Evidence: `.sisyphus/evidence/phase1-3-task-4-oracle-loop.json` and `.sisyphus/evidence/phase1-3-task-4-invalid-action.json`. Caveat: the accepted P0 loop is direct Python, not a WebSocket or server-client requirement.
+
 ---
 
 ## Phase 3 - Data and demonstration generation
@@ -121,25 +163,25 @@ Generate the supervised training data needed for algorithm-specific learning.
 
 ### Main tasks
 
-- Implement expert trajectory generation for complementary algorithm families that directly consume ordinary IPC/classical PDDL tasks and cover four P0 paradigms:
-  - blind state-space search: BFS and DFS,
-  - heuristic state-space search: Greedy Best-First and A*,
-  - novelty/width-based search: Width-based Search,
-  - graph-structured planning: Planning Graph / Graphplan,
-  - least-commitment plan-space reasoning: Partial Order Planning as a P1 extension.
-- Exclude Hierarchical Subgoal Decomposition from the core set unless subgoals or decompositions are derived automatically from the PDDL task without extra annotations.
+- Implement expert trajectory generation for the four proposal-aligned P0 algorithm families:
+  - systematic search: BFS,
+  - greedy heuristic search: Fast Forward,
+  - structured exploration: Iterated Width,
+  - constraint-based proposition planning: Graphplan.
+- Keep any additional planners or approximations out of the core dataset unless they are explicitly marked as non-P0 exploratory baselines.
 - Define a unified trajectory schema containing:
   - state or latent reference,
   - visual observation,
   - language description,
   - target planner decision,
-  - optional queue/stack/heuristic/novelty/planning-graph/ordering-constraint state,
+  - optional queue/heuristic/novelty/planning-graph state,
   - final plan metadata.
 - Build separate serialization paths for the four modality conditions:
   - Vision-only,
   - Language-only,
   - Vision + Language,
   - Vision + Language + Tool.
+- Add a lightweight artifact path for zero-shot diagnostic instances so the same task packaging can be reused before and after SFT.
 - Add dataset registration so the new data can flow through `starVLA/dataloader/`.
 
 ### Repo surfaces
@@ -151,6 +193,10 @@ Generate the supervised training data needed for algorithm-specific learning.
 ### Deliverable
 
 A reproducible demonstration-generation pipeline with enough data to train at least the P0 experiments.
+
+### Status update
+
+Phase 3 complete for Blocksworld-only P0 expert demonstration generation and packaging. Evidence: `.sisyphus/evidence/phase1-3-task-5-schema-valid.json`, `.sisyphus/evidence/phase1-3-task-6-bfs-iw.json`, `.sisyphus/evidence/phase1-3-task-7-ff.json`, `.sisyphus/evidence/phase1-3-task-8-graphplan.json`, `.sisyphus/evidence/phase1-3-task-9-serialize.json`, and `.sisyphus/evidence/phase1-3-task-10-registry.txt`. Phase 3 also has a complete multi-domain supervised-data artifact at `data/phase3_supervised_planning`, generated and verified by `scripts.phase3`; see `doc/detailed_implementation_summary/phase3_complete_supervised_planning_data_summary.md`. Current generation probes configured external FF/IW/Graphplan executables first and falls back to repo-local deterministic traces for supported small STRIPS instances when external final-plan sources are unavailable; see `doc/detailed_implementation_summary/phase3_local_planner_trace_generation_summary.md`. Caveat: not all planner attempts succeed, external-only successes are labeled `success_plan_replayed` rather than full internal traces, and no Phase 4 training is complete.
 
 ---
 
@@ -173,11 +219,10 @@ Create the planning model path that actually learns the algorithm families under
 - Separate the planning outputs from standard action-decoding assumptions in current StarVLA VLA heads.
 - Represent algorithm-specific supervision clearly:
   - next node expansion,
-  - queue/stack updates,
-  - heuristic choice,
-  - novelty-feature choice,
-  - planning-graph level, mutex, or extraction step,
-  - partial-order causal-link or ordering update.
+  - queue updates,
+  - delete-relaxation heuristic value or choice,
+  - novelty-table decision,
+  - planning-graph layer, mutex, or extraction step.
 
 ### Repo surfaces
 
@@ -188,6 +233,10 @@ Create the planning model path that actually learns the algorithm families under
 ### Deliverable
 
 A trainable planner framework that can run one algorithm family under one modality condition end-to-end.
+
+### Status update
+
+Phase 4 remains not complete and not implemented by the Phase 1-3 closeout. No training, planner model, SFT, real VLM, GPU, API, or external-service result is claimed. No training, planner model, SFT, real VLM, GPU, API, or external-service result is claimed.
 
 ---
 
@@ -207,6 +256,7 @@ Implement the external memory condition required by the proposal.
   - **Tool-Learned**: optional later extension where usage is chosen by the model.
 - Make tool state observable and logged for later analysis.
 - Keep the tool memory implementation simple and deterministic at first; avoid building a general agent tool system.
+- Treat context-window pressure as a first-class requirement for planning traces. For `blocksworld-train-medium-0011`, the final plan is only 10 actions, but raw traces are roughly 95k-108k estimated tokens for BFS, 32k-37k for FF-style, 461k-527k for Graphplan, and 2.57M-2.93M for IW(3). The memory path must keep frontier, visited, novelty, mutex, and planning-graph tables outside the LLM context and retrieve only the current path, selected candidates, and relevant facts for each decision.
 
 ### Repo surfaces
 
@@ -215,7 +265,7 @@ Implement the external memory condition required by the proposal.
 
 ### Deliverable
 
-A working external-memory path that supports at least BFS, DFS, A*, Width-based Search, and Planning Graph / Graphplan in the Tool-Template setting, with Partial Order Planning support treated as a secondary extension.
+A working external-memory path that supports the proposal's Tool-Template condition for BFS, Fast Forward, Iterated Width, and Graphplan, with the strongest memory dependence expected for BFS, Iterated Width, and raw Graphplan layer/mutex traces.
 
 ---
 
@@ -229,8 +279,8 @@ Turn the benchmark and planner into structured experiment runs.
 
 - Add training configs for the proposal matrix.
 - Prioritize experiments exactly as proposed:
-  - **P0**: BFS/DFS, Greedy/A*, Width-based, Planning Graph × 4 modalities × 3 seeds.
-  - **P1**: Partial Order Planning × 4 modalities × 3 seeds after linear trajectory extraction is stable.
+  - **P0**: Zero-shot diagnostic + BFS, Fast Forward, Iterated Width, Graphplan × 4 modalities × 3 seeds.
+  - **P1**: Cross-task transfer after Blocksworld P0 is stable.
   - **P2/P3** only after P0 is stable.
 - Keep configuration naming explicit so runs can be grouped by:
   - domain,
@@ -261,23 +311,27 @@ Measure the exact claims in the proposal rather than only training loss or task 
 ### Main tasks
 
 - Implement evaluation scripts for:
+  - zero-shot diagnostic pass rates,
   - success rate,
   - sample efficiency,
   - length generalization,
   - compositional generalization,
-  - search efficiency,
-  - robustness.
+  - process-level metrics tied to CRSH.
 - Log proposal-specific diagnostics such as:
-  - nodes expanded,
-  - queue/stack correctness,
-  - optimality gap,
-  - planning-graph level/mutex quality,
-  - scratchpad usage patterns.
+  - convergence-curve shape,
+  - effective search depth,
+  - queue correctness,
+  - heuristic deviation,
+  - novelty accuracy,
+  - mutex quality,
+  - scratchpad usage patterns,
+  - failure-taxonomy labels (memory overflow, heuristic fixation, novelty collapse, constraint violation, exploration collapse).
 - Build the final analysis outputs needed for the paper:
   - modality × algorithm summary tables,
   - Pareto frontier plots,
   - failure-mode breakdowns,
-  - asymmetric repair analysis.
+  - asymmetric repair analysis,
+  - hard/soft-boundary decision summaries.
 
 ### Repo surfaces
 
@@ -290,23 +344,24 @@ A paper-aligned evaluation pipeline that can produce the core figures and tables
 
 ---
 
-## Phase 8 - Expansion beyond the first benchmark
+## Phase 8 - Cross-task transfer and broader extensions
 
 ### Objective
 
-Generalize the initial implementation into the full cross-domain story described in the proposal.
+Generalize the initial implementation into the proposal's transfer story, then extend to broader domains only after the Blocksworld diagnostic core is stable.
 
 ### Main tasks
 
-- After Blocksworld/Planimation is stable, add the next domains from the proposal.
-- Decide how frozen world-model support differs by domain:
-  - discrete symbolic domain,
-  - continuous visual/control domain.
-- Only then extend the benchmark matrix to test whether the observed affordance pattern transfers across domains.
+- After Blocksworld/Planimation P0 is stable, add the proposal's **cross-task transfer** stage:
+  - FOLIO-style logical reasoning,
+  - HumanEval/code-debugging style reasoning,
+  - the selected third transfer task used in the proposal write-up.
+- Freeze the trained planner when evaluating transfer so the implementation matches the Algorithmic Bias Transfer claim.
+- Treat additional planning domains or continuous-world-model extensions as later follow-ons, not as part of the minimum proposal-aligned path.
 
 ### Deliverable
 
-Multi-domain evidence for the paper's stronger claims, rather than a single-domain proof of concept.
+Cross-task transfer evidence for the paper's stronger claims, with broader domain extensions explicitly treated as follow-on work.
 
 ---
 
@@ -315,13 +370,15 @@ Multi-domain evidence for the paper's stronger claims, rather than a single-doma
 To avoid getting stuck, implement in this order:
 
 1. **One planning benchmark with one domain**.
-2. **One demonstration generator**.
-3. **One planner framework**.
-4. **One modality condition**.
-5. **One algorithm family**.
-6. **One evaluation script**.
-7. Expand to the full **P0 matrix**.
-8. Expand to **P1**, then optional **P2/P3**.
+2. **One zero-shot diagnostic packaging path**.
+3. **One evaluation script for the diagnostic gate**.
+4. Run the **zero-shot diagnostic** as a gate.
+5. **One demonstration generator**.
+6. **One planner framework**.
+7. **One modality condition**.
+8. **One algorithm family**.
+9. Expand to the full **P0 matrix**.
+10. Expand to **P1**, then optional **P2/P3**.
 
 This order matters because it gets you to a runnable research loop quickly, instead of spending weeks on a fully general architecture before the first experiment works.
 
@@ -331,7 +388,7 @@ This order matters because it gets you to a runnable research loop quickly, inst
 
 The best first milestone for this repo is:
 
-**Run Blocksworld with Planimation-based visual observations, generate expert demonstrations for BFS / Greedy / A* / Width-based / Planning Graph, train a first planner under one modality condition, and evaluate basic success plus trajectory correctness.**
+**Run Blocksworld with Planimation-based visual observations, validate the zero-shot diagnostic packaging, generate expert demonstrations for BFS / Fast Forward / Iterated Width / Graphplan, train a first planner under one modality condition, and evaluate basic success plus algorithm-state correctness.**
 
 This milestone is strong because it tests the proposal's core logic while keeping scope controlled.
 
@@ -341,13 +398,14 @@ This milestone is strong because it tests the proposal's core logic while keepin
 
 If you start implementation now, the next concrete actions should be:
 
-1. **Create a planning benchmark package under `examples/`** for the first domain.
+1. **Create a planning benchmark package under `examples/`** for Blocksworld as the first domain.
 2. **Make Planimation endpoints configurable** in `modules/api-tools/planimation_api.py`.
-3. **Define the planning trajectory schema** for demonstrations and evaluation logs.
-4. **Implement expert generators** for the P0 algorithms first.
-5. **Register a new dataset path** through `starVLA/dataloader/`.
-6. **Create a first planner framework/config pair** under `starVLA/model/framework/` and `starVLA/config/training/`.
-7. **Build one evaluation script** that reports success, plan quality, and scratchpad behavior.
+3. **Define the zero-shot diagnostic prompt + JSON schema** so pre-SFT checks use the same task packaging as training/eval.
+4. **Define the planning trajectory schema** for demonstrations and evaluation logs.
+5. **Implement expert generators** for BFS, Fast Forward, Iterated Width, and Graphplan first.
+6. **Register a new dataset path** through `starVLA/dataloader/`.
+7. **Create a first planner framework/config pair** under `starVLA/model/framework/` and `starVLA/config/training/`.
+8. **Build one evaluation script** that reports zero-shot diagnostic status, success, algorithm-state correctness, and scratchpad behavior.
 
 ---
 
@@ -357,6 +415,7 @@ You are ready to run the main study when the repo can do all of the following:
 
 - launch one planning benchmark instance,
 - emit visual and language views of the same task,
+- run the zero-shot diagnostic with proposal-aligned outputs,
 - generate expert traces for at least the P0 algorithms,
 - train one planner variant using the existing StarVLA training stack,
 - evaluate that planner with proposal-specific metrics,

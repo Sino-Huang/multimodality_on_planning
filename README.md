@@ -18,6 +18,8 @@
 
 In StarVLA (also a pun on "start VLA" ),  each functional component (model, data, trainer, config, evaluation, etc.) follows a top-down, intuitive separation and high-cohesion, low-coupling principle, enabling plug-and-play design, rapid prototyping, and independent debugging.
 
+Planning-trace experiments should account for LLM context-window limits. On `blocksworld-train-medium-0011`, the final valid plan has only 10 actions, but raw reasoning traces can be much larger: BFS is roughly 95k-108k estimated tokens, FF-style is roughly 32k-37k, Graphplan is roughly 461k-527k, and IW(3) is roughly 2.57M-2.93M. Future planner-model work should therefore use an external memory manager for frontier, visited, novelty, mutex, and planning-graph state, letting the LLM attend only to the current path, selected candidates, and retrieved facts instead of the full raw trace.
+
 ## News
 
 > **⚠️ Branch notice:** The `starVLA_dev` branch is where we actively merge new features and may be temporarily unstable. For verified results, use the stable `starVLA` branch. Thanks to StarVLA's low-coupling design, switching between branches is painless. We encourage trying `starVLA_dev` and welcome PRs if you spot any issues!

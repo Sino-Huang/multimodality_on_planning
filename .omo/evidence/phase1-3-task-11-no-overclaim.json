@@ -1,0 +1,31 @@
+{
+  "checked_phases": [],
+  "no_phase4_claims": {
+    "forbidden_hits": [],
+    "required_missing": [],
+    "required_results": [
+      {
+        "path": "doc/high_level_plans/research_execution_plan.md",
+        "phrase": "Phase 4 remains not complete",
+        "present": true,
+        "reason": null
+      },
+      {
+        "path": "doc/high_level_plans/research_execution_plan.md",
+        "phrase": "No training, planner model, SFT, real VLM, GPU, API, or external-service result is claimed",
+        "present": true,
+        "reason": null
+      },
+      {
+        "path": "doc/detailed_implementation_summary/phase3_expert_trajectories_summary.md",
+        "phrase": "No Phase 4 training, model implementation, or SFT run is complete yet",
+        "present": true,
+        "reason": null
+      }
+    ],
+    "valid": true
+  },
+  "phase_results": {},
+  "schema_version": "planning_docs_check_v1",
+  "valid": true
+}

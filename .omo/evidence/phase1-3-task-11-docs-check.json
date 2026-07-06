@@ -1,0 +1,304 @@
+{
+  "checked_phases": [
+    1,
+    2,
+    3
+  ],
+  "no_phase4_claims": null,
+  "phase_results": {
+    "1": {
+      "documents": [
+        {
+          "exists": true,
+          "path": "doc/detailed_implementation_summary/phase1_scope_lock_and_diagnostic_summary.md"
+        },
+        {
+          "exists": true,
+          "path": "doc/high_level_plans/research_execution_plan.md"
+        }
+      ],
+      "evidence": [
+        {
+          "exists": true,
+          "path": ".sisyphus/evidence/phase1-3-task-1-scope-lock.json"
+        },
+        {
+          "exists": true,
+          "path": ".sisyphus/evidence/phase1-3-task-1-scope-lock-error.txt"
+        },
+        {
+          "exists": true,
+          "path": ".sisyphus/evidence/phase1-3-task-2-valid-instance.json"
+        },
+        {
+          "exists": true,
+          "path": ".sisyphus/evidence/phase1-3-task-2-empty-goal-error.json"
+        },
+        {
+          "exists": true,
+          "path": ".sisyphus/evidence/phase1-3-task-3-zero-shot-build.json"
+        },
+        {
+          "exists": true,
+          "path": ".sisyphus/evidence/phase1-3-task-3-illegal-action.json"
+        }
+      ],
+      "label": "scope_lock_symbolic_core_zero_shot",
+      "missing_documents": [],
+      "missing_evidence": [],
+      "missing_phrases": [],
+      "phase": 1,
+      "phrase_results": [
+        {
+          "path": "doc/detailed_implementation_summary/phase1_scope_lock_and_diagnostic_summary.md",
+          "phrase": "Blocksworld-only P0",
+          "present": true,
+          "reason": null
+        },
+        {
+          "path": "doc/detailed_implementation_summary/phase1_scope_lock_and_diagnostic_summary.md",
+          "phrase": "deterministic symbolic world model v0",
+          "present": true,
+          "reason": null
+        },
+        {
+          "path": "doc/detailed_implementation_summary/phase1_scope_lock_and_diagnostic_summary.md",
+          "phrase": "Planimation is offline rendering and visualization only",
+          "present": true,
+          "reason": null
+        },
+        {
+          "path": "doc/detailed_implementation_summary/phase1_scope_lock_and_diagnostic_summary.md",
+          "phrase": "without real VLM, GPU, API, or external-service execution",
+          "present": true,
+          "reason": null
+        },
+        {
+          "path": "doc/high_level_plans/research_execution_plan.md",
+          "phrase": "Phase 1 complete for Blocksworld-only P0",
+          "present": true,
+          "reason": null
+        }
+      ],
+      "valid": true
+    },
+    "2": {
+      "documents": [
+        {
+          "exists": true,
+          "path": "doc/detailed_implementation_summary/phase2_benchmark_loop_summary.md"
+        },
+        {
+          "exists": true,
+          "path": "doc/high_level_plans/research_execution_plan.md"
+        }
+      ],
+      "evidence": [
+        {
+          "exists": true,
+          "path": ".sisyphus/evidence/phase1-3-task-4-oracle-loop.json"
+        },
+        {
+          "exists": true,
+          "path": ".sisyphus/evidence/phase1-3-task-4-invalid-action.json"
+        }
+      ],
+      "label": "direct_python_benchmark_loop",
+      "missing_documents": [],
+      "missing_evidence": [],
+      "missing_phrases": [],
+      "phase": 2,
+      "phrase_results": [
+        {
+          "path": "doc/detailed_implementation_summary/phase2_benchmark_loop_summary.md",
+          "phrase": "direct Python benchmark loop",
+          "present": true,
+          "reason": null
+        },
+        {
+          "path": "doc/detailed_implementation_summary/phase2_benchmark_loop_summary.md",
+          "phrase": "no WebSocket",
+          "present": true,
+          "reason": null
+        },
+        {
+          "path": "doc/detailed_implementation_summary/phase2_benchmark_loop_summary.md",
+          "phrase": "Phase 4 model training remain outside this phase",
+          "present": true,
+          "reason": null
+        },
+        {
+          "path": "doc/high_level_plans/research_execution_plan.md",
+          "phrase": "Phase 2 complete for Blocksworld-only P0",
+          "present": true,
+          "reason": null
+        }
+      ],
+      "valid": true
+    },
+    "3": {
+      "documents": [
+        {
+          "exists": true,
+          "path": "doc/detailed_implementation_summary/phase3_expert_trajectories_summary.md"
+        },
+        {
+          "exists": true,
+          "path": "doc/high_level_plans/research_execution_plan.md"
+        }
+      ],
+      "evidence": [
+        {
+          "exists": true,
+          "path": ".sisyphus/evidence/phase1-3-task-5-schema-valid.json"
+        },
+        {
+          "exists": true,
+          "path": ".sisyphus/evidence/phase1-3-task-5-schema-error.json"
+        },
+        {
+          "exists": true,
+          "path": ".sisyphus/evidence/phase1-3-task-6-bfs-iw.json"
+        },
+        {
+          "exists": true,
+          "path": ".sisyphus/evidence/phase1-3-task-6-determinism.txt"
+        },
+        {
+          "exists": true,
+          "path": ".sisyphus/evidence/phase1-3-task-7-ff.json"
+        },
+        {
+          "exists": true,
+          "path": ".sisyphus/evidence/phase1-3-task-7-validator.json"
+        },
+        {
+          "exists": true,
+          "path": ".sisyphus/evidence/phase1-3-task-7-tiebreak.txt"
+        },
+        {
+          "exists": true,
+          "path": ".sisyphus/evidence/phase1-3-task-8-graphplan.json"
+        },
+        {
+          "exists": true,
+          "path": ".sisyphus/evidence/phase1-3-task-8-validator.json"
+        },
+        {
+          "exists": true,
+          "path": ".sisyphus/evidence/phase1-3-task-8-mutex.txt"
+        },
+        {
+          "exists": true,
+          "path": ".sisyphus/evidence/phase1-3-task-9-serialize.json"
+        },
+        {
+          "exists": true,
+          "path": ".sisyphus/evidence/phase1-3-task-9-vision-leakage.txt"
+        },
+        {
+          "exists": true,
+          "path": ".sisyphus/evidence/phase1-3-task-10-registry.txt"
+        },
+        {
+          "exists": true,
+          "path": ".sisyphus/evidence/phase1-3-task-10-registry-collision.txt"
+        }
+      ],
+      "label": "expert_trajectories_modalities_registry",
+      "missing_documents": [],
+      "missing_evidence": [],
+      "missing_phrases": [],
+      "phase": 3,
+      "phrase_results": [
+        {
+          "path": "doc/detailed_implementation_summary/phase3_expert_trajectories_summary.md",
+          "phrase": "Blocksworld-only P0",
+          "present": true,
+          "reason": null
+        },
+        {
+          "path": "doc/detailed_implementation_summary/phase3_expert_trajectories_summary.md",
+          "phrase": "bfs",
+          "present": true,
+          "reason": null
+        },
+        {
+          "path": "doc/detailed_implementation_summary/phase3_expert_trajectories_summary.md",
+          "phrase": "fast_forward",
+          "present": true,
+          "reason": null
+        },
+        {
+          "path": "doc/detailed_implementation_summary/phase3_expert_trajectories_summary.md",
+          "phrase": "iterated_width",
+          "present": true,
+          "reason": null
+        },
+        {
+          "path": "doc/detailed_implementation_summary/phase3_expert_trajectories_summary.md",
+          "phrase": "graphplan",
+          "present": true,
+          "reason": null
+        },
+        {
+          "path": "doc/detailed_implementation_summary/phase3_expert_trajectories_summary.md",
+          "phrase": "deterministic_p0_hmax_relaxed_reachability",
+          "present": true,
+          "reason": null
+        },
+        {
+          "path": "doc/detailed_implementation_summary/phase3_expert_trajectories_summary.md",
+          "phrase": "deterministic_p0_action_mutex_only_graphplan",
+          "present": true,
+          "reason": null
+        },
+        {
+          "path": "doc/detailed_implementation_summary/phase3_expert_trajectories_summary.md",
+          "phrase": "model_facing",
+          "present": true,
+          "reason": null
+        },
+        {
+          "path": "doc/detailed_implementation_summary/phase3_expert_trajectories_summary.md",
+          "phrase": "supervised_target",
+          "present": true,
+          "reason": null
+        },
+        {
+          "path": "doc/detailed_implementation_summary/phase3_expert_trajectories_summary.md",
+          "phrase": "evaluation_metadata",
+          "present": true,
+          "reason": null
+        },
+        {
+          "path": "doc/detailed_implementation_summary/phase3_expert_trajectories_summary.md",
+          "phrase": "planning_blocksworld_dev_smoke",
+          "present": true,
+          "reason": null
+        },
+        {
+          "path": "doc/detailed_implementation_summary/phase3_expert_trajectories_summary.md",
+          "phrase": "outputs/planning_artifacts/**",
+          "present": true,
+          "reason": null
+        },
+        {
+          "path": "doc/detailed_implementation_summary/phase3_expert_trajectories_summary.md",
+          "phrase": "not itself proof of Phase 3 expert demonstrations",
+          "present": true,
+          "reason": null
+        },
+        {
+          "path": "doc/high_level_plans/research_execution_plan.md",
+          "phrase": "Phase 3 complete for Blocksworld-only P0",
+          "present": true,
+          "reason": null
+        }
+      ],
+      "valid": true
+    }
+  },
+  "schema_version": "planning_docs_check_v1",
+  "valid": true
+}

@@ -1,0 +1,27 @@
+{
+  "algorithms_validated": [
+    "bfs",
+    "fast_forward",
+    "iterated_width",
+    "graphplan"
+  ],
+  "by_algorithm": {
+    "bfs": 1,
+    "fast_forward": 1,
+    "graphplan": 1,
+    "iterated_width": 1
+  },
+  "error_count": 0,
+  "errors": [],
+  "file_count": 4,
+  "files": [
+    "tests/fixtures/planning/trajectories/valid/bfs.json",
+    "tests/fixtures/planning/trajectories/valid/fast_forward.json",
+    "tests/fixtures/planning/trajectories/valid/graphplan.json",
+    "tests/fixtures/planning/trajectories/valid/iterated_width.jsonl"
+  ],
+  "input": "tests/fixtures/planning/trajectories/valid",
+  "schema_version": "planning_expert_trajectory_v1",
+  "trajectory_count": 4,
+  "valid": true
+}

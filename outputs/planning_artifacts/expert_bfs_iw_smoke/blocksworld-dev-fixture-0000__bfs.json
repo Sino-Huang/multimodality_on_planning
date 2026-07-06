@@ -1,0 +1,214 @@
+{
+  "algorithm": "bfs",
+  "domain": "blocksworld",
+  "instance_id": "blocksworld-dev-fixture-0000",
+  "metadata": {
+    "schema_version": "planning_expert_trajectory_v1",
+    "source": "local_expert_generator",
+    "world_model": "deterministic_symbolic_v0"
+  },
+  "schema_version": "planning_expert_trajectory_v1",
+  "steps": [
+    {
+      "algorithm": "bfs",
+      "bfs": {
+        "dequeued_state_id": "1a9d29632534933a4e96dac66132d6642fce9f13b23b7b4d7223698802b5ad0d",
+        "frontier_after": [
+          "77080652acee8566a76866d8a6beb96615a8dde1e6103a5c39c68f59d64a40e9",
+          "2fa169abaf7d933b4b09a2541dd8e7e9dcbde84a9d796a41c2128f12e909e586",
+          "ca68d321ce0fdf97e3b0f6b415120c8e27b6c30bd5887043481611fd43836bbf"
+        ],
+        "frontier_before": [
+          "1a9d29632534933a4e96dac66132d6642fce9f13b23b7b4d7223698802b5ad0d"
+        ],
+        "selected_successor_id": "77080652acee8566a76866d8a6beb96615a8dde1e6103a5c39c68f59d64a40e9",
+        "successors": [
+          {
+            "action": "pickup(a)",
+            "enqueued": true,
+            "is_goal": false,
+            "state_atoms": [
+              "clear(b)",
+              "clear(c)",
+              "holding(a)",
+              "on-table(b)",
+              "on-table(c)"
+            ],
+            "state_id": "77080652acee8566a76866d8a6beb96615a8dde1e6103a5c39c68f59d64a40e9",
+            "was_visited": false
+          },
+          {
+            "action": "pickup(b)",
+            "enqueued": true,
+            "is_goal": false,
+            "state_atoms": [
+              "clear(a)",
+              "clear(c)",
+              "holding(b)",
+              "on-table(a)",
+              "on-table(c)"
+            ],
+            "state_id": "2fa169abaf7d933b4b09a2541dd8e7e9dcbde84a9d796a41c2128f12e909e586",
+            "was_visited": false
+          },
+          {
+            "action": "pickup(c)",
+            "enqueued": true,
+            "is_goal": false,
+            "state_atoms": [
+              "clear(a)",
+              "clear(b)",
+              "holding(c)",
+              "on-table(a)",
+              "on-table(b)"
+            ],
+            "state_id": "ca68d321ce0fdf97e3b0f6b415120c8e27b6c30bd5887043481611fd43836bbf",
+            "was_visited": false
+          }
+        ],
+        "tie_break_rule": "legal_actions_sorted_by_canonical_action_string",
+        "visited_after": [
+          "1a9d29632534933a4e96dac66132d6642fce9f13b23b7b4d7223698802b5ad0d",
+          "2fa169abaf7d933b4b09a2541dd8e7e9dcbde84a9d796a41c2128f12e909e586",
+          "77080652acee8566a76866d8a6beb96615a8dde1e6103a5c39c68f59d64a40e9",
+          "ca68d321ce0fdf97e3b0f6b415120c8e27b6c30bd5887043481611fd43836bbf"
+        ],
+        "visited_before": [
+          "1a9d29632534933a4e96dac66132d6642fce9f13b23b7b4d7223698802b5ad0d"
+        ]
+      },
+      "domain": "blocksworld",
+      "goal_atoms": [
+        "on(a,b)"
+      ],
+      "instance_id": "blocksworld-dev-fixture-0000",
+      "is_terminal": false,
+      "legal_actions": [
+        "pickup(a)",
+        "pickup(b)",
+        "pickup(c)"
+      ],
+      "metadata": {
+        "fixture": "tests/fixtures/planning/blocksworld_nontrivial.json",
+        "schema_version": "planning_expert_trajectory_v1",
+        "source": "local_bfs_expert_generator",
+        "world_model": "deterministic_symbolic_v0"
+      },
+      "selected_action": "pickup(a)",
+      "state_atoms": [
+        "arm-empty",
+        "clear(a)",
+        "clear(b)",
+        "clear(c)",
+        "on-table(a)",
+        "on-table(b)",
+        "on-table(c)"
+      ],
+      "state_id": "1a9d29632534933a4e96dac66132d6642fce9f13b23b7b4d7223698802b5ad0d",
+      "step_index": 0,
+      "trajectory_id": "blocksworld-dev-fixture-0000__bfs"
+    },
+    {
+      "algorithm": "bfs",
+      "bfs": {
+        "dequeued_state_id": "77080652acee8566a76866d8a6beb96615a8dde1e6103a5c39c68f59d64a40e9",
+        "frontier_after": [
+          "1a9d29632534933a4e96dac66132d6642fce9f13b23b7b4d7223698802b5ad0d",
+          "743f05fdfceda47fdf564492572f23087cffe33da570471fa3a19f17bd8e9ae4",
+          "ce1687465ac2d16caa1c270bd7821b181c11fb0638950624c973b5ecdbe440cc"
+        ],
+        "frontier_before": [
+          "77080652acee8566a76866d8a6beb96615a8dde1e6103a5c39c68f59d64a40e9"
+        ],
+        "selected_successor_id": "743f05fdfceda47fdf564492572f23087cffe33da570471fa3a19f17bd8e9ae4",
+        "successors": [
+          {
+            "action": "putdown(a)",
+            "enqueued": true,
+            "is_goal": false,
+            "state_atoms": [
+              "arm-empty",
+              "clear(a)",
+              "clear(b)",
+              "clear(c)",
+              "on-table(a)",
+              "on-table(b)",
+              "on-table(c)"
+            ],
+            "state_id": "1a9d29632534933a4e96dac66132d6642fce9f13b23b7b4d7223698802b5ad0d",
+            "was_visited": false
+          },
+          {
+            "action": "stack(a,b)",
+            "enqueued": true,
+            "is_goal": true,
+            "state_atoms": [
+              "arm-empty",
+              "clear(a)",
+              "clear(c)",
+              "on(a,b)",
+              "on-table(b)",
+              "on-table(c)"
+            ],
+            "state_id": "743f05fdfceda47fdf564492572f23087cffe33da570471fa3a19f17bd8e9ae4",
+            "was_visited": false
+          },
+          {
+            "action": "stack(a,c)",
+            "enqueued": true,
+            "is_goal": false,
+            "state_atoms": [
+              "arm-empty",
+              "clear(a)",
+              "clear(b)",
+              "on(a,c)",
+              "on-table(b)",
+              "on-table(c)"
+            ],
+            "state_id": "ce1687465ac2d16caa1c270bd7821b181c11fb0638950624c973b5ecdbe440cc",
+            "was_visited": false
+          }
+        ],
+        "tie_break_rule": "legal_actions_sorted_by_canonical_action_string",
+        "visited_after": [
+          "1a9d29632534933a4e96dac66132d6642fce9f13b23b7b4d7223698802b5ad0d",
+          "743f05fdfceda47fdf564492572f23087cffe33da570471fa3a19f17bd8e9ae4",
+          "77080652acee8566a76866d8a6beb96615a8dde1e6103a5c39c68f59d64a40e9",
+          "ce1687465ac2d16caa1c270bd7821b181c11fb0638950624c973b5ecdbe440cc"
+        ],
+        "visited_before": [
+          "77080652acee8566a76866d8a6beb96615a8dde1e6103a5c39c68f59d64a40e9"
+        ]
+      },
+      "domain": "blocksworld",
+      "goal_atoms": [
+        "on(a,b)"
+      ],
+      "instance_id": "blocksworld-dev-fixture-0000",
+      "is_terminal": false,
+      "legal_actions": [
+        "putdown(a)",
+        "stack(a,b)",
+        "stack(a,c)"
+      ],
+      "metadata": {
+        "fixture": "tests/fixtures/planning/blocksworld_nontrivial.json",
+        "schema_version": "planning_expert_trajectory_v1",
+        "source": "local_bfs_expert_generator",
+        "world_model": "deterministic_symbolic_v0"
+      },
+      "selected_action": "stack(a,b)",
+      "state_atoms": [
+        "clear(b)",
+        "clear(c)",
+        "holding(a)",
+        "on-table(b)",
+        "on-table(c)"
+      ],
+      "state_id": "77080652acee8566a76866d8a6beb96615a8dde1e6103a5c39c68f59d64a40e9",
+      "step_index": 1,
+      "trajectory_id": "blocksworld-dev-fixture-0000__bfs"
+    }
+  ],
+  "trajectory_id": "blocksworld-dev-fixture-0000__bfs"
+}
