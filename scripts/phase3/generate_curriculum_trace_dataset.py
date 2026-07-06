@@ -23,6 +23,8 @@ DEFAULT_LOCAL_IW_WIDTH: Final = 3
 DEFAULT_LOCAL_IW_MAX_WIDTH: Final = 3
 DEFAULT_LOCAL_IW_NOVELTY_MAX_EXPANSIONS: Final = 500
 DEFAULT_LOCAL_IW_RECOVERY_TRACE_STEPS: Final = 20
+DEFAULT_LOCAL_GOAL_REGRESSION_GOAL_THRESHOLD: Final = 8
+DEFAULT_LOCAL_GOAL_REGRESSION_MAX_ATTEMPTS: Final = 10000
 DEFAULT_LOCAL_SERIAL_RECOVERY_MAX_EXPANSIONS: Final = 250000
 DEFAULT_MAX_JSONL_TARGET_CHARS: Final = 10000000
 EXTERNAL_PLANNER_ENV_VARS: Final = ("PHASE3_FF_PLANNER", "PHASE3_IW_PLANNER", "PHASE3_GRAPHPLAN_PLANNER")
@@ -65,6 +67,8 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--local-iw-max-width", type=int, default=DEFAULT_LOCAL_IW_MAX_WIDTH)
     parser.add_argument("--local-iw-novelty-max-expansions", type=int, default=DEFAULT_LOCAL_IW_NOVELTY_MAX_EXPANSIONS)
     parser.add_argument("--local-iw-recovery-trace-steps", type=int, default=DEFAULT_LOCAL_IW_RECOVERY_TRACE_STEPS)
+    parser.add_argument("--local-goal-regression-goal-threshold", type=int, default=DEFAULT_LOCAL_GOAL_REGRESSION_GOAL_THRESHOLD)
+    parser.add_argument("--local-goal-regression-max-attempts", type=int, default=DEFAULT_LOCAL_GOAL_REGRESSION_MAX_ATTEMPTS)
     parser.add_argument("--local-serial-recovery-max-expansions", type=int, default=DEFAULT_LOCAL_SERIAL_RECOVERY_MAX_EXPANSIONS)
     parser.add_argument("--local-max-mutex-pairs", type=int, default=DEFAULT_LOCAL_MAX_MUTEX_PAIRS)
     parser.add_argument("--max-jsonl-target-chars", type=int, default=DEFAULT_MAX_JSONL_TARGET_CHARS)
@@ -102,6 +106,8 @@ def _limits(args: argparse.Namespace) -> dict[str, int]:
         "local_iw_max_width": args.local_iw_max_width,
         "local_iw_novelty_max_expansions": args.local_iw_novelty_max_expansions,
         "local_iw_recovery_trace_steps": args.local_iw_recovery_trace_steps,
+        "local_goal_regression_goal_threshold": args.local_goal_regression_goal_threshold,
+        "local_goal_regression_max_attempts": args.local_goal_regression_max_attempts,
         "local_serial_recovery_max_expansions": args.local_serial_recovery_max_expansions,
         "local_max_mutex_pairs": args.local_max_mutex_pairs,
         "max_jsonl_target_chars": args.max_jsonl_target_chars,

@@ -4,6 +4,7 @@ from collections import deque
 from itertools import combinations
 from typing import Final
 
+from .local_goal_regression import GoalRegressionRequest, recover_goal_regression_plan, should_try_goal_regression_first
 from .local_planner_types import JSONValue, LocalPlannerRequest, LocalPlannerResult, SearchNode
 from .pddl import Atom, GroundAction, canonical_atom
 
@@ -13,11 +14,31 @@ DEFAULT_MAX_MUTEX_PAIRS: Final = 10000
 
 def run_graphplan(request: LocalPlannerRequest) -> LocalPlannerResult:
     grounded = _sorted_grounded(request.grounded)
+    if should_try_goal_regression_first(request.task, request.limits):
+        recovery = recover_goal_regression_plan(GoalRegressionRequest(request.task, grounded, request.limits, "goal_regression_before_graphplan_extraction", "many_goal_recovery_preferred"))
+        if recovery.status == "success_full_trace":
+            plan_result = LocalPlannerResult(recovery.plan, {"expansion_count": recovery.trace["attempt_count"]}, "success_full_trace")
+            trace, status = _planning_graph_trace(request, plan_result, grounded)
+            trace["extraction"]["plan_recovery"] = {
+                **recovery.trace,
+                "is_exact_graphplan_extraction": False,
+            }
+            if status is None:
+                return LocalPlannerResult(recovery.plan, trace, "success_full_trace")
     plan_result = _bounded_serial_extraction(request, grounded)
     trace, status = _planning_graph_trace(request, plan_result, grounded)
     if status is not None:
         return LocalPlannerResult([], trace, status)
     if plan_result.status != "success_full_trace":
+        if should_try_goal_regression_first(request.task, request.limits):
+            recovery = recover_goal_regression_plan(GoalRegressionRequest(request.task, request.grounded, request.limits, "goal_regression_after_graphplan_extraction", plan_result.status))
+            if recovery.status == "success_full_trace":
+                trace["extraction"]["selected_plan"] = recovery.plan
+                trace["extraction"]["plan_recovery"] = {
+                    **recovery.trace,
+                    "is_exact_graphplan_extraction": False,
+                }
+                return LocalPlannerResult(recovery.plan, trace, "success_full_trace")
         return LocalPlannerResult([], trace, plan_result.status)
     return LocalPlannerResult(plan_result.plan, trace, "success_full_trace")
 

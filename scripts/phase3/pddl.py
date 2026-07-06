@@ -114,19 +114,21 @@ def parse_task(domain_path: Path, problem_path: Path) -> PDDLTask:
 def ground_actions(task: PDDLTask, *, max_grounded_actions: int, max_grounded_atoms: int) -> tuple[list[GroundAction], str | None]:
     atoms = set(task.init) | set(task.goal)
     grounded: list[GroundAction] = []
-    all_objects = tuple(sorted(task.objects_by_type.get("object", ())))
+    static_unary_values = _static_unary_values(task)
+    dynamic_predicates = _dynamic_predicates(task)
     for schema in task.actions:
-        domains: list[tuple[str, ...]] = []
-        for _param, type_name in schema.parameters:
-            domains.append(tuple(sorted(task.objects_by_type.get(type_name, ()) or all_objects)))
+        domains = _action_parameter_domains(task, schema, static_unary_values=static_unary_values)
         for combo in itertools.product(*domains):
             if len(grounded) >= max_grounded_actions:
                 return grounded, "skipped_grounding_limit"
             mapping = {param: arg for (param, _type), arg in zip(schema.parameters, combo)}
+            preconditions = frozenset(_substitute(atom, mapping) for atom in schema.preconditions)
+            if not _static_preconditions_possible(preconditions, task.init, dynamic_predicates):
+                continue
             action = GroundAction(
                 name=schema.name,
                 args=tuple(combo),
-                preconditions=frozenset(_substitute(atom, mapping) for atom in schema.preconditions),
+                preconditions=preconditions,
                 add_effects=frozenset(_substitute(atom, mapping) for atom in schema.add_effects),
                 del_effects=frozenset(_substitute(atom, mapping) for atom in schema.del_effects),
             )
@@ -137,6 +139,53 @@ def ground_actions(task: PDDLTask, *, max_grounded_actions: int, max_grounded_at
                 return grounded, "skipped_grounding_limit"
             grounded.append(action)
     return grounded, None
+
+
+def estimate_grounded_action_count(task: PDDLTask, *, stop_after: int | None = None) -> int:
+    static_unary_values = _static_unary_values(task)
+    dynamic_predicates = _dynamic_predicates(task)
+    count = 0
+    for schema in task.actions:
+        domains = _action_parameter_domains(task, schema, static_unary_values=static_unary_values)
+        for combo in itertools.product(*domains):
+            mapping = {param: arg for (param, _type), arg in zip(schema.parameters, combo)}
+            preconditions = frozenset(_substitute(atom, mapping) for atom in schema.preconditions)
+            if not _static_preconditions_possible(preconditions, task.init, dynamic_predicates):
+                continue
+            count += 1
+            if stop_after is not None and count > stop_after:
+                return count
+    return count
+
+
+def _action_parameter_domains(task: PDDLTask, schema: ActionSchema, *, static_unary_values: dict[str, frozenset[str]]) -> list[tuple[str, ...]]:
+    all_objects = tuple(sorted(task.objects_by_type.get("object", ())))
+    domains: list[tuple[str, ...]] = []
+    for param, type_name in schema.parameters:
+        base_domain = tuple(sorted(task.objects_by_type.get(type_name, ()) or all_objects))
+        narrowed = set(base_domain)
+        for atom in schema.preconditions:
+            if len(atom) == 2 and atom[1] == param and atom[0] in static_unary_values:
+                narrowed.intersection_update(static_unary_values[atom[0]])
+        domains.append(tuple(sorted(narrowed)))
+    return domains
+
+
+def _static_unary_values(task: PDDLTask) -> dict[str, frozenset[str]]:
+    dynamic_predicates = _dynamic_predicates(task)
+    values: dict[str, set[str]] = {}
+    for atom in task.init:
+        if len(atom) == 2 and atom[0] not in dynamic_predicates:
+            values.setdefault(atom[0], set()).add(atom[1])
+    return {predicate: frozenset(objects) for predicate, objects in values.items()}
+
+
+def _dynamic_predicates(task: PDDLTask) -> set[str]:
+    return {atom[0] for action in task.actions for atom in action.add_effects | action.del_effects}
+
+
+def _static_preconditions_possible(preconditions: frozenset[Atom], init: frozenset[Atom], dynamic_predicates: set[str]) -> bool:
+    return all(atom[0] in dynamic_predicates or atom in init for atom in preconditions)
 
 
 def replay_plan(task: PDDLTask, actions: list[str], *, grounded_actions: list[GroundAction]) -> dict[str, Any]:

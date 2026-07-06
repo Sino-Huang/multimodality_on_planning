@@ -9,8 +9,9 @@ from pathlib import Path
 from typing import Any, Callable
 
 from .io_utils import clear_output_root, count_jsonl, ensure_layout, file_sha256, read_jsonl, relpath, repo_root, stable_hash, write_json, write_jsonl
+from .local_goal_regression import GoalRegressionRequest, recover_goal_regression_plan, should_try_goal_regression_first
 from .local_planners import LocalPlannerRequest, run_local_planner
-from .pddl import GroundAction, PDDLError, PDDLTask, canonical_atom, ground_actions, normalize_action_string, parse_task, replay_plan
+from .pddl import GroundAction, PDDLError, PDDLTask, canonical_atom, estimate_grounded_action_count, ground_actions, normalize_action_string, parse_task, replay_plan
 from .schema import SCHEMA_VERSION, validate_instance_accounting, validate_planner_attempt, validate_supervised_example, write_schema_documents
 
 DEFAULT_PLANNERS = ("bfs", "ff", "iw", "graphplan")
@@ -32,6 +33,8 @@ RESOURCE_LIMITS = {
     "local_iw_max_width": 3,
     "local_iw_novelty_max_expansions": 500,
     "local_iw_recovery_trace_steps": 20,
+    "local_goal_regression_goal_threshold": 8,
+    "local_goal_regression_max_attempts": 10000,
     "local_max_mutex_pairs": 1000000,
     "local_serial_recovery_max_expansions": 250000,
 }
@@ -225,8 +228,22 @@ def _attempt_planner(account: dict[str, Any], preflight: dict[str, Any], vision:
     if grounding_status:
         return _attempt(base, grounding_status), None, None
     if planner == "bfs":
+        if should_try_goal_regression_first(task, limits):
+            recovery = recover_goal_regression_plan(GoalRegressionRequest(task, tuple(grounded), limits, "goal_regression_before_bfs", "many_goal_recovery_preferred"))
+            if recovery.status == "success_full_trace":
+                trace = {"algorithm": "bfs", "expansion_count": 0, "queue_events": [], "visited_count": 1, "plan_recovery": {**recovery.trace, "is_exact_bfs": False}}
+                replay_payload = replay_plan(task, recovery.plan, grounded_actions=grounded)
+                return _successful_attempt(base, account, vision, planner, recovery.status, recovery.plan, replay_payload, trace, limits=limits)
         plan, trace, status = _bfs(task, grounded, limits=limits)
         if status != "success_full_trace":
+            recovery = recover_goal_regression_plan(GoalRegressionRequest(task, tuple(grounded), limits, "goal_regression_after_bfs", status))
+            if recovery.status == "success_full_trace":
+                trace["plan_recovery"] = {
+                    **recovery.trace,
+                    "is_exact_bfs": False,
+                }
+                replay_payload = replay_plan(task, recovery.plan, grounded_actions=grounded)
+                return _successful_attempt(base, account, vision, planner, recovery.status, recovery.plan, replay_payload, trace, limits=limits)
             return _attempt(base, status, expansion_count=trace.get("expansion_count", 0)), None, None
         replay_payload = replay_plan(task, plan, grounded_actions=grounded)
         return _successful_attempt(base, account, vision, planner, status, plan, replay_payload, trace, limits=limits)
@@ -458,17 +475,7 @@ def _available_fast_downward_aliases(fallback: Path) -> set[str]:
 
 
 def _bfs_estimate_exceeds_resource_gate(task: PDDLTask) -> bool:
-    goal_count = len(task.goal)
-    if goal_count > 8:
-        return True
-    estimate = 0
-    all_objects = tuple(task.objects_by_type.get("object", ()))
-    for action in task.actions:
-        schema_estimate = 1
-        for _param, type_name in action.parameters:
-            schema_estimate *= max(1, len(task.objects_by_type.get(type_name, ()) or all_objects))
-        estimate += schema_estimate
-    return estimate > 2000
+    return estimate_grounded_action_count(task, stop_after=2000) > 2000
 
 
 def re_action(line: str) -> str | None:

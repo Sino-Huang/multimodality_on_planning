@@ -25,7 +25,7 @@ def test_15puzzle_easy_0000_bfs_gate_uses_typed_grounding_estimate() -> None:
     assert len(task.objects_by_type["position"]) == 9
     assert len(task.objects_by_type["tile"]) == 8
     assert len(task.goal) == 8
-    assert len(grounded) == 648
+    assert len(grounded) == 192
     assert _bfs_estimate_exceeds_resource_gate(task) is False
 
 

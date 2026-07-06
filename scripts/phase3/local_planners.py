@@ -4,6 +4,7 @@ from heapq import heappop, heappush
 from itertools import count
 from typing import Final, NoReturn
 
+from .local_goal_regression import GoalRegressionRequest, recover_goal_regression_plan, should_try_goal_regression_first
 from .local_graphplan import run_graphplan
 from .local_iw import run_iterated_width
 from .local_serial import bounded_serial_plan
@@ -34,6 +35,12 @@ def _fast_forward(request: LocalPlannerRequest) -> LocalPlannerResult:
     state = frozenset(request.task.init)
     if request.task.goal.issubset(state):
         return LocalPlannerResult([], _ff_trace(request.task, []), "success_full_trace")
+    if should_try_goal_regression_first(request.task, request.limits):
+        early_recovery = recover_goal_regression_plan(GoalRegressionRequest(request.task, request.grounded, request.limits, "goal_regression_before_ff_best_first", "many_goal_recovery_preferred"))
+        if early_recovery.status == "success_full_trace":
+            trace = _ff_trace(request.task, _ff_trace_events(request, state, early_recovery.plan))
+            trace["plan_recovery"] = early_recovery.trace
+            return LocalPlannerResult(early_recovery.plan, trace, "success_full_trace")
     plan, status = _ff_best_first_plan(request, state)
     recovery: dict[str, JSONValue] | None = None
     if status != "success_full_trace":
@@ -49,6 +56,12 @@ def _fast_forward(request: LocalPlannerRequest) -> LocalPlannerResult:
                 "expansion_count": recovery_trace["expansion_count"],
                 "visited_count": recovery_trace["visited_count"],
             }
+        else:
+            goal_recovery = recover_goal_regression_plan(GoalRegressionRequest(request.task, request.grounded, request.limits, "goal_regression_after_ff_best_first", best_first_status))
+            if goal_recovery.status == "success_full_trace":
+                plan = goal_recovery.plan
+                status = goal_recovery.status
+                recovery = goal_recovery.trace
     events = _ff_trace_events(request, state, plan)
     trace = _ff_trace(request.task, events)
     if recovery is not None:

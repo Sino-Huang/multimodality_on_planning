@@ -4,6 +4,7 @@ from collections import deque
 from itertools import combinations
 from typing import Final
 
+from .local_goal_regression import GoalRegressionRequest, recover_goal_regression_plan, should_try_goal_regression_first
 from .local_planner_types import JSONValue, LocalPlannerRequest, LocalPlannerResult, SearchNode
 from .local_serial import bounded_serial_plan
 from .pddl import Atom, GroundAction, canonical_atom
@@ -21,6 +22,16 @@ def run_iterated_width(request: LocalPlannerRequest) -> LocalPlannerResult:
     start = frozenset(request.task.init)
     if request.task.goal.issubset(start):
         return LocalPlannerResult([], {"algorithm": "iterated_width", "width": width, "events": []}, "success_full_trace")
+    if should_try_goal_regression_first(request.task, request.limits):
+        early_recovery = recover_goal_regression_plan(GoalRegressionRequest(request.task, request.grounded, request.limits, "goal_regression_before_iw_novelty", "many_goal_recovery_preferred"))
+        if early_recovery.status == "success_full_trace":
+            trace = _iw_trace(width, [])
+            trace["plan_recovery"] = {
+                **early_recovery.trace,
+                "is_exact_iw": False,
+                "reason": "many_goal_recovery_preferred",
+            }
+            return LocalPlannerResult(early_recovery.plan, trace, "success_full_trace")
     frontier: deque[SearchNode] = deque([SearchNode(start, tuple())])
     novelty_table: set[tuple[str, ...]] = set()
     visited = {start}
@@ -74,6 +85,14 @@ def _recover_at_max_width(request: LocalPlannerRequest, start: frozenset[Atom], 
     plan, recovery_trace, status = bounded_serial_plan(request, start)
     trace = _iw_trace(width, events[: _limit(request, "local_iw_recovery_trace_steps", 20)])
     if status != "success_full_trace":
+        goal_recovery = recover_goal_regression_plan(GoalRegressionRequest(request.task, request.grounded, request.limits, "goal_regression_after_iw_novelty", original_status))
+        if goal_recovery.status == "success_full_trace":
+            trace["plan_recovery"] = {
+                **goal_recovery.trace,
+                "is_exact_iw": False,
+                "reason": reason,
+            }
+            return LocalPlannerResult(goal_recovery.plan, trace, "success_full_trace")
         return LocalPlannerResult([], trace, status)
     trace["plan_recovery"] = {
         "source": "bounded_serial_recovery_after_iw_novelty",
