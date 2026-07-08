@@ -77,7 +77,7 @@ The preserved timeout metadata is `tmp/phase3_hard_one_per_domain_current_defaul
 Per-domain/per-planner probes used the same helper in isolated subprocesses with a 45 second wrapper timeout. The exact command shape was:
 
 ```bash
-source ~/cd_vlaplan && source .venv/bin/activate && timeout 45s python scripts/phase3/generate_curriculum_trace_dataset.py --input-root tmp/phase3_hard_one_per_domain_input --instance-id <INSTANCE_ID> --planner <bfs|ff|iw|graphplan> --output-root tmp/phase3_hard_one_per_domain_probe_current/<DOMAIN>/<PLANNER> --quiet
+source ~/cd_vlaplan && source .venv/bin/activate && timeout 45s python scripts/phase3/generate_curriculum_trace_dataset.py --input-root tmp/phase3_hard_one_per_domain_input --instance-id <INSTANCE_ID> --planner <gbfs|ff|iw|graphplan> --output-root tmp/phase3_hard_one_per_domain_probe_current/<DOMAIN>/<PLANNER> --quiet
 ```
 
 Artifacts:
@@ -103,13 +103,13 @@ For a hard survey or safe batch, use a bounded diagnostic profile rather than tr
 
 ```text
 profile_name: hard_safe_batch_supported_cli
-planners: bfs, ff, iw, graphplan
+planners: gbfs, ff, iw, graphplan
 grounding_caps: pipeline defaults, max_grounded_actions=100000 and max_grounded_atoms=100000
-bfs_pre_gate: enabled by pipeline defaults
+gbfs_pre_gate: enabled by pipeline defaults
 local_max_applicable_actions: 2000
 local_iw_width: 3
 local_iw_max_width: 3
-local_graphplan_max_expansions: 100000
+local_graphplan_max_expansions: 100000  # hard-safe survey override; pipeline default is 250000
 planner_attempt_timeout_s: 12 as an external subprocess timeout
 expected_semantics: batch terminates; full traces optional; skips/timeouts are diagnostics
 ```
@@ -117,7 +117,7 @@ expected_semantics: batch terminates; full traces optional; skips/timeouts are d
 Supported CLI command shape:
 
 ```bash
-source ~/cd_vlaplan && source .venv/bin/activate && timeout 12s python scripts/phase3/generate_curriculum_trace_dataset.py --input-root tmp/phase3_hard_one_per_domain_input --instance-id <INSTANCE_ID> --planner <bfs|ff|iw|graphplan> --output-root tmp/phase3_hard_one_per_domain_hard_safe_validate_supported/attempt_outputs/<DOMAIN>/<PLANNER> --local-max-applicable-actions 2000 --local-iw-width 3 --local-iw-max-width 3 --local-graphplan-max-expansions 100000 --quiet
+source ~/cd_vlaplan && source .venv/bin/activate && timeout 12s python scripts/phase3/generate_curriculum_trace_dataset.py --input-root tmp/phase3_hard_one_per_domain_input --instance-id <INSTANCE_ID> --planner <gbfs|ff|iw|graphplan> --output-root tmp/phase3_hard_one_per_domain_hard_safe_validate_supported/attempt_outputs/<DOMAIN>/<PLANNER> --local-max-applicable-actions 2000 --local-iw-width 3 --local-iw-max-width 3 --local-graphplan-max-expansions 100000 --quiet
 ```
 
 Validation artifacts:
@@ -135,7 +135,7 @@ The validated hard-safe profile completed the bounded 60-attempt survey without 
 - `skipped_resource_limit`: 15
 - `skipped_unsupported_pddl`: 8
 
-For hard full-trace research, a pure local-config change is not enough. The current hard blockers include unsupported PDDL in `snake` and `sokoban`, grounding explosions in `depot`, `freecell`, `grid`, `logistics`, and `storage`, and search/runtime explosion in several other hard domains. Use external planners or a lifted/symbolic backend, add parser support for unsupported PDDL, add helper-level per-attempt timeouts, and compress/retrieve traces through the external-memory design before using hard raw traces for LLM training.
+For hard full-trace research, a pure local-config change is not enough. The current hard blockers include unsupported PDDL in `snake` and `sokoban`, grounding explosions in `depot`, `freecell`, `grid`, `logistics`, and `storage`, and search/runtime explosion in several other hard domains. Keep the native helper timeout controls enabled (`--planner-attempt-timeout-seconds 1200` and `--domain-timeout-seconds 3600` by default), use external planners or a lifted/symbolic backend, add parser support for unsupported PDDL, and compress/retrieve traces through the external-memory design before using hard raw traces for LLM training.
 
 ## Conclusion
 

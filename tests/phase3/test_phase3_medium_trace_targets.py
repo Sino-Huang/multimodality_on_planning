@@ -5,7 +5,7 @@ import shutil
 from pathlib import Path
 
 from scripts.phase3.pddl import estimate_grounded_action_count, ground_actions, parse_task, replay_plan
-from scripts.phase3.pipeline import _bfs_estimate_exceeds_resource_gate, generate_supervised_data
+from scripts.phase3.pipeline import generate_supervised_data
 
 VISITALL_MEDIUM_0000 = Path("data/curriculum_pddl/visitall/dev/medium/visitall-dev-medium-0000")
 VISITALL_MEDIUM_0000_ID = "visitall-dev-medium-0000"
@@ -14,7 +14,7 @@ GRIPPER_MEDIUM_0000_ID = "gripper-dev-medium-0000"
 LOGISTICS_MEDIUM_0000_ID = "logistics-dev-medium-0000"
 
 
-def test_visitall_medium_0000_bfs_gate_allows_small_typed_grounding() -> None:
+def test_visitall_medium_0000_typed_grounding_stays_small_for_gbfs() -> None:
     task = parse_task(VISITALL_MEDIUM_0000 / "domain.pddl", VISITALL_MEDIUM_0000 / "problem.pddl")
     grounded, status = ground_actions(task, max_grounded_actions=100000, max_grounded_atoms=100000)
 
@@ -22,7 +22,7 @@ def test_visitall_medium_0000_bfs_gate_allows_small_typed_grounding() -> None:
     assert status is None
     assert len(grounded) == 80
     assert estimate_grounded_action_count(task) == len(grounded)
-    assert _bfs_estimate_exceeds_resource_gate(task) is False
+    assert len(grounded) < 2000
 
 
 def test_gripper_medium_0000_grounding_uses_static_unary_sort_predicates() -> None:
@@ -72,16 +72,16 @@ def _assert_pipeline_defaults_emit_all_planner_traces(tmp_path: Path, instance_i
     _write_single_instance_manifest(input_root, instance_id)
 
     try:
-        summary = generate_supervised_data(input_root, output_root, planners=("bfs", "ff", "iw", "graphplan"))["summary"]
+        summary = generate_supervised_data(input_root, output_root, planners=("gbfs", "ff", "iw", "graphplan"))["summary"]
 
         assert summary["planner_status_summary"] == {
-            "bfs": {"success_full_trace": 1},
+            "gbfs": {"success_full_trace": 1},
             "ff": {"success_full_trace": 1},
             "graphplan": {"success_full_trace": 1},
             "iw": {"success_full_trace": 1},
         }
         rows = [json.loads(line) for line in (output_root / "dev.jsonl").read_text(encoding="utf-8").splitlines() if line]
-        assert {row["planner"] for row in rows} == {"bfs", "ff", "iw", "graphplan"}
+        assert {row["planner"] for row in rows} == {"gbfs", "ff", "iw", "graphplan"}
         assert all(row["trace_fidelity"] == "success_full_trace" for row in rows)
     finally:
         shutil.rmtree(fixture_root)

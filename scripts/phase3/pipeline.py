@@ -3,27 +3,34 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import signal
 import subprocess
-from collections import Counter, deque
+from collections import Counter
 from pathlib import Path
+from time import sleep
 from typing import Any, Callable
 
+from .attempt_runner import run_planner_jobs
+from .gbfs import gbfs_estimate_exceeds_resource_gate, gbfs_trace, run_gbfs
 from .io_utils import clear_output_root, count_jsonl, ensure_layout, file_sha256, read_jsonl, relpath, repo_root, stable_hash, write_json, write_jsonl
 from .local_goal_regression import GoalRegressionRequest, recover_goal_regression_plan, should_try_goal_regression_first
 from .local_planners import LocalPlannerRequest, run_local_planner
-from .pddl import GroundAction, PDDLError, PDDLTask, canonical_atom, estimate_grounded_action_count, ground_actions, normalize_action_string, parse_task, replay_plan
+from .pddl import PDDLError, ground_actions, normalize_action_string, parse_task, replay_plan
 from .schema import SCHEMA_VERSION, validate_instance_accounting, validate_planner_attempt, validate_supervised_example, write_schema_documents
 
-DEFAULT_PLANNERS = ("bfs", "ff", "iw", "graphplan")
+DEFAULT_PLANNERS = ("gbfs", "ff", "iw", "graphplan")
 FAST_DOWNWARD_ALIAS_BY_PLANNER = {"ff": ("ff", "fast-forward"), "iw": ("iw", "iterated-width")}
 _FAST_DOWNWARD_ALIASES: set[str] | None = None
 RESOURCE_LIMITS = {
     "planner_timeout": 60,
+    "planner_attempt_timeout_seconds": 1200,
+    "domain_timeout_seconds": 3600,
     "grounding_timeout": 60,
     "max_grounded_actions": 100000,
     "max_grounded_atoms": 100000,
-    "bfs_max_expansions": 250000,
-    "bfs_max_depth": 200,
+    "gbfs_max_applicable_actions": 2000,
+    "gbfs_max_expansions": 250000,
+    "gbfs_max_depth": 200,
     "max_plan_length": 500,
     "max_trace_steps": 500,
     "max_jsonl_target_chars": 10000000,
@@ -147,7 +154,10 @@ def validate_vision_assets(accounting_path: Path, output_path: Path) -> list[dic
     return records
 
 
-def generate_supervised_data(input_root: Path, output_root: Path, planners: tuple[str, ...] = DEFAULT_PLANNERS, limits: dict[str, int] | None = None, progress_callback: Callable[[dict[str, Any]], None] | None = None) -> dict[str, Any]:
+def generate_supervised_data(input_root: Path, output_root: Path, planners: tuple[str, ...] = DEFAULT_PLANNERS, limits: dict[str, int] | None = None, progress_callback: Callable[[dict[str, Any]], None] | None = None, jobs: int = 1) -> dict[str, Any]:
+    _validate_planners(planners)
+    if jobs < 1:
+        raise ValueError("jobs must be at least 1")
     limits = {**RESOURCE_LIMITS, **(limits or {})}
     clear_output_root(output_root, input_root=input_root)
     write_schema_documents(output_root)
@@ -157,23 +167,7 @@ def generate_supervised_data(input_root: Path, output_root: Path, planners: tupl
     preflight_by_id = {row["instance_id"]: row for row in preflight}
     vision_by_id = {row["instance_id"]: row for row in vision}
 
-    attempts: list[dict[str, Any]] = []
-    replay_rows: list[dict[str, Any]] = []
-    examples: list[dict[str, Any]] = []
-    total_attempts = len(accounting) * len(planners)
-    for account in accounting:
-        for planner in planners:
-            attempt_number = len(attempts) + 1
-            if progress_callback is not None:
-                progress_callback(_progress_event("attempt_started", account, planner, attempt_number, total_attempts))
-            attempt, replay, example = _attempt_planner(account, preflight_by_id.get(account["instance_id"], {}), vision_by_id.get(account["instance_id"], {}), planner=planner, limits=limits)
-            attempts.append(attempt)
-            if progress_callback is not None:
-                progress_callback({**_progress_event("attempt_finished", account, planner, attempt_number, total_attempts), "status": attempt["status"], "trace_fidelity": attempt["trace_fidelity"]})
-            if replay is not None:
-                replay_rows.append(replay)
-            if example is not None:
-                examples.append(example)
+    attempts, replay_rows, examples = run_planner_jobs(jobs, accounting, planners, preflight_by_id, vision_by_id, limits, progress_callback, _attempt_planner)
 
     attempts.sort(key=lambda item: (item["domain"], item["split"], item["instance_id"], item["planner"]))
     replay_rows.sort(key=lambda item: str(item["replay_validation_id"]))
@@ -186,20 +180,7 @@ def generate_supervised_data(input_root: Path, output_root: Path, planners: tupl
     return reports
 
 
-def _progress_event(phase: str, account: dict[str, Any], planner: str, attempt_number: int, total_attempts: int) -> dict[str, Any]:
-    return {
-        "attempt_number": attempt_number,
-        "bucket": account["bucket"],
-        "domain": account["domain"],
-        "instance_id": account["instance_id"],
-        "phase": phase,
-        "planner": planner,
-        "split": account["split"],
-        "total_attempts": total_attempts,
-    }
-
-
-def _attempt_planner(account: dict[str, Any], preflight: dict[str, Any], vision: dict[str, Any], *, planner: str, limits: dict[str, int]) -> tuple[dict[str, Any], dict[str, Any] | None, dict[str, Any] | None]:
+def _attempt_planner(account: dict[str, Any], preflight: dict[str, Any], vision: dict[str, Any], planner: str, limits: dict[str, int]) -> tuple[dict[str, Any], dict[str, Any] | None, dict[str, Any] | None]:
     base = {
         "schema_version": SCHEMA_VERSION,
         "domain": account["domain"],
@@ -218,8 +199,8 @@ def _attempt_planner(account: dict[str, Any], preflight: dict[str, Any], vision:
         return _attempt(base, str(preflight.get("status", "skipped_unsupported_pddl"))), None, None
     try:
         task = parse_task(repo_root() / account["domain_path"], repo_root() / account["problem_path"])
-        if planner == "bfs" and _bfs_estimate_exceeds_resource_gate(task):
-            return _attempt(base, "skipped_resource_limit", resource_gate="bfs_estimated_branching"), None, None
+        if planner == "gbfs" and gbfs_estimate_exceeds_resource_gate(task, limits):
+            return _attempt(base, "skipped_resource_limit", resource_gate="gbfs_estimated_applicable_actions"), None, None
         grounded, grounding_status = ground_actions(task, max_grounded_actions=limits["max_grounded_actions"], max_grounded_atoms=limits["max_grounded_atoms"])
     except PDDLError:
         return _attempt(base, "failed_parse_domain"), None, None
@@ -227,20 +208,21 @@ def _attempt_planner(account: dict[str, Any], preflight: dict[str, Any], vision:
         return _attempt(base, "failed_grounding"), None, None
     if grounding_status:
         return _attempt(base, grounding_status), None, None
-    if planner == "bfs":
+    if planner == "gbfs":
         if should_try_goal_regression_first(task, limits):
-            recovery = recover_goal_regression_plan(GoalRegressionRequest(task, tuple(grounded), limits, "goal_regression_before_bfs", "many_goal_recovery_preferred"))
+            recovery = recover_goal_regression_plan(GoalRegressionRequest(task, tuple(grounded), limits, "goal_regression_before_gbfs", "many_goal_recovery_preferred"))
             if recovery.status == "success_full_trace":
-                trace = {"algorithm": "bfs", "expansion_count": 0, "queue_events": [], "visited_count": 1, "plan_recovery": {**recovery.trace, "is_exact_bfs": False}}
+                trace = gbfs_trace([], 0, 1)
+                trace["plan_recovery"] = {**recovery.trace, "is_exact_gbfs": False}
                 replay_payload = replay_plan(task, recovery.plan, grounded_actions=grounded)
                 return _successful_attempt(base, account, vision, planner, recovery.status, recovery.plan, replay_payload, trace, limits=limits)
-        plan, trace, status = _bfs(task, grounded, limits=limits)
+        plan, trace, status = run_gbfs(task, grounded, limits=limits)
         if status != "success_full_trace":
-            recovery = recover_goal_regression_plan(GoalRegressionRequest(task, tuple(grounded), limits, "goal_regression_after_bfs", status))
+            recovery = recover_goal_regression_plan(GoalRegressionRequest(task, tuple(grounded), limits, "goal_regression_after_gbfs", status))
             if recovery.status == "success_full_trace":
                 trace["plan_recovery"] = {
                     **recovery.trace,
-                    "is_exact_bfs": False,
+                    "is_exact_gbfs": False,
                 }
                 replay_payload = replay_plan(task, recovery.plan, grounded_actions=grounded)
                 return _successful_attempt(base, account, vision, planner, recovery.status, recovery.plan, replay_payload, trace, limits=limits)
@@ -356,61 +338,12 @@ def _build_example(account: dict[str, Any], vision: dict[str, Any], attempt: dic
     }
 
 
-def _bfs(task: PDDLTask, grounded: list[GroundAction], *, limits: dict[str, int]) -> tuple[list[str], dict[str, Any], str]:
-    start = frozenset(task.init)
-    if task.goal.issubset(start):
-        return [], {"algorithm": "bfs", "expansion_count": 0, "queue_events": [], "visited_count": 1}, "success_full_trace"
-    frontier: deque[tuple[frozenset[tuple[str, ...]], list[str]]] = deque([(start, [])])
-    visited = {start}
-    events: list[dict[str, Any]] = []
-    expansions = 0
-    while frontier:
-        state, plan = frontier.popleft()
-        if len(plan) >= limits["bfs_max_depth"]:
-            continue
-        expansions += 1
-        if expansions > limits["bfs_max_expansions"]:
-            return [], {"algorithm": "bfs", "expansion_count": expansions, "queue_events": events, "visited_count": len(visited)}, "skipped_resource_limit"
-        successors: list[dict[str, Any]] = []
-        for action in grounded:
-            if not action.preconditions.issubset(state):
-                continue
-            next_state = set(state)
-            next_state.difference_update(action.del_effects)
-            next_state.update(action.add_effects)
-            frozen_next = frozenset(next_state)
-            successors.append({"action": action.canonical, "new_state": frozen_next not in visited})
-            if frozen_next in visited:
-                continue
-            next_plan = [*plan, action.canonical]
-            if len(next_plan) > limits["max_plan_length"]:
-                return [], {"algorithm": "bfs", "expansion_count": expansions, "queue_events": events, "visited_count": len(visited)}, "skipped_resource_limit"
-            if task.goal.issubset(frozen_next):
-                if len(events) < limits["max_trace_steps"]:
-                    events.append(_bfs_event(state, frontier, visited, successors))
-                return next_plan, {"algorithm": "bfs", "expansion_count": expansions, "queue_events": events[: limits["max_trace_steps"]], "visited_count": len(visited) + 1}, "success_full_trace"
-            visited.add(frozen_next)
-            frontier.append((frozen_next, next_plan))
-        if len(events) < limits["max_trace_steps"]:
-            events.append(_bfs_event(state, frontier, visited, successors))
-    return [], {"algorithm": "bfs", "expansion_count": expansions, "queue_events": events, "visited_count": len(visited)}, "failed_no_plan_extracted"
-
-
-def _bfs_event(state: frozenset[tuple[str, ...]], frontier: deque[tuple[frozenset[tuple[str, ...]], list[str]]], visited: set[frozenset[tuple[str, ...]]], successors: list[dict[str, Any]]) -> dict[str, Any]:
-    return {
-        "dequeued_state_atoms": sorted(canonical_atom(atom) for atom in state),
-        "frontier_size_after": len(frontier),
-        "visited_count_after": len(visited),
-        "successors": [{"action": item["action"], "new_state": item["new_state"]} for item in successors],
-    }
-
-
 def _external_plan(planner: str, account: dict[str, Any], limits: dict[str, int]) -> tuple[list[str], str | None, str]:
     command = _external_planner_command(planner, account)
     if not command:
         return [], None, "skipped_planner_unavailable"
     try:
-        completed = subprocess.run(command, check=False, capture_output=True, text=True, timeout=limits["planner_timeout"])
+        completed = _run_external_command(command, timeout=limits["planner_timeout"])
     except subprocess.TimeoutExpired:
         return [], _command_label(command), "failed_planner_timeout"
     if completed.returncode != 0:
@@ -426,6 +359,44 @@ def _external_plan(planner: str, account: dict[str, Any], limits: dict[str, int]
     if not plan:
         return [], _command_label(command), "failed_no_plan_extracted"
     return plan, _command_label(command), "success_plan_replayed"
+
+
+def _run_external_command(command: list[str], *, timeout: int) -> subprocess.CompletedProcess[str]:
+    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, start_new_session=True)
+    previous_sigterm = signal.getsignal(signal.SIGTERM)
+
+    def handle_sigterm(signum: int, _frame: Any) -> None:
+        _kill_process_group(process, grace_seconds=0)
+        raise SystemExit(128 + signum)
+
+    signal.signal(signal.SIGTERM, handle_sigterm)
+    try:
+        stdout, stderr = process.communicate(timeout=timeout)
+    except subprocess.TimeoutExpired as exc:
+        _kill_process_group(process, grace_seconds=1)
+        raise exc
+    finally:
+        signal.signal(signal.SIGTERM, previous_sigterm)
+    return subprocess.CompletedProcess(command, process.returncode, stdout, stderr)
+
+
+def _kill_process_group(process: subprocess.Popen[str], *, grace_seconds: float) -> None:
+    try:
+        os.killpg(process.pid, signal.SIGTERM)
+    except ProcessLookupError:
+        process.terminate()
+    if grace_seconds > 0:
+        sleep(grace_seconds)
+    try:
+        os.killpg(process.pid, signal.SIGKILL)
+    except ProcessLookupError:
+        if process.poll() is None:
+            process.kill()
+    try:
+        process.wait(timeout=1)
+    except subprocess.TimeoutExpired:
+        process.kill()
+        process.wait()
 
 
 def _external_planner_command(planner: str, account: dict[str, Any] | None = None) -> list[str] | None:
@@ -474,8 +445,11 @@ def _available_fast_downward_aliases(fallback: Path) -> set[str]:
     return _FAST_DOWNWARD_ALIASES
 
 
-def _bfs_estimate_exceeds_resource_gate(task: PDDLTask) -> bool:
-    return estimate_grounded_action_count(task, stop_after=2000) > 2000
+def _validate_planners(planners: tuple[str, ...]) -> None:
+    supported = set(DEFAULT_PLANNERS)
+    for planner in planners:
+        if planner not in supported:
+            raise ValueError(f"unsupported Phase 3 planner: {planner}")
 
 
 def re_action(line: str) -> str | None:

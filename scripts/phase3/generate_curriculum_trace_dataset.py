@@ -15,6 +15,9 @@ JSONValue: TypeAlias = None | bool | int | float | str | list["JSONValue"] | dic
 JSONRecord: TypeAlias = dict[str, JSONValue]
 DEFAULT_INPUT_ROOT: Final = Path("data/curriculum_pddl")
 DEFAULT_OUTPUT_ROOT: Final = Path("outputs/phase3_curriculum_traces")
+DEFAULT_GBFS_MAX_APPLICABLE_ACTIONS: Final = 2000
+DEFAULT_GBFS_MAX_EXPANSIONS: Final = 250000
+DEFAULT_GBFS_MAX_DEPTH: Final = 200
 DEFAULT_LOCAL_MAX_APPLICABLE_ACTIONS: Final = 2000
 DEFAULT_LOCAL_MAX_MUTEX_PAIRS: Final = 1000000
 DEFAULT_LOCAL_GRAPHPLAN_MAX_EXPANSIONS: Final = 250000
@@ -27,6 +30,8 @@ DEFAULT_LOCAL_GOAL_REGRESSION_GOAL_THRESHOLD: Final = 8
 DEFAULT_LOCAL_GOAL_REGRESSION_MAX_ATTEMPTS: Final = 10000
 DEFAULT_LOCAL_SERIAL_RECOVERY_MAX_EXPANSIONS: Final = 250000
 DEFAULT_MAX_JSONL_TARGET_CHARS: Final = 10000000
+DEFAULT_PLANNER_ATTEMPT_TIMEOUT_SECONDS: Final = 1200
+DEFAULT_DOMAIN_TIMEOUT_SECONDS: Final = 3600
 EXTERNAL_PLANNER_ENV_VARS: Final = ("PHASE3_FF_PLANNER", "PHASE3_IW_PLANNER", "PHASE3_GRAPHPLAN_PLANNER")
 
 
@@ -60,6 +65,12 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--bucket", action="append", default=[])
     parser.add_argument("--instance-id", action="append", default=[])
     parser.add_argument("--limit", type=int, default=None)
+    parser.add_argument("--jobs", type=int, default=1, help="Number of planner attempts to run in parallel. Use 1 for deterministic sequential execution.")
+    parser.add_argument("--planner-attempt-timeout-seconds", type=int, default=DEFAULT_PLANNER_ATTEMPT_TIMEOUT_SECONDS, help="Wall-clock timeout for one planner attempt. Use 0 to disable.")
+    parser.add_argument("--domain-timeout-seconds", type=int, default=DEFAULT_DOMAIN_TIMEOUT_SECONDS, help="Accumulated timed-out seconds per domain before remaining attempts are skipped. Use 0 to disable.")
+    parser.add_argument("--gbfs-max-applicable-actions", type=int, default=DEFAULT_GBFS_MAX_APPLICABLE_ACTIONS)
+    parser.add_argument("--gbfs-max-expansions", type=int, default=DEFAULT_GBFS_MAX_EXPANSIONS)
+    parser.add_argument("--gbfs-max-depth", type=int, default=DEFAULT_GBFS_MAX_DEPTH)
     parser.add_argument("--local-max-applicable-actions", type=int, default=DEFAULT_LOCAL_MAX_APPLICABLE_ACTIONS)
     parser.add_argument("--local-graphplan-max-expansions", type=int, default=DEFAULT_LOCAL_GRAPHPLAN_MAX_EXPANSIONS)
     parser.add_argument("--local-ff-best-first-max-expansions", type=int, default=DEFAULT_LOCAL_FF_BEST_FIRST_MAX_EXPANSIONS)
@@ -74,13 +85,20 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--max-jsonl-target-chars", type=int, default=DEFAULT_MAX_JSONL_TARGET_CHARS)
     parser.add_argument("--quiet", action="store_true", help="Suppress JSON-lines progress logs on stderr.")
     parser.add_argument("--use-external-planners", action="store_true", help="Keep PHASE3_*_PLANNER env vars instead of forcing local full-trace fallback.")
-    return parser.parse_args()
+    args = parser.parse_args()
+    if args.jobs < 1:
+        parser.error("--jobs must be at least 1")
+    if args.planner_attempt_timeout_seconds < 0:
+        parser.error("--planner-attempt-timeout-seconds must be non-negative")
+    if args.domain_timeout_seconds < 0:
+        parser.error("--domain-timeout-seconds must be non-negative")
+    return args
 
 
 def _generate_and_extract(input_root: Path, output_root: Path, args: argparse.Namespace, selected_rows: list[JSONRecord]) -> JSONRecord:
     planners = tuple(args.planners or DEFAULT_PLANNERS)
     _log_progress(args, {"input_instance_count": len(selected_rows), "output_root": output_root.as_posix(), "phase": "generation_started", "planners": list(planners)})
-    report = generate_supervised_data(input_root, output_root, planners=planners, limits=_limits(args), progress_callback=_progress_callback(args))
+    report = generate_supervised_data(input_root, output_root, planners=planners, limits=_limits(args), progress_callback=_progress_callback(args), jobs=args.jobs)
     _log_progress(args, {"phase": "trace_extraction_started", "output_root": output_root.as_posix()})
     extracted = _extract_traces(output_root)
     _log_progress(args, {"extracted_trace_count": len(extracted), "phase": "trace_extraction_finished", "trace_dir": (output_root / "traces").as_posix()})
@@ -99,6 +117,9 @@ def _generate_and_extract(input_root: Path, output_root: Path, args: argparse.Na
 
 def _limits(args: argparse.Namespace) -> dict[str, int]:
     return {
+        "gbfs_max_applicable_actions": args.gbfs_max_applicable_actions,
+        "gbfs_max_expansions": args.gbfs_max_expansions,
+        "gbfs_max_depth": args.gbfs_max_depth,
         "local_max_applicable_actions": args.local_max_applicable_actions,
         "local_graphplan_max_expansions": args.local_graphplan_max_expansions,
         "local_ff_best_first_max_expansions": args.local_ff_best_first_max_expansions,
@@ -111,6 +132,8 @@ def _limits(args: argparse.Namespace) -> dict[str, int]:
         "local_serial_recovery_max_expansions": args.local_serial_recovery_max_expansions,
         "local_max_mutex_pairs": args.local_max_mutex_pairs,
         "max_jsonl_target_chars": args.max_jsonl_target_chars,
+        "planner_attempt_timeout_seconds": args.planner_attempt_timeout_seconds,
+        "domain_timeout_seconds": args.domain_timeout_seconds,
     }
 
 

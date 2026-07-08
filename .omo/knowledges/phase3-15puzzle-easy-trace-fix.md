@@ -2,6 +2,8 @@
 
 Date: 2026-07-06
 
+Update 2026-07-07: active Phase 3 search now uses `gbfs` instead of `bfs`. Historical notes below describe the original BFS-era easy-puzzle fix, but current commands and all-four planner sets should use `gbfs ff iw graphplan`; old `bfs` planner selection is rejected rather than aliased.
+
 ## Problem
 
 `15puzzle-dev-easy-*` instances could fail to emit valid Phase 3 reasoning traces even though they are easy curriculum tasks. The observed rerun showed `bfs` as `skipped_resource_limit`, `iw` as `failed_no_plan_extracted` or a long-running attempt, and occasional local planner skips.
@@ -13,12 +15,12 @@ Date: 2026-07-06
 - IW novelty pruning alone is incomplete for this 15puzzle instance and can run too long or fail to extract a plan.
 - Recovered IW traces were initially too large for the `max_jsonl_target_chars` guard when all novelty events were retained.
 
-## Fix
+## Historical BFS-Era Fix
 
 - `scripts/phase3/pipeline.py`
-  - BFS resource gate now estimates each schema using typed object domains, matching `ground_actions()` semantics.
-  - BFS trace payloads include `algorithm: "bfs"` and cap stored queue events during search.
-  - Defaults now include bounded FF/IW search caps, `250000` expansion caps for BFS, Graphplan serial extraction, and serial recovery, `local_max_mutex_pairs=1000000`, and `max_jsonl_target_chars=10000000`. This covers the measured first-ten easy 3x3 puzzle subset while the typed schema pre-gate still protects larger hard tasks.
+  - The BFS resource gate estimated each schema using typed object domains, matching `ground_actions()` semantics.
+  - BFS trace payloads included `algorithm: "bfs"` and capped stored queue events during search.
+  - Defaults included bounded FF/IW search caps, `250000` expansion caps for BFS, Graphplan serial extraction, and serial recovery, `local_max_mutex_pairs=1000000`, and `max_jsonl_target_chars=10000000`. This covered the measured first-ten easy 3x3 puzzle subset while the typed schema pre-gate still protected larger hard tasks.
 - `scripts/phase3/local_planners.py`
   - FF-style local planner first tries the existing relaxed best-first path, then uses bounded serial recovery if that path hits a resource status.
   - Recovery metadata records `is_exact_fast_downward_ff: False`.
@@ -31,6 +33,8 @@ Date: 2026-07-06
   - Shared bounded serial recovery helper for replay-valid local plan recovery.
 - `scripts/phase3/generate_curriculum_trace_dataset.py`
   - CLI exposes `--local-ff-best-first-max-expansions`, `--local-iw-novelty-max-expansions`, `--local-iw-recovery-trace-steps`, and `--local-serial-recovery-max-expansions`.
+
+Current active Phase 3 generation uses the GBFS replacement documented in `phase3-gbfs-replacement.md`: `gbfs`, `ff`, `iw`, and `graphplan` are the active planner set, and old `bfs` selection is rejected rather than aliased.
 
 ## Verification
 
@@ -53,7 +57,7 @@ Result: `3 passed`.
 Real CLI surface:
 
 ```bash
-source ~/cd_vlaplan && source .venv/bin/activate && timeout 180s python scripts/phase3/generate_curriculum_trace_dataset.py --instance-id 15puzzle-dev-easy-0000 --planner bfs --planner ff --planner iw --planner graphplan --output-root tmp/phase3_15puzzle_easy_0000_all_local_verify --quiet
+source ~/cd_vlaplan && source .venv/bin/activate && timeout 180s python scripts/phase3/generate_curriculum_trace_dataset.py --instance-id 15puzzle-dev-easy-0000 --planner gbfs --planner ff --planner iw --planner graphplan --output-root tmp/phase3_15puzzle_easy_0000_all_local_verify --quiet
 ```
 
 Result: `attempt_status_summary: {"success_full_trace": 4}`, `extracted_trace_count: 4`.
@@ -61,7 +65,7 @@ Result: `attempt_status_summary: {"success_full_trace": 4}`, `extracted_trace_co
 Oracle counterexample and broader easy subset:
 
 ```bash
-source ~/cd_vlaplan && source .venv/bin/activate && timeout 2400s python scripts/phase3/generate_curriculum_trace_dataset.py --instance-id 15puzzle-dev-easy-0000 --instance-id 15puzzle-dev-easy-0001 --instance-id 15puzzle-dev-easy-0002 --instance-id 15puzzle-dev-easy-0003 --instance-id 15puzzle-dev-easy-0004 --instance-id 15puzzle-dev-easy-0005 --instance-id 15puzzle-dev-easy-0006 --instance-id 15puzzle-dev-easy-0007 --instance-id 15puzzle-dev-easy-0008 --instance-id 15puzzle-dev-easy-0009 --planner bfs --planner ff --planner iw --planner graphplan --output-root tmp/phase3_15puzzle_easy_first_ten_all_local_verify --quiet
+source ~/cd_vlaplan && source .venv/bin/activate && timeout 2400s python scripts/phase3/generate_curriculum_trace_dataset.py --instance-id 15puzzle-dev-easy-0000 --instance-id 15puzzle-dev-easy-0001 --instance-id 15puzzle-dev-easy-0002 --instance-id 15puzzle-dev-easy-0003 --instance-id 15puzzle-dev-easy-0004 --instance-id 15puzzle-dev-easy-0005 --instance-id 15puzzle-dev-easy-0006 --instance-id 15puzzle-dev-easy-0007 --instance-id 15puzzle-dev-easy-0008 --instance-id 15puzzle-dev-easy-0009 --planner gbfs --planner ff --planner iw --planner graphplan --output-root tmp/phase3_15puzzle_easy_first_ten_all_local_verify --quiet
 ```
 
 Result: `attempt_status_summary: {"success_full_trace": 40}`, `extracted_trace_count: 40`.

@@ -6,7 +6,7 @@
 - IW widths above `local_iw_max_width` are also treated as `skipped_resource_limit`. The default cap is 3, which preserves the `blocksworld-train-medium-0011` recovery path while preventing unbounded novelty tuple generation.
 - IW trace event count remains capped by `max_trace_steps`; large novelty tables are serialized with a bounded prefix so pipeline examples stay under `max_jsonl_target_chars` while preserving the trace fields.
 - Local FF remains labeled `local_delete_relaxed_hmax_supporter_closure` and `is_exact_fast_downward_ff = False`. It now uses bounded best-first search ordered by plan depth with relaxed-heuristic/action tie-breaking, then rebuilds the existing per-step trace payload along the selected plan.
-- `scripts/phase3/pipeline.py` includes `local_iw_width: 3`, `local_iw_max_width: 3`, and `local_graphplan_max_expansions: 100000` in `RESOURCE_LIMITS`; `scripts/phase3/generate_curriculum_trace_dataset.py` exposes those defaults through `--local-iw-width`, `--local-iw-max-width`, and `--local-graphplan-max-expansions`.
+- `scripts/phase3/pipeline.py` includes `local_iw_width: 3`, `local_iw_max_width: 3`, and `local_graphplan_max_expansions: 250000` in `RESOURCE_LIMITS`; `scripts/phase3/generate_curriculum_trace_dataset.py` exposes those defaults through `--local-iw-width`, `--local-iw-max-width`, and `--local-graphplan-max-expansions`.
 - `scripts/phase3/local_planners.py` uses a local `assert_never` helper instead of importing `typing.assert_never`, so the module imports under the project Python 3.10 environment.
 - Trace extraction rejects unsafe manifest-derived path components for `domain`, `split`, `instance_id`, and `planner` before writing `<output-root>/traces/...` files.
 
@@ -26,7 +26,7 @@ source ~/cd_vlaplan && source .venv/bin/activate && python -m compileall -q scri
 source ~/cd_vlaplan && source .venv/bin/activate && pytest tests/phase3
 source ~/cd_vlaplan && source .venv/bin/activate && pytest tests/planning_benchmark tests/data_collect
 source ~/cd_vlaplan && python -c "from scripts.phase3.local_planners import run_local_planner; print(run_local_planner.__name__)"
-source ~/cd_vlaplan && source .venv/bin/activate && python scripts/phase3/generate_curriculum_trace_dataset.py --instance-id blocksworld-train-medium-0011 --planner bfs --planner ff --planner iw --planner graphplan --output-root tmp/phase3_bwm0011_all_local_verify --quiet
+source ~/cd_vlaplan && source .venv/bin/activate && python scripts/phase3/generate_curriculum_trace_dataset.py --instance-id blocksworld-train-medium-0011 --planner gbfs --planner ff --planner iw --planner graphplan --output-root tmp/phase3_bwm0011_all_local_verify --quiet
 ```
 
-Expected result: focused safety tests pass, compileall exits 0, `tests/phase3` passes, `tests/planning_benchmark tests/data_collect` passes, Python 3.10 import smoke prints `run_local_planner`, and exact CLI reports `attempt_status_summary: {"success_full_trace": 4}` plus `extracted_trace_count: 4`.
+Expected result: focused safety tests pass, compileall exits 0, `tests/phase3` passes, `tests/planning_benchmark tests/data_collect` passes, Python 3.10 import smoke prints `run_local_planner`, and exact CLI reports `attempt_status_summary: {"success_full_trace": 4}` plus `extracted_trace_count: 4`. As of the 2026-07-07 GBFS replacement, the active planner label is `gbfs`; old `bfs` CLI selection is rejected rather than aliased.

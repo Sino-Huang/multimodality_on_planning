@@ -6,7 +6,7 @@ This update extends the Phase 3 supervised planning pipeline with repo-local tra
 
 The local planners are deterministic, replay-validated, and intended for small supported curriculum instances:
 
-- `bfs`: existing queue/visited full trace remains unchanged.
+- `gbfs`: active greedy best-first local trace over unsatisfied-goal-count, with heuristic-ranked successors, frontier metadata, best-depth state tracking, and replay validation. Historical BFS traces remain only in older Phase 1/planning-benchmark schema material.
 - `ff`: FF-style/local delete-relaxation approximation using relaxed heuristic metadata and bounded best-first recovery when greedy successor choice dead-ends. It remains `is_exact_fast_downward_ff = false`.
 - `iw`: configurable IW(k) novelty trace with expand/prune events and successor novelty decisions. It defaults to IW(3) with `local_iw_max_width=3`, and cheaper sweeps can lower width with `local_iw_width` / `--local-iw-width`.
 - `graphplan`: local planning-graph trace with proposition/action layers, action mutex pairs, action-mutex-only extraction metadata, and a replay-validated serial extraction plan.
@@ -20,7 +20,7 @@ Destructive output cleanup is guarded: Phase 3 generation refuses unsafe output 
 Small real-data smoke over one `blocksworld`, one `ferry`, and one `gripper` accepted curriculum instance:
 
 ```bash
-source ~/cd_vlaplan && source .venv/bin/activate && python -m scripts.phase3.generate_supervised_data --input-root tmp/phase3_trace_smoke_input --output-root tmp/phase3_trace_smoke_output --planners bfs ff iw graphplan --json
+source ~/cd_vlaplan && source .venv/bin/activate && python -m scripts.phase3.generate_supervised_data --input-root tmp/phase3_trace_smoke_input --output-root tmp/phase3_trace_smoke_output --planners gbfs ff iw graphplan --json
 ```
 
 Observed signal:
@@ -30,7 +30,7 @@ Observed signal:
 - `emitted_examples`: 7
 - `fidelity_summary.success_full_trace`: 7
 - `graphplan`: 2 local full-trace successes, 1 controlled resource-limit skip
-- `bfs`: 2 local full-trace successes, 1 controlled resource-limit skip
+- `gbfs`: active replacement for the historical BFS local full-trace slot; controlled resource-limit skips are still represented in diagnostics.
 - `ff`: 2 local full-trace successes, 1 controlled no-plan diagnostic
 - `iw`: 1 local full-trace success, 2 controlled no-plan diagnostics
 
@@ -73,7 +73,7 @@ source ~/cd_vlaplan && source .venv/bin/activate && python -m scripts.phase3.ver
 Full corpus regeneration command remains:
 
 ```bash
-source ~/cd_vlaplan && source .venv/bin/activate && python -m scripts.phase3.generate_supervised_data --input-root data/curriculum_pddl --output-root data/phase3_supervised_planning --planners bfs ff iw graphplan --json
+source ~/cd_vlaplan && source .venv/bin/activate && python -m scripts.phase3.generate_supervised_data --input-root data/curriculum_pddl --output-root data/phase3_supervised_planning --planners gbfs ff iw graphplan --json
 ```
 
 ## Notes

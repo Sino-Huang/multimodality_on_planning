@@ -2,11 +2,17 @@
 
 This note records how the Phase 3 trace artifacts should be interpreted when reviewing planner traces such as `outputs/phase3_traces/blocksworld-dev-easy-0004/traces/*.planner_trace.json`.
 
-## Breadth-First Search
+## Greedy Best-First Search
+
+As of the 2026-07-07 GBFS replacement, active Phase 3 local search uses `gbfs`, not `bfs`. The GBFS trace is intended to be simple and LLM-readable: it ranks states by unsatisfied-goal-count, then by plan length, then by generation order. A GBFS trace should therefore show the selected state, the current heuristic value, heuristic values for applicable successors, enqueue/resource-limit decisions, frontier size after expansion, a best-depth visited-state count, and final expansion statistics.
+
+The active trace payload records `algorithm: "greedy_best_first"`, `heuristic_source: "unsatisfied_goal_count"`, `frontier_events`, and `tie_break_rule: "min_unsatisfied_goals_then_plan_length_then_generation_order"`. The old `bfs` planner label is rejected by the Phase 3 generation API and CLI rather than silently aliased.
+
+## Historical Breadth-First Search
 
 Breadth-first search expands reachable states in FIFO order by increasing plan depth. A BFS trace should therefore show dequeued states, generated successors, whether each successor is newly visited, the frontier size after expansion, and a visited-state count. The Phase 3 BFS trace is the closest of the four to a canonical algorithm trace: it records queue expansion events, visited-state growth, and the final expansion statistics.
 
-For `blocksworld-dev-easy-0004`, the BFS trace has `expansion_count: 11`, `visited_count: 21`, and `queue_events` containing dequeued states and successor actions. This matches BFS well.
+For historical `blocksworld-dev-easy-0004` BFS outputs, the BFS trace had `expansion_count: 11`, `visited_count: 21`, and `queue_events` containing dequeued states and successor actions. This remains useful for interpreting old artifacts and separate planning-benchmark schema fixtures, but it is no longer the active Phase 3 curriculum trace planner surface.
 
 ## Fast Forward Style Local Search
 
@@ -30,7 +36,7 @@ The trace should show proposition layers, action layers, action mutex pairs, and
 
 The generated traces for `blocksworld-dev-easy-0004` are suitable as Phase 3 local planner traces if described precisely:
 
-- `bfs`: strong match to canonical BFS trace semantics.
+- `gbfs`: good match to a transparent greedy best-first trace using unsatisfied-goal-count, with heuristic-ranked successors and bounded frontier/resource metadata. Historical BFS artifacts remain valid only as historical/schema references.
 - `ff`: good match to an FF-style delete-relaxation trace with relaxed layers, relaxed-plan proxy, and bounded recovery search, not full FF.
 - `iw`: good match to configurable IW(k) novelty trace semantics, defaulting to IW(3) for medium-instance trace collection.
 - `graphplan`: good match to an action-mutex planning-graph approximation, not full Graphplan.

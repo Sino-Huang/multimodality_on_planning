@@ -21,7 +21,7 @@ def test_iw_rejects_width_above_configured_max(tmp_path: Path) -> None:
             planner="iw",
             task=task,
             grounded=tuple(grounded),
-            limits={"bfs_max_expansions": 50, "max_plan_length": 5, "max_trace_steps": 10, "local_iw_width": 4, "local_iw_max_width": 3},
+            limits={"gbfs_max_expansions": 50, "gbfs_max_depth": 200, "max_plan_length": 5, "max_trace_steps": 10, "local_iw_width": 4, "local_iw_max_width": 3},
         )
     )
 
@@ -36,8 +36,8 @@ def test_trace_extraction_rejects_path_traversal_components(tmp_path: Path, fiel
         "domain": "safe-domain",
         "split": "train",
         "instance_id": "safe-instance",
-        "planner": "bfs",
-        "supervised_target": {"planner_trace": {"algorithm": "bfs"}},
+        "planner": "gbfs",
+        "supervised_target": {"planner_trace": {"algorithm": "greedy_best_first"}},
     }
     row[field] = "../escape"
     output_root.mkdir()

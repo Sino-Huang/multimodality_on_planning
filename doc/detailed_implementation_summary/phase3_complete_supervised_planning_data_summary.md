@@ -28,7 +28,7 @@ Not all planner attempts succeed. Missing FF/IW/Graphplan executables and unsupp
 ## Regeneration command
 
 ```bash
-source ~/cd_vlaplan && source .venv/bin/activate && python -m scripts.phase3.generate_supervised_data --input-root data/curriculum_pddl --output-root data/phase3_supervised_planning --planners bfs ff iw graphplan --json
+source ~/cd_vlaplan && source .venv/bin/activate && python -m scripts.phase3.generate_supervised_data --input-root data/curriculum_pddl --output-root data/phase3_supervised_planning --planners gbfs ff iw graphplan --json
 ```
 
 Expected signal: exits `0`, writes `generation_manifest.json`, `summary.json`, split JSONL files, schemas, diagnostics, and reports under `data/phase3_supervised_planning`.
@@ -40,7 +40,7 @@ source ~/cd_vlaplan && source .venv/bin/activate && python -m scripts.phase3.ver
 ```
 
 ```bash
-source ~/cd_vlaplan && source .venv/bin/activate && python -m scripts.phase3.verify_planner_attempts --accepted-manifest data/curriculum_pddl/accepted_manifest.jsonl --planner-attempts data/phase3_supervised_planning/diagnostics/planner_attempts.jsonl --planners bfs ff iw graphplan
+source ~/cd_vlaplan && source .venv/bin/activate && python -m scripts.phase3.verify_planner_attempts --accepted-manifest data/curriculum_pddl/accepted_manifest.jsonl --planner-attempts data/phase3_supervised_planning/diagnostics/planner_attempts.jsonl --planners gbfs ff iw graphplan
 ```
 
 ```bash
@@ -89,7 +89,7 @@ source ~/cd_vlaplan && source .venv/bin/activate && pytest tests/phase3 tests/pl
 
 ## Status taxonomy and fidelity semantics
 
-Successful BFS examples are labeled `success_full_trace` only when the local BFS adapter captures queue/visited/successor trace information and the generic replay validator confirms the plan. External planner final-plan-only successes, when configured and valid, are labeled `success_plan_replayed`; they are never labeled as full trace unless true internal traces are implemented and verified.
+Successful GBFS examples are labeled `success_full_trace` only when the local GBFS adapter captures heuristic/frontier/successor trace information and the generic replay validator confirms the plan. Historical generated corpora may still contain BFS-era summaries, but active regeneration uses `gbfs` and rejects the old `bfs` planner label. External planner final-plan-only successes, when configured and valid, are labeled `success_plan_replayed`; they are never labeled as full trace unless true internal traces are implemented and verified.
 
 Current FF/IW/Graphplan attempts are diagnostic-only because planner executables were not configured with `PHASE3_FF_PLANNER`, `PHASE3_IW_PLANNER`, or `PHASE3_GRAPHPLAN_PLANNER`, and the repo-local Fast Downward fallback does not expose FF/IW-style aliases in `modules/downward/fast-downward.py --show-aliases`. Unsupported PDDL and resource-limited cases remain accounted in diagnostics rather than silently skipped.
 

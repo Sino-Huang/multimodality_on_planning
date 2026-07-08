@@ -48,7 +48,7 @@ def run_iterated_width(request: LocalPlannerRequest) -> LocalPlannerResult:
         novelty_before = _serialized_novelty_table(novelty_table)
         novelty_table.update(current_items)
         expansions += 1
-        if expansions > _limit(request, "local_iw_novelty_max_expansions", request.limits["bfs_max_expansions"]):
+        if expansions > _limit(request, "local_iw_novelty_max_expansions", request.limits["gbfs_max_expansions"]):
             return _recover_at_max_width(request, start, width, max_width, events, "novelty_expansion_cap_reached", "skipped_resource_limit")
         successors: list[JSONValue] = []
         applicable = _applicable_actions(request.grounded, node.state)

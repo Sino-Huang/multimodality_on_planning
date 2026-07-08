@@ -18,10 +18,10 @@ def bounded_serial_plan(request: LocalPlannerRequest, start: frozenset[Atom]) ->
         node = frontier.popleft()
         if request.task.goal.issubset(node.state):
             return list(node.plan), _trace(expansions, events, len(visited)), "success_full_trace"
-        if len(node.plan) >= request.limits["bfs_max_depth"]:
+        if len(node.plan) >= request.limits["gbfs_max_depth"]:
             continue
         expansions += 1
-        if expansions > _limit(request, "local_serial_recovery_max_expansions", request.limits["bfs_max_expansions"]):
+        if expansions > _limit(request, "local_serial_recovery_max_expansions", request.limits["gbfs_max_expansions"]):
             return [], _trace(expansions, events, len(visited)), "skipped_resource_limit"
         actions = _applicable_actions(request.grounded, node.state)
         if len(actions) > _limit(request, "local_max_applicable_actions", DEFAULT_MAX_APPLICABLE_ACTIONS):

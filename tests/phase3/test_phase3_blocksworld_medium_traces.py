@@ -75,18 +75,18 @@ def test_blocksworld_medium_0011_all_local_planners_emit_pipeline_examples(tmp_p
         summary = generate_supervised_data(
             input_root,
             output_root,
-            planners=("bfs", "ff", "iw", "graphplan"),
+            planners=("gbfs", "ff", "iw", "graphplan"),
             limits={**_blocksworld_medium_limits(), "local_iw_width": 3, "local_graphplan_max_expansions": 100000},
         )["summary"]
 
         assert summary["planner_status_summary"] == {
-            "bfs": {"success_full_trace": 1},
+            "gbfs": {"success_full_trace": 1},
             "ff": {"success_full_trace": 1},
             "graphplan": {"success_full_trace": 1},
             "iw": {"success_full_trace": 1},
         }
         rows = [json.loads(line) for line in (output_root / "train.jsonl").read_text(encoding="utf-8").splitlines() if line]
-        assert {row["planner"] for row in rows} == {"bfs", "ff", "iw", "graphplan"}
+        assert {row["planner"] for row in rows} == {"gbfs", "ff", "iw", "graphplan"}
         for row in rows:
             assert row["trace_fidelity"] == "success_full_trace"
             assert row["supervised_target"]["plan"]
@@ -108,7 +108,7 @@ def test_blocksworld_medium_0011_curriculum_trace_cli_defaults_emit_all_planner_
                 "--instance-id",
                 BLOCKSWORLD_MEDIUM_0011_ID,
                 "--planner",
-                "bfs",
+                "gbfs",
                 "--planner",
                 "ff",
                 "--planner",
@@ -130,7 +130,7 @@ def test_blocksworld_medium_0011_curriculum_trace_cli_defaults_emit_all_planner_
         assert summary["attempt_status_summary"] == {"success_full_trace": 4}
         assert summary["extracted_trace_count"] == 4
         assert {path.name for path in trace_root.glob("*.planner_trace.json")} == {
-            "bfs.planner_trace.json",
+            "gbfs.planner_trace.json",
             "ff.planner_trace.json",
             "graphplan.planner_trace.json",
             "iw.planner_trace.json",
@@ -142,7 +142,8 @@ def test_blocksworld_medium_0011_curriculum_trace_cli_defaults_emit_all_planner_
 
 def _blocksworld_medium_limits() -> dict[str, int]:
     return {
-        "bfs_max_expansions": 50000,
+        "gbfs_max_expansions": 50000,
+        "gbfs_max_depth": 200,
         "max_grounded_actions": 100000,
         "max_grounded_atoms": 100000,
         "max_jsonl_target_chars": 10000000,

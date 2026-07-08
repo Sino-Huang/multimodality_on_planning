@@ -53,7 +53,7 @@ def _bounded_serial_extraction(request: LocalPlannerRequest, grounded: tuple[Gro
         if request.task.goal.issubset(node.state):
             return LocalPlannerResult(list(node.plan), {"expansion_count": expansions}, "success_full_trace")
         expansions += 1
-        if expansions > _limit(request, "local_graphplan_max_expansions", request.limits["bfs_max_expansions"]):
+        if expansions > _limit(request, "local_graphplan_max_expansions", request.limits["gbfs_max_expansions"]):
             return LocalPlannerResult([], {"expansion_count": expansions}, "skipped_resource_limit")
         actions = _applicable_actions(grounded, node.state)
         if len(actions) > _limit(request, "local_max_applicable_actions", DEFAULT_MAX_APPLICABLE_ACTIONS):

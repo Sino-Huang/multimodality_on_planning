@@ -82,7 +82,7 @@ Per-domain/per-planner probes used a 45 second subprocess timeout and wrote resu
 The exact per-probe command shape was:
 
 ```bash
-source ~/cd_vlaplan && source .venv/bin/activate && timeout 45s python scripts/phase3/generate_curriculum_trace_dataset.py --input-root tmp/phase3_hard_one_per_domain_input --instance-id <INSTANCE_ID> --planner <bfs|ff|iw|graphplan> --output-root tmp/phase3_hard_one_per_domain_probe_current/<DOMAIN>/<PLANNER> --quiet
+source ~/cd_vlaplan && source .venv/bin/activate && timeout 45s python scripts/phase3/generate_curriculum_trace_dataset.py --input-root tmp/phase3_hard_one_per_domain_input --instance-id <INSTANCE_ID> --planner <gbfs|ff|iw|graphplan> --output-root tmp/phase3_hard_one_per_domain_probe_current/<DOMAIN>/<PLANNER> --quiet
 ```
 
 The machine-readable per-attempt summary is `tmp/phase3_hard_one_per_domain_probe_current/probe_summary.json`.
@@ -104,7 +104,7 @@ Observed status counts:
 
 By planner:
 
-- BFS: 13 `skipped_resource_limit`, 2 `skipped_unsupported_pddl`.
+- GBFS: 13 `skipped_resource_limit`, 2 `skipped_unsupported_pddl`.
 - FF: 8 timeouts, 5 `skipped_grounding_limit`, 2 `skipped_unsupported_pddl`.
 - IW: 8 timeouts, 5 `skipped_grounding_limit`, 2 `skipped_unsupported_pddl`.
 - Graphplan: 2 success, 3 timeouts, 3 `skipped_resource_limit`, 5 `skipped_grounding_limit`, 2 `skipped_unsupported_pddl`.
@@ -112,9 +112,9 @@ By planner:
 ## Main Failure Classes
 
 1. Unsupported PDDL: `snake` needs negative preconditions; `sokoban` needs equality and quantifiers. No numeric config fixes these for the current local parser.
-2. Naive grounding explosion: `depot`, `freecell`, `grid`, `logistics`, and `storage` exceed the default `max_grounded_actions=100000` for non-BFS local planners. Static schema estimates are roughly 5.4M (`depot`), 881B (`freecell`), 4.6M (`grid`), 1.5M (`logistics`), and 205M (`storage`), so simply raising the local grounder cap is not a practical general hard-problem solution.
-3. Search/runtime explosion: `15puzzle`, `blocksworld`, `driverlog`, `elevators`, `ferry`, `gripper`, `towers_of_hanoi`, and `visitall` frequently timed out for FF/IW/Graphplan or hit BFS resource gates.
-4. BFS pre-gate: every selected hard instance tripped the current BFS pre-gate (`object_count > 8`, `goal_count > 8`, or estimated branching > 2000). This is deliberate protection against raw BFS trace explosion.
+2. Naive grounding explosion: `depot`, `freecell`, `grid`, `logistics`, and `storage` exceed the default `max_grounded_actions=100000` for FF/IW/Graphplan local planners. Static schema estimates are roughly 5.4M (`depot`), 881B (`freecell`), 4.6M (`grid`), 1.5M (`logistics`), and 205M (`storage`), so simply raising the local grounder cap is not a practical general hard-problem solution.
+3. Search/runtime explosion: `15puzzle`, `blocksworld`, `driverlog`, `elevators`, `ferry`, `gripper`, `towers_of_hanoi`, and `visitall` frequently timed out for FF/IW/Graphplan or hit GBFS resource gates.
+4. GBFS pre-gate: every selected hard instance tripped the current GBFS pre-gate (`object_count > 8`, `goal_count > 8`, or estimated applicable actions > 2000). This is deliberate protection against raw local search trace explosion.
 
 ## Recommended Hard Config
 
@@ -124,19 +124,19 @@ Recommended profiles:
 
 1. Hard survey / safe batch profile:
    - Name: `hard_safe_batch_supported_cli`.
-   - Planners: `bfs`, `ff`, `iw`, `graphplan`.
+   - Planners: `gbfs`, `ff`, `iw`, `graphplan`.
    - Grounding caps: pipeline defaults, `max_grounded_actions=100000`, `max_grounded_atoms=100000`.
-   - BFS pre-gate: keep enabled by pipeline defaults.
+   - GBFS pre-gate: keep enabled by pipeline defaults.
    - Local applicable-action gate: `--local-max-applicable-actions 2000`.
    - IW: `--local-iw-width 3 --local-iw-max-width 3`.
-   - Graphplan expansion cap: `--local-graphplan-max-expansions 100000`.
+   - Graphplan expansion cap: `--local-graphplan-max-expansions 100000` for the hard-safe survey profile; pipeline default is `250000`.
    - Planner-attempt timeout: external subprocess timeout, validated at 12 seconds per instance/planner attempt for the survey profile.
    - Expected semantics: the batch should complete without hanging; full traces are optional; `timeout`, `skipped_resource_limit`, `skipped_grounding_limit`, and `skipped_unsupported_pddl` are valid hard-domain diagnostics.
 
    Supported CLI command shape:
 
    ```bash
-   source ~/cd_vlaplan && source .venv/bin/activate && timeout 12s python scripts/phase3/generate_curriculum_trace_dataset.py --input-root tmp/phase3_hard_one_per_domain_input --instance-id <INSTANCE_ID> --planner <bfs|ff|iw|graphplan> --output-root tmp/phase3_hard_one_per_domain_hard_safe_validate_supported/attempt_outputs/<DOMAIN>/<PLANNER> --local-max-applicable-actions 2000 --local-iw-width 3 --local-iw-max-width 3 --local-graphplan-max-expansions 100000 --quiet
+   source ~/cd_vlaplan && source .venv/bin/activate && timeout 12s python scripts/phase3/generate_curriculum_trace_dataset.py --input-root tmp/phase3_hard_one_per_domain_input --instance-id <INSTANCE_ID> --planner <gbfs|ff|iw|graphplan> --output-root tmp/phase3_hard_one_per_domain_hard_safe_validate_supported/attempt_outputs/<DOMAIN>/<PLANNER> --local-max-applicable-actions 2000 --local-iw-width 3 --local-iw-max-width 3 --local-graphplan-max-expansions 100000 --quiet
    ```
 
    Validation artifacts:
@@ -156,6 +156,6 @@ Recommended profiles:
 3. Hard full-trace research profile:
    - Use external planners or a lifted/symbolic planner backend for hard domains.
    - Extend parser support before expecting `snake` or `sokoban` local traces.
-   - Add a real per-attempt local planner timeout to the helper before running hard batches unattended.
+   - Keep native helper timeouts enabled before running hard batches unattended: default `--planner-attempt-timeout-seconds 1200` and `--domain-timeout-seconds 3600`.
    - Add trace compression/external-memory summaries before feeding raw hard traces to LLMs.
    - This profile is not currently implementable as a pure local-config change with the existing helper. It requires either external planner integration already available through `--use-external-planners` where planner binaries are installed, or a new lifted/symbolic backend for domains where the current naive grounder is the blocker.

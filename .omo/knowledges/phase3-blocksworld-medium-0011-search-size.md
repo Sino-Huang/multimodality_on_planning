@@ -1,6 +1,6 @@
 # Phase 3 Blocksworld Medium 0011 Search Size
 
-Measured for `data/curriculum_pddl/blocksworld/train/medium/blocksworld-train-medium-0011` after raising Phase 3 local defaults to IW(3) and Graphplan expansion cap `100000`.
+Measured for `data/curriculum_pddl/blocksworld/train/medium/blocksworld-train-medium-0011` after raising Phase 3 local defaults to IW(3) and Graphplan expansion cap `250000`.
 
 - Objects: 8 blocks.
 - Grounded actions: 144.
@@ -17,7 +17,7 @@ Measured for `data/curriculum_pddl/blocksworld/train/medium/blocksworld-train-me
 Verification command for default local trace collection:
 
 ```bash
-source ~/cd_vlaplan && source .venv/bin/activate && python scripts/phase3/generate_curriculum_trace_dataset.py --instance-id blocksworld-train-medium-0011 --planner bfs --planner ff --planner iw --planner graphplan --output-root tmp/phase3_bwm0011_default_local_verify --quiet
+source ~/cd_vlaplan && source .venv/bin/activate && python scripts/phase3/generate_curriculum_trace_dataset.py --instance-id blocksworld-train-medium-0011 --planner gbfs --planner ff --planner iw --planner graphplan --output-root tmp/phase3_bwm0011_default_local_verify --quiet
 ```
 
-Expected signal: `attempt_status_summary: {"success_full_trace": 4}` and `extracted_trace_count: 4`.
+Expected signal: `attempt_status_summary: {"success_full_trace": 4}` and `extracted_trace_count: 4`. The measured BFS search-size bullets are historical; active Phase 3 generation now uses `gbfs` and rejects `bfs` CLI selection.

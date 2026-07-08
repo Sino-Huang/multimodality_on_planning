@@ -85,7 +85,7 @@ def _ff_best_first_plan(request: LocalPlannerRequest, start: frozenset[Atom]) ->
             hit_plan_length_limit = True
             continue
         expansions += 1
-        if expansions > _limit(request, "local_ff_best_first_max_expansions", request.limits["bfs_max_expansions"]):
+        if expansions > _limit(request, "local_ff_best_first_max_expansions", request.limits["gbfs_max_expansions"]):
             return [], "skipped_resource_limit"
         applicable = _applicable_actions(request.grounded, state)
         if len(applicable) > _limit(request, "local_max_applicable_actions", DEFAULT_MAX_APPLICABLE_ACTIONS):

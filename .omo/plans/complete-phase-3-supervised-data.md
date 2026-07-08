@@ -1,11 +1,11 @@
 # Complete Phase 3 Supervised Planning Data
 
 ## TL;DR
-> **Summary**: Build a complete Phase 3 JSONL supervised planning dataset pipeline rooted in `data/curriculum_pddl`, with Planimation assets as vision supervision and BFS/FF/IW/Graphplan attempts as language/tool-use supervision. The pipeline must account for every accepted curriculum instance and every planner attempt, but emit supervised examples only from replay-validated successful traces/plans.
+> **Summary**: Build a complete Phase 3 JSONL supervised planning dataset pipeline rooted in `data/curriculum_pddl`, with Planimation assets as vision supervision and GBFS/FF/IW/Graphplan attempts as language/tool-use supervision. The pipeline must account for every accepted curriculum instance and every planner attempt, but emit supervised examples only from replay-validated successful traces/plans.
 > **Deliverables**:
 > - `data/phase3_supervised_planning/` generated corpus layout with JSONL splits, schemas, diagnostics, and reports.
 > - Generic PDDL preflight, grounding, state transition, replay validation, and action normalization layer.
-> - Local BFS full-trace adapter plus FF/IW/Graphplan external-plan/replay adapters with explicit skip diagnostics when executables or supported PDDL features are unavailable.
+> - Local GBFS full-trace adapter plus FF/IW/Graphplan external-plan/replay adapters with explicit skip diagnostics when executables or supported PDDL features are unavailable.
 > - Per-instance and per-planner accounting diagnostics with controlled statuses.
 > - Verification CLIs for manifest coverage, planner attempts, schema, replay, fidelity, splits, domain coverage, vision assets, smoke exclusion, and determinism.
 > - Documentation summary under `doc/detailed_implementation_summary/phase3_complete_supervised_planning_data_summary.md`.
@@ -16,7 +16,7 @@
 ## Context
 
 ### Original Request
-The user rejected the previous answer that pointed to `outputs/planning_artifacts`: it is not the desired Phase 3 supervised training data. The corrected Phase 3 must use PDDL training data in `data/curriculum_pddl`, cover the range of curriculum domains rather than only Blocksworld, generate BFS/FF/IW/Graphplan traces from those problem instances, use those traces as language/tool-use supervision, and use Planimation outputs already stored in `data/curriculum_pddl` as vision supervision.
+The user rejected the previous answer that pointed to `outputs/planning_artifacts`: it is not the desired Phase 3 supervised training data. The corrected Phase 3 must use PDDL training data in `data/curriculum_pddl`, cover the range of curriculum domains rather than only Blocksworld, generate GBFS/FF/IW/Graphplan traces from those problem instances, use those traces as language/tool-use supervision, and use Planimation outputs already stored in `data/curriculum_pddl` as vision supervision.
 
 ### Interview Summary
 - Output root: `data/phase3_supervised_planning/`.
@@ -31,8 +31,8 @@ The user rejected the previous answer that pointed to `outputs/planning_artifact
 - Current planning slice loader contract already reads `accepted_manifest.jsonl`, resolves `domain.pddl`, `problem.pddl`, `render/trace.vfg.json`, frames, and fails on missing artifacts in `examples/planning_benchmark_slice/README.md:11-38`.
 - Current smoke registry explicitly points to `outputs/planning_artifacts/dataset_smoke` and Blocksworld-only names in `examples/planning_benchmark_slice/train_files/data_registry/data_config.py:31-34` and `:99-105`; this must not be treated as final Phase 3.
 - Current modality serializer preserves the desired `model_facing`, `supervised_target`, and `evaluation_metadata` separation in `examples/planning_benchmark_slice/modality_serializers.py:206-220`.
-- Current trajectory schema has canonical algorithm names and algorithm-specific fields for BFS, FF, IW, and Graphplan in `examples/planning_benchmark_slice/trajectory_schema.py:14-58`.
-- Existing BFS, FF, IW, and Graphplan experts import `BlocksworldProblem`, so they are Blocksworld-only: `examples/planning_benchmark_slice/experts/bfs.py:8-10`, `examples/planning_benchmark_slice/experts/fast_forward.py:7-9`, `examples/planning_benchmark_slice/experts/iterated_width.py:9-11`, `examples/planning_benchmark_slice/experts/graphplan.py:8-11`.
+- Historical planning-benchmark trajectory schema has canonical algorithm names and algorithm-specific fields for BFS, FF, IW, and Graphplan in `examples/planning_benchmark_slice/trajectory_schema.py:14-58`; this is contextual prior art, not the active Phase 3 planner set.
+- Historical planning-benchmark BFS, FF, IW, and Graphplan experts import `BlocksworldProblem`, so they are Blocksworld-only: `examples/planning_benchmark_slice/experts/bfs.py:8-10`, `examples/planning_benchmark_slice/experts/fast_forward.py:7-9`, `examples/planning_benchmark_slice/experts/iterated_width.py:9-11`, `examples/planning_benchmark_slice/experts/graphplan.py:8-11`.
 - Existing FF is explicitly a P0 Blocksworld approximation, not full FF, in `examples/planning_benchmark_slice/experts/fast_forward.py:27-42` and `:72-79`.
 - Existing Graphplan is explicitly a P0 approximation with action-level mutex only in `examples/planning_benchmark_slice/experts/graphplan.py:41-49` and `:154-160`.
 - Registry tests show smoke names, smoke paths, uniqueness checks, and optional dependency guard patterns in `tests/planning_benchmark/test_dataset_registry.py:28-76` and `:79-115`.
@@ -94,7 +94,7 @@ Implement a robust, auditable, multi-domain Phase 3 supervised planning data pip
 All commands use the required environment prefix.
 
 ```bash
-source ~/cd_vlaplan && source .venv/bin/activate && python -m scripts.phase3.generate_supervised_data --input-root data/curriculum_pddl --output-root data/phase3_supervised_planning --planners bfs ff iw graphplan --json
+source ~/cd_vlaplan && source .venv/bin/activate && python -m scripts.phase3.generate_supervised_data --input-root data/curriculum_pddl --output-root data/phase3_supervised_planning --planners gbfs ff iw graphplan --json
 ```
 Expected: exits `0`; writes the output layout above; reports accepted instance count, per-planner status counts, emitted examples, and diagnostics paths.
 
@@ -104,7 +104,7 @@ source ~/cd_vlaplan && source .venv/bin/activate && python -m scripts.phase3.ver
 Expected: exits `0`; reports `missing_from_diagnostics = 0` and `unexpected_extra_instances = 0`.
 
 ```bash
-source ~/cd_vlaplan && source .venv/bin/activate && python -m scripts.phase3.verify_planner_attempts --accepted-manifest data/curriculum_pddl/accepted_manifest.jsonl --planner-attempts data/phase3_supervised_planning/diagnostics/planner_attempts.jsonl --planners bfs ff iw graphplan
+source ~/cd_vlaplan && source .venv/bin/activate && python -m scripts.phase3.verify_planner_attempts --accepted-manifest data/curriculum_pddl/accepted_manifest.jsonl --planner-attempts data/phase3_supervised_planning/diagnostics/planner_attempts.jsonl --planners gbfs ff iw graphplan
 ```
 Expected: exits `0`; reports `missing_attempt_records = 0` and counts by planner/status.
 
@@ -158,7 +158,7 @@ Expected: exits `0`; no regressions in existing planning benchmark and data coll
 - Never infer accepted instances by directory listing alone.
 - Reconcile every accepted manifest row against required files: `domain.pddl`, `problem.pddl`, `render/result.json`, `render/trace.vfg.json`, and `render/frames/*.png`.
 - Create diagnostics for missing/corrupt files instead of silently skipping.
-- Create per-planner attempt records for BFS, FF, IW, and Graphplan, even when skipped or failed.
+- Create per-planner attempt records for GBFS, FF, IW, and Graphplan, even when skipped or failed.
 - Use generic replay validation as final correctness gate before supervised example emission.
 - Preserve `model_facing`, `supervised_target`, `evaluation_metadata` in every example.
 - Use portable relative paths in JSONL and diagnostics; absolute `/data/scratch/...` paths are forbidden in generated records.
@@ -175,7 +175,7 @@ Expected: exits `0`; no regressions in existing planning benchmark and data coll
 - Must not emit supervised examples from failed replay validation.
 - Must not require manual frame inspection or manual acceptance.
 - Must not implement StarVLA/LeRobot tensor conversion in this phase.
-- Must not build a new full planner research system beyond the required local BFS and generic replay/validation layer.
+- Must not build a new full planner research system beyond the required local GBFS and generic replay/validation layer.
 
 ## Verification Strategy
 > ZERO HUMAN INTERVENTION - all verification is agent-executed.
@@ -191,7 +191,7 @@ The generic PDDL parser/grounder/replay validator is the correctness authority f
 
 ### No Fabrication and Fidelity Semantics
 Controlled planner statuses:
-- `success_full_trace`: actual search/trace internals were captured, e.g. BFS queue/visited/successor events.
+- `success_full_trace`: actual search/trace internals were captured, e.g. GBFS frontier/best-depth/successor-heuristic events.
 - `success_plan_replayed`: planner produced a final plan; generic validator replayed it into state transitions; no claim of internal search trace.
 - `skipped_planner_unavailable`
 - `skipped_unsupported_pddl`
@@ -221,15 +221,18 @@ Controlled vision statuses:
 
 ### Resource Limits
 Implement config defaults in `generation_manifest.json` and CLI flags:
-- Planner timeout: `60` seconds per planner attempt.
+- External planner subprocess timeout: `60` seconds per planner subprocess.
+- Parent-enforced planner attempt timeout: `1200` seconds per planner attempt.
+- Accumulated domain timeout budget: `3600` seconds before remaining same-domain attempts are skipped.
 - Parser/grounding timeout: `60` seconds per instance.
 - Max grounded actions: `100000`.
 - Max grounded atoms: `100000`.
-- BFS max expansions: `50000`.
-- BFS max depth: `200`.
+- GBFS max applicable actions: `2000`.
+- GBFS max expansions: `250000`.
+- GBFS max depth: `200`.
 - Max plan length: `500`.
 - Max trace steps emitted per example: `500`.
-- Max JSONL target characters per example: `65536`; longer successful plans remain diagnostics-only with `skipped_resource_limit` for supervision emission.
+- Max JSONL target characters per example: `10000000`; longer successful plans remain diagnostics-only with `skipped_resource_limit` for supervision emission.
 
 ### Supported PDDL Fragment
 Initial supported fragment for replay validation: typed STRIPS with objects, constants, positive predicates, conjunctive positive preconditions, add/delete effects, and conjunctive positive goals. Preflight must detect and classify unsupported constructs including negative preconditions, quantified preconditions/effects, conditional effects, derived predicates, numeric fluents, disjunction, equality semantics requiring special handling, and non-STRIPS constructs.
@@ -261,7 +264,7 @@ Preserve multiple planner examples for the same instance even if `plan_hash` is 
 
 ### Parallel Execution Waves
 Wave 1: Tasks 1-5 foundation: corpus accounting, schema/status contract, PDDL preflight, generic validator, vision validation.
-Wave 2: Tasks 6-9 planner adapters and example builder: BFS, external planner adapters, JSONL builder, reporting/determinism.
+Wave 2: Tasks 6-9 planner adapters and example builder: GBFS, external planner adapters, JSONL builder, reporting/determinism.
 Wave 3: Tasks 10-12 integration: registry JSONL config, verification CLIs/tests, docs/status.
 Wave 4: Final verification wave F1-F4.
 
@@ -484,11 +487,11 @@ Wave 4: Final verification wave F1-F4.
 
   **Commit**: NO | Message: `feat(phase3): validate planimation vision assets` | Files: implementation and tests only
 
-- [ ] 6. Implement local BFS full-trace adapter over generic validator
+- [ ] 6. Implement local GBFS full-trace adapter over generic validator
 
-  **What to do**: Implement a multi-domain local BFS adapter on top of the generic grounded state layer. Record true full trace fields: queue/frontier events, visited hashes, dequeued state, successor generation, selected plan, expansion count, resource-limit status. Emit `success_full_trace` only when the full BFS trace is captured and replay passes. For large instances, emit controlled timeout/resource/grounding statuses without blocking other planners.
+  **What to do**: Implement a multi-domain local GBFS adapter on top of the generic grounded state layer. Record true full trace fields: frontier events, best-depth visited-state tracking, selected state, successor generation with heuristic values, selected plan, expansion count, and resource-limit status. Emit `success_full_trace` only when the full GBFS trace is captured and replay passes. For large instances, emit controlled timeout/resource/grounding statuses without blocking other planners.
 
-  **Must NOT do**: Must not reuse Blocksworld-only `BlocksworldProblem` as the multi-domain engine; must not sort or corrupt queue semantics; must not require BFS success for dataset completeness.
+  **Must NOT do**: Must not reuse Blocksworld-only `BlocksworldProblem` as the multi-domain engine; must not corrupt GBFS priority semantics; must not require GBFS success for dataset completeness.
 
   **Recommended Agent Profile**:
   - Category: `deep` - Search implementation with resource limits and trace correctness.
@@ -498,31 +501,31 @@ Wave 4: Final verification wave F1-F4.
   **Parallelization**: Can Parallel: NO | Wave 2 | Blocks: 8, 11 | Blocked By: 2, 3, 4
 
   **References**:
-  - Existing smoke pattern: `examples/planning_benchmark_slice/experts/bfs.py:37-68` - BFS trajectory flow, but Blocksworld-only.
-  - Queue trace fields: `examples/planning_benchmark_slice/experts/bfs.py:80-120` - Frontier/visited/successor fields.
-  - Guardrail from prior rejection: preserve FIFO semantics; do not sort `frontier_before` or `frontier_after`.
+  - Existing smoke pattern: `examples/planning_benchmark_slice/experts/bfs.py:37-68` - Historical BFS trajectory flow, but Blocksworld-only.
+  - Historical queue trace fields: `examples/planning_benchmark_slice/experts/bfs.py:80-120` - Frontier/visited/successor fields to adapt conceptually, not as active BFS behavior.
+  - Current guardrail: preserve GBFS ordering by unsatisfied-goal-count, then plan length, then generation order.
 
   **Acceptance Criteria**:
-  - [ ] `source ~/cd_vlaplan && source .venv/bin/activate && pytest tests/phase3/test_bfs_adapter.py` exits `0`.
-  - [ ] BFS success attempt rows use `success_full_trace` only when queue/visited/successor trace exists and replay validates.
-  - [ ] BFS resource-limit rows do not emit supervised examples.
+  - [ ] `source ~/cd_vlaplan && source .venv/bin/activate && pytest tests/phase3/test_phase3_gbfs.py` exits `0`.
+  - [ ] GBFS success attempt rows use `success_full_trace` only when frontier/best-depth/successor-heuristic trace exists and replay validates.
+  - [ ] GBFS resource-limit rows do not emit supervised examples.
 
   **QA Scenarios**:
   ```
-  Scenario: BFS emits full trace on small supported fixture
+  Scenario: GBFS emits full trace on small supported fixture
     Tool: Bash
-    Steps: source ~/cd_vlaplan && source .venv/bin/activate && pytest tests/phase3/test_bfs_adapter.py -k full_trace_success
-    Expected: Exit 0; status success_full_trace; replay_ok true; FIFO frontier order preserved.
-    Evidence: .sisyphus/evidence/task-6-bfs-full-trace.txt
+    Steps: source ~/cd_vlaplan && source .venv/bin/activate && pytest tests/phase3/test_phase3_gbfs.py -q
+    Expected: Exit 0; status success_full_trace; replay_ok true; GBFS trace fields use greedy best-first semantics.
+    Evidence: .sisyphus/evidence/task-6-gbfs-full-trace.txt
 
-  Scenario: BFS grounding/search limit is controlled
+  Scenario: GBFS grounding/search limit is controlled
     Tool: Bash
-    Steps: source ~/cd_vlaplan && source .venv/bin/activate && pytest tests/phase3/test_bfs_adapter.py -k resource_limit
+    Steps: source ~/cd_vlaplan && source .venv/bin/activate && pytest tests/phase3/test_phase3_gbfs.py -q
     Expected: Exit 0; status skipped_resource_limit or skipped_grounding_limit; no supervised example emitted.
-    Evidence: .sisyphus/evidence/task-6-bfs-resource-limit.txt
+    Evidence: .sisyphus/evidence/task-6-gbfs-resource-limit.txt
   ```
 
-  **Commit**: NO | Message: `feat(phase3): add generic bfs trace adapter` | Files: implementation and tests only
+  **Commit**: NO | Message: `feat(phase3): add generic gbfs trace adapter` | Files: implementation and tests only
 
 - [ ] 7. Implement FF, IW, and Graphplan external planner adapters with replay validation
 
@@ -595,7 +598,7 @@ Wave 4: Final verification wave F1-F4.
   ```
   Scenario: Generate JSONL training-ready corpus
     Tool: Bash
-    Steps: source ~/cd_vlaplan && source .venv/bin/activate && python -m scripts.phase3.generate_supervised_data --input-root data/curriculum_pddl --output-root data/phase3_supervised_planning --planners bfs ff iw graphplan --json
+    Steps: source ~/cd_vlaplan && source .venv/bin/activate && python -m scripts.phase3.generate_supervised_data --input-root data/curriculum_pddl --output-root data/phase3_supervised_planning --planners gbfs ff iw graphplan --json
     Expected: Exit 0; train.jsonl, dev.jsonl, test.jsonl, summary.json, generation_manifest.json are written.
     Evidence: .sisyphus/evidence/task-8-generate-corpus.txt
 
@@ -797,7 +800,7 @@ Wave 4: Final verification wave F1-F4.
 
 ## Success Criteria
 - Every row in `data/curriculum_pddl/accepted_manifest.jsonl` appears in `diagnostics/instance_accounting.jsonl`.
-- Every accepted instance has BFS, FF, IW, and Graphplan attempt records.
+- Every accepted instance has GBFS, FF, IW, and Graphplan attempt records.
 - Every emitted JSONL example validates against schema and replay validation.
 - All 15 domains are represented in diagnostics.
 - Unsupported/timeouts/failures are explicit machine-readable statuses, not missing rows.

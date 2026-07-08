@@ -11,14 +11,15 @@ import pytest
 from scripts.phase3.local_planner_types import LocalPlannerRequest
 from scripts.phase3.local_planners import run_local_planner
 from scripts.phase3.pddl import GroundAction, PDDLTask, ground_actions, parse_task, replay_plan
-from scripts.phase3.pipeline import RESOURCE_LIMITS, _bfs, _bfs_estimate_exceeds_resource_gate, generate_supervised_data
+from scripts.phase3.gbfs import run_gbfs
+from scripts.phase3.pipeline import RESOURCE_LIMITS, generate_supervised_data
 
 PUZZLE_EASY_0000 = Path("data/curriculum_pddl/15puzzle/dev/easy/15puzzle-dev-easy-0000")
 PUZZLE_EASY_0000_ID = "15puzzle-dev-easy-0000"
 PUZZLE_EASY_0002_ID = "15puzzle-dev-easy-0002"
 
 
-def test_15puzzle_easy_0000_bfs_gate_uses_typed_grounding_estimate() -> None:
+def test_15puzzle_easy_0000_typed_grounding_stays_small_for_gbfs() -> None:
     task, grounded = _puzzle_easy_0000_task()
 
     assert len(task.objects_by_type["object"]) == 17
@@ -26,7 +27,7 @@ def test_15puzzle_easy_0000_bfs_gate_uses_typed_grounding_estimate() -> None:
     assert len(task.objects_by_type["tile"]) == 8
     assert len(task.goal) == 8
     assert len(grounded) == 192
-    assert _bfs_estimate_exceeds_resource_gate(task) is False
+    assert len(grounded) < 2000
 
 
 @pytest.mark.parametrize("instance_id", [PUZZLE_EASY_0000_ID, PUZZLE_EASY_0002_ID])
@@ -34,9 +35,9 @@ def test_15puzzle_easy_local_planners_emit_replay_valid_plans(instance_id: str) 
     task, grounded = _puzzle_easy_task(instance_id)
     limits = _puzzle_easy_limits()
 
-    bfs_plan, bfs_trace, bfs_status = _bfs(task, grounded, limits=limits)
+    gbfs_plan, gbfs_trace, gbfs_status = run_gbfs(task, grounded, limits=limits)
     planner_results = {
-        "bfs": (bfs_plan, bfs_trace, bfs_status),
+        "gbfs": (gbfs_plan, gbfs_trace, gbfs_status),
         "ff": _local_planner_result("ff", task, grounded, limits),
         "iw": _local_planner_result("iw", task, grounded, limits),
         "graphplan": _local_planner_result("graphplan", task, grounded, limits),
@@ -85,7 +86,7 @@ def test_15puzzle_easy_first_ten_curriculum_trace_cli_defaults_emit_all_planner_
                 "--instance-id",
                 "15puzzle-dev-easy-0009",
                 "--planner",
-                "bfs",
+                "gbfs",
                 "--planner",
                 "ff",
                 "--planner",
@@ -113,7 +114,7 @@ def test_15puzzle_easy_first_ten_curriculum_trace_cli_defaults_emit_all_planner_
         for index in range(10):
             trace_root = output_root / "traces" / "15puzzle" / "dev" / f"15puzzle-dev-easy-{index:04d}"
             assert {path.name for path in trace_root.glob("*.planner_trace.json")} == {
-                "bfs.planner_trace.json",
+                "gbfs.planner_trace.json",
                 "ff.planner_trace.json",
                 "graphplan.planner_trace.json",
                 "iw.planner_trace.json",
@@ -132,16 +133,16 @@ def test_15puzzle_easy_0002_pipeline_defaults_emit_all_planner_traces(tmp_path: 
     _write_single_instance_manifest(input_root, PUZZLE_EASY_0002_ID)
 
     try:
-        summary = generate_supervised_data(input_root, output_root, planners=("bfs", "ff", "iw", "graphplan"))["summary"]
+        summary = generate_supervised_data(input_root, output_root, planners=("gbfs", "ff", "iw", "graphplan"))["summary"]
 
         assert summary["planner_status_summary"] == {
-            "bfs": {"success_full_trace": 1},
+            "gbfs": {"success_full_trace": 1},
             "ff": {"success_full_trace": 1},
             "graphplan": {"success_full_trace": 1},
             "iw": {"success_full_trace": 1},
         }
         rows = [json.loads(line) for line in (output_root / "dev.jsonl").read_text(encoding="utf-8").splitlines() if line]
-        assert {row["planner"] for row in rows} == {"bfs", "ff", "iw", "graphplan"}
+        assert {row["planner"] for row in rows} == {"gbfs", "ff", "iw", "graphplan"}
     finally:
         if fixture_root.exists():
             shutil.rmtree(fixture_root)

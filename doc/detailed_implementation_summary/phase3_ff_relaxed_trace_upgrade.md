@@ -64,4 +64,4 @@ Expected signal: exit code `0` with no output.
 source ~/cd_vlaplan && source .venv/bin/activate && python tests/phase3/generate_single_instance_traces.py --instance-id blocksworld-dev-easy-0004
 ```
 
-Expected signal: JSON report with `emitted_examples: 4`, `fidelity_summary: {"success_full_trace": 4}`, and extracted planners `bfs`, `ff`, `graphplan`, and `iw`.
+Expected signal: JSON report with `emitted_examples: 4`, `fidelity_summary: {"success_full_trace": 4}`, and extracted planners `gbfs`, `ff`, `graphplan`, and `iw`. The old `bfs` planner label is rejected by current Phase 3 generation rather than aliased.

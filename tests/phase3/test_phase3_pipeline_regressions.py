@@ -22,7 +22,7 @@ def test_generate_supervised_data_rejects_input_root_as_output_root(tmp_path: Pa
     manifest = input_root / "accepted_manifest.jsonl"
 
     with pytest.raises(RuntimeError, match="unsafe output root"):
-        generate_supervised_data(input_root, input_root, planners=("bfs",))
+        generate_supervised_data(input_root, input_root, planners=("gbfs",))
 
     assert manifest.exists()
     shutil.rmtree(fixture_root)
@@ -36,7 +36,7 @@ def test_generate_supervised_data_rejects_output_root_that_contains_input_root(t
     manifest = input_root / "accepted_manifest.jsonl"
 
     with pytest.raises(RuntimeError, match="unsafe output root"):
-        generate_supervised_data(input_root, fixture_root, planners=("bfs",))
+        generate_supervised_data(input_root, fixture_root, planners=("gbfs",))
 
     assert manifest.exists()
     shutil.rmtree(fixture_root)
@@ -87,7 +87,7 @@ def test_generate_supervised_data_records_merged_resource_limits(tmp_path: Path)
     input_root = _fixture_dataset(fixture_root, with_frame=True)
     output_root = fixture_root / "phase3"
 
-    generate_supervised_data(input_root, output_root, planners=("bfs",), limits={"max_trace_steps": 1})
+    generate_supervised_data(input_root, output_root, planners=("gbfs",), limits={"max_trace_steps": 1})
 
     row = json.loads((output_root / "train.jsonl").read_text(encoding="utf-8"))
     replay = json.loads((output_root / "diagnostics" / "replay_validation.jsonl").read_text(encoding="utf-8"))
@@ -208,10 +208,10 @@ def test_generate_supervised_data_reports_planner_progress(tmp_path: Path) -> No
     output_root = fixture_root / "phase3"
     events = []
 
-    generate_supervised_data(input_root, output_root, planners=("bfs",), progress_callback=events.append)
+    generate_supervised_data(input_root, output_root, planners=("gbfs",), progress_callback=events.append)
 
     assert events[0]["phase"] == "attempt_started"
-    assert events[0]["planner"] == "bfs"
+    assert events[0]["planner"] == "gbfs"
     assert events[1]["phase"] == "attempt_finished"
     assert events[1]["status"] == "success_full_trace"
     shutil.rmtree(fixture_root)
@@ -240,7 +240,7 @@ def test_graphplan_full_trace_uses_graphplan_extraction_metadata(tmp_path: Path)
 
 
 def _limits() -> dict[str, int]:
-    return {"bfs_max_expansions": 50, "max_plan_length": 5, "max_trace_steps": 10, "local_max_applicable_actions": 2000}
+    return {"gbfs_max_expansions": 50, "max_plan_length": 5, "max_trace_steps": 10, "local_max_applicable_actions": 2000}
 
 
 def _write_empty_init_goal_pddl(root: Path) -> tuple[Path, Path]:

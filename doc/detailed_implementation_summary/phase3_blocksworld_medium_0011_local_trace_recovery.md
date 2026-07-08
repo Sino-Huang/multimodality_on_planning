@@ -7,7 +7,7 @@ This note records the focused local-trace recovery for `blocksworld-train-medium
 The instance already had replay-valid BFS and Graphplan plans under suitable limits, but local FF and IW did not emit traces under the earlier local algorithms:
 
 - BFS solved the instance with a 10-action plan.
-- Graphplan originally needed `local_graphplan_max_expansions` raised above the old batch default of `5000`; the default is now `100000` so this instance is allowed by default.
+- Graphplan originally needed `local_graphplan_max_expansions` raised above the old batch default of `5000`; the default is now `250000` so this instance is allowed by default.
 - IW(1) and IW(2) failed to extract a plan; IW(3) was required.
 - The earlier local FF greedy path reached a local dead end after `(unstack b2 b1)`, `(putdown b2)`, `(pickup b2)`.
 
@@ -24,10 +24,10 @@ The instance already had replay-valid BFS and Graphplan plans under suitable lim
 ## Focused Command
 
 ```bash
-source ~/cd_vlaplan && source .venv/bin/activate && python scripts/phase3/generate_curriculum_trace_dataset.py --instance-id blocksworld-train-medium-0011 --planner bfs --planner ff --planner iw --planner graphplan --output-root tmp/phase3_bwm0011_all_local_verify --quiet
+source ~/cd_vlaplan && source .venv/bin/activate && python scripts/phase3/generate_curriculum_trace_dataset.py --instance-id blocksworld-train-medium-0011 --planner gbfs --planner ff --planner iw --planner graphplan --output-root tmp/phase3_bwm0011_all_local_verify --quiet
 ```
 
-Expected signal: four extracted traces and four `success_full_trace` attempts.
+Expected signal: four extracted traces and four `success_full_trace` attempts. As of the 2026-07-07 GBFS replacement, the active command uses `gbfs`; old `bfs` selection is intentionally rejected.
 
 ## Regression Coverage
 

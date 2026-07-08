@@ -4,11 +4,11 @@ Date: 2026-07-06
 
 ## Summary
 
-Updated the Phase 3 local trace generation path so simple typed 15puzzle instances can produce replay-valid reasoning traces for all four configured search algorithms: `bfs`, `ff`, `iw`, and `graphplan`.
+Updated the Phase 3 local trace generation path so simple typed 15puzzle instances can produce replay-valid reasoning traces for all four configured search algorithms. As of the 2026-07-07 GBFS replacement, the active configured set is `gbfs`, `ff`, `iw`, and `graphplan`; old `bfs` selection is rejected rather than aliased.
 
 The motivating failure was the rerun of `outputs/phase3_curriculum_traces_rerun`, where easy 15puzzle attempts showed `bfs` skipped by resource limits and `iw` failing or running too long. Runtime inspection of `15puzzle-dev-easy-0000` showed 17 raw objects but only 648 typed grounded actions, so the old BFS raw-object gate was too coarse for typed simple tasks.
 
-## Changes
+## Historical BFS-Era Changes
 
 - `scripts/phase3/pipeline.py`
   - Replaced the raw BFS object-count gate with a typed schema grounding estimate.
@@ -28,6 +28,8 @@ The motivating failure was the rerun of `outputs/phase3_curriculum_traces_rerun`
   - Added CLI knobs for FF/IW/recovery caps.
 - `tests/phase3/test_phase3_15puzzle_easy_traces.py`
   - Added regression coverage for typed BFS gating, replay-valid local planner plans, and real CLI all-four trace extraction.
+
+Current active Phase 3 generation uses the GBFS replacement documented in `phase3_gbfs_replacement.md`: `gbfs`, `ff`, `iw`, and `graphplan` are the active planner set, and old `bfs` selection is rejected rather than aliased.
 
 ## Commands
 
@@ -50,7 +52,7 @@ Expected result: `3 passed`.
 Real CLI surface:
 
 ```bash
-source ~/cd_vlaplan && source .venv/bin/activate && timeout 180s python scripts/phase3/generate_curriculum_trace_dataset.py --instance-id 15puzzle-dev-easy-0000 --planner bfs --planner ff --planner iw --planner graphplan --output-root tmp/phase3_15puzzle_easy_0000_all_local_verify --quiet
+source ~/cd_vlaplan && source .venv/bin/activate && timeout 180s python scripts/phase3/generate_curriculum_trace_dataset.py --instance-id 15puzzle-dev-easy-0000 --planner gbfs --planner ff --planner iw --planner graphplan --output-root tmp/phase3_15puzzle_easy_0000_all_local_verify --quiet
 ```
 
 Expected signal: exit code `0`, `attempt_status_summary` equals `{"success_full_trace": 4}`, and `extracted_trace_count` equals `4`.
@@ -58,7 +60,7 @@ Expected signal: exit code `0`, `attempt_status_summary` equals `{"success_full_
 Oracle counterexample and first-ten easy subset:
 
 ```bash
-source ~/cd_vlaplan && source .venv/bin/activate && timeout 2400s python scripts/phase3/generate_curriculum_trace_dataset.py --instance-id 15puzzle-dev-easy-0000 --instance-id 15puzzle-dev-easy-0001 --instance-id 15puzzle-dev-easy-0002 --instance-id 15puzzle-dev-easy-0003 --instance-id 15puzzle-dev-easy-0004 --instance-id 15puzzle-dev-easy-0005 --instance-id 15puzzle-dev-easy-0006 --instance-id 15puzzle-dev-easy-0007 --instance-id 15puzzle-dev-easy-0008 --instance-id 15puzzle-dev-easy-0009 --planner bfs --planner ff --planner iw --planner graphplan --output-root tmp/phase3_15puzzle_easy_first_ten_all_local_verify --quiet
+source ~/cd_vlaplan && source .venv/bin/activate && timeout 2400s python scripts/phase3/generate_curriculum_trace_dataset.py --instance-id 15puzzle-dev-easy-0000 --instance-id 15puzzle-dev-easy-0001 --instance-id 15puzzle-dev-easy-0002 --instance-id 15puzzle-dev-easy-0003 --instance-id 15puzzle-dev-easy-0004 --instance-id 15puzzle-dev-easy-0005 --instance-id 15puzzle-dev-easy-0006 --instance-id 15puzzle-dev-easy-0007 --instance-id 15puzzle-dev-easy-0008 --instance-id 15puzzle-dev-easy-0009 --planner gbfs --planner ff --planner iw --planner graphplan --output-root tmp/phase3_15puzzle_easy_first_ten_all_local_verify --quiet
 ```
 
 Expected signal: exit code `0`, `attempt_status_summary` equals `{"success_full_trace": 40}`, and `extracted_trace_count` equals `40`.
