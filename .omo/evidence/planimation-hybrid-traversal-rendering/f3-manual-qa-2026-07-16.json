@@ -1,0 +1,104 @@
+{
+  "gate": "F3 real manual QA",
+  "verdict": "APPROVE",
+  "scope": "fixture capability and fail-closed active-root gating",
+  "commands": [
+    {
+      "command": "source ~/cd_vlaplan && source .venv/bin/activate && python scripts/phase3/verify_planimation_vlm.py --output-root tmp/f1_search_traversal_release_surface --mode release",
+      "exit": 0,
+      "observable": {
+        "pair_records": 1,
+        "state_render_records": 4,
+        "full_records_train": 1,
+        "step_records_train": 1,
+        "search_traversal_records_train": 2
+      }
+    },
+    {
+      "command": "source ~/cd_vlaplan && source .venv/bin/activate && python -m scripts.phase3.traversal_state_projection_cli --fixtures tests/phase3/fixtures/traversal_state_projection_cases.json --domain tests/phase3/fixtures/traversal_state_domain.pddl --problem tests/phase3/fixtures/traversal_state_problem.pddl --report tmp/f3_independent_traversal_projection_20260716.json",
+      "exit": 0,
+      "observable": {
+        "ff_candidates": 2,
+        "gbfs_candidates": 2,
+        "iw_candidates": 2,
+        "graphplan_extracted_plan_replay_candidates": 2,
+        "graphplan_nonvisual_exclusions": [
+          "graphplan_nonvisual_event:proposition_layer",
+          "graphplan_nonvisual_event:action_layer"
+        ]
+      }
+    },
+    {
+      "command": "source ~/cd_vlaplan && source .venv/bin/activate && python scripts/phase3/generate_planimation_vlm.py --dataset-root tmp/f3_fresh_source_20260716 --output-root tmp/f3_independent_bounded_20260716 --domain grid --bucket easy --mode bounded-smoke --render-limit 1 --base-url http://127.0.0.1:9 --timeout-seconds 1 --request-delay-seconds 0",
+      "exit": 0,
+      "observable": {
+        "output_mode": "bounded-smoke",
+        "partial": true,
+        "production_complete": false,
+        "selection_render_limit": 1,
+        "render_status": "failed",
+        "full_records": 0,
+        "step_records": 0,
+        "search_traversal_records": 0
+      }
+    },
+    {
+      "command": "source ~/cd_vlaplan && source .venv/bin/activate && python scripts/phase3/verify_planimation_vlm.py --output-root tmp/f3_independent_bounded_20260716 --mode release",
+      "exit": 1,
+      "observable": "render coverage reconciliation"
+    },
+    {
+      "command": "source ~/cd_vlaplan && source .venv/bin/activate && python scripts/phase3/generate_planimation_vlm.py --output-root tmp/f3_independent_production_reject_20260716 --render-limit 1",
+      "exit": 2,
+      "observable": "--render-limit is only allowed with --mode bounded-smoke"
+    },
+    {
+      "command": "source ~/cd_vlaplan && source .venv/bin/activate && python scripts/phase3/generate_planimation_vlm.py --dataset-root outputs/phase3_curriculum_traces_15puzzle_easy_20260709_002417 --output-root tmp/f3_independent_active_legacy_20260716 --manifest-only --domain 15puzzle --bucket easy --request-delay-seconds 0",
+      "exit": 0,
+      "observable": {
+        "pair_records": 688,
+        "training_eligible": 0,
+        "strict_v1_missing_trace_contract_version_exclusions": 688
+      }
+    },
+    {
+      "command": "source ~/cd_vlaplan && source .venv/bin/activate && python scripts/phase3/rollout_gates.py prepare --output-root tmp/f3_independent_active_legacy_20260716 --stage changed-canary --domain 15puzzle",
+      "exit": 0,
+      "observable": {
+        "transition_count": 0,
+        "preparation_reasons": ["no_strict_v1_eligible_pairs"]
+      }
+    },
+    {
+      "command": "source ~/cd_vlaplan && source .venv/bin/activate && python scripts/phase3/rollout_gates.py assess --output-root tmp/f3_independent_active_legacy_20260716 --stage changed-canary --selection-file tmp/f3_independent_active_legacy_20260716/diagnostics/rollout_selection.json",
+      "exit": 0,
+      "observable": {
+        "approved": false,
+        "reason_includes": "selection_preparation_blocked"
+      }
+    }
+  ],
+  "asset_checks": {
+    "source_root": "tmp/f1_search_traversal_release_surface",
+    "state_render_rows": 4,
+    "all_derived_pddl_exists": true,
+    "all_vfg_exists": true,
+    "all_png_exists": true,
+    "all_png_vfg_hashes_match_receipts": true,
+    "decoded_png_mode": "RGBA",
+    "decoded_png_dimensions": [100, 100],
+    "semantic_reason": "validated_expected_object_coverage",
+    "covered_sprite_count": 1,
+    "sprite_count": 1,
+    "minimum_object_coverage": 0.01
+  },
+  "provenance_checks": {
+    "plan_replay_and_step_share_event": true,
+    "search_traversal_events_are_distinct_from_plan_replay": true,
+    "search_traversal_reuses_content_addressed_cache_when_state_matches": true
+  },
+  "cleanup": {
+    "command": "rm -rf -- tmp/f3_independent_bounded_20260716 tmp/f3_independent_active_legacy_20260716 tmp/f3_independent_production_reject_20260716 tmp/f3_independent_traversal_projection_20260716.json",
+    "observable": "F3_TEMP_CLEANUP=PASS"
+  }
+}

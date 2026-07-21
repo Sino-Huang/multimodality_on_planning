@@ -1,17 +1,22 @@
 from __future__ import annotations
 
 import io
+import importlib
 import json
 import zipfile
 from io import BytesIO
 from pathlib import Path
 
+import pytest
+import requests
 from PIL import Image
 
 from scripts.planimation_phase1 import (
     derive_endpoint_candidates,
     extract_png_archive,
     load_manifest,
+    post_pddl_for_vfg,
+    preflight_host,
     render_vfg_to_local_png_frames,
     select_entries,
     unique_asset_downloads,
@@ -108,6 +113,17 @@ def test_load_manifest_and_unique_downloads(tmp_path: Path) -> None:
     assert downloads[0][0] == "grid/domain_grid.pddl"
 
 
+def test_phase1_facade_reexports_remote_and_frame_boundaries_by_identity() -> None:
+    facade = importlib.import_module("scripts.planimation_phase1")
+    client = importlib.import_module("scripts.planimation_phase1_client")
+    frames = importlib.import_module("scripts.planimation_phase1_frames")
+
+    assert facade.post_pddl_for_vfg is client.post_pddl_for_vfg
+    assert facade.post_vfg_for_visualisation is client.post_vfg_for_visualisation
+    assert facade.preflight_host is client.preflight_host
+    assert facade.render_vfg_to_local_png_frames is frames.render_vfg_to_local_png_frames
+
+
 def test_real_manifest_matches_current_actionable_domain_set() -> None:
     entries = load_manifest(REAL_MANIFEST_PATH)
     domain_ids = {entry.domain_id for entry in entries}
@@ -165,6 +181,55 @@ def test_derive_endpoint_candidates_from_base_url() -> None:
     assert root_url == "https://planimation.planning.domains"
 
 
+def test_derive_endpoint_candidates_preserves_explicit_overrides() -> None:
+    pddl_candidates, vfg_candidates, root_url = derive_endpoint_candidates(
+        base_url=None,
+        pddl_url="https://example.test/api/upload",
+        vfg_url="https://example.test/api/render",
+    )
+
+    assert pddl_candidates == ["https://example.test/api/upload"]
+    assert vfg_candidates == ["https://example.test/api/render"]
+    assert root_url == "https://example.test"
+
+
+def test_preflight_host_reports_named_request_failure(monkeypatch: pytest.MonkeyPatch) -> None:
+    def fail_get(*_args: object, **_kwargs: object) -> None:
+        raise requests.ConnectionError("offline")
+
+    monkeypatch.setattr("scripts.planimation_phase1_client.requests.get", fail_get)
+
+    report = preflight_host("https://example.test", timeout=7)
+
+    assert report["reachable"] is False
+    assert report["root_url"] == "https://example.test"
+    assert "offline" in str(report["error"])
+
+
+def test_post_pddl_propagates_unexpected_adapter_failure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    domain_path = tmp_path / "domain.pddl"
+    problem_path = tmp_path / "problem.pddl"
+    profile_path = tmp_path / "profile.pddl"
+    for path in (domain_path, problem_path, profile_path):
+        path.write_text("(define)", encoding="utf-8")
+
+    def broken_post(*_args: object, **_kwargs: object) -> None:
+        raise AttributeError("request adapter contract violation")
+
+    monkeypatch.setattr("scripts.planimation_phase1_client.requests.post", broken_post)
+
+    with pytest.raises(AttributeError, match="request adapter contract violation"):
+        post_pddl_for_vfg(
+            domain_path,
+            problem_path,
+            profile_path,
+            ["https://example.test/upload"],
+            timeout=3,
+        )
+
+
 def test_select_entries_respects_domain_filter_and_limit(tmp_path: Path) -> None:
     manifest_path = build_manifest(tmp_path)
     entries = load_manifest(manifest_path)
@@ -177,9 +242,11 @@ def test_select_entries_respects_domain_filter_and_limit(tmp_path: Path) -> None
 def test_extract_png_archive_unzips_frames(tmp_path: Path) -> None:
     output_dir = tmp_path / "frames"
     archive_buffer = io.BytesIO()
+    frame_buffer = io.BytesIO()
+    Image.new("RGBA", (1, 1), (255, 255, 255, 255)).save(frame_buffer, format="PNG")
     with zipfile.ZipFile(archive_buffer, "w") as archive:
-        archive.writestr("frame_000.png", b"fakepng")
-        archive.writestr("frame_001.png", b"fakepng")
+        archive.writestr("frame_000.png", frame_buffer.getvalue())
+        archive.writestr("frame_001.png", frame_buffer.getvalue())
 
     png_count = extract_png_archive(archive_buffer.getvalue(), output_dir)
     assert png_count == 2
@@ -219,4 +286,9 @@ def test_render_vfg_to_local_png_frames_writes_pngs(tmp_path: Path) -> None:
     )
 
     assert frame_count == 1
-    assert (tmp_path / "rendered" / "frame_000.png").exists()
+    frame_path = tmp_path / "rendered" / "frame_000.png"
+    assert frame_path.exists()
+    with Image.open(frame_path) as frame:
+        frame.verify()
+    with Image.open(frame_path) as frame:
+        assert frame.size == (128, 128)

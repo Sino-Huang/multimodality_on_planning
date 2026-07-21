@@ -1,0 +1,19 @@
+{
+  "artifact_kind": "phase3_f1_search_traversal_remediation_v1",
+  "date": "2026-07-16",
+  "scope": "Temporary strict-v1 fixtures only; no active corpus source root, planner behavior, or promotion status changed.",
+  "changes": [
+    "FF, GBFS, and IW validated concrete candidates render through the existing PDDL, cache, VFG, PNG, and semantic-image gates.",
+    "search_traversal_<split>.jsonl is a separately persisted, closed-schema record family with frozen pair, event, state, trace, and render provenance.",
+    "Graphplan raw layers remain nonvisual; they do not produce search_traversal records.",
+    "FF successor reconstruction is forbidden when recorded successor atoms are absent.",
+    "Planimation output roots equal to or nested under a selected source root are rejected before writing."
+  ],
+  "verification": {
+    "pytest": "66 passed in 6.29s: pairing, search-traversal, state-projection, release-verifier, and rollout-gate fixtures.",
+    "basedpyright": "0 errors, 0 warnings, 0 notes.",
+    "compileall": "exit 0.",
+    "release_cli": "fixture release succeeded with one pair, four state-render rows, one train full record, one train step record, and two train search-traversal records."
+  },
+  "active_corpus_status": "Blocked: active source rows lack phase3_traversal_trace_v1 and were not modified or promoted."
+}

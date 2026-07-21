@@ -5,6 +5,7 @@ export HF_HOME=$PWD/.cache/hf
 export TRITON_CACHE_DIR=$PWD/.cache/triton
 export PIP_CACHE_DIR=$PWD/.cache/pip
 export UV_CACHE_DIR=$PWD/.cache/uv
+export XDG_DATA_HOME=$PWD/.cache/xdg
 export CONDA_PKGS_DIRS=$PWD/.cache/conda
 # as the gpu is 5090, set TORCH_CUDA_ARCH_LIST 
 export TORCH_CUDA_ARCH_LIST="8.6 9.0 12.0"

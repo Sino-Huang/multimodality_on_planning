@@ -3,8 +3,17 @@ from __future__ import annotations
 import hashlib
 import json
 import shutil
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Iterable
+from typing import TypeAlias
+
+from .traversal_state_types import JSONValue
+
+JSONRecord: TypeAlias = dict[str, JSONValue]
+
+
+class JSONInputError(RuntimeError):
+    """Raised when a JSON file cannot provide the required object contract."""
 
 
 def repo_root() -> Path:
@@ -39,31 +48,53 @@ def _assert_safe_output_root(output_root: Path, *, input_root: Path | None) -> N
         raise RuntimeError(f"unsafe output root: {output_root}")
 
 
-def read_jsonl(path: Path) -> list[dict[str, Any]]:
-    rows: list[dict[str, Any]] = []
+def read_jsonl(path: Path) -> list[JSONRecord]:
+    """Read JSONL rows, requiring every nonblank row to decode to an object."""
+    rows: list[JSONRecord] = []
     if not path.exists():
         return rows
     with path.open("r", encoding="utf-8") as handle:
-        for line in handle:
+        for line_number, line in enumerate(handle, start=1):
             text = line.strip()
             if text:
-                rows.append(json.loads(text))
+                rows.append(_decode_json_object(text, path, line_number))
     return rows
 
 
-def write_jsonl(path: Path, rows: Iterable[dict[str, Any]]) -> None:
+def read_json_object(path: Path) -> JSONRecord:
+    """Read a JSON document, requiring its root value to be an object."""
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError as error:
+        raise JSONInputError(f"unable to read JSON object: {path}") from error
+    return _decode_json_object(text, path, None)
+
+
+def _decode_json_object(text: str, path: Path, line_number: int | None) -> JSONRecord:
+    try:
+        decoded: JSONValue = json.loads(text)
+    except json.JSONDecodeError as error:
+        location = f"{path}:{line_number}" if line_number is not None else str(path)
+        raise JSONInputError(f"invalid JSON object: {location}") from error
+    if not isinstance(decoded, dict):
+        location = f"{path}:{line_number}" if line_number is not None else str(path)
+        raise JSONInputError(f"JSONL row must be an object: {location}")
+    return decoded
+
+
+def write_jsonl(path: Path, rows: Iterable[JSONRecord]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as handle:
         for row in rows:
             handle.write(json.dumps(row, sort_keys=True, ensure_ascii=True) + "\n")
 
 
-def write_json(path: Path, payload: dict[str, Any]) -> None:
+def write_json(path: Path, payload: JSONRecord) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=True) + "\n", encoding="utf-8")
 
 
-def stable_hash(value: Any) -> str:
+def stable_hash(value: JSONValue) -> str:
     text = json.dumps(value, sort_keys=True, ensure_ascii=True, separators=(",", ":"))
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
@@ -85,6 +116,12 @@ def relpath(path: str | Path, *, root: Path | None = None) -> str:
         return candidate.resolve().relative_to(root).as_posix()
     except ValueError:
         return candidate.name
+
+
+def is_relative_artifact_path(path_text: str) -> bool:
+    """Return whether an artifact reference is a portable repository-relative path."""
+    path = Path(path_text)
+    return bool(path_text) and not path.is_absolute() and ".." not in path.parts
 
 
 def resolve_repo_path(path_text: str | None, *, root: Path | None = None) -> Path | None:

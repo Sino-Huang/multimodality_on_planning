@@ -1,0 +1,42 @@
+{
+  "date": "2026-07-15",
+  "task": "planimation-hybrid-traversal-rendering Todo 4",
+  "fixture_cli_report": {
+    "command": "source ~/cd_vlaplan && source .venv/bin/activate && python -m scripts.phase3.traversal_state_projection_cli --fixtures tests/phase3/fixtures/traversal_state_projection_cases.json --domain tests/phase3/fixtures/traversal_state_domain.pddl --problem tests/phase3/fixtures/traversal_state_problem.pddl --report tmp/phase3_task4_traversal_projection_report.json",
+    "ff_nonzero_plan": {"candidate_count": 2, "exclusions": []},
+    "gbfs_nonzero_plan": {"candidate_count": 2, "exclusions": []},
+    "iw_nonzero_plan": {"candidate_count": 2, "exclusions": []}
+  },
+  "focused_tests": {
+    "command": "source ~/cd_vlaplan && source .venv/bin/activate && pytest tests/phase3/test_traversal_state_projection.py tests/phase3/test_traversal_trace_contracts.py tests/phase3/test_planimation_pairing.py -q",
+    "result": "31 passed in 0.33s"
+  },
+  "typing": {
+    "command": "source ~/cd_vlaplan && source .venv/bin/activate && basedpyright scripts/phase3/traversal_states.py scripts/phase3/traversal_state_projection_cli.py tests/phase3/test_traversal_state_projection.py",
+    "result": "0 errors, 0 warnings, 0 notes"
+  },
+  "compile": {
+    "command": "source ~/cd_vlaplan && source .venv/bin/activate && python -m compileall -q scripts/phase3/traversal_states.py scripts/phase3/traversal_state_projection_cli.py tests/phase3/test_traversal_state_projection.py",
+    "result": "exit 0"
+  },
+  "frozen_root_smoke": {
+    "root": "outputs/phase3_curriculum_traces_15puzzle_easy_20260709_002417",
+    "result": "One nonzero-plan FF, GBFS, and IW row each were excluded with missing_required_field: trace_contract_version; no legacy compatibility was introduced."
+  },
+  "semantic_label_correction": {
+    "date": "2026-07-15",
+    "red_test": {
+      "command": "source ~/cd_vlaplan && source .venv/bin/activate && pytest tests/phase3/test_traversal_state_projection.py::test_preserves_explicit_successor_semantics_when_assets_repeat -q",
+      "result": "failed because generation, revisit, and backtrack successors inherited expansion"
+    },
+    "focused_tests": {
+      "command": "source ~/cd_vlaplan && source .venv/bin/activate && pytest tests/phase3/test_traversal_state_projection.py tests/phase3/test_traversal_trace_contracts.py tests/phase3/test_planimation_pairing.py tests/phase3/test_phase3_gbfs.py tests/phase3/test_phase3_local_trace_safety.py tests/phase3/test_phase3_pipeline_regressions.py -q",
+      "result": "58 passed in 1.10s"
+    },
+    "cli_report": {
+      "command": "source ~/cd_vlaplan && source .venv/bin/activate && python -m scripts.phase3.traversal_state_projection_cli --fixtures tests/phase3/fixtures/traversal_state_projection_cases.json --domain tests/phase3/fixtures/traversal_state_domain.pddl --problem tests/phase3/fixtures/traversal_state_problem.pddl --report tmp/phase3_task4_traversal_projection_report.json",
+      "gbfs_semantic_repeat": ["expansion", "generation", "revisit", "backtrack"]
+    },
+    "typing_and_compile": "basedpyright reported 0 errors, 0 warnings, 0 notes; compileall exited 0"
+  }
+}

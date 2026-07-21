@@ -100,6 +100,7 @@ def _planning_graph_trace(request: LocalPlannerRequest, plan_result: LocalPlanne
             break
         propositions = next_propositions
     trace: dict[str, JSONValue] = {
+        "trace_contract_version": "phase3_traversal_trace_v1",
         "algorithm": "graphplan",
         "proposition_layers": proposition_layers,
         "action_layers": action_layers,

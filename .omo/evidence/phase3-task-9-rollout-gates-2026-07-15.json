@@ -1,0 +1,37 @@
+{
+  "artifact_kind": "phase3_task9_rollout_evidence_v1",
+  "date": "2026-07-15",
+  "fixture": {
+    "output_root": "tmp/phase3_release_fixture_task9_fixture_cli_20260715",
+    "promotion": {
+      "approved": true,
+      "counts": {"pair_records": 1, "state_render_records": 2},
+      "reasons": [],
+      "stage": "fixture"
+    },
+    "release_verifier": {
+      "exit_status": 0,
+      "full_records": {"dev": 0, "test": 0, "train": 1},
+      "pair_records": 1,
+      "state_render_records": 2,
+      "step_records": {"dev": 0, "test": 0, "train": 1}
+    },
+    "semantic_image_metrics": "retained in diagnostics/state_render_manifest.jsonl under the temporary fixture root"
+  },
+  "source_root_changed_canary": {
+    "output_root": "tmp/phase3_task9_active_probe_20260715",
+    "promotion": {
+      "approved": false,
+      "counts": {},
+      "reasons": ["frozen_selection_missing_pairs", "missing_prior_promotion_receipt", "selection_preparation_blocked"],
+      "stage": "changed-canary"
+    },
+    "source_probe": {
+      "pair_records": 688,
+      "strict_v1_eligible_pairs": 0,
+      "trace_contract_exclusion": "missing_required_field: trace_contract_version"
+    },
+    "release_verifier": "not run: no selected strict-v1 pairs exist, so rendering and release promotion are infeasible"
+  },
+  "promotion": "frozen full selection is blocked"
+}

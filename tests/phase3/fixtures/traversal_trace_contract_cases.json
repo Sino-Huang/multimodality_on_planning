@@ -1,0 +1,86 @@
+[
+  {
+    "name": "ff_valid",
+    "valid": true,
+    "source_row": {
+      "example_id": "ff-example",
+      "planner": "ff",
+      "supervised_target": {
+        "planner_trace": {
+          "trace_contract_version": "phase3_traversal_trace_v1",
+          "algorithm": "fast_forward",
+          "goal_atoms": ["(done)"],
+          "planner_source": "local_delete_relaxed_hmax_supporter_closure",
+          "steps": [{"event_kind": "expansion", "step_index": 0, "state_atoms": ["(start)"], "current_heuristic": {"heuristic_value": 1}, "relaxation_metadata": {"ignored_delete_effects": true}, "selected_action": "(make-done)", "selected_successor": {"action": "(make-done)", "event_kind": "generation", "heuristic_value": 0}, "successor_heuristics": [{"action": "(make-done)", "event_kind": "generation", "heuristic_value": 0}], "tie_break_rule": "min_relaxed_plan_length_then_action_lexicographic"}]
+        }
+      }
+    }
+  },
+  {
+    "name": "ff_malformed",
+    "valid": false,
+    "reason": "missing_required_field: selected_action",
+    "source_row": {
+      "example_id": "ff-invalid",
+      "planner": "ff",
+      "supervised_target": {"planner_trace": {"trace_contract_version": "phase3_traversal_trace_v1", "algorithm": "fast_forward", "goal_atoms": [], "planner_source": "local", "steps": [{"step_index": 0, "state_atoms": ["(start)"], "current_heuristic": {}, "relaxation_metadata": {}, "selected_successor": {}, "successor_heuristics": [], "tie_break_rule": "rule"}]}}
+    }
+  },
+  {
+    "name": "gbfs_valid",
+    "valid": true,
+    "source_row": {
+      "example_id": "gbfs-example",
+      "planner": "gbfs",
+      "supervised_target": {"planner_trace": {"trace_contract_version": "phase3_traversal_trace_v1", "algorithm": "greedy_best_first", "heuristic_source": "unsatisfied_goal_count", "expansion_count": 1, "visited_count": 2, "frontier_events": [{"event_kind": "expansion", "selected_state_atoms": ["(start)"], "current_heuristic": 1, "successor_heuristics": [{"action": "(make-done)", "event_kind": "generation", "heuristic_value": 0, "is_goal": true, "enqueued": false}], "selected_goal_successor": {"action": "(make-done)", "event_kind": "generation", "heuristic_value": 0, "is_goal": true, "enqueued": false}, "frontier_size_after": 0, "visited_count_after": 2, "tie_break_rule": "min_unsatisfied_goals_then_plan_length_then_generation_order"}]}}
+    }
+  },
+  {
+    "name": "gbfs_malformed",
+    "valid": false,
+    "reason": "missing_required_field: heuristic_source",
+    "source_row": {
+      "example_id": "gbfs-invalid",
+      "planner": "gbfs",
+      "supervised_target": {"planner_trace": {"trace_contract_version": "phase3_traversal_trace_v1", "algorithm": "greedy_best_first", "expansion_count": 1, "visited_count": 2, "frontier_events": []}}
+    }
+  },
+  {
+    "name": "iw_valid",
+    "valid": true,
+    "source_row": {
+      "example_id": "iw-example",
+      "planner": "iw",
+      "supervised_target": {"planner_trace": {"trace_contract_version": "phase3_traversal_trace_v1", "algorithm": "iterated_width", "width": 1, "events": [{"decision": "expand", "event_kind": "expansion", "state_atoms": ["(start)"], "novel_item": ["(start)"], "novelty_table_before": [], "novelty_table_after": ["(start)"], "successors": [{"action": "(make-done)", "event_kind": "generation", "is_goal": true, "is_novel": true, "enqueued": true}], "frontier_size_after": 1}]}}
+    }
+  },
+  {
+    "name": "iw_malformed",
+    "valid": false,
+    "reason": "missing_required_field: decision",
+    "source_row": {
+      "example_id": "iw-invalid",
+      "planner": "iw",
+      "supervised_target": {"planner_trace": {"trace_contract_version": "phase3_traversal_trace_v1", "algorithm": "iterated_width", "width": 1, "events": [{"state_atoms": ["(start)"], "frontier_size_after": 0}]}}
+    }
+  },
+  {
+    "name": "graphplan_valid",
+    "valid": true,
+    "source_row": {
+      "example_id": "graphplan-example",
+      "planner": "graphplan",
+      "supervised_target": {"planner_trace": {"trace_contract_version": "phase3_traversal_trace_v1", "algorithm": "graphplan", "proposition_layers": [{"layer_index": 0, "propositions": ["(start)"], "goal_present": false}], "action_layers": [{"layer_index": 0, "actions": ["(make-done)"], "mutex_pairs": [], "next_layer_index": 1}], "mutex_pairs": [], "extraction": {"approximation": "deterministic_phase3_action_mutex_graphplan", "goal_present_without_mutex": true, "mutex_scope": "action_level_only", "no_goods": [], "proposition_mutex_computed": false, "selected_goal_layer": 1, "selected_plan": ["(make-done)"], "source": "local_graphplan_serial_extraction"}}}
+    }
+  },
+  {
+    "name": "graphplan_malformed",
+    "valid": false,
+    "reason": "missing_required_field: layer_index",
+    "source_row": {
+      "example_id": "graphplan-invalid",
+      "planner": "graphplan",
+      "supervised_target": {"planner_trace": {"trace_contract_version": "phase3_traversal_trace_v1", "algorithm": "graphplan", "proposition_layers": [{"propositions": [], "goal_present": false}], "action_layers": [], "mutex_pairs": [], "extraction": {}}}
+    }
+  }
+]

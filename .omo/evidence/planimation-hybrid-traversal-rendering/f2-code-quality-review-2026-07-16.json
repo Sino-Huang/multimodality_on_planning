@@ -1,0 +1,51 @@
+{
+  "review": "F2 code quality",
+  "verdict": "REJECT",
+  "manual_artifact": ".omo/evidence/planimation-hybrid-traversal-rendering/f2-code-quality-review-2026-07-16.md",
+  "blocking_findings": [
+    {
+      "file": "scripts/phase3/planimation_pairing_implementation.py",
+      "lines": "445-452",
+      "finding": "Pair manifest integer validation coerces bool via int(), and release accepts bool values for plan_length and trace_size_chars."
+    },
+    {
+      "file": "scripts/phase3/planimation_pairing_implementation.py",
+      "lines": "455-466",
+      "finding": "State render validation does not check step_index primitive type, and release accepts a bool step_index."
+    },
+    {
+      "file": "scripts/phase3/planimation_pairing_implementation.py",
+      "lines": "14,56,69-115,419,445-469,817-922",
+      "finding": "Pervasive Any and dict[str, Any] defeat strict type contracts at active Phase 3 boundaries."
+    }
+  ],
+  "commands": {
+    "focused_pytest": "113 passed in 7.57s",
+    "basedpyright": "0 errors, 0 warnings, 0 notes",
+    "compileall": "exit 0",
+    "fixture_release_cli": "exit 0; 1 pair, 4 renders, 1 full, 1 step, 2 traversal records",
+    "trace_fixture_cli": "4 projected, 4 controlled exclusions",
+    "lsp": "clean for reviewed Phase 3/rendering source and focused tests"
+  },
+  "adversarial_probes": {
+    "archive_path_escape": "rejected",
+    "archive_symlink": "rejected",
+    "archive_non_png": "rejected",
+    "archive_member_limit": "rejected",
+    "archive_compression_ratio": "rejected",
+    "legacy_planner_alias": "rejected by strict tests",
+    "pair_boolean_integers": "UNEXPECTED_ACCEPT",
+    "state_render_boolean_integer": "UNEXPECTED_ACCEPT"
+  },
+  "DoneClaim": {
+    "review_completed": true,
+    "production_or_test_files_modified": false,
+    "verdict": "REJECT"
+  },
+  "AdversarialVerify": {
+    "archive_boundary": "PASS",
+    "facade_import_compatibility": "PASS",
+    "strict_pair_primitives": "FAIL",
+    "strict_state_render_primitives": "FAIL"
+  }
+}

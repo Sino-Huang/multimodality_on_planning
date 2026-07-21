@@ -1,0 +1,19 @@
+{
+  "artifact_kind": "phase3_f2_remediation_evidence_v1",
+  "date": "2026-07-16",
+  "scope": "Regression fixtures and temporary local rejection roots only; no active source root, planner behavior, or canary evidence was changed or claimed.",
+  "findings": {
+    "textured_blank": "A single corner background sample allowed gradient, grid, and deterministic-noise images to count as sprite coverage.",
+    "promotion_provenance": "Promotion compared pair IDs only and could raise while hashing absent release artifacts, leaving no controlled receipt."
+  },
+  "corrections": {
+    "render_semantics": "Sprite coverage now derives contrast from its surrounding local background and rejects texture-only coverage.",
+    "rollout_gates": "Selections freeze complete pairing rows; assessment validates manifest bytes and full pair identity, receipt hashes, prior receipt integrity, and prior artifact hashes."
+  },
+  "verification": {
+    "pytest": "15 passed in 3.01s: tests/phase3/test_render_semantics.py tests/phase3/test_rollout_gates.py tests/phase3/test_verify_planimation_vlm.py",
+    "basedpyright": "0 errors, 0 warnings, 0 notes",
+    "compileall": "exit 0",
+    "manual_missing_artifact_cli": "assess exited rejected and wrote rollout_promotion_receipt.json with empty missing-artifact hashes and stable reasons"
+  }
+}

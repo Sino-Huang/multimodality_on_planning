@@ -42,13 +42,14 @@ def run_gbfs(task: PDDLTask, grounded: list[GroundAction], *, limits: dict[str, 
             next_plan = (*plan, action.canonical)
             best_known_depth = best_depth_by_state.get(frozen_next)
             improves_depth = best_known_depth is None or len(next_plan) < best_known_depth
-            successor = {"action": action.canonical, "heuristic_value": successor_heuristic, "is_goal": successor_heuristic == 0, "enqueued": False}
+            successor = {"action": action.canonical, "heuristic_value": successor_heuristic, "is_goal": successor_heuristic == 0, "enqueued": False, "event_kind": "generation"}
             if len(next_plan) > limits["max_plan_length"]:
                 hit_resource_limit = True
                 successor["resource_limited"] = True
                 successors.append(successor)
                 continue
             if not improves_depth:
+                successor["event_kind"] = "revisit"
                 successors.append(successor)
                 continue
             if successor_heuristic == 0:
@@ -73,6 +74,7 @@ def run_gbfs(task: PDDLTask, grounded: list[GroundAction], *, limits: dict[str, 
 
 def gbfs_trace(events: list[dict[str, Any]], expansions: int, visited_count: int) -> dict[str, Any]:
     return {
+        "trace_contract_version": "phase3_traversal_trace_v1",
         "algorithm": "greedy_best_first",
         "heuristic_source": "unsatisfied_goal_count",
         "expansion_count": expansions,
@@ -88,6 +90,7 @@ def gbfs_estimate_exceeds_resource_gate(task: PDDLTask, limits: dict[str, int]) 
 
 def _gbfs_event(state: frozenset[tuple[str, ...]], heuristic_value: int, frontier: list[tuple[int, int, int, frozenset[tuple[str, ...]], tuple[str, ...]]], visited_count: int, successors: list[dict[str, Any]], *, selected_goal_successor: dict[str, Any] | None = None) -> dict[str, Any]:
     event = {
+        "event_kind": "expansion",
         "selected_state_atoms": sorted(canonical_atom(atom) for atom in state),
         "current_heuristic": {"heuristic_value": heuristic_value, "unsatisfied_goal_count": heuristic_value},
         "frontier_size_after": len(frontier),

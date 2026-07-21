@@ -1,0 +1,9 @@
+{
+  "artifact_kind": "phase3_f2_controlled_cardinality_failure_v1",
+  "result": "pass",
+  "contract": "render_cardinality_invalid is a compact failed state-render variant with no fabricated transition/cache identity",
+  "verification": {
+    "command": "source ~/cd_vlaplan && source .venv/bin/activate && pytest tests/phase3/test_planimation_pairing.py::test_invalid_plan_cardinality_emits_a_controlled_failed_state_row tests/phase3/test_verify_planimation_vlm.py::test_release_handles_a_valid_controlled_failed_state_row tests/phase3/test_verify_planimation_vlm.py::test_release_rejects_mixed_state_render_variants -q",
+    "result": "3 passed in 0.84s"
+  }
+}

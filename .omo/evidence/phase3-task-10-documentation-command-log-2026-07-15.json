@@ -1,0 +1,53 @@
+{
+  "artifact_kind": "phase3_task10_documentation_command_log_v1",
+  "date": "2026-07-15",
+  "scope": "Temporary fixture and pytest-managed artifacts only. No source root or outputs/ corpus was mutated.",
+  "documented_commands": [
+    {
+      "command": "source ~/cd_vlaplan && source .venv/bin/activate && python -m scripts.phase3.trace_contracts --fixtures tests/phase3/fixtures/traversal_trace_contract_cases.json --report tmp/phase3_task10_trace_contract_report.json",
+      "exit_code": 0,
+      "result": "Valid FF, GBFS, and IW fixtures projected one event each; valid Graphplan projected three semantic events; four malformed fixtures had stable missing-field exclusions.",
+      "artifacts": ["tmp/phase3_task10_trace_contract_report.json"]
+    },
+    {
+      "command": "source ~/cd_vlaplan && source .venv/bin/activate && python -m scripts.phase3.traversal_state_projection_cli --fixtures tests/phase3/fixtures/traversal_state_projection_cases.json --domain tests/phase3/fixtures/traversal_state_domain.pddl --problem tests/phase3/fixtures/traversal_state_problem.pddl --report tmp/phase3_task10_traversal_projection_report.json",
+      "exit_code": 0,
+      "result": "FF, GBFS, and IW nonzero fixtures emitted two candidates each; Graphplan emitted two extracted-plan replay candidates and excluded proposition/action layers as nonvisual.",
+      "artifacts": ["tmp/phase3_task10_traversal_projection_report.json"]
+    },
+    {
+      "command": "source ~/cd_vlaplan && source .venv/bin/activate && pytest tests/phase3/test_planimation_pairing.py::test_generated_hybrid_schemas_validate_emitted_records_and_reject_extra_root_field tests/phase3/test_verify_planimation_vlm.py::test_release_mode_accepts_complete_output_and_rejects_required_failures -q",
+      "exit_code": 0,
+      "result": "2 passed in 1.90s",
+      "artifacts": []
+    },
+    {
+      "command": "source ~/cd_vlaplan && source .venv/bin/activate && python scripts/phase3/verify_planimation_vlm.py --output-root tmp/phase3_release_fixture_task9_fixture_cli_20260715 --mode release",
+      "exit_code": 0,
+      "result": {
+        "mode": "release",
+        "pair_records": 1,
+        "state_render_records": 2,
+        "full_records": {"train": 1, "dev": 0, "test": 0},
+        "step_records": {"train": 1, "dev": 0, "test": 0}
+      },
+      "artifacts": [
+        "tmp/phase3_release_fixture_task9_fixture_cli_20260715/diagnostics/hybrid_output_manifest.json",
+        "tmp/phase3_release_fixture_task9_fixture_cli_20260715/diagnostics/state_render_manifest.jsonl"
+      ]
+    },
+    {
+      "command": "source ~/cd_vlaplan && source .venv/bin/activate && python scripts/phase3/rollout_gates.py assess --output-root tmp/phase3_release_fixture_task9_fixture_cli_20260715 --stage fixture --selection-file tmp/phase3_release_fixture_task9_fixture_cli_20260715/diagnostics/rollout_selection.json",
+      "exit_code": 0,
+      "result": {"approved": true, "stage": "fixture", "pair_records": 1, "state_render_records": 2, "reasons": []},
+      "artifacts": ["tmp/phase3_release_fixture_task9_fixture_cli_20260715/diagnostics/rollout_promotion_receipt.json"]
+    }
+  ],
+  "release_status": {
+    "fixture_release_passed": true,
+    "active_source_promotion_complete": false,
+    "frozen_full_rendering_complete": false,
+    "active_source_blocker": "688 probed legacy rows, zero strict-v1 eligible rows, all excluded for missing_required_field: trace_contract_version",
+    "broad_generator_timeout": "Independent broad Phase 3 suite exited 124 after 600.01 seconds; isolated generator node exited 124 after 180.00 seconds."
+  }
+}

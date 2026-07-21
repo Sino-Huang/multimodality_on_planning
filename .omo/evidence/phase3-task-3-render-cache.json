@@ -1,0 +1,26 @@
+{
+  "task": "phase3-todo-3-render-cache-hardening",
+  "date": "2026-07-15",
+  "focused_fixture": {
+    "command": "source ~/cd_vlaplan && source .venv/bin/activate && pytest tests/phase3/test_planimation_pairing.py tests/data_collect/test_rendering.py tests/test_planimation_phase1.py -q",
+    "result": "34 passed",
+    "cache_fields": [
+      "cache_key",
+      "profile_path",
+      "profile_sha256",
+      "domain_sha256",
+      "problem_sha256",
+      "state_sha256",
+      "renderer_config_sha256",
+      "derived_problem_sha256",
+      "vfg_sha256",
+      "png_sha256",
+      "png_dimensions",
+      "semantic_image_qa"
+    ],
+    "validated_cache_hit": true,
+    "profile_relocation_forces_rerender": true,
+    "corrupt_png_forces_rerender": true,
+    "archive_path_escape_rejected": true
+  }
+}

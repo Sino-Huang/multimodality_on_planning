@@ -1,0 +1,29 @@
+{
+  "date": "2026-07-15",
+  "task": "Todo 6: validated replay/traversal rendering",
+  "fixture_hashes": {
+    "tests/phase3/fixtures/render_semantic_cases.json": "14653de7517d0df172cc8732fcd74af41a6d304cc1f235b2934bb55f3134cb4b"
+  },
+  "implementation_hashes": {
+    "scripts/phase3/render_semantics.py": "9327659590f25783ee64faea6bf957d97c393e6a0bfe177db7a457378e71cbc1",
+    "scripts/phase3/planimation_pairing.py": "c45eb06ea02cb540ac47746bdd397e06b908adcee000627ba60d0b38602df4ed"
+  },
+  "semantic_canary": {
+    "status": "success",
+    "reason": "validated_expected_object_coverage",
+    "png_dimensions": [100, 100],
+    "sprite_count": 1,
+    "covered_sprite_count": 1,
+    "minimum_object_coverage": 0.01
+  },
+  "fixture_local_render_smoke": {
+    "root": "tmp/phase3_task6_render_smoke",
+    "frame_count": 1,
+    "trace_sha256": "0d5b270809106da8427a4952bdc75dee0ed5c12a24bf85d06cdf28c418551310",
+    "png_sha256": "402581e7728db7cdcadc40e689ae4237561a40ede41aeec59d759cf6c2c2085e"
+  },
+  "focused_test_result": "48 passed in 0.51s",
+  "typecheck_result": "0 errors, 0 warnings, 0 notes",
+  "compile_result": "exit 0",
+  "cli_smoke": "python scripts/phase3/generate_planimation_vlm.py --help exited 0"
+}

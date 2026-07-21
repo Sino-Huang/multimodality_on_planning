@@ -1,0 +1,38 @@
+{
+  "valid": {
+    "visualStages": [
+      {
+        "visualSprites": [
+          {
+            "name": "token",
+            "minX": 0.2,
+            "maxX": 0.6,
+            "minY": 0.2,
+            "maxY": 0.6
+          }
+        ]
+      }
+    ]
+  },
+  "malformed": {"visualStages": [{"visualSprites": "not-a-list"}]},
+  "non_numeric": {
+    "visualStages": [
+      {"visualSprites": [{"name": "token", "minX": false, "maxX": 0.6, "minY": 0.2, "maxY": 0.6}]}
+    ]
+  },
+  "out_of_canvas": {
+    "visualStages": [
+      {"visualSprites": [{"name": "token", "minX": -0.1, "maxX": 0.6, "minY": 0.2, "maxY": 0.6}]}
+    ]
+  },
+  "coincident": {
+    "visualStages": [
+      {
+        "visualSprites": [
+          {"name": "token-a", "minX": 0.2, "maxX": 0.6, "minY": 0.2, "maxY": 0.6},
+          {"name": "token-b", "minX": 0.2, "maxX": 0.6, "minY": 0.2, "maxY": 0.6}
+        ]
+      }
+    ]
+  }
+}

@@ -112,6 +112,7 @@ def _ff_trace_events(request: LocalPlannerRequest, start: frozenset[Atom], plan:
         selected_value, _action, next_state, selected_heuristic = selected
         events.append(
             {
+                "event_kind": "expansion",
                 "step_index": step_index,
                 "state_atoms": _atoms(state),
                 "current_heuristic": _heuristic_payload(current_heuristic),
@@ -145,6 +146,7 @@ def _ranked_ff_successors(request: LocalPlannerRequest, state: frozenset[Atom]) 
 
 def _ff_trace(task: PDDLTask, events: list[JSONValue]) -> dict[str, JSONValue]:
     return {
+        "trace_contract_version": "phase3_traversal_trace_v1",
         "algorithm": "fast_forward",
         "goal_atoms": _atoms(task.goal),
         "planner_source": "local_delete_relaxed_hmax_supporter_closure",
@@ -213,6 +215,7 @@ def _relaxed_plan_payload(heuristic: dict[str, JSONValue]) -> dict[str, JSONValu
 def _successor_payload(action: str, heuristic_value: JSONValue, state: frozenset[Atom], is_goal: bool, heuristic: dict[str, JSONValue]) -> dict[str, JSONValue]:
     return {
         "action": action,
+        "event_kind": "generation",
         "heuristic_value": heuristic_value,
         "is_goal": is_goal,
         "relaxed_plan": _relaxed_plan_payload(heuristic),

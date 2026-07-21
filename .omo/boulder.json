@@ -1,157 +1,17 @@
 {
-  "active_plan": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/.sisyphus/plans/finish-phase-1-3-gaps.md",
-  "started_at": "2026-06-24T05:41:32.017Z",
-  "session_ids": [
-    "ses_10b0a6d6affeGRYez4LnJ5zA6s",
-    "ses_107d6c07effefiYR9ycgXWlDaB",
-    "ses_107d6bde1ffeVfqOPGhuOBiiwJ",
-    "ses_107d6bb71ffeDgZZxkDSAcUhSS",
-    "ses_107d6ba81ffe1xg1gQiHD1w3DF"
-  ],
-  "plan_name": "finish-phase-1-3-gaps",
-  "agent": "atlas",
-  "session_origins": {
-    "ses_10b0a6d6affeGRYez4LnJ5zA6s": "direct",
-    "ses_107d6c07effefiYR9ycgXWlDaB": "appended",
-    "ses_107d6bde1ffeVfqOPGhuOBiiwJ": "appended",
-    "ses_107d6bb71ffeDgZZxkDSAcUhSS": "appended",
-    "ses_107d6ba81ffe1xg1gQiHD1w3DF": "appended"
-  },
-  "task_sessions": {
-    "todo:1": {
-      "task_key": "todo:1",
-      "task_label": "1",
-      "task_title": "Phase 1 Scope Lock and Decision Artifacts",
-      "session_id": "ses_107d0ce5cffebtMx9FcgXaSS2V",
-      "agent": "Sisyphus-Junior",
-      "category": "writing",
-      "updated_at": "2026-06-24T05:59:53.716Z"
-    },
-    "todo:2": {
-      "task_key": "todo:2",
-      "task_label": "2",
-      "task_title": "Canonical Blocksworld Symbolic Core and Non-Trivial Instance Gate",
-      "session_id": "ses_107c5690affekMdw2b2CqLtoqZ",
-      "agent": "Sisyphus-Junior",
-      "category": "deep",
-      "updated_at": "2026-06-24T06:18:44.437Z"
-    },
-    "todo:3": {
-      "task_key": "todo:3",
-      "task_label": "3",
-      "task_title": "Phase 1 Zero-Shot Diagnostic Packaging and Offline Scorer",
-      "session_id": "ses_107a99139ffemxw65njJW0BX3n",
-      "agent": "Sisyphus-Junior",
-      "category": "deep",
-      "updated_at": "2026-06-24T06:59:53.931Z"
-    },
-    "todo:4": {
-      "task_key": "todo:4",
-      "task_label": "4",
-      "task_title": "Minimal In-Process Benchmark Loop and Oracle Baseline",
-      "session_id": "ses_1078d5da6ffeRssHIgUy32DZwt",
-      "agent": "Sisyphus-Junior",
-      "category": "unspecified-high",
-      "updated_at": "2026-06-24T07:22:33.376Z"
-    },
-    "todo:5": {
-      "task_key": "todo:5",
-      "task_label": "5",
-      "task_title": "Unified Expert Trajectory Schema and Validator",
-      "session_id": "ses_107794a48ffex9iDPnpwDV5Cyi",
-      "agent": "Sisyphus-Junior",
-      "category": "deep",
-      "updated_at": "2026-06-24T07:56:32.577Z"
-    },
-    "todo:6": {
-      "task_key": "todo:6",
-      "task_label": "6",
-      "task_title": "BFS and Iterated Width Expert Generators",
-      "session_id": "ses_107555907ffeHGVMwgQqeFvTRa",
-      "agent": "Sisyphus-Junior",
-      "category": "deep",
-      "updated_at": "2026-06-24T08:23:11.083Z"
-    },
-    "todo:7": {
-      "task_key": "todo:7",
-      "task_label": "7",
-      "task_title": "Fast Forward-Style Expert Generator",
-      "session_id": "ses_10740e1a0ffe5wagoBD9eCtrWT",
-      "agent": "Sisyphus-Junior",
-      "category": "deep",
-      "updated_at": "2026-06-24T08:45:33.781Z"
-    },
-    "todo:8": {
-      "task_key": "todo:8",
-      "task_label": "8",
-      "task_title": "Graphplan Expert Generator",
-      "session_id": "ses_1072d5cfaffeBKAodF26So0HbK",
-      "agent": "Sisyphus-Junior",
-      "category": "deep",
-      "updated_at": "2026-06-24T09:07:55.255Z"
-    },
-    "todo:9": {
-      "task_key": "todo:9",
-      "task_label": "9",
-      "task_title": "Four Modality Serializers and Leakage Tests",
-      "session_id": "ses_10712e8adffecRHc0bE6NCNMes",
-      "agent": "Sisyphus-Junior",
-      "category": "unspecified-high",
-      "updated_at": "2026-06-24T09:37:51.205Z"
-    },
-    "todo:10": {
-      "task_key": "todo:10",
-      "task_label": "10",
-      "task_title": "StarVLA Planning Dataset Registration",
-      "session_id": "ses_106fcfeb4ffe57JBN8c4BcgH7z",
-      "agent": "Sisyphus-Junior",
-      "category": "unspecified-high",
-      "updated_at": "2026-06-24T09:58:03.508Z"
-    },
-    "todo:11": {
-      "task_key": "todo:11",
-      "task_label": "11",
-      "task_title": "Documentation Closeout and Execution Plan Status Update",
-      "session_id": "ses_106eab4ccffe7MH7fbMMmF0wa3",
-      "agent": "Sisyphus-Junior",
-      "category": "writing",
-      "updated_at": "2026-06-24T10:17:23.786Z"
-    },
-    "final-wave:f1": {
-      "task_key": "final-wave:f1",
-      "task_label": "F1",
-      "task_title": "Plan Compliance Audit — oracle",
-      "session_id": "ses_106da208affefqXAoUKdMMF6Kp",
-      "agent": "oracle",
-      "category": "",
-      "updated_at": "2026-06-24T10:25:09.261Z"
-    },
-    "final-wave:f2": {
-      "task_key": "final-wave:f2",
-      "task_label": "F2",
-      "task_title": "Code Quality Review — unspecified-high",
-      "session_id": "ses_106d547ebffe6eoXhNp5IHYr4X",
-      "agent": "Sisyphus-Junior",
-      "category": "unspecified-high",
-      "updated_at": "2026-06-24T10:33:14.153Z"
-    },
-    "final-wave:f3": {
-      "task_key": "final-wave:f3",
-      "task_label": "F3",
-      "task_title": "Real Manual QA — unspecified-high",
-      "session_id": "ses_106c43166ffe2BQokWNS5QR2qg",
-      "agent": "Sisyphus-Junior",
-      "category": "unspecified-high",
-      "updated_at": "2026-06-24T11:15:08.100Z"
-    },
-    "final-wave:f4": {
-      "task_key": "final-wave:f4",
-      "task_label": "F4",
-      "task_title": "Scope Fidelity Check — deep",
-      "session_id": "ses_103be642bffeQjj9Hd6vImVlKZ",
-      "agent": "Sisyphus-Junior",
-      "category": "deep",
-      "updated_at": "2026-06-25T00:55:18.953Z"
+  "schema_version": 2,
+  "active_work_id": "planimation-hybrid-traversal-rendering",
+  "works": {
+    "planimation-hybrid-traversal-rendering": {
+      "work_id": "planimation-hybrid-traversal-rendering",
+      "active_plan": ".omo/plans/planimation-hybrid-traversal-rendering.md",
+      "plan_name": "planimation-hybrid-traversal-rendering",
+      "session_ids": [
+        "codex:opencode:ses_09cc33d58ffePfbP5HRr00wCZ7",
+        "codex:opencode:ses_09964dc0cfferuEvG3FH5an6BT"
+      ],
+      "status": "active",
+      "worktree_path": null
     }
   }
 }

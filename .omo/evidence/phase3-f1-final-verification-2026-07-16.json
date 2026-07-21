@@ -1,0 +1,24 @@
+{
+  "artifact_kind": "phase3_f1_final_verification_v1",
+  "date": "2026-07-16",
+  "review_scope": "Search-traversal remediation and fixture release only",
+  "verdict": "APPROVE",
+  "approval_scope": "Fixture release only; this is not active-corpus approval.",
+  "requirements": {
+    "separate_search_traversal_family": "verified",
+    "strict_ff_gbfs_iw_projection": "verified",
+    "graphplan_raw_layers_nonvisual": "verified",
+    "ff_missing_successor_state_excluded": "verified",
+    "event_and_render_provenance": "verified",
+    "release_reconciliation": "verified",
+    "source_output_non_overlap": "verified"
+  },
+  "commands": {
+    "focused_pytest": "66 passed in 5.37s",
+    "basedpyright": "0 errors, 0 warnings, 0 notes",
+    "compileall": "exit 0",
+    "fixture_release_cli": "exit 0; 1 pair, 4 render rows, 1 full record, 1 step record, and 2 traversal records",
+    "active_contract_probe": "688 pair records, 0 training eligible, and 688 trace_contract_exclusion:missing_required_field: trace_contract_version; changed-canary selection reported no_strict_v1_eligible_pairs"
+  },
+  "active_corpus_status": "Blocked. The checked active 15-puzzle root does not provide phase3_traversal_trace_v1 and no rollout, render, mutation, or promotion was performed."
+}

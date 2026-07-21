@@ -1,0 +1,111 @@
+[
+  {
+    "name": "ff_nonzero_plan",
+    "source_row": {
+      "example_id": "ff-nonzero",
+      "planner": "ff",
+      "supervised_target": {
+        "planner_trace": {
+          "trace_contract_version": "phase3_traversal_trace_v1",
+          "algorithm": "fast_forward",
+          "goal_atoms": ["(at b)"],
+          "planner_source": "fixture",
+          "steps": [{"event_kind": "expansion", "step_index": 0, "state_atoms": ["(at a)", "(connected a b)", "(connected b a)"], "current_heuristic": {"heuristic_value": 1}, "relaxation_metadata": {"ignored_delete_effects": true}, "selected_action": "(MOVE A B)", "selected_successor": {"action": "(MOVE A B)", "event_kind": "generation", "heuristic_value": 0, "state_atoms": ["(at b)", "(connected a b)", "(connected b a)"]}, "successor_heuristics": [{"action": "(MOVE A B)", "event_kind": "generation", "heuristic_value": 0, "state_atoms": ["(at b)", "(connected a b)", "(connected b a)"]}], "tie_break_rule": "fixture"}]
+        },
+        "plan": ["(move a b)"]
+      }
+    }
+  },
+  {
+    "name": "gbfs_nonzero_plan",
+    "source_row": {
+      "example_id": "gbfs-nonzero",
+      "planner": "gbfs",
+      "supervised_target": {
+        "planner_trace": {
+          "trace_contract_version": "phase3_traversal_trace_v1",
+          "algorithm": "greedy_best_first",
+          "heuristic_source": "fixture",
+          "expansion_count": 1,
+          "visited_count": 2,
+          "frontier_events": [{"event_kind": "expansion", "selected_state_atoms": ["(at a)", "(connected a b)", "(connected b a)"], "current_heuristic": {"heuristic_value": 1}, "successor_heuristics": [{"action": "(move a b)", "event_kind": "generation", "heuristic_value": 0, "is_goal": true, "enqueued": false}], "selected_goal_successor": {"action": "(move a b)", "event_kind": "generation", "heuristic_value": 0, "is_goal": true, "enqueued": false}, "frontier_size_after": 0, "visited_count_after": 2, "tie_break_rule": "fixture"}]
+        },
+        "plan": ["(move a b)"]
+      }
+    }
+  },
+  {
+    "name": "iw_nonzero_plan",
+    "source_row": {
+      "example_id": "iw-nonzero",
+      "planner": "iw",
+      "supervised_target": {
+        "planner_trace": {
+          "trace_contract_version": "phase3_traversal_trace_v1",
+          "algorithm": "iterated_width",
+          "width": 1,
+          "events": [{"decision": "expand", "event_kind": "expansion", "state_atoms": ["(at a)", "(connected a b)", "(connected b a)"], "novel_item": ["(at a)"], "novelty_table_before": [], "novelty_table_after": ["(at a)"], "successors": [{"action": "(move a b)", "event_kind": "generation", "is_goal": true, "is_novel": true, "enqueued": true}], "frontier_size_after": 1}]
+        },
+        "plan": ["(move a b)"]
+      }
+    }
+  },
+  {
+    "name": "gbfs_semantic_repeat",
+    "source_row": {
+      "example_id": "gbfs-semantic-repeat",
+      "planner": "gbfs",
+      "supervised_target": {
+        "planner_trace": {
+          "trace_contract_version": "phase3_traversal_trace_v1",
+          "algorithm": "greedy_best_first",
+          "heuristic_source": "fixture",
+          "expansion_count": 1,
+          "visited_count": 2,
+          "frontier_events": [{"event_kind": "expansion", "selected_state_atoms": ["(at a)", "(connected a b)", "(connected b a)"], "current_heuristic": {"heuristic_value": 1}, "successor_heuristics": [{"action": "(move a b)", "event_kind": "generation", "heuristic_value": 0, "is_goal": true, "enqueued": false}, {"action": "(move a b)", "event_kind": "revisit", "heuristic_value": 0, "is_goal": true, "enqueued": false}, {"action": "(move a b)", "event_kind": "backtrack", "heuristic_value": 0, "is_goal": true, "enqueued": false}], "selected_goal_successor": {"action": "(move a b)", "event_kind": "generation", "heuristic_value": 0, "is_goal": true, "enqueued": false}, "frontier_size_after": 0, "visited_count_after": 2, "tie_break_rule": "fixture"}]
+        },
+        "plan": ["(move a b)"]
+      }
+    }
+  },
+  {
+    "name": "graphplan_extracted_plan",
+    "source_row": {
+      "example_id": "graphplan-extracted-plan",
+      "planner": "graphplan",
+      "supervised_target": {
+        "planner_trace": {
+          "trace_contract_version": "phase3_traversal_trace_v1",
+          "algorithm": "graphplan",
+          "proposition_layers": [
+            {
+              "layer_index": 0,
+              "propositions": ["(at a)", "(connected a b)", "(connected b a)"],
+              "goal_present": false
+            }
+          ],
+          "action_layers": [
+            {
+              "layer_index": 0,
+              "actions": ["(move a b)"],
+              "mutex_pairs": [],
+              "next_layer_index": 1
+            }
+          ],
+          "mutex_pairs": [],
+          "extraction": {
+            "approximation": "fixture_graphplan",
+            "goal_present_without_mutex": true,
+            "mutex_scope": "action_level_only",
+            "no_goods": [],
+            "proposition_mutex_computed": false,
+            "selected_goal_layer": 1,
+            "selected_plan": ["(MOVE A B)"],
+            "source": "fixture_graphplan_extraction"
+          }
+        },
+        "plan": ["(move a b)"]
+      }
+    }
+  }
+]

@@ -1,0 +1,20 @@
+{
+  "phase": "phase3-f2",
+  "scope": "Phase 1 Planimation module decomposition",
+  "modules": {
+    "scripts/planimation_phase1.py": 54,
+    "scripts/planimation_phase1_manifest.py": 127,
+    "scripts/planimation_phase1_client.py": 124,
+    "scripts/planimation_phase1_frames.py": 76,
+    "scripts/planimation_phase1_runner.py": 149,
+    "scripts/planimation_phase1_cli.py": 55
+  },
+  "verification": {
+    "pytest": "83 passed in 3.04s",
+    "basedpyright": "0 errors, 0 warnings, 0 notes",
+    "compileall": "passed",
+    "diff_check": "passed",
+    "cli_help": "passed",
+    "cli_missing_required_arguments": "exit 2 with required manifest/output-dir diagnostic"
+  }
+}

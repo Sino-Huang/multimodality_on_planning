@@ -1,0 +1,6 @@
+(define (problem traversal-unsupported-problem)
+  (:domain traversal-unsupported-fixture)
+  (:objects a b - place)
+  (:init (at a) (connected a b) (connected b a))
+  (:goal (at b))
+)

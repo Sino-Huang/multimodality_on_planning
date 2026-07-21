@@ -1,7 +1,12 @@
 from __future__ import annotations
 
 import json
+from io import BytesIO
 from pathlib import Path
+from zipfile import ZipFile
+
+import pytest
+from PIL import Image
 
 from src.data_collect.adapters import NormalizedCandidate
 from src.data_collect.config import load_curriculum_config
@@ -19,6 +24,16 @@ from src.data_collect.rendering import (
     inspect_rendering_preflight,
     render_candidate,
 )
+from src.data_collect.rendering import _extract_png_archive
+
+
+def _png() -> bytes:
+    stream = BytesIO()
+    Image.new("RGBA", (1, 1), (255, 255, 255, 255)).save(stream, format="PNG")
+    return stream.getvalue()
+
+
+PNG = _png()
 
 
 def _build_candidate(tmp_path: Path, *, domain_id: str = "grid", candidate_id: str = "grid-train-easy-attempt-000000") -> NormalizedCandidate:
@@ -204,3 +219,48 @@ def test_planimation_renderer_retries_transient_pddl_upload_failure(tmp_path: Pa
     assert outcome.trace_path == candidate.output_dir / DEFAULT_RENDER_SUBDIR / TRACE_FILENAME
     assert outcome.trace_path.read_bytes() == trace_bytes
     assert result_path.exists()
+
+
+def test_planimation_renderer_does_not_relabel_programming_errors_as_render_failures(tmp_path: Path) -> None:
+    candidate = _build_candidate(tmp_path)
+    render_profile_path = _write_render_profile(tmp_path)
+
+    def broken_post_pddl_for_vfg(**_: object) -> tuple[bytes, str]:
+        raise AttributeError("adapter contract violation")
+
+    renderer = PlanimationRenderer(
+        post_pddl_for_vfg_fn=broken_post_pddl_for_vfg,
+        post_vfg_for_visualisation_fn=lambda **_: (b"", "https://example.invalid"),
+        render_vfg_to_local_png_frames_fn=lambda **_: 0,
+        preflight_host_fn=lambda root_url, timeout: {"root_url": root_url, "reachable": True, "timeout": timeout},
+    )
+
+    with pytest.raises(AttributeError, match="adapter contract violation"):
+        render_candidate(
+            candidate=candidate,
+            renderer=renderer,
+            render_profile_path=render_profile_path,
+            timeout_seconds=30,
+        )
+
+
+def test_extract_png_archive_rejects_path_escape_without_writing_outside(tmp_path: Path) -> None:
+    archive_stream = BytesIO()
+    with ZipFile(archive_stream, "w") as archive:
+        archive.writestr("../../outside.png", PNG)
+
+    with pytest.raises(ValueError, match="unsafe archive member"):
+        _extract_png_archive(archive_stream.getvalue(), tmp_path / "frames")
+
+    assert not (tmp_path / "outside.png").exists()
+
+
+def test_extract_png_archive_writes_valid_png_only_after_full_validation(tmp_path: Path) -> None:
+    archive_stream = BytesIO()
+    with ZipFile(archive_stream, "w") as archive:
+        archive.writestr("nested/frame_000.png", PNG)
+
+    count = _extract_png_archive(archive_stream.getvalue(), tmp_path / "frames")
+
+    assert count == 1
+    assert (tmp_path / "frames" / "nested" / "frame_000.png").read_bytes() == PNG

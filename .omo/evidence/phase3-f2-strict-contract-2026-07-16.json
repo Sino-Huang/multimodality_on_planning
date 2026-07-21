@@ -1,0 +1,37 @@
+{
+  "artifact": "phase3_f2_strict_contract_correction",
+  "date": "2026-07-16",
+  "scope": [
+    "strict traversal trace scalar and nested successor validation",
+    "typed hybrid record schema and validator",
+    "release validation against persisted hybrid schemas"
+  ],
+  "commands": [
+    {
+      "command": "source ~/cd_vlaplan && source .venv/bin/activate && pytest tests/phase3/test_traversal_trace_contracts.py tests/phase3/test_planimation_pairing.py tests/phase3/test_verify_planimation_vlm.py -q",
+      "result": "61 passed in 4.64s"
+    },
+    {
+      "command": "source ~/cd_vlaplan && source .venv/bin/activate && basedpyright scripts/phase3/trace_contracts.py scripts/phase3/planimation_pairing.py scripts/phase3/verify_planimation_vlm.py tests/phase3/test_traversal_trace_contracts.py tests/phase3/test_planimation_pairing.py tests/phase3/test_verify_planimation_vlm.py",
+      "result": "0 errors, 0 warnings, 0 notes"
+    },
+    {
+      "command": "source ~/cd_vlaplan && source .venv/bin/activate && python -m compileall -q scripts/phase3/trace_contracts.py scripts/phase3/planimation_pairing.py scripts/phase3/verify_planimation_vlm.py tests/phase3/test_traversal_trace_contracts.py tests/phase3/test_planimation_pairing.py tests/phase3/test_verify_planimation_vlm.py",
+      "result": "exit 0"
+    },
+    {
+      "command": "source ~/cd_vlaplan && source .venv/bin/activate && python -m scripts.phase3.trace_contracts --fixtures tests/phase3/fixtures/traversal_trace_contract_cases.json --report tmp/f2_trace_contract_projection.json",
+      "result": "four valid planner fixtures projected and four malformed fixtures excluded"
+    },
+    {
+      "command": "source ~/cd_vlaplan && source .venv/bin/activate && python scripts/phase3/verify_planimation_vlm.py --output-root tmp/phase3_task8_release_fixture --mode release",
+      "result": "exit 0; one pair, two state renders, one train full record, one train step record"
+    }
+  ],
+  "contract_results": [
+    "boolean values are rejected for integer fields",
+    "planner-specific scalar and nested successor types fail closed",
+    "hybrid artifacts, provenance, targets, and paths have concrete persisted types",
+    "release recursively evaluates persisted schema types, required keys, and closed objects"
+  ]
+}

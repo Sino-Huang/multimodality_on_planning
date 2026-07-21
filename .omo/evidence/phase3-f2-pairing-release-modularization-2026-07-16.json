@@ -1,0 +1,34 @@
+{
+  "phase": "phase3-f2",
+  "scope": "Planimation pairing and release-verifier modularization",
+  "modules": {
+    "scripts/phase3/planimation_pairing.py": 59,
+    "scripts/phase3/planimation_pairing_implementation.py": 206,
+    "scripts/phase3/planimation_pairing_source.py": 131,
+    "scripts/phase3/planimation_pairing_reasoning.py": 79,
+    "scripts/phase3/planimation_pairing_schema.py": 219,
+    "scripts/phase3/planimation_pairing_rendering.py": 211,
+    "scripts/phase3/planimation_pairing_manifest.py": 165,
+    "scripts/phase3/planimation_pairing_replay.py": 117,
+    "scripts/phase3/planimation_pairing_records.py": 136,
+    "scripts/phase3/planimation_pairing_validation.py": 95,
+    "scripts/phase3/planimation_release_verification.py": 167,
+    "scripts/phase3/planimation_release_validation.py": 169,
+    "scripts/phase3/verify_planimation_vlm.py": 30
+  },
+  "verification": {
+    "pytest": "53 passed in 8.20s",
+    "basedpyright": "0 errors, 0 warnings, 0 notes",
+    "compileall": "passed",
+    "lsp_diagnostics": "clean for every changed pairing and release module",
+    "diff_check": "passed",
+    "release_fixture_cli": {
+      "mode": "release",
+      "pair_records": 1,
+      "state_render_records": 4,
+      "full_records": {"train": 1, "dev": 0, "test": 0},
+      "step_records": {"train": 1, "dev": 0, "test": 0},
+      "search_traversal_records": {"train": 2, "dev": 0, "test": 0}
+    }
+  }
+}

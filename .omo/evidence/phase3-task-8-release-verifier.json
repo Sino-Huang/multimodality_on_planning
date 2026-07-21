@@ -1,0 +1,26 @@
+{
+  "task": "phase3-todo-8",
+  "date": "2026-07-15",
+  "artifact": "scripts/phase3/verify_planimation_vlm.py",
+  "modes": ["manifest", "render", "release"],
+  "release_fixture": {
+    "path": "tmp/phase3_task8_release_fixture",
+    "exit_code": 0,
+    "counts": {
+      "pair_records": 1,
+      "state_render_records": 2,
+      "full_records": {"train": 1, "dev": 0, "test": 0},
+      "step_records": {"train": 1, "dev": 0, "test": 0}
+    }
+  },
+  "failure_fixture": {
+    "path": "tmp/phase3_task8_absent_fixture",
+    "exit_code": 1,
+    "reason": "missing_required_file: diagnostics/pairing_manifest.jsonl"
+  },
+  "verification": {
+    "pytest": "40 passed in 3.60s",
+    "basedpyright": "0 errors, 0 warnings, 0 notes",
+    "compileall": "exit 0"
+  }
+}

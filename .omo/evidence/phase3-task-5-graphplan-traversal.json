@@ -1,0 +1,37 @@
+{
+  "date": "2026-07-15",
+  "task": "planimation-hybrid-traversal-rendering Todo 5",
+  "red": {
+    "command": "source ~/cd_vlaplan && source .venv/bin/activate && pytest tests/phase3/test_traversal_state_projection.py tests/phase3/test_traversal_trace_contracts.py -q",
+    "result": "4 failed, 15 passed; Graphplan had no extracted-plan candidates and forged extraction linkage was accepted."
+  },
+  "focused_tests": {
+    "command": "source ~/cd_vlaplan && source .venv/bin/activate && pytest tests/phase3/test_planimation_pairing.py tests/phase3/test_traversal_trace_contracts.py tests/phase3/test_traversal_state_projection.py -q",
+    "result": "40 passed in 0.38s"
+  },
+  "typing": {
+    "command": "source ~/cd_vlaplan && source .venv/bin/activate && basedpyright scripts/phase3/trace_contracts.py scripts/phase3/traversal_state_types.py scripts/phase3/graphplan_replay.py scripts/phase3/traversal_states.py scripts/phase3/traversal_state_projection_cli.py tests/phase3/test_traversal_trace_contracts.py tests/phase3/test_traversal_state_projection.py",
+    "result": "0 errors, 0 warnings, 0 notes"
+  },
+  "compile": {
+    "command": "source ~/cd_vlaplan && source .venv/bin/activate && python -m compileall -q scripts/phase3/trace_contracts.py scripts/phase3/traversal_state_types.py scripts/phase3/graphplan_replay.py scripts/phase3/traversal_states.py scripts/phase3/traversal_state_projection_cli.py tests/phase3/test_traversal_trace_contracts.py tests/phase3/test_traversal_state_projection.py",
+    "result": "exit 0"
+  },
+  "trace_event_report": {
+    "command": "source ~/cd_vlaplan && source .venv/bin/activate && python -m scripts.phase3.trace_contracts --fixtures tests/phase3/fixtures/traversal_trace_contract_cases.json --report tmp/phase3_task5_trace_event_report.json",
+    "graphplan_valid": {"events": 3, "status": "projected"},
+    "graphplan_malformed": {"reason": "missing_required_field: layer_index", "status": "excluded"}
+  },
+  "replay_candidate_report": {
+    "command": "source ~/cd_vlaplan && source .venv/bin/activate && python -m scripts.phase3.traversal_state_projection_cli --fixtures tests/phase3/fixtures/traversal_state_projection_cases.json --domain tests/phase3/fixtures/traversal_state_domain.pddl --problem tests/phase3/fixtures/traversal_state_problem.pddl --report tmp/phase3_task5_graphplan_replay_report.json",
+    "graphplan_extracted_plan": {
+      "candidate_count": 2,
+      "state_sources": ["extracted_plan_replay", "extracted_plan_replay"],
+      "exclusions": ["graphplan_nonvisual_event:proposition_layer", "graphplan_nonvisual_event:action_layer"]
+    }
+  },
+  "safe_render_smoke": {
+    "test": "test_graphplan_render_uses_validated_extraction_not_raw_replay_transition",
+    "result": "The fake renderer observed one pre-action PDDL state containing (at a), despite a forged raw replay transition claiming (at b)."
+  }
+}

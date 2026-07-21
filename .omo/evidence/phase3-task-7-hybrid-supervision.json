@@ -1,0 +1,41 @@
+{
+  "date": "2026-07-15",
+  "task": "Todo 7: strict hybrid full/step supervision",
+  "scope": "Temporary fixture roots only; no outputs/ corpus artifacts were generated.",
+  "commands": {
+    "focused_tests": "source ~/cd_vlaplan && source .venv/bin/activate && pytest tests/phase3/test_planimation_pairing.py -q",
+    "typecheck": "source ~/cd_vlaplan && source .venv/bin/activate && basedpyright scripts/phase3/planimation_pairing.py scripts/phase3/generate_planimation_vlm.py scripts/phase3/io_utils.py tests/phase3/test_planimation_pairing.py",
+    "compile": "source ~/cd_vlaplan && source .venv/bin/activate && python -m compileall -q scripts/phase3/planimation_pairing.py scripts/phase3/generate_planimation_vlm.py scripts/phase3/io_utils.py tests/phase3/test_planimation_pairing.py",
+    "production_cli": "source ~/cd_vlaplan && source .venv/bin/activate && python scripts/phase3/generate_planimation_vlm.py --output-root tmp/phase3_task7_production_reject --render-limit 1",
+    "bounded_fixture_cli": "source ~/cd_vlaplan && source .venv/bin/activate && pytest tests/phase3/test_planimation_pairing.py::test_generator_bounded_smoke_cli_writes_partial_manifest -q"
+  },
+  "observed": {
+    "focused_tests": "57 passed in 1.32s for pairing, render-semantic, traversal-state, and trace-contract focused regressions",
+    "typecheck": "0 errors, 0 warnings, 0 notes",
+    "compile": "exit 0",
+    "production_cli": "rejects --render-limit with argparse exit 2 before creating output",
+    "bounded_fixture_cli": "temporary fixture exits 0 and writes partial=true, output_mode=bounded-smoke, render_limit=1"
+  },
+  "contracts": {
+    "production": "render limits are rejected; production_complete is true only when no pair is skipped after complete contiguous coverage.",
+    "bounded_smoke": "partial=true and selected pair/state identifiers plus render_limit are retained in diagnostics/hybrid_output_manifest.json.",
+    "record_schema": "full and step JSON schemas prohibit additional properties at record and nested provenance/target/artifact levels."
+  },
+  "schema_correction": {
+    "defect": "Root additionalProperties=false conflicted with undeclared valid root fields in generated full and step schemas.",
+    "resolution": "Every valid root field is now declared in properties, including step_index only for step records; all root and nested additionalProperties=false constraints remain intact.",
+    "validator_approach": "jsonschema, fastjsonschema, jsonschema-rs, Pydantic, and JSON Schema CLIs are absent from the activated environment. The focused test evaluates the persisted Draft 2020-12 schema and emitted JSON records using the exact object-schema keywords emitted by this generator: const, type, required, properties, and additionalProperties.",
+    "commands": {
+      "schema_regression": "source ~/cd_vlaplan && source .venv/bin/activate && pytest tests/phase3/test_planimation_pairing.py::test_generated_hybrid_schemas_validate_emitted_records_and_reject_extra_root_field -q",
+      "focused_suite": "source ~/cd_vlaplan && source .venv/bin/activate && pytest tests/phase3/test_planimation_pairing.py -q",
+      "typecheck": "source ~/cd_vlaplan && source .venv/bin/activate && basedpyright scripts/phase3/planimation_pairing.py tests/phase3/test_planimation_pairing.py",
+      "compile": "source ~/cd_vlaplan && source .venv/bin/activate && python -m compileall -q scripts/phase3/planimation_pairing.py tests/phase3/test_planimation_pairing.py"
+    },
+    "observed": {
+      "schema_regression": "1 passed in 0.27s; valid full/step records passed and omitted/unexpected root/nested fields failed",
+      "focused_suite": "32 passed in 1.50s",
+      "typecheck": "0 errors, 0 warnings, 0 notes",
+      "compile": "exit 0"
+    }
+  }
+}
