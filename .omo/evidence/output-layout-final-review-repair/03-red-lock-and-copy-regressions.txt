@@ -1,0 +1,81 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+__________ test_apply_after_completion_returns_without_locking_again ___________
+
+tmp_path = PosixPath('/tmp/pytest-of-sukaih/pytest-34/test_apply_after_completion_re0')
+
+    def test_apply_after_completion_returns_without_locking_again(tmp_path: Path) -> None:
+        repository = synthetic_repository(tmp_path)
+        apply(repository)
+        completed_snapshot = snapshot_tree(repository / "outputs").to_record()
+    
+>       result = subprocess.run(
+            [sys.executable, "-m", "scripts.phase3.organize_outputs", "apply", "--repo-root", str(repository)],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=2,
+        )
+
+tests/phase3/test_organize_outputs.py:73: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/home/sukaih/miniconda3/envs/ada_vla/lib/python3.10/subprocess.py:505: in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+/home/sukaih/miniconda3/envs/ada_vla/lib/python3.10/subprocess.py:1154: in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+/home/sukaih/miniconda3/envs/ada_vla/lib/python3.10/subprocess.py:2022: in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <Popen: returncode: -9 args: ['/home/sukaih/miniconda3/envs/ada_vla/bin/pyth...>
+endtime = 4629315.648278469, orig_timeout = 2, stdout_seq = [], stderr_seq = []
+skip_check_and_raise = False
+
+    def _check_timeout(self, endtime, orig_timeout, stdout_seq, stderr_seq,
+                       skip_check_and_raise=False):
+        """Convenience for checking if a timeout has expired."""
+        if endtime is None:
+            return
+        if skip_check_and_raise or _time() > endtime:
+>           raise TimeoutExpired(
+                    self.args, orig_timeout,
+                    output=b''.join(stdout_seq) if stdout_seq else None,
+                    stderr=b''.join(stderr_seq) if stderr_seq else None)
+E           subprocess.TimeoutExpired: Command '['/home/sukaih/miniconda3/envs/ada_vla/bin/python', '-m', 'scripts.phase3.organize_outputs', 'apply', '--repo-root', '/tmp/pytest-of-sukaih/pytest-34/test_apply_after_completion_re0/synthetic-repository']' timed out after 2 seconds
+
+/home/sukaih/miniconda3/envs/ada_vla/lib/python3.10/subprocess.py:1198: TimeoutExpired
+________ test_copy_publication_does_not_overwrite_competing_destination ________
+
+tmp_path = PosixPath('/tmp/pytest-of-sukaih/pytest-34/test_copy_publication_does_not0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x149bfbe7bac0>
+
+    def test_copy_publication_does_not_overwrite_competing_destination(
+        tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        source = tmp_path / "source.jsonl"
+        destination = tmp_path / "records/destination.jsonl"
+        source.write_bytes(b'{"source":true}\n')
+        source_sha256 = hashlib.sha256(source.read_bytes()).hexdigest()
+        competing_contents = b'{"competitor":true}\n'
+        original_rename = os.rename
+        original_link = os.link
+    
+        def competing_rename(source_path: os.PathLike[str], destination_path: os.PathLike[str], **options: int) -> None:
+            destination.write_bytes(competing_contents)
+            original_rename(source_path, destination_path, **options)
+    
+        def competing_link(source_path: os.PathLike[str], destination_path: os.PathLike[str], **options: int | bool) -> None:
+            destination.write_bytes(competing_contents)
+            original_link(source_path, destination_path, **options)
+    
+        monkeypatch.setattr(organize_outputs.os, "rename", competing_rename)
+        monkeypatch.setattr(organize_outputs.os, "link", competing_link)
+    
+>       with pytest.raises(OrganizerError, match="record copy destination collision"):
+E       Failed: DID NOT RAISE <class 'scripts.phase3.organize_outputs.OrganizerError'>
+
+tests/phase3/test_organize_outputs.py:108: Failed
+=========================== short test summary info ============================
+FAILED tests/phase3/test_organize_outputs.py::test_apply_after_completion_returns_without_locking_again
+FAILED tests/phase3/test_organize_outputs.py::test_copy_publication_does_not_overwrite_competing_destination
+2 failed in 2.39s

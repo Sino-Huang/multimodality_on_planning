@@ -16,6 +16,8 @@ from scripts.phase3 import planimation_pairing
 from scripts.phase3 import planimation_pairing_implementation
 from scripts.phase3 import generate_planimation_vlm
 from scripts.phase3.planimation_pairing import PairingConfig, RenderConfig, _load_source_example, build_pairing_manifest, build_vlm_records, render_replay_states, validate_pairing_output
+from scripts.phase3.planimation_pairing_reasoning import compact_reasoning
+from scripts.phase3.trace_contracts import TraceContractError
 
 
 def _png() -> bytes:
@@ -226,6 +228,222 @@ def test_graphplan_render_uses_validated_extraction_not_raw_replay_transition(tm
     assert renders["summary"]["status"] == {"success": 2}
     assert len(observed_states) == 2
     assert "(at a)" in observed_states[0]
+
+
+def test_graphplan_reasoning_binds_valid_extraction_with_action_layer_enrichment() -> None:
+    # Given: a validated Graphplan extraction action that also appears in a semantic layer.
+    trace = {
+        "algorithm": "graphplan",
+        "action_layers": [
+            {
+                "layer_index": 0,
+                "actions": ["(move a b)"],
+                "mutex_pairs": [],
+            }
+        ],
+        "extraction": {
+            "approximation": "action_mutex_graphplan",
+            "selected_goal_layer": 1,
+            "selected_plan": ["(move a b)"],
+            "source": "graphplan_extraction",
+        },
+    }
+    transition = {
+        "action": "(move a b)",
+        "extraction_event_id": "extraction-0",
+        "state_before": ["(at a)", "(connected a b)"],
+        "state_source": "extracted_plan_replay",
+        "step_index": 0,
+    }
+
+    # When: compact reasoning binds the replay transition to its extraction step.
+    reasoning = compact_reasoning(trace, "graphplan", transition, 512)
+
+    # Then: extraction provenance binds the record while the layer remains optional enrichment.
+    assert reasoning["context_status"] == "extraction_bound"
+    assert reasoning["matching_action_layers"] == [{"layer_index": 0, "mutex_partners": []}]
+
+
+def test_graphplan_reasoning_binds_extraction_without_action_layer_membership() -> None:
+    # Given: a validated extraction action missing from every semantic action layer.
+    trace = {
+        "algorithm": "graphplan",
+        "action_layers": [{"layer_index": 4, "actions": ["(wait a)"], "mutex_pairs": []}],
+        "extraction": {
+            "approximation": "action_mutex_graphplan",
+            "selected_goal_layer": 3,
+            "selected_plan": ["(move a b)"],
+            "source": "graphplan_extraction",
+        },
+    }
+    transition = {
+        "action": " ( MOVE A B ) ",
+        "extraction_event_id": "extraction-0",
+        "state_before": ["(at a)", "(connected a b)"],
+        "state_source": "extracted_plan_replay",
+        "step_index": 0,
+    }
+
+    # When: reasoning binds the replay transition to the validated extraction step.
+    reasoning = compact_reasoning(trace, "graphplan", transition, 256)
+
+    # Then: layer membership is optional and the normalized extraction is authoritative.
+    assert reasoning == {
+        "algorithm": "graphplan",
+        "approximation": "action_mutex_graphplan",
+        "context_status": "extraction_bound",
+        "extraction_source": "graphplan_extraction",
+        "extraction_step_index": 0,
+        "selected_action": "(move a b)",
+        "selected_goal_layer": 3,
+    }
+
+
+def test_graphplan_reasoning_binds_repeated_actions_by_extraction_step_index() -> None:
+    # Given: an extraction whose first and third selected actions normalize to the same action.
+    trace = {
+        "algorithm": "graphplan",
+        "action_layers": [],
+        "extraction": {
+            "approximation": "action_mutex_graphplan",
+            "selected_goal_layer": 3,
+            "selected_plan": ["(move a b)", "(move b a)", "(move a b)"],
+            "source": "graphplan_extraction",
+        },
+    }
+    first_transition = {
+        "action": "(move a b)",
+        "extraction_event_id": "extraction-0",
+        "state_before": ["(at a)"],
+        "state_source": "extracted_plan_replay",
+        "step_index": 0,
+    }
+    third_transition = {
+        "action": "( MOVE A B )",
+        "extraction_event_id": "extraction-0",
+        "state_before": ["(at a)"],
+        "state_source": "extracted_plan_replay",
+        "step_index": 2,
+    }
+
+    # When: each replay transition is compacted independently.
+    first_reasoning = compact_reasoning(trace, "graphplan", first_transition, 256)
+    third_reasoning = compact_reasoning(trace, "graphplan", third_transition, 256)
+
+    # Then: repeated action text does not collapse the distinct extraction steps.
+    assert first_reasoning["extraction_step_index"] == 0
+    assert third_reasoning["extraction_step_index"] == 2
+
+
+def test_graphplan_reasoning_sorts_optional_matching_action_layers() -> None:
+    # Given: matching layers in noncanonical order with layer-local mutex metadata.
+    trace = {
+        "algorithm": "graphplan",
+        "action_layers": [
+            {"layer_index": 7, "actions": ["(move a b)"], "mutex_pairs": [["(move a b)", "(wait a)"]]},
+            {"layer_index": 2, "actions": ["( MOVE A B )"], "mutex_pairs": [["(wait b)", "(move a b)"]]},
+        ],
+        "extraction": {
+            "approximation": "action_mutex_graphplan",
+            "selected_goal_layer": 3,
+            "selected_plan": ["(move a b)"],
+            "source": "graphplan_extraction",
+        },
+    }
+    transition = {
+        "action": "(move a b)",
+        "extraction_event_id": "extraction-0",
+        "state_before": ["(at a)"],
+        "state_source": "extracted_plan_replay",
+        "step_index": 0,
+    }
+
+    # When: semantic layer metadata enriches an already-bound extraction transition.
+    reasoning = compact_reasoning(trace, "graphplan", transition, 512)
+
+    # Then: enrichment is sorted by numeric layer index and keeps matching-layer data only.
+    assert reasoning["matching_action_layers"] == [
+        {"layer_index": 2, "mutex_partners": [["(wait b)", "(move a b)"]]},
+        {"layer_index": 7, "mutex_partners": [["(move a b)", "(wait a)"]]},
+    ]
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("state_source", "forged_replay"),
+        ("extraction_event_id", ""),
+        ("step_index", True),
+        ("action", "(move b a)"),
+    ],
+)
+def test_graphplan_reasoning_rejects_forged_or_mismatched_transition(
+    tmp_path: Path, field: str, value: str | bool
+) -> None:
+    # Given: a rendered Graphplan fixture whose persisted transition is forged after rendering.
+    source_root = _source_root(tmp_path, planner="graphplan")
+    if field == "action":
+        source = json.loads((source_root / "train.jsonl").read_text(encoding="utf-8"))
+        source["supervised_target"]["planner_trace"]["action_layers"][0]["actions"].append("(move b a)")
+        (source_root / "train.jsonl").write_text(json.dumps(source) + "\n", encoding="utf-8")
+    output_root = _output_root(tmp_path)
+    build_pairing_manifest(
+        [source_root],
+        output_root,
+        config=PairingConfig(domains=frozenset({"grid"}), buckets=frozenset({"easy"})),
+    )
+    render_replay_states(
+        output_root,
+        renderer=lambda _domain, _problem, _profile, cache_dir, _config: _render_artifacts(cache_dir),
+        config=RenderConfig(request_delay_seconds=0),
+    )
+    manifest_path = output_root / "diagnostics" / "state_render_manifest.jsonl"
+    rows = _rows(manifest_path)
+    transition = rows[0]["transition"]
+    assert isinstance(transition, dict)
+    transition[field] = value
+    manifest_path.write_text("\n".join(json.dumps(row) for row in rows) + "\n", encoding="utf-8")
+
+    # When: strict VLM record construction reaches the forged replay transition.
+    # Then: it preserves the existing controlled unbound-transition failure.
+    with pytest.raises(TraceContractError, match="trace_event_not_bound_to_replay_transition"):
+        build_vlm_records(output_root)
+
+
+def test_graphplan_reasoning_keeps_mandatory_extraction_fields_within_256_chars() -> None:
+    # Given: a valid extraction-bound transition with retained-pilot extraction metadata.
+    trace = {
+        "algorithm": "graphplan",
+        "action_layers": [{"layer_index": 0, "actions": ["(move a b)"], "mutex_pairs": []}],
+        "extraction": {
+            "approximation": "deterministic_phase3_action_mutex_graphplan",
+            "selected_goal_layer": 3,
+            "selected_plan": ["(move a b)"],
+            "source": "local_graphplan_serial_extraction",
+        },
+    }
+    transition = {
+        "action": "(move a b)",
+        "extraction_event_id": "extraction-0",
+        "state_before": ["(at a)"],
+        "state_source": "extracted_plan_replay",
+        "step_index": 0,
+    }
+
+    # When: compact reasoning is constrained to the minimum supported record budget.
+    reasoning = compact_reasoning(trace, "graphplan", transition, 256)
+
+    # Then: all binding fields survive even when their truthful compact form exceeds the budget.
+    assert {
+        "algorithm",
+        "approximation",
+        "context_status",
+        "extraction_source",
+        "extraction_step_index",
+        "selected_action",
+        "selected_goal_layer",
+    }.issubset(reasoning)
+    assert len(json.dumps(reasoning, ensure_ascii=True, separators=(",", ":"), sort_keys=True)) > 256
 
 
 def test_render_replay_rejects_stale_cache_metadata_and_corrupt_png(tmp_path: Path) -> None:

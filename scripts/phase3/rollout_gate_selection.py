@@ -10,6 +10,28 @@ from pathlib import Path
 from .io_utils import JSONRecord, file_sha256, read_jsonl, write_json
 from .planimation_persisted_contracts import validate_pair_record
 from .rollout_gate_contracts import Stage
+from .traversal_state_types import JSONValue
+
+
+def is_lowercase_sha256(value: JSONValue) -> bool:
+    return isinstance(value, str) and len(value) == 64 and all(character in "0123456789abcdef" for character in value)
+
+
+def has_valid_selection_pair_contract(selected_pair_ids: JSONValue, selected_pairs: JSONValue) -> bool:
+    if not isinstance(selected_pair_ids, list) or not selected_pair_ids:
+        return False
+    if not isinstance(selected_pairs, list) or not selected_pairs:
+        return False
+    if not all(isinstance(pair_id, str) and pair_id for pair_id in selected_pair_ids):
+        return False
+    if not all(isinstance(pair, dict) and isinstance(pair.get("pair_id"), str) and pair["pair_id"] for pair in selected_pairs):
+        return False
+    frozen_pair_ids = [pair["pair_id"] for pair in selected_pairs]
+    return (
+        len(selected_pair_ids) == len(set(selected_pair_ids))
+        and len(frozen_pair_ids) == len(set(frozen_pair_ids))
+        and selected_pair_ids == frozen_pair_ids
+    )
 
 
 def prepare_selection(output_root: Path, stage: Stage, domain: str | None = None) -> JSONRecord:
@@ -50,8 +72,6 @@ def prepare_selection(output_root: Path, stage: Stage, domain: str | None = None
 
 
 def validate_frozen_pairs(selection: JSONRecord, pairs: list[JSONRecord], manifest_hash: str, reasons: list[str]) -> None:
-    if selection.get("input_pairing_manifest_sha256") != manifest_hash:
-        reasons.append("frozen_pairing_manifest_hash_mismatch")
     selected_pairs = selection.get("selected_pairs")
     if not isinstance(selected_pairs, list):
         return
@@ -60,8 +80,11 @@ def validate_frozen_pairs(selection: JSONRecord, pairs: list[JSONRecord], manife
         return
     expected = Counter(_stable_sha256(pair) for pair in selected_pairs)
     actual = Counter(_stable_sha256(_frozen_pair(pair)) for pair in pairs)
-    if expected != actual:
+    identity_mismatch = expected != actual
+    if identity_mismatch:
         reasons.append("output_pairing_manifest_pair_identity_mismatch")
+    if selection.get("input_pairing_manifest_sha256") != manifest_hash and identity_mismatch:
+        reasons.append("frozen_pairing_manifest_hash_mismatch")
 
 
 def append_pair_validation_errors(pairs: list[JSONRecord], reasons: list[str]) -> None:

@@ -1,0 +1,53 @@
+{
+  "artifact_kind": "planimation_todo7_done_claim_v1",
+  "status": "passed_stratified_pilot_only",
+  "timestamp_utc": "2026-07-26T06:11:38Z",
+  "actual_receipt": {
+    "path": "outputs/phase3_planimation_frames_stratified_pilot_20260725/diagnostics/rollout_promotion_receipt.json",
+    "receipt_sha256": "1bef38d5571cd3e8276f4d925e13553475914fe0e51f3d459ec83a16c25694e7",
+    "prior_receipt_sha256": "f82b4585eff12a14d38e2f018d77e49a5d14a5aba66701c6f9cf84eac06fdab9",
+    "approved": true,
+    "reasons": []
+  },
+  "promotion_chain": {
+    "fixture_receipt_sha256": "0df245b600361967bb5c1e24f0cdf8912956356337df329b99e1fec79d153941",
+    "changed_canary_receipt_sha256": "f82b4585eff12a14d38e2f018d77e49a5d14a5aba66701c6f9cf84eac06fdab9",
+    "actual_receipt_sha256": "1bef38d5571cd3e8276f4d925e13553475914fe0e51f3d459ec83a16c25694e7"
+  },
+  "approved_counts": {
+    "pair_records": 52,
+    "state_render_records": 2568,
+    "successful_cache_hit_states": 2568,
+    "full_records_train_dev_test": [19, 19, 14],
+    "step_records_train_dev_test": [68, 130, 133],
+    "search_traversal_records_train_dev_test": [329, 1160, 696],
+    "domain_count": 6,
+    "partial": false,
+    "production_complete": true,
+    "skipped": {}
+  },
+  "preservation": {
+    "original_file_count": 5343,
+    "cache_path_count": 5324,
+    "original_files_unchanged": true,
+    "cache_paths_unchanged": true,
+    "only_added_path": "diagnostics/rollout_promotion_receipt.json",
+    "frozen_selection_used_directly_and_unchanged": true
+  },
+  "frozen_selection_provenance_contract": {
+    "field": "input_pairing_manifest_sha256",
+    "required_format": "exactly 64 lowercase hexadecimal characters",
+    "failure_reason": "invalid_frozen_selection",
+    "validated_before_exact_selected_record_subset_fallback": true
+  },
+  "verification_references": {
+    "actual_commands": ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-7-planimation-pilot-contract-and-render-recovery/actual-command-records.json",
+    "receipt_validation": ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-7-planimation-pilot-contract-and-render-recovery/promotion-receipt-validation.json",
+    "source_test_static": ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-7-planimation-pilot-contract-and-render-recovery/source-test-validation.json",
+    "isolated_mutation_probe": ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-7-planimation-pilot-contract-and-render-recovery/isolated-mismatch-evidence.json",
+    "documentation_command_log": ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-7-planimation-pilot-contract-and-render-recovery/documentation-command-log.md",
+    "detailed_summary": "doc/detailed_implementation_summary/phase3_planimation_pilot_contract_and_render_recovery_2026-07-25.md",
+    "knowledge": ".omo/knowledges/phase3-planimation-pilot-contract-and-render-recovery-2026-07-25.md"
+  },
+  "known_limitation": "The full 2328-pair, 537696-state production corpus remains incomplete; this claim approves only the frozen 52-pair stratified pilot."
+}

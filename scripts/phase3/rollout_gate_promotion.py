@@ -10,6 +10,8 @@ from .rollout_gate_contracts import RECEIPT_ARTIFACT_PATHS, STAGES, PromotionDec
 from .rollout_gate_selection import (
     _stable_sha256,
     append_pair_validation_errors,
+    has_valid_selection_pair_contract,
+    is_lowercase_sha256,
     stage_coverage_errors,
     validate_frozen_pairs,
 )
@@ -123,8 +125,20 @@ def _load_selection(path: Path, stage: Stage, reasons: list[str]) -> JSONRecord:
         reasons.append("frozen_selection_integrity_failure")
     if selection.get("artifact_kind") != "planimation_rollout_selection_v1":
         reasons.append("invalid_frozen_selection")
-    if not isinstance(selection.get("selected_pair_ids"), list) or not selection["selected_pair_ids"] or not isinstance(selection.get("selected_pairs"), list):
+    manifest_hash = selection.get("input_pairing_manifest_sha256")
+    if not is_lowercase_sha256(manifest_hash):
+        reasons.append("invalid_frozen_selection")
+    selected_pair_ids = selection.get("selected_pair_ids")
+    selected_pairs = selection.get("selected_pairs")
+    if (
+        not isinstance(selected_pair_ids, list)
+        or not selected_pair_ids
+        or not isinstance(selected_pairs, list)
+        or not selected_pairs
+    ):
         reasons.append("frozen_selection_missing_pairs")
+    elif not has_valid_selection_pair_contract(selected_pair_ids, selected_pairs):
+        reasons.append("invalid_frozen_selection")
     if selection.get("preparation_reasons"):
         reasons.append("selection_preparation_blocked")
     return selection

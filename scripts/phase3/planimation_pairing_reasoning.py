@@ -1,7 +1,7 @@
 from __future__ import annotations
 import json
 from collections import Counter
-from .pddl import canonical_atom
+from .pddl import PDDLError, canonical_atom, normalize_action_string
 from .traversal_state_types import JSONValue
 SCHEMA_VERSION = "phase3_planimation_vlm_v1"
 
@@ -34,13 +34,7 @@ def compact_reasoning(trace: dict[str, JSONValue], planner: str, transition: dic
                     payload.update({"context_status": "step_bound", "decision": event.get("decision"), "novel_item": event.get("novel_item"), "selected_successor": successor, "frontier_size_after": event.get("frontier_size_after")})
                     break
     elif planner == "graphplan":
-        layers = trace.get("action_layers", [])
-        for layer in layers:
-            actions = layer.get("actions", [])
-            if action in actions:
-                partners = [pair for pair in layer.get("mutex_pairs", []) if action in pair][:16]
-                payload.update({"context_status": "layer_bound", "action_layer": layer.get("layer_index"), "mutex_partners": partners, "extraction": trace.get("extraction")})
-                break
+        payload.update(_graphplan_extraction_context(trace, transition, planner))
     return _trim_payload(payload, budget_chars)
 
 def _language_context(state_atoms: list[str], goal: JSONValue, planner: str) -> dict[str, JSONValue]:
@@ -52,14 +46,109 @@ def _find_action(items: JSONValue, action: str) -> dict[str, JSONValue] | None:
             return item
     return None
 
+
+def _graphplan_extraction_context(
+    trace: dict[str, JSONValue], transition: dict[str, JSONValue], planner: str
+) -> dict[str, JSONValue]:
+    extraction = trace.get("extraction")
+    step_index = transition.get("step_index")
+    event_id = transition.get("extraction_event_id")
+    if (
+        transition.get("state_source") != "extracted_plan_replay"
+        or not isinstance(event_id, str)
+        or not event_id
+        or not isinstance(step_index, int)
+        or isinstance(step_index, bool)
+        or not isinstance(extraction, dict)
+    ):
+        return {}
+    selected_plan = extraction.get("selected_plan")
+    source = extraction.get("source")
+    approximation = extraction.get("approximation")
+    selected_goal_layer = extraction.get("selected_goal_layer")
+    if (
+        not isinstance(selected_plan, list)
+        or step_index < 0
+        or step_index >= len(selected_plan)
+        or not isinstance(source, str)
+        or not isinstance(approximation, str)
+        or not isinstance(selected_goal_layer, int)
+        or isinstance(selected_goal_layer, bool)
+    ):
+        return {}
+    transition_action = _normalized_action(transition.get("action"))
+    extraction_action = _normalized_action(selected_plan[step_index])
+    if transition_action is None or transition_action != extraction_action:
+        return {}
+    context: dict[str, JSONValue] = {
+        "algorithm": trace.get("algorithm", planner),
+        "selected_action": transition_action,
+        "context_status": "extraction_bound",
+        "extraction_step_index": step_index,
+        "extraction_source": source,
+        "approximation": approximation,
+        "selected_goal_layer": selected_goal_layer,
+    }
+    matching_layers = _matching_action_layers(trace.get("action_layers"), transition_action)
+    if matching_layers:
+        context["matching_action_layers"] = matching_layers
+    return context
+
+
+def _normalized_action(value: JSONValue) -> str | None:
+    if not isinstance(value, str):
+        return None
+    try:
+        return normalize_action_string(value)
+    except PDDLError:
+        return None
+
+
+def _matching_action_layers(layers: JSONValue | None, action: str) -> list[dict[str, JSONValue]]:
+    if not isinstance(layers, list):
+        return []
+    matches: list[tuple[int, list[JSONValue]]] = []
+    for layer in layers:
+        if not isinstance(layer, dict):
+            continue
+        layer_index = layer.get("layer_index")
+        actions = layer.get("actions")
+        if (
+            not isinstance(layer_index, int)
+            or isinstance(layer_index, bool)
+            or not isinstance(actions, list)
+            or not any(_normalized_action(candidate) == action for candidate in actions)
+        ):
+            continue
+        mutex_pairs = layer.get("mutex_pairs")
+        pairs = mutex_pairs if isinstance(mutex_pairs, list) else []
+        partners = [
+            pair
+            for pair in pairs
+            if isinstance(pair, list) and any(_normalized_action(candidate) == action for candidate in pair)
+        ]
+        matches.append((layer_index, sorted(partners, key=lambda pair: json.dumps(pair, ensure_ascii=True, separators=(",", ":")))[:16]))
+    return [
+        {"layer_index": layer_index, "mutex_partners": partners}
+        for layer_index, partners in sorted(matches, key=lambda match: match[0])
+    ]
+
 def _trim_payload(payload: dict[str, JSONValue], budget: int) -> dict[str, JSONValue]:
     encoded = lambda value: json.dumps(value, sort_keys=True, ensure_ascii=True, separators=(",", ":"))
     if len(encoded(payload)) <= budget:
         return payload
-    trimmed = {key: value for key, value in payload.items() if key in {"algorithm", "selected_action", "context_status", "heuristic_source", "heuristic_value", "width", "decision", "novel_item", "action_layer"}}
-    trimmed["truncated_fields"] = sorted(set(payload) - set(trimmed))
+    retained = {"algorithm", "selected_action", "context_status", "heuristic_source", "heuristic_value", "width", "decision", "novel_item", "action_layer"}
+    if payload.get("context_status") == "extraction_bound":
+        retained = {"algorithm", "selected_action", "context_status", "extraction_step_index", "extraction_source", "approximation", "selected_goal_layer"}
+    trimmed = {key: value for key, value in payload.items() if key in retained}
     if len(encoded(trimmed)) > budget:
+        if payload.get("context_status") == "extraction_bound":
+            return trimmed
         raise ValueError("mandatory compact reasoning fields exceed budget")
+    truncated_fields = sorted(set(payload) - set(trimmed))
+    with_truncation = {**trimmed, "truncated_fields": truncated_fields}
+    if len(encoded(with_truncation)) <= budget:
+        return with_truncation
     return trimmed
 
 def _planner_approximation(planner: str, _trace: dict[str, JSONValue]) -> str:

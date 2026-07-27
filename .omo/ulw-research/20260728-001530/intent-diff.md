@@ -1,0 +1,7 @@
+# Intent vs Reality
+
+| intent_id | Expected truth | Observed reality | Diff | Violated invariant | Intent source | Supporting observations | Status | Linked claim ids |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| I1 | Compare named LLM planning/search methods with the local proposal by method, supervision, search algorithm, modality, tools, benchmark, and evaluation. | The named methods span LM-only thought search, LM MCTS/world-model search, environment-feedback agents, and LLM-to-PDDL/formal planner pipelines. | Closed with cited comparison; local-vs-literature fields are covered. | None. | Delegated task; `.omo/plans/complete-phase-3-supervised-data.md` | O1-O12 | true | C1-C12 |
+| I2 | Determine novelty rather than merely list papers. | The local combination is not present in retrieved sources, but existing work covers every individual ingredient. | The defensible wording is a bounded integration hypothesis, never a categorical first claim. | Avoid a novelty overclaim. | Delegated task; `.omo/plans/complete-phase-3-supervised-data.md` | O1, O3-O12 | true | C13 |
+| I3 | Account for context limits during planning trace use. | Prior work includes external textual memory and search, while the proposal specifies validated external search state. | A concrete design distinction, not an evaluated advantage. | Avoid performance claim without experiment. | `README.md` | O2, O3, O6 | true | C4, C5, C8 |

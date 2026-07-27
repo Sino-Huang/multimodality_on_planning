@@ -5,7 +5,9 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import NotRequired, TypedDict
+from typing import TypedDict
+
+from typing_extensions import NotRequired
 
 from .traversal_state_types import JSONValue
 
@@ -14,11 +16,11 @@ CORE_DOMAINS = frozenset({"blocksworld", "elevators", "ferry", "gripper", "logis
 CORE_BUCKETS = frozenset({"easy", "medium"})
 ACTIVE_PLANNERS = frozenset({"gbfs", "ff", "iw", "graphplan"})
 CURRENT_TRACE_ROOTS = (
-    Path("outputs/phase3_curriculum_traces_15puzzle_easy_20260709_002417"),
-    Path("outputs/phase3_curriculum_traces_safe_no_visitall_20260708_122431"),
-    Path("outputs/phase3_curriculum_traces_visitall_20260708_191916"),
-    Path("outputs/phase3_curriculum_traces_visitall_train_test_long_timeout_20260710_000503"),
+    Path("outputs/reasoning_traces/curriculum/phase3_curriculum_traces_safe_no_visitall_strict_v1_1st_round"),
 )
+CURRENT_IMAGE_FRAME_ROOT = Path("outputs/image_frames/phase3_planimation_frames_stratified_pilot_20260725")
+CURRENT_SELECTION_CACHE_ROOT = Path("outputs/image_frames/phase3_planimation_frames_safe_no_visitall_strict_v1_20260722_005800")
+CURRENT_TEXT_RECORD_ROOT = Path("outputs/reasoning_traces/vlm_records/stratified_pilot_20260725")
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 
 

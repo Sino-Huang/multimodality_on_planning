@@ -1,0 +1,242 @@
+...........F.....F                                                       [100%]
+=================================== FAILURES ===================================
+___________ test_deep_receipt_json_is_translated_to_inventory_error ____________
+
+tmp_path = PosixPath('/tmp/pytest-of-sukaih/pytest-935/test_deep_receipt_json_is_tran0')
+
+    def test_deep_receipt_json_is_translated_to_inventory_error(tmp_path: Path) -> None:
+        receipt_path = tmp_path / "receipt.json"
+        receipt_path.write_text("[" * 1_500 + "0" + "]" * 1_500, encoding="utf-8")
+    
+        with pytest.raises(OutputLayoutInventoryError, match="invalid receipt JSON"):
+>           read_receipt(receipt_path)
+
+tests/phase3/test_output_layout_acceptance_security.py:197: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/scratch/punim0478/sukaih/multimodality_on_planning/scripts/phase3/output_layout_receipt.py:30: in read_receipt
+    descriptor = _open_receipt(parent_descriptor, receipt_path.name, receipt_path)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+parent_descriptor = 12, receipt_name = 'receipt.json'
+receipt_path = PosixPath('/tmp/pytest-of-sukaih/pytest-935/test_deep_receipt_json_is_tran0/receipt.json')
+
+    def open_receipt(
+        parent_descriptor: int,
+        receipt_name: str,
+        receipt_path: Path,
+        *,
+        fstat_operation: Callable[[int], os.stat_result] = os.fstat,
+    ) -> int:
+        try:
+            descriptor = _open_descriptor(
+                receipt_name,
+                os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0),
+                dir_fd=parent_descriptor,
+            )
+        except OSError as error:
+            raise OutputLayoutInventoryError(f"receipt path must be a regular file: {receipt_path}") from error
+        is_valid = False
+        try:
+            opened_stat = fstat_operation(descriptor)
+            if not stat.S_ISREG(opened_stat.st_mode):
+                raise OutputLayoutInventoryError(f"receipt path must be a regular file: {receipt_path}")
+            if stat.S_IMODE(opened_stat.st_mode) != 0o600:
+>               raise OutputLayoutInventoryError(f"receipt path must have mode 0600: {receipt_path}")
+E               scripts.phase3.output_layout_inventory_types.OutputLayoutInventoryError: receipt path must have mode 0600: /tmp/pytest-of-sukaih/pytest-935/test_deep_receipt_json_is_tran0/receipt.json
+
+/scratch/punim0478/sukaih/multimodality_on_planning/scripts/phase3/output_layout_receipt_io.py:76: OutputLayoutInventoryError
+
+During handling of the above exception, another exception occurred:
+
+tmp_path = PosixPath('/tmp/pytest-of-sukaih/pytest-935/test_deep_receipt_json_is_tran0')
+
+    def test_deep_receipt_json_is_translated_to_inventory_error(tmp_path: Path) -> None:
+        receipt_path = tmp_path / "receipt.json"
+        receipt_path.write_text("[" * 1_500 + "0" + "]" * 1_500, encoding="utf-8")
+    
+>       with pytest.raises(OutputLayoutInventoryError, match="invalid receipt JSON"):
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'invalid receipt JSON'
+E         Actual message: 'receipt path must have mode 0600: /tmp/pytest-of-sukaih/pytest-935/test_deep_receipt_json_is_tran0/receipt.json'
+
+tests/phase3/test_output_layout_acceptance_security.py:196: AssertionError
+________ test_new_view_revalidates_protected_content_after_publication _________
+
+repo_root = PosixPath('/tmp/pytest-of-sukaih/pytest-935/test_new_view_revalidates_prot0')
+
+    def create_output_layout_view(repo_root: Path) -> None:
+        """Create or verify the immutable Phase 3 navigation symlink view."""
+        repository = _repository_root(repo_root)
+        plan = _preflight(repository)
+        outputs_root = repository / "outputs"
+        try:
+            outputs_descriptor = output_layout_view_fs.open_repository(outputs_root)
+        except OSError as error:
+            raise OutputLayoutViewError((OutputLayoutViewViolation("outputs root changed after preflight", outputs_root),)) from error
+        try:
+            _revalidate_plan(outputs_descriptor, outputs_root, plan)
+            if len(plan.existing_destinations) == len(plan.links):
+                output_layout_view_stage.validate_existing(
+                    outputs_descriptor, Path(VIEW_ROOT).relative_to("outputs"), plan.links
+                )
+                _verify_all_links(outputs_descriptor, outputs_root, plan, [])
+                return
+            if plan.existing_destinations:
+                raise OutputLayoutViewError((OutputLayoutViewViolation("canonical view is incomplete", outputs_root / VIEW_ROOT),))
+            root = Path(VIEW_ROOT).relative_to("outputs")
+            parent_descriptor, suffix = output_layout_view_stage.locate_missing_ancestor(outputs_descriptor, root)
+            stage: output_layout_view_stage.PrivateStage | None = None
+            interrupted = False
+            try:
+                stage = output_layout_view_stage.create_private_stage(parent_descriptor, suffix)
+                _revalidate_plan(outputs_descriptor, outputs_root, plan)
+                stage = output_layout_view_stage.create_tree(
+                    stage, plan.links, lambda: _revalidate_plan(outputs_descriptor, outputs_root, plan)
+                )
+                _revalidate_plan(outputs_descriptor, outputs_root, plan)
+                output_layout_view_stage.validate_tree(stage, plan.links)
+                _revalidate_plan(outputs_descriptor, outputs_root, plan)
+                output_layout_view_stage.fsync_tree(stage)
+                _revalidate_plan(outputs_descriptor, outputs_root, plan)
+                output_layout_view_stage.publish(stage, suffix.parts[0])
+                _verify_all_links(outputs_descriptor, outputs_root, plan, [])
+                os.close(stage.descriptor)
+                stage = None
+            except KeyboardInterrupt:
+                interrupted = True
+                raise
+            finally:
+                if stage is not None:
+                    try:
+>                       output_layout_view_stage.cleanup(stage)
+
+/scratch/punim0478/sukaih/multimodality_on_planning/scripts/phase3/output_layout_view.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+stage = PrivateStage(parent_descriptor=14, name='.phase3-view-stage-f037d739fb6c07ada0fd62461508239b', descriptor=15, identity..._20260725/provenance/frozen_selection.json'), identity=StageIdentity(device=2049, inode=1073832168, file_type=40960))))
+
+    def cleanup(stage: PrivateStage) -> None:
+        """Remove only a still-owned private stage, never an ambiguous replacement."""
+        try:
+            named_status = os.stat(stage.name, dir_fd=stage.parent_descriptor, follow_symlinks=False)
+        except FileNotFoundError:
+>           raise OSError("private stage is missing before cleanup") from None
+E           OSError: private stage is missing before cleanup
+
+/scratch/punim0478/sukaih/multimodality_on_planning/scripts/phase3/output_layout_view_stage.py:153: OSError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/tmp/pytest-of-sukaih/pytest-935/test_new_view_revalidates_prot0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x14a3c851a910>
+
+    def test_new_view_revalidates_protected_content_after_publication(
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        _seed_protected_targets(tmp_path)
+        target = tmp_path / EXPECTED_LINKS[0][1]
+        original_publish = output_layout_view_stage.publish
+    
+        def publish_then_mutate(stage: output_layout_view_stage.PrivateStage, final_name: str) -> None:
+            original_publish(stage, final_name)
+            target.write_text("changed after publication\n", encoding="utf-8")
+    
+        monkeypatch.setattr(output_layout_view_stage, "publish", publish_then_mutate)
+    
+        with pytest.raises(OutputLayoutViewError, match="protected target changed"):
+>           create_output_layout_view(tmp_path)
+
+tests/phase3/test_output_layout_acceptance_security.py:321: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+repo_root = PosixPath('/tmp/pytest-of-sukaih/pytest-935/test_new_view_revalidates_prot0')
+
+    def create_output_layout_view(repo_root: Path) -> None:
+        """Create or verify the immutable Phase 3 navigation symlink view."""
+        repository = _repository_root(repo_root)
+        plan = _preflight(repository)
+        outputs_root = repository / "outputs"
+        try:
+            outputs_descriptor = output_layout_view_fs.open_repository(outputs_root)
+        except OSError as error:
+            raise OutputLayoutViewError((OutputLayoutViewViolation("outputs root changed after preflight", outputs_root),)) from error
+        try:
+            _revalidate_plan(outputs_descriptor, outputs_root, plan)
+            if len(plan.existing_destinations) == len(plan.links):
+                output_layout_view_stage.validate_existing(
+                    outputs_descriptor, Path(VIEW_ROOT).relative_to("outputs"), plan.links
+                )
+                _verify_all_links(outputs_descriptor, outputs_root, plan, [])
+                return
+            if plan.existing_destinations:
+                raise OutputLayoutViewError((OutputLayoutViewViolation("canonical view is incomplete", outputs_root / VIEW_ROOT),))
+            root = Path(VIEW_ROOT).relative_to("outputs")
+            parent_descriptor, suffix = output_layout_view_stage.locate_missing_ancestor(outputs_descriptor, root)
+            stage: output_layout_view_stage.PrivateStage | None = None
+            interrupted = False
+            try:
+                stage = output_layout_view_stage.create_private_stage(parent_descriptor, suffix)
+                _revalidate_plan(outputs_descriptor, outputs_root, plan)
+                stage = output_layout_view_stage.create_tree(
+                    stage, plan.links, lambda: _revalidate_plan(outputs_descriptor, outputs_root, plan)
+                )
+                _revalidate_plan(outputs_descriptor, outputs_root, plan)
+                output_layout_view_stage.validate_tree(stage, plan.links)
+                _revalidate_plan(outputs_descriptor, outputs_root, plan)
+                output_layout_view_stage.fsync_tree(stage)
+                _revalidate_plan(outputs_descriptor, outputs_root, plan)
+                output_layout_view_stage.publish(stage, suffix.parts[0])
+                _verify_all_links(outputs_descriptor, outputs_root, plan, [])
+                os.close(stage.descriptor)
+                stage = None
+            except KeyboardInterrupt:
+                interrupted = True
+                raise
+            finally:
+                if stage is not None:
+                    try:
+                        output_layout_view_stage.cleanup(stage)
+                    except OSError:
+                        if not interrupted:
+                            raise
+                    finally:
+                        os.close(stage.descriptor)
+                os.close(parent_descriptor)
+        except (OSError, OutputLayoutViewError) as error:
+            violations = _failure_violations(error, repository)
+>           raise OutputLayoutViewError(violations) from error
+E           scripts.phase3.output_layout_view_types.OutputLayoutViewError: filesystem mutation failed: /tmp/pytest-of-sukaih/pytest-935/test_new_view_revalidates_prot0
+
+/scratch/punim0478/sukaih/multimodality_on_planning/scripts/phase3/output_layout_view.py:73: OutputLayoutViewError
+
+During handling of the above exception, another exception occurred:
+
+tmp_path = PosixPath('/tmp/pytest-of-sukaih/pytest-935/test_new_view_revalidates_prot0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x14a3c851a910>
+
+    def test_new_view_revalidates_protected_content_after_publication(
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        _seed_protected_targets(tmp_path)
+        target = tmp_path / EXPECTED_LINKS[0][1]
+        original_publish = output_layout_view_stage.publish
+    
+        def publish_then_mutate(stage: output_layout_view_stage.PrivateStage, final_name: str) -> None:
+            original_publish(stage, final_name)
+            target.write_text("changed after publication\n", encoding="utf-8")
+    
+        monkeypatch.setattr(output_layout_view_stage, "publish", publish_then_mutate)
+    
+>       with pytest.raises(OutputLayoutViewError, match="protected target changed"):
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'protected target changed'
+E         Actual message: 'filesystem mutation failed: /tmp/pytest-of-sukaih/pytest-935/test_new_view_revalidates_prot0'
+
+tests/phase3/test_output_layout_acceptance_security.py:320: AssertionError
+=========================== short test summary info ============================
+FAILED tests/phase3/test_output_layout_acceptance_security.py::test_deep_receipt_json_is_translated_to_inventory_error
+FAILED tests/phase3/test_output_layout_acceptance_security.py::test_new_view_revalidates_protected_content_after_publication
+2 failed, 16 passed in 0.39s

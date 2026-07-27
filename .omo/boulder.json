@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "active_work_id": "planimation-hybrid-traversal-rendering",
+  "active_work_id": "outputs-vlm-dataset-layout",
   "works": {
     "planimation-hybrid-traversal-rendering": {
       "work_id": "planimation-hybrid-traversal-rendering",
@@ -10,7 +10,32 @@
         "codex:opencode:ses_09cc33d58ffePfbP5HRr00wCZ7",
         "codex:opencode:ses_09964dc0cfferuEvG3FH5an6BT"
       ],
-      "status": "active",
+      "status": "paused",
+      "worktree_path": null
+    },
+    "planimation-pilot-contract-and-render-recovery": {
+      "work_id": "planimation-pilot-contract-and-render-recovery",
+      "active_plan": ".omo/plans/planimation-pilot-contract-and-render-recovery.md",
+      "plan_name": "planimation-pilot-contract-and-render-recovery",
+      "session_ids": [
+        "codex:opencode:ses_09964dc0cfferuEvG3FH5an6BT"
+      ],
+      "status": "completed",
+      "started_at": "2026-07-25T07:28:25.550Z",
+      "recovery_note": "Implementation-capable Sisyphus-Junior is available through the local `opencode run --agent` delegation surface after the built-in explore workers proved read-only.",
+      "worktree_path": null
+    },
+    "outputs-vlm-dataset-layout": {
+      "work_id": "outputs-vlm-dataset-layout",
+      "active_plan": ".omo/plans/outputs-vlm-dataset-layout.md",
+      "plan_name": "outputs-vlm-dataset-layout",
+      "session_ids": [
+        "codex:opencode:outputs-vlm-dataset-layout-20260726",
+        "codex:019fa212-9e47-7263-88c7-180d91b02a31"
+      ],
+      "status": "blocked",
+      "started_at": "2026-07-26T20:20:00+10:00",
+      "blocked_reason": "All 11 plan checkboxes are complete, but the mandatory final review/debugging gate cannot be dispatched because the agent-thread pool is exhausted after repeated bounded retries.",
       "worktree_path": null
     }
   }

@@ -1,0 +1,39 @@
+{
+  "actual_attempts": 1,
+  "domain": "logistics",
+  "domain_path": "data/curriculum_pddl/logistics/dev/easy/logistics-dev-easy-0000/domain.pddl",
+  "endpoint": "https://planimation.planning.domains",
+  "max_attempts": 3,
+  "png_sha256": "5a8b6fefdc6cd88c0ad6598175e24d25a13a4cef7b2fa1884db5a86efbd03933",
+  "profile_path": "data/pddl_instances/logistics/logistics_ap.pddl",
+  "profile_selector_contract": {
+    "city": "%c",
+    "hub_location": "%l",
+    "package": "%p",
+    "plane": "%a",
+    "truck": "%t"
+  },
+  "profile_sha256": "c9aaa88d16da3c53a3fb4f2b01dfbf507aeda509a92635a877a02ee5bf293f79",
+  "renderer_status": "success",
+  "retained_problem_path": "outputs/phase3_planimation_frames_stratified_pilot_20260725/state_cache/logistics/logistics-dev-easy-0000/aafbb36bf14f9f280372eee564186b70/problem.pddl",
+  "retained_problem_sha256": "fad7392a54be1e263fb5741c2d170965aebc4ffa9ff198e96c17c14542580c63",
+  "semantic_receipt": {
+    "covered_sprite_count": 11,
+    "minimum_object_coverage": 0.01,
+    "png_dimensions": [
+      1024,
+      1024
+    ],
+    "reason": "validated_expected_object_coverage",
+    "sprite_count": 11,
+    "status": "success"
+  },
+  "source_pair_ids": [
+    "5fefbb97b33a6e5126c7674dbd73e149",
+    "82e067f84fc6eab1523cb05eb2939eca"
+  ],
+  "stage_zero_sprite_count": 11,
+  "timeout_seconds": 90,
+  "trace_sha256": "108b152656aa3e4e88edaceeb9af17badf0eea0bb0136741cef38248435c1701",
+  "used_pddl_url": "https://planimation.planning.domains/upload/pddl"
+}

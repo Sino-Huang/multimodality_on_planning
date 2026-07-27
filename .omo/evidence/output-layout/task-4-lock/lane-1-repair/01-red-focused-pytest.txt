@@ -1,0 +1,130 @@
+$ source ~/cd_vlaplan && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 TMPDIR=/tmp pytest -q --tb=short tests/phase3/test_output_layout_lock.py
+Conda environment 'ada_vla' is already activated.
+...........FFFF....FFFFFFF..                                             [100%]
+=================================== FAILURES ===================================
+_ test_preexisting_legacy_lock_path_is_ignored_without_mutation[symlink-shared] _
+/scratch/punim0478/sukaih/multimodality_on_planning/scripts/phase3/output_layout_lock.py:66: in _open_lock_file
+    descriptor = os.open(lock_path, _LOCK_OPEN_FLAGS, 0o600)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   OSError: [Errno 40] Too many levels of symbolic links: '/tmp/pytest-of-sukaih/pytest-1343/test_preexisting_legacy_lock_p0/repository/.phase3-output-layout.lock'
+
+The above exception was the direct cause of the following exception:
+tests/phase3/test_output_layout_lock.py:249: in test_preexisting_legacy_lock_path_is_ignored_without_mutation
+    with LOCK_FACTORIES[mode](repository):
+/home/sukaih/.local/share/uv/python/cpython-3.11.14-linux-x86_64-gnu/lib/python3.11/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+/scratch/punim0478/sukaih/multimodality_on_planning/scripts/phase3/output_layout_lock.py:37: in _output_layout_lock
+    descriptor = _open_lock_file(lock_path)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+/scratch/punim0478/sukaih/multimodality_on_planning/scripts/phase3/output_layout_lock.py:68: in _open_lock_file
+    raise OutputLayoutLockError(rule="output-layout lock path cannot be opened safely", path=lock_path) from error
+E   scripts.phase3.output_layout_lock.OutputLayoutLockError: output-layout lock path cannot be opened safely: /tmp/pytest-of-sukaih/pytest-1343/test_preexisting_legacy_lock_p0/repository/.phase3-output-layout.lock
+_ test_preexisting_legacy_lock_path_is_ignored_without_mutation[symlink-exclusive] _
+/scratch/punim0478/sukaih/multimodality_on_planning/scripts/phase3/output_layout_lock.py:66: in _open_lock_file
+    descriptor = os.open(lock_path, _LOCK_OPEN_FLAGS, 0o600)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   OSError: [Errno 40] Too many levels of symbolic links: '/tmp/pytest-of-sukaih/pytest-1343/test_preexisting_legacy_lock_p1/repository/.phase3-output-layout.lock'
+
+The above exception was the direct cause of the following exception:
+tests/phase3/test_output_layout_lock.py:249: in test_preexisting_legacy_lock_path_is_ignored_without_mutation
+    with LOCK_FACTORIES[mode](repository):
+/home/sukaih/.local/share/uv/python/cpython-3.11.14-linux-x86_64-gnu/lib/python3.11/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+/scratch/punim0478/sukaih/multimodality_on_planning/scripts/phase3/output_layout_lock.py:37: in _output_layout_lock
+    descriptor = _open_lock_file(lock_path)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+/scratch/punim0478/sukaih/multimodality_on_planning/scripts/phase3/output_layout_lock.py:68: in _open_lock_file
+    raise OutputLayoutLockError(rule="output-layout lock path cannot be opened safely", path=lock_path) from error
+E   scripts.phase3.output_layout_lock.OutputLayoutLockError: output-layout lock path cannot be opened safely: /tmp/pytest-of-sukaih/pytest-1343/test_preexisting_legacy_lock_p1/repository/.phase3-output-layout.lock
+_ test_preexisting_legacy_lock_path_is_ignored_without_mutation[directory-shared] _
+/scratch/punim0478/sukaih/multimodality_on_planning/scripts/phase3/output_layout_lock.py:66: in _open_lock_file
+    descriptor = os.open(lock_path, _LOCK_OPEN_FLAGS, 0o600)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   IsADirectoryError: [Errno 21] Is a directory: '/tmp/pytest-of-sukaih/pytest-1343/test_preexisting_legacy_lock_p2/repository/.phase3-output-layout.lock'
+
+The above exception was the direct cause of the following exception:
+tests/phase3/test_output_layout_lock.py:249: in test_preexisting_legacy_lock_path_is_ignored_without_mutation
+    with LOCK_FACTORIES[mode](repository):
+/home/sukaih/.local/share/uv/python/cpython-3.11.14-linux-x86_64-gnu/lib/python3.11/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+/scratch/punim0478/sukaih/multimodality_on_planning/scripts/phase3/output_layout_lock.py:37: in _output_layout_lock
+    descriptor = _open_lock_file(lock_path)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+/scratch/punim0478/sukaih/multimodality_on_planning/scripts/phase3/output_layout_lock.py:68: in _open_lock_file
+    raise OutputLayoutLockError(rule="output-layout lock path cannot be opened safely", path=lock_path) from error
+E   scripts.phase3.output_layout_lock.OutputLayoutLockError: output-layout lock path cannot be opened safely: /tmp/pytest-of-sukaih/pytest-1343/test_preexisting_legacy_lock_p2/repository/.phase3-output-layout.lock
+_ test_preexisting_legacy_lock_path_is_ignored_without_mutation[directory-exclusive] _
+/scratch/punim0478/sukaih/multimodality_on_planning/scripts/phase3/output_layout_lock.py:66: in _open_lock_file
+    descriptor = os.open(lock_path, _LOCK_OPEN_FLAGS, 0o600)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   IsADirectoryError: [Errno 21] Is a directory: '/tmp/pytest-of-sukaih/pytest-1343/test_preexisting_legacy_lock_p3/repository/.phase3-output-layout.lock'
+
+The above exception was the direct cause of the following exception:
+tests/phase3/test_output_layout_lock.py:249: in test_preexisting_legacy_lock_path_is_ignored_without_mutation
+    with LOCK_FACTORIES[mode](repository):
+/home/sukaih/.local/share/uv/python/cpython-3.11.14-linux-x86_64-gnu/lib/python3.11/contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+/scratch/punim0478/sukaih/multimodality_on_planning/scripts/phase3/output_layout_lock.py:37: in _output_layout_lock
+    descriptor = _open_lock_file(lock_path)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+/scratch/punim0478/sukaih/multimodality_on_planning/scripts/phase3/output_layout_lock.py:68: in _open_lock_file
+    raise OutputLayoutLockError(rule="output-layout lock path cannot be opened safely", path=lock_path) from error
+E   scripts.phase3.output_layout_lock.OutputLayoutLockError: output-layout lock path cannot be opened safely: /tmp/pytest-of-sukaih/pytest-1343/test_preexisting_legacy_lock_p3/repository/.phase3-output-layout.lock
+_____________ test_lock_never_creates_the_legacy_lock_path[shared] _____________
+tests/phase3/test_output_layout_lock.py:312: in test_lock_never_creates_the_legacy_lock_path
+    assert not legacy_lock_path.exists()
+E   AssertionError: assert not True
+E    +  where True = exists()
+E    +    where exists = PosixPath('/tmp/pytest-of-sukaih/pytest-1343/test_lock_never_creates_the_le0/repository/.phase3-output-layout.lock').exists
+___________ test_lock_never_creates_the_legacy_lock_path[exclusive] ____________
+tests/phase3/test_output_layout_lock.py:312: in test_lock_never_creates_the_legacy_lock_path
+    assert not legacy_lock_path.exists()
+E   AssertionError: assert not True
+E    +  where True = exists()
+E    +    where exists = PosixPath('/tmp/pytest-of-sukaih/pytest-1343/test_lock_never_creates_the_le1/repository/.phase3-output-layout.lock').exists
+_ test_replacing_legacy_path_during_exclusive_hold_does_not_admit_shared_holder _
+tests/phase3/test_output_layout_lock.py:337: in test_replacing_legacy_path_during_exclusive_hold_does_not_admit_shared_holder
+    assert not second.entered.poll(BLOCKED_POLL_SECONDS)
+E   AssertionError: assert not True
+E    +  where True = poll(0.2)
+E    +    where poll = <multiprocessing.connection.Connection object at 0x148a375f69d0>.poll
+E    +      where <multiprocessing.connection.Connection object at 0x148a375f69d0> = Holder(process=<SpawnProcess name='SpawnProcess-11' pid=227003 parent=222348 started>, attempted=<multiprocessing.connection.Connection object at 0x148a375f8bd0>, entered=<multiprocessing.connection.Connection object at 0x148a375f69d0>, release=<multiprocessing.connection.Connection object at 0x148a375f6ed0>).entered
+______ test_descriptor_identity_is_checked_before_and_after_flock[shared] ______
+tests/phase3/test_output_layout_lock.py:379: in test_descriptor_identity_is_checked_before_and_after_flock
+    assert "fstat" in events[acquire_index + 1 : body_index]
+E   AssertionError: assert 'fstat' in []
+____ test_descriptor_identity_is_checked_before_and_after_flock[exclusive] _____
+tests/phase3/test_output_layout_lock.py:379: in test_descriptor_identity_is_checked_before_and_after_flock
+    assert "fstat" in events[acquire_index + 1 : body_index]
+E   AssertionError: assert 'fstat' in []
+__ test_repository_descriptor_remains_open_for_the_full_lock_context[shared] ___
+tests/phase3/test_output_layout_lock.py:419: in test_repository_descriptor_remains_open_for_the_full_lock_context
+    assert (descriptor_status.st_dev, descriptor_status.st_ino) == (
+E   assert (2049, 81493) == (2049, 81492)
+E     
+E     At index 1 diff: 81493 != 81492
+E     Use -v to get more diff
+_ test_repository_descriptor_remains_open_for_the_full_lock_context[exclusive] _
+tests/phase3/test_output_layout_lock.py:419: in test_repository_descriptor_remains_open_for_the_full_lock_context
+    assert (descriptor_status.st_dev, descriptor_status.st_ino) == (
+E   assert (2049, 2149063589) == (2049, 2149063588)
+E     
+E     At index 1 diff: 2149063589 != 2149063588
+E     Use -v to get more diff
+=========================== short test summary info ============================
+FAILED tests/phase3/test_output_layout_lock.py::test_preexisting_legacy_lock_path_is_ignored_without_mutation[symlink-shared]
+FAILED tests/phase3/test_output_layout_lock.py::test_preexisting_legacy_lock_path_is_ignored_without_mutation[symlink-exclusive]
+FAILED tests/phase3/test_output_layout_lock.py::test_preexisting_legacy_lock_path_is_ignored_without_mutation[directory-shared]
+FAILED tests/phase3/test_output_layout_lock.py::test_preexisting_legacy_lock_path_is_ignored_without_mutation[directory-exclusive]
+FAILED tests/phase3/test_output_layout_lock.py::test_lock_never_creates_the_legacy_lock_path[shared]
+FAILED tests/phase3/test_output_layout_lock.py::test_lock_never_creates_the_legacy_lock_path[exclusive]
+FAILED tests/phase3/test_output_layout_lock.py::test_replacing_legacy_path_during_exclusive_hold_does_not_admit_shared_holder
+FAILED tests/phase3/test_output_layout_lock.py::test_descriptor_identity_is_checked_before_and_after_flock[shared]
+FAILED tests/phase3/test_output_layout_lock.py::test_descriptor_identity_is_checked_before_and_after_flock[exclusive]
+FAILED tests/phase3/test_output_layout_lock.py::test_repository_descriptor_remains_open_for_the_full_lock_context[shared]
+FAILED tests/phase3/test_output_layout_lock.py::test_repository_descriptor_remains_open_for_the_full_lock_context[exclusive]
+11 failed, 17 passed in 10.91s

@@ -27,12 +27,40 @@ from scripts.phase3.planimation_pairing import (
     validate_state_render_record,
     validate_vlm_record,
 )
+from scripts.phase3.rollout_gate_selection import has_valid_selection_pair_contract, is_lowercase_sha256
 from scripts.phase3.traversal_state_types import JSONValue
 
 Split = Literal["train", "dev", "test"]
 Mode = Literal["manifest", "render", "release"]
 SPLITS: tuple[Split, ...] = ("train", "dev", "test")
 JSONRecord = dict[str, JSONValue]
+
+
+@dataclass(frozen=True, slots=True)
+class SelectionPair:
+    pair_id: str
+    split: str
+    source_root: str
+    source_jsonl: str
+    source_line_index: int
+    source_record_sha256: str
+    source_root_sha256: str
+    source_split_sha256: str
+    plan_hash: str
+    planner: str
+    domain: str
+    bucket: str
+    source_root_id: str | None
+    example_id: str | None
+    active_planner_id: str | None
+    instance_id: str | None
+
+
+@dataclass(frozen=True, slots=True)
+class SelectionContract:
+    selected_pair_ids: frozenset[str]
+    selected_pairs: tuple[SelectionPair, ...]
+    input_pairing_manifest_sha256: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -43,9 +71,12 @@ class VerificationFailure(RuntimeError):
         return "\n".join(self.reasons)
 
 
-def verify_output(output_root: Path, mode: Mode) -> JSONRecord:
+def verify_output(output_root: Path, mode: Mode, selection_file: Path | None = None) -> JSONRecord:
     """Verify the requested Planimation artifact boundary without mutation."""
+    selection = _load_selection(selection_file) if selection_file is not None else None
     manifest = _validate_manifest(output_root)
+    if selection is not None:
+        _validate_selection(manifest, selection)
     match mode:
         case "manifest":
             return {"mode": mode, "counts": {"pair_records": len(manifest)}}
@@ -72,6 +103,8 @@ def _validate_manifest(output_root: Path) -> list[JSONRecord]:
     _require_json(output_root / "schema" / "pairing_manifest.schema.json", failure_type=VerificationFailure)
     errors: list[str] = []
     pair_ids: set[str] = set()
+    source_snapshots: dict[str, dict[str, str]] = {}
+    source_rows: dict[str, dict[int, tuple[bytes, JSONRecord]]] = {}
     for pair in pairs:
         errors.extend(validate_pair_record(pair))
         pair_id = str(pair.get("pair_id", ""))
@@ -79,7 +112,7 @@ def _validate_manifest(output_root: Path) -> list[JSONRecord]:
             errors.append("duplicate pair_id")
         pair_ids.add(pair_id)
         try:
-            _load_source_example(pair)
+            _load_source_example(pair, source_snapshots=source_snapshots, source_rows=source_rows)
         except RuntimeError as exc:
             errors.append(str(exc))
     _raise_if_errors(errors)
@@ -165,3 +198,153 @@ def _record_errors(records: list[JSONRecord]) -> list[str]:
 def _raise_if_errors(errors: list[str]) -> None:
     if errors:
         raise VerificationFailure(tuple(sorted(set(errors))))
+
+
+def _load_selection(path: Path) -> SelectionContract:
+    selection = _require_json(path, failure_type=VerificationFailure)
+    errors: list[str] = []
+    if selection.get("artifact_kind") != "planimation_rollout_selection_v1":
+        errors.append("invalid selection artifact kind")
+    manifest_hash = selection.get("input_pairing_manifest_sha256")
+    if not is_lowercase_sha256(manifest_hash):
+        errors.append("selection input_pairing_manifest_sha256")
+    raw_ids = selection.get("selected_pair_ids")
+    selected_ids: tuple[str, ...] = ()
+    if not isinstance(raw_ids, list) or not raw_ids:
+        errors.append("selection selected_pair_ids")
+    else:
+        selected_ids = tuple(value for value in raw_ids if isinstance(value, str) and value)
+        if len(selected_ids) != len(raw_ids):
+            errors.append("selection selected_pair_ids")
+        if len(selected_ids) != len(set(selected_ids)):
+            errors.append("duplicate selected pair_id")
+    raw_pairs = selection.get("selected_pairs")
+    frozen_pairs: list[SelectionPair] = []
+    if not isinstance(raw_pairs, list) or not raw_pairs or not all(isinstance(pair, dict) for pair in raw_pairs):
+        errors.append("selection selected_pairs")
+    else:
+        for raw_pair in raw_pairs:
+            parsed_pair = _parse_selection_pair(raw_pair, errors)
+            if parsed_pair is not None:
+                frozen_pairs.append(parsed_pair)
+    if len(frozen_pairs) != len({pair.pair_id for pair in frozen_pairs}):
+        errors.append("duplicate selected pair")
+    if not has_valid_selection_pair_contract(raw_ids, raw_pairs):
+        errors.append("selection pair IDs mismatch")
+    _raise_if_errors(errors)
+    assert isinstance(manifest_hash, str) and manifest_hash
+    return SelectionContract(frozenset(selected_ids), tuple(frozen_pairs), manifest_hash)
+
+
+def _parse_selection_pair(pair: JSONRecord, errors: list[str]) -> SelectionPair | None:
+    pair_id = _selection_string(pair, "pair_id", errors)
+    split = _selection_string(pair, "split", errors)
+    source_root = _selection_string(pair, "source_root", errors)
+    source_jsonl = _selection_string(pair, "source_jsonl", errors)
+    source_line_index = _selection_line_index(pair, errors)
+    source_record_sha256 = _selection_string(pair, "source_record_sha256", errors)
+    source_root_sha256 = _selection_string(pair, "source_root_sha256", errors)
+    source_split_sha256 = _selection_string(pair, "source_split_sha256", errors)
+    plan_hash = _selection_string(pair, "plan_hash", errors)
+    planner = _selection_string(pair, "planner", errors)
+    domain = _selection_string(pair, "domain", errors)
+    bucket = _selection_string(pair, "bucket", errors)
+    source_root_id = _optional_selection_string(pair, "source_root_id", errors)
+    example_id = _optional_selection_string(pair, "example_id", errors)
+    active_planner_id = _optional_selection_string(pair, "active_planner_id", errors)
+    instance_id = _optional_selection_string(pair, "instance_id", errors)
+    if (
+        pair_id is None
+        or split is None
+        or source_root is None
+        or source_jsonl is None
+        or source_line_index is None
+        or source_record_sha256 is None
+        or source_root_sha256 is None
+        or source_split_sha256 is None
+        or plan_hash is None
+        or planner is None
+        or domain is None
+        or bucket is None
+    ):
+        return None
+    return SelectionPair(
+        pair_id,
+        split,
+        source_root,
+        source_jsonl,
+        source_line_index,
+        source_record_sha256,
+        source_root_sha256,
+        source_split_sha256,
+        plan_hash,
+        planner,
+        domain,
+        bucket,
+        source_root_id,
+        example_id,
+        active_planner_id,
+        instance_id,
+    )
+
+
+def _selection_string(pair: JSONRecord, field: str, errors: list[str]) -> str | None:
+    if field not in pair:
+        errors.append(f"selection pair missing {field}")
+        return None
+    value = pair[field]
+    if not isinstance(value, str) or not value:
+        errors.append(f"selection {field}")
+        return None
+    return value
+
+
+def _optional_selection_string(pair: JSONRecord, field: str, errors: list[str]) -> str | None:
+    if field not in pair:
+        return None
+    return _selection_string(pair, field, errors)
+
+
+def _selection_line_index(pair: JSONRecord, errors: list[str]) -> int | None:
+    field = "source_line_index"
+    if field not in pair:
+        errors.append(f"selection pair missing {field}")
+        return None
+    value = pair[field]
+    if type(value) is not int:
+        errors.append("selection source_line_index")
+        return None
+    return value
+
+
+def _validate_selection(manifest: list[JSONRecord], selection: SelectionContract) -> None:
+    errors: list[str] = []
+    manifest_by_id = {str(pair.get("pair_id")): pair for pair in manifest}
+    manifest_ids = frozenset(manifest_by_id)
+    if manifest_ids != selection.selected_pair_ids:
+        errors.append("selection pair set mismatch")
+    for selected in selection.selected_pairs:
+        actual = manifest_by_id.get(selected.pair_id)
+        if actual is None:
+            continue
+        for field, expected in (
+            ("pair_id", selected.pair_id),
+            ("split", selected.split),
+            ("source_root", selected.source_root),
+            ("source_jsonl", selected.source_jsonl),
+            ("source_line_index", selected.source_line_index),
+            ("source_record_sha256", selected.source_record_sha256),
+            ("source_root_sha256", selected.source_root_sha256),
+            ("source_split_sha256", selected.source_split_sha256),
+            ("plan_hash", selected.plan_hash),
+            ("planner", selected.planner),
+            ("domain", selected.domain),
+            ("bucket", selected.bucket),
+            ("source_root_id", selected.source_root_id),
+            ("example_id", selected.example_id),
+            ("active_planner_id", selected.active_planner_id),
+            ("instance_id", selected.instance_id),
+        ):
+            if expected is not None and actual.get(field) != expected:
+                errors.append(f"selection provenance mismatch: {selected.pair_id}:{field}")
+    _raise_if_errors(errors)

@@ -1,0 +1,22 @@
+tests/phase3/test_organize_outputs.py::test_apply_and_verify_create_exact_three_category_layout
+tests/phase3/test_organize_outputs.py::test_destination_collision_preserves_source
+tests/phase3/test_organize_outputs.py::test_quarantines_valid_failed_receipt_sidecars
+
+==================================== ERRORS ====================================
+______ ERROR collecting tests/phase3/test_organize_outputs_adversarial.py ______
+ImportError while importing test module '/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/tests/phase3/test_organize_outputs_adversarial.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/home/sukaih/miniconda3/envs/ada_vla/lib/python3.10/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/phase3/test_organize_outputs_adversarial.py:11: in <module>
+    from scripts.phase3 import organize_outputs_preflight
+/scratch/punim0478/sukaih/multimodality_on_planning/scripts/phase3/organize_outputs_preflight.py:9: in <module>
+    from .output_layout_view_plan import preflight as preflight_view
+/scratch/punim0478/sukaih/multimodality_on_planning/scripts/phase3/output_layout_view_plan.py:9: in <module>
+    from .output_layout_contracts import DEFAULT_OUTPUT_LAYOUT, VIEW_ROOT, ViewTargetKind, validate_output_layout
+E   ImportError: cannot import name 'VIEW_ROOT' from 'scripts.phase3.output_layout_contracts' (/scratch/punim0478/sukaih/multimodality_on_planning/scripts/phase3/output_layout_contracts.py)
+=========================== short test summary info ============================
+ERROR tests/phase3/test_organize_outputs_adversarial.py
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+3 tests collected, 1 error in 0.34s

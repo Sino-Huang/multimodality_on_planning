@@ -1,0 +1,1 @@
+I read this as a scoped, read-only final-review audit: I’ll reconcile the repair’s code, history, plans/reviews, repository state, and the required manual-QA command against SHA `feb0309a96e0e457e3b1f90d482ec8e020f59503`, then issue a bound verdict.

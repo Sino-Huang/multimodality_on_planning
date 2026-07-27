@@ -1,0 +1,7 @@
+{
+  "attempts": 1,
+  "frame_path": ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-5-planimation-pilot-contract-and-render-recovery/elevators-repaired-global-lanes-attempt/frames/frame_000.png",
+  "status": "success",
+  "trace_path": ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-5-planimation-pilot-contract-and-render-recovery/elevators-repaired-global-lanes-attempt/trace.vfg.json",
+  "used_pddl_url": "https://planimation.planning.domains/upload/pddl"
+}

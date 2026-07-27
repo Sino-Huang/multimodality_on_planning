@@ -1,0 +1,78 @@
+{
+  "hybrid_output_manifest": {
+    "counts": {
+      "full_records": {
+        "dev": 0,
+        "test": 0,
+        "train": 0
+      },
+      "search_traversal_records": {
+        "dev": 0,
+        "test": 0,
+        "train": 0
+      },
+      "state_render_records": 2568,
+      "step_records": {
+        "dev": 0,
+        "test": 0,
+        "train": 0
+      }
+    },
+    "output_mode": "production",
+    "partial": false,
+    "production_complete": false
+  },
+  "manifest_pair_count": 52,
+  "manifest_unique_pair_count": 52,
+  "pairing_summary": {
+    "by_alignment": {
+      "action_mismatch": 14,
+      "existing_exact_complete": 29,
+      "existing_exact_preview_partial": 9
+    },
+    "by_split": {
+      "dev": 19,
+      "test": 14,
+      "train": 19
+    },
+    "exclusions": {},
+    "pair_records": 52,
+    "schema_version": "phase3_planimation_vlm_v1",
+    "training_eligible": 52
+  },
+  "phase": "task-6-pre-resume",
+  "selection_manifest_pair_sets_equal": true,
+  "selection_pair_count": 52,
+  "selection_unique_pair_count": 52,
+  "state_manifest_per_domain_status_counts": {
+    "blocksworld": {
+      "success": 52
+    },
+    "elevators": {
+      "failed": 39,
+      "success": 317
+    },
+    "ferry": {
+      "failed": 102
+    },
+    "gripper": {
+      "failed": 1114
+    },
+    "logistics": {
+      "failed": 6
+    },
+    "towers_of_hanoi": {
+      "success": 938
+    }
+  },
+  "state_manifest_row_count": 2568,
+  "state_render_summary": {
+    "cache_hits": 1037,
+    "schema_version": "phase3_planimation_vlm_v1",
+    "state_render_records": 2568,
+    "status": {
+      "failed": 1261,
+      "success": 1307
+    }
+  }
+}

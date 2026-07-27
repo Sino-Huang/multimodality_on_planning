@@ -7,9 +7,10 @@ import sys
 from io import BytesIO
 from pathlib import Path
 
+import pytest
 from PIL import Image
 
-from scripts.phase3.io_utils import relpath
+from scripts.phase3.io_utils import JSONRecord, relpath
 from scripts.phase3.planimation_pairing import PairingConfig, RenderConfig, build_pairing_manifest, build_vlm_records, render_replay_states, validate_state_render_record
 from scripts.phase3.rollout_gates import assess_promotion, prepare_selection
 
@@ -77,6 +78,165 @@ def test_manifest_and_render_modes_validate_their_respective_artifact_boundaries
     assert missing_render.returncode == 1
     assert "missing_required_file: reports/state_render_summary.json" in missing_render.stderr
     assert render.returncode == 0, render.stderr
+
+
+def test_manifest_mode_remains_compatible_without_a_selection_file(tmp_path: Path) -> None:
+    # Given: a valid pairing manifest with no frozen-selection contract.
+    source_root = _source_root(tmp_path)
+    output_root = _output_root(tmp_path, "generic-manifest")
+    build_pairing_manifest([source_root], output_root, config=PairingConfig(domains=frozenset({"grid"}), buckets=frozenset({"easy"})))
+
+    # When: the compatibility CLI verifies the generic manifest boundary.
+    result = _verify(output_root, "manifest")
+
+    # Then: existing callers without --selection-file retain their successful behavior.
+    assert result.returncode == 0, result.stderr
+    assert json.loads(result.stdout)["counts"] == {"pair_records": 1}
+
+
+def test_manifest_mode_rejects_invalid_frozen_selection_contracts(tmp_path: Path) -> None:
+    # Given: a valid one-pair manifest and its matching frozen selection.
+    source_root = _source_root(tmp_path)
+    output_root = _output_root(tmp_path, "selection-contract")
+    build_pairing_manifest([source_root], output_root, config=PairingConfig(domains=frozenset({"grid"}), buckets=frozenset({"easy"})))
+    prepare_selection(output_root, "fixture")
+    selection_path = output_root / "diagnostics" / "rollout_selection.json"
+    selection = json.loads(selection_path.read_text(encoding="utf-8"))
+
+    # When: each untrusted selection fixture violates one contract boundary.
+    missing = json.loads(json.dumps(selection))
+    missing["selected_pair_ids"] = []
+    missing["selected_pairs"] = []
+    extra = json.loads(json.dumps(selection))
+    extra_pair = dict(extra["selected_pairs"][0])
+    extra_pair["pair_id"] = "unexpected-pair"
+    extra["selected_pair_ids"].append("unexpected-pair")
+    extra["selected_pairs"].append(extra_pair)
+    duplicate = json.loads(json.dumps(selection))
+    duplicate["selected_pair_ids"].append(duplicate["selected_pair_ids"][0])
+    malformed_kind = json.loads(json.dumps(selection))
+    malformed_kind["artifact_kind"] = "wrong-kind"
+    mutated_provenance = json.loads(json.dumps(selection))
+    mutated_provenance["selected_pairs"][0]["source_root_sha256"] = "0" * 64
+    full_source_manifest = json.loads(json.dumps(selection))
+    full_source_manifest["input_pairing_manifest_sha256"] = "f" * 64
+
+    missing_result = _verify(output_root, "manifest", _write_selection_fixture(tmp_path, "missing", missing))
+    extra_result = _verify(output_root, "manifest", _write_selection_fixture(tmp_path, "extra", extra))
+    duplicate_result = _verify(output_root, "manifest", _write_selection_fixture(tmp_path, "duplicate", duplicate))
+    malformed_kind_result = _verify(output_root, "manifest", _write_selection_fixture(tmp_path, "malformed-kind", malformed_kind))
+    mutated_provenance_result = _verify(output_root, "manifest", _write_selection_fixture(tmp_path, "mutated-provenance", mutated_provenance))
+    full_source_manifest_result = _verify(output_root, "manifest", _write_selection_fixture(tmp_path, "full-source-manifest", full_source_manifest))
+
+    # Then: selection-bound verification fails closed with stable, contract-specific reasons.
+    assert _verify(output_root, "manifest", selection_path).returncode == 0
+    assert missing_result.returncode == 1 and "selection selected_pair_ids" in missing_result.stderr
+    assert extra_result.returncode == 1 and "selection pair set mismatch" in extra_result.stderr
+    assert duplicate_result.returncode == 1 and "duplicate selected pair_id" in duplicate_result.stderr
+    assert malformed_kind_result.returncode == 1 and "invalid selection artifact kind" in malformed_kind_result.stderr
+    assert mutated_provenance_result.returncode == 1 and "selection provenance mismatch" in mutated_provenance_result.stderr
+    assert full_source_manifest_result.returncode == 0, full_source_manifest_result.stderr
+
+
+@pytest.mark.parametrize(
+    ("label", "manifest_hash"),
+    (
+        ("missing", None),
+        ("empty", ""),
+        ("wrong-length", "f" * 63),
+        ("uppercase", "F" * 64),
+        ("nonhex", "g" * 64),
+        ("prefixed", "sha256:" + "f" * 64),
+        ("trailing-newline", "f" * 64 + "\n"),
+    ),
+)
+def test_release_rejects_malformed_selection_source_manifest_hashes(
+    tmp_path: Path, label: str, manifest_hash: str | None
+) -> None:
+    # Given: a release-valid root and a matching frozen selection fixture.
+    output_root = _complete_rollout_root(tmp_path, f"selection-hash-{label}")
+    selection = prepare_selection(output_root, "fixture")
+    candidate = json.loads(json.dumps(selection))
+    if manifest_hash is None:
+        del candidate["input_pairing_manifest_sha256"]
+    else:
+        candidate["input_pairing_manifest_sha256"] = manifest_hash
+
+    # When: direct selection-bound release verification receives malformed source provenance.
+    result = _verify(output_root, "release", _write_selection_fixture(tmp_path, label, candidate))
+
+    # Then: canonical source-manifest hashing fails closed before release acceptance.
+    assert result.returncode == 1
+    assert "selection input_pairing_manifest_sha256" in result.stderr
+
+
+def test_release_accepts_distinct_canonical_selection_source_manifest_hash(tmp_path: Path) -> None:
+    # Given: a release-valid root with a selection sourced from a different canonical manifest.
+    output_root = _complete_rollout_root(tmp_path, "selection-hash-valid")
+    selection = prepare_selection(output_root, "fixture")
+    selection["input_pairing_manifest_sha256"] = "f" * 64
+
+    # When: direct selection-bound release verification receives that valid distinct source hash.
+    result = _verify(output_root, "release", _write_selection_fixture(tmp_path, "valid-source-hash", selection))
+
+    # Then: source provenance is format-validated without being compared to the output manifest hash.
+    assert result.returncode == 0, result.stderr
+
+
+def test_manifest_mode_rejects_reordered_selection_pair_ids(tmp_path: Path) -> None:
+    source_root = _source_root(tmp_path)
+    source_path = source_root / "train.jsonl"
+    first_source = json.loads(source_path.read_text(encoding="utf-8"))
+    second_source = json.loads(json.dumps(first_source))
+    second_source["example_id"] = "example-0001"
+    source_path.write_text(
+        "\n".join((json.dumps(first_source), json.dumps(second_source))) + "\n",
+        encoding="utf-8",
+    )
+    output_root = _output_root(tmp_path, "reordered-selection-ids")
+    build_pairing_manifest(
+        [source_root],
+        output_root,
+        config=PairingConfig(domains=frozenset({"grid"}), buckets=frozenset({"easy"})),
+    )
+    selection = prepare_selection(output_root, "frozen-full")
+    selection["selected_pair_ids"] = list(reversed(selection["selected_pair_ids"]))
+
+    result = _verify(output_root, "manifest", _write_selection_fixture(tmp_path, "reordered-ids", selection))
+
+    assert result.returncode == 1
+    assert "selection pair IDs mismatch" in result.stderr
+
+
+@pytest.mark.parametrize("field", ("source_root_id", "example_id", "active_planner_id", "instance_id"))
+def test_manifest_mode_rejects_mutated_optional_selection_provenance(tmp_path: Path, field: str) -> None:
+    source_root = _source_root(tmp_path)
+    output_root = _output_root(tmp_path, f"optional-{field}")
+    build_pairing_manifest([source_root], output_root, config=PairingConfig(domains=frozenset({"grid"}), buckets=frozenset({"easy"})))
+    prepare_selection(output_root, "fixture")
+    selection_path = output_root / "diagnostics" / "rollout_selection.json"
+    selection = json.loads(selection_path.read_text(encoding="utf-8"))
+    selection["selected_pairs"][0][field] = f"mutated-{field}"
+
+    result = _verify(output_root, "manifest", _write_selection_fixture(tmp_path, f"mutated-{field}", selection))
+
+    assert result.returncode == 1
+    assert f"selection provenance mismatch: {selection['selected_pairs'][0]['pair_id']}:{field}" in result.stderr
+
+
+def test_manifest_mode_accepts_selection_without_optional_provenance_fields(tmp_path: Path) -> None:
+    source_root = _source_root(tmp_path)
+    output_root = _output_root(tmp_path, "optional-absent")
+    build_pairing_manifest([source_root], output_root, config=PairingConfig(domains=frozenset({"grid"}), buckets=frozenset({"easy"})))
+    prepare_selection(output_root, "fixture")
+    selection_path = output_root / "diagnostics" / "rollout_selection.json"
+    selection = json.loads(selection_path.read_text(encoding="utf-8"))
+    for field in ("source_root_id", "example_id", "active_planner_id", "instance_id"):
+        del selection["selected_pairs"][0][field]
+
+    result = _verify(output_root, "manifest", _write_selection_fixture(tmp_path, "optional-absent", selection))
+
+    assert result.returncode == 0, result.stderr
 
 
 def test_release_evaluates_concrete_types_from_persisted_hybrid_schema(tmp_path: Path) -> None:
@@ -246,14 +406,24 @@ def _complete_rollout_root(tmp_path: Path, suffix: str) -> Path:
     return output_root
 
 
-def _verify(output_root: Path, mode: str) -> subprocess.CompletedProcess[str]:
+def _verify(output_root: Path, mode: str, selection_file: Path | None = None) -> subprocess.CompletedProcess[str]:
+    command = [sys.executable, "scripts/phase3/verify_planimation_vlm.py", "--output-root", str(output_root), "--mode", mode]
+    if selection_file is not None:
+        command.extend(("--selection-file", str(selection_file)))
     return subprocess.run(
-        [sys.executable, "scripts/phase3/verify_planimation_vlm.py", "--output-root", str(output_root), "--mode", mode],
+        command,
         cwd=Path.cwd(),
         check=False,
         capture_output=True,
         text=True,
+        timeout=30,
     )
+
+
+def _write_selection_fixture(tmp_path: Path, name: str, payload: JSONRecord) -> Path:
+    path = tmp_path / f"{name}-selection.json"
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    return path
 
 
 def _copy_root(source: Path, tmp_path: Path, suffix: str) -> Path:

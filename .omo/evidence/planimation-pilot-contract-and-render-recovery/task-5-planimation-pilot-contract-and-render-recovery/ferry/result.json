@@ -1,0 +1,7 @@
+{
+  "attempts": 1,
+  "frame_path": "tmp/phase3_planimation_profile_canary_20260725_ferry_on_fix/frames/frame_000.png",
+  "status": "success",
+  "trace_path": "tmp/phase3_planimation_profile_canary_20260725_ferry_on_fix/trace.vfg.json",
+  "used_pddl_url": "https://planimation.planning.domains/upload/pddl"
+}

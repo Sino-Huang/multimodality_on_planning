@@ -14,7 +14,7 @@ from scripts.phase3.pipeline import DEFAULT_PLANNERS, generate_supervised_data
 JSONValue: TypeAlias = None | bool | int | float | str | list["JSONValue"] | dict[str, "JSONValue"]
 JSONRecord: TypeAlias = dict[str, JSONValue]
 DEFAULT_INPUT_ROOT: Final = Path("data/curriculum_pddl")
-DEFAULT_OUTPUT_ROOT: Final = Path("outputs/phase3_curriculum_traces")
+DEFAULT_OUTPUT_ROOT: Final = Path("outputs/reasoning_traces/curriculum")
 DEFAULT_GBFS_MAX_APPLICABLE_ACTIONS: Final = 2000
 DEFAULT_GBFS_MAX_EXPANSIONS: Final = 250000
 DEFAULT_GBFS_MAX_DEPTH: Final = 200

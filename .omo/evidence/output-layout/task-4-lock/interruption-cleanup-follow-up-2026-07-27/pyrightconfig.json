@@ -1,0 +1,17 @@
+{
+  "include": [
+    "../../../../../scripts/phase3/output_layout_lock.py",
+    "../../../../../tests/phase3/output_layout_lock_test_support.py",
+    "../../../../../tests/phase3/test_output_layout_lock_interruption.py"
+  ],
+  "executionEnvironments": [
+    {
+      "root": "../../../../../",
+      "extraPaths": [
+        "../../../../../",
+        "../../../../../tests/phase3"
+      ]
+    }
+  ],
+  "typeCheckingMode": "all"
+}

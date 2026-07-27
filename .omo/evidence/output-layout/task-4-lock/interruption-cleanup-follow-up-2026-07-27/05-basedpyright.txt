@@ -1,0 +1,9 @@
+Commands:
+source ~/cd_vlaplan && source .venv/bin/activate && basedpyright --project .omo/evidence/output-layout/task-4-lock/pyrightconfig.json
+source ~/cd_vlaplan && source .venv/bin/activate && basedpyright --project .omo/evidence/output-layout/task-4-lock/interruption-cleanup-follow-up-2026-07-27/pyrightconfig.json
+
+Results:
+- The existing strict config emitted `0 errors, 0 warnings, 0 notes` for its config-defined six-file historical lane scope.
+- The interruption config emitted `0 errors, 0 warnings, 0 notes` for its config-defined three-file scope.
+
+These are two config-scoped checks. They are not a single all-files project check.

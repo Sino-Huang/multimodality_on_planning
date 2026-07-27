@@ -1,0 +1,71 @@
+{
+  "canary_profile_sha256": {
+    "elevators": "ce32eb2e9edd007aeef9c93fada264202141b4e2b717752a0e5bd793ee9ef813",
+    "ferry": "94a3a9feb47a1f13ccdbde1b08fc0608fad0f24d328f8a3b801ac03252e35dab",
+    "gripper": "b549b24eb7f5fb699773d7c7f7e369488aa7826822faa049a351cb074918dbc4",
+    "logistics": "c9aaa88d16da3c53a3fb4f2b01dfbf507aeda509a92635a877a02ee5bf293f79"
+  },
+  "conclusion": "The current profile bytes exactly match the approved successful-canary bytes for Elevators, Ferry, Gripper, and Logistics. The first real resume nevertheless produced semantic_image_invalid: coincident_sprite_bounds for Ferry state_hash 33b9c9648b4b132c94467949b8427b34 under two new cache keys. No source remediation or retry was attempted under Task 6.",
+  "current_profile_sha256": {
+    "elevators": "ce32eb2e9edd007aeef9c93fada264202141b4e2b717752a0e5bd793ee9ef813",
+    "ferry": "94a3a9feb47a1f13ccdbde1b08fc0608fad0f24d328f8a3b801ac03252e35dab",
+    "gripper": "b549b24eb7f5fb699773d7c7f7e369488aa7826822faa049a351cb074918dbc4",
+    "logistics": "c9aaa88d16da3c53a3fb4f2b01dfbf507aeda509a92635a877a02ee5bf293f79"
+  },
+  "first_reported_failure_message": "semantic_image_invalid: coincident_sprite_bounds",
+  "failing_cache_entries": [
+    {
+      "cache_key": "84b7d426976a5d2acb7e0ea89f056f69",
+      "domain": "ferry",
+      "instance_id": "ferry-dev-easy-0000",
+      "result_path": "outputs/phase3_planimation_frames_stratified_pilot_20260725/state_cache/ferry/ferry-dev-easy-0000/84b7d426976a5d2acb7e0ea89f056f69/result.json",
+      "state_hash": "33b9c9648b4b132c94467949b8427b34"
+    },
+    {
+      "cache_key": "beb1b18d1e76532e3f3e12beda158fad",
+      "domain": "ferry",
+      "instance_id": "ferry-dev-easy-0000",
+      "result_path": "outputs/phase3_planimation_frames_stratified_pilot_20260725/state_cache/ferry/ferry-dev-easy-0000/beb1b18d1e76532e3f3e12beda158fad/result.json",
+      "state_hash": "33b9c9648b4b132c94467949b8427b34"
+    }
+  ],
+  "new_cache_file_count": 249,
+  "new_cache_key_count": 62,
+  "new_cache_results_by_domain": {
+    "None": 62
+  },
+  "new_cache_results_by_status": {
+    "failed": 1,
+    "success": 61
+  },
+  "new_failed_results": [
+    {
+      "cache_dir": null,
+      "cache_hit": null,
+      "cache_key": null,
+      "domain": null,
+      "instance_id": null,
+      "message": "semantic_image_invalid: coincident_sprite_bounds",
+      "pair_id": null,
+      "profile_path": null,
+      "profile_sha256": null,
+      "state_hash": "33b9c9648b4b132c94467949b8427b34",
+      "status": "failed",
+      "used_pddl_url": null
+    }
+  ],
+  "phase": "task-6-first-real-resume-stopped-at-first-failure",
+  "profile_sha256_matches_approved_canary": {
+    "elevators": true,
+    "ferry": true,
+    "gripper": true,
+    "logistics": true
+  },
+  "progress_log_summary": {
+    "cache_hits": 148,
+    "failed_states": 5,
+    "processed_states": 200,
+    "success_states": 195
+  },
+  "writer_stopped": true
+}

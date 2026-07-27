@@ -1,0 +1,28 @@
+{
+  "actual_attempts": 1,
+  "domain": "gripper",
+  "domain_path": "data/curriculum_pddl/gripper/dev/easy/gripper-dev-easy-0000/domain.pddl",
+  "endpoint": "https://planimation.planning.domains",
+  "max_attempts": 3,
+  "pair_id": "e07dde4944d61fdf1f95210255cb3c05",
+  "png_sha256": "825bce846a7825eb7be7d9fa5f9352f50a8911378a15e6d5707e45d7c6ee8b61",
+  "profile_path": "data/pddl_instances/gripper/gripper_AP.pddl",
+  "profile_sha256": "b549b24eb7f5fb699773d7c7f7e369488aa7826822faa049a351cb074918dbc4",
+  "renderer_status": "success",
+  "retained_problem_path": "outputs/phase3_planimation_frames_stratified_pilot_20260725/state_cache/gripper/gripper-dev-easy-0000/052aad7d4dd4c2098535eb35c8bbf633/problem.pddl",
+  "retained_problem_sha256": "9e945ea0e969e1078a20e168f6a76fb6123a9aa6c6c58abac059c75d4664c202",
+  "semantic_receipt": {
+    "covered_sprite_count": 13,
+    "minimum_object_coverage": 0.01,
+    "png_dimensions": [
+      1024,
+      1024
+    ],
+    "reason": "validated_expected_object_coverage",
+    "sprite_count": 13,
+    "status": "success"
+  },
+  "timeout_seconds": 90,
+  "trace_sha256": "642407a43c038276bcf951b7e2c212d4e8632143ba95b921b71f42ff9d3ea027",
+  "used_pddl_url": "https://planimation.planning.domains/upload/pddl"
+}

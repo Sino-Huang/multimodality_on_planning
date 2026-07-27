@@ -1,6 +1,18 @@
+case "${1:-}" in
+  "") ;;
+  --help|-h)
+    printf 'Usage: temprun.sh\n'
+    exit 0
+    ;;
+  *)
+    printf 'Usage: temprun.sh\n' >&2
+    exit 2
+    ;;
+esac
+
 source ~/cd_vlaplan && source .venv/bin/activate
 
-TRACE_ROOT="outputs/phase3_curriculum_traces_safe_no_visitall_strict_v1_1st_round"
+TRACE_ROOT="outputs/reasoning_traces/curriculum/phase3_curriculum_traces_safe_no_visitall_strict_v1_1st_round"
 
 python scripts/phase3/generate_curriculum_trace_dataset.py \
   --bucket easy \
@@ -23,7 +35,7 @@ sleep 10
 
 source ~/cd_vlaplan && source .venv/bin/activate
 
-TRACE_ROOT="outputs/phase3_curriculum_traces_visitall_strict_v1_1st_round"
+TRACE_ROOT="outputs/deprecated/phase3/curriculum_traces/phase3_curriculum_traces_visitall_strict_v1_1st_round"
 
 python scripts/phase3/generate_curriculum_trace_dataset.py \
   --bucket easy \
@@ -43,7 +55,7 @@ sleep 10
 
 source ~/cd_vlaplan && source .venv/bin/activate
 
-TRACE_ROOT="outputs/phase3_curriculum_traces_15puzzle_easy_strict_v1_1st_round"
+TRACE_ROOT="outputs/deprecated/phase3/curriculum_traces/phase3_curriculum_traces_15puzzle_easy_strict_v1_1st_round"
 
 python scripts/phase3/generate_curriculum_trace_dataset.py \
   --bucket easy \
@@ -62,8 +74,8 @@ sleep 10
 
 source ~/cd_vlaplan && source .venv/bin/activate
 
-TRACE_ROOT="outputs/phase3_curriculum_traces_safe_no_visitall_strict_v1_1st_round"
-FRAME_ROOT="outputs/phase3_planimation_frames_safe_no_visitall_$(date +%Y%m%d_%H%M%S)"
+TRACE_ROOT="outputs/reasoning_traces/curriculum/phase3_curriculum_traces_safe_no_visitall_strict_v1_1st_round"
+FRAME_ROOT="outputs/image_frames/phase3_planimation_frames_safe_no_visitall_$(date +%Y%m%d_%H%M%S)"
 
 python scripts/phase3/generate_planimation_vlm.py \
   --dataset-root "$TRACE_ROOT" \
@@ -84,8 +96,8 @@ sleep 10
 
 source ~/cd_vlaplan && source .venv/bin/activate
 
-TRACE_ROOT="outputs/phase3_curriculum_traces_visitall_strict_v1_1st_round"
-FRAME_ROOT="outputs/phase3_planimation_frames_visitall_$(date +%Y%m%d_%H%M%S)"
+TRACE_ROOT="outputs/deprecated/phase3/curriculum_traces/phase3_curriculum_traces_visitall_strict_v1_1st_round"
+FRAME_ROOT="outputs/image_frames/phase3_planimation_frames_visitall_$(date +%Y%m%d_%H%M%S)"
 
 python scripts/phase3/generate_planimation_vlm.py \
   --dataset-root "$TRACE_ROOT" \
@@ -101,8 +113,8 @@ sleep 10
 
 source ~/cd_vlaplan && source .venv/bin/activate
 
-TRACE_ROOT="outputs/phase3_curriculum_traces_15puzzle_easy_strict_v1_1st_round"
-FRAME_ROOT="outputs/phase3_planimation_frames_15puzzle_easy_$(date +%Y%m%d_%H%M%S)"
+TRACE_ROOT="outputs/deprecated/phase3/curriculum_traces/phase3_curriculum_traces_15puzzle_easy_strict_v1_1st_round"
+FRAME_ROOT="outputs/image_frames/phase3_planimation_frames_15puzzle_easy_$(date +%Y%m%d_%H%M%S)"
 
 python scripts/phase3/generate_planimation_vlm.py \
   --dataset-root "$TRACE_ROOT" \

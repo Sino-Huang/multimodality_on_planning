@@ -1,0 +1,5 @@
+goal_exit=1
+qa_exit=1
+code_quality_exit=1
+security_exit=1
+context_exit=1

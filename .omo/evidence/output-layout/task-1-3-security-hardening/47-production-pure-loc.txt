@@ -1,0 +1,7 @@
+scripts/phase3/output_layout_snapshot.py: 231
+scripts/phase3/output_layout_view_content.py: 111
+scripts/phase3/output_layout_receipt_io.py: 78
+scripts/phase3/output_layout_receipt_transaction.py: 223
+scripts/phase3/output_layout_receipt_values.py: 85
+scripts/phase3/output_layout_view_stage.py: 243
+scripts/phase3/output_layout_view.py: 128

@@ -1,0 +1,14 @@
+Task 5 final contract revalidation
+
+Graphplan locator: exactly five rows remain extraction_bound with exact replay/selected-plan action equality:
+- 1334a50e2463fde7e6e711149eace78f step 6: (move d1 peg1 d2), payload 267
+- 16723bc0e87ac9bc09c76af86e0adee8 step 13: (move d4 peg3 d1), payload 268
+- 2a87bb667bdd0c162dabfddd942477c7 step 18: (move d1 peg1 d3), payload 268
+- 2a87bb667bdd0c162dabfddd942477c7 step 27: (move d5 peg1 d2), payload 268
+- 2a87bb667bdd0c162dabfddd942477c7 step 30: (move d1 peg1 d3), payload 268
+
+Unchanged validator controls:
+- gripper: semantic_image_invalid / sprite_degenerate_bounds
+- ferry: semantic_image_invalid / coincident_sprite_bounds
+- elevators: semantic_image_invalid / coincident_sprite_bounds
+- logistics: semantic_image_invalid / coincident_sprite_bounds

@@ -1,0 +1,10 @@
+{
+  "artifact_kind": "planimation_rollout_selection_v1",
+  "input_full_pairing_manifest_sha256": "de298099d2b3456322f6ebf692b4fd1307a3b146a7e27aff48848794da1cd9d8",
+  "input_full_manifest_is_not_compared_to_pilot_subset": true,
+  "pair_sets_equal": true,
+  "pilot_pairing_manifest_sha256": "6f78c69ded1c6e765888bce5415e306157aa3b756d996a6de32b2d9d486e2b52",
+  "selected_pair_id_count": 52,
+  "selected_pair_ids_unique": true,
+  "source_root_sha256": "a8c1fe317f5f3909aea4af28c519aa4af9c4eefb406667c644b46cd15aba3214"
+}

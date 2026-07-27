@@ -1,0 +1,5 @@
+Command:
+source ~/cd_vlaplan && source .venv/bin/activate && pytest -q tests/phase3/test_output_layout_*.py
+
+Result:
+213 passed in 3.13s

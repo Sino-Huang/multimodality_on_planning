@@ -1,0 +1,9 @@
+{
+  "artifact_kind": "planimation_todo7_actual_promotion_command_v1",
+  "command": "source \"$HOME/cd_vlaplan\" && source .venv/bin/activate && python -m scripts.phase3.rollout_gates assess --output-root outputs/phase3_planimation_frames_stratified_pilot_20260725 --stage stratified-pilot --selection-file outputs/phase3_planimation_frames_safe_no_visitall_strict_v1_20260722_005800/diagnostics/rollout_selection.json --prior-receipt tmp/phase3_planimation_todo7_promotion_chain_20260726/recovery/changed-canary/diagnostics/rollout_promotion_receipt.json",
+  "exit_code": 0,
+  "receipt_path": "outputs/phase3_planimation_frames_stratified_pilot_20260725/diagnostics/rollout_promotion_receipt.json",
+  "receipt_sha256": "1bef38d5571cd3e8276f4d925e13553475914fe0e51f3d459ec83a16c25694e7",
+  "stderr_path": ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-7-planimation-pilot-contract-and-render-recovery/promotion.stderr.txt",
+  "stdout_path": ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-7-planimation-pilot-contract-and-render-recovery/promotion.stdout.json"
+}

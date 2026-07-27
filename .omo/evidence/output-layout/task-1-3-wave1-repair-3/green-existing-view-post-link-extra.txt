@@ -1,0 +1,7 @@
+Command:
+source ~/cd_vlaplan && source .venv/bin/activate && pytest -q tests/phase3/test_output_layout_view_adversarial.py::test_existing_view_rejects_extra_entry_added_after_final_link_verification
+
+Result after the production fix:
+1 passed
+
+The held existing-view descriptor detected the extra entry during the final exact-tree scan and rejected success while retaining the racer entry as evidence.

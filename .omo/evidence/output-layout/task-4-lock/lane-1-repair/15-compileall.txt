@@ -1,0 +1,7 @@
+Command:
+source ~/cd_vlaplan && source .venv/bin/activate && PYTHONPYCACHEPREFIX=/tmp/phase3-lock-pycache python -m compileall -q scripts/phase3/output_layout_lock.py tests/phase3/test_output_layout_lock.py tests/phase3/test_phase3_writer_output_layout_lock.py .omo/evidence/output-layout/task-4-lock/manual_spawn_lock_qa.py
+
+Output:
+Conda environment 'ada_vla' is already activated.
+
+Result: exit 0. PYTHONPYCACHEPREFIX directed compilation cache output to /tmp/phase3-lock-pycache.

@@ -1,0 +1,8 @@
+$ source ~/cd_vlaplan && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 TMPDIR=/tmp python .omo/evidence/output-layout/task-4-lock/manual_spawn_lock_qa.py
+Conda environment 'ada_vla' is already activated.
+Traceback (most recent call last):
+  File "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/.omo/evidence/output-layout/task-4-lock/manual_spawn_lock_qa.py", line 130, in <module>
+    main()
+  File "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/.omo/evidence/output-layout/task-4-lock/manual_spawn_lock_qa.py", line 126, in main
+    raise ManualSpawnLockError(message=" | ".join(failures))
+ManualSpawnLockError: shared lock acquisition created the legacy lock path; shared legacy lock path existed after release; exclusive lock acquisition created the legacy lock path; exclusive legacy lock path existed after release | legacy pathname replacement admitted a shared contender while exclusive lock was held

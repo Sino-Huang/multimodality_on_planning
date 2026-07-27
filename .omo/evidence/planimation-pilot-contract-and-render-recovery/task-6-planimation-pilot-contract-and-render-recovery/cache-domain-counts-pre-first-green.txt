@@ -1,0 +1,6 @@
+blocksworld 16
+elevators 105
+ferry 29
+gripper 487
+logistics 3
+towers_of_hanoi 181

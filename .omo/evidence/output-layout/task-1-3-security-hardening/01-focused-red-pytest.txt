@@ -1,0 +1,254 @@
+...F.F.FFF..F...F.                                                       [100%]
+=================================== FAILURES ===================================
+_______________ test_snapshot_rejects_directory_depth_over_limit _______________
+
+tmp_path = PosixPath('/tmp/pytest-of-sukaih/pytest-918/test_snapshot_rejects_director1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x146a05308610>
+
+    def test_snapshot_rejects_directory_depth_over_limit(
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        root = tmp_path / "inventory"
+        (root / "one" / "two").mkdir(parents=True)
+        monkeypatch.setattr(output_layout_snapshot, "_MAX_DIRECTORY_DEPTH", 1, raising=False)
+    
+>       with pytest.raises(OutputLayoutInventoryError, match="too deep"):
+E       Failed: DID NOT RAISE <class 'scripts.phase3.output_layout_inventory_types.OutputLayoutInventoryError'>
+
+tests/phase3/test_output_layout_acceptance_security.py:77: Failed
+___________ test_protected_token_rejects_directory_depth_over_limit ____________
+
+tmp_path = PosixPath('/tmp/pytest-of-sukaih/pytest-918/test_protected_token_rejects_d1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x146a053194d0>
+
+    def test_protected_token_rejects_directory_depth_over_limit(
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        root = tmp_path / "protected"
+        (root / "one" / "two").mkdir(parents=True)
+        monkeypatch.setattr(output_layout_view_content, "_MAX_DIRECTORY_DEPTH", 1, raising=False)
+    
+>       with pytest.raises(OSError, match="too deep"):
+E       Failed: DID NOT RAISE <class 'OSError'>
+
+tests/phase3/test_output_layout_acceptance_security.py:103: Failed
+___________________ test_read_receipt_requires_private_mode ____________________
+
+tmp_path = PosixPath('/tmp/pytest-of-sukaih/pytest-918/test_read_receipt_requires_pri0')
+
+    def test_read_receipt_requires_private_mode(tmp_path: Path) -> None:
+        receipt_path = tmp_path / "receipt.json"
+        receipt = seal_receipt({"operation": "security-test", "state": "prepared"})
+        write_receipt(receipt_path, receipt)
+        receipt_path.chmod(0o644)
+    
+>       with pytest.raises(OutputLayoutInventoryError, match="mode 0600"):
+E       Failed: DID NOT RAISE <class 'scripts.phase3.output_layout_inventory_types.OutputLayoutInventoryError'>
+
+tests/phase3/test_output_layout_acceptance_security.py:123: Failed
+___________________ test_receipt_reads_use_nonblocking_open ____________________
+
+tmp_path = PosixPath('/tmp/pytest-of-sukaih/pytest-918/test_receipt_reads_use_nonbloc0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x146a054ccf10>
+
+    def test_receipt_reads_use_nonblocking_open(
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        receipt_path = tmp_path / "receipt.json"
+        receipt = seal_receipt({"operation": "security-test"})
+        write_receipt(receipt_path, receipt)
+        original_open = output_layout_receipt_io._open_descriptor
+    
+        def require_nonblocking_open(
+            path: str | Path,
+            flags: int,
+            mode: int = 0o777,
+            *,
+            dir_fd: int | None = None,
+        ) -> int:
+            if path == receipt_path.name:
+                assert flags & os.O_NONBLOCK
+            return original_open(path, flags, mode, dir_fd=dir_fd)
+    
+        monkeypatch.setattr(output_layout_receipt_io, "_open_descriptor", require_nonblocking_open)
+>       assert read_receipt(receipt_path) == receipt
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/phase3/test_output_layout_acceptance_security.py:148: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/scratch/punim0478/sukaih/multimodality_on_planning/scripts/phase3/output_layout_receipt.py:30: in read_receipt
+    descriptor = _open_receipt(parent_descriptor, receipt_path.name, receipt_path)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/scratch/punim0478/sukaih/multimodality_on_planning/scripts/phase3/output_layout_receipt_io.py:63: in open_receipt
+    descriptor = _open_descriptor(receipt_name, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0), dir_fd=parent_descriptor)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = 'receipt.json', flags = 131072, mode = 511
+
+    def require_nonblocking_open(
+        path: str | Path,
+        flags: int,
+        mode: int = 0o777,
+        *,
+        dir_fd: int | None = None,
+    ) -> int:
+        if path == receipt_path.name:
+>           assert flags & os.O_NONBLOCK
+E           assert (131072 & 2048)
+E            +  where 2048 = os.O_NONBLOCK
+
+tests/phase3/test_output_layout_acceptance_security.py:144: AssertionError
+_______________ test_receipt_sidecar_reads_use_nonblocking_open ________________
+
+tmp_path = PosixPath('/tmp/pytest-of-sukaih/pytest-918/test_receipt_sidecar_reads_use0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x146a053326d0>
+
+    def test_receipt_sidecar_reads_use_nonblocking_open(
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        receipt_path = tmp_path / "receipt.json"
+        transaction_path = tmp_path / ".receipt.json.txn"
+        transaction_path.write_bytes(b"invalid")
+        transaction_path.chmod(0o600)
+        original_open = output_layout_receipt_transaction.os.open
+    
+        def require_nonblocking_open(
+            path: str | bytes | os.PathLike[str] | os.PathLike[bytes],
+            flags: int,
+            mode: int = 0o777,
+            *,
+            dir_fd: int | None = None,
+        ) -> int:
+            if path == transaction_path.name:
+                assert flags & os.O_NONBLOCK
+            return original_open(path, flags, mode, dir_fd=dir_fd)
+    
+        monkeypatch.setattr(output_layout_receipt_transaction.os, "open", require_nonblocking_open)
+        with pytest.raises(OutputLayoutInventoryError):
+>           write_receipt(receipt_path, seal_receipt({"operation": "security-test"}))
+
+tests/phase3/test_output_layout_acceptance_security.py:174: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/scratch/punim0478/sukaih/multimodality_on_planning/scripts/phase3/output_layout_receipt.py:50: in write_receipt
+    persist_receipt(parent_descriptor, parent, receipt_path, contents, fsync_operation, exchange_operation)
+/scratch/punim0478/sukaih/multimodality_on_planning/scripts/phase3/output_layout_receipt_transaction.py:21: in persist_receipt
+    _recover(parent_descriptor, parent, receipt_path, fsync_operation, exchange_operation)
+/scratch/punim0478/sukaih/multimodality_on_planning/scripts/phase3/output_layout_receipt_transaction.py:50: in _recover
+    transaction_entry = _read_entry(parent_descriptor, transaction_name, receipt_path)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/scratch/punim0478/sukaih/multimodality_on_planning/scripts/phase3/output_layout_receipt_transaction.py:155: in _read_entry
+    descriptor = os.open(name, _READ_FLAGS, dir_fd=parent_descriptor)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = '.receipt.json.txn', flags = 131072, mode = 511
+
+    def require_nonblocking_open(
+        path: str | bytes | os.PathLike[str] | os.PathLike[bytes],
+        flags: int,
+        mode: int = 0o777,
+        *,
+        dir_fd: int | None = None,
+    ) -> int:
+        if path == transaction_path.name:
+>           assert flags & os.O_NONBLOCK
+E           assert (131072 & 2048)
+E            +  where 2048 = os.O_NONBLOCK
+
+tests/phase3/test_output_layout_acceptance_security.py:169: AssertionError
+_____________ test_receipt_json_collection_cardinality_is_bounded ______________
+
+tmp_path = PosixPath('/tmp/pytest-of-sukaih/pytest-918/test_receipt_json_collection_c0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x146a05444210>
+
+    def test_receipt_json_collection_cardinality_is_bounded(
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        receipt_path = tmp_path / "receipt.json"
+        receipt_path.write_text(
+            '{"payload":[0,0,0],"receipt_sha256":"' + "0" * 64 + '"}',
+            encoding="utf-8",
+        )
+        receipt_path.chmod(0o600)
+        monkeypatch.setattr(output_layout_receipt_values, "_MAX_JSON_ITEMS", 2, raising=False)
+    
+        with pytest.raises(OutputLayoutInventoryError, match="too many JSON items"):
+>           read_receipt(receipt_path)
+
+tests/phase3/test_output_layout_acceptance_security.py:213: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/scratch/punim0478/sukaih/multimodality_on_planning/scripts/phase3/output_layout_receipt.py:32: in read_receipt
+    return _read_receipt_descriptor(descriptor, receipt_path)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/scratch/punim0478/sukaih/multimodality_on_planning/scripts/phase3/output_layout_receipt.py:67: in _read_receipt_descriptor
+    return _validate_parsed_receipt(decoded)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+receipt = {'payload': [0, 0, 0], 'receipt_sha256': '0000000000000000000000000000000000000000000000000000000000000000'}
+
+    def _validate_parsed_receipt(receipt: ReceiptRecord) -> ReceiptRecord:
+        candidate = dict(receipt)
+        supplied_hash = candidate.pop("receipt_sha256", None)
+        if not isinstance(supplied_hash, str) or len(supplied_hash) != 64:
+            raise OutputLayoutInventoryError("receipt_sha256 must be lowercase SHA-256")
+        if supplied_hash.lower() != supplied_hash or any(character not in "0123456789abcdef" for character in supplied_hash):
+            raise OutputLayoutInventoryError("receipt_sha256 must be lowercase SHA-256")
+        if supplied_hash != hashlib.sha256(_canonical_json(candidate)).hexdigest():
+>           raise OutputLayoutInventoryError("receipt_sha256 does not match canonical receipt content")
+E           scripts.phase3.output_layout_inventory_types.OutputLayoutInventoryError: receipt_sha256 does not match canonical receipt content
+
+/scratch/punim0478/sukaih/multimodality_on_planning/scripts/phase3/output_layout_receipt.py:82: OutputLayoutInventoryError
+
+During handling of the above exception, another exception occurred:
+
+tmp_path = PosixPath('/tmp/pytest-of-sukaih/pytest-918/test_receipt_json_collection_c0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x146a05444210>
+
+    def test_receipt_json_collection_cardinality_is_bounded(
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        receipt_path = tmp_path / "receipt.json"
+        receipt_path.write_text(
+            '{"payload":[0,0,0],"receipt_sha256":"' + "0" * 64 + '"}',
+            encoding="utf-8",
+        )
+        receipt_path.chmod(0o600)
+        monkeypatch.setattr(output_layout_receipt_values, "_MAX_JSON_ITEMS", 2, raising=False)
+    
+>       with pytest.raises(OutputLayoutInventoryError, match="too many JSON items"):
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'too many JSON items'
+E         Actual message: 'receipt_sha256 does not match canonical receipt content'
+
+tests/phase3/test_output_layout_acceptance_security.py:212: AssertionError
+______________ test_private_stage_cleanup_preserves_unowned_child ______________
+
+tmp_path = PosixPath('/tmp/pytest-of-sukaih/pytest-918/test_private_stage_cleanup_pre0')
+
+    def test_private_stage_cleanup_preserves_unowned_child(tmp_path: Path) -> None:
+        parent_descriptor = os.open(tmp_path, os.O_RDONLY | os.O_DIRECTORY)
+        stage = output_layout_view_stage.create_private_stage(parent_descriptor, Path("datasets/view"))
+        racer = tmp_path / stage.name / "racer-owned"
+        racer.write_text("keep\n", encoding="utf-8")
+        try:
+>           with pytest.raises(OSError):
+E           Failed: DID NOT RAISE <class 'OSError'>
+
+tests/phase3/test_output_layout_acceptance_security.py:298: Failed
+=========================== short test summary info ============================
+FAILED tests/phase3/test_output_layout_acceptance_security.py::test_snapshot_rejects_directory_depth_over_limit
+FAILED tests/phase3/test_output_layout_acceptance_security.py::test_protected_token_rejects_directory_depth_over_limit
+FAILED tests/phase3/test_output_layout_acceptance_security.py::test_read_receipt_requires_private_mode
+FAILED tests/phase3/test_output_layout_acceptance_security.py::test_receipt_reads_use_nonblocking_open
+FAILED tests/phase3/test_output_layout_acceptance_security.py::test_receipt_sidecar_reads_use_nonblocking_open
+FAILED tests/phase3/test_output_layout_acceptance_security.py::test_receipt_json_collection_cardinality_is_bounded
+FAILED tests/phase3/test_output_layout_acceptance_security.py::test_private_stage_cleanup_preserves_unowned_child
+7 failed, 11 passed in 0.34s

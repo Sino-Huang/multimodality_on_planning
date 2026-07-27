@@ -1,0 +1,77 @@
+Task 3 - Fail-closed pilot resume launcher
+Date: 2026-07-25
+
+Scope
+- Changed launcher: temp_fast_planimation_render.sh
+- Changed focused tests: tests/phase3/test_fast_planimation_launcher.py
+- No generator, verifier, profile, Graphplan, semantic, output, cache, or selection file was edited.
+
+Baseline characterization before launcher edit
+Command:
+  source ~/cd_vlaplan && source .venv/bin/activate && pytest -q tests/phase3/test_fast_planimation_launcher.py::test_fresh_mode_refuses_existing_output_root_before_activation
+Result:
+  1 passed in 0.41s
+Contract recorded: PILOT_OUTPUT_ROOT=.git in fresh mode exits 1 with
+  Refusing to overwrite existing pilot output root: .git
+and does not reach the activation sentinel.
+
+Red tests before launcher edit
+Command:
+  source ~/cd_vlaplan && source .venv/bin/activate && pytest -q tests/phase3/test_fast_planimation_launcher.py
+Result:
+  6 failed, 2 passed in 1.91s
+Expected missing behaviors proved by red failures:
+- unknown and multiple arguments reached the activation sentinel with exit 97 instead of usage exit 2;
+- --resume with a missing root reached activation instead of refusing;
+- --resume with a missing selection was treated as fresh mode and refused its existing root;
+- an active pilot-root writer reached activation instead of being refused;
+- the source lacked argument parsing, a second writer guard, resume prerequisites, and the selection-bound verifier loop.
+
+Green focused tests
+First command:
+  source ~/cd_vlaplan && source .venv/bin/activate && pytest -q tests/phase3/test_fast_planimation_launcher.py
+First result:
+  8 passed in 1.72s
+Second command:
+  source ~/cd_vlaplan && source .venv/bin/activate && pytest -q tests/phase3/test_fast_planimation_launcher.py
+Second result:
+  8 passed in 2.06s
+Test isolation:
+- Every launcher subprocess in the focused test module has timeout=5.
+- Fake pgrep, activation, and python executables assert that every preflight rejection stops before activation or Python.
+- The focused tests do not take a successful fresh or resume path and make no remote request.
+
+Static checks
+Command:
+  bash -n temp_fast_planimation_render.sh
+Result:
+  exit 0
+Command:
+  source ~/cd_vlaplan && source .venv/bin/activate && basedpyright tests/phase3/test_fast_planimation_launcher.py
+Result:
+  0 errors, 0 warnings, 0 notes
+LSP diagnostics:
+- basedpyright LSP client was alive for this workspace.
+- Four diagnostics requests for tests/phase3/test_fast_planimation_launcher.py timed out while waiting for fresh diagnostics; no diagnostic result was produced by the LSP tool.
+
+Bounded failure QA
+Command:
+  timeout 5s env PILOT_OUTPUT_ROOT=.git bash temp_fast_planimation_render.sh; exit_code=$?; printf 'exit=%s\n' "$exit_code"; test "$exit_code" -eq 1
+Output:
+  Refusing to overwrite existing pilot output root: .git
+  exit=1
+Command:
+  test ! -e "tmp/planimation-launcher-nonexistent-resume-root" && timeout 5s env PILOT_OUTPUT_ROOT="tmp/planimation-launcher-nonexistent-resume-root" bash temp_fast_planimation_render.sh --resume; exit_code=$?; printf 'exit=%s\n' "$exit_code"; test "$exit_code" -eq 1
+Output:
+  Resume requires existing pilot output root: tmp/planimation-launcher-nonexistent-resume-root
+  exit=1
+
+Safety and cleanup
+- No successful real resume, generator invocation, verifier invocation, or remote rendering was run.
+- No pilot root, state_cache, selection, or output artifact was created, moved, reset, or deleted.
+- Tests only created pytest-managed temporary sentinels and executable stubs under /tmp.
+- No commit or git operation was run.
+
+Residual risk
+- The successful resume flow, cache preservation under the real generator, and the three verifier modes are intentionally deferred to later plan todos.
+- This launcher invokes verifier --selection-file as required by Todo 4's planned CLI contract; that cross-Todo success path was not run here.

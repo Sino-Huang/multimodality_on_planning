@@ -1,0 +1,8 @@
+Scope notice:
+This is an isolated synthetic filesystem QA run under TemporaryDirectory. It does not touch the real repository outputs tree and does not represent source data.
+
+Command:
+source ~/cd_vlaplan && source .venv/bin/activate && python -c 'import os; from pathlib import Path; from tempfile import TemporaryDirectory; from scripts.phase3.output_layout_view import create_output_layout_view; from tests.phase3.test_output_layout_view import EXPECTED_LINKS, VIEW_ROOT, _seed_protected_targets; d=TemporaryDirectory(); root=Path(d.name); _seed_protected_targets(root); create_output_layout_view(root); create_output_layout_view(root); links=list((root / VIEW_ROOT).rglob("*")); symlinks=[p for p in links if p.is_symlink()]; assert len(symlinks)==15; assert all((root / VIEW_ROOT / link).resolve(strict=True)==(root / target).resolve(strict=True) and os.readlink(root / VIEW_ROOT / link)==readlink for link,target,readlink,_ in EXPECTED_LINKS); print("manual synthetic QA: 15 links resolved; descriptor-bound second invocation idempotent; temporary tree cleaned")'
+
+Result:
+manual synthetic QA: 15 links resolved; descriptor-bound second invocation idempotent; temporary tree cleaned

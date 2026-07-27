@@ -1,0 +1,70 @@
+{
+  "claim": "Ferry shared-location lane remediation is ready for independent review.",
+  "verdict": "READY_FOR_INDEPENDENT_REVIEW",
+  "scope": {
+    "domain": "ferry",
+    "problem": "ferry-dev-easy-0000",
+    "state_hash": "33b9c9648b4b132c94467949b8427b34",
+    "todo_6_started": false
+  },
+  "final_profile": {
+    "path": "data/pddl_instances/ferry/ap.pddl",
+    "sha256": "9295ea8b1ed5f60a05a98fcd5c2eac6c7cccef156c4572d59e5668300d4351b4",
+    "location_y_anchor": "(equal (?l y) 0)",
+    "car_lane_assignment": "distribute_within_objects_vertical",
+    "image_suffix_sha256": "871681463f96a3bd8af434bccbf54b2d7f8cbf0bf4cf14e6117fbfddcdaea355"
+  },
+  "remote_canary": {
+    "status": "success",
+    "endpoint": "https://planimation.planning.domains",
+    "timeout_seconds": 90,
+    "max_attempts": 3,
+    "actual_attempts": 1,
+    "receipt": "result.json",
+    "metadata": "remote-metadata.json"
+  },
+  "semantic_validation": {
+    "validator_path": "scripts/phase3/render_semantics.py",
+    "validator_sha256": "89738283d69ea51e2885eff3f421528d3940d05e7848b61595d1816528b3a8ae",
+    "status": "success",
+    "reason": "validated_expected_object_coverage",
+    "sprite_count": 6,
+    "covered_sprite_count": 6,
+    "png_dimensions": [1024, 1024],
+    "receipt": "semantic-receipt.json"
+  },
+  "shared_location_lanes": {
+    "container": "l2",
+    "c0": {"xy": [345, 5], "bounds": [0.689, 0.877, 0.047, 0.179]},
+    "c1": {"xy": [345, 75], "bounds": [0.689, 0.877, 0.179, 0.311]},
+    "verdict": "distinct_in_canvas_non_overlapping",
+    "trace": "trace.vfg.json",
+    "trace_sha256": "0702f4352f2db2fa7737f8e806f240a98e6e18afeb021c17d059e34c2b7025e9",
+    "frame": "frames/frame_000.png",
+    "frame_sha256": "258f1d564fe53dc4fc50574ab45b204945a16501a804e6ba81cc7f3ef2d44e8c"
+  },
+  "comparison_revalidation": {
+    "earlier_success_control": {
+      "root": "tmp/phase3_planimation_profile_canary_20260725_ferry_on_fix",
+      "status": "success",
+      "reason": "validated_expected_object_coverage",
+      "coverage": "6/6"
+    },
+    "retained_pre_remediation_failure": {
+      "root": ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-5-planimation-pilot-contract-and-render-recovery/ferry-failed-attempt",
+      "status": "semantic_image_invalid",
+      "reason": "expected_object_coverage_failed",
+      "coverage": "5/6"
+    }
+  },
+  "local_gates": {
+    "pytest": "21 passed (twice)",
+    "basedpyright": "0 errors, 0 warnings, 0 notes",
+    "compileall": "pass",
+    "git_diff_check": "pass"
+  },
+  "residual_risks": [
+    "The Planimation renderer is an external endpoint; this receipt binds the successful artifact to the configured endpoint and one actual attempt.",
+    "Todo 6 was not started; its remaining resume workflow requires separate authorization."
+  ]
+}

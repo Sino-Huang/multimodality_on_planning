@@ -1,0 +1,78 @@
+{
+  "artifact_kind": "planimation_todo7_recovery_promotion_summary_v2",
+  "changed_canary_prior_receipt_self_sha256": "0df245b600361967bb5c1e24f0cdf8912956356337df329b99e1fec79d153941",
+  "commands": {
+    "assess": "python scripts/phase3/rollout_gates.py assess --stage fixture|changed-canary --selection-file <recovery-selection> [--prior-receipt <fixture-receipt>] --output-root <recovery-root>",
+    "environment": "source \"$HOME/cd_vlaplan\" && source .venv/bin/activate",
+    "generator": "python scripts/phase3/generate_planimation_vlm.py --dataset-root outputs/phase3_curriculum_traces_safe_no_visitall_strict_v1_1st_round --base-url https://planimation.planning.domains --timeout-seconds 90 --request-delay-seconds 0 --mode production --selection-file <recovery-selection> --output-root <recovery-root>",
+    "network_guard": "HTTP_PROXY/HTTPS_PROXY/ALL_PROXY and lower-case variants set to http://127.0.0.1:9; strace -f -e trace=connect",
+    "verifiers": "python scripts/phase3/verify_planimation_vlm.py --mode manifest|render|release --selection-file <recovery-selection> --output-root <recovery-root>"
+  },
+  "fixture_receipt_file_sha256": "d59677121f0b40b23df01b25e7802a7ccc1b30c3693ff5fbaf45b92ac92eed38",
+  "fixture_receipt_self_sha256": "0df245b600361967bb5c1e24f0cdf8912956356337df329b99e1fec79d153941",
+  "historical_roots_unchanged": {
+    "changed-canary": true,
+    "fixture": true
+  },
+  "nonfatal_attempts": [
+    {
+      "outcome": "shell timeout before generator output; strace records SIGTERM and no connect syscall",
+      "stage": "fixture"
+    },
+    {
+      "outcome": "generator invoked without --dataset-root exited before rendering with selected pairing records absent; no state manifest created and strace has no network connect",
+      "stage": "fixture"
+    }
+  ],
+  "pilot_hash_integrity": {
+    "after_file_count": 5343,
+    "baseline_file_count": 5343,
+    "matches_baseline": true
+  },
+  "stages": {
+    "changed-canary": {
+      "all_cache_hits": true,
+      "approved_receipt": true,
+      "cache_dir_count": 18,
+      "pair_id": "af6eb215bd138954fd1560c7f7e8ae18",
+      "renderer_config_sha256": "6c51ad1a5be2f0e5ca73f562f9392439520b01e4c5d4a8e0e8f08c2b7c78f5af",
+      "state_count": 39,
+      "strace_external_connect_detected": {
+        "generate-cache-only.strace.log": false
+      },
+      "strace_files": [
+        "generate-cache-only.strace.log"
+      ],
+      "used_pddl_url_count": 0,
+      "verifier_exit_codes": {
+        "manifest": "0",
+        "release": "0",
+        "render": "0"
+      }
+    },
+    "fixture": {
+      "all_cache_hits": true,
+      "approved_receipt": true,
+      "cache_dir_count": 1,
+      "pair_id": "cfdc4e09e964273750f18bdc6194edd4",
+      "renderer_config_sha256": "6c51ad1a5be2f0e5ca73f562f9392439520b01e4c5d4a8e0e8f08c2b7c78f5af",
+      "state_count": 1,
+      "strace_external_connect_detected": {
+        "generate-cache-only.strace.log": false,
+        "generate.strace-retry.log": false,
+        "generate.strace.log": false
+      },
+      "strace_files": [
+        "generate-cache-only.strace.log",
+        "generate.strace-retry.log",
+        "generate.strace.log"
+      ],
+      "used_pddl_url_count": 0,
+      "verifier_exit_codes": {
+        "manifest": "0",
+        "release": "0",
+        "render": "0"
+      }
+    }
+  }
+}

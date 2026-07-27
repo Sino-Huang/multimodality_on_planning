@@ -1,0 +1,82 @@
+{
+  "cache": {
+    "paths_added_since_pre_first_green": 2039,
+    "preexisting_paths_missing": 0
+  },
+  "errors": [],
+  "hash_receipt": ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/generated-hashes-first-green.txt",
+  "hybrid": {
+    "output_mode": "production",
+    "partial": false,
+    "production_complete": true
+  },
+  "launcher_exit_code": 0,
+  "launcher_verifier_modes": {
+    "manifest": true,
+    "release": true,
+    "render": true
+  },
+  "pair_manifest": {
+    "exact_frozen_set": true,
+    "records": 52,
+    "unique_pair_ids": 52
+  },
+  "passed": true,
+  "phase": "todo-6-first-green-reconciliation",
+  "profile_sha256_by_domain": {
+    "blocksworld": [
+      "9ded071f7ae255de719d753a815bf56ed6756393e14a6065a331e7d5297a8d32"
+    ],
+    "elevators": [
+      "ce32eb2e9edd007aeef9c93fada264202141b4e2b717752a0e5bd793ee9ef813"
+    ],
+    "ferry": [
+      "9295ea8b1ed5f60a05a98fcd5c2eac6c7cccef156c4572d59e5668300d4351b4"
+    ],
+    "gripper": [
+      "b549b24eb7f5fb699773d7c7f7e369488aa7826822faa049a351cb074918dbc4"
+    ],
+    "logistics": [
+      "c9aaa88d16da3c53a3fb4f2b01dfbf507aeda509a92635a877a02ee5bf293f79"
+    ],
+    "towers_of_hanoi": [
+      "5249761674646234ebe2780b20e6211fe89af2d9fbe0d316f2a74d26419e8bd8"
+    ]
+  },
+  "selection_pair_count": 52,
+  "state_manifest": {
+    "cache_hits": 2058,
+    "domain_state_counts": {
+      "blocksworld": 52,
+      "elevators": 356,
+      "ferry": 102,
+      "gripper": 1114,
+      "logistics": 6,
+      "towers_of_hanoi": 938
+    },
+    "records": 2568,
+    "semantic_statuses": {
+      "success": 2568
+    },
+    "statuses": {
+      "success": 2568
+    }
+  },
+  "vlm_record_counts": {
+    "full": {
+      "dev": 19,
+      "test": 14,
+      "train": 19
+    },
+    "search_traversal": {
+      "dev": 1160,
+      "test": 696,
+      "train": 329
+    },
+    "step": {
+      "dev": 130,
+      "test": 133,
+      "train": 68
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "approved": true,
+  "artifact_kind": "planimation_rollout_promotion_receipt_v1",
+  "counts": {
+    "pair_records": 1,
+    "state_render_records": 39
+  },
+  "frozen_output_receipts": {
+    "hybrid_output_manifest_sha256": "b2c616b926ce8d61a42a31922625584524d6517afc3cdeb8062f39f84596b1e0",
+    "pairing_manifest_sha256": "4792589bc28afb97a2ce728a6a9b87eff75ba0ce9a3d95aaf99a5f221a9537d8",
+    "state_render_manifest_sha256": "71eb0f6ffea75687e7fa48e122fc14e7040d84b54a4f08b184415f8ad70c228e"
+  },
+  "output_root": "tmp/phase3_planimation_todo7_promotion_chain_20260726/recovery/changed-canary",
+  "prior_receipt_sha256": "0df245b600361967bb5c1e24f0cdf8912956356337df329b99e1fec79d153941",
+  "reasons": [],
+  "receipt_sha256": "f82b4585eff12a14d38e2f018d77e49a5d14a5aba66701c6f9cf84eac06fdab9",
+  "selection_file": "tmp/phase3_planimation_todo7_promotion_chain_20260726/recovery/changed-canary/diagnostics/rollout_selection.json",
+  "selection_file_sha256": "174ee0d73c7d81850562992d60e62a0b63d8c69b84492cc6bfd53784dcaa0c0a",
+  "selection_sha256": "056e92831ad684eed918531703b7d41963c8794134b9beb9194e190059ed7637",
+  "semantic_image_qa": "verified_by_release",
+  "stage": "changed-canary"
+}

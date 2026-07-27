@@ -37,3 +37,10 @@ source ~/cd_vlaplan && source .venv/bin/activate && python scripts/phase3/verify
 ```
 
 The release verifier must report no invalid persisted records before this output is considered releasable.
+
+## Fast Pilot
+
+- `temp_fast_planimation_render.sh` prepares the deterministic `stratified-pilot` selection and renders it into a new output root before running release verification.
+- The selection contains 52 pairs, 331 plan transitions, and 2,568 total render states including search-traversal frames.
+- The script refuses to run if a full `generate_planimation_vlm` process still writes to the original output root or if the pilot output root already exists.
+- Stop the full renderer before running the pilot. Separate output roots avoid manifest collisions, but concurrent use of the same remote Planimation service would compete for the limiting resource.

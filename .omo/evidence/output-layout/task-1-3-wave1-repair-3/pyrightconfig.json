@@ -1,0 +1,25 @@
+{
+  "typeCheckingMode": "all",
+  "pythonVersion": "3.10",
+  "extraPaths": [
+    "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning"
+  ],
+  "include": [
+    "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/scripts/phase3/output_layout_*.py",
+    "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/tests/phase3/test_output_layout_*.py"
+  ],
+  "reportAny": "none",
+  "executionEnvironments": [
+    {
+      "root": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/tests/phase3",
+      "reportImplicitOverride": "none",
+      "reportPrivateLocalImportUsage": "none",
+      "reportPrivateUsage": "none",
+      "reportUnusedCallResult": "none",
+      "reportUnusedParameter": "none"
+    },
+    {
+      "root": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/scripts/phase3"
+    }
+  ]
+}

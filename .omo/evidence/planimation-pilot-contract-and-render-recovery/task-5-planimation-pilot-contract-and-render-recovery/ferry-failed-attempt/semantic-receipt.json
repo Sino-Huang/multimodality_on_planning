@@ -1,0 +1,11 @@
+{
+  "covered_sprite_count": 5,
+  "minimum_object_coverage": 0.01,
+  "png_dimensions": [
+    1024,
+    1024
+  ],
+  "reason": "expected_object_coverage_failed",
+  "sprite_count": 6,
+  "status": "semantic_image_invalid"
+}

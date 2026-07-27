@@ -15,6 +15,7 @@ from .gbfs import gbfs_estimate_exceeds_resource_gate, gbfs_trace, run_gbfs
 from .io_utils import clear_output_root, count_jsonl, ensure_layout, file_sha256, read_jsonl, relpath, repo_root, stable_hash, write_json, write_jsonl
 from .local_goal_regression import GoalRegressionRequest, recover_goal_regression_plan, should_try_goal_regression_first
 from .local_planners import LocalPlannerRequest, run_local_planner
+from .output_layout_lock import shared_output_layout_lock
 from .pddl import PDDLError, ground_actions, normalize_action_string, parse_task, replay_plan
 from .schema import SCHEMA_VERSION, validate_instance_accounting, validate_planner_attempt, validate_supervised_example, write_schema_documents
 
@@ -159,25 +160,26 @@ def generate_supervised_data(input_root: Path, output_root: Path, planners: tupl
     if jobs < 1:
         raise ValueError("jobs must be at least 1")
     limits = {**RESOURCE_LIMITS, **(limits or {})}
-    clear_output_root(output_root, input_root=input_root)
-    write_schema_documents(output_root)
-    accounting = build_instance_accounting(input_root, output_root)
-    preflight = preflight_pddl_features(input_root, output_root / "diagnostics" / "instance_accounting.jsonl", output_root / "diagnostics" / "pddl_feature_preflight.jsonl")
-    vision = validate_vision_assets(output_root / "diagnostics" / "instance_accounting.jsonl", output_root / "diagnostics" / "vision_validation.jsonl")
-    preflight_by_id = {row["instance_id"]: row for row in preflight}
-    vision_by_id = {row["instance_id"]: row for row in vision}
+    with shared_output_layout_lock(Path(__file__).resolve().parents[2]):
+        clear_output_root(output_root, input_root=input_root)
+        write_schema_documents(output_root)
+        accounting = build_instance_accounting(input_root, output_root)
+        preflight = preflight_pddl_features(input_root, output_root / "diagnostics" / "instance_accounting.jsonl", output_root / "diagnostics" / "pddl_feature_preflight.jsonl")
+        vision = validate_vision_assets(output_root / "diagnostics" / "instance_accounting.jsonl", output_root / "diagnostics" / "vision_validation.jsonl")
+        preflight_by_id = {row["instance_id"]: row for row in preflight}
+        vision_by_id = {row["instance_id"]: row for row in vision}
 
-    attempts, replay_rows, examples = run_planner_jobs(jobs, accounting, planners, preflight_by_id, vision_by_id, limits, progress_callback, _attempt_planner)
+        attempts, replay_rows, examples = run_planner_jobs(jobs, accounting, planners, preflight_by_id, vision_by_id, limits, progress_callback, _attempt_planner)
 
-    attempts.sort(key=lambda item: (item["domain"], item["split"], item["instance_id"], item["planner"]))
-    replay_rows.sort(key=lambda item: str(item["replay_validation_id"]))
-    examples.sort(key=lambda item: str(item["example_id"]))
-    write_jsonl(output_root / "diagnostics" / "planner_attempts.jsonl", attempts)
-    write_jsonl(output_root / "diagnostics" / "replay_validation.jsonl", replay_rows)
-    for split in ("train", "dev", "test"):
-        write_jsonl(output_root / f"{split}.jsonl", [example for example in examples if example["split"] == split])
-    reports = _write_reports(input_root, output_root, accounting, attempts, examples, limits)
-    return reports
+        attempts.sort(key=lambda item: (item["domain"], item["split"], item["instance_id"], item["planner"]))
+        replay_rows.sort(key=lambda item: str(item["replay_validation_id"]))
+        examples.sort(key=lambda item: str(item["example_id"]))
+        write_jsonl(output_root / "diagnostics" / "planner_attempts.jsonl", attempts)
+        write_jsonl(output_root / "diagnostics" / "replay_validation.jsonl", replay_rows)
+        for split in ("train", "dev", "test"):
+            write_jsonl(output_root / f"{split}.jsonl", [example for example in examples if example["split"] == split])
+        reports = _write_reports(input_root, output_root, accounting, attempts, examples, limits)
+        return reports
 
 
 def _attempt_planner(account: dict[str, Any], preflight: dict[str, Any], vision: dict[str, Any], planner: str, limits: dict[str, int]) -> tuple[dict[str, Any], dict[str, Any] | None, dict[str, Any] | None]:

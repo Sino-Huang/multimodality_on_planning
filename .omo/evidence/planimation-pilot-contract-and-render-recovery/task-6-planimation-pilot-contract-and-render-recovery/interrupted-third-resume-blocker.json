@@ -1,0 +1,52 @@
+{
+  "canonical_artifact_paths_unchanged": true,
+  "canonical_artifact_hashes_identical": false,
+  "cache_paths_added": 0,
+  "cache_paths_identical": true,
+  "cache_paths_missing": 0,
+  "immutable_hashes_identical": true,
+  "launcher_exit_code": null,
+  "launcher_exit_receipt_exists": false,
+  "launcher_log": ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/resume-third-success.log",
+  "observed_generator_state_render": {
+    "cache_hits": 2568,
+    "failures": 0,
+    "phase": "state_render_finished",
+    "processed_states": 2568,
+    "successes": 2568
+  },
+  "passed": false,
+  "phase": "todo-6-third-resume-host-interruption",
+  "post_interruption_hybrid_manifest": {
+    "full_records": {
+      "dev": 0,
+      "test": 0,
+      "train": 0
+    },
+    "production_complete": false,
+    "search_traversal_records": {
+      "dev": 0,
+      "test": 0,
+      "train": 0
+    },
+    "step_records": {
+      "dev": 0,
+      "test": 0,
+      "train": 0
+    }
+  },
+  "reason": "The host terminated the owning shell after the generator's state_render_finished receipt and before the launcher verifier loop or an exit-code receipt. The hybrid manifest is therefore incomplete and differs from the complete warm baseline.",
+  "required_contract_items_not_proven": [
+    "launcher exited zero",
+    "launcher executed manifest, render, and release verifier modes",
+    "zero remote attempts for the complete launcher invocation",
+    "complete canonical artifact hash equality",
+    "production-complete final hybrid manifest"
+  ],
+  "second_vs_post_interruption_hash_difference": {
+    "baseline_sha256": "3083610ddc17f3950641d1c17023d8fff32ffc8aa71a73bbfc284e2c622b7bc7",
+    "path": "outputs/phase3_planimation_frames_stratified_pilot_20260725/diagnostics/hybrid_output_manifest.json",
+    "post_interruption_sha256": "372cb104e07d64047ae9bfbe07685288684f8d86b62a02178c454a471711ef93"
+  },
+  "timestamp_utc": "2026-07-25T20:59:12Z"
+}

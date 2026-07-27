@@ -1,0 +1,32 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+________ test_post_fsync_extra_stage_entry_fails_closed_and_is_retained ________
+
+tmp_path = PosixPath('/tmp/pytest-of-sukaih/pytest-1055/test_post_fsync_extra_stage_en0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x148431e03bd0>
+
+    def test_post_fsync_extra_stage_entry_fails_closed_and_is_retained(
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        # Given: an attacker can add an entry after the durable stage fsync pass.
+        _seed_protected_targets(tmp_path)
+        original_fsync_tree = output_layout_view_stage.fsync_tree
+        stage_names: list[str] = []
+    
+        def fsync_then_add_extra(stage: output_layout_view_stage.PrivateStage) -> None:
+            original_fsync_tree(stage)
+            stage_names.append(stage.name)
+            descriptor = os.open("racer-owned", os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600, dir_fd=stage.descriptor)
+            os.close(descriptor)
+    
+        monkeypatch.setattr(output_layout_view_stage, "fsync_tree", fsync_then_add_extra)
+    
+        # When: publication follows the previously final fsync pass.
+>       with pytest.raises(OutputLayoutViewError, match="filesystem mutation failed"):
+E       Failed: DID NOT RAISE <class 'scripts.phase3.output_layout_view_types.OutputLayoutViewError'>
+
+tests/phase3/test_output_layout_view_exact_tree_race.py:31: Failed
+=========================== short test summary info ============================
+FAILED tests/phase3/test_output_layout_view_exact_tree_race.py::test_post_fsync_extra_stage_entry_fails_closed_and_is_retained
+1 failed in 0.35s

@@ -1,0 +1,34 @@
+{
+  "artifact_kind": "hybrid_output_manifest",
+  "counts": {
+    "full_records": {
+      "dev": 1,
+      "test": 0,
+      "train": 0
+    },
+    "search_traversal_records": {
+      "dev": 0,
+      "test": 0,
+      "train": 0
+    },
+    "state_render_records": 1,
+    "step_records": {
+      "dev": 0,
+      "test": 0,
+      "train": 0
+    }
+  },
+  "output_mode": "production",
+  "partial": false,
+  "production_complete": true,
+  "schema_version": "phase3_planimation_vlm_v1",
+  "selection": {
+    "render_limit": null,
+    "selected_pair_ids": [
+      "cfdc4e09e964273750f18bdc6194edd4"
+    ],
+    "selected_state_ids": [
+      "45807de8ac01579a2a6c7cc162b58d05"
+    ]
+  }
+}

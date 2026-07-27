@@ -1,0 +1,27 @@
+{
+  "cache_hit_records": 2568,
+  "cache_paths_added_after_first_green": 0,
+  "errors": [
+    "generated diagnostic/report JSON and JSONL hashes differ from first green"
+  ],
+  "generated_hashes_byte_identical_to_first_green": false,
+  "launcher_exit_code": 0,
+  "launcher_verifier_modes": {
+    "manifest": true,
+    "release": true,
+    "render": true
+  },
+  "passed": false,
+  "phase": "todo-6-second-green-idempotence",
+  "preexisting_cache_paths_missing": 0,
+  "remote_render_attempts": 0,
+  "state_manifest_records": 2568,
+  "state_summary": {
+    "cache_hits": 2568,
+    "schema_version": "phase3_planimation_vlm_v1",
+    "state_render_records": 2568,
+    "status": {
+      "success": 2568
+    }
+  }
+}

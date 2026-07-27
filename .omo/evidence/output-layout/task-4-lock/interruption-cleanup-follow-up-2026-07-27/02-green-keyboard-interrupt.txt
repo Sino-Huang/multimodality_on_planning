@@ -1,0 +1,6 @@
+Command:
+source ~/cd_vlaplan && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 TMPDIR=/tmp pytest -q --tb=short tests/phase3/test_output_layout_lock_interruption.py
+
+Result: 4 passed.
+
+The four interruption cases cover both shared and exclusive modes. A KeyboardInterrupt during flock closes without unlock. A KeyboardInterrupt after flock returns unlocks and then closes.

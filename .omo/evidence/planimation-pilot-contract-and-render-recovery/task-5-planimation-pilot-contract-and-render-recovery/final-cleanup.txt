@@ -1,0 +1,21 @@
+Task 5 final cleanup
+
+Retained semantic-success artifacts:
+- tmp/phase3_planimation_profile_canary_20260725/gripper
+- tmp/phase3_planimation_profile_canary_20260725_ferry_on_fix
+- .omo/evidence/planimation-pilot-contract-and-render-recovery/task-5-planimation-pilot-contract-and-render-recovery/elevators-repaired-global-lanes-attempt
+- tmp/phase3_planimation_profile_canary_20260725/logistics
+
+Retained failure history:
+- ferry-failed-attempt
+- elevators-failed-attempt
+
+Removed transient Task 5 path:
+- tmp/phase3_planimation_profile_canary_20260725/python-pycache-final
+
+Final checks:
+- no generate_planimation_vlm, verify_planimation_vlm, or planimation_pairing_rendering process matched
+- no tmux server was running
+- no incomplete temp Elevators or Ferry attempt root remained
+- git diff --check exited 0
+- Todo 6 was not started

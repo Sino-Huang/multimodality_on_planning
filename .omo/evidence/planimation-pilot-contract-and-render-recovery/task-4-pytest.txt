@@ -1,0 +1,23 @@
+Todo 4 focused verifier regression receipt
+
+Run 1 (after removing only tmp/phase3_release_*test_*):
+source ~/cd_vlaplan && source .venv/bin/activate && pytest -q tests/phase3/test_verify_planimation_vlm.py
+...........                                                              [100%]
+11 passed in 14.39s
+
+Run 2 (after removing only tmp/phase3_release_*test_* again):
+source ~/cd_vlaplan && source .venv/bin/activate && pytest -q tests/phase3/test_verify_planimation_vlm.py
+...........                                                              [100%]
+11 passed in 15.36s
+
+Focused negative coverage includes malformed artifact kind, missing IDs, extra output IDs, duplicate IDs, mutated source-root provenance, and a full-source manifest identifier that deliberately differs from the pilot subset manifest hash.
+
+Final run 1 after removing the unused selection-validation parameter:
+source ~/cd_vlaplan && source .venv/bin/activate && pytest -q tests/phase3/test_verify_planimation_vlm.py
+...........                                                              [100%]
+11 passed in 12.17s
+
+Final run 2 after removing only tmp/phase3_release_*test_*:
+source ~/cd_vlaplan && source .venv/bin/activate && pytest -q tests/phase3/test_verify_planimation_vlm.py
+...........                                                              [100%]
+11 passed in 10.77s

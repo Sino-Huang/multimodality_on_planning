@@ -1,0 +1,5 @@
+Command:
+GIT_MASTER=1 git diff --check
+
+Result:
+Exit status 0 with no output.

@@ -1,0 +1,193 @@
+{
+  "baseline": {
+    "cache_hits": 1037,
+    "cache_key_directories_by_domain": {
+      "blocksworld": 16,
+      "elevators": 82,
+      "ferry": 19,
+      "gripper": 458,
+      "logistics": 3,
+      "towers_of_hanoi": 181
+    },
+    "failed_states": 1261,
+    "pair_records": 52,
+    "production_complete": false,
+    "selection_unique_ids": 52,
+    "state_render_records": 2568,
+    "success_states": 1307
+  },
+  "historical_blocker": "The initial shell-owned resume was forcibly terminated after 120 seconds without an exit receipt. A subsequent persistent owned resume reached 200 processed states and reported five failures, each semantic_image_invalid: coincident_sprite_bounds. The concrete failed Ferry state_hash 33b9c9648b4b132c94467949b8427b34 is stored under two new cache keys.",
+  "cache_preservation_after_interrupted_first": {
+    "cache_domain_counts_unchanged": true,
+    "cache_path_diff_is_empty": true
+  },
+  "cache_preservation_after_first_real_resume": {
+    "new_cache_files": 249,
+    "new_cache_key_directories": 62,
+    "preexisting_cache_paths_missing": 0,
+    "preexisting_cache_paths_preserved": true
+  },
+  "ferry_remediation": {
+    "final_profile_sha256": "9295ea8b1ed5f60a05a98fcd5c2eac6c7cccef156c4572d59e5668300d4351b4",
+    "fresh_canary_coverage": "6/6",
+    "fresh_canary_state_hash": "33b9c9648b4b132c94467949b8427b34",
+    "receipt": ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-5-planimation-pilot-contract-and-render-recovery/ferry-shared-location-final-y-anchor-attempt/done-claim.json"
+  },
+  "first_green": {
+    "cache_hits": 2058,
+    "exit_code": 0,
+    "launcher_log": ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/resume-first-green.log",
+    "reconciliation_receipt": ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/first-green-assertions.json",
+    "state_render_records": 2568,
+    "success_states": 2568,
+    "verifier_modes": ["manifest", "render", "release"]
+  },
+  "second_green": {
+    "cache_hit_records": 2568,
+    "exit_code": 0,
+    "launcher_log": ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/resume-second.log",
+    "new_cache_paths": 0,
+    "preexisting_cache_paths_missing": 0,
+    "remote_render_attempts": 0,
+    "state_render_records": 2568,
+    "success_states": 2568,
+    "verifier_modes": ["manifest", "render", "release"]
+  },
+  "replacement_green": {
+    "authorized_recovery_of": "host-interrupted-third-resume",
+    "cache_hit_records": 2568,
+    "cache_paths_added": 0,
+    "cache_paths_missing": 0,
+    "canonical_artifact_hashes_byte_identical_to_second_green": true,
+    "canonical_artifact_paths_byte_identical_to_second_green": true,
+    "completed_at_utc": "2026-07-26T00:06:53Z",
+    "exit_code": 0,
+    "immutable_hashes_unchanged": true,
+    "launcher_log": ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/resume-replacement-persistent.log",
+    "production_complete": true,
+    "reconciliation_receipt": ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/replacement-reconciliation.json",
+    "remote_render_attempts": 0,
+    "stable_warm_cache_receipt": ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/stable-warm-cache-idempotence.json",
+    "started_at_utc": "2026-07-25T21:05:27Z",
+    "state_render_records": 2568,
+    "success_states": 2568,
+    "verifier_modes": ["manifest", "render", "release"]
+  },
+  "third_resume_interruption": {
+    "cache_paths_added": 0,
+    "cache_paths_missing": 0,
+    "canonical_artifact_paths_unchanged": true,
+    "canonical_artifact_hashes_identical": false,
+    "differing_path": "outputs/phase3_planimation_frames_stratified_pilot_20260725/diagnostics/hybrid_output_manifest.json",
+    "generator_state_render_finished": {
+      "cache_hits": 2568,
+      "failures": 0,
+      "successes": 2568
+    },
+    "immutable_hashes_unchanged": true,
+    "launcher_exit_code_receipt_exists": false,
+    "launcher_log": ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/resume-third-success.log",
+    "post_interruption_production_complete": false,
+    "receipt": ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/interrupted-third-resume-blocker.json",
+    "reason": "The host tool terminated the owner after state_render_finished and before the launcher's verifier loop and exit receipt. A second launcher invocation is not authorized under the no-retry contract."
+  },
+  "idempotence_hash_blocker": {
+    "differing_paths": [
+      "outputs/phase3_planimation_frames_stratified_pilot_20260725/diagnostics/state_render_manifest.jsonl",
+      "outputs/phase3_planimation_frames_stratified_pilot_20260725/reports/state_render_summary.json"
+    ],
+    "first_green_cache_hits": 2058,
+    "hash_comparison_exit_code": 1,
+    "reason": "The first-green and second-green generated-hash receipts are not byte-identical. The first-green snapshot did not include root VLM JSONL files, so their first-versus-second byte identity cannot be claimed either.",
+    "receipt": ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/generated-hashes-first-vs-second.diff",
+    "second_green_cache_hits": 2568
+  },
+  "negative_probes": {
+    "generated_hashes_unchanged_after_probes": true,
+    "missing_root_exit_code": 1,
+    "missing_root_log": ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/negative-missing-root.log",
+    "missing_selection_pair_exit_code": 1,
+    "missing_selection_pair_log": ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/negative-missing-selection-pair.log"
+  },
+  "evidence_paths": [
+    ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/pre-summary.json",
+    ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/resume-first.log",
+    ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/process-check-before.txt",
+    ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/process-check-after-interrupted-first.txt",
+    ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/cache-paths-before.txt",
+    ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/cache-paths-after-interrupted-first.txt",
+    ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/cache-path-diff-interrupted-first.txt",
+    ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/immutable-hashes-before.txt",
+    ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/immutable-hashes-after-interrupted-first.txt",
+    ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/post-timeout-status.json",
+    ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/first-failure-diagnosis.json",
+    ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/cache-paths-after-first-failure.txt",
+    ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/cache-path-diff-first-failure.txt",
+    ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/cache-domain-counts-first-failure.txt",
+    ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/resume-first-green.log",
+    ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/resume-first-green.exit",
+    ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/first-green-assertions.json",
+    ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/resume-second.log",
+    ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/resume-second.exit",
+    ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/second-green-idempotence.json",
+    ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/generated-hashes-first-vs-second.diff",
+    ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/resume-third-success.log",
+    ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/interrupted-third-resume-blocker.json",
+    ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/canonical-hashes-second-vs-post-interruption.diff",
+    ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/resume-replacement-persistent.log",
+    ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/resume-replacement-persistent.exit",
+    ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/replacement-comparison-exits.txt",
+    ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/replacement-reconciliation.json",
+    ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/stable-warm-cache-idempotence.json"
+  ],
+  "exact_first_resume_command": "PILOT_OUTPUT_ROOT=outputs/phase3_planimation_frames_stratified_pilot_20260725 bash temp_fast_planimation_render.sh --resume",
+  "first_resume_exit_code_receipt_exists": false,
+  "first_resume_log": ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/resume-first.log",
+  "first_resume_log_lines": [
+    "Conda environment 'ada_vla' is already activated.",
+    "{\"failure_messages\": [], \"max_states\": null, \"output_mode\": \"production\", \"output_root\": \"outputs/phase3_planimation_frames_stratified_pilot_20260725\", \"phase\": \"state_render_started\", \"processed_states\": 0, \"summary\": {\"cache_hits\": 0, \"schema_version\": \"phase3_planimation_vlm_v1\", \"state_render_records\": 0, \"status\": {}}}"
+  ],
+  "first_real_resume_progress": {
+    "cache_hits": 148,
+    "failed_states": 5,
+    "processed_states": 200,
+    "success_states": 195
+  },
+  "hashes_after_interrupted_first": {
+    "outputs/phase3_curriculum_traces_safe_no_visitall_strict_v1_1st_round/dev.jsonl": "c099fc64be499e7d1816567d3d12f61b448c576272979ca228ab4d959ae87840",
+    "outputs/phase3_curriculum_traces_safe_no_visitall_strict_v1_1st_round/test.jsonl": "044f33ed4ebcdf16ec42b7c6f8df18a9c02cd3f7645ad2deb12fa348d3ae9a52",
+    "outputs/phase3_curriculum_traces_safe_no_visitall_strict_v1_1st_round/train.jsonl": "d0dfa4e0657ae60ff10cda9cae5d20eac05416f8707f59de880d8a87e8d79800",
+    "outputs/phase3_planimation_frames_safe_no_visitall_strict_v1_20260722_005800/diagnostics/rollout_selection.json": "fbd09063a56685dfb12367d17fd8d1909bbbaeac8dd6299b068280ae11af9f6d",
+    "outputs/phase3_planimation_frames_stratified_pilot_20260725/diagnostics/hybrid_output_manifest.json": "372cb104e07d64047ae9bfbe07685288684f8d86b62a02178c454a471711ef93",
+    "outputs/phase3_planimation_frames_stratified_pilot_20260725/diagnostics/pairing_manifest.jsonl": "6f78c69ded1c6e765888bce5415e306157aa3b756d996a6de32b2d9d486e2b52",
+    "outputs/phase3_planimation_frames_stratified_pilot_20260725/diagnostics/state_render_manifest.jsonl": "8cf9cdbb3d1acb3041725ac49a2368ccad8d9fc5cadb76ed9956b87e699500be",
+    "outputs/phase3_planimation_frames_stratified_pilot_20260725/reports/pairing_summary.json": "e9aeb0a83712504908098e0381ec767f9ace4d8635eddbd0d0fa2d454daccc4a",
+    "outputs/phase3_planimation_frames_stratified_pilot_20260725/reports/state_render_summary.json": "1af997d3ae29bb46cc9c936885320c5ee925f0366fcefd3b489587e0ac40e1a3",
+    "scripts/phase3/render_semantics.py": "89738283d69ea51e2885eff3f421528d3940d05e7848b61595d1816528b3a8ae"
+  },
+  "hashes_before": {
+    "outputs/phase3_curriculum_traces_safe_no_visitall_strict_v1_1st_round/dev.jsonl": "c099fc64be499e7d1816567d3d12f61b448c576272979ca228ab4d959ae87840",
+    "outputs/phase3_curriculum_traces_safe_no_visitall_strict_v1_1st_round/test.jsonl": "044f33ed4ebcdf16ec42b7c6f8df18a9c02cd3f7645ad2deb12fa348d3ae9a52",
+    "outputs/phase3_curriculum_traces_safe_no_visitall_strict_v1_1st_round/train.jsonl": "d0dfa4e0657ae60ff10cda9cae5d20eac05416f8707f59de880d8a87e8d79800",
+    "outputs/phase3_planimation_frames_safe_no_visitall_strict_v1_20260722_005800/diagnostics/rollout_selection.json": "fbd09063a56685dfb12367d17fd8d1909bbbaeac8dd6299b068280ae11af9f6d",
+    "outputs/phase3_planimation_frames_stratified_pilot_20260725/diagnostics/hybrid_output_manifest.json": "372cb104e07d64047ae9bfbe07685288684f8d86b62a02178c454a471711ef93",
+    "outputs/phase3_planimation_frames_stratified_pilot_20260725/diagnostics/pairing_manifest.jsonl": "6f78c69ded1c6e765888bce5415e306157aa3b756d996a6de32b2d9d486e2b52",
+    "outputs/phase3_planimation_frames_stratified_pilot_20260725/diagnostics/state_render_manifest.jsonl": "8cf9cdbb3d1acb3041725ac49a2368ccad8d9fc5cadb76ed9956b87e699500be",
+    "outputs/phase3_planimation_frames_stratified_pilot_20260725/reports/pairing_summary.json": "e9aeb0a83712504908098e0381ec767f9ace4d8635eddbd0d0fa2d454daccc4a",
+    "outputs/phase3_planimation_frames_stratified_pilot_20260725/reports/state_render_summary.json": "1af997d3ae29bb46cc9c936885320c5ee925f0366fcefd3b489587e0ac40e1a3",
+    "scripts/phase3/render_semantics.py": "89738283d69ea51e2885eff3f421528d3940d05e7848b61595d1816528b3a8ae"
+  },
+  "immutable_hashes_unchanged_for_selection_source_and_validator": true,
+  "completed_after_ferry_remediation": [
+    "first exact persistent resume with manifest, render, and release verification",
+    "first-green selection, count, split, domain, profile, and cache reconciliation",
+    "second exact persistent resume with 2568 cache hits",
+    "second manifest, render, and release verification",
+    "missing-root launcher rejection probe",
+    "missing-selection-pair manifest-verifier rejection probe"
+  ],
+  "owned_generator_process_after_timeout": false,
+  "status": "passed_replacement_warm_baseline_idempotence",
+  "task": "6. Resume the complete pilot in place and prove cache-preserving idempotence",
+  "timestamp_utc": "2026-07-26T00:06:53Z"
+}

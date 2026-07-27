@@ -1,0 +1,54 @@
+Task 4 compatibility-reference migration final validation
+
+1. Focused compatibility pytest
+
+Command:
+source ~/cd_vlaplan && source .venv/bin/activate && pytest -q tests/phase3/test_planimation_compatibility_references.py
+
+Output:
+Conda environment 'ada_vla' is already activated.
+.....                                                                    [100%]
+5 passed in 0.61s
+
+Exit code: 0
+
+2. Strict Basedpyright for the product contract and focused test
+
+Command:
+source ~/cd_vlaplan && source .venv/bin/activate && basedpyright scripts/phase3/planimation_pairing_contracts.py tests/phase3/test_planimation_compatibility_references.py
+
+Output:
+Conda environment 'ada_vla' is already activated.
+Config contains unrecognized setting "remote.downloadExtensionsLocally".
+Config contains unrecognized setting "workbench.web.useServiceWorkers".
+0 errors, 0 warnings, 0 notes
+
+Exit code: 0
+
+3. Shell syntax check
+
+Command:
+source ~/cd_vlaplan && source .venv/bin/activate && bash -n temprun.sh
+
+Output:
+Conda environment 'ada_vla' is already activated.
+
+Exit code: 0
+
+`bash -n` parsed `temprun.sh` without running its commands.
+
+4. Diff whitespace check
+
+Command:
+GIT_MASTER=1 git diff --check
+
+Output:
+(no output)
+
+Exit code: 0
+
+Scope statement:
+These results cover only the focused compatibility test file, the two files passed to Basedpyright, shell syntax parsing, and the diff whitespace check. No broader test suite was run or claimed.
+
+Final source-contract statement:
+The `temprun.sh` diff changes only the four allowed strict Visitall and 15-puzzle `TRACE_ROOT` assignment values. Its original no-terminal-newline byte ending is preserved. The Python product diff changes only the four `CURRENT_TRACE_ROOTS` path values.

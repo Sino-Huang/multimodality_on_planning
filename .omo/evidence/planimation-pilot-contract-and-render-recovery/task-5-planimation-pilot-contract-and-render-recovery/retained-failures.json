@@ -1,0 +1,22 @@
+{
+  "elevators": {
+    "expected_reason": "coincident_sprite_bounds",
+    "receipt": {"covered_sprite_count": 0, "minimum_object_coverage": 0.01, "png_dimensions": [], "reason": "coincident_sprite_bounds", "sprite_count": 0, "status": "semantic_image_invalid"},
+    "root": "outputs/phase3_planimation_frames_stratified_pilot_20260725/state_cache/elevators/elevators-dev-easy-0000/5335e853d27bb3cfd6c1dcf7595ab677"
+  },
+  "ferry": {
+    "expected_reason": "coincident_sprite_bounds",
+    "receipt": {"covered_sprite_count": 0, "minimum_object_coverage": 0.01, "png_dimensions": [], "reason": "coincident_sprite_bounds", "sprite_count": 0, "status": "semantic_image_invalid"},
+    "root": "outputs/phase3_planimation_frames_stratified_pilot_20260725/state_cache/ferry/ferry-dev-easy-0000/04695f3157c50aa5a6a6ae4216c20a40"
+  },
+  "gripper": {
+    "expected_reason": "sprite_degenerate_bounds",
+    "receipt": {"covered_sprite_count": 0, "minimum_object_coverage": 0.01, "png_dimensions": [], "reason": "sprite_degenerate_bounds", "sprite_count": 0, "status": "semantic_image_invalid"},
+    "root": "outputs/phase3_planimation_frames_stratified_pilot_20260725/state_cache/gripper/gripper-dev-easy-0000/052aad7d4dd4c2098535eb35c8bbf633"
+  },
+  "logistics": {
+    "expected_reason": "coincident_sprite_bounds",
+    "receipt": {"covered_sprite_count": 0, "minimum_object_coverage": 0.01, "png_dimensions": [], "reason": "coincident_sprite_bounds", "sprite_count": 0, "status": "semantic_image_invalid"},
+    "root": "outputs/phase3_planimation_frames_stratified_pilot_20260725/state_cache/logistics/logistics-dev-easy-0000/aafbb36bf14f9f280372eee564186b70"
+  }
+}

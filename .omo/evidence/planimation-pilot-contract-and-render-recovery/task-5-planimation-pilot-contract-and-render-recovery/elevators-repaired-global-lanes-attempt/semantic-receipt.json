@@ -1,0 +1,11 @@
+{
+  "covered_sprite_count": 7,
+  "minimum_object_coverage": 0.01,
+  "png_dimensions": [
+    1024,
+    1024
+  ],
+  "reason": "validated_expected_object_coverage",
+  "sprite_count": 7,
+  "status": "success"
+}

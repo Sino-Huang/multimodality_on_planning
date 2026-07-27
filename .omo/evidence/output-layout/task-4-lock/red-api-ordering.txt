@@ -1,0 +1,5 @@
+Final repository-only API RED proof before the production correction:
+source ~/cd_vlaplan && source .venv/bin/activate && pytest -q tests/phase3/test_output_layout_lock.py -k "repository_scoped_lock_coordinates_modes_before_outputs_directory_exists or lock_requires_only_repository_and_no_outputs_directory"
+4 failed, 2 passed, 13 deselected
+
+The old shared two-argument API caused every failure by requiring the obsolete `output_root` argument. This included shared holders started in spawned processes. The current target is the symmetric one-argument repository-only API, not output-root validation or ordering inside the lock primitive.

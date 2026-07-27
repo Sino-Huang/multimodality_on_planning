@@ -1,0 +1,10 @@
+Command:
+source ~/cd_vlaplan && source .venv/bin/activate && python /home/sukaih/.cache/opencode/packages/oh-my-openagent@latest/node_modules/oh-my-openagent/dist/skills/programming/scripts/python/check-no-excuse-rules.py scripts/phase3/output_layout_lock.py tests/phase3/test_output_layout_lock.py tests/phase3/test_phase3_writer_output_layout_lock.py .omo/evidence/output-layout/task-4-lock/manual_spawn_lock_qa.py
+
+Output:
+Conda environment 'ada_vla' is already activated.
+/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/tests/phase3/test_output_layout_lock.py:1:1: [oversized-module] 335 pure LOC (limit: 250) — split by responsibility
+
+1 violation(s) in 4 file(s)
+
+Result: nonzero because the audit reported the oversized focused lock test module above. No test or product code was changed in this evidence lane.

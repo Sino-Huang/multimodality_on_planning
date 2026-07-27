@@ -1,0 +1,2 @@
+Usage: temprun.sh
+EXIT_CODE=2

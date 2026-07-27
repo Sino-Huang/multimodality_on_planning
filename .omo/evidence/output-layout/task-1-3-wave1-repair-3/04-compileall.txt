@@ -1,0 +1,5 @@
+Command:
+source ~/cd_vlaplan && source .venv/bin/activate && python -m compileall -q scripts/phase3/output_layout_*.py tests/phase3/test_output_layout_*.py
+
+Result:
+Exit status 0 with no output.

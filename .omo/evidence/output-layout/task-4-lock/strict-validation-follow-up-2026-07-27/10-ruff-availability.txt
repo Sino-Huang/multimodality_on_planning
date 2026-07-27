@@ -1,0 +1,4 @@
+Probe:
+source ~/cd_vlaplan && source .venv/bin/activate && command -v ruff
+
+Result: Ruff remained unavailable. It was not installed and no Ruff check was run.

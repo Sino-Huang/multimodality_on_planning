@@ -1,0 +1,22 @@
+{
+  "counts": {
+    "full_records": {
+      "dev": 19,
+      "test": 14,
+      "train": 19
+    },
+    "pair_records": 52,
+    "search_traversal_records": {
+      "dev": 1160,
+      "test": 696,
+      "train": 329
+    },
+    "state_render_records": 2568,
+    "step_records": {
+      "dev": 130,
+      "test": 133,
+      "train": 68
+    }
+  },
+  "mode": "release"
+}

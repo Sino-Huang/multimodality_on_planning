@@ -1,0 +1,510 @@
+..................F...........................FFFF.....................F [ 77%]
+..............FFFFFF.                                                    [100%]
+=================================== FAILURES ===================================
+_ test_protected_content_fifo_substitution_before_regular_file_open_is_nonblocking _
+
+tmp_path = PosixPath('/tmp/pytest-of-sukaih/pytest-1003/test_protected_content_fifo_su0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x150e6355ab50>
+
+    def test_protected_content_fifo_substitution_before_regular_file_open_is_nonblocking(
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        protected = tmp_path / "protected.txt"
+        protected.write_text("approved\n", encoding="utf-8")
+        original_open = output_layout_view_content.os.open
+        replaced = False
+    
+        def replace_regular_file_with_fifo(
+            path: str | bytes | os.PathLike[str] | os.PathLike[bytes],
+            flags: int,
+            mode: int = 0o777,
+            *,
+            dir_fd: int | None = None,
+        ) -> int:
+            nonlocal replaced
+            if os.fsdecode(path) == protected.name and not replaced:
+                replaced = True
+                protected.unlink()
+                os.mkfifo(protected)
+                assert flags & os.O_NONBLOCK
+            return original_open(path, flags, mode, dir_fd=dir_fd)
+    
+        monkeypatch.setattr(output_layout_view_content.os, "open", replace_regular_file_with_fifo)
+    
+        with pytest.raises(OSError, match="protected file changed during tokenization"):
+>           output_layout_view_content.protected_content_token(protected)
+
+tests/phase3/test_output_layout_acceptance_security.py:353: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/scratch/punim0478/sukaih/multimodality_on_planning/scripts/phase3/output_layout_view_content.py:34: in protected_content_token
+    _digest_file(parent_descriptor, path.name, status, digest)
+/scratch/punim0478/sukaih/multimodality_on_planning/scripts/phase3/output_layout_view_content.py:99: in _digest_file
+    descriptor = os.open(name, os.O_RDONLY | _NOFOLLOW, dir_fd=parent_descriptor)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = 'protected.txt', flags = 131072, mode = 511
+
+    def replace_regular_file_with_fifo(
+        path: str | bytes | os.PathLike[str] | os.PathLike[bytes],
+        flags: int,
+        mode: int = 0o777,
+        *,
+        dir_fd: int | None = None,
+    ) -> int:
+        nonlocal replaced
+        if os.fsdecode(path) == protected.name and not replaced:
+            replaced = True
+            protected.unlink()
+            os.mkfifo(protected)
+>           assert flags & os.O_NONBLOCK
+E           assert (131072 & 2048)
+E            +  where 2048 = os.O_NONBLOCK
+
+tests/phase3/test_output_layout_acceptance_security.py:347: AssertionError
+____ test_receipt_cleanup_retains_racer_sidecar_after_quarantine_validation ____
+
+tmp_path = PosixPath('/tmp/pytest-of-sukaih/pytest-1003/test_receipt_cleanup_retains_r0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x150e637e0c90>
+
+    def test_receipt_cleanup_retains_racer_sidecar_after_quarantine_validation(
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        receipt_path = tmp_path / "receipt.json"
+        transaction_path = tmp_path / ".receipt.json.txn"
+        transaction_path.write_bytes(_transaction_bytes("complete", None, "create"))
+        transaction_path.chmod(0o600)
+        original_read_entry = output_layout_receipt_transaction._read_entry
+        racer_bytes = b"racer-owned\n"
+        raced = False
+    
+        def read_then_replace(
+            parent_descriptor: int,
+            name: str,
+            path: Path,
+        ) -> output_layout_receipt_transaction.Entry | None:
+            nonlocal raced
+            entry = original_read_entry(parent_descriptor, name, path)
+            if name.endswith(".remove") and entry is not None and not raced:
+                raced = True
+                os.unlink(name, dir_fd=parent_descriptor)
+                descriptor = os.open(name, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600, dir_fd=parent_descriptor)
+                try:
+                    os.write(descriptor, racer_bytes)
+                finally:
+                    os.close(descriptor)
+            return entry
+    
+        monkeypatch.setattr(output_layout_receipt_transaction, "_read_entry", read_then_replace)
+    
+>       with pytest.raises(OutputLayoutInventoryError, match="changed before cleanup"):
+E       Failed: DID NOT RAISE <class 'scripts.phase3.output_layout_inventory_types.OutputLayoutInventoryError'>
+
+tests/phase3/test_output_layout_receipt_adversarial.py:346: Failed
+_ test_recovery_sidecars_require_exact_private_mode_at_read_and_cleanup[transaction-420] _
+
+tmp_path = PosixPath('/tmp/pytest-of-sukaih/pytest-1003/test_recovery_sidecars_require0')
+mode = 420, sidecar = 'transaction'
+
+    @pytest.mark.parametrize("mode", (0o644, 0o660, 0o604, 0o600))
+    @pytest.mark.parametrize("sidecar", ("transaction", "swap"))
+    def test_recovery_sidecars_require_exact_private_mode_at_read_and_cleanup(
+        tmp_path: Path,
+        mode: int,
+        sidecar: str,
+    ) -> None:
+        receipt_path = tmp_path / "receipt.json"
+        transaction_path = tmp_path / ".receipt.json.txn"
+        transaction_path.write_bytes(_transaction_bytes("complete", None, "create"))
+        transaction_path.chmod(0o600 if sidecar == "swap" else mode)
+        if sidecar == "swap":
+            swap_path = tmp_path / ".receipt.json.swap"
+            swap_path.write_bytes(_receipt_bytes("complete"))
+            swap_path.chmod(mode)
+    
+        if mode == 0o600:
+            write_receipt(receipt_path, _receipt("complete"))
+            assert read_receipt(receipt_path) == _receipt("complete")
+            assert not transaction_path.exists()
+            assert not (tmp_path / ".receipt.json.swap").exists()
+        else:
+>           with pytest.raises(OutputLayoutInventoryError, match="mode 0600"):
+E           Failed: DID NOT RAISE <class 'scripts.phase3.output_layout_inventory_types.OutputLayoutInventoryError'>
+
+tests/phase3/test_output_layout_receipt_adversarial.py:374: Failed
+_ test_recovery_sidecars_require_exact_private_mode_at_read_and_cleanup[transaction-432] _
+
+tmp_path = PosixPath('/tmp/pytest-of-sukaih/pytest-1003/test_recovery_sidecars_require1')
+mode = 432, sidecar = 'transaction'
+
+    @pytest.mark.parametrize("mode", (0o644, 0o660, 0o604, 0o600))
+    @pytest.mark.parametrize("sidecar", ("transaction", "swap"))
+    def test_recovery_sidecars_require_exact_private_mode_at_read_and_cleanup(
+        tmp_path: Path,
+        mode: int,
+        sidecar: str,
+    ) -> None:
+        receipt_path = tmp_path / "receipt.json"
+        transaction_path = tmp_path / ".receipt.json.txn"
+        transaction_path.write_bytes(_transaction_bytes("complete", None, "create"))
+        transaction_path.chmod(0o600 if sidecar == "swap" else mode)
+        if sidecar == "swap":
+            swap_path = tmp_path / ".receipt.json.swap"
+            swap_path.write_bytes(_receipt_bytes("complete"))
+            swap_path.chmod(mode)
+    
+        if mode == 0o600:
+            write_receipt(receipt_path, _receipt("complete"))
+            assert read_receipt(receipt_path) == _receipt("complete")
+            assert not transaction_path.exists()
+            assert not (tmp_path / ".receipt.json.swap").exists()
+        else:
+>           with pytest.raises(OutputLayoutInventoryError, match="mode 0600"):
+E           Failed: DID NOT RAISE <class 'scripts.phase3.output_layout_inventory_types.OutputLayoutInventoryError'>
+
+tests/phase3/test_output_layout_receipt_adversarial.py:374: Failed
+_ test_recovery_sidecars_require_exact_private_mode_at_read_and_cleanup[transaction-388] _
+
+tmp_path = PosixPath('/tmp/pytest-of-sukaih/pytest-1003/test_recovery_sidecars_require2')
+mode = 388, sidecar = 'transaction'
+
+    @pytest.mark.parametrize("mode", (0o644, 0o660, 0o604, 0o600))
+    @pytest.mark.parametrize("sidecar", ("transaction", "swap"))
+    def test_recovery_sidecars_require_exact_private_mode_at_read_and_cleanup(
+        tmp_path: Path,
+        mode: int,
+        sidecar: str,
+    ) -> None:
+        receipt_path = tmp_path / "receipt.json"
+        transaction_path = tmp_path / ".receipt.json.txn"
+        transaction_path.write_bytes(_transaction_bytes("complete", None, "create"))
+        transaction_path.chmod(0o600 if sidecar == "swap" else mode)
+        if sidecar == "swap":
+            swap_path = tmp_path / ".receipt.json.swap"
+            swap_path.write_bytes(_receipt_bytes("complete"))
+            swap_path.chmod(mode)
+    
+        if mode == 0o600:
+            write_receipt(receipt_path, _receipt("complete"))
+            assert read_receipt(receipt_path) == _receipt("complete")
+            assert not transaction_path.exists()
+            assert not (tmp_path / ".receipt.json.swap").exists()
+        else:
+>           with pytest.raises(OutputLayoutInventoryError, match="mode 0600"):
+E           Failed: DID NOT RAISE <class 'scripts.phase3.output_layout_inventory_types.OutputLayoutInventoryError'>
+
+tests/phase3/test_output_layout_receipt_adversarial.py:374: Failed
+_ test_snapshot_fifo_substitution_before_regular_file_open_is_nonblocking_and_normalized _
+
+tmp_path = PosixPath('/tmp/pytest-of-sukaih/pytest-1003/test_snapshot_fifo_substitutio0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x150e634a9c50>
+
+    def test_snapshot_fifo_substitution_before_regular_file_open_is_nonblocking_and_normalized(
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        root, target = _single_file_tree(tmp_path)
+        original_open = output_layout_snapshot._open_descriptor
+        replaced = False
+    
+        def replace_regular_file_with_fifo(
+            path: str | bytes | os.PathLike[str] | os.PathLike[bytes],
+            flags: int,
+            mode: int = 0o777,
+            *,
+            dir_fd: int | None = None,
+        ) -> int:
+            nonlocal replaced
+            if os.fsdecode(path) == target.name and not replaced:
+                replaced = True
+                target.unlink()
+                os.mkfifo(target)
+                assert flags & os.O_NONBLOCK
+            return original_open(path, flags, mode, dir_fd=dir_fd)
+    
+        monkeypatch.setattr(output_layout_snapshot, "_open_descriptor", replace_regular_file_with_fifo)
+    
+        with pytest.raises(OutputLayoutInventoryError, match="unable to snapshot inventory tree"):
+>           snapshot_tree(root)
+
+tests/phase3/test_output_layout_snapshot_adversarial.py:259: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/scratch/punim0478/sukaih/multimodality_on_planning/scripts/phase3/output_layout_snapshot.py:38: in snapshot_tree
+    return _snapshot_tree(root)
+           ^^^^^^^^^^^^^^^^^^^^
+/scratch/punim0478/sukaih/multimodality_on_planning/scripts/phase3/output_layout_snapshot.py:50: in _snapshot_tree
+    _snapshot_directory(descriptor, root, ".", digest, counts)
+/scratch/punim0478/sukaih/multimodality_on_planning/scripts/phase3/output_layout_snapshot.py:79: in _snapshot_directory
+    _snapshot_directory_at_depth(descriptor, display_path, relative, digest, counts, 0)
+/scratch/punim0478/sukaih/multimodality_on_planning/scripts/phase3/output_layout_snapshot.py:104: in _snapshot_directory_at_depth
+    _add_regular_file(descriptor, name, child_path, child_relative, child_stat, digest, counts)
+/scratch/punim0478/sukaih/multimodality_on_planning/scripts/phase3/output_layout_snapshot.py:180: in _add_regular_file
+    descriptor = _open_descriptor(name, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0), dir_fd=parent_descriptor)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = 'payload.txt', flags = 131072, mode = 511
+
+    def replace_regular_file_with_fifo(
+        path: str | bytes | os.PathLike[str] | os.PathLike[bytes],
+        flags: int,
+        mode: int = 0o777,
+        *,
+        dir_fd: int | None = None,
+    ) -> int:
+        nonlocal replaced
+        if os.fsdecode(path) == target.name and not replaced:
+            replaced = True
+            target.unlink()
+            os.mkfifo(target)
+>           assert flags & os.O_NONBLOCK
+E           assert (131072 & 2048)
+E            +  where 2048 = os.O_NONBLOCK
+
+tests/phase3/test_output_layout_snapshot_adversarial.py:253: AssertionError
+_ test_private_stage_walkers_reject_synthetic_depth_and_entry_limits[scan-_MAX_DIRECTORY_DEPTH-depth] _
+
+tmp_path = PosixPath('/tmp/pytest-of-sukaih/pytest-1003/test_private_stage_walkers_rej0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x150e635ca950>
+walker = 'scan', limit_name = '_MAX_DIRECTORY_DEPTH', structure = 'depth'
+
+    @pytest.mark.parametrize(
+        ("walker", "limit_name", "structure"),
+        (
+            ("scan", "_MAX_DIRECTORY_DEPTH", "depth"),
+            ("scan", "_MAX_DIRECTORY_ENTRIES", "entries"),
+            ("fsync", "_MAX_DIRECTORY_DEPTH", "depth"),
+            ("fsync", "_MAX_DIRECTORY_ENTRIES", "entries"),
+        ),
+    )
+    def test_private_stage_walkers_reject_synthetic_depth_and_entry_limits(
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        walker: str,
+        limit_name: str,
+        structure: str,
+    ) -> None:
+        parent_descriptor = os.open(tmp_path, os.O_RDONLY | os.O_DIRECTORY)
+        stage = output_layout_view_stage.create_private_stage(parent_descriptor, Path("datasets/view"))
+        stage_path = tmp_path / stage.name
+        try:
+            if structure == "depth":
+                (stage_path / "one" / "two").mkdir(parents=True)
+            else:
+                (stage_path / "one").mkdir()
+                (stage_path / "two").mkdir()
+            monkeypatch.setattr(output_layout_view_stage, limit_name, 1, raising=False)
+    
+            if walker == "scan":
+>               with pytest.raises(OSError, match="too (deep|many entries)"):
+E               Failed: DID NOT RAISE <class 'OSError'>
+
+tests/phase3/test_output_layout_view_races.py:239: Failed
+_ test_private_stage_walkers_reject_synthetic_depth_and_entry_limits[scan-_MAX_DIRECTORY_ENTRIES-entries] _
+
+tmp_path = PosixPath('/tmp/pytest-of-sukaih/pytest-1003/test_private_stage_walkers_rej1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x150e635ca250>
+walker = 'scan', limit_name = '_MAX_DIRECTORY_ENTRIES', structure = 'entries'
+
+    @pytest.mark.parametrize(
+        ("walker", "limit_name", "structure"),
+        (
+            ("scan", "_MAX_DIRECTORY_DEPTH", "depth"),
+            ("scan", "_MAX_DIRECTORY_ENTRIES", "entries"),
+            ("fsync", "_MAX_DIRECTORY_DEPTH", "depth"),
+            ("fsync", "_MAX_DIRECTORY_ENTRIES", "entries"),
+        ),
+    )
+    def test_private_stage_walkers_reject_synthetic_depth_and_entry_limits(
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        walker: str,
+        limit_name: str,
+        structure: str,
+    ) -> None:
+        parent_descriptor = os.open(tmp_path, os.O_RDONLY | os.O_DIRECTORY)
+        stage = output_layout_view_stage.create_private_stage(parent_descriptor, Path("datasets/view"))
+        stage_path = tmp_path / stage.name
+        try:
+            if structure == "depth":
+                (stage_path / "one" / "two").mkdir(parents=True)
+            else:
+                (stage_path / "one").mkdir()
+                (stage_path / "two").mkdir()
+            monkeypatch.setattr(output_layout_view_stage, limit_name, 1, raising=False)
+    
+            if walker == "scan":
+>               with pytest.raises(OSError, match="too (deep|many entries)"):
+E               Failed: DID NOT RAISE <class 'OSError'>
+
+tests/phase3/test_output_layout_view_races.py:239: Failed
+_ test_private_stage_walkers_reject_synthetic_depth_and_entry_limits[fsync-_MAX_DIRECTORY_DEPTH-depth] _
+
+tmp_path = PosixPath('/tmp/pytest-of-sukaih/pytest-1003/test_private_stage_walkers_rej2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x150e635b1210>
+walker = 'fsync', limit_name = '_MAX_DIRECTORY_DEPTH', structure = 'depth'
+
+    @pytest.mark.parametrize(
+        ("walker", "limit_name", "structure"),
+        (
+            ("scan", "_MAX_DIRECTORY_DEPTH", "depth"),
+            ("scan", "_MAX_DIRECTORY_ENTRIES", "entries"),
+            ("fsync", "_MAX_DIRECTORY_DEPTH", "depth"),
+            ("fsync", "_MAX_DIRECTORY_ENTRIES", "entries"),
+        ),
+    )
+    def test_private_stage_walkers_reject_synthetic_depth_and_entry_limits(
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        walker: str,
+        limit_name: str,
+        structure: str,
+    ) -> None:
+        parent_descriptor = os.open(tmp_path, os.O_RDONLY | os.O_DIRECTORY)
+        stage = output_layout_view_stage.create_private_stage(parent_descriptor, Path("datasets/view"))
+        stage_path = tmp_path / stage.name
+        try:
+            if structure == "depth":
+                (stage_path / "one" / "two").mkdir(parents=True)
+            else:
+                (stage_path / "one").mkdir()
+                (stage_path / "two").mkdir()
+            monkeypatch.setattr(output_layout_view_stage, limit_name, 1, raising=False)
+    
+            if walker == "scan":
+                with pytest.raises(OSError, match="too (deep|many entries)"):
+                    output_layout_view_stage._scan(stage.descriptor, Path(), set(), {})
+            else:
+>               with pytest.raises(OSError, match="too (deep|many entries)"):
+E               Failed: DID NOT RAISE <class 'OSError'>
+
+tests/phase3/test_output_layout_view_races.py:242: Failed
+_ test_private_stage_walkers_reject_synthetic_depth_and_entry_limits[fsync-_MAX_DIRECTORY_ENTRIES-entries] _
+
+tmp_path = PosixPath('/tmp/pytest-of-sukaih/pytest-1003/test_private_stage_walkers_rej3')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x150e635b19d0>
+walker = 'fsync', limit_name = '_MAX_DIRECTORY_ENTRIES', structure = 'entries'
+
+    @pytest.mark.parametrize(
+        ("walker", "limit_name", "structure"),
+        (
+            ("scan", "_MAX_DIRECTORY_DEPTH", "depth"),
+            ("scan", "_MAX_DIRECTORY_ENTRIES", "entries"),
+            ("fsync", "_MAX_DIRECTORY_DEPTH", "depth"),
+            ("fsync", "_MAX_DIRECTORY_ENTRIES", "entries"),
+        ),
+    )
+    def test_private_stage_walkers_reject_synthetic_depth_and_entry_limits(
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        walker: str,
+        limit_name: str,
+        structure: str,
+    ) -> None:
+        parent_descriptor = os.open(tmp_path, os.O_RDONLY | os.O_DIRECTORY)
+        stage = output_layout_view_stage.create_private_stage(parent_descriptor, Path("datasets/view"))
+        stage_path = tmp_path / stage.name
+        try:
+            if structure == "depth":
+                (stage_path / "one" / "two").mkdir(parents=True)
+            else:
+                (stage_path / "one").mkdir()
+                (stage_path / "two").mkdir()
+            monkeypatch.setattr(output_layout_view_stage, limit_name, 1, raising=False)
+    
+            if walker == "scan":
+                with pytest.raises(OSError, match="too (deep|many entries)"):
+                    output_layout_view_stage._scan(stage.descriptor, Path(), set(), {})
+            else:
+>               with pytest.raises(OSError, match="too (deep|many entries)"):
+E               Failed: DID NOT RAISE <class 'OSError'>
+
+tests/phase3/test_output_layout_view_races.py:242: Failed
+_ test_partial_private_stage_construction_preserves_primary_failure_and_only_cleans_owned_entries _
+
+tmp_path = PosixPath('/tmp/pytest-of-sukaih/pytest-1003/test_partial_private_stage_con0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x150e63520950>
+
+    def test_partial_private_stage_construction_preserves_primary_failure_and_only_cleans_owned_entries(
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        _seed_protected_targets(tmp_path)
+        original_create_stage = output_layout_view_stage.create_private_stage
+        original_symlink = output_layout_view_stage._symlink
+        created_stage: output_layout_view_stage.PrivateStage | None = None
+        racer_path: Path | None = None
+    
+        def capture_stage(parent_descriptor: int, suffix: Path) -> output_layout_view_stage.PrivateStage:
+            nonlocal created_stage
+            created_stage = original_create_stage(parent_descriptor, suffix)
+            return created_stage
+    
+        def create_racer_then_fail(descriptor: int, relative: Path, target: str) -> None:
+            nonlocal racer_path
+            original_symlink(descriptor, relative, target)
+            assert created_stage is not None
+            racer_path = tmp_path / "outputs" / created_stage.name / "racer-owned"
+            racer_path.write_text("retain\n", encoding="utf-8")
+            raise OSError("synthetic construction failure")
+    
+        monkeypatch.setattr(output_layout_view_stage, "create_private_stage", capture_stage)
+        monkeypatch.setattr(output_layout_view_stage, "_symlink", create_racer_then_fail)
+    
+        with pytest.raises(OutputLayoutViewError) as error_info:
+            create_output_layout_view(tmp_path)
+    
+>       assert "synthetic construction failure" in str(error_info.value.__cause__)
+E       assert 'synthetic construction failure' in "[Errno 39] Directory not empty: '.phase3-view-stage-5d94116f9437634c330e1d7c792ed635.cleanup'"
+E        +  where "[Errno 39] Directory not empty: '.phase3-view-stage-5d94116f9437634c330e1d7c792ed635.cleanup'" = str(OSError(39, 'Directory not empty'))
+E        +    where OSError(39, 'Directory not empty') = OutputLayoutViewError('filesystem mutation failed: /tmp/pytest-of-sukaih/pytest-1003/test_partial_private_stage_con0').__cause__
+E        +      where OutputLayoutViewError('filesystem mutation failed: /tmp/pytest-of-sukaih/pytest-1003/test_partial_private_stage_con0') = <ExceptionInfo OutputLayoutViewError('filesystem mutation failed: /tmp/pytest-of-sukaih/pytest-1003/test_partial_private_stage_con0') tblen=2>.value
+
+tests/phase3/test_output_layout_view_races.py:278: AssertionError
+___ test_stage_cleanup_retains_racer_replacement_after_quarantine_validation ___
+
+tmp_path = PosixPath('/tmp/pytest-of-sukaih/pytest-1003/test_stage_cleanup_retains_rac0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x150e633c0910>
+
+    def test_stage_cleanup_retains_racer_replacement_after_quarantine_validation(
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        parent_descriptor = os.open(tmp_path, os.O_RDONLY | os.O_DIRECTORY)
+        stage = output_layout_view_stage.create_private_stage(parent_descriptor, Path("datasets/view"))
+        original_stat = output_layout_view_stage.os.stat
+        original_rmdir = output_layout_view_stage.os.rmdir
+        quarantine_name = f"{stage.name}.cleanup"
+        raced = False
+    
+        def validate_then_replace(name: str, *, dir_fd: int | None = None, follow_symlinks: bool = True) -> os.stat_result:
+            nonlocal raced
+            status = original_stat(name, dir_fd=dir_fd, follow_symlinks=follow_symlinks)
+            if name == quarantine_name and not raced:
+                raced = True
+                original_rmdir(name, dir_fd=dir_fd)
+                os.mkdir(name, dir_fd=dir_fd)
+            return status
+    
+        monkeypatch.setattr(output_layout_view_stage.os, "stat", validate_then_replace)
+        try:
+>           with pytest.raises(OSError, match="changed before cleanup"):
+E           Failed: DID NOT RAISE <class 'OSError'>
+
+tests/phase3/test_output_layout_view_races.py:306: Failed
+=========================== short test summary info ============================
+FAILED tests/phase3/test_output_layout_acceptance_security.py::test_protected_content_fifo_substitution_before_regular_file_open_is_nonblocking
+FAILED tests/phase3/test_output_layout_receipt_adversarial.py::test_receipt_cleanup_retains_racer_sidecar_after_quarantine_validation
+FAILED tests/phase3/test_output_layout_receipt_adversarial.py::test_recovery_sidecars_require_exact_private_mode_at_read_and_cleanup[transaction-420]
+FAILED tests/phase3/test_output_layout_receipt_adversarial.py::test_recovery_sidecars_require_exact_private_mode_at_read_and_cleanup[transaction-432]
+FAILED tests/phase3/test_output_layout_receipt_adversarial.py::test_recovery_sidecars_require_exact_private_mode_at_read_and_cleanup[transaction-388]
+FAILED tests/phase3/test_output_layout_snapshot_adversarial.py::test_snapshot_fifo_substitution_before_regular_file_open_is_nonblocking_and_normalized
+FAILED tests/phase3/test_output_layout_view_races.py::test_private_stage_walkers_reject_synthetic_depth_and_entry_limits[scan-_MAX_DIRECTORY_DEPTH-depth]
+FAILED tests/phase3/test_output_layout_view_races.py::test_private_stage_walkers_reject_synthetic_depth_and_entry_limits[scan-_MAX_DIRECTORY_ENTRIES-entries]
+FAILED tests/phase3/test_output_layout_view_races.py::test_private_stage_walkers_reject_synthetic_depth_and_entry_limits[fsync-_MAX_DIRECTORY_DEPTH-depth]
+FAILED tests/phase3/test_output_layout_view_races.py::test_private_stage_walkers_reject_synthetic_depth_and_entry_limits[fsync-_MAX_DIRECTORY_ENTRIES-entries]
+FAILED tests/phase3/test_output_layout_view_races.py::test_partial_private_stage_construction_preserves_primary_failure_and_only_cleans_owned_entries
+FAILED tests/phase3/test_output_layout_view_races.py::test_stage_cleanup_retains_racer_replacement_after_quarantine_validation
+12 failed, 81 passed in 0.98s

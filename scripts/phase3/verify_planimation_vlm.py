@@ -16,9 +16,10 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Verify Phase 3 Planimation/VLM pairing artifacts.")
     parser.add_argument("--output-root", type=Path, required=True)
     parser.add_argument("--mode", choices=("manifest", "render", "release"), default="manifest")
+    parser.add_argument("--selection-file", type=Path)
     args = parser.parse_args()
     try:
-        result = verify_output(args.output_root, args.mode)
+        result = verify_output(args.output_root, args.mode, args.selection_file)
     except VerificationFailure as exc:
         print(str(exc), file=sys.stderr)
         return 1

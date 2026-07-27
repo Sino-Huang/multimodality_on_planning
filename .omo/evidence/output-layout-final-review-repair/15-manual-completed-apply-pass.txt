@@ -1,0 +1,2 @@
+{"command": "apply", "ok": true}
+command_exit=0

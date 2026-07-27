@@ -1,0 +1,8 @@
+Command:
+source ~/cd_vlaplan && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 TMPDIR=/tmp python .omo/evidence/output-layout/task-4-lock/manual_spawn_lock_qa.py
+
+Output:
+manual-spawn-lock-no-legacy-file-creation: PASS
+manual-spawn-lock-replacement-resistance: PASS
+
+Result: both explicit manual QA checks passed using synthetic temporary repositories.

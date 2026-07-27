@@ -1,0 +1,8 @@
+--- .omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/canonical-hashes-second-green-complete.txt	2026-07-26 05:57:08.999578592 +1000
++++ .omo/evidence/planimation-pilot-contract-and-render-recovery/task-6-planimation-pilot-contract-and-render-recovery/canonical-hashes-post-interruption.txt	2026-07-26 06:58:36.385771868 +1000
+@@ -1,4 +1,4 @@
+-3083610ddc17f3950641d1c17023d8fff32ffc8aa71a73bbfc284e2c622b7bc7  outputs/phase3_planimation_frames_stratified_pilot_20260725/diagnostics/hybrid_output_manifest.json
++372cb104e07d64047ae9bfbe07685288684f8d86b62a02178c454a471711ef93  outputs/phase3_planimation_frames_stratified_pilot_20260725/diagnostics/hybrid_output_manifest.json
+ 6f78c69ded1c6e765888bce5415e306157aa3b756d996a6de32b2d9d486e2b52  outputs/phase3_planimation_frames_stratified_pilot_20260725/diagnostics/pairing_manifest.jsonl
+ 73c6c5519b20c531f7a8902438e0e8177ebc2202f67a9579bb2c44e219d9b22e  outputs/phase3_planimation_frames_stratified_pilot_20260725/diagnostics/state_render_manifest.jsonl
+ 25d3f44dc1198c2decc99d27ea5399252e776a23da4a6420473aad14b4458f5e  outputs/phase3_planimation_frames_stratified_pilot_20260725/full_reasoning_dev.jsonl

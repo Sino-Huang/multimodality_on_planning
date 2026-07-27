@@ -1,0 +1,253 @@
+# Phase 3 Planimation Pilot Contract and Render Recovery
+
+## Scope and Result
+
+This work closed the seven-part Planimation pilot recovery plan without changing
+the frozen selection, the approved pilot data, the cache, or the temporary
+recovery roots during Todo 7. The final `stratified-pilot` receipt approves the
+existing 52-pair, 2,568-state pilot. It does not approve the incomplete full
+production corpus of 2,328 pairs and 537,696 expected render states.
+
+The approved receipt is
+`outputs/phase3_planimation_frames_stratified_pilot_20260725/diagnostics/rollout_promotion_receipt.json`.
+Its self-hash is
+`1bef38d5571cd3e8276f4d925e13553475914fe0e51f3d459ec83a16c25694e7`.
+
+## Todo 1: Graphplan Extraction Binding
+
+Graphplan reasoning now binds to an `extracted_plan_replay` transition through
+its nonempty extraction event, integer step index, and exact normalized equality
+with `extraction.selected_plan[step_index]`. Matching action-layer data is
+optional enrichment after that binding. It isn't an alternate source of truth.
+Forged source, event, Boolean step, and action mismatches remain fail-closed as
+`trace_event_not_bound_to_replay_transition`.
+
+Five retained action-layer-mismatched cases now report
+`context_status="extraction_bound"`. Their truthful mandatory provenance payloads
+are 267 to 268 characters, so the mandatory fields are preserved even when the
+requested budget is 256 characters. The focused pairing and traversal suite
+passed twice with 69 tests.
+
+## Todo 2: Profile Contracts and Semantic Repair
+
+The initial profile contract fixes were narrow:
+
+1. Gripper geometry changed from zero size to 30 by 60.
+2. Ferry cars changed to 100 by 70 while locations remained 150 by 150.
+3. Elevators stopped redistributing passenger x during `served` handling.
+4. Logistics adopted the current `%p`, `%t`, `%a`, `%l`, and `%c` selectors.
+
+The strict semantic validator stayed unchanged at SHA-256
+`89738283d69ea51e2885eff3f421528d3940d05e7848b61595d1816528b3a8ae`.
+Later runtime canaries exposed two additional layout faults. Elevators needed
+stable global passenger lanes. Ferry needed a concrete location y anchor plus
+vertical car distribution for two cars at one location. The final Ferry profile
+SHA-256 is
+`9295ea8b1ed5f60a05a98fcd5c2eac6c7cccef156c4572d59e5668300d4351b4`.
+Its final authorized canary passed semantic validation with 6 of 6 expected
+sprites.
+
+## Todo 3: Fresh and Resume Launcher Contract
+
+`temp_fast_planimation_render.sh` gained strict argument parsing, active-writer
+checks, resume prerequisites, and selection-bound manifest, render, and release
+verification. Fresh mode refuses an existing output root. Resume mode requires
+the existing pilot root and its frozen selection.
+
+Conda activation also required a narrow shell fix. The launcher disables
+`nounset` only while sourcing `~/cd_vlaplan` and `.venv/bin/activate`, then
+restores it before selection, rendering, and verification. The focused launcher
+suite passed twice with 8 tests. Todo 7 did not rerun this launcher.
+
+The operator commands are:
+
+```bash
+bash temp_fast_planimation_render.sh
+PILOT_OUTPUT_ROOT=outputs/phase3_planimation_frames_stratified_pilot_20260725 bash temp_fast_planimation_render.sh --resume
+```
+
+The first command is for a fresh output root. The second resumes the named pilot
+in place and reuses only cache entries that still pass identity and semantic
+validation.
+
+## Todo 4: Frozen Selection Verification
+
+The frozen selection preserves the SHA-256 of the full source pairing manifest:
+
+```text
+de298099d2b3456322f6ebf692b4fd1307a3b146a7e27aff48848794da1cd9d8
+```
+
+That value is provenance for the source from which selection occurred. It is
+not the expected hash of the 52-pair output subset. The unchanged frozen
+selection file has SHA-256
+`fbd09063a56685dfb12367d17fd8d1909bbbaeac8dd6299b068280ae11af9f6d`.
+The actual subset pairing manifest has SHA-256
+`6f78c69ded1c6e765888bce5415e306157aa3b756d996a6de32b2d9d486e2b52`.
+
+Selection-bound release verification checks exact pair-set equality and frozen
+per-pair provenance. The source root SHA-256 is
+`a8c1fe317f5f3909aea4af28c519aa4af9c4eefb406667c644b46cd15aba3214`.
+Independent review added checks for `source_root_id`, `example_id`,
+`active_planner_id`, and `instance_id`. The real 52-pair manifest verification
+completed successfully.
+
+## Todo 5: Runtime Canaries
+
+Fresh canaries proved the repaired Gripper, Ferry, Elevators, and Logistics
+profiles against the unchanged semantic validator. Historical failed attempts
+remain preserved. These include Ferry expected-object coverage failure,
+Elevators coincident bounds, and the first Ferry shared-location repair that
+placed both cars at `(false, false)` because the location y origin was absent.
+
+The final y-anchored Ferry canary completed on its first actual attempt. Cars
+`c0` and `c1` occupied distinct, in-canvas vertical lanes within `l2`.
+
+## Todo 6: Pilot Resume and Recovery History
+
+The first exact resume was interrupted by the execution surface after 120
+seconds. It had reached `state_render_started`, but no launcher exit receipt was
+written. A later persistent run reached 200 states and stopped at five Ferry
+semantic failures. The final Ferry profile repaired the concrete failing state.
+
+The first green run then completed all 2,568 states with 2,058 cache hits. The
+second green run completed all 2,568 as cache hits. Their generated telemetry was
+not byte-identical because cache-hit counts changed, and the first snapshot did
+not include the root VLM JSONL hashes.
+
+A direct third-run attempt first met a wrapper false positive in the raw
+`pgrep -f` guard. A detached setup then failed while Conda deactivation ran under
+`nounset`. The real third run later reached 2,568 successful cache hits, but the
+host interrupted it before the verifier loop and exit receipt. That interruption
+left the hybrid manifest non-production-complete.
+
+One explicitly authorized replacement resume restored the complete output. It
+exited 0, ran all three verifier modes, made zero remote render attempts, and
+matched the complete second-green warm baseline across all 15 canonical paths,
+all canonical hashes, and all 5,324 cache paths.
+
+## Todo 7: Minimal Rollout Contract Fix
+
+The rollout gate previously treated the source manifest hash as though the
+output had to be the full source manifest. That rejected a valid selected subset.
+The minimal fix keeps `input_pairing_manifest_sha256` unchanged as source
+provenance, while exact equality of the full frozen selected-pair record multiset
+permits the output pairing manifest to be that selected subset.
+
+That subset fallback is available only after the frozen selection supplies a
+valid source-provenance value: exactly 64 lowercase hexadecimal characters.
+Missing, uppercase, wrong-length, or otherwise non-hexadecimal values reject as
+`invalid_frozen_selection` before exact selected-record equality can authorize
+the subset. The negative regression recomputes `selection_sha256` after removing
+or replacing the provenance field, proving rejection comes from the provenance
+contract rather than a stale selection self-hash.
+
+The equality is over complete frozen records and multiplicity, not only pair
+IDs. The gate therefore remains fail-closed for missing, extra, mutated, and
+duplicate pair records. An isolated mutation probe changed
+`source_record_sha256`; selection-bound release verification rejected the drift,
+and promotion retained both pairing hash and pair-identity mismatch reasons.
+
+The regression was first run red and failed as expected because the source
+manifest hash differed from the selected subset manifest. After the fix, the
+regression and focused gate/verifier suite passed with 21 tests. Basedpyright
+reported 0 errors, 0 warnings, and 0 notes. Compileall and `git diff --check`
+both exited 0. Ruff wasn't available in the activated environment and wasn't
+installed.
+
+## Recovery Promotion Chain
+
+The original failed temporary fixture attempt is preserved. It made one remote
+request because `request_delay_seconds=1.0` was part of renderer config SHA-256
+`cb01219d76039a088d453a46b67ca1a316d94f0cf486438c85947812e9a469d6`,
+which selected cache key `ad347eb66b12107b3630f86ae399c411` instead of the
+pilot cache entry.
+
+Recovery used the exact pilot renderer config: base URL
+`https://planimation.planning.domains`, timeout 90 seconds, request delay 0.0,
+and maximum attempts 3. Its config SHA-256 is
+`6c51ad1a5be2f0e5ca73f562f9392439520b01e4c5d4a8e0e8f08c2b7c78f5af`,
+and the fixture cache key is `45e2c4e6959e5c6b317384d94317d7b6`.
+
+The clean recovery root ran a cache-only fixture first, then a cache-only
+changed-canary. The fixture covered 1 state. Its receipt file-byte SHA-256 is
+`d59677121f0b40b23df01b25e7802a7ccc1b30c3693ff5fbaf45b92ac92eed38`,
+while its embedded `receipt_sha256` self-hash is
+`0df245b600361967bb5c1e24f0cdf8912956356337df329b99e1fec79d153941`.
+The changed-canary covered 39 states across 18 cache directories and produced
+receipt SHA-256
+`f82b4585eff12a14d38e2f018d77e49a5d14a5aba66701c6f9cf84eac06fdab9`.
+Both stages passed manifest, render, and release verification without an
+external network connection.
+
+Two later fixture setup attempts are retained as nonfatal history. One timed out
+in the shell before generator output, with no connect syscall. The other omitted
+`--dataset-root`, exited because the selected pairing record was absent, created
+no state manifest, and made no network connection.
+
+The actual pilot promotion used the changed-canary receipt as its prior receipt.
+It ran once, exited 0, and produced the approved receipt SHA-256
+`1bef38d5571cd3e8276f4d925e13553475914fe0e51f3d459ec83a16c25694e7`.
+
+## Final Approved Counts and Hashes
+
+The approved pilot has:
+
+- 52 pair records.
+- 2,568 state-render records, all successful cache hits.
+- Full records, train/dev/test: 19/19/14.
+- Step records, train/dev/test: 68/130/133.
+- Search-traversal records, train/dev/test: 329/1160/696.
+- Six domains: Blocksworld, Elevators, Ferry, Gripper, Logistics, and Towers of Hanoi.
+- `output_mode="production"`, `partial=false`, `production_complete=true`, and `skipped={}`.
+
+The frozen output hashes are:
+
+- State manifest: `73c6c5519b20c531f7a8902438e0e8177ebc2202f67a9579bb2c44e219d9b22e`.
+- Hybrid manifest: `3083610ddc17f3950641d1c17023d8fff32ffc8aa71a73bbfc284e2c622b7bc7`.
+- Pairing manifest: `6f78c69ded1c6e765888bce5415e306157aa3b756d996a6de32b2d9d486e2b52`.
+
+## Preservation Proof
+
+Before promotion, the pilot contained 5,343 files, including 5,324 cache paths.
+After promotion, every original file and cache path remained byte-identical.
+Only `diagnostics/rollout_promotion_receipt.json` was added, bringing the file
+count to 5,344. The original frozen selection was used directly and remained
+unchanged. No pilot-bound replacement selection was created.
+
+## Verification Commands
+
+The Python commands use the required environment prefix:
+
+```bash
+source ~/cd_vlaplan && source .venv/bin/activate && pytest -q tests/phase3/test_rollout_gates.py::test_promotion_accepts_exact_frozen_subset_from_larger_source_manifest
+source ~/cd_vlaplan && source .venv/bin/activate && pytest -q tests/phase3/test_rollout_gates.py tests/phase3/test_verify_planimation_vlm.py
+source ~/cd_vlaplan && source .venv/bin/activate && basedpyright scripts/phase3/rollout_gate_selection.py scripts/phase3/rollout_gate_promotion.py tests/phase3/test_rollout_gates.py
+source ~/cd_vlaplan && source .venv/bin/activate && python -m compileall -q scripts/phase3 tests/phase3
+source ~/cd_vlaplan && source .venv/bin/activate && python -m scripts.phase3.verify_planimation_vlm --output-root outputs/phase3_planimation_frames_stratified_pilot_20260725 --mode manifest --selection-file outputs/phase3_planimation_frames_safe_no_visitall_strict_v1_20260722_005800/diagnostics/rollout_selection.json
+source ~/cd_vlaplan && source .venv/bin/activate && python -m scripts.phase3.verify_planimation_vlm --output-root outputs/phase3_planimation_frames_stratified_pilot_20260725 --mode render --selection-file outputs/phase3_planimation_frames_safe_no_visitall_strict_v1_20260722_005800/diagnostics/rollout_selection.json
+source ~/cd_vlaplan && source .venv/bin/activate && python -m scripts.phase3.verify_planimation_vlm --output-root outputs/phase3_planimation_frames_stratified_pilot_20260725 --mode release --selection-file outputs/phase3_planimation_frames_safe_no_visitall_strict_v1_20260722_005800/diagnostics/rollout_selection.json
+source ~/cd_vlaplan && source .venv/bin/activate && python -m scripts.phase3.rollout_gates assess --output-root outputs/phase3_planimation_frames_stratified_pilot_20260725 --stage stratified-pilot --selection-file outputs/phase3_planimation_frames_safe_no_visitall_strict_v1_20260722_005800/diagnostics/rollout_selection.json --prior-receipt tmp/phase3_planimation_todo7_promotion_chain_20260726/recovery/changed-canary/diagnostics/rollout_promotion_receipt.json
+git diff --check
+```
+
+The expected verifier success is manifest verification of 52 pairs; render
+verification of 52 pairs and 2,568 states; and release verification of full
+records 19/19/14, step records 68/130/133, search-traversal records
+329/1160/696, and production complete. The three real pilot verifier commands
+previously exited 0 with those results. All four operator commands use the
+original frozen selection. The promotion command also requires the approved
+changed-canary prior receipt at the exact path shown above. Its expected success
+is `approved=true`, empty `reasons`, 52 pairs, and 2,568 states.
+
+The three verifier commands are read-only checks of the pilot artifacts. The
+`assess` command is different: it writes or refreshes only the actual pilot
+`diagnostics/rollout_promotion_receipt.json`. It is an operator action, not a
+read-only audit command. This documentation-only independent-review remediation
+did not rerun the pilot verifiers, assessment, launcher, generator, or renderer.
+
+## Limitation
+
+This receipt approves only the frozen 52-pair stratified pilot. The full
+2,328-pair, 537,696-state production corpus remains incomplete and must not be
+described as promoted or complete.

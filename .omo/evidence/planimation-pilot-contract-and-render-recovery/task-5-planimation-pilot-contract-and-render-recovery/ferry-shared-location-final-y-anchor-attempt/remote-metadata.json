@@ -1,0 +1,15 @@
+{
+  "actual_attempts": 1,
+  "domain": "ferry",
+  "domain_path": "data/curriculum_pddl/ferry/dev/easy/ferry-dev-easy-0000/domain.pddl",
+  "endpoint": "https://planimation.planning.domains",
+  "max_attempts": 3,
+  "profile_path": "data/pddl_instances/ferry/ap.pddl",
+  "profile_sha256": "9295ea8b1ed5f60a05a98fcd5c2eac6c7cccef156c4572d59e5668300d4351b4",
+  "renderer_status": "success",
+  "retained_problem_path": "outputs/phase3_planimation_frames_stratified_pilot_20260725/state_cache/ferry/ferry-dev-easy-0000/84b7d426976a5d2acb7e0ea89f056f69/problem.pddl",
+  "retained_problem_sha256": "1456a4ad5af1c589d169de465fe3e9e0701b3cb82b6e092178dc675a1c4b3c60",
+  "state_hash": "33b9c9648b4b132c94467949b8427b34",
+  "timeout_seconds": 90,
+  "used_pddl_url": "https://planimation.planning.domains/upload/pddl"
+}

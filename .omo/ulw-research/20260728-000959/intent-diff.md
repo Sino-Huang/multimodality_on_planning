@@ -1,0 +1,9 @@
+# Intent vs. Reality
+
+| intent_id | Expected truth | Observed reality | Diff | Violated invariant | Intent source | Supporting observations | Status | Claim ids |
+|---|---|---|---|---|---|---|---|---|
+| I1 | Training on explicit search traces improves structural enumeration, rather than only task success. | Pending literature and local-method review. | Unknown. | Mechanistic improvement must be separately measured. | User request; `doc/research_proposal.md` | Pending. | unknown | C1, C4 |
+| I2 | Vision, language, and external memory can help or hinder different search computations. | The proposal posits algorithm-specific affordances; evidence pending. | Unknown. | Effects must be identified with controlled representations and matched information. | User request; `doc/research_proposal.md` §2–3 | Pending. | unknown | C2, C5 |
+| I3 | Attention analysis can support a credible mechanism claim. | Proposal names attention indirectly but has no validated causal analysis plan yet. | Missing operational protocol. | Correlational attention patterns cannot establish mechanism. | User request; `doc/research_proposal.md` | Local proposal review. | violated | C3 |
+| I4 | A lightweight intervention can improve learning based on observed failure modes. | Proposal contains resource configurations, but intervention novelty and feasibility are pending. | Unknown. | Intervention must be targeted, ablated, and cheaper than a full planner. | User request; `doc/research_proposal.md` | Pending. | unknown | C6 |
+| I5 | The resulting paper has a defensible ICLR 2027 novelty story. | Existing proposal has a strong framing but several claims overlap known work until differentiated. | Pending adjacent-work comparison. | Novelty must survive closest-work and baseline challenges. | User request; `doc/research_proposal.md` §4 | Pending. | unknown | C7 |
