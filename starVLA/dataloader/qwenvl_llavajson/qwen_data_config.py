@@ -1,55 +1,73 @@
 import re
-
-from pathlib import Path
+from typing import TypedDict
 
 # You can add multimodal datasets here and register a short nickname to ${data_dict}.
 # The data format should follow the general multimodal VLM format, for example:
 # https://github.com/QwenLM/Qwen2.5-VL/blob/main/qwen-vl-finetune/README.md
 
-json_root = f"./playground/Datasets/LLaVA-OneVision-COCO/llava_jsons"
-image_root = f"./playground/Datasets/LLaVA-OneVision-COCO/images"
+class DatasetConfig(TypedDict):
+    annotation_path: str
+    data_path: str
+
+
+class SampledDatasetConfig(DatasetConfig):
+    sampling_rate: float
+
+
+json_root = "./playground/Datasets/LLaVA-OneVision-COCO/llava_jsons"
+image_root = "./playground/Datasets/LLaVA-OneVision-COCO/images"
 
 vlnce_root = "./playground/Datasets/VLN-CE"
 
-SHAREGPT4V_COCO = {
+SHAREGPT4V_COCO: DatasetConfig = {
     "annotation_path": f"{json_root}/sharegpt4v_coco.json",
     "data_path": f"{image_root}/",
 }
 
-R2R = {
+R2R: DatasetConfig = {
     "annotation_path": f"{vlnce_root}/R2R/annotations_qwenvl.json",
     "data_path": f"{vlnce_root}/R2R/train/",
 }
 
-RXR = {
+RXR: DatasetConfig = {
     "annotation_path": f"{vlnce_root}/RxR/annotations_qwenvl.json",
     "data_path": f"{vlnce_root}/RxR/train/",
 }
 
+PLANNING_CGAS_V1_TRAIN: DatasetConfig = {
+    "annotation_path": "./data/planning_cgas_v1/qwenvl/train.jsonl",
+    "data_path": "./data/planning_cgas_v1/qwenvl/images",
+}
 
-data_dict = {
+PLANNING_CGAS_V1_DEV: DatasetConfig = {
+    "annotation_path": "./data/planning_cgas_v1/qwenvl/dev.jsonl",
+    "data_path": "./data/planning_cgas_v1/qwenvl/images",
+}
+
+
+data_dict: dict[str, DatasetConfig] = {
     "sharegpt4v_coco": SHAREGPT4V_COCO,
     "r2r": R2R,
     "rxr": RXR,
+    "planning_cgas_v1_train": PLANNING_CGAS_V1_TRAIN,
+    "planning_cgas_v1_dev": PLANNING_CGAS_V1_DEV,
 }
 
-def parse_sampling_rate(dataset_name):
+def parse_sampling_rate(dataset_name: str) -> float:
     match = re.search(r"%(\d+)$", dataset_name)
     if match:
         return int(match.group(1)) / 100.0
     return 1.0
 
-def data_list(dataset_names):
+def data_list(dataset_names: list[str]) -> list[SampledDatasetConfig]:
     if dataset_names == ["all"]:
         dataset_names = list(data_dict.keys())
-    config_list = []
+    config_list: list[SampledDatasetConfig] = []
     for dataset_name in dataset_names:
         sampling_rate = parse_sampling_rate(dataset_name)
         dataset_name = re.sub(r"%(\d+)$", "", dataset_name)
         if dataset_name in data_dict.keys():
-            config = data_dict[dataset_name].copy()
-            config["sampling_rate"] = sampling_rate
-            config_list.append(config)
+            config_list.append({**data_dict[dataset_name], "sampling_rate": sampling_rate})
         else:
             raise ValueError(f"do not find {dataset_name}")
     return config_list

@@ -5,7 +5,7 @@ from itertools import combinations
 from typing import Final
 
 from .local_goal_regression import GoalRegressionRequest, recover_goal_regression_plan, should_try_goal_regression_first
-from .local_planner_types import JSONValue, LocalPlannerRequest, LocalPlannerResult, SearchNode
+from .local_planner_types import JSONValue, LocalPlannerRequest, LocalPlannerResult, RecoveryPolicy, SearchNode
 from .local_serial import bounded_serial_plan
 from .pddl import Atom, GroundAction, canonical_atom
 
@@ -18,14 +18,15 @@ def run_iterated_width(request: LocalPlannerRequest) -> LocalPlannerResult:
     width = _limit(request, "local_iw_width", 1)
     max_width = _limit(request, "local_iw_max_width", DEFAULT_LOCAL_IW_MAX_WIDTH)
     if width < 1 or width > max_width:
-        return LocalPlannerResult([], _iw_trace(width, []), "skipped_resource_limit")
+        return LocalPlannerResult([], _iw_trace(width, [], 0, 0), "skipped_resource_limit")
     start = frozenset(request.task.init)
     if request.task.goal.issubset(start):
-        return LocalPlannerResult([], _iw_trace(width, []), "success_full_trace")
-    if should_try_goal_regression_first(request.task, request.limits):
+        return LocalPlannerResult([], _iw_trace(width, [], 0, 0), "success_full_trace")
+    ordered_grounded = tuple(sorted(request.grounded, key=lambda item: item.canonical))
+    if request.recovery_policy is RecoveryPolicy.ENABLED and should_try_goal_regression_first(request.task, request.limits):
         early_recovery = recover_goal_regression_plan(GoalRegressionRequest(request.task, request.grounded, request.limits, "goal_regression_before_iw_novelty", "many_goal_recovery_preferred"))
         if early_recovery.status == "success_full_trace":
-            trace = _iw_trace(width, [])
+            trace = _iw_trace(width, [], 0, 0)
             trace["plan_recovery"] = {
                 **early_recovery.trace,
                 "is_exact_iw": False,
@@ -37,54 +38,67 @@ def run_iterated_width(request: LocalPlannerRequest) -> LocalPlannerResult:
     visited = {start}
     events: list[JSONValue] = []
     expansions = 0
+    trace_event_count = 0
     while frontier:
         node = frontier.popleft()
         current_items = _novelty_items(node.state, width)
         novel_item = _first_novel(current_items, novelty_table) or (() if not node.plan else None)
         if novel_item is None:
+            trace_event_count += 1
             if len(events) < request.limits["max_trace_steps"]:
-                events.append({"decision": "prune", "event_kind": "backtrack", "state_atoms": _atoms(node.state), "frontier_size_after": len(frontier)})
+                table = _serialized_novelty_table(novelty_table)
+                events.append(_iw_prune_event(node.state, table, len(frontier), width))
             continue
-        novelty_before = _serialized_novelty_table(novelty_table)
+        retain_event = len(events) < request.limits["max_trace_steps"]
+        novelty_before = _serialized_novelty_table(novelty_table) if retain_event else []
         novelty_table.update(current_items)
         expansions += 1
         if expansions > _limit(request, "local_iw_novelty_max_expansions", request.limits["gbfs_max_expansions"]):
-            return _recover_at_max_width(request, start, width, max_width, events, "novelty_expansion_cap_reached", "skipped_resource_limit")
+            return _recover_at_max_width(request, start, width, max_width, events, expansions, trace_event_count, "novelty_expansion_cap_reached", "skipped_resource_limit")
         successors: list[JSONValue] = []
-        applicable = _applicable_actions(request.grounded, node.state)
+        applicable = _applicable_actions(ordered_grounded, node.state)
         if len(applicable) > _limit(request, "local_max_applicable_actions", DEFAULT_MAX_APPLICABLE_ACTIONS):
-            return LocalPlannerResult([], _iw_trace(width, events), "skipped_resource_limit")
+            return LocalPlannerResult([], _iw_trace(width, events, expansions, trace_event_count), "skipped_resource_limit")
         for action in applicable:
             next_state = _apply(action, node.state)
             is_novel = _first_novel(_novelty_items(next_state, width), novelty_table) is not None
             enqueued = is_novel and next_state not in visited
             event_kind = "generation" if enqueued else "revisit" if next_state in visited else "backtrack"
-            successors.append({"action": action.canonical, "event_kind": event_kind, "is_goal": request.task.goal.issubset(next_state), "is_novel": is_novel, "enqueued": enqueued})
+            is_goal = request.task.goal.issubset(next_state)
+            if retain_event:
+                successors.append({"action": action.canonical, "event_kind": event_kind, "is_goal": is_goal, "is_novel": is_novel, "enqueued": enqueued})
             if not enqueued:
                 continue
             next_plan = (*node.plan, action.canonical)
             if len(next_plan) > request.limits["max_plan_length"]:
-                return LocalPlannerResult([], _iw_trace(width, events), "skipped_resource_limit")
-            if request.task.goal.issubset(next_state):
-                if len(events) < request.limits["max_trace_steps"]:
-                    events.append(_iw_event(node.state, novelty_before, novelty_table, novel_item, successors, frontier))
-                return LocalPlannerResult(list(next_plan), _iw_trace(width, events), "success_full_trace")
+                return LocalPlannerResult([], _iw_trace(width, events, expansions, trace_event_count), "skipped_resource_limit")
+            if is_goal:
+                trace_event_count += 1
+                if retain_event:
+                    events.append(_iw_event(node.state, novelty_before, novelty_table, novel_item, successors, frontier, width))
+                trace = _iw_trace(width, events, expansions, trace_event_count)
+                return LocalPlannerResult(
+                    list(next_plan),
+                    trace,
+                    "success_full_trace" if trace["trace_complete"] is True else "success_truncated_trace",
+                )
             visited.add(next_state)
             frontier.append(SearchNode(next_state, next_plan))
-        if len(events) < request.limits["max_trace_steps"]:
-            events.append(_iw_event(node.state, novelty_before, novelty_table, novel_item, successors, frontier))
-    return _recover_at_max_width(request, start, width, max_width, events, "novelty_search_exhausted", "failed_no_plan_extracted")
+        trace_event_count += 1
+        if retain_event:
+            events.append(_iw_event(node.state, novelty_before, novelty_table, novel_item, successors, frontier, width))
+    return _recover_at_max_width(request, start, width, max_width, events, expansions, trace_event_count, "novelty_search_exhausted", "failed_no_plan_extracted")
 
 
-def _iw_trace(width: int, events: list[JSONValue]) -> dict[str, JSONValue]:
-    return {"trace_contract_version": "phase3_traversal_trace_v1", "algorithm": "iterated_width", "width": width, "events": events}
+def _iw_trace(width: int, events: list[JSONValue], expansion_count: int, trace_event_count: int) -> dict[str, JSONValue]:
+    return {"trace_contract_version": "phase3_traversal_trace_v1", "algorithm": "iterated_width", "width": width, "events": events, "expansion_count": expansion_count, "trace_complete": len(events) == trace_event_count}
 
 
-def _recover_at_max_width(request: LocalPlannerRequest, start: frozenset[Atom], width: int, max_width: int, events: list[JSONValue], reason: str, original_status: str) -> LocalPlannerResult:
-    if width != max_width:
-        return LocalPlannerResult([], _iw_trace(width, events), original_status)
+def _recover_at_max_width(request: LocalPlannerRequest, start: frozenset[Atom], width: int, max_width: int, events: list[JSONValue], expansion_count: int, trace_event_count: int, reason: str, original_status: str) -> LocalPlannerResult:
+    if width != max_width or request.recovery_policy is RecoveryPolicy.DISABLED:
+        return LocalPlannerResult([], _iw_trace(width, events, expansion_count, trace_event_count), original_status)
     plan, recovery_trace, status = bounded_serial_plan(request, start)
-    trace = _iw_trace(width, events[: _limit(request, "local_iw_recovery_trace_steps", 20)])
+    trace = _iw_trace(width, events[: _limit(request, "local_iw_recovery_trace_steps", 20)], expansion_count, trace_event_count)
     if status != "success_full_trace":
         goal_recovery = recover_goal_regression_plan(GoalRegressionRequest(request.task, request.grounded, request.limits, "goal_regression_after_iw_novelty", original_status))
         if goal_recovery.status == "success_full_trace":
@@ -106,16 +120,20 @@ def _recover_at_max_width(request: LocalPlannerRequest, start: frozenset[Atom], 
     return LocalPlannerResult(plan, trace, "success_full_trace")
 
 
-def _iw_event(state: frozenset[Atom], before: list[str], table: set[tuple[str, ...]], novel: tuple[str, ...], successors: list[JSONValue], frontier: deque[SearchNode]) -> dict[str, JSONValue]:
-    return {"decision": "expand", "event_kind": "expansion", "state_atoms": _atoms(state), "novel_item": _serialize_tuple(novel), "novelty_table_before": before, "novelty_table_after": _serialized_novelty_table(table), "successors": successors, "frontier_size_after": len(frontier)}
+def _iw_event(state: frozenset[Atom], before: list[str], table: set[tuple[str, ...]], novel: tuple[str, ...], successors: list[JSONValue], frontier: deque[SearchNode], width: int) -> dict[str, JSONValue]:
+    return {"decision": "expand", "event_kind": "expansion", "state_atoms": list(_atoms(state)), "novel_item": _serialize_tuple(novel), "novelty_table_before": list(before), "novelty_table_after": list(_serialized_novelty_table(table)), "successors": successors, "frontier_size_after": len(frontier), "width_decision": f"width_{width}_novel"}
+
+
+def _iw_prune_event(state: frozenset[Atom], table: list[str], frontier_size: int, width: int) -> dict[str, JSONValue]:
+    return {"decision": "prune", "event_kind": "backtrack", "state_atoms": list(_atoms(state)), "frontier_size_after": frontier_size, "novel_item": [], "novelty_table_before": list(table), "novelty_table_after": list(table), "width_decision": f"width_{width}_seen"}
 
 
 def _serialized_novelty_table(table: set[tuple[str, ...]]) -> list[str]:
     return sorted(_serialize_tuple(item) for item in table)[:MAX_IW_TRACE_NOVELTY_ITEMS]
 
 
-def _applicable_actions(grounded: tuple[GroundAction, ...], state: frozenset[Atom]) -> list[GroundAction]:
-    return [action for action in sorted(grounded, key=lambda item: item.canonical) if action.preconditions.issubset(state)]
+def _applicable_actions(ordered_grounded: tuple[GroundAction, ...], state: frozenset[Atom]) -> list[GroundAction]:
+    return [action for action in ordered_grounded if action.preconditions.issubset(state)]
 
 
 def _limit(request: LocalPlannerRequest, key: str, default: int) -> int:

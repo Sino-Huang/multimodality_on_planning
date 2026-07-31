@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, Final
 
 SCHEMA_VERSION = "phase3_supervised_planning_v1"
 
 PLANNER_STATUSES = frozenset(
     {
         "success_full_trace",
+        "success_truncated_trace",
         "success_plan_replayed",
         "skipped_planner_unavailable",
         "skipped_unsupported_pddl",
@@ -27,6 +28,8 @@ PLANNER_STATUSES = frozenset(
         "failed_schema_validation",
     }
 )
+SUCCESSFUL_TRACE_STATUSES: Final = frozenset({"success_full_trace", "success_truncated_trace"})
+SUCCESSFUL_EXAMPLE_STATUSES: Final = SUCCESSFUL_TRACE_STATUSES | frozenset({"success_plan_replayed"})
 
 VISION_STATUSES = frozenset(
     {
@@ -113,13 +116,21 @@ def validate_supervised_example(record: dict[str, Any]) -> list[str]:
     errors = _missing(record, REQUIRED_EXAMPLE_FIELDS)
     if record.get("schema_version") != SCHEMA_VERSION:
         errors.append("schema_version must be phase3_supervised_planning_v1")
-    if record.get("trace_fidelity") not in {"success_full_trace", "success_plan_replayed"}:
+    if not is_successful_example_status(record.get("trace_fidelity")):
         errors.append("trace_fidelity must be a successful controlled status")
     for key in ("model_facing", "supervised_target", "evaluation_metadata"):
         if not isinstance(record.get(key), dict):
             errors.append(f"{key} must be an object")
     errors.extend(_absolute_path_errors(record))
     return errors
+
+
+def is_successful_trace_status(status: str | None) -> bool:
+    return status in SUCCESSFUL_TRACE_STATUSES
+
+
+def is_successful_example_status(status: str | None) -> bool:
+    return status in SUCCESSFUL_EXAMPLE_STATUSES
 
 
 def validate_planner_attempt(record: dict[str, Any]) -> list[str]:

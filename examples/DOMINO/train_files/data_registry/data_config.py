@@ -57,7 +57,7 @@ class AgilexDataConfig:
 
 
 ROBOT_TYPE_CONFIG_MAP = {
-    "robotwin": AgilexDataConfig(),
+    "domino": AgilexDataConfig(),
 }
 
 ROBOT_TYPE_TO_EMBODIMENT_TAG = {
@@ -124,8 +124,8 @@ DOMINO_35_TASKS = [
 # To rename the splits, adjust the prefixes below to match your local HDF5 /
 # LeRobot conversion output.
 # ---------------------------------------------------------------------------
-_CLEAN_DYNAMIC = [(f"Clean_Dynamic/{t}", 1.0, "robotwin") for t in DOMINO_35_TASKS]
-_RANDOM_DYNAMIC = [(f"Random_Dynamic/{t}", 1.0, "robotwin") for t in DOMINO_35_TASKS]
+_CLEAN_DYNAMIC = [(f"Clean_Dynamic/{t}", 1.0, "domino") for t in DOMINO_35_TASKS]
+_RANDOM_DYNAMIC = [(f"Random_Dynamic/{t}", 1.0, "domino") for t in DOMINO_35_TASKS]
 _CLEAN_STATIC = [(f"Clean/{t}", 1.0, "robotwin") for t in DOMINO_35_TASKS]
 _RANDOM_STATIC = [(f"Randomized/{t}", 1.0, "robotwin") for t in DOMINO_35_TASKS]
 

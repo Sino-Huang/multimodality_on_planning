@@ -8,19 +8,22 @@ import subprocess
 from collections import Counter
 from pathlib import Path
 from time import sleep
-from typing import Any, Callable
+from typing import Any, Callable, Final
 
 from .attempt_runner import run_planner_jobs
 from .gbfs import gbfs_estimate_exceeds_resource_gate, gbfs_trace, run_gbfs
 from .io_utils import clear_output_root, count_jsonl, ensure_layout, file_sha256, read_jsonl, relpath, repo_root, stable_hash, write_json, write_jsonl
 from .local_goal_regression import GoalRegressionRequest, recover_goal_regression_plan, should_try_goal_regression_first
+from .local_planner_types import PlannerName
 from .local_planners import LocalPlannerRequest, run_local_planner
 from .output_layout_lock import shared_output_layout_lock
 from .pddl import PDDLError, ground_actions, normalize_action_string, parse_task, replay_plan
-from .schema import SCHEMA_VERSION, validate_instance_accounting, validate_planner_attempt, validate_supervised_example, write_schema_documents
+from .schema import SCHEMA_VERSION, is_successful_trace_status, validate_instance_accounting, validate_planner_attempt, validate_supervised_example, write_schema_documents
+from .traversal_state_types import JSONValue
 
 DEFAULT_PLANNERS = ("gbfs", "ff", "iw", "graphplan")
 FAST_DOWNWARD_ALIAS_BY_PLANNER = {"ff": ("ff", "fast-forward"), "iw": ("iw", "iterated-width")}
+LOCAL_PLANNER_NAMES: Final[dict[str, PlannerName]] = {"ff": "ff", "iw": "iw", "graphplan": "graphplan"}
 _FAST_DOWNWARD_ALIASES: set[str] | None = None
 RESOURCE_LIMITS = {
     "planner_timeout": 60,
@@ -129,7 +132,9 @@ def preflight_pddl_features(input_root: Path, accounting_path: Path, output_path
 def validate_vision_assets(accounting_path: Path, output_path: Path) -> list[dict[str, Any]]:
     records: list[dict[str, Any]] = []
     for account in read_jsonl(accounting_path):
-        frames = [repo_root() / path for path in account.get("frame_paths", [])]
+        frame_values = account.get("frame_paths")
+        frame_paths = [str(path) for path in frame_values] if isinstance(frame_values, list) else []
+        frames = [repo_root() / path for path in frame_paths]
         unreadable = [relpath(path) for path in frames if not _is_readable_png(path)]
         status = str(account.get("vision_status"))
         if not unreadable and status.startswith("vision_available"):
@@ -146,7 +151,7 @@ def validate_vision_assets(accounting_path: Path, output_path: Path) -> list[dic
                 "vision_supervision_available": status in {"vision_available_step_aligned", "vision_available_unaligned"},
                 "missing_frames": 0 if frames else 1,
                 "unreadable_frames": unreadable,
-                "frame_paths": account.get("frame_paths", []),
+                "frame_paths": frame_paths,
                 "render_result_path": account.get("render_result_path"),
                 "render_trace_path": account.get("render_trace_path"),
             }
@@ -231,7 +236,8 @@ def _attempt_planner(account: dict[str, Any], preflight: dict[str, Any], vision:
             return _attempt(base, status, expansion_count=trace.get("expansion_count", 0)), None, None
         replay_payload = replay_plan(task, plan, grounded_actions=grounded)
         return _successful_attempt(base, account, vision, planner, status, plan, replay_payload, trace, limits=limits)
-    if planner in {"ff", "iw", "graphplan"}:
+    local_planner_name = LOCAL_PLANNER_NAMES.get(planner)
+    if local_planner_name is not None:
         command = _external_planner_command(planner)
         if command:
             plan, command_label, status = _external_plan(planner, account, limits)
@@ -239,8 +245,8 @@ def _attempt_planner(account: dict[str, Any], preflight: dict[str, Any], vision:
             if status == "success_plan_replayed":
                 replay_payload = replay_plan(task, plan, grounded_actions=grounded)
                 return _successful_attempt(base, account, vision, planner, "success_plan_replayed", plan, replay_payload, {"external_plan_only": True}, limits=limits)
-        local = run_local_planner(LocalPlannerRequest(planner=planner, task=task, grounded=tuple(grounded), limits=limits))
-        if local.status == "success_full_trace":
+        local = run_local_planner(LocalPlannerRequest(planner=local_planner_name, task=task, grounded=tuple(grounded), limits=limits))
+        if is_successful_trace_status(local.status):
             replay_payload = replay_plan(task, local.plan, grounded_actions=grounded)
             return _successful_attempt(base, account, vision, planner, local.status, local.plan, replay_payload, local.trace, limits=limits)
         return _attempt(base, local.status), None, None
@@ -252,11 +258,14 @@ def _attempt_planner(account: dict[str, Any], preflight: dict[str, Any], vision:
     return _successful_attempt(base, account, vision, planner, "success_plan_replayed", plan, replay_payload, {"external_plan_only": True}, limits=limits)
 
 
-def _successful_attempt(base: dict[str, Any], account: dict[str, Any], vision: dict[str, Any], planner: str, status: str, plan: list[str], replay_payload: dict[str, Any], trace: dict[str, Any], *, limits: dict[str, int]) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any] | None]:
-    if not replay_payload["replay_ok"]:
+def _successful_attempt(base: dict[str, Any], account: dict[str, Any], vision: dict[str, Any], planner: str, status: str, plan: list[str], replay_payload: dict[str, Any], trace: dict[str, Any], *, limits: dict[str, int]) -> tuple[dict[str, Any], dict[str, Any] | None, dict[str, Any] | None]:
+    if not plan:
+        return _attempt(base, "failed_no_plan_extracted"), None, None
+    if not replay_payload["replay_ok"] or not replay_payload["goal_satisfied"]:
         failed = str(replay_payload["status"])
         return _attempt(base, failed), _replay_row(base, replay_payload, plan, limits=limits), None
-    plan_hash = stable_hash(plan)
+    plan_hash_payload: list[JSONValue] = [action for action in plan]
+    plan_hash = stable_hash(plan_hash_payload)
     replay_id = f"{account['instance_id']}::{planner}::{plan_hash[:12]}"
     attempt = _attempt(base, status, trace_fidelity=status, replay_validation_id=replay_id, plan_hash=plan_hash, plan_length=len(plan))
     replay = _replay_row({**attempt, "replay_validation_id": replay_id}, replay_payload, plan, limits=limits)

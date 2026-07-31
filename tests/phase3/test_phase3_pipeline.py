@@ -11,9 +11,10 @@ from pathlib import Path
 import pytest
 
 from scripts.phase3.attempt_runner import run_planner_jobs
+from scripts.phase3.local_planner_types import LocalPlannerResult
 from scripts.phase3.pddl import ground_actions, normalize_action_string, parse_task, replay_plan
-from scripts.phase3.pipeline import DEFAULT_PLANNERS, _available_fast_downward_aliases, _external_plan, build_instance_accounting, generate_supervised_data
-from scripts.phase3.schema import validate_instance_accounting, validate_planner_attempt, validate_supervised_example
+from scripts.phase3.pipeline import DEFAULT_PLANNERS, _attempt_planner, _available_fast_downward_aliases, _external_plan, build_instance_accounting, generate_supervised_data
+from scripts.phase3.schema import is_successful_trace_status, validate_instance_accounting, validate_planner_attempt, validate_supervised_example
 from scripts.phase3.verifiers import VerificationError, validate_jsonl_schema, verify_fidelity_labels, verify_manifest_coverage, verify_planner_attempts, verify_replay_validated_examples
 
 
@@ -117,6 +118,103 @@ def test_schema_rejects_wrong_diagnostic_schema_version() -> None:
         "replay_validation_id": "r1",
     }
     assert any("schema_version" in error for error in validate_planner_attempt(attempt))
+
+
+def test_pipeline_keeps_replayed_local_iw_success_with_truncated_trace(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Given: a valid local IW plan whose trace is incomplete under its retained-event budget.
+    domain, problem = _write_pddl(tmp_path)
+    account = {
+        "domain": "tiny",
+        "domain_path": domain.name,
+        "instance_id": "tiny-train-easy-0000",
+        "problem_path": problem.name,
+        "source_manifest": "accepted_manifest.jsonl",
+        "split": "train",
+    }
+    truncated = LocalPlannerResult(
+        ["(move a b)"],
+        {"algorithm": "iterated_width", "events": [], "expansion_count": 1, "trace_complete": False, "trace_contract_version": "phase3_traversal_trace_v1", "width": 1},
+        "success_truncated_trace",
+    )
+    monkeypatch.setattr("scripts.phase3.pipeline.run_local_planner", lambda _request: truncated)
+    monkeypatch.setattr("scripts.phase3.pipeline.repo_root", lambda: tmp_path)
+
+    # When: the pipeline receives that native successful local planner result.
+    attempt, _replay, example = _attempt_planner(
+        account,
+        {"status": "supported"},
+        {},
+        "iw",
+        {"max_grounded_actions": 100, "max_grounded_atoms": 100, "max_jsonl_target_chars": 100_000, "max_plan_length": 10, "max_trace_steps": 0},
+    )
+
+    # Then: it preserves the honest bounded success after replay validation.
+    assert attempt["status"] == "success_truncated_trace"
+    assert example is not None
+    assert example["trace_fidelity"] == "success_truncated_trace"
+    assert example["supervised_target"]["planner_trace"]["trace_complete"] is False
+    assert validate_supervised_example(example) == []
+
+
+def test_pipeline_success_predicate_rejects_resource_limit_and_recovery_only_statuses() -> None:
+    # Given: controlled local planner statuses that do not prove a native successful search.
+    statuses = ("skipped_resource_limit", "failed_no_plan_extracted", "success_plan_replayed")
+
+    # When: the local trace success predicate classifies them.
+    accepted = {status: is_successful_trace_status(status) for status in statuses}
+
+    # Then: only native full or truncated trace successes may enter local pipeline replay.
+    assert accepted == {
+        "skipped_resource_limit": False,
+        "failed_no_plan_extracted": False,
+        "success_plan_replayed": False,
+    }
+
+
+def test_pipeline_rejects_empty_gbfs_plan_for_initially_solved_task(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Given: an initially solved task for which GBFS returns an empty plan.
+    domain, problem = _write_pddl(
+        tmp_path,
+        problem_text=PROBLEM.replace("(:goal (and (at b)))", "(:goal (and (at a)))"),
+    )
+    account = {
+        "domain": "tiny",
+        "domain_path": domain.name,
+        "instance_id": "tiny-train-easy-0000",
+        "problem_path": problem.name,
+        "source_manifest": "accepted_manifest.jsonl",
+        "split": "train",
+    }
+    monkeypatch.setattr("scripts.phase3.pipeline.repo_root", lambda: tmp_path)
+
+    # When: the shared successful-attempt boundary receives the replay-valid empty plan.
+    attempt, replay, example = _attempt_planner(
+        account,
+        {"status": "supported"},
+        {},
+        "gbfs",
+        {
+            "gbfs_max_applicable_actions": 100,
+            "gbfs_max_depth": 10,
+            "gbfs_max_expansions": 100,
+            "max_grounded_actions": 100,
+            "max_grounded_atoms": 100,
+            "max_jsonl_target_chars": 100_000,
+            "max_plan_length": 10,
+            "max_trace_steps": 10,
+        },
+    )
+
+    # Then: no successful supervised attempt is emitted from the empty plan.
+    assert attempt["status"] == "failed_no_plan_extracted"
+    assert replay is None
+    assert example is None
 
 
 def test_instance_accounting_missing_frames_is_diagnostic(tmp_path: Path) -> None:

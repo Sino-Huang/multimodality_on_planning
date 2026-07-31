@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "active_work_id": "outputs-vlm-dataset-layout",
+  "active_work_id": "cgas-dataloader-and-experiment-support-13505244",
   "works": {
     "planimation-hybrid-traversal-rendering": {
       "work_id": "planimation-hybrid-traversal-rendering",
@@ -11,7 +11,8 @@
         "codex:opencode:ses_09964dc0cfferuEvG3FH5an6BT"
       ],
       "status": "paused",
-      "worktree_path": null
+      "worktree_path": null,
+      "session_origins": {}
     },
     "planimation-pilot-contract-and-render-recovery": {
       "work_id": "planimation-pilot-contract-and-render-recovery",
@@ -23,7 +24,8 @@
       "status": "completed",
       "started_at": "2026-07-25T07:28:25.550Z",
       "recovery_note": "Implementation-capable Sisyphus-Junior is available through the local `opencode run --agent` delegation surface after the built-in explore workers proved read-only.",
-      "worktree_path": null
+      "worktree_path": null,
+      "session_origins": {}
     },
     "outputs-vlm-dataset-layout": {
       "work_id": "outputs-vlm-dataset-layout",
@@ -36,7 +38,121 @@
       "status": "blocked",
       "started_at": "2026-07-26T20:20:00+10:00",
       "blocked_reason": "All 11 plan checkboxes are complete, but the mandatory final review/debugging gate cannot be dispatched because the agent-thread pool is exhausted after repeated bounded retries.",
-      "worktree_path": null
+      "worktree_path": null,
+      "session_origins": {}
+    },
+    "cgas-dataloader-and-experiment-support-13505244": {
+      "work_id": "cgas-dataloader-and-experiment-support-13505244",
+      "active_plan": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/.omo/plans/cgas-dataloader-and-experiment-support.md",
+      "plan_name": "cgas-dataloader-and-experiment-support",
+      "status": "completed",
+      "started_at": "2026-07-28T00:03:58.902Z",
+      "updated_at": "2026-07-31T11:15:00.000Z",
+      "session_ids": [
+        "opencode:ses_059f6f390ffeurlVdbRSbUIIdX",
+        "codex:opencode:ses_05994c24affeJZ48l9QHO4ekkP"
+      ],
+      "session_origins": {
+        "opencode:ses_059f6f390ffeurlVdbRSbUIIdX": "direct"
+      },
+      "agent": "atlas",
+      "task_sessions": {
+        "todo:1": {
+          "task_key": "todo:1",
+          "task_label": "1",
+          "task_title": "Confirm the Python environment and characterize the existing Phase 3 and Qwen contracts before implementation.",
+          "session_id": "opencode:ses_059e9a35cffe327z85BJyFVZdi",
+          "agent": "Sisyphus-Junior",
+          "started_at": "2026-07-28T00:17:20.775Z",
+          "status": "completed",
+          "updated_at": "2026-07-28T01:51:13.898Z"
+        },
+        "todo:2": {
+          "task_key": "todo:2",
+          "task_label": "2",
+          "task_title": "Build a strict Blocksworld P0 planner-provenance and trace-coverage gate for canonical FIFO BFS and width-1 IW.",
+          "session_id": "opencode:ses_059d3f7c0ffetdm4MQU5Y7BjGa",
+          "agent": "Sisyphus-Junior",
+          "started_at": "2026-07-28T00:59:45.806Z",
+          "status": "completed",
+          "updated_at": "2026-07-28T02:19:05.793Z"
+        },
+        "todo:5": {
+          "task_key": "todo:5",
+          "task_label": "5",
+          "task_title": "Convert only accepted planning_cgas_v1 steps into strict Qwen-VL SFT JSONL and register dedicated train/dev datasets.",
+          "session_id": "ses_04deabe95ffeEYBW0YWJdGbKFe",
+          "agent": "Sisyphus-Junior",
+          "started_at": "2026-07-30T08:33:52.981Z",
+          "status": "completed",
+          "updated_at": "2026-07-30T09:17:00.000Z"
+        },
+        "todo:6": {
+          "task_key": "todo:6",
+          "task_label": "6",
+          "task_title": "Add a strict native-Qwen loader smoke and fail-closed corpus release gate.",
+          "session_id": "ses_0484748c8ffe0lK6HEuzmAooG3",
+          "agent": "Sisyphus-Junior",
+          "started_at": "2026-07-31T10:00:00.000Z",
+          "status": "completed",
+          "updated_at": "2026-07-31T10:50:00.000Z"
+        }
+      }
     }
-  }
+  },
+  "session_ids": [
+    "opencode:ses_059f6f390ffeurlVdbRSbUIIdX",
+    "codex:opencode:ses_05994c24affeJZ48l9QHO4ekkP"
+  ],
+  "session_origins": {
+    "opencode:ses_059f6f390ffeurlVdbRSbUIIdX": "direct"
+  },
+  "task_sessions": {
+    "todo:1": {
+      "task_key": "todo:1",
+      "task_label": "1",
+      "task_title": "Confirm the Python environment and characterize the existing Phase 3 and Qwen contracts before implementation.",
+      "session_id": "opencode:ses_059e9a35cffe327z85BJyFVZdi",
+      "agent": "Sisyphus-Junior",
+      "started_at": "2026-07-28T00:17:20.775Z",
+      "status": "completed",
+      "updated_at": "2026-07-28T01:51:13.898Z"
+    },
+        "todo:2": {
+          "task_key": "todo:2",
+          "task_label": "2",
+          "task_title": "Build a strict Blocksworld P0 planner-provenance and trace-coverage gate for canonical FIFO BFS and width-1 IW.",
+          "session_id": "opencode:ses_059d3f7c0ffetdm4MQU5Y7BjGa",
+          "agent": "Sisyphus-Junior",
+          "started_at": "2026-07-28T00:59:45.806Z",
+          "status": "completed",
+          "updated_at": "2026-07-28T02:19:05.793Z"
+        },
+        "todo:5": {
+          "task_key": "todo:5",
+          "task_label": "5",
+          "task_title": "Convert only accepted planning_cgas_v1 steps into strict Qwen-VL SFT JSONL and register dedicated train/dev datasets.",
+          "session_id": "ses_04deabe95ffeEYBW0YWJdGbKFe",
+          "agent": "Sisyphus-Junior",
+          "started_at": "2026-07-30T08:33:52.981Z",
+          "status": "completed",
+          "updated_at": "2026-07-30T09:17:00.000Z"
+        },
+        "todo:6": {
+          "task_key": "todo:6",
+          "task_label": "6",
+          "task_title": "Add a strict native-Qwen loader smoke and fail-closed corpus release gate.",
+          "session_id": "ses_0484748c8ffe0lK6HEuzmAooG3",
+          "agent": "Sisyphus-Junior",
+          "started_at": "2026-07-31T10:00:00.000Z",
+          "status": "completed",
+          "updated_at": "2026-07-31T10:50:00.000Z"
+        }
+  },
+  "active_plan": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/.omo/plans/cgas-dataloader-and-experiment-support.md",
+  "plan_name": "cgas-dataloader-and-experiment-support",
+  "status": "completed",
+  "started_at": "2026-07-28T00:03:58.902Z",
+  "updated_at": "2026-07-31T11:15:00.000Z",
+  "agent": "atlas"
 }

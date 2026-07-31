@@ -150,7 +150,12 @@ dmypy.json
 
 # Caches and Datasets
 cache/
-data/
+data/*
+!data/planning_cgas_v1/
+data/planning_cgas_v1/*
+!data/planning_cgas_v1/schema/
+data/planning_cgas_v1/schema/*
+!data/planning_cgas_v1/schema/planning_cgas_v1.schema.json
 playground/Models
 =4.43.2
 
@@ -263,3 +268,5 @@ examples/SimplerEnv/eval_files/auto_eval_scripts/auto_collect_results/schedule_w
 starVLA/model/framework/VLM4A/QwenGR00T_v2.py
 
 outputs/
+
+.omo/evidence

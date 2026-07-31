@@ -14,8 +14,7 @@
       // "example",
       // "deployment"
     ],
-    "typeCheckingMode": "off",
-    "remote.downloadExtensionsLocally": true,
-    "workbench.web.useServiceWorkers": false
+    "typeCheckingMode": "basic",
+    "venvPath": "/home/sukaih/miniconda3/envs",
+    "venv": "ada_vla"
   }
-  
