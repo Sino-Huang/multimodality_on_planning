@@ -1,0 +1,17 @@
+{
+  "schema_version": "cgas_production_candidates_v1",
+  "streams": [
+    {
+      "object_count": 4,
+      "raw_quota": 190
+    },
+    {
+      "object_count": 8,
+      "raw_quota": 198
+    },
+    {
+      "object_count": 12,
+      "raw_quota": 93
+    }
+  ]
+}

@@ -7,7 +7,13 @@ import os
 _AT_EMPTY_PATH = 0x1000
 
 
-def renameat2(source_descriptor: int, source: bytes, destination_descriptor: int, destination: bytes, flags: int) -> None:
+def renameat2(
+    source_descriptor: int,
+    source: bytes,
+    destination_descriptor: int,
+    destination: bytes,
+    flags: int,
+) -> None:
     try:
         operation = ctypes.CDLL(None, use_errno=True).renameat2
     except (AttributeError, OSError) as error:

@@ -1,14 +1,28 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 from enum import IntEnum
-from typing import Literal, TypeAlias
+from typing import Literal, Protocol, TypeAlias, TypeVar
 
 from .pddl import Atom, GroundAction, PDDLTask
 
 PlannerName: TypeAlias = Literal["ff", "iw", "graphplan"]
-JSONValue: TypeAlias = None | bool | int | float | str | Sequence["JSONValue"] | Mapping[str, "JSONValue"]
+JSONValue: TypeAlias = bool | int | float | str | Sequence["JSONValue"] | Mapping[str, "JSONValue"] | None
+TraceEventT = TypeVar("TraceEventT", bound=Mapping[str, JSONValue])
+
+
+class TraceEventSink(Protocol):
+    def append(self, event: Mapping[str, JSONValue], /) -> None: ...
+
+
+def record_trace_event(
+    retained: list[TraceEventT], sink: TraceEventSink | None, event: TraceEventT
+) -> None:
+    if sink is None:
+        retained.append(event)
+    else:
+        sink.append(event)
 
 
 class RecoveryPolicy(IntEnum):
@@ -22,6 +36,7 @@ class LocalPlannerRequest:
     task: PDDLTask
     grounded: tuple[GroundAction, ...]
     limits: dict[str, int]
+    trace_sink: TraceEventSink | None = None
 
     @property
     def recovery_policy(self) -> RecoveryPolicy:
