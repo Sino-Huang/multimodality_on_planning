@@ -1,103 +1,231 @@
 # High-Level Execution Plan: Certificate-Guided Adaptive Scaffolding
 
+**Revision 2, 2026-08-07.** Supersedes revision 1. Revision 1 both understated what was built and
+sequenced the work so that the one decision that could kill the method — the calibration gate —
+came after the most expensive artifact. See *What changed in this revision* for the four owner
+decisions that forced the rewrite.
+
 ## Purpose
 
 This plan turns `doc/research_proposal.md` into a runnable, method-centered study of **Certificate-Guided Adaptive Scaffolding (CGAS)**. The target is not a broad modality ablation or an attention-analysis paper. The target is a learned controller that selects the least costly bounded support required to preserve a verifier-checked planning certificate.
 
-The execution sequence is intentionally narrow:
+The execution sequence is intentionally narrow, and its ordering principle is now explicit: **the cheapest decisive experiment runs first, and no expensive artifact is built before the gate that justifies it.**
 
-1. make BFS and IW trace semantics, images, and verifiers trustworthy;
-2. build bounded, live certificate memory;
-3. run a small calibration pass that fixes the scaffold palette;
-4. train CGAS against matched static and generic-routing baselines; and
-5. evaluate the structural fidelity-cost frontier before expanding to other planners or domains.
+1. probe whether the planner configuration can supply the corpus at all;
+2. correct the trace contract once, carrying every known defect together;
+3. run the calibration gate on a pilot corpus — the go/no-go for the whole method;
+4. build the production corpus only at the scale calibration derives;
+5. train CGAS against matched static and generic-routing baselines; and
+6. evaluate the structural fidelity-cost frontier before expanding to other planners or domains.
+
+---
 
 ## Current Baseline
 
-### What already exists
+### What already exists — and it is more than revision 1 recorded
 
-- A deterministic symbolic Blocksworld benchmark loop and expert-trace infrastructure.
-- Planning-data generation, Planimation/VFG rendering work, modality serializers, and release-validation machinery.
-- Historical BFS, FF, IW, and Graphplan documentation plus a later multi-domain GBFS/FF/IW/Graphplan path.
+| Area | Status | Evidence |
+|---|---|---|
+| Deterministic symbolic Blocksworld benchmark, expert traces, PDDL generation | Complete | `scripts/phase3/`, 159 modules |
+| BFS-vs-GBFS provenance decision | **Resolved.** P0 systematic search is canonical FIFO BFS. | `scripts/phase3/cgas_bfs.py` |
+| Aligned pre-action renders, replay-valid transitions, semantic verifier, versioned provenance | **Complete and released** at fixture scale | `data/planning_cgas_v1`, release digest `3bc89431…6b3c`, archived byte-for-byte at `data/planning_cgas_fixture_v1` |
+| Typed BFS and IW certificates in the released schema | **Complete** | `cgas_certificates.py`, `cgas_certificate_contracts.py` |
+| One-invariant counterfactual generator with contract tests | **Complete** — 3-4 counterfactuals per row | `tests/phase3/test_cgas_counterfactuals.py` |
+| No-oracle-leakage contract | **Complete**, and already forward-declares `route_label`, `scaffold_costs`, `memory_payload` | `cgas_certificate_contracts.ORACLE_FIELDS` |
+| Production corpus machinery: finite lazy candidate streams, characterization runner, immutable checkpoint chain, selector, atomic release gate | **Built and exercised** for one full round (281 candidates characterized, 53 paired-exact) | `cgas_candidate_characterization*.py`, `cgas_production_population*.py`, `cgas_release_gate.py` |
+| Test surface | 109 test files under `tests/phase3/` | |
 
-### What is missing
+**Revision 1's "Recommended First Milestone" is complete** — one dataset slice with aligned images, replay-valid actions, typed certificates, deterministic verifier results, and one-invariant counterfactuals — with the sole exception of the memory stub. It should be retired, not repeated.
 
-- A trainable planner model, real VLM/SFT run, or GPU-backed experimental result.
-- Semantically validated, aligned visual step records for the CGAS core dataset.
-- A live external-memory interface; current scratchpad packaging is not a tool-use experiment.
-- A certificate schema, counterfactual certificate generator, and route-label verifier.
-- A resolved BFS versus GBFS provenance decision and exact labels for FF/Graphplan approximations.
+### What is genuinely missing
+
+- A bounded live external-memory interface. No module exists.
+- Route labels: the minimum-cost valid scaffold per step. Blocked on the memory cost model, not on the certificate work.
+- Any trained planner model, VLM SFT run, or GPU-backed result.
+- A production-scale corpus. The pipeline is proven at 12 steps across 4 instances.
+
+### What is blocked, and why the recorded cause was wrong
+
+The production corpus stopped at a proven-infeasible quota: the selector requires 190 paired-exact 4-object rows against a universe closed at 210 with a 15.9% yield, giving a ceiling of 136. That proof is correct and stands.
+
+The *diagnosis* was not. Measuring exactness per planner rather than per pair shows that IW-exact is a strict subset of BFS-exact — 14/14, 23/23, 16/16 across the three object counts. "Paired-exact" is therefore precisely "IW-exact", and BFS alone solves **100%** of 4-object candidates:
+
+| n | emitted | BFS-exact | IW-exact | paired | BFS rate | IW rate |
+|---|---|---|---|---|---|---|
+| 4 | 88 | 88 | 14 | 14 | **100.0%** | 15.9% |
+| 8 | 129 | 89 | 23 | 23 | 69.0% | 17.8% |
+| 12 | 64 | 33 | 16 | 16 | 51.6% | 25.0% |
+| all | 281 | 210 | 53 | 53 | 74.7% | 18.9% |
+
+The corpus is gated entirely by **IW width-1 solvability on a domain that is not width-1 solvable**. This is a planner-configuration defect, not a quota that needs weakening.
+
+### The cost inversion
+
+Steps-per-instance equals plan length — mean 3.09, median 2 — because training transitions come from the replayed plan, not from search expansions. Yet full BFS traces are persisted at up to 14 GB each:
+
+```
+round-1 BFS corpus     2252.75 GB over 1,768,295 events
+free on project quota  1.27 TiB   ->  0.58 rounds fit
+snapshot-field share   98.5% - 99.5% of stream bytes
+```
+
+No further corpus round fits on disk. The three offending fields are exactly reconstructible, verified over 3,953 events on two streams with zero violations:
+
+```
+R1  frontier_before[i] == [state_id[i]]
+R2  frontier_after[i]  == frontier_after[i-1][1:] + enqueued(i)
+R3  visited_after[i]   == sorted(visited_after[i-1] | enqueued(i))
+```
+
+Dropping them projects the corpus to ~6.6 GB per round — a 342x reduction. Root cause: the trace contract bounded stream *record count* but never per-record *size*.
+
+### Two latent defects that block the chosen direction
+
+- **`run_iterated_width` does not iterate.** It runs one fixed width. With width frozen at 1, `width_decision` is the constant `"width_1_novel"` in every emitted certificate. The proposal names "valid width transition" as an IW invariant; at fixed width there is no transition to verify. The field currently carries zero information.
+- **The IW novelty table is truncated to 200 entries** (`MAX_IW_TRACE_NOVELTY_ITEMS`). At width 1 this never bites — the largest table observed across all 558 streams is 150. At width 2 the table reaches 325 / 3,321 / 14,365 for n=4/8/12, so `seen_feature_delta`, computed as the difference of two truncated snapshots, becomes silently unsound. This is the same snapshot-versus-delta defect as the BFS side and takes the same fix.
 
 ### Existing-scope caveat
 
-Phase 1-3 closeout documents are engineering evidence, not empirical support for CGAS. In particular, no Phase 4 training, planner model, SFT, real VLM, GPU, API, or external-service execution is complete. Generated data and historical output roots must be revalidated before they become research inputs.
+Phase closeout documents are engineering evidence, not empirical support for CGAS. No training, SFT, real VLM, GPU, or external-service execution is complete. Generated data and historical output roots must be revalidated before they become research inputs.
+
+---
+
+## What changed in this revision
+
+Four owner decisions, taken on the evidence above:
+
+| # | Decision | Consequence |
+|---|---|---|
+| 1 | **Raise IW to true iterative width 1→2** rather than decoupling the planner arms | Makes `width_decision` a real invariant; lifts the yield that gates the corpus; invalidates the frozen policy digest and the existing streams |
+| 2 | **Drop the three redundant BFS snapshot fields** from persistence | 2.25 TB per round becomes ~6.6 GB; makes regeneration affordable, which is what makes decision 1 affordable |
+| 3 | **No starVLA — this is a VLM study. Three backbones, not four** | Phase 4 moves to a standalone `planning_vlm/` package; generalization evidence for reviewers without 4x the runtime work |
+| 4 | **Re-derive corpus scale from experiment needs** rather than holding 481 | `EXPECTED_*` selector constants become derived quantities, re-specified under a corrected planner |
+
+And two structural changes that follow from them:
+
+- **Calibration moves ahead of the production corpus.** It is the gate that decides whether CGAS is justified at all, and it needs a pilot corpus rather than the full one. Building the production corpus first risks paying for the wrong size.
+- **A cheap planner probe runs before any contract change.** Whether width 2 actually lifts IW yield on partial-`on` Blocksworld goals is an empirical question, answerable in hours.
+
+---
 
 ## Guiding Decisions
 
 | Decision | Rationale |
 |---|---|
 | BFS and IW are the P0 algorithms. | Their certificate invariants and memory dependence are precise. |
+| IW runs true width escalation 1→2. | Blocksworld is not width-1 solvable, and a fixed width makes the `width_decision` invariant vacuous. |
 | Keep the core observation fixed to VLA. | CGAS must not confound support allocation with added task information. |
 | FF and Graphplan are P2 only. | Their current semantics require validation or precise approximation labels. |
 | Memory is live, bounded, state-keyed, and auditable. | A serialized gold queue is not a valid tool-use condition. |
-| Analysis is calibration-sized. | One failure matrix, one route-calibration curve, and one controller ablation are enough for the main story. |
+| Persist deltas, never running snapshots. | The same defect produced a 2.25 TB corpus on the BFS side and an unsound certificate field on the IW side. |
+| Corpus scale is derived from the calibration result. | A number fixed a priori is either too small to train on or larger than the study needs. |
+| Analysis is calibration-sized. | One failure matrix, one route-calibration curve, and one controller ablation are enough. |
 | Every main comparison is budget-matched. | CGAS must beat direct decoding on fidelity and always-on memory on cost. |
 
 ---
 
-## Phase 0 - Trace Readiness and Scope Repair
+## Phase A — Planner Configuration Probe
+
+*New in revision 2. Runs first because it is cheap and decisive.*
 
 ### Objective
 
-Create a versioned, reproducible core corpus whose planner traces and visual records can support verifier-derived labels.
+Decide whether IW at width 1→2 can supply the corpus, before committing to a contract change and a full regeneration.
 
 ### Main tasks
 
-- Resolve and document whether the P0 systematic-search condition is canonical BFS or GBFS. Do not mix them.
-- Audit BFS and IW trace fields against executable state transitions.
-- Generate aligned pre-action images for every P0 training and evaluation step; reject missing or unaligned visual records.
-- Version the source root, planner implementation, render profile, and trace-contract version in every record.
-- Define the P0 Blocksworld structural split: horizon, object count, branching factor, compositional arrangement, naming, and renderer shift.
-- Keep FF and Graphplan out of P0 until their semantics and source provenance are independently validated.
-
-### Deliverable
-
-A manifested BFS/IW corpus with replay-valid plans, semantic certificate targets, aligned images, and explicit source provenance.
+- Re-materialize candidates at known raw ranks through the existing pure range API. No trace persistence, no BFS, no cursor advance.
+- Run IW with true width escalation.
+- Measure per object count: exact rate, expansions, wall-clock, and peak novelty-table size.
 
 ### Gate
 
-Every P0 row has a decodable image, a replay-valid action transition, and an accepted certificate target. A row that lacks any one of these is excluded, not repaired by inference.
+The width-2 exact rate must support the corpus at the scale Phase 3 will derive. If width 2 does not lift the rate materially, return to the owner with the decoupled-BFS/IW-arms option rather than proceeding.
+
+### Cost
+
+Bounded. Hundreds of planner runs against already-enumerated ranks — hours, not days.
 
 ---
 
-## Phase 1 - Certificate and Counterfactual Verifier
+## Phase 0b — Trace Contract v3 and Corpus Regeneration
 
 ### Objective
 
-Make each core search update mechanically checkable and generate minimal counterfactual training targets.
+One new persistence contract carrying every known defect, one owner approval, one regeneration.
 
 ### Main tasks
 
-- Define typed BFS certificates: frontier head/order summary, visited delta, and expanded state.
-- Define typed IW certificates: novelty tuple, seen-feature delta, and width decision.
-- Implement a pure verifier that checks each field against the planner transition.
-- Generate one-invariant counterfactuals such as FIFO/LIFO order, omitted visited update, already-seen novelty tuple, or invalid width transition.
-- Reject counterfactuals that change multiple invariants or accidentally preserve verifier validity.
-- Produce route labels by evaluating each permitted scaffold and selecting the minimum-cost valid one.
+- Implement true iterative width escalation in `local_iw.py` so `width_decision` records a real transition.
+- Stop persisting `frontier_before` / `frontier_after` / `visited_after`. Add a reader shim that rebuilds `frontier_order_summary` by a running FIFO fold — `cgas_certificate_contracts.py` is the only consumer of a full snapshot, and it already reduces the other two fields to `[0]` and a delta.
+- Replace the IW truncated novelty snapshots with emitted deltas, removing the 200-entry cap as a correctness hazard.
+- Add the per-record **size** bound the previous contract omitted.
+- Re-approve through the existing `cgas_trace_contract_approval` path.
 
-### Repo surfaces
+### Owner action required
 
-- `examples/planning_benchmark_slice/` or a new planning benchmark package for certificates and verifiers.
-- `scripts/phase3/` only where existing trace schemas can be safely reused.
-- `tests/` for verifier and counterfactual contracts.
+The width change invalidates the 558 existing streams. Retain the characterization checkpoints and accounting — small, immutable, still evidentially useful. Release the 2.25 TB of stream bytes.
 
-### Deliverable
+### Gate
 
-A versioned certificate schema, deterministic verifier, counterfactual generator, and route-label dataset builder.
+Regenerated streams verify under v3, and certificates rebuilt from them match the fixture release's certificate semantics on overlapping instances.
 
 ---
 
-## Phase 2 - Bounded Live Certificate Memory
+## Phase 3 — Pilot Corpus and Calibration
+
+*Moved ahead of the production corpus. This is the go/no-go for the method.*
+
+### Objective
+
+Establish that a recurrent, certificate-localized failure exists, and derive the corpus scale the study needs.
+
+### Main tasks
+
+- Build a **pilot** corpus — the smallest that supports a first-failure matrix, not the production target.
+- Train a direct VLM action-plus-certificate baseline on one backbone.
+- On held-out calibration instances, record the first failed certificate invariant by family and structural difficulty.
+- Freeze the certificate field set, scaffold palette, operation costs, and counterfactual sampling policy.
+- **Report the step count required for a stable first-failure matrix and route-calibration curve.** This number sets the Phase 0c target.
+- Pre-register the CGAS configuration and the main evaluation split before the method run.
+
+### Scale note to carry in
+
+At 481 instances the dataset is ~3,000 steps, ~2,500 of them training, because steps-per-instance equals plan length. For SFT of an 8B VLM this is thin. If calibration shows it is too thin, the levers are more instances, longer-horizon instances, or additional certificate targets from off-plan expansions. Decide there, on evidence, not now.
+
+### Gate — a real stop
+
+At least one recurrent, certificate-localized failure must exist. If certificates rarely fail, or failures are diffuse rather than localized, there is no justified adaptive-scaffolding method and the direction must be reconsidered **before** any production corpus is built.
+
+### Deliverable
+
+A compact calibration report, a frozen CGAS specification, and a derived corpus-scale target.
+
+---
+
+## Phase 0c — Production Corpus at the Derived Scale
+
+### Objective
+
+Build the corpus the study actually needs.
+
+### Main tasks
+
+- Re-specify `EXPECTED_ROW_COUNT`, `EXPECTED_OBJECT_COUNTS`, and `EXPECTED_SPLIT_COUNTS` from the Phase 3 target and the Phase A yields. This is a re-derivation under a corrected planner, not a weakening of a quota under the old one.
+- Run the existing characterization-selector round loop, already built and proven for one round.
+- Resume materialization, renders, alignment, typed steps, canonical model-independent records, and atomic release unchanged.
+
+At v3 sizes a round is ~6.6 GB rather than 2.25 TB, so round count is no longer disk-bound and the O(rounds²) validation cost stops being decisive.
+
+### Gate
+
+Every row has a decodable image, a replay-valid action transition, and an accepted certificate target. A row lacking any one of these is excluded, not repaired by inference.
+
+---
+
+## Phase 2 — Bounded Live Certificate Memory
+
+*Runs in parallel with Phase 0c. Not on the critical path for the Phase 3 gate — the calibration baseline needs no memory.*
 
 ### Objective
 
@@ -111,66 +239,51 @@ Implement the support palette used by CGAS without leaking oracle planner state.
 - Allow only model predictions or prior verifier-approved certificate entries to be stored.
 - Log every operation and returned payload for cost and provenance evaluation.
 - Implement identical stores for CGAS and always-on-memory baselines.
+- **Generate route labels:** evaluate each permitted scaffold against the verifier and emit the minimum-cost valid one. `ORACLE_FIELDS` already reserves `route_label` and `scaffold_costs`, so the leakage contract is in place.
 
 ### Deliverable
 
-A deterministic, audited live-memory interface with a testable no-oracle-leakage contract.
+A deterministic, audited live-memory interface with a testable no-oracle-leakage contract, and a route-label dataset builder.
 
 ---
 
-## Phase 3 - Baseline and Calibration Run
+## Phase 4 — CGAS Planner Model
 
 ### Objective
 
-Use a small static VLA baseline to freeze CGAS design choices without turning analysis into the paper.
+Implement the method and matched baselines.
+
+### Repo surface
+
+**`planning_vlm/` — a standalone top-level package. Not `starVLA/`.** This is a VLM study; the StarVLA framework, action heads, FAST tokenizers, and robot-control paths are out of scope.
 
 ### Main tasks
 
-- Train a direct VLA action-plus-certificate baseline on short BFS/IW traces.
-- Evaluate held-out calibration instances and record the first verifier failure.
-- Choose and freeze the certificate field set, scaffold palette, operation cost, and counterfactual sampling policy.
-- Build one failure matrix and one route-calibration target report.
-- Preregister the resulting CGAS configuration and main evaluation split before the method run.
-
-### Deliverable
-
-A compact calibration report and a frozen CGAS specification.
-
-### Gate
-
-At least one recurrent, certificate-localized failure must exist. Otherwise there is no justified adaptive-scaffolding method and the research direction must be reconsidered.
-
----
-
-## Phase 4 - CGAS Planner Model
-
-### Objective
-
-Implement the method and matched baselines in the existing training stack.
-
-### Main tasks
-
-- Add action and typed-certificate prediction heads to the selected planner backbone.
+- Add action and typed-certificate prediction heads to the selected VLM backbone.
 - Add a small scaffold controller consuming the predicted certificate, prior support use, and a fixed-size observation representation.
 - Implement direct, compact-certificate, and memory paths with the same backbone and action head.
 - Train route selection from counterfactual minimum-cost labels.
 - Implement a parameter-matched confidence or entropy router.
 - Keep raw VLA observation, context budget, training examples, and action vocabulary fixed across core methods.
 
-### Repo surfaces
+### Backbones — three, not four
 
-- `starVLA/model/framework/`
-- `starVLA/config/training/`
-- `starVLA/training/`
-- a planning-specific module under `examples/` for certificate and memory adapters
+Train and calibrate on one; carry the other two for the generalization result that reviewers will expect.
+
+| Model | Role |
+|---|---|
+| `Qwen/Qwen3-VL-8B-Instruct` | Primary — training, calibration, main result |
+| `OpenGVLab/InternVL3_5-8B-HF` | Generalization |
+| `allenai/Molmo2-8B` | Generalization |
+| ~~`Zyphra/Zamba2-VL-7B`~~ | Dropped — highest integration risk; confirm at detailed-planning time |
 
 ### Deliverable
 
-A runnable CGAS model and direct, always-on-certificate, always-on-memory, and generic-router baselines.
+A runnable CGAS model plus direct, always-on-certificate, always-on-memory, and generic-router baselines.
 
 ---
 
-## Phase 5 - Main Method Evaluation
+## Phase 5 — Main Method Evaluation
 
 ### Objective
 
@@ -191,7 +304,7 @@ Paper-ready tables and figures showing whether CGAS separates from generic routi
 
 ---
 
-## Phase 6 - Secondary Generalization and Extensions
+## Phase 6 — Secondary Generalization and Extensions
 
 ### Objective
 
@@ -204,46 +317,70 @@ Test scope only after the main method result is established.
 - Extend to additional planning domains only if the P0 certificate verifier remains valid.
 - Treat cross-task transfer, continuous world models, and broad attention analysis as follow-on work rather than ICLR requirements.
 
-### Deliverable
+---
 
-Clearly labelled generalization evidence that does not weaken the core CGAS causal comparison.
+## Consequences for the Standing Production Plan
+
+`.claude/plans/production-p0-corpus-experiment-readiness.md` is approved and blocked at Todo 4. This revision supersedes parts of it:
+
+| Todo | Disposition |
+|---|---|
+| 1 — trace-v1 freeze, trace-v2 contract | **Reopened.** v3 supersedes v2; the fixture freeze and archive stand. |
+| 2 — finite lazy candidates | **Stands.** Reused unchanged by Phase A and Phase 0c. |
+| 3 — characterization runner | **Stands, re-runs.** Logic unchanged; new contract, new quotas. |
+| 4 — 481-row population | **Constants re-derived.** Unblocks by re-specification under a corrected planner. |
+| 5-10 — review, approval, staging, release | **Stand.** Sequencing unchanged, run at the derived scale. |
+| 11-16 — four-model readiness | **Reduced to three models.** Todo 14 loses its Zamba2 half. |
+
+The 481 target, the paired-exact requirement, and `local_iw_width=1` were all approved decisions. Changing them is the owner's call, recorded here rather than assumed.
 
 ---
 
 ## Practical Build Order
 
-1. Reconcile planner provenance and regenerate or validate P0 BFS/IW rows.
-2. Add aligned-image and semantic-certificate gates.
-3. Implement the certificate verifier and minimal counterfactual generator.
-4. Implement audited bounded memory.
-5. Run the direct-VLA calibration baseline.
-6. Freeze the scaffold palette and route labels.
-7. Implement CGAS and matched baselines.
-8. Run the main structural OOD and budget sweep.
+1. Probe IW width 1→2 on already-enumerated ranks. **(Gate A)**
+2. Ship trace contract v3: width escalation, dropped BFS snapshots, IW novelty deltas, per-record size bound. Obtain owner approval. **(Gate 0b)**
+3. Regenerate the corpus under v3; release the v2 stream bytes.
+4. Build the pilot corpus and run the direct-VLM calibration baseline. **(Gate 3 — go/no-go)**
+5. Freeze the scaffold palette, costs, and route-label policy; derive the corpus-scale target.
+6. Re-specify selector constants and build the production corpus. **(Gate 0c)** — in parallel, implement audited bounded memory and route labels.
+7. Implement CGAS and matched baselines in `planning_vlm/`.
+8. Run the main structural OOD and budget sweep across three backbones. **(Gate 5)**
 9. Decide whether FF/Graphplan transfer is justified.
 
-## Recommended First Milestone
+## Recommended Next Milestone
 
-**Produce one Blocksworld BFS/IW dataset slice with aligned images, replay-valid actions, typed certificates, deterministic verifier results, one-invariant counterfactuals, and an audited memory stub.**
+**Run the Phase A probe and report the IW width-2 exact rate per object count.**
 
-This milestone proves that the method's supervision signal is real before model training begins.
+It is the cheapest experiment in the plan, it is the only thing standing between the current block and a contract revision, and it either confirms the chosen direction or sends the corpus question back to the owner before anything expensive is built.
 
 ## Immediate Next Steps
 
-1. Write a short decision record that fixes BFS versus GBFS for P0.
-2. Define the BFS and IW certificate JSON schemas and verifier contracts.
-3. Add a dataset audit for image alignment, certificate validity, and provenance.
-4. Implement the counterfactual generator with one mutation per record.
-5. Implement a local bounded certificate-store API and no-oracle-leakage tests.
-6. Create one direct-VLA calibration configuration and one evaluation command that reports first certificate failures.
+1. Implement true width escalation in `local_iw.py` behind the probe, without touching the frozen approved policy.
+2. Run the probe over the 281 already-characterized candidate ranks; report exact rate, expansions, and peak novelty-table size per object count.
+3. Draft trace contract v3 covering all four corrections, with its unapproved owner packet.
+4. Size the pilot corpus for calibration, and decide whether it can reuse the 53 already-characterized paired-exact instances.
+5. Specify the bounded certificate-store API and its no-oracle-leakage tests.
+6. Create one direct-VLM calibration configuration and one evaluation command that reports first certificate failures.
+
+## Gates and Falsification
+
+| Gate | Passes when | If it fails |
+|---|---|---|
+| **A** IW width 2 viable | Exact rate supports the derived scale | Return to owner; decoupled BFS/IW arms is the fallback |
+| **0b** Contract v3 sound | Streams verify; certificates match fixture semantics on overlapping instances; regeneration fits comfortably on disk | Do not regenerate at scale |
+| **3** Calibration *(hard stop)* | A recurrent, certificate-localized failure exists | No justified adaptive-scaffolding method — reconsider the direction before building the corpus |
+| **0c** Corpus | Derived quotas reached; every row has decodable image, replay-valid transition, accepted certificate | Exclude rows; do not repair by inference |
+| **5** Method | CGAS separates from direct on fidelity and from always-on memory on cost | Report the negative result, per proposal §8 |
 
 ## Success Criteria for the Research Infrastructure
 
 The repository is ready for the main CGAS experiment when it can:
 
 - emit aligned VLA observations and replay-valid action transitions;
-- generate and verify BFS/IW certificates and one-invariant counterfactuals;
+- generate and verify BFS/IW certificates and one-invariant counterfactuals, with every certificate field carrying information;
+- persist planner traces at a size bounded per record, not only per record count;
 - run a live bounded certificate store with complete operation logs;
-- train direct, always-on, generic-router, and CGAS variants from the same dataset;
+- train direct, always-on, generic-router, and CGAS variants from the same dataset in `planning_vlm/`;
 - evaluate fidelity, plan validity, scaffold cost, and route optimality on structural OOD splits; and
 - reproduce every reported result from a versioned manifest and configuration.
