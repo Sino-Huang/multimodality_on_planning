@@ -135,11 +135,11 @@ class CurrentIndexModel(StrictModel):
 
 
 class FeedbackModel(StrictModel):
-    accepted_manifest_sha256: StrictStr | None
+    accepted_manifest_sha256: StrictStr | None = None
     checkpoint_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")
     diagnostics: JsonObject
     non_exhausted_streams: list[StrictInt]
-    reason: StrictStr | None
+    reason: StrictStr | None = None
     reservoir_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")
     round: StrictInt = Field(gt=0)
     schema_version: Literal["cgas_production_selector_attempt_v1"]

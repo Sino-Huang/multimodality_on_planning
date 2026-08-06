@@ -179,11 +179,9 @@ def load_checkpoint(path: Path) -> CheckpointModel:
 def write_feedback(path: Path, checkpoint_path: Path, status: str = "selector_infeasible") -> None:
     checkpoint = load_checkpoint(checkpoint_path)
     record = {
-        "accepted_manifest_sha256": "1" * 64 if status == "selector_feasible" else None,
         "checkpoint_sha256": hashlib.sha256(checkpoint_path.read_bytes()).hexdigest(),
         "diagnostics": {"paired_exact": checkpoint.reservoir.row_count},
         "non_exhausted_streams": [stream.object_count for stream in checkpoint.streams if not stream.exhausted],
-        "reason": None if status == "selector_feasible" else "exact_selector_infeasible",
         "reservoir_sha256": checkpoint.reservoir.sha256,
         "round": checkpoint.round,
         "schema_version": "cgas_production_selector_attempt_v1",
@@ -191,5 +189,9 @@ def write_feedback(path: Path, checkpoint_path: Path, status: str = "selector_in
         "selector_implementation_sha256": checkpoint.selector.implementation_sha256,
         "status": status,
     }
+    if status == "selector_feasible":
+        record["accepted_manifest_sha256"] = "1" * 64
+    else:
+        record["reason"] = "exact_selector_infeasible"
     contents = json.dumps(record, allow_nan=False, ensure_ascii=True, separators=(",", ":"), sort_keys=True)
     path.write_bytes(contents.encode() + b"\n")

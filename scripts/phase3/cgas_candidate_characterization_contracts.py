@@ -43,7 +43,7 @@ def sha256(contents: bytes) -> str:
 
 def model_bytes(model: StrictModel) -> bytes:
     return json.dumps(
-        model.model_dump(mode="json"),
+        model.model_dump(mode="json", exclude_none=isinstance(model, FeedbackModel)),
         allow_nan=False,
         ensure_ascii=True,
         separators=(",", ":"),
