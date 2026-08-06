@@ -7,7 +7,7 @@ import pytest
 
 from scripts.phase3 import output_layout_view_stage
 from scripts.phase3.output_layout_view import OutputLayoutViewError, create_output_layout_view
-from tests.phase3.test_output_layout_view_races import _seed_protected_targets
+from test_output_layout_view_races import _seed_protected_targets
 
 
 def test_locate_missing_ancestor_closes_duplicated_descriptor_when_child_open_fails(

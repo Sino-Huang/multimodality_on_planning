@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from tests.phase3.output_layout_lock_test_support import (
+from output_layout_lock_test_support import (
     BLOCKED_POLL_SECONDS,
     LOCK_FACTORIES,
     LOCK_OPERATIONS,

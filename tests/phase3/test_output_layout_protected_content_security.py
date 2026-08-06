@@ -7,7 +7,7 @@ import pytest
 
 from scripts.phase3 import output_layout_view_content, output_layout_view_stage
 from scripts.phase3.output_layout_view import OutputLayoutViewError, create_output_layout_view
-from tests.phase3.test_output_layout_view import EXPECTED_LINKS, _seed_protected_targets
+from test_output_layout_view import EXPECTED_LINKS, _seed_protected_targets
 
 
 def test_new_view_revalidates_protected_content_after_publication(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

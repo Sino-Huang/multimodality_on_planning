@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from tests.phase3.phase3_writer_output_layout_lock_support import (
+from phase3_writer_output_layout_lock_support import (
     BLOCKED_POLL_SECONDS,
     EVENT_TIMEOUT_SECONDS,
     RecordingLock,
@@ -19,7 +19,7 @@ from tests.phase3.phase3_writer_output_layout_lock_support import (
     writer_module,
     writer_repository,
 )
-from tests.phase3.phase3_writer_output_layout_lock_planimation_support import PlanimationMode, patch_planimation_lifecycle
+from phase3_writer_output_layout_lock_planimation_support import PlanimationMode, patch_planimation_lifecycle
 
 
 def _recording_lock_factory(events: list[str], repositories: list[Path]) -> Callable[[Path], RecordingLock]:

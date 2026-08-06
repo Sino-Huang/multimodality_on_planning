@@ -11,7 +11,7 @@ from scripts.phase3.output_layout_lock import (
     OutputLayoutLockError,
     exclusive_output_layout_lock,
 )
-from tests.phase3.output_layout_lock_test_support import (
+from output_layout_lock_test_support import (
     BLOCKED_POLL_SECONDS,
     LOCK_FACTORIES,
     Holder,

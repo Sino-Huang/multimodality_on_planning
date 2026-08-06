@@ -8,7 +8,7 @@ import pytest
 
 from scripts.phase3 import output_layout_receipt_fs, output_layout_receipt_io, output_layout_receipt_transaction
 from scripts.phase3.output_layout_inventory import OutputLayoutInventoryError, read_receipt, write_receipt
-from tests.phase3.test_output_layout_receipt_adversarial import _receipt, _receipt_bytes, _transaction_bytes
+from test_output_layout_receipt_adversarial import _receipt, _receipt_bytes, _transaction_bytes
 
 
 def test_open_parent_directory_closes_next_descriptor_once_after_ambiguous_old_close(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:

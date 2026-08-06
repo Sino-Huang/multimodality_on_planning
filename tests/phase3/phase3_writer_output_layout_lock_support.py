@@ -9,7 +9,9 @@ from multiprocessing.context import SpawnContext
 from multiprocessing.process import BaseProcess
 from pathlib import Path
 from types import ModuleType
-from typing import Final, Literal, TypeAlias, assert_never
+from typing import Final, Literal, TypeAlias
+
+from typing_extensions import assert_never
 
 import pytest
 

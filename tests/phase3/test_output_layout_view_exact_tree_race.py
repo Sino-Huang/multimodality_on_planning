@@ -8,7 +8,7 @@ import pytest
 
 from scripts.phase3 import output_layout_view_stage
 from scripts.phase3.output_layout_view import OutputLayoutViewError, create_output_layout_view
-from tests.phase3.test_output_layout_view import _seed_protected_targets
+from test_output_layout_view import _seed_protected_targets
 
 
 def test_post_fsync_extra_stage_entry_fails_closed_and_is_retained(

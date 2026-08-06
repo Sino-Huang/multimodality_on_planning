@@ -3,12 +3,14 @@ from __future__ import annotations
 import sys
 from collections.abc import Callable
 from pathlib import Path
-from typing import Literal, TypeAlias, assert_never
+from typing import Literal, TypeAlias
+
+from typing_extensions import assert_never
 
 import pytest
 
 from scripts.phase3 import generate_planimation_vlm
-from tests.phase3.phase3_writer_output_layout_lock_support import WriterMutationError
+from phase3_writer_output_layout_lock_support import WriterMutationError
 
 
 PlanimationMode: TypeAlias = Literal["render-only", "full"]

@@ -6,7 +6,7 @@ import pytest
 
 from scripts.phase3 import output_layout_view
 from scripts.phase3.output_layout_view import OutputLayoutViewError, create_output_layout_view
-from tests.phase3.test_output_layout_view import EXPECTED_LINKS, _seed_protected_targets
+from test_output_layout_view import EXPECTED_LINKS, _seed_protected_targets
 
 
 def test_protected_regular_file_content_change_preserving_inode_fails_closed(

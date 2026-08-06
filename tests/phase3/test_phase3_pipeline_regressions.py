@@ -11,7 +11,7 @@ from scripts.phase3.local_planner_types import LocalPlannerRequest
 from scripts.phase3.local_planners import run_local_planner
 from scripts.phase3.pddl import ground_actions, parse_task
 from scripts.phase3.pipeline import generate_supervised_data
-from tests.phase3.test_phase3_pipeline import _fixture_dataset
+from test_phase3_pipeline import _fixture_dataset
 
 
 def test_generate_supervised_data_rejects_input_root_as_output_root(tmp_path: Path) -> None:

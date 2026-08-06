@@ -15,7 +15,7 @@ from scripts.phase3.planimation_pairing import (
 from scripts.phase3.trace_contracts import FrozenSourceIdentity
 from scripts.phase3.traversal_state_types import TraversalProjectionInput
 from scripts.phase3.traversal_states import project_traversal_state_candidates
-from tests.phase3.test_planimation_pairing import _output_root, _render_artifacts, _source_root
+from test_planimation_pairing import _output_root, _render_artifacts, _source_root
 
 
 FIXTURES = Path("tests/phase3/fixtures/traversal_state_projection_cases.json")
