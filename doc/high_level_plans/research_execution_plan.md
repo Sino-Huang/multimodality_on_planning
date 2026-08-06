@@ -237,7 +237,31 @@ Establish that a recurrent, certificate-localized failure exists, and derive the
 
 ### Scale note to carry in
 
-At 481 instances the dataset is ~3,000 steps, ~2,500 of them training, because steps-per-instance equals plan length. For SFT of an 8B VLM this is thin. If calibration shows it is too thin, the levers are more instances, longer-horizon instances, or additional certificate targets from off-plan expansions. Decide there, on evidence, not now.
+*Updated 2026-08-07 from the Phase A result and the pilot-sizing analysis
+(`.claude/knowledge/calibration-pilot-sizing-2026-08-07.md`).*
+
+Steps per instance equals plan length, because training transitions come from the replayed plan
+rather than from search expansions. Width escalation improved this: under width-1 paired-exactness
+the set was 53 instances at mean plan length 3.09 (~6.2 steps/instance); under width-2 it is 158
+instances at mean 5.22 (**~10.4 steps/instance**), because escalation admits longer-plan instances.
+481 instances therefore yields ~5,000 steps rather than ~2,977. Still thin for SFT of an 8B VLM,
+but materially less so.
+
+**The "pilot rather than the full corpus" premise is bar-dependent and the bar is unstated.** The
+first-failure matrix has 21 cells (7 certificate invariant families × 3 object counts). At >=10
+observations per cell the pilot is 204–306 instances — smaller than production, and this phase
+ordering pays for itself. At >=30 per cell it is 613–919 — *larger* than the production target,
+and the ordering buys nothing, because the production corpus would have to be built to run the gate
+meant to size it. **State the stability bar before planning this phase.**
+
+The lever that settles it is off-plan expansions: BFS expands a mean of 275 states per instance
+against a 5.22-step plan, a 53× ratio. Harvesting certificate targets from expansions rather than
+only from the replayed plan puts every sizing target within reach of 50–100 instances. **Decide
+this before Phase 0b**, since it is a question about what the trace contract must retain. Contract
+v3 as specified does not foreclose it — the three dropped fields are the reconstructible ones, and
+the per-event data off-plan certificates need is retained.
+
+The other levers remain more instances and longer-horizon instances. Decide on evidence, not now.
 
 ### Gate — a real stop
 
