@@ -5,6 +5,13 @@ sequenced the work so that the one decision that could kill the method — the c
 came after the most expensive artifact. See *What changed in this revision* for the four owner
 decisions that forced the rewrite.
 
+*Amended 2026-08-07: Phase A only. Gate A's stated pass condition referred forward to a number
+Phase 3 produces two phases later, so it was not evaluable and has been demoted to a reporting
+milestone; two measurement hazards that would have corrupted the probe result are recorded; and
+the failure branch is corrected, since width escalation is justified by the vacuous
+`width_decision` invariant independently of what the probe finds. No owner decision, phase order,
+gate other than A, quota, selector constant, or contract is changed.*
+
 ## Purpose
 
 This plan turns `doc/research_proposal.md` into a runnable, method-centered study of **Certificate-Guided Adaptive Scaffolding (CGAS)**. The target is not a broad modality ablation or an attention-analysis paper. The target is a learned controller that selects the least costly bounded support required to preserve a verifier-checked planning certificate.
@@ -130,21 +137,60 @@ And two structural changes that follow from them:
 
 ### Objective
 
-Decide whether IW at width 1→2 can supply the corpus, before committing to a contract change and a full regeneration.
+Measure what IW at width 1→2 yields, per object count, before committing to a contract change and a full regeneration.
+
+Note what this probe does **not** decide. Width escalation is justified independently of its
+effect on yield: at `local_iw_width=1` there is no width transition, so the `width_decision`
+field the proposal names as an IW verifier invariant carries no transition to verify. That is a
+certificate-validity defect, and it is repaired by escalation whatever the yield turns out to be.
+The probe informs corpus scale and the decoupled-arms question. It is not a referendum on
+decision 1.
 
 ### Main tasks
 
-- Re-materialize candidates at known raw ranks through the existing pure range API. No trace persistence, no BFS, no cursor advance.
-- Run IW with true width escalation.
-- Measure per object count: exact rate, expansions, wall-clock, and peak novelty-table size.
+- Re-materialize candidates at known raw ranks through the existing pure range API
+  (`cgas_candidate_space.build_candidate`). No trace persistence, no BFS re-run, no cursor advance.
+- Run IW with true width escalation, behind the probe, without touching the frozen approved policy.
+- Measure **per planner, not per pair**, for each object count: width-1 exact rate, width-2 exact
+  rate, BFS-only exact rate, expansions, wall-clock, and peak novelty-table size.
+- Measure **plan-length inflation against BFS optimal**. Nothing currently checks this, and it
+  determines whether width-2 plans are still usable as training targets.
 
-### Gate
+### Two measurement hazards that would corrupt the result
 
-The width-2 exact rate must support the corpus at the scale Phase 3 will derive. If width 2 does not lift the rate materially, return to the owner with the decoupled-BFS/IW-arms option rather than proceeding.
+- **The expansion cap can bind at n=12 and read as a planner result.**
+  `DEFAULT_LIMITS["local_iw_novelty_max_expansions"]` is 10,000
+  (`cgas_partition_contracts.py:15-27`), while the width-2 novelty table reaches 325 / 3,321 /
+  **14,365** for n=4/8/12. At n=12 the cap can trip before novelty exhausts, returning
+  `skipped_resource_limit` and a depressed exact rate at exactly the object count that matters most
+  for corpus scale. The probe must pass its own limits mapping with that cap raised. It must **not**
+  edit `DEFAULT_LIMITS`, which is contract surface, nor `local_iw_max_width`, which is 1 there.
+- **"Exact" here is not optimality.** `_planner_record` (`cgas_characterization_rows.py:143-147`)
+  defines IW-exact as `"plan_recovery" not in trace` — solved by pure novelty search without falling
+  back to `bounded_serial_plan` or goal regression. It is a lower bar than optimality, which is why
+  plan-length inflation has to be measured separately rather than assumed.
+
+### Gate — a measurement, not a stop
+
+Gate A as originally written required the width-2 exact rate to "support the corpus at the scale
+Phase 3 will derive". Phase 3 runs two phases later, so that condition is not evaluable here and
+Gate A cannot fail as stated. It is therefore a reporting milestone, and the pass/fail is deferred
+to Phase 0c, where the derived scale exists.
+
+What the probe decides now is narrower and is decidable now: whether width 2 lifts the n=4 rate
+enough for the closed 210-identity universe to supply the row count Phase 3 asks for.
+
+If width 2 does not lift the rate materially, the correct response is to return to the owner with
+the decoupled-BFS/IW-arms option **in addition to** width escalation, not instead of it. The two
+address different defects — decoupling fixes corpus yield, escalation fixes a vacuous certificate
+field — and a disappointing yield number is not an argument against escalation.
 
 ### Cost
 
-Bounded. Hundreds of planner runs against already-enumerated ranks — hours, not days.
+Bounded, but the "hours, not days" estimate assumes width-2 search is cheap and should be checked
+before launching. At n=12 the probe is up to ~14K expansions per instance against ~300 grounded
+actions each, in Python, across 281 instances. Decide on parallelism or a stratified subsample
+in advance rather than after a run overruns.
 
 ---
 
@@ -338,7 +384,7 @@ The 481 target, the paired-exact requirement, and `local_iw_width=1` were all ap
 
 ## Practical Build Order
 
-1. Probe IW width 1→2 on already-enumerated ranks. **(Gate A)**
+1. Probe IW width 1→2 on already-enumerated ranks. **(Gate A — reporting milestone)**
 2. Ship trace contract v3: width escalation, dropped BFS snapshots, IW novelty deltas, per-record size bound. Obtain owner approval. **(Gate 0b)**
 3. Regenerate the corpus under v3; release the v2 stream bytes.
 4. Build the pilot corpus and run the direct-VLM calibration baseline. **(Gate 3 — go/no-go)**
@@ -350,14 +396,21 @@ The 481 target, the paired-exact requirement, and `local_iw_width=1` were all ap
 
 ## Recommended Next Milestone
 
-**Run the Phase A probe and report the IW width-2 exact rate per object count.**
+**Run the Phase A probe and report the IW width-2 exact rate per planner and per object count.**
 
-It is the cheapest experiment in the plan, it is the only thing standing between the current block and a contract revision, and it either confirms the chosen direction or sends the corpus question back to the owner before anything expensive is built.
+It is the cheapest experiment in the plan, and it sizes the corpus question before anything
+expensive is built. It does not decide whether width escalation ships — that is settled by the
+vacuous `width_decision` invariant, independently of yield. What it decides is whether escalation
+alone is *sufficient* to supply the corpus, or whether decoupling the BFS and IW arms has to
+accompany it.
 
 ## Immediate Next Steps
 
 1. Implement true width escalation in `local_iw.py` behind the probe, without touching the frozen approved policy.
-2. Run the probe over the 281 already-characterized candidate ranks; report exact rate, expansions, and peak novelty-table size per object count.
+2. Run the probe over the 281 already-characterized candidate ranks; report **per planner** the
+   exact rate, expansions, peak novelty-table size, and plan-length inflation against BFS optimal,
+   per object count. Raise `local_iw_novelty_max_expansions` in the probe's own limits so the n=12
+   result is a planner measurement rather than a cap artifact.
 3. Draft trace contract v3 covering all four corrections, with its unapproved owner packet.
 4. Size the pilot corpus for calibration, and decide whether it can reuse the 53 already-characterized paired-exact instances.
 5. Specify the bounded certificate-store API and its no-oracle-leakage tests.
@@ -367,7 +420,7 @@ It is the cheapest experiment in the plan, it is the only thing standing between
 
 | Gate | Passes when | If it fails |
 |---|---|---|
-| **A** IW width 2 viable | Exact rate supports the derived scale | Return to owner; decoupled BFS/IW arms is the fallback |
+| **A** IW width 2 measured | *Reporting milestone, not a stop.* Rates reported per planner and per object count, with the n=12 expansion cap raised so it does not masquerade as a planner result | Pass/fail deferred to 0c. A weak lift argues for decoupled arms **in addition to** escalation, not instead of it |
 | **0b** Contract v3 sound | Streams verify; certificates match fixture semantics on overlapping instances; regeneration fits comfortably on disk | Do not regenerate at scale |
 | **3** Calibration *(hard stop)* | A recurrent, certificate-localized failure exists | No justified adaptive-scaffolding method — reconsider the direction before building the corpus |
 | **0c** Corpus | Derived quotas reached; every row has decodable image, replay-valid transition, accepted certificate | Exclude rows; do not repair by inference |
