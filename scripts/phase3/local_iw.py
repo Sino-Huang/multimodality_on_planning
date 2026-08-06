@@ -21,10 +21,37 @@ DEFAULT_LOCAL_IW_MAX_WIDTH: Final = 3
 
 
 def run_iterated_width(request: LocalPlannerRequest) -> LocalPlannerResult:
-    width = _limit(request, "local_iw_width", 1)
+    start_width = _limit(request, "local_iw_width", 1)
     max_width = _limit(request, "local_iw_max_width", DEFAULT_LOCAL_IW_MAX_WIDTH)
-    if width < 1 or width > max_width:
-        return LocalPlannerResult([], _iw_trace(width, [], 0, 0), "skipped_resource_limit")
+    if start_width < 1 or start_width > max_width:
+        return LocalPlannerResult([], _iw_trace(start_width, [], 0, 0), "skipped_resource_limit")
+    # Escalation is opt-in. Several call sites leave local_iw_max_width unset, so it
+    # falls back to DEFAULT_LOCAL_IW_MAX_WIDTH=3; inferring "escalate" from
+    # max_width > start_width would silently turn those fixed-width runs into
+    # escalating ones. Requiring an explicit flag keeps every existing caller,
+    # including the frozen approved policy, bit-for-bit unchanged.
+    if not _limit(request, "local_iw_escalate", 0) or start_width == max_width:
+        return _run_single_width(request, start_width, max_width)
+    attempted: list[int] = []
+    expansions_by_width: list[int] = []
+    result = LocalPlannerResult([], _iw_trace(start_width, [], 0, 0), "skipped_resource_limit")
+    for width in range(start_width, max_width + 1):
+        attempted.append(width)
+        result = _run_single_width(request, width, max_width)
+        expansions_by_width.append(_expansion_count(result.trace))
+        if result.status.startswith("success"):
+            break
+    result.trace["width_sequence"] = list(attempted)
+    result.trace["expansion_count_by_width"] = list(expansions_by_width)
+    return result
+
+
+def _expansion_count(trace: dict[str, JSONValue]) -> int:
+    count = trace.get("expansion_count")
+    return count if isinstance(count, int) else 0
+
+
+def _run_single_width(request: LocalPlannerRequest, width: int, max_width: int) -> LocalPlannerResult:
     start = frozenset(request.task.init)
     if request.task.goal.issubset(start):
         return LocalPlannerResult([], _iw_trace(width, [], 0, 0), "success_full_trace")
