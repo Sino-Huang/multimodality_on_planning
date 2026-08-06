@@ -1,2 +1,0 @@
-186470603	outputs/phase3_planimation_frames_stratified_pilot_20260725
-180M	outputs/phase3_planimation_frames_stratified_pilot_20260725

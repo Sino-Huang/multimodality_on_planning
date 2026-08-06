@@ -1,8 +1,0 @@
-No diagnostics found for each required Todo 1-4 Python/test file after Ferry remediation:
-- scripts/phase3/planimation_pairing_reasoning.py
-- scripts/phase3/planimation_release_verification.py
-- scripts/phase3/verify_planimation_vlm.py
-- tests/phase3/test_planimation_pairing.py
-- tests/phase3/test_planimation_profile_regressions.py
-- tests/phase3/test_fast_planimation_launcher.py
-- tests/phase3/test_verify_planimation_vlm.py

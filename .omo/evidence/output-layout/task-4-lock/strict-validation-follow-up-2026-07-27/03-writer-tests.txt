@@ -1,6 +1,0 @@
-Command:
-source ~/cd_vlaplan && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 TMPDIR=/tmp uv run --no-project --with typing_extensions --with pytest pytest -q --tb=short tests/phase3/test_phase3_writer_output_layout_lock.py
-
-Result: 6 passed in 5.24s.
-
-The active environment lacked `typing_extensions`, so this command used a temporary `uv` dependency overlay. No project environment or dependency file was changed.

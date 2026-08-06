@@ -1,4 +1,0 @@
-Command:
-source ~/cd_vlaplan && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 TMPDIR=/tmp pytest --collect-only -q tests/phase3/test_output_layout_lock.py tests/phase3/test_output_layout_lock_descriptor.py
-
-Result: 28 tests collected from the two focused lock test modules.

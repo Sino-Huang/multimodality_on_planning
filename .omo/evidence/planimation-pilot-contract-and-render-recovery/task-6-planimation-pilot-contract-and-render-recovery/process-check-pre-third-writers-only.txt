@@ -1,3 +1,0 @@
-Command: ps -eo pid=,ppid=,comm=,args= | awk '$3 ~ /^(bash|python|python3)$/ && $0 ~ /(generate_planimation_vlm\.py|temp_fast_planimation_render\.sh)/ {print}'
-Result: no matching generator or launcher process targeted either the source or pilot output root.
-Note: process-check-pre-third.txt records the current opencode session wrapper as a prompt-text false positive; it is not a writer.

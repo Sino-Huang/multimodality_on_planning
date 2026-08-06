@@ -1,6 +1,0 @@
-Fresh Logistics PNG/VFG visual inspection
-
-Artifact: logistics/frame_000.png with logistics/trace.vfg.json
-Verdict: no material clipping or unintended overlap.
-
-The lowest stage-zero row has minY=0.011, leaving an approximately 11-pixel bottom margin in the 1024x1024 frame. The white plane/truck silhouettes terminate above the image edge. White sprites visually recede into the white canvas but are located over the colored lavender location panels and blue city strips. The 11/11 semantic receipt covers p0/p1 packages, a0 plane, t0/t1 trucks, l0-0/l0-1/l1-0/l1-1 locations, and c0/c1 cities. VFG inspection found no coincident, degenerate, or out-of-canvas bounds.

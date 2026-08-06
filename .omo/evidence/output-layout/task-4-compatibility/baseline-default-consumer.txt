@@ -1,7 +1,0 @@
-Command:
-source ~/cd_vlaplan && source .venv/bin/activate && pytest -q tests/phase3/test_planimation_compatibility_references.py::test_generator_without_dataset_root_uses_current_trace_roots
-
-Output:
-Conda environment 'ada_vla' is already activated.
-.                                                                        [100%]
-1 passed in 0.60s

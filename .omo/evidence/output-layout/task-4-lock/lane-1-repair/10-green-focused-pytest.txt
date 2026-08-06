@@ -1,9 +1,0 @@
-Command:
-source ~/cd_vlaplan && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 TMPDIR=/tmp pytest -q --tb=short tests/phase3/test_output_layout_lock.py
-
-Output:
-Conda environment 'ada_vla' is already activated.
-............................                                             [100%]
-28 passed in 11.91s
-
-Result: exit 0. This focused suite uses synthetic test behavior only.

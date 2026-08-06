@@ -10,8 +10,8 @@ import pytest
 from scripts.phase3.render_semantics import _decode_png, _parse_stage_zero_sprites, _sprite_has_coverage, validate_render_artifacts
 
 ROOT = Path(__file__).parents[2]
-FAILED_FERRY_CANARY = ROOT / ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-5-planimation-pilot-contract-and-render-recovery/ferry-failed-attempt"
-FAILED_ELEVATORS_CANARY = ROOT / ".omo/evidence/planimation-pilot-contract-and-render-recovery/task-5-planimation-pilot-contract-and-render-recovery/elevators-failed-attempt"
+FAILED_FERRY_CANARY = ROOT / ".claude/evidence/planimation-pilot-contract-and-render-recovery/task-5-planimation-pilot-contract-and-render-recovery/ferry-failed-attempt"
+FAILED_ELEVATORS_CANARY = ROOT / ".claude/evidence/planimation-pilot-contract-and-render-recovery/task-5-planimation-pilot-contract-and-render-recovery/elevators-failed-attempt"
 IMAGE_SECTION_SHA256 = {
     "data/pddl_instances/gripper/gripper_AP.pddl": "9acbc33f9b0719cd4bb2e1f4e469a12d834e823719b180eab95165d0ca53216c",
     "data/pddl_instances/ferry/ap.pddl": "871681463f96a3bd8af434bccbf54b2d7f8cbf0bf4cf14e6117fbfddcdaea355",

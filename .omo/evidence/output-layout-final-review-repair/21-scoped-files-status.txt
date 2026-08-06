@@ -1,5 +1,0 @@
-?? scripts/phase3/organize_outputs.py
-?? scripts/phase3/organize_outputs_preflight.py
-?? tests/phase3/test_organize_outputs.py
-?? tests/phase3/test_organize_outputs_adversarial.py
-?? tests/phase3/test_output_layout_rename.py

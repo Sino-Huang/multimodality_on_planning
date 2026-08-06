@@ -1,7 +1,0 @@
-Command:
-source ~/cd_vlaplan && source .venv/bin/activate && pytest -q tests/phase3/test_output_layout_view_adversarial.py::test_existing_view_rejects_extra_entry_added_after_pathname_validation tests/phase3/test_output_layout_view_adversarial.py::test_new_view_rejects_extra_entry_added_after_pathname_validation
-
-Result after the production fix:
-2 passed in 0.32s
-
-Both branches now perform a final descriptor-bound exact-tree validation after pathname validation and reject the retained unexpected entry.

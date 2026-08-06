@@ -1,3 +1,0 @@
-/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/scripts/phase3/output_layout_receipt_values.py:97:5: [missing-assert-never] match without `case _: assert_never(x)` default
-
-1 violation(s) in 7 file(s)

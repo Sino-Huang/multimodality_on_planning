@@ -1,4 +1,0 @@
-Command:
-source ~/cd_vlaplan && source .venv/bin/activate && basedpyright --project .omo/evidence/output-layout/task-4-lock/pyrightconfig.json
-
-Result: 0 errors, 0 warnings, 0 notes under `typeCheckingMode: all`.

@@ -1,0 +1,15 @@
+(define (problem cgas-source-d4d318711098a5321d6b2b26)
+  (:domain blocksworld)
+  (:objects a b c)
+  (:init
+  (arm-empty)
+  (clear a)
+  (clear b)
+  (clear c)
+  (on-table a)
+  (on-table b)
+  (on-table c)
+)
+  (:goal
+    (and (on a b)))
+)

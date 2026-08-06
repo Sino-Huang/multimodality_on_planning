@@ -1,2 +1,0 @@
-full_guard_exit=1
-pilot_guard_exit=1

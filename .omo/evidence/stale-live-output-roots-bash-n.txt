@@ -1,1 +1,0 @@
-PASS bash -n temprun.sh

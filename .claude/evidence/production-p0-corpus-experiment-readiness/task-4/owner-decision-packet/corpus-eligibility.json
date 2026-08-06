@@ -1,0 +1,72 @@
+{
+  "by_planner": {
+    "bfs": {
+      "statuses": {
+        "skipped_resource_limit": {
+          "bytes": 2256344328777,
+          "file_share": 0.268817,
+          "files": 150,
+          "mean_bytes": 15042295525.2,
+          "records": 1500000
+        },
+        "success_full_trace": {
+          "bytes": 162527231574,
+          "file_share": 0.731183,
+          "files": 408,
+          "mean_bytes": 398351057.8,
+          "records": 268295
+        }
+      },
+      "total_bytes": 2418871560351,
+      "total_files": 558,
+      "total_records": 1768295
+    },
+    "iw": {
+      "statuses": {
+        "failed_no_plan_extracted": {
+          "bytes": 73107900,
+          "file_share": 0.797491,
+          "files": 445,
+          "mean_bytes": 164287.4,
+          "records": 26961
+        },
+        "success_full_trace": {
+          "bytes": 3690095,
+          "file_share": 0.202509,
+          "files": 113,
+          "mean_bytes": 32655.7,
+          "records": 1761
+        }
+      },
+      "total_bytes": 76797995,
+      "total_files": 558,
+      "total_records": 28722
+    }
+  },
+  "contract_ineligible_bfs": {
+    "byte_share": 0.932809,
+    "bytes": 2256344328777,
+    "contract": "scripts/phase3/cgas_partition_contracts.py:45-56 require_full_trace_source accepts only eligible_complete_trace",
+    "files": 150
+  },
+  "iw_success_rate": {
+    "rate": 0.202509,
+    "success_files": 113,
+    "total_files": 558
+  },
+  "largest_stream": {
+    "bfs": {
+      "bytes": 22806128198,
+      "completion_status": "skipped_resource_limit",
+      "path": "tmp/cgas-p0-characterized/traces/0a60381d43e9893ce8a4914e8b3d761a27d576a292a771e134ef99fd0995b3d0/bfs.trace-v2.jsonl"
+    },
+    "iw": {
+      "bytes": 643116,
+      "completion_status": "failed_no_plan_extracted",
+      "path": "tmp/cgas-p0-characterized/traces/8a1df70a5cf5f42ad4b258d705f9ee06918d6e46626109d2cdb6e33b585dcdac/iw.trace-v2.jsonl"
+    }
+  },
+  "mismatched_trailers": 0,
+  "trace_directories": 558,
+  "trace_root": "tmp/cgas-p0-characterized/traces"
+}

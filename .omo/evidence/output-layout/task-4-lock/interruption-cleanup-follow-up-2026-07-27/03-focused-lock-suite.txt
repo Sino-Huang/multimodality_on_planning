@@ -1,6 +1,0 @@
-Command:
-source ~/cd_vlaplan && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 TMPDIR=/tmp pytest -q --tb=short tests/phase3/test_output_layout_lock.py tests/phase3/test_output_layout_lock_descriptor.py tests/phase3/test_output_layout_lock_interruption.py
-
-Result: 32 passed in 8.44s.
-
-This is the latest focused lock result. The preserved 28-test receipts remain valid historical evidence, but they are superseded for final status by this 32-case run.

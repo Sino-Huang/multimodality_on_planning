@@ -21,7 +21,7 @@ from .pddl import ground_actions, parse_task, replay_plan
 
 REPOSITORY_ROOT: Final = Path(__file__).resolve().parents[2]
 BUNDLE_PATH: Final = REPOSITORY_ROOT / "tmp/.cgas-characterization/planning_cgas_v1-characterization-481.cgas"
-DRAFT_PATH: Final = REPOSITORY_ROOT / ".omo/evidence/cgas-partition-characterization/planning_cgas_v1-draft.json"
+DRAFT_PATH: Final = REPOSITORY_ROOT / ".claude/evidence/cgas-partition-characterization/planning_cgas_v1-draft.json"
 SOURCE_PATH: Final = REPOSITORY_ROOT / "data/curriculum_pddl/accepted_manifest.jsonl"
 BFS_IMPLEMENTATION: Final = REPOSITORY_ROOT / "scripts/phase3/cgas_bfs.py"
 IW_IMPLEMENTATION: Final = REPOSITORY_ROOT / "scripts/phase3/local_iw.py"

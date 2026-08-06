@@ -1,7 +1,0 @@
-Command:
-source ~/cd_vlaplan && source .venv/bin/activate && pytest -q tests/phase3/test_output_layout_view_adversarial.py::test_existing_view_rejects_extra_entry_added_after_pathname_validation tests/phase3/test_output_layout_view_adversarial.py::test_new_view_rejects_extra_entry_added_after_pathname_validation
-
-Result before the production fix:
-2 failed
-
-Both failures reported `DID NOT RAISE OutputLayoutViewError`. An extra entry inserted immediately after the final pathname validation was accepted by both the idempotent existing-view path and first-publication path.

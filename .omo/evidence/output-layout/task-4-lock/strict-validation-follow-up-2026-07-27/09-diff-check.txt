@@ -1,4 +1,0 @@
-Command:
-GIT_MASTER=1 git diff --check
-
-Result: exit 0 with no output. This checks tracked diff only and does not validate whitespace in untracked files.

@@ -1,9 +1,0 @@
-Command:
-source ~/cd_vlaplan && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 TMPDIR=/tmp pytest -q --tb=short tests/phase3/test_organize_outputs.py::test_writer_lock_blocks_organizer tests/phase3/test_organize_outputs_adversarial.py::test_exclusive_organizer_lock_blocks_second_preflight
-
-Output:
-Conda environment 'ada_vla' is already activated.
-..                                                                       [100%]
-2 passed in 3.65s
-
-Result: exit 0. These targeted organizer regressions use synthetic test behavior only.

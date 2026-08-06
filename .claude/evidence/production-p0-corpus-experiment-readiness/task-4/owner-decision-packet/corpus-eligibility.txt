@@ -1,0 +1,28 @@
+# Trace-v2 corpus eligibility - READ-ONLY measurement
+# trace root: tmp/cgas-p0-characterized/traces
+# trace directories: 558
+
+== BFS streams by completion_status ==
+  status                      files          GB        mean       records    share
+  skipped_resource_limit        150     2101.38    14345.5M     1,500,000   26.9%
+  success_full_trace            408      151.37      379.9M       268,295   73.1%
+  TOTAL                         558     2252.75                 1,768,295
+
+== IW streams by completion_status ==
+  status                      files          GB        mean       records    share
+  failed_no_plan_extracted      445        0.07        0.2M        26,961   79.7%
+  success_full_trace            113        0.00        0.0M         1,761   20.3%
+  TOTAL                         558        0.07                    28,722
+
+== Contract consequence ==
+  BFS streams that can never yield a corpus row: 150 files, 2101.38 GB
+  (93.3% of all BFS trace bytes)
+  require_full_trace_source (cgas_partition_contracts.py:45-56) accepts only eligible_complete_trace.
+
+== IW width-1 solvability (the true yield ceiling) ==
+  IW success_full_trace: 113 / 558 = 20.3%
+  Paired-exact needs BOTH planners exact, so this caps yield regardless of ranks consumed.
+
+== Largest stream per planner ==
+  bfs: 21.24 GB  status=skipped_resource_limit  tmp/cgas-p0-characterized/traces/0a60381d43e9893ce8a4914e8b3d761a27d576a292a771e134ef99fd0995b3d0/bfs.trace-v2.jsonl
+  iw: 0.00 GB  status=failed_no_plan_extracted  tmp/cgas-p0-characterized/traces/8a1df70a5cf5f42ad4b258d705f9ee06918d6e46626109d2cdb6e33b585dcdac/iw.trace-v2.jsonl

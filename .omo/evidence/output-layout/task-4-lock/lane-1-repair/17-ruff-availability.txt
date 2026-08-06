@@ -1,7 +1,0 @@
-Required probe command:
-source ~/cd_vlaplan && source .venv/bin/activate && command -v ruff
-
-Probe output:
-Conda environment 'ada_vla' is already activated.
-
-Result: the probe produced no Ruff path and exited nonzero. Independent status confirmation from the same activated environment printed: "ruff unavailable: command -v ruff produced no path and exited nonzero". Ruff is unavailable, was not installed, and no Ruff check was run.

@@ -1,4 +1,0 @@
-canonical_paths_exit=0
-canonical_hashes_exit=0
-cache_paths_exit=0
-immutable_hashes_exit=0

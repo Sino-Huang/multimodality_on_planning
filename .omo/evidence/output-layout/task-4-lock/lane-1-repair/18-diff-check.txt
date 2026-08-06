@@ -1,7 +1,0 @@
-Command:
-GIT_MASTER=1 git diff --check
-
-Output:
-(no output)
-
-Result: exit 0. `git diff --check` examines the tracked diff only; it does not check whitespace in untracked files, including this untracked evidence lane, so this receipt makes no broader whitespace claim.

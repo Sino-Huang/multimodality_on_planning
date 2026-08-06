@@ -1,0 +1,52 @@
+# trace-v2 snapshot cost and reconstructibility - READ-ONLY measurement
+
+== A. mid-sized success_full_trace stream, scanned end to end ==
+  path                 tmp/cgas-p0-characterized/traces/245517bf069a45df7c1ff654b25edc3941f43f84ad121e8690e337a7038b2343/bfs.trace-v2.jsonl
+  stream size          0.20 GB
+  scanned              0.20 GB (complete), 1,189 events
+
+  -- Q1: where the bytes go --
+  snapshot fields      0.194 GB  (98.5% of scanned bytes)
+  everything else      0.003 GB
+  first event          2,411 bytes  (frontier 3)
+  last event           367,714 bytes  (frontier 2,137, visited 3,326)
+  growth across run    152.5x
+
+  -- Q2: are the snapshots exactly reconstructible? --
+  R1 frontier_before == [state_id]                      violations: 0
+  R2 frontier_after  == prev[1:] + enqueued             violations: 0
+  R3 visited_after   == sorted(prev | enqueued)         violations: 0
+  VERDICT              EXACTLY RECONSTRUCTIBLE
+
+  -- projected size if the three fields are dropped --
+  projected stream     0.003 GB
+  reduction            98.47%
+
+== B. largest stream in the corpus (skipped_resource_limit), bounded 2 GB prefix ==
+  path                 tmp/cgas-p0-characterized/traces/0a60381d43e9893ce8a4914e8b3d761a27d576a292a771e134ef99fd0995b3d0/bfs.trace-v2.jsonl
+  stream size          21.24 GB
+  scanned              2.00 GB (bounded prefix), 2,764 events
+
+  -- Q1: where the bytes go --
+  snapshot fields      1.989 GB  (99.5% of scanned bytes)
+  everything else      0.010 GB
+  first event          5,775 bytes  (frontier 8)
+  last event           1,497,276 bytes  (frontier 9,756, visited 12,520)
+  growth across run    259.3x
+
+  -- Q2: are the snapshots exactly reconstructible? --
+  R1 frontier_before == [state_id]                      violations: 0
+  R2 frontier_after  == prev[1:] + enqueued             violations: 0
+  R3 visited_after   == sorted(prev | enqueued)         violations: 0
+  VERDICT              EXACTLY RECONSTRUCTIBLE
+
+  -- projected size if the three fields are dropped --
+  projected stream     0.010 GB
+  reduction            99.49%
+
+== Reading ==
+  Q1 answers whether the fix is worth doing. Q2 answers whether it is safe.
+  EXACTLY RECONSTRUCTIBLE means every snapshot in the scanned region was rebuilt
+  byte-identically from data the event already carries, so dropping the fields
+  loses no information a reader cannot recover. It does NOT by itself authorize
+  the contract change - see DECISION.md item 2.

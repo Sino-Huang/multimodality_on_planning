@@ -1,2 +1,0 @@
-source ~/cd_vlaplan && source .venv/bin/activate && python /home/sukaih/.cache/opencode/packages/oh-my-openagent@latest/node_modules/oh-my-openagent/dist/skills/programming/scripts/python/check-no-excuse-rules.py scripts/phase3/output_layout_*.py tests/phase3/test_output_layout_*.py
-no violations in 35 file(s)

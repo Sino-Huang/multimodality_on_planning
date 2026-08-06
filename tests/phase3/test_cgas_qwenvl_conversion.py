@@ -14,7 +14,7 @@ from scripts.phase3.cgas_qwenvl_contracts import JsonRecord, QwenContractError, 
 from scripts.phase3.cgas_serialization import canonical, digest, digest_text, read_jsonl, write_json, write_jsonl
 
 
-FIXTURE_ROOT = Path(__file__).resolve().parents[2] / ".omo/evidence/task-4-cgas-dataloader-and-experiment-support/fixture"
+FIXTURE_ROOT = Path(__file__).resolve().parents[2] / ".claude/evidence/task-4-cgas-dataloader-and-experiment-support/fixture"
 
 
 def test_build_corpus_projects_only_accepted_steps_with_exact_split_images_and_manifest(tmp_path: Path) -> None:

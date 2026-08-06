@@ -21,9 +21,9 @@ from scripts.phase3.cgas_candidate_characterization_runner_support import planne
 from scripts.phase3.cgas_candidate_characterization_traces import TracePersistenceRequest, persist_trace
 
 ROOT = Path(__file__).resolve().parents[2]
-APPROVAL = ROOT / ".omo/evidence/cgas-production-p0/approved-trace-v2.json"
-PACKET = ROOT / ".omo/evidence/cgas-production-p0/trace-v2-migration-packet.json"
-OWNER_APPROVAL = ROOT / ".omo/evidence/cgas-production-p0/trace-v2-owner-approval.json"
+APPROVAL = ROOT / ".claude/evidence/cgas-production-p0/approved-trace-v2.json"
+PACKET = ROOT / ".claude/evidence/cgas-production-p0/trace-v2-migration-packet.json"
+OWNER_APPROVAL = ROOT / ".claude/evidence/cgas-production-p0/trace-v2-owner-approval.json"
 CONFIG = ROOT / "configs/cgas/production_p0_candidates.json"
 
 

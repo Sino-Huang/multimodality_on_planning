@@ -1,3 +1,0 @@
-Config contains unrecognized setting "remote.downloadExtensionsLocally".
-Config contains unrecognized setting "workbench.web.useServiceWorkers".
-0 errors, 0 warnings, 0 notes

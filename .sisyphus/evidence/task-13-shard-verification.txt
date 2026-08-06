@@ -1,3 +1,0 @@
-verified 15 domain shards
-
-exit_status=0

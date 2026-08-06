@@ -1,0 +1,80 @@
+==============================================================================
+TODO 4 SELECTOR INFEASIBILITY - READ-ONLY DERIVATION
+==============================================================================
+
+-- bound artifacts --
+  checkpoint_1_sha256              fa70f298d77834421f328fb56821e60e4cbd9d5324963251b2d88ba2e5134853
+  current_sha256                   1b23b2c76fb1b77b85a0549b89fc5b4e3c503668e03c46db6443650b64fcacdf
+  selector_attempt_1_sha256        4a594ae9a43214aeac772f10badae2d1559db60c19e77ac10a4a9f2be01c4c60
+  reservoir_sha256                 acbb22c9e757b039f05b89b7be44f60223e73357c21ff3a850c48647618d9154
+  selector_implementation_sha256   a83be53cb0e5096662be73881c95a899de9783633b5d56c61bcb408cf593f2e7
+  selector_config_sha256           3783c7fdda618849a7de0dcb3074258bbde309af384afb4ec0cb8173a6eb2a05
+  checkpoint round                 1
+  selector attempt status          selector_infeasible / calibration_exact_39_unavailable
+
+-- selector requirements (live from scripts/phase3/cgas_partition_contracts.py) --
+  EXPECTED_ROW_COUNT      = 481
+  EXPECTED_SPLIT_COUNTS   = {'dev': 39, 'test': 40, 'train': 402}
+  EXPECTED_OBJECT_COUNTS  = {4: 190, 8: 198, 12: 93}
+
+  Enforced in scripts/phase3/cgas_production_population_manifest.py:
+    line 24-25  every selected row must pass _paired_exact(row)
+    line 43-44  object_counts != Counter(EXPECTED_OBJECT_COUNTS)
+                -> SelectionFeasibilityError('production_object_quota_invalid')
+    line 45-49  required matrix includes ('train', 4): 190
+  => the selector needs exactly 190 PAIRED-EXACT 4-object rows.
+
+-- the 4-object candidate universe (tmp/cgas-p0-candidates/reports/) --
+  combinatorics.json four_object = {'canonical_ids': 228, 'raw_candidates': 600, 'retained_nontrivial_ids': 210, 'solved_ids': 18}
+  exhaustion.json    streams['4'] = {'capacity': 600, 'exhausted': True, 'frontier': 600}
+  canonical orbits 228 - subset-solved 18 = retained nontrivial 210
+  4-object stream exhausted = True at frontier 600 of capacity 600
+  => the universe is CLOSED at 210 distinct nontrivial 4-object identities.
+
+-- round-1 accounting, recomputed from checkpoint 1 --
+    n  consumed  emitted  duplicate  solved
+    4       190       88         52      50
+    8       198      129          0      69
+   12        93       64          0      29
+  cross-check: sums to checkpoint accounting counts {'duplicate': 52, 'emitted': 281, 'solved': 148} OK
+
+-- paired-exact yield per stream, recomputed from checkpoint 1 --
+    n  emitted  paired_exact   yield  required
+    4       88            14   15.9%       190
+    8      129            23   17.8%       198
+   12       64            16   25.0%        93
+  cross-check: sums to reservoir row_count 53 OK
+
+==============================================================================
+PROOF
+==============================================================================
+  4-object universe (closed)                      = 210
+  4-object already characterized                  = 88
+  4-object paired-exact achieved                  = 14
+  4-object never characterized (upper bound left) = 210 - 88 = 122
+  ABSOLUTE CEILING (if ALL remaining were exact)  = 14 + 122 = 136
+  SELECTOR HARD REQUIREMENT                       = 190
+
+  136 < 190  ->  feasible = False
+
+  Expected (not best-case) final at the observed 15.9% rate: 210 x 0.159 = 33
+  Shortfall factor against requirement: 5.7x
+
+  Why the gap cannot close:
+   1. The 4-object stream is exhausted at its full capacity of 600 raw ranks,
+      so no further 4-object candidates can ever be enumerated.
+   2. retained_nontrivial_ids = 210 is the complete set of distinct
+      nontrivial 4-object identities in the entire universe.
+   3. Characterization is once per candidate id under a frozen paired-exact
+      policy, so an already-characterized non-exact candidate cannot become exact.
+
+  Only the 4-object stream is blocked. At observed yields the others would reach
+  quota in roughly:
+    n= 8: need 198 exact at 17.8% -> ~1111 emitted -> ~8 further rounds of 198 ranks
+    n=12: need 93 exact at 25.0% -> ~372 emitted -> ~5 further rounds of 93 ranks
+
+-- proof.json --
+  bytes  4630
+  sha256 b739f14869303002d0006dbb0be5b4042835002d289c23ee61ee87ac19323e51
+
+DERIVATION COMPLETE. All internal cross-checks passed.

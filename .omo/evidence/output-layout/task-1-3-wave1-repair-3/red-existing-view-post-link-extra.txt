@@ -1,8 +1,0 @@
-Command:
-source ~/cd_vlaplan && source .venv/bin/activate && pytest -q tests/phase3/test_output_layout_view_adversarial.py::test_existing_view_rejects_extra_entry_added_after_final_link_verification
-
-Result before the production fix:
-FAILED: DID NOT RAISE OutputLayoutViewError
-
-Confirmed mechanism:
-The existing-view branch returned success after an extra `racer-owned` entry was inserted immediately after the fifteenth link verification.

@@ -1,9 +1,0 @@
-Command:
-source ~/cd_vlaplan && source .venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 TMPDIR=/tmp python .omo/evidence/output-layout/task-4-lock/manual_spawn_lock_qa.py
-
-Output:
-Conda environment 'ada_vla' is already activated.
-manual-spawn-lock-no-legacy-file-creation: PASS
-manual-spawn-lock-replacement-resistance: PASS
-
-Result: exit 0. The manual QA uses a TemporaryDirectory and spawned synthetic contenders only.
