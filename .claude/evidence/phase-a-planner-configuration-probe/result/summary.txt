@@ -1,0 +1,18 @@
+Phase A - IW width 1 vs true iterative width 1->2
+checkpoint fa70f298d77834421f328fb56821e60e4cbd9d5324963251b2d88ba2e5134853
+expansion cap raised to 200000 (DEFAULT_LIMITS ships 10,000)
+elapsed 329.793s
+
+   n  total     BFS    IW w1  IW w1->2    lift  inflation   slowest
+   4     88  100.0%    15.9%     76.1%   +60.2      +0.03    0.009s
+   8    129   69.0%    17.8%     45.7%   +27.9      +0.00    0.232s
+  12     64   51.6%    25.0%     60.9%   +35.9      +0.00    3.319s
+ all    281   74.7%    18.9%     58.7%   +39.8      +0.01    3.319s
+
+novelty-table saturation (instrumented subset, cap = 200):
+  n=4    3/8 saturated
+  n=8    8/8 saturated
+  n=12   5/8 saturated
+  n=all  16/24 saturated
+
+width-1 reruns disagreeing with the recorded round-1 result: 0
