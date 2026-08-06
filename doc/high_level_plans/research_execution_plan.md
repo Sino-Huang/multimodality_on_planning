@@ -160,11 +160,14 @@ decision 1.
 
 - **The expansion cap can bind at n=12 and read as a planner result.**
   `DEFAULT_LIMITS["local_iw_novelty_max_expansions"]` is 10,000
-  (`cgas_partition_contracts.py:15-27`), while the width-2 novelty table reaches 325 / 3,321 /
-  **14,365** for n=4/8/12. At n=12 the cap can trip before novelty exhausts, returning
-  `skipped_resource_limit` and a depressed exact rate at exactly the object count that matters most
-  for corpus scale. The probe must pass its own limits mapping with that cap raised. It must **not**
-  edit `DEFAULT_LIMITS`, which is contract surface, nor `local_iw_max_width`, which is 1 there.
+  (`cgas_partition_contracts.py:15-27`), while the atom-pair universe bound on the width-2 novelty
+  table reaches 325 / 3,321 / **14,365** for n=4/8/12. At n=12 the cap can trip before novelty
+  exhausts, returning `skipped_resource_limit` and a depressed exact rate at exactly the object
+  count that matters most for corpus scale. The probe must pass its own limits mapping with that
+  cap raised. It must **not** edit `DEFAULT_LIMITS`, which is contract surface, nor
+  `local_iw_max_width`, which is 1 there.
+  *Measured 2026-08-07: the hazard did not bind on these instances — the largest width-2 run was
+  8,851 expansions — but it was real to guard against, and the cap is still raised in v3 as margin.*
 - **"Exact" here is not optimality.** `_planner_record` (`cgas_characterization_rows.py:143-147`)
   defines IW-exact as `"plan_recovery" not in trace` — solved by pure novelty search without falling
   back to `bounded_serial_plan` or goal regression. It is a lower bar than optimality, which is why

@@ -37,6 +37,7 @@ import time
 from collections import defaultdict
 from collections.abc import Mapping
 from dataclasses import dataclass
+from itertools import combinations
 from pathlib import Path
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
@@ -62,19 +63,39 @@ class ProbeError(RuntimeError):
     pass
 
 
-class _LastEventSink:
-    """Keeps only the most recent trace event, so peak novelty-table size can be
-    observed in O(1) memory. Only used on the instrumented sample: with a sink
-    attached the planner serializes the novelty table on every expansion, which
-    is O(expansions * table) and far too slow for the full sweep."""
+class _NoveltyReconstructionSink:
+    """Reconstructs the true novelty-table size from the events themselves.
 
-    __slots__ = ("event",)
+    The trace cannot report it directly: `serialized_novelty_table` clips at
+    MAX_IW_TRACE_NOVELTY_ITEMS, so a trace-visible size of 200 means ">=200, true
+    value unknown". Each event does carry `state_atoms`, and the planner's table is
+    exactly the union of novelty_items(state, width) over expanded states, so
+    accumulating those subsets here recovers the true cardinality without touching
+    production code. Subset counts are order-independent, so this matches the
+    planner's own table size even though the canonical ordering differs.
 
-    def __init__(self) -> None:
-        self.event: Mapping[str, JSONValue] | None = None
+    Only used on the instrumented subset: attaching any sink makes the planner
+    serialize the clipped table on every expansion, which is O(expansions * table).
+    """
+
+    __slots__ = ("table", "clipped_peak", "width")
+
+    def __init__(self, width: int) -> None:
+        self.table: set[tuple[str, ...]] = set()
+        self.clipped_peak = 0
+        self.width = width
 
     def append(self, event: Mapping[str, JSONValue], /) -> None:
-        self.event = event
+        if event.get("decision") != "expand":
+            return
+        atoms = event.get("state_atoms")
+        if isinstance(atoms, list):
+            ordered = tuple(sorted(str(atom) for atom in atoms))
+            for size in range(1, self.width + 1):
+                self.table.update(combinations(ordered, size))
+        clipped = event.get("novelty_table_after")
+        if isinstance(clipped, list):
+            self.clipped_peak = max(self.clipped_peak, len(clipped))
 
 
 @dataclass(frozen=True, slots=True)
@@ -190,13 +211,15 @@ def _run(task: object, grounded: tuple[object, ...], *, max_width: int) -> dict[
 
 
 def _peak_novelty_table(task: object, grounded: tuple[object, ...]) -> dict[str, object]:
-    sink = _LastEventSink()
+    sink = _NoveltyReconstructionSink(2)
     run_iterated_width(LocalPlannerRequest("iw", task, grounded, _limits(2), sink))  # type: ignore[arg-type]
-    if sink.event is None:
-        return {"observed": 0, "saturated": False}
-    table = sink.event.get("novelty_table_after")
-    observed = len(table) if isinstance(table, list) else 0
-    return {"observed": observed, "saturated": observed >= MAX_IW_TRACE_NOVELTY_ITEMS}
+    true_peak = len(sink.table)
+    return {
+        "clipped_peak": sink.clipped_peak,
+        "saturated": sink.clipped_peak >= MAX_IW_TRACE_NOVELTY_ITEMS,
+        "true_peak": true_peak,
+        "understated_by": true_peak - sink.clipped_peak,
+    }
 
 
 def _limits(max_width: int) -> dict[str, int]:
@@ -266,12 +289,24 @@ def _summarize(results: list[dict[str, object]]) -> dict[str, dict[str, object]]
         saturated = sum(
             1 for item in group if isinstance(item["peak_novelty_table"], dict) and item["peak_novelty_table"]["saturated"]  # type: ignore[index]
         )
-        instrumented = sum(1 for item in group if isinstance(item["peak_novelty_table"], dict))
+        instrumented = [item["peak_novelty_table"] for item in group if isinstance(item["peak_novelty_table"], dict)]
+        total_expansions = [
+            sum(item["escalated"]["expansion_count_by_width"] or [item["escalated"]["expansion_count"] or 0])  # type: ignore[index]
+            for item in group
+        ]
+        w1_expansions = [int(item["width_one"]["expansion_count"] or 0) for item in group]  # type: ignore[index]
         summary[str(object_count)] = {
             "bfs_exact": bfs,
             "bfs_rate": _rate(bfs, total),
-            "instrumented": instrumented,
+            "expansions_width_1_max": max(w1_expansions) if w1_expansions else None,
+            "expansions_width_1_mean": round(sum(w1_expansions) / len(w1_expansions), 1) if w1_expansions else None,
+            "expansions_width_2_max": max(total_expansions) if total_expansions else None,
+            "expansions_width_2_mean": round(sum(total_expansions) / len(total_expansions), 1) if total_expansions else None,
+            "expansions_over_default_cap": sum(1 for value in total_expansions if value > DEFAULT_LIMITS["local_iw_novelty_max_expansions"]),
+            "instrumented": len(instrumented),
             "novelty_table_saturated": saturated,
+            "novelty_true_peak_max": max((int(item["true_peak"]) for item in instrumented), default=None),  # type: ignore[index]
+            "novelty_understated_by_max": max((int(item["understated_by"]) for item in instrumented), default=None),  # type: ignore[index]
             "plan_length_inflation_max": max(inflated) if inflated else None,
             "plan_length_inflation_mean": round(sum(inflated) / len(inflated), 3) if inflated else None,
             "plan_length_inflation_optimal": sum(1 for value in inflated if value == 0) if inflated else None,
@@ -312,9 +347,21 @@ def _render(report: dict[str, object]) -> str:
             f"{key:>4} {value['total']:>6} {value['bfs_rate']:>6}% {value['width_1_rate']:>7}% "
             f"{value['width_2_rate']:>8}% {lift:>7} {inflation:>10} {value['wall_seconds_max']:>8}s"
         )
-    lines += ["", "novelty-table saturation (instrumented subset, cap = 200):"]
+    lines += ["", "expansions (width-2 run is the sum across every width attempted):"]
+    lines.append(f"{'n':>4} {'w1 mean':>9} {'w1 max':>8} {'w2 mean':>9} {'w2 max':>8} {'over 10k cap':>13}")
     for key, value in summary.items():
-        lines.append(f"  n={key:<4} {value['novelty_table_saturated']}/{value['instrumented']} saturated")
+        lines.append(
+            f"{key:>4} {value['expansions_width_1_mean']:>9} {value['expansions_width_1_max']:>8} "
+            f"{value['expansions_width_2_mean']:>9} {value['expansions_width_2_max']:>8} "
+            f"{value['expansions_over_default_cap']:>13}"
+        )
+    lines += ["", f"novelty table at width 2 (instrumented subset; trace clips at {report['max_iw_trace_novelty_items']}):"]
+    lines.append(f"{'n':>4} {'instr':>6} {'clipped':>8} {'true peak':>10} {'understated by':>15}")
+    for key, value in summary.items():
+        lines.append(
+            f"{key:>4} {value['instrumented']:>6} {value['novelty_table_saturated']:>8} "
+            f"{value['novelty_true_peak_max']:>10} {value['novelty_understated_by_max']:>15}"
+        )
     disagreements = sum(int(value["recorded_iw1_disagreements"]) for key, value in summary.items() if key != "all")
     lines += ["", f"width-1 reruns disagreeing with the recorded round-1 result: {disagreements}"]
     return "\n".join(lines) + "\n"

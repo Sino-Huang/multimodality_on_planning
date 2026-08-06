@@ -1,6 +1,6 @@
 {
   "checkpoint_sha256": "fa70f298d77834421f328fb56821e60e4cbd9d5324963251b2d88ba2e5134853",
-  "elapsed_seconds": 329.793,
+  "elapsed_seconds": 333.737,
   "limits": {
     "gbfs_max_depth": 128,
     "gbfs_max_expansions": 200000,
@@ -36,7 +36,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0121,
+        "wall_seconds": 0.0127,
         "width_sequence": [
           1,
           2
@@ -44,8 +44,10 @@
       },
       "object_count": 8,
       "peak_novelty_table": {
-        "observed": 200,
-        "saturated": true
+        "clipped_peak": 200,
+        "saturated": true,
+        "true_peak": 836,
+        "understated_by": 636
       },
       "raw_rank": 93,
       "recorded_iw1_exact": false,
@@ -58,7 +60,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0022,
+        "wall_seconds": 0.0023,
         "width_sequence": null
       }
     },
@@ -84,8 +86,10 @@
       },
       "object_count": 12,
       "peak_novelty_table": {
-        "observed": 26,
-        "saturated": false
+        "clipped_peak": 26,
+        "saturated": false,
+        "true_peak": 283,
+        "understated_by": 257
       },
       "raw_rank": 25,
       "recorded_iw1_exact": true,
@@ -118,7 +122,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.5972,
+        "wall_seconds": 0.6077,
         "width_sequence": [
           1,
           2
@@ -126,8 +130,10 @@
       },
       "object_count": 12,
       "peak_novelty_table": {
-        "observed": 200,
-        "saturated": true
+        "clipped_peak": 200,
+        "saturated": true,
+        "true_peak": 5456,
+        "understated_by": 5256
       },
       "raw_rank": 78,
       "recorded_iw1_exact": false,
@@ -140,7 +146,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0102,
+        "wall_seconds": 0.0103,
         "width_sequence": null
       }
     },
@@ -166,8 +172,10 @@
       },
       "object_count": 12,
       "peak_novelty_table": {
-        "observed": 18,
-        "saturated": false
+        "clipped_peak": 18,
+        "saturated": false,
+        "true_peak": 168,
+        "understated_by": 150
       },
       "raw_rank": 12,
       "recorded_iw1_exact": true,
@@ -200,7 +208,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.23,
+        "wall_seconds": 0.2307,
         "width_sequence": [
           1,
           2
@@ -208,8 +216,10 @@
       },
       "object_count": 8,
       "peak_novelty_table": {
-        "observed": 200,
-        "saturated": true
+        "clipped_peak": 200,
+        "saturated": true,
+        "true_peak": 2681,
+        "understated_by": 2481
       },
       "raw_rank": 138,
       "recorded_iw1_exact": false,
@@ -222,7 +232,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0054,
+        "wall_seconds": 0.0056,
         "width_sequence": null
       }
     },
@@ -241,15 +251,17 @@
         "replay_ok": true,
         "solving_width": 1,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0004,
+        "wall_seconds": 0.0003,
         "width_sequence": [
           1
         ]
       },
       "object_count": 12,
       "peak_novelty_table": {
-        "observed": 18,
-        "saturated": false
+        "clipped_peak": 18,
+        "saturated": false,
+        "true_peak": 168,
+        "understated_by": 150
       },
       "raw_rank": 14,
       "recorded_iw1_exact": true,
@@ -262,7 +274,7 @@
         "replay_ok": true,
         "solving_width": 1,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0003,
+        "wall_seconds": 0.0004,
         "width_sequence": null
       }
     },
@@ -282,7 +294,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0039,
+        "wall_seconds": 0.004,
         "width_sequence": [
           1,
           2
@@ -290,8 +302,10 @@
       },
       "object_count": 8,
       "peak_novelty_table": {
-        "observed": 200,
-        "saturated": true
+        "clipped_peak": 200,
+        "saturated": true,
+        "true_peak": 770,
+        "understated_by": 570
       },
       "raw_rank": 81,
       "recorded_iw1_exact": false,
@@ -304,7 +318,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0032,
+        "wall_seconds": 0.0033,
         "width_sequence": null
       }
     },
@@ -324,7 +338,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 2.2407,
+        "wall_seconds": 2.2897,
         "width_sequence": [
           1,
           2
@@ -332,8 +346,10 @@
       },
       "object_count": 12,
       "peak_novelty_table": {
-        "observed": 200,
-        "saturated": true
+        "clipped_peak": 200,
+        "saturated": true,
+        "true_peak": 11655,
+        "understated_by": 11455
       },
       "raw_rank": 69,
       "recorded_iw1_exact": false,
@@ -346,7 +362,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0076,
+        "wall_seconds": 0.0077,
         "width_sequence": null
       }
     },
@@ -366,7 +382,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 2.2619,
+        "wall_seconds": 2.2704,
         "width_sequence": [
           1,
           2
@@ -374,8 +390,10 @@
       },
       "object_count": 12,
       "peak_novelty_table": {
-        "observed": 200,
-        "saturated": true
+        "clipped_peak": 200,
+        "saturated": true,
+        "true_peak": 11655,
+        "understated_by": 11455
       },
       "raw_rank": 68,
       "recorded_iw1_exact": false,
@@ -388,7 +406,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0077,
+        "wall_seconds": 0.0079,
         "width_sequence": null
       }
     },
@@ -408,7 +426,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.1647,
+        "wall_seconds": 0.1577,
         "width_sequence": [
           1,
           2
@@ -416,8 +434,10 @@
       },
       "object_count": 8,
       "peak_novelty_table": {
-        "observed": 200,
-        "saturated": true
+        "clipped_peak": 200,
+        "saturated": true,
+        "true_peak": 2589,
+        "understated_by": 2389
       },
       "raw_rank": 157,
       "recorded_iw1_exact": false,
@@ -430,7 +450,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0025,
+        "wall_seconds": 0.0024,
         "width_sequence": null
       }
     },
@@ -450,7 +470,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 2.948,
+        "wall_seconds": 2.9691,
         "width_sequence": [
           1,
           2
@@ -458,8 +478,10 @@
       },
       "object_count": 12,
       "peak_novelty_table": {
-        "observed": 200,
-        "saturated": true
+        "clipped_peak": 200,
+        "saturated": true,
+        "true_peak": 12185,
+        "understated_by": 11985
       },
       "raw_rank": 87,
       "recorded_iw1_exact": false,
@@ -500,8 +522,10 @@
       },
       "object_count": 4,
       "peak_novelty_table": {
-        "observed": 200,
-        "saturated": true
+        "clipped_peak": 200,
+        "saturated": true,
+        "true_peak": 229,
+        "understated_by": 29
       },
       "raw_rank": 152,
       "recorded_iw1_exact": false,
@@ -514,7 +538,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0004,
+        "wall_seconds": 0.0005,
         "width_sequence": null
       }
     },
@@ -534,7 +558,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.022,
+        "wall_seconds": 0.0227,
         "width_sequence": [
           1,
           2
@@ -542,8 +566,10 @@
       },
       "object_count": 8,
       "peak_novelty_table": {
-        "observed": 200,
-        "saturated": true
+        "clipped_peak": 200,
+        "saturated": true,
+        "true_peak": 1042,
+        "understated_by": 842
       },
       "raw_rank": 13,
       "recorded_iw1_exact": false,
@@ -576,7 +602,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0011,
+        "wall_seconds": 0.0012,
         "width_sequence": [
           1,
           2
@@ -584,8 +610,10 @@
       },
       "object_count": 4,
       "peak_novelty_table": {
-        "observed": 136,
-        "saturated": false
+        "clipped_peak": 136,
+        "saturated": false,
+        "true_peak": 160,
+        "understated_by": 24
       },
       "raw_rank": 109,
       "recorded_iw1_exact": false,
@@ -618,7 +646,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.2216,
+        "wall_seconds": 0.2197,
         "width_sequence": [
           1,
           2
@@ -626,8 +654,10 @@
       },
       "object_count": 8,
       "peak_novelty_table": {
-        "observed": 200,
-        "saturated": true
+        "clipped_peak": 200,
+        "saturated": true,
+        "true_peak": 2681,
+        "understated_by": 2481
       },
       "raw_rank": 148,
       "recorded_iw1_exact": false,
@@ -640,7 +670,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0034,
+        "wall_seconds": 0.0036,
         "width_sequence": null
       }
     },
@@ -660,7 +690,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 2.2576,
+        "wall_seconds": 2.2762,
         "width_sequence": [
           1,
           2
@@ -668,8 +698,10 @@
       },
       "object_count": 12,
       "peak_novelty_table": {
-        "observed": 200,
-        "saturated": true
+        "clipped_peak": 200,
+        "saturated": true,
+        "true_peak": 11655,
+        "understated_by": 11455
       },
       "raw_rank": 64,
       "recorded_iw1_exact": false,
@@ -682,7 +714,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0076,
+        "wall_seconds": 0.013,
         "width_sequence": null
       }
     },
@@ -710,8 +742,10 @@
       },
       "object_count": 4,
       "peak_novelty_table": {
-        "observed": 200,
-        "saturated": true
+        "clipped_peak": 200,
+        "saturated": true,
+        "true_peak": 207,
+        "understated_by": 7
       },
       "raw_rank": 99,
       "recorded_iw1_exact": false,
@@ -724,7 +758,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0004,
+        "wall_seconds": 0.0005,
         "width_sequence": null
       }
     },
@@ -744,7 +778,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.2244,
+        "wall_seconds": 0.2232,
         "width_sequence": [
           1,
           2
@@ -752,8 +786,10 @@
       },
       "object_count": 8,
       "peak_novelty_table": {
-        "observed": 200,
-        "saturated": true
+        "clipped_peak": 200,
+        "saturated": true,
+        "true_peak": 2681,
+        "understated_by": 2481
       },
       "raw_rank": 41,
       "recorded_iw1_exact": false,
@@ -794,8 +830,10 @@
       },
       "object_count": 8,
       "peak_novelty_table": {
-        "observed": 200,
-        "saturated": true
+        "clipped_peak": 200,
+        "saturated": true,
+        "true_peak": 1073,
+        "understated_by": 873
       },
       "raw_rank": 85,
       "recorded_iw1_exact": false,
@@ -808,7 +846,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0045,
+        "wall_seconds": 0.0044,
         "width_sequence": null
       }
     },
@@ -834,8 +872,10 @@
       },
       "object_count": 4,
       "peak_novelty_table": {
-        "observed": 11,
-        "saturated": false
+        "clipped_peak": 11,
+        "saturated": false,
+        "true_peak": 50,
+        "understated_by": 39
       },
       "raw_rank": 48,
       "recorded_iw1_exact": true,
@@ -868,7 +908,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 2.2595,
+        "wall_seconds": 2.2877,
         "width_sequence": [
           1,
           2
@@ -887,7 +927,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0091,
+        "wall_seconds": 0.0096,
         "width_sequence": null
       }
     },
@@ -907,7 +947,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.1854,
+        "wall_seconds": 0.1885,
         "width_sequence": [
           1,
           2
@@ -946,7 +986,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0143,
+        "wall_seconds": 0.0144,
         "width_sequence": [
           1,
           2
@@ -965,7 +1005,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0119,
+        "wall_seconds": 0.0122,
         "width_sequence": null
       }
     },
@@ -1004,7 +1044,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0021,
+        "wall_seconds": 0.0022,
         "width_sequence": null
       }
     },
@@ -1024,7 +1064,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0022,
+        "wall_seconds": 0.0023,
         "width_sequence": [
           1,
           2
@@ -1032,8 +1072,10 @@
       },
       "object_count": 4,
       "peak_novelty_table": {
-        "observed": 200,
-        "saturated": true
+        "clipped_peak": 200,
+        "saturated": true,
+        "true_peak": 207,
+        "understated_by": 7
       },
       "raw_rank": 81,
       "recorded_iw1_exact": false,
@@ -1046,7 +1088,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0004,
+        "wall_seconds": 0.0005,
         "width_sequence": null
       }
     },
@@ -1066,7 +1108,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.001,
+        "wall_seconds": 0.0011,
         "width_sequence": [
           1,
           2
@@ -1074,8 +1116,10 @@
       },
       "object_count": 4,
       "peak_novelty_table": {
-        "observed": 123,
-        "saturated": false
+        "clipped_peak": 123,
+        "saturated": false,
+        "true_peak": 154,
+        "understated_by": 31
       },
       "raw_rank": 27,
       "recorded_iw1_exact": false,
@@ -1108,7 +1152,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.2304,
+        "wall_seconds": 0.2301,
         "width_sequence": [
           1,
           2
@@ -1155,8 +1199,10 @@
       },
       "object_count": 4,
       "peak_novelty_table": {
-        "observed": 172,
-        "saturated": false
+        "clipped_peak": 172,
+        "saturated": false,
+        "true_peak": 172,
+        "understated_by": 0
       },
       "raw_rank": 91,
       "recorded_iw1_exact": false,
@@ -1189,7 +1235,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 2.2598,
+        "wall_seconds": 2.2793,
         "width_sequence": [
           1,
           2
@@ -1228,7 +1274,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.2245,
+        "wall_seconds": 0.2231,
         "width_sequence": [
           1,
           2
@@ -1247,7 +1293,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0045,
+        "wall_seconds": 0.0046,
         "width_sequence": null
       }
     },
@@ -1275,8 +1321,10 @@
       },
       "object_count": 4,
       "peak_novelty_table": {
-        "observed": 164,
-        "saturated": false
+        "clipped_peak": 164,
+        "saturated": false,
+        "true_peak": 164,
+        "understated_by": 0
       },
       "raw_rank": 117,
       "recorded_iw1_exact": false,
@@ -1309,7 +1357,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0979,
+        "wall_seconds": 0.0976,
         "width_sequence": [
           1,
           2
@@ -1367,7 +1415,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0005,
+        "wall_seconds": 0.0004,
         "width_sequence": null
       }
     },
@@ -1426,7 +1474,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.6913,
+        "wall_seconds": 0.6962,
         "width_sequence": [
           1,
           2
@@ -1465,7 +1513,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.1883,
+        "wall_seconds": 0.1868,
         "width_sequence": [
           1,
           2
@@ -1484,7 +1532,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.002,
+        "wall_seconds": 0.0021,
         "width_sequence": null
       }
     },
@@ -1503,7 +1551,7 @@
         "replay_ok": true,
         "solving_width": 1,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0004,
+        "wall_seconds": 0.0003,
         "width_sequence": [
           1
         ]
@@ -1580,7 +1628,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0075,
+        "wall_seconds": 0.0076,
         "width_sequence": [
           1,
           2
@@ -1675,7 +1723,7 @@
         "replay_ok": true,
         "solving_width": 1,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0002,
+        "wall_seconds": 0.0001,
         "width_sequence": null
       }
     },
@@ -1695,7 +1743,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.1335,
+        "wall_seconds": 0.1351,
         "width_sequence": [
           1,
           2
@@ -1773,7 +1821,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.1587,
+        "wall_seconds": 0.1597,
         "width_sequence": [
           1,
           2
@@ -1792,7 +1840,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0024,
+        "wall_seconds": 0.0023,
         "width_sequence": null
       }
     },
@@ -1812,7 +1860,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.5875,
+        "wall_seconds": 0.6047,
         "width_sequence": [
           1,
           2
@@ -1851,7 +1899,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.097,
+        "wall_seconds": 0.0977,
         "width_sequence": [
           1,
           2
@@ -1890,7 +1938,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.2303,
+        "wall_seconds": 0.2332,
         "width_sequence": [
           1,
           2
@@ -1909,7 +1957,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0055,
+        "wall_seconds": 0.0054,
         "width_sequence": null
       }
     },
@@ -1929,7 +1977,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.173,
+        "wall_seconds": 0.1737,
         "width_sequence": [
           1,
           2
@@ -1968,7 +2016,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0019,
+        "wall_seconds": 0.002,
         "width_sequence": [
           1,
           2
@@ -2007,7 +2055,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.1833,
+        "wall_seconds": 0.1831,
         "width_sequence": [
           1,
           2
@@ -2026,7 +2074,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0029,
+        "wall_seconds": 0.003,
         "width_sequence": null
       }
     },
@@ -2046,7 +2094,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.2192,
+        "wall_seconds": 0.2181,
         "width_sequence": [
           1,
           2
@@ -2065,7 +2113,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0094,
+        "wall_seconds": 0.0096,
         "width_sequence": null
       }
     },
@@ -2085,7 +2133,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.1664,
+        "wall_seconds": 0.1694,
         "width_sequence": [
           1,
           2
@@ -2124,7 +2172,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 2.9417,
+        "wall_seconds": 2.9717,
         "width_sequence": [
           1,
           2
@@ -2143,7 +2191,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0136,
+        "wall_seconds": 0.0141,
         "width_sequence": null
       }
     },
@@ -2163,7 +2211,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.1865,
+        "wall_seconds": 0.1889,
         "width_sequence": [
           1,
           2
@@ -2202,7 +2250,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.2222,
+        "wall_seconds": 0.226,
         "width_sequence": [
           1,
           2
@@ -2221,7 +2269,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0045,
+        "wall_seconds": 0.005,
         "width_sequence": null
       }
     },
@@ -2241,7 +2289,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0074,
+        "wall_seconds": 0.0075,
         "width_sequence": [
           1,
           2
@@ -2280,7 +2328,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0211,
+        "wall_seconds": 0.0218,
         "width_sequence": [
           1,
           2
@@ -2299,7 +2347,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0098,
+        "wall_seconds": 0.0103,
         "width_sequence": null
       }
     },
@@ -2319,7 +2367,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.2293,
+        "wall_seconds": 0.2321,
         "width_sequence": [
           1,
           2
@@ -2338,7 +2386,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0054,
+        "wall_seconds": 0.0056,
         "width_sequence": null
       }
     },
@@ -2358,7 +2406,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.2286,
+        "wall_seconds": 0.2302,
         "width_sequence": [
           1,
           2
@@ -2471,7 +2519,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.03,
+        "wall_seconds": 0.0296,
         "width_sequence": [
           1,
           2
@@ -2490,7 +2538,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0024,
+        "wall_seconds": 0.0023,
         "width_sequence": null
       }
     },
@@ -2510,7 +2558,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.2025,
+        "wall_seconds": 0.205,
         "width_sequence": [
           1,
           2
@@ -2549,7 +2597,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.2225,
+        "wall_seconds": 0.2231,
         "width_sequence": [
           1,
           2
@@ -2568,7 +2616,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0044,
+        "wall_seconds": 0.0045,
         "width_sequence": null
       }
     },
@@ -2605,7 +2653,7 @@
         "replay_ok": true,
         "solving_width": 1,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0004,
+        "wall_seconds": 0.0003,
         "width_sequence": null
       }
     },
@@ -2625,7 +2673,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.2206,
+        "wall_seconds": 0.2188,
         "width_sequence": [
           1,
           2
@@ -2644,7 +2692,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0044,
+        "wall_seconds": 0.0045,
         "width_sequence": null
       }
     },
@@ -2664,7 +2712,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.1636,
+        "wall_seconds": 0.1588,
         "width_sequence": [
           1,
           2
@@ -2703,7 +2751,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.022,
+        "wall_seconds": 0.0222,
         "width_sequence": [
           1,
           2
@@ -2742,7 +2790,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0006,
+        "wall_seconds": 0.0007,
         "width_sequence": [
           1,
           2
@@ -2761,7 +2809,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0005,
+        "wall_seconds": 0.0004,
         "width_sequence": null
       }
     },
@@ -2781,7 +2829,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.1819,
+        "wall_seconds": 0.1889,
         "width_sequence": [
           1,
           2
@@ -2837,7 +2885,7 @@
         "replay_ok": true,
         "solving_width": 1,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0003,
+        "wall_seconds": 0.0004,
         "width_sequence": null
       }
     },
@@ -2931,7 +2979,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0213,
+        "wall_seconds": 0.0218,
         "width_sequence": [
           1,
           2
@@ -2950,7 +2998,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0097,
+        "wall_seconds": 0.0104,
         "width_sequence": null
       }
     },
@@ -2970,7 +3018,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.2323,
+        "wall_seconds": 0.2339,
         "width_sequence": [
           1,
           2
@@ -2989,7 +3037,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0053,
+        "wall_seconds": 0.0055,
         "width_sequence": null
       }
     },
@@ -3048,7 +3096,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 2.9321,
+        "wall_seconds": 2.9586,
         "width_sequence": [
           1,
           2
@@ -3067,7 +3115,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0137,
+        "wall_seconds": 0.0139,
         "width_sequence": null
       }
     },
@@ -3087,7 +3135,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.2233,
+        "wall_seconds": 0.2232,
         "width_sequence": [
           1,
           2
@@ -3106,7 +3154,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0045,
+        "wall_seconds": 0.0046,
         "width_sequence": null
       }
     },
@@ -3126,7 +3174,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.1665,
+        "wall_seconds": 0.1684,
         "width_sequence": [
           1,
           2
@@ -3165,7 +3213,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.1916,
+        "wall_seconds": 0.1961,
         "width_sequence": [
           1,
           2
@@ -3184,7 +3232,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0031,
+        "wall_seconds": 0.0032,
         "width_sequence": null
       }
     },
@@ -3204,7 +3252,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0018,
+        "wall_seconds": 0.0072,
         "width_sequence": [
           1,
           2
@@ -3223,7 +3271,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0005,
+        "wall_seconds": 0.0004,
         "width_sequence": null
       }
     },
@@ -3243,7 +3291,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0027,
+        "wall_seconds": 0.0028,
         "width_sequence": [
           1,
           2
@@ -3282,7 +3330,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 2.2517,
+        "wall_seconds": 2.2863,
         "width_sequence": [
           1,
           2
@@ -3321,7 +3369,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 1.0522,
+        "wall_seconds": 1.0485,
         "width_sequence": [
           1,
           2
@@ -3340,7 +3388,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0114,
+        "wall_seconds": 0.0113,
         "width_sequence": null
       }
     },
@@ -3398,7 +3446,7 @@
         "replay_ok": true,
         "solving_width": 1,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0044,
+        "wall_seconds": 0.0043,
         "width_sequence": [
           1
         ]
@@ -3416,7 +3464,7 @@
         "replay_ok": true,
         "solving_width": 1,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0046,
+        "wall_seconds": 0.0044,
         "width_sequence": null
       }
     },
@@ -3436,7 +3484,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0227,
+        "wall_seconds": 0.0224,
         "width_sequence": [
           1,
           2
@@ -3475,7 +3523,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0396,
+        "wall_seconds": 0.039,
         "width_sequence": [
           1,
           2
@@ -3514,7 +3562,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0028,
+        "wall_seconds": 0.0029,
         "width_sequence": [
           1,
           2
@@ -3626,7 +3674,7 @@
         "replay_ok": true,
         "solving_width": 1,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0002,
+        "wall_seconds": 0.0003,
         "width_sequence": [
           1
         ]
@@ -3664,7 +3712,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.1841,
+        "wall_seconds": 0.1853,
         "width_sequence": [
           1,
           2
@@ -3722,7 +3770,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0004,
+        "wall_seconds": 0.0005,
         "width_sequence": null
       }
     },
@@ -3781,7 +3829,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0488,
+        "wall_seconds": 0.0491,
         "width_sequence": [
           1,
           2
@@ -3859,7 +3907,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.1819,
+        "wall_seconds": 0.181,
         "width_sequence": [
           1,
           2
@@ -3878,7 +3926,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.003,
+        "wall_seconds": 0.0029,
         "width_sequence": null
       }
     },
@@ -3915,7 +3963,7 @@
         "replay_ok": true,
         "solving_width": 1,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0018,
+        "wall_seconds": 0.0019,
         "width_sequence": null
       }
     },
@@ -3972,7 +4020,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 2.2644,
+        "wall_seconds": 2.2747,
         "width_sequence": [
           1,
           2
@@ -3991,7 +4039,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0093,
+        "wall_seconds": 0.0099,
         "width_sequence": null
       }
     },
@@ -4011,7 +4059,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.2194,
+        "wall_seconds": 0.2172,
         "width_sequence": [
           1,
           2
@@ -4030,7 +4078,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0097,
+        "wall_seconds": 0.0096,
         "width_sequence": null
       }
     },
@@ -4087,7 +4135,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0123,
+        "wall_seconds": 0.0124,
         "width_sequence": [
           1,
           2
@@ -4126,7 +4174,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0023,
+        "wall_seconds": 0.0024,
         "width_sequence": [
           1,
           2
@@ -4145,7 +4193,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0004,
+        "wall_seconds": 0.0005,
         "width_sequence": null
       }
     },
@@ -4165,7 +4213,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.1713,
+        "wall_seconds": 0.1714,
         "width_sequence": [
           1,
           2
@@ -4184,7 +4232,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0026,
+        "wall_seconds": 0.0025,
         "width_sequence": null
       }
     },
@@ -4204,7 +4252,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.2031,
+        "wall_seconds": 0.2024,
         "width_sequence": [
           1,
           2
@@ -4262,7 +4310,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0004,
+        "wall_seconds": 0.0005,
         "width_sequence": null
       }
     },
@@ -4282,7 +4330,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.2146,
+        "wall_seconds": 0.2222,
         "width_sequence": [
           1,
           2
@@ -4301,7 +4349,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0039,
+        "wall_seconds": 0.004,
         "width_sequence": null
       }
     },
@@ -4321,7 +4369,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 2.2545,
+        "wall_seconds": 2.2771,
         "width_sequence": [
           1,
           2
@@ -4340,7 +4388,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0075,
+        "wall_seconds": 0.0081,
         "width_sequence": null
       }
     },
@@ -4377,7 +4425,7 @@
         "replay_ok": true,
         "solving_width": 1,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0001,
+        "wall_seconds": 0.0002,
         "width_sequence": null
       }
     },
@@ -4397,7 +4445,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0023,
+        "wall_seconds": 0.0024,
         "width_sequence": [
           1,
           2
@@ -4436,7 +4484,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0431,
+        "wall_seconds": 0.044,
         "width_sequence": [
           1,
           2
@@ -4475,7 +4523,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.1839,
+        "wall_seconds": 0.1826,
         "width_sequence": [
           1,
           2
@@ -4514,7 +4562,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.2301,
+        "wall_seconds": 0.2296,
         "width_sequence": [
           1,
           2
@@ -4592,7 +4640,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.2208,
+        "wall_seconds": 0.222,
         "width_sequence": [
           1,
           2
@@ -4611,7 +4659,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0046,
+        "wall_seconds": 0.0047,
         "width_sequence": null
       }
     },
@@ -4648,7 +4696,7 @@
         "replay_ok": true,
         "solving_width": 1,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0003,
+        "wall_seconds": 0.0004,
         "width_sequence": null
       }
     },
@@ -4705,7 +4753,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.2285,
+        "wall_seconds": 0.2222,
         "width_sequence": [
           1,
           2
@@ -4724,7 +4772,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0035,
+        "wall_seconds": 0.0036,
         "width_sequence": null
       }
     },
@@ -4743,7 +4791,7 @@
         "replay_ok": true,
         "solving_width": 1,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0012,
+        "wall_seconds": 0.0011,
         "width_sequence": [
           1
         ]
@@ -4761,7 +4809,7 @@
         "replay_ok": true,
         "solving_width": 1,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0013,
+        "wall_seconds": 0.0012,
         "width_sequence": null
       }
     },
@@ -4780,7 +4828,7 @@
         "replay_ok": true,
         "solving_width": 1,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0003,
+        "wall_seconds": 0.0004,
         "width_sequence": [
           1
         ]
@@ -4818,7 +4866,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0009,
+        "wall_seconds": 0.0008,
         "width_sequence": [
           1,
           2
@@ -4876,7 +4924,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0039,
+        "wall_seconds": 0.004,
         "width_sequence": null
       }
     },
@@ -4935,7 +4983,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.1967,
+        "wall_seconds": 0.1955,
         "width_sequence": [
           1,
           2
@@ -4954,7 +5002,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0032,
+        "wall_seconds": 0.0033,
         "width_sequence": null
       }
     },
@@ -4991,7 +5039,7 @@
         "replay_ok": true,
         "solving_width": 1,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0012,
+        "wall_seconds": 0.0011,
         "width_sequence": null
       }
     },
@@ -5050,7 +5098,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.1928,
+        "wall_seconds": 0.1938,
         "width_sequence": [
           1,
           2
@@ -5069,7 +5117,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0028,
+        "wall_seconds": 0.0029,
         "width_sequence": null
       }
     },
@@ -5165,7 +5213,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.196,
+        "wall_seconds": 0.1957,
         "width_sequence": [
           1,
           2
@@ -5184,7 +5232,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0032,
+        "wall_seconds": 0.0031,
         "width_sequence": null
       }
     },
@@ -5204,7 +5252,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0213,
+        "wall_seconds": 0.0215,
         "width_sequence": [
           1,
           2
@@ -5223,7 +5271,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0099,
+        "wall_seconds": 0.01,
         "width_sequence": null
       }
     },
@@ -5243,7 +5291,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0028,
+        "wall_seconds": 0.0029,
         "width_sequence": [
           1,
           2
@@ -5262,7 +5310,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0005,
+        "wall_seconds": 0.0004,
         "width_sequence": null
       }
     },
@@ -5282,7 +5330,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0329,
+        "wall_seconds": 0.0335,
         "width_sequence": [
           1,
           2
@@ -5321,7 +5369,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 2.2651,
+        "wall_seconds": 2.2728,
         "width_sequence": [
           1,
           2
@@ -5340,7 +5388,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0077,
+        "wall_seconds": 0.0078,
         "width_sequence": null
       }
     },
@@ -5360,7 +5408,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.1822,
+        "wall_seconds": 0.1904,
         "width_sequence": [
           1,
           2
@@ -5379,7 +5427,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0031,
+        "wall_seconds": 0.003,
         "width_sequence": null
       }
     },
@@ -5436,7 +5484,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.1929,
+        "wall_seconds": 0.1943,
         "width_sequence": [
           1,
           2
@@ -5455,7 +5503,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0028,
+        "wall_seconds": 0.0029,
         "width_sequence": null
       }
     },
@@ -5551,7 +5599,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.079,
+        "wall_seconds": 0.08,
         "width_sequence": [
           1,
           2
@@ -5570,7 +5618,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0185,
+        "wall_seconds": 0.0183,
         "width_sequence": null
       }
     },
@@ -5590,7 +5638,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0022,
+        "wall_seconds": 0.0023,
         "width_sequence": [
           1,
           2
@@ -5609,7 +5657,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0004,
+        "wall_seconds": 0.0005,
         "width_sequence": null
       }
     },
@@ -5629,7 +5677,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.2013,
+        "wall_seconds": 0.2045,
         "width_sequence": [
           1,
           2
@@ -5668,7 +5716,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0029,
+        "wall_seconds": 0.0028,
         "width_sequence": [
           1,
           2
@@ -5707,7 +5755,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.2284,
+        "wall_seconds": 0.233,
         "width_sequence": [
           1,
           2
@@ -5726,7 +5774,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0054,
+        "wall_seconds": 0.0055,
         "width_sequence": null
       }
     },
@@ -5746,7 +5794,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.2214,
+        "wall_seconds": 0.2216,
         "width_sequence": [
           1,
           2
@@ -5765,7 +5813,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0044,
+        "wall_seconds": 0.0045,
         "width_sequence": null
       }
     },
@@ -5785,7 +5833,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0019,
+        "wall_seconds": 0.002,
         "width_sequence": [
           1,
           2
@@ -5880,7 +5928,7 @@
         "replay_ok": true,
         "solving_width": 1,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0012,
+        "wall_seconds": 0.0011,
         "width_sequence": null
       }
     },
@@ -5900,7 +5948,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0277,
+        "wall_seconds": 0.0272,
         "width_sequence": [
           1,
           2
@@ -5919,7 +5967,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0025,
+        "wall_seconds": 0.0026,
         "width_sequence": null
       }
     },
@@ -5993,7 +6041,7 @@
         "replay_ok": true,
         "solving_width": 1,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0008,
+        "wall_seconds": 0.0007,
         "width_sequence": null
       }
     },
@@ -6013,7 +6061,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.6909,
+        "wall_seconds": 0.6987,
         "width_sequence": [
           1,
           2
@@ -6032,7 +6080,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0096,
+        "wall_seconds": 0.0094,
         "width_sequence": null
       }
     },
@@ -6052,7 +6100,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.1693,
+        "wall_seconds": 0.1717,
         "width_sequence": [
           1,
           2
@@ -6071,7 +6119,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0023,
+        "wall_seconds": 0.0022,
         "width_sequence": null
       }
     },
@@ -6091,7 +6139,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.2306,
+        "wall_seconds": 0.243,
         "width_sequence": [
           1,
           2
@@ -6110,7 +6158,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0055,
+        "wall_seconds": 0.0057,
         "width_sequence": null
       }
     },
@@ -6130,7 +6178,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.2192,
+        "wall_seconds": 0.2258,
         "width_sequence": [
           1,
           2
@@ -6149,7 +6197,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.004,
+        "wall_seconds": 0.0041,
         "width_sequence": null
       }
     },
@@ -6169,7 +6217,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0813,
+        "wall_seconds": 0.0828,
         "width_sequence": [
           1,
           2
@@ -6188,7 +6236,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0025,
+        "wall_seconds": 0.0026,
         "width_sequence": null
       }
     },
@@ -6227,7 +6275,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0021,
+        "wall_seconds": 0.0022,
         "width_sequence": null
       }
     },
@@ -6247,7 +6295,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.2187,
+        "wall_seconds": 0.2226,
         "width_sequence": [
           1,
           2
@@ -6266,7 +6314,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0034,
+        "wall_seconds": 0.0037,
         "width_sequence": null
       }
     },
@@ -6286,7 +6334,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0027,
+        "wall_seconds": 0.0028,
         "width_sequence": [
           1,
           2
@@ -6362,7 +6410,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 2.2575,
+        "wall_seconds": 2.2798,
         "width_sequence": [
           1,
           2
@@ -6381,7 +6429,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0077,
+        "wall_seconds": 0.0078,
         "width_sequence": null
       }
     },
@@ -6401,7 +6449,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0561,
+        "wall_seconds": 0.0554,
         "width_sequence": [
           1,
           2
@@ -6440,7 +6488,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.159,
+        "wall_seconds": 0.1613,
         "width_sequence": [
           1,
           2
@@ -6518,7 +6566,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.2009,
+        "wall_seconds": 0.1949,
         "width_sequence": [
           1,
           2
@@ -6557,7 +6605,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 2.9327,
+        "wall_seconds": 2.9674,
         "width_sequence": [
           1,
           2
@@ -6576,7 +6624,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0135,
+        "wall_seconds": 0.0141,
         "width_sequence": null
       }
     },
@@ -6635,7 +6683,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0022,
+        "wall_seconds": 0.0023,
         "width_sequence": [
           1,
           2
@@ -6713,7 +6761,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.2216,
+        "wall_seconds": 0.2233,
         "width_sequence": [
           1,
           2
@@ -6732,7 +6780,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0037,
+        "wall_seconds": 0.0038,
         "width_sequence": null
       }
     },
@@ -6752,7 +6800,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0022,
+        "wall_seconds": 0.0023,
         "width_sequence": [
           1,
           2
@@ -6791,7 +6839,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.5972,
+        "wall_seconds": 0.5984,
         "width_sequence": [
           1,
           2
@@ -6810,7 +6858,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0093,
+        "wall_seconds": 0.0098,
         "width_sequence": null
       }
     },
@@ -6943,7 +6991,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.1981,
+        "wall_seconds": 0.1957,
         "width_sequence": [
           1,
           2
@@ -6962,7 +7010,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0029,
+        "wall_seconds": 0.0028,
         "width_sequence": null
       }
     },
@@ -6982,7 +7030,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.2074,
+        "wall_seconds": 0.2129,
         "width_sequence": [
           1,
           2
@@ -7058,7 +7106,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0059,
+        "wall_seconds": 0.006,
         "width_sequence": [
           1,
           2
@@ -7077,7 +7125,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0034,
+        "wall_seconds": 0.0036,
         "width_sequence": null
       }
     },
@@ -7097,7 +7145,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 2.2455,
+        "wall_seconds": 2.2728,
         "width_sequence": [
           1,
           2
@@ -7116,7 +7164,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0094,
+        "wall_seconds": 0.0096,
         "width_sequence": null
       }
     },
@@ -7136,7 +7184,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.2203,
+        "wall_seconds": 0.2237,
         "width_sequence": [
           1,
           2
@@ -7155,7 +7203,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0045,
+        "wall_seconds": 0.0047,
         "width_sequence": null
       }
     },
@@ -7212,7 +7260,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0028,
+        "wall_seconds": 0.0029,
         "width_sequence": [
           1,
           2
@@ -7288,7 +7336,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0216,
+        "wall_seconds": 0.0222,
         "width_sequence": [
           1,
           2
@@ -7307,7 +7355,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0028,
+        "wall_seconds": 0.0029,
         "width_sequence": null
       }
     },
@@ -7327,7 +7375,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0012,
+        "wall_seconds": 0.0013,
         "width_sequence": [
           1,
           2
@@ -7346,7 +7394,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0004,
+        "wall_seconds": 0.0005,
         "width_sequence": null
       }
     },
@@ -7366,7 +7414,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0061,
+        "wall_seconds": 0.006,
         "width_sequence": [
           1,
           2
@@ -7422,7 +7470,7 @@
         "replay_ok": true,
         "solving_width": 1,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0043,
+        "wall_seconds": 0.0042,
         "width_sequence": null
       }
     },
@@ -7539,7 +7587,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0004,
+        "wall_seconds": 0.0005,
         "width_sequence": null
       }
     },
@@ -7596,7 +7644,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.1939,
+        "wall_seconds": 0.1978,
         "width_sequence": [
           1,
           2
@@ -7615,7 +7663,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0027,
+        "wall_seconds": 0.0029,
         "width_sequence": null
       }
     },
@@ -7635,7 +7683,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0086,
+        "wall_seconds": 0.0023,
         "width_sequence": [
           1,
           2
@@ -7654,7 +7702,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0005,
+        "wall_seconds": 0.0004,
         "width_sequence": null
       }
     },
@@ -7674,7 +7722,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0026,
+        "wall_seconds": 0.0028,
         "width_sequence": [
           1,
           2
@@ -7713,7 +7761,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 2.9297,
+        "wall_seconds": 2.9778,
         "width_sequence": [
           1,
           2
@@ -7732,7 +7780,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0134,
+        "wall_seconds": 0.0138,
         "width_sequence": null
       }
     },
@@ -7752,7 +7800,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0504,
+        "wall_seconds": 0.0522,
         "width_sequence": [
           1,
           2
@@ -7771,7 +7819,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0183,
+        "wall_seconds": 0.0189,
         "width_sequence": null
       }
     },
@@ -7791,7 +7839,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.219,
+        "wall_seconds": 0.2233,
         "width_sequence": [
           1,
           2
@@ -8079,7 +8127,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0004,
+        "wall_seconds": 0.0005,
         "width_sequence": null
       }
     },
@@ -8153,7 +8201,7 @@
         "replay_ok": true,
         "solving_width": 1,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0005,
+        "wall_seconds": 0.0004,
         "width_sequence": null
       }
     },
@@ -8172,7 +8220,7 @@
         "replay_ok": true,
         "solving_width": 1,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0092,
+        "wall_seconds": 0.0091,
         "width_sequence": [
           1
         ]
@@ -8190,7 +8238,7 @@
         "replay_ok": true,
         "solving_width": 1,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0161,
+        "wall_seconds": 0.0092,
         "width_sequence": null
       }
     },
@@ -8210,7 +8258,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0117,
+        "wall_seconds": 0.0115,
         "width_sequence": [
           1,
           2
@@ -8229,7 +8277,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0048,
+        "wall_seconds": 0.0046,
         "width_sequence": null
       }
     },
@@ -8288,7 +8336,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0213,
+        "wall_seconds": 0.022,
         "width_sequence": [
           1,
           2
@@ -8307,7 +8355,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0101,
+        "wall_seconds": 0.0099,
         "width_sequence": null
       }
     },
@@ -8327,7 +8375,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 2.9296,
+        "wall_seconds": 2.9829,
         "width_sequence": [
           1,
           2
@@ -8346,7 +8394,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0138,
+        "wall_seconds": 0.0137,
         "width_sequence": null
       }
     },
@@ -8403,7 +8451,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 2.2692,
+        "wall_seconds": 2.2805,
         "width_sequence": [
           1,
           2
@@ -8422,7 +8470,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0077,
+        "wall_seconds": 0.0076,
         "width_sequence": null
       }
     },
@@ -8442,7 +8490,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0298,
+        "wall_seconds": 0.0309,
         "width_sequence": [
           1,
           2
@@ -8461,7 +8509,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0024,
+        "wall_seconds": 0.0025,
         "width_sequence": null
       }
     },
@@ -8481,7 +8529,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0809,
+        "wall_seconds": 0.081,
         "width_sequence": [
           1,
           2
@@ -8500,7 +8548,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0182,
+        "wall_seconds": 0.0186,
         "width_sequence": null
       }
     },
@@ -8537,7 +8585,7 @@
         "replay_ok": true,
         "solving_width": 1,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0014,
+        "wall_seconds": 0.0015,
         "width_sequence": null
       }
     },
@@ -8557,7 +8605,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.161,
+        "wall_seconds": 0.1608,
         "width_sequence": [
           1,
           2
@@ -8576,7 +8624,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.002,
+        "wall_seconds": 0.0021,
         "width_sequence": null
       }
     },
@@ -8633,7 +8681,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.001,
+        "wall_seconds": 0.0011,
         "width_sequence": [
           1,
           2
@@ -8652,7 +8700,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0005,
+        "wall_seconds": 0.0006,
         "width_sequence": null
       }
     },
@@ -8672,7 +8720,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.1616,
+        "wall_seconds": 0.1609,
         "width_sequence": [
           1,
           2
@@ -8691,7 +8739,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0021,
+        "wall_seconds": 0.002,
         "width_sequence": null
       }
     },
@@ -8711,7 +8759,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0934,
+        "wall_seconds": 0.0924,
         "width_sequence": [
           1,
           2
@@ -8750,7 +8798,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 2.955,
+        "wall_seconds": 2.9539,
         "width_sequence": [
           1,
           2
@@ -8769,7 +8817,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0137,
+        "wall_seconds": 0.0138,
         "width_sequence": null
       }
     },
@@ -8789,7 +8837,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.2165,
+        "wall_seconds": 0.2235,
         "width_sequence": [
           1,
           2
@@ -8808,7 +8856,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0096,
+        "wall_seconds": 0.0095,
         "width_sequence": null
       }
     },
@@ -8828,7 +8876,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0028,
+        "wall_seconds": 0.0029,
         "width_sequence": [
           1,
           2
@@ -8906,7 +8954,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.218,
+        "wall_seconds": 0.2257,
         "width_sequence": [
           1,
           2
@@ -8925,7 +8973,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0046,
+        "wall_seconds": 0.0047,
         "width_sequence": null
       }
     },
@@ -8984,7 +9032,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0018,
+        "wall_seconds": 0.0019,
         "width_sequence": [
           1,
           2
@@ -9023,7 +9071,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.1765,
+        "wall_seconds": 0.1824,
         "width_sequence": [
           1,
           2
@@ -9042,7 +9090,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0019,
+        "wall_seconds": 0.002,
         "width_sequence": null
       }
     },
@@ -9101,7 +9149,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.2179,
+        "wall_seconds": 0.2193,
         "width_sequence": [
           1,
           2
@@ -9120,7 +9168,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0038,
+        "wall_seconds": 0.004,
         "width_sequence": null
       }
     },
@@ -9140,7 +9188,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 2.2554,
+        "wall_seconds": 2.2877,
         "width_sequence": [
           1,
           2
@@ -9159,7 +9207,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0094,
+        "wall_seconds": 0.0098,
         "width_sequence": null
       }
     },
@@ -9179,7 +9227,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0276,
+        "wall_seconds": 0.0272,
         "width_sequence": [
           1,
           2
@@ -9218,7 +9266,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.056,
+        "wall_seconds": 0.0562,
         "width_sequence": [
           1,
           2
@@ -9276,7 +9324,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0004,
+        "wall_seconds": 0.0005,
         "width_sequence": null
       }
     },
@@ -9296,7 +9344,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.2276,
+        "wall_seconds": 0.2247,
         "width_sequence": [
           1,
           2
@@ -9315,7 +9363,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0045,
+        "wall_seconds": 0.0047,
         "width_sequence": null
       }
     },
@@ -9335,7 +9383,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0336,
+        "wall_seconds": 0.0339,
         "width_sequence": [
           1,
           2
@@ -9374,7 +9422,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0028,
+        "wall_seconds": 0.0029,
         "width_sequence": [
           1,
           2
@@ -9430,7 +9478,7 @@
         "replay_ok": true,
         "solving_width": 1,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0056,
+        "wall_seconds": 0.0057,
         "width_sequence": null
       }
     },
@@ -9450,7 +9498,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 3.3186,
+        "wall_seconds": 3.3348,
         "width_sequence": [
           1,
           2
@@ -9469,7 +9517,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0181,
+        "wall_seconds": 0.018,
         "width_sequence": null
       }
     },
@@ -9508,7 +9556,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0004,
+        "wall_seconds": 0.0006,
         "width_sequence": null
       }
     },
@@ -9528,7 +9576,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.1843,
+        "wall_seconds": 0.183,
         "width_sequence": [
           1,
           2
@@ -9567,7 +9615,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0214,
+        "wall_seconds": 0.0219,
         "width_sequence": [
           1,
           2
@@ -9586,7 +9634,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0096,
+        "wall_seconds": 0.01,
         "width_sequence": null
       }
     },
@@ -9606,7 +9654,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0212,
+        "wall_seconds": 0.0221,
         "width_sequence": [
           1,
           2
@@ -9625,7 +9673,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0096,
+        "wall_seconds": 0.0099,
         "width_sequence": null
       }
     },
@@ -9645,7 +9693,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0024,
+        "wall_seconds": 0.0025,
         "width_sequence": [
           1,
           2
@@ -9721,7 +9769,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.1946,
+        "wall_seconds": 0.1982,
         "width_sequence": [
           1,
           2
@@ -9740,7 +9788,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0032,
+        "wall_seconds": 0.0033,
         "width_sequence": null
       }
     },
@@ -9760,7 +9808,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0023,
+        "wall_seconds": 0.0024,
         "width_sequence": [
           1,
           2
@@ -9799,7 +9847,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 2.3387,
+        "wall_seconds": 2.3839,
         "width_sequence": [
           1,
           2
@@ -9838,7 +9886,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.1761,
+        "wall_seconds": 0.1722,
         "width_sequence": [
           1,
           2
@@ -9877,7 +9925,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0015,
+        "wall_seconds": 0.0014,
         "width_sequence": [
           1,
           2
@@ -9916,7 +9964,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.1877,
+        "wall_seconds": 0.1871,
         "width_sequence": [
           1,
           2
@@ -9955,7 +10003,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0013,
+        "wall_seconds": 0.0014,
         "width_sequence": [
           1,
           2
@@ -9974,7 +10022,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0004,
+        "wall_seconds": 0.0005,
         "width_sequence": null
       }
     },
@@ -9994,7 +10042,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0013,
+        "wall_seconds": 0.0014,
         "width_sequence": [
           1,
           2
@@ -10033,7 +10081,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.051,
+        "wall_seconds": 0.0516,
         "width_sequence": [
           1,
           2
@@ -10052,7 +10100,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0185,
+        "wall_seconds": 0.0192,
         "width_sequence": null
       }
     },
@@ -10072,7 +10120,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 2.9506,
+        "wall_seconds": 2.9756,
         "width_sequence": [
           1,
           2
@@ -10091,7 +10139,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0136,
+        "wall_seconds": 0.0143,
         "width_sequence": null
       }
     },
@@ -10111,7 +10159,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.1593,
+        "wall_seconds": 0.1607,
         "width_sequence": [
           1,
           2
@@ -10150,7 +10198,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0029,
+        "wall_seconds": 0.0028,
         "width_sequence": [
           1,
           2
@@ -10286,7 +10334,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0005,
+        "wall_seconds": 0.0004,
         "width_sequence": null
       }
     },
@@ -10345,7 +10393,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.1694,
+        "wall_seconds": 0.1732,
         "width_sequence": [
           1,
           2
@@ -10383,7 +10431,7 @@
         "replay_ok": true,
         "solving_width": 1,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0012,
+        "wall_seconds": 0.0011,
         "width_sequence": [
           1
         ]
@@ -10421,7 +10469,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 2.2219,
+        "wall_seconds": 2.2528,
         "width_sequence": [
           1,
           2
@@ -10440,7 +10488,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0093,
+        "wall_seconds": 0.0096,
         "width_sequence": null
       }
     },
@@ -10460,7 +10508,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.647,
+        "wall_seconds": 0.6552,
         "width_sequence": [
           1,
           2
@@ -10479,7 +10527,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0093,
+        "wall_seconds": 0.0092,
         "width_sequence": null
       }
     },
@@ -10499,7 +10547,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0028,
+        "wall_seconds": 0.0029,
         "width_sequence": [
           1,
           2
@@ -10538,7 +10586,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0013,
+        "wall_seconds": 0.0014,
         "width_sequence": [
           1,
           2
@@ -10614,7 +10662,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 2.9452,
+        "wall_seconds": 2.9775,
         "width_sequence": [
           1,
           2
@@ -10633,7 +10681,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0138,
+        "wall_seconds": 0.0139,
         "width_sequence": null
       }
     },
@@ -10653,7 +10701,7 @@
         "replay_ok": true,
         "solving_width": 2,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0566,
+        "wall_seconds": 0.0572,
         "width_sequence": [
           1,
           2
@@ -10672,7 +10720,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.0077,
+        "wall_seconds": 0.0076,
         "width_sequence": null
       }
     },
@@ -10692,7 +10740,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.2159,
+        "wall_seconds": 0.2181,
         "width_sequence": [
           1,
           2
@@ -10863,7 +10911,7 @@
         "replay_ok": true,
         "solving_width": 1,
         "status": "success_truncated_trace",
-        "wall_seconds": 0.0008,
+        "wall_seconds": 0.0007,
         "width_sequence": null
       }
     },
@@ -10883,7 +10931,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.218,
+        "wall_seconds": 0.2184,
         "width_sequence": [
           1,
           2
@@ -10902,7 +10950,7 @@
         "replay_ok": false,
         "solving_width": 1,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.004,
+        "wall_seconds": 0.0039,
         "width_sequence": null
       }
     },
@@ -10922,7 +10970,7 @@
         "replay_ok": false,
         "solving_width": 2,
         "status": "failed_no_plan_extracted",
-        "wall_seconds": 0.1592,
+        "wall_seconds": 0.1593,
         "width_sequence": [
           1,
           2
@@ -10952,14 +11000,21 @@
     "12": {
       "bfs_exact": 33,
       "bfs_rate": 51.6,
+      "expansions_over_default_cap": 0,
+      "expansions_width_1_max": 126,
+      "expansions_width_1_mean": 74.5,
+      "expansions_width_2_max": 8851,
+      "expansions_width_2_mean": 3668.9,
       "instrumented": 8,
       "novelty_table_saturated": 5,
+      "novelty_true_peak_max": 12185,
+      "novelty_understated_by_max": 11985,
       "plan_length_inflation_max": 0,
       "plan_length_inflation_mean": 0.0,
       "plan_length_inflation_optimal": 32,
       "recorded_iw1_disagreements": 0,
       "total": 64,
-      "wall_seconds_max": 3.319,
+      "wall_seconds_max": 3.335,
       "width_1_exact": 16,
       "width_1_rate": 25.0,
       "width_2_exact": 39,
@@ -10968,14 +11023,21 @@
     "4": {
       "bfs_exact": 88,
       "bfs_rate": 100.0,
+      "expansions_over_default_cap": 0,
+      "expansions_width_1_max": 17,
+      "expansions_width_1_mean": 12.7,
+      "expansions_width_2_max": 94,
+      "expansions_width_2_mean": 53.8,
       "instrumented": 8,
       "novelty_table_saturated": 3,
+      "novelty_true_peak_max": 229,
+      "novelty_understated_by_max": 39,
       "plan_length_inflation_max": 2,
       "plan_length_inflation_mean": 0.03,
       "plan_length_inflation_optimal": 66,
       "recorded_iw1_disagreements": 0,
       "total": 88,
-      "wall_seconds_max": 0.009,
+      "wall_seconds_max": 0.007,
       "width_1_exact": 14,
       "width_1_rate": 15.9,
       "width_2_exact": 67,
@@ -10984,14 +11046,21 @@
     "8": {
       "bfs_exact": 89,
       "bfs_rate": 69.0,
+      "expansions_over_default_cap": 0,
+      "expansions_width_1_max": 65,
+      "expansions_width_1_mean": 41.0,
+      "expansions_width_2_max": 1642,
+      "expansions_width_2_mean": 953.8,
       "instrumented": 8,
       "novelty_table_saturated": 8,
+      "novelty_true_peak_max": 2681,
+      "novelty_understated_by_max": 2481,
       "plan_length_inflation_max": 0,
       "plan_length_inflation_mean": 0.0,
       "plan_length_inflation_optimal": 59,
       "recorded_iw1_disagreements": 0,
       "total": 129,
-      "wall_seconds_max": 0.232,
+      "wall_seconds_max": 0.243,
       "width_1_exact": 23,
       "width_1_rate": 17.8,
       "width_2_exact": 59,
@@ -11000,14 +11069,21 @@
     "all": {
       "bfs_exact": 210,
       "bfs_rate": 74.7,
+      "expansions_over_default_cap": 0,
+      "expansions_width_1_max": 126,
+      "expansions_width_1_mean": 39.8,
+      "expansions_width_2_max": 8851,
+      "expansions_width_2_mean": 1290.4,
       "instrumented": 24,
       "novelty_table_saturated": 16,
+      "novelty_true_peak_max": 12185,
+      "novelty_understated_by_max": 11985,
       "plan_length_inflation_max": 2,
       "plan_length_inflation_mean": 0.013,
       "plan_length_inflation_optimal": 157,
       "recorded_iw1_disagreements": 0,
       "total": 281,
-      "wall_seconds_max": 3.319,
+      "wall_seconds_max": 3.335,
       "width_1_exact": 53,
       "width_1_rate": 18.9,
       "width_2_exact": 165,

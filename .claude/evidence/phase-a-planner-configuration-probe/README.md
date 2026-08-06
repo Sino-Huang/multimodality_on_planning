@@ -31,13 +31,36 @@ recorded `iw_width_1` result. The checkpoint digest was verified identical befor
 inflation +0.013 actions, max +2, and every non-zero case is at n=4. Width-2 plans are usable as
 training targets without a length penalty. This was previously unmeasured.
 
-### 2. The 200-entry novelty cap is an active correctness hazard at width 2
+### 2. The 200-entry novelty cap is an active correctness hazard at width 2 — worse than "saturated"
 
-`MAX_IW_TRACE_NOVELTY_ITEMS = 200` saturated in **16 of 24** instrumented instances — 3/8 at n=4,
-8/8 at n=8, 5/8 at n=12. Revision 2 predicted this from the atom-pair bound; it is now observed on
-real instances, and at n=4 as well, which the bound alone did not imply. `seen_feature_delta` is
-computed as the difference of two truncated snapshots, so it would silently under-report novelty on
-any width-2 corpus. **Contract v3 must fix this before any width-2 corpus is built.**
+`MAX_IW_TRACE_NOVELTY_ITEMS = 200` clipped the emitted novelty table in **16 of 24** instrumented
+instances — 3/8 at n=4, 8/8 at n=8, 5/8 at n=12. The trace is clipped to the *serialized* table,
+so "200" means "≥200, true value unknown". Reconstructing the true cardinality from the events'
+`state_atoms` (the planner's table is exactly the union of `novelty_items(state, width)` over
+expanded states):
+
+```
+   n  clipped  true peak  understated by
+   4        3        229              39
+   8        8       2681            2481
+  12        5      12185           11985
+```
+
+The trace understates the true table by up to **12×**, and the largest observed peak (12,185) is
+close to the atom-pair universe bound of 14,365 that revision 2 predicted. `seen_feature_delta` is
+computed as the difference of two *truncated* snapshots, so it would silently under-report novelty
+on any width-2 corpus. **Contract v3 must fix this before any width-2 corpus is built.**
+
+### 2a. The expansion cap did NOT bind — my hazard was wrong
+
+The amended plan flagged `local_iw_novelty_max_expansions = 10,000` as a hazard, predicting it
+could trip at n=12 and depress the exact rate. It never did: the largest width-2 run in the whole
+sweep was **8,851 total expansions** (mean 3,669 at n=12), under the shipped cap. The probe's raised
+cap of 200,000 changed nothing — the width-2 column is identical under `DEFAULT_LIMITS`.
+
+The 14,365 figure was the atom-pair *universe* bound, not an observed table size. Reachable
+novelty on these instances stays under 10,000, though not by a large margin at n=12. The cap is
+still worth raising in contract v3 as a safety margin, but it is not the binding constraint.
 
 ### 3. `EXPECTED_OBJECT_COUNTS[4] = 190` stays unsatisfiable even at width 2 — but only just
 
@@ -68,7 +91,7 @@ Paired-exact under width 2, with that caveat: 67 / 59 / 32 for n=4/8/12, 158 ove
 
 ## Cost
 
-**330 seconds for all 281 candidates**, slowest single instance 3.32s at n=12. The plan's "hours,
+**~5.5 minutes for all 281 candidates**, slowest single instance 3.34s at n=12. The plan's "hours,
 not days" estimate was conservative by two orders of magnitude; no parallelism or subsampling was
 needed. The instrumented runs (24 of them) dominate, because attaching a trace sink makes the
 planner serialize the novelty table on every expansion.
@@ -98,9 +121,9 @@ advances no cursor, and writes nothing outside `--output`.
 
 - **BFS is read, not re-run.** BFS-exactness and BFS plan length come from
   `reservoir_checkpoint_000001.json` — the same immutable bytes the infeasibility proof used.
-- **The expansion cap is raised to 200,000** for IW only, above the width-2 novelty-table bound
-  (325 / 3,321 / 14,365 for n=4/8/12), so an exhausted search is a planner result rather than a cap
-  artifact. `DEFAULT_LIMITS` is copied, never mutated. See finding 4 for what this asymmetry costs.
+- **The expansion cap is raised to 200,000** for IW only, a safety margin well above every observed
+  run (the largest was 8,851 total expansions). It did not bind — see finding 2a — but `DEFAULT_LIMITS`
+  is copied, never mutated. See finding 4 for what the BFS-side asymmetry costs.
 - **"Exact" is not optimality.** It means solved by pure novelty search with no `plan_recovery`
   fallback and a valid replay, per `cgas_characterization_rows._planner_record`. That is why
   finding 1 measures length separately.

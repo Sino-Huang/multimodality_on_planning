@@ -24,10 +24,13 @@ Harness validated: the width-1 column reproduces the recorded round-1 rates exac
    mean inflation +0.013, max +2, all non-zero cases at n=4. Width-2 plans are usable training
    targets. Previously unmeasured.
 
-2. **`MAX_IW_TRACE_NOVELTY_ITEMS = 200` saturates in 16 of 24 instrumented instances** — including
-   3/8 at n=4, which the atom-pair bound alone did not predict. Confirms the hazard revision 2
-   flagged. Contract v3 must replace truncated snapshots with emitted deltas before any width-2
-   corpus. See [[research-execution-plan-revision-2-2026-08-07]].
+2. **The 200-entry novelty cap is a measured, worse-than-"saturated" hazard.** It clipped the
+   emitted table in 16 of 24 instrumented instances (3/8 at n=4, 8/8 at n=8, 5/8 at n=12), and the
+   true table — reconstructed from the events' `state_atoms` — reaches **229 / 2,681 / 12,185**
+   at n=4/8/12. The trace's "200" understates it by up to 12×. Confirms revision 2's prediction
+   (the 12,185 peak is near the 14,365 atom-pair bound) and extends it to n=4, which the bound
+   alone did not imply. Contract v3 must replace truncated snapshots with emitted deltas before
+   any width-2 corpus. See [[research-execution-plan-revision-2-2026-08-07]].
 
 3. **`EXPECTED_OBJECT_COUNTS[4] = 190` is still unsatisfiable, by one row.** The n=4 universe is
    closed at 210; at the measured 76.1% the absolute ceiling is 67 + 122 = 189 and the expected
@@ -41,8 +44,10 @@ Harness validated: the width-1 column reproduces the recorded round-1 rates exac
    checkpoint, so the comparison is unmatched. Whether the subset relation survives at width 2 needs
    a BFS re-run at a matched cap and is still open.
 
-**Cost:** 330s for 281 candidates, slowest instance 3.3s. The plan's "hours, not days" was
-conservative by two orders of magnitude.
+**Cost:** ~5.5 minutes for 281 candidates, slowest instance 3.34s. The plan's "hours, not days" was
+conservative by two orders of magnitude. The expansion-cap hazard the amendment flagged did **not**
+bind — the largest width-2 run was 8,851 total expansions, under the shipped 10,000 — so the width-2
+numbers are not a cap artifact.
 
 **Implementation:** escalation in `scripts/phase3/local_iw.py` is **opt-in** via a
 `local_iw_escalate` limit. Inferring it from `local_iw_max_width > local_iw_width` silently converted
