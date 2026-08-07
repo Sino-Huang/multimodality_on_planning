@@ -5,12 +5,12 @@ sequenced the work so that the one decision that could kill the method — the c
 came after the most expensive artifact. See *What changed in this revision* for the four owner
 decisions that forced the rewrite.
 
-*Amended 2026-08-07: Phase A only. Gate A's stated pass condition referred forward to a number
-Phase 3 produces two phases later, so it was not evaluable and has been demoted to a reporting
-milestone; two measurement hazards that would have corrupted the probe result are recorded; and
-the failure branch is corrected, since width escalation is justified by the vacuous
-`width_decision` invariant independently of what the probe finds. No owner decision, phase order,
-gate other than A, quota, selector constant, or contract is changed.*
+*Amended 2026-08-07 (twice). First, Phase A only: Gate A's stated pass condition referred forward to
+a number Phase 3 produces two phases later, so it was not evaluable and was demoted to a reporting
+milestone. Second, after Phase A ran: its result is folded into the Current Baseline, Phase A is
+closed, Phase 0b's task list is rescoped by the v3 owner decision packet, and the Phase 3 scale note
+is corrected — off-plan harvesting cuts instance count, not render count. No owner decision, phase
+order, gate other than A, quota, selector constant, or contract is changed by either amendment.*
 
 ## Purpose
 
@@ -41,6 +41,8 @@ The execution sequence is intentionally narrow, and its ordering principle is no
 | No-oracle-leakage contract | **Complete**, and already forward-declares `route_label`, `scaffold_costs`, `memory_payload` | `cgas_certificate_contracts.ORACLE_FIELDS` |
 | Production corpus machinery: finite lazy candidate streams, characterization runner, immutable checkpoint chain, selector, atomic release gate | **Built and exercised** for one full round (281 candidates characterized, 53 paired-exact) | `cgas_candidate_characterization*.py`, `cgas_production_population*.py`, `cgas_release_gate.py` |
 | Test surface | 109 test files under `tests/phase3/` | |
+| True iterative width escalation in IW | **Built 2026-08-07**, test-first, opt-in via `local_iw_escalate`. Off until v3 moves the policy. | `scripts/phase3/local_iw.py`, commit `1aff5e3` |
+| Phase A planner-configuration probe | **Run and reported** — Gate A discharged as a measurement | `.claude/evidence/phase-a-planner-configuration-probe/` |
 
 **Revision 1's "Recommended First Milestone" is complete** — one dataset slice with aligned images, replay-valid actions, typed certificates, deterministic verifier results, and one-invariant counterfactuals — with the sole exception of the memory stub. It should be retired, not repeated.
 
@@ -66,9 +68,49 @@ The *diagnosis* was not. Measuring exactness per planner rather than per pair sh
 
 The corpus is gated entirely by **IW width-1 solvability on a domain that is not width-1 solvable**. This is a planner-configuration defect, not a quota that needs weakening.
 
+### Phase A settled this empirically
+
+*Measured 2026-08-07. Full result:
+`.claude/evidence/phase-a-planner-configuration-probe/README.md`. Read-only sweep over all 281
+round-1 candidate ranks; 330 s, no parallelism needed. The harness reproduced the recorded width-1
+column exactly, 0 of 281 disagreeing.*
+
+| n | total | BFS | IW w1 | IW w1→2 | lift | plan-length inflation |
+|---|---|---|---|---|---|---|
+| 4 | 88 | 100.0% | 15.9% | **76.1%** | +60.2 | +0.03 |
+| 8 | 129 | 69.0% | 17.8% | **45.7%** | +27.9 | +0.00 |
+| 12 | 64 | 51.6% | 25.0% | **60.9%** | +35.9 | +0.00 |
+| all | 281 | 74.7% | 18.9% | **58.7%** | +39.8 | +0.01 |
+
+Four things it established:
+
+- **Plan length does not degrade.** 157 of 165 width-2 solutions match BFS optimal exactly; mean
+  inflation +0.013 actions, max +2, every non-zero case at n=4. Width-2 plans are usable training
+  targets.
+- **The novelty truncation hazard is real and worse than predicted.** Reconstructing true table
+  cardinality from the events gives peaks of **229 / 2,681 / 12,185** at n=4/8/12 against the
+  200-entry trace clip — understated by up to **60.9×** per instance at n=12. Contract v3 must
+  replace the truncated snapshots with emitted deltas before any width-2 corpus.
+- **The n=4 quota ceiling rises 136 → 189, still short of 190.** Width escalation alone does not
+  rescue the original constant. Decision 4 re-derives it at Phase 0c, so this is sizing input.
+- **The expansion-cap hazard did not materialize.** Largest width-2 run was 8,851 total expansions
+  (largest single-width pass 8,725) against a 10,000 cap. The 14,365 figure was the atom-pair
+  *universe* bound, not an observed table size. v3 still raises the cap, as margin rather than as a
+  fix.
+
+One thing it did **not** settle: whether IW-exact ⊆ BFS-exact survives at width 2. The probe shows
+39 vs 33 at n=12, but all 7 offending BFS runs terminated at exactly 10,001 expansions under the old
+cap, so the comparison is unmatched. Open, and it needs a BFS re-run at a matched cap.
+
+Steps per instance also improved. The width-1 paired-exact set was 53 instances at mean plan length
+3.09; the width-2 set is **158 instances at mean 5.23** (median 6, max 10), because escalation admits
+longer-plan instances. 481 instances now yields ~5,000 certificate rows rather than ~2,977.
+
 ### The cost inversion
 
-Steps-per-instance equals plan length — mean 3.09, median 2 — because training transitions come from the replayed plan, not from search expansions. Yet full BFS traces are persisted at up to 14 GB each:
+Steps-per-instance equals plan length — mean 3.09 at width 1, median 2, and 5.23 under width-2
+escalation as the section above records — because training transitions come from the replayed plan,
+not from search expansions. Yet full BFS traces are persisted at up to 14 GB each:
 
 ```
 round-1 BFS corpus     2252.75 GB over 1,768,295 events
@@ -76,20 +118,36 @@ free on project quota  1.27 TiB   ->  0.58 rounds fit
 snapshot-field share   98.5% - 99.5% of stream bytes
 ```
 
-No further corpus round fits on disk. The three offending fields are exactly reconstructible, verified over 3,953 events on two streams with zero violations:
+No further corpus round fits on disk. The three offending fields are exactly reconstructible.
+Re-verified 2026-08-07 over 25,984 events across 24 streams, zero violations on all four rules:
 
 ```
 R1  frontier_before[i] == [state_id[i]]
 R2  frontier_after[i]  == frontier_after[i-1][1:] + enqueued(i)
 R3  visited_after[i]   == sorted(visited_after[i-1] | enqueued(i))
+R4  visited_delta[i]   == enqueued(i)      ({start_id} | enqueued(0) at i = 0)
 ```
 
-Dropping them projects the corpus to ~6.6 GB per round — a 342x reduction. Root cause: the trace contract bounded stream *record count* but never per-record *size*.
+R4 was not stated in the original packet and it shrinks the reader shim: only
+`frontier_order_summary` needs the running fold. Dropping the three fields projects the corpus to
+**1.7 – 6.6 GiB** per round, from 2,252.82 GiB. Root cause: the trace contract bounded stream *record
+count* with a formula that prices one record per successor, while the emitter packs all successors of
+an expansion into one record — so the branching factor moved out of the count and into the record
+size, where nothing bounded it.
 
 ### Two latent defects that block the chosen direction
 
-- **`run_iterated_width` does not iterate.** It runs one fixed width. With width frozen at 1, `width_decision` is the constant `"width_1_novel"` in every emitted certificate. The proposal names "valid width transition" as an IW invariant; at fixed width there is no transition to verify. The field currently carries zero information.
-- **The IW novelty table is truncated to 200 entries** (`MAX_IW_TRACE_NOVELTY_ITEMS`). At width 1 this never bites — the largest table observed across all 558 streams is 150. At width 2 the table reaches 325 / 3,321 / 14,365 for n=4/8/12, so `seen_feature_delta`, computed as the difference of two truncated snapshots, becomes silently unsound. This is the same snapshot-versus-delta defect as the BFS side and takes the same fix.
+- **~~`run_iterated_width` does not iterate.~~ Fixed 2026-08-07 in `local_iw.py` (commit `1aff5e3`),
+  test-first, and **opt-in** behind a `local_iw_escalate` limit. Escalation is not inferred from
+  `local_iw_max_width > local_iw_width`, because several callers leave `max_width` unset and it
+  defaults to 3 — inferring would have silently converted existing fixed-width runs. The frozen
+  approved policy still pins `local_iw_max_width: 1`, so nothing escalates until v3 moves the policy.
+  What remains is the policy change, which is decision 1a of the v3 packet.
+- **The IW novelty table is truncated to 200 entries** (`MAX_IW_TRACE_NOVELTY_ITEMS`). At width 1 this
+  never bites — the largest table observed across all 558 streams is 150. At width 2 the true peaks
+  are 229 / 2,681 / 12,185 for n=4/8/12, so `seen_feature_delta`, computed as the difference of two
+  truncated snapshots, is silently unsound by up to 60.9×. This is the same snapshot-versus-delta
+  defect as the BFS side and takes the same fix. Still open; decision 1c of the v3 packet.
 
 ### Existing-scope caveat
 
@@ -133,7 +191,10 @@ And two structural changes that follow from them:
 
 ## Phase A — Planner Configuration Probe
 
-*New in revision 2. Runs first because it is cheap and decisive.*
+*New in revision 2. Ran first because it was cheap and decisive.*
+**Status: complete, 2026-08-07.** Result folded into *Current Baseline* above; full report at
+`.claude/evidence/phase-a-planner-configuration-probe/README.md`. The section below is retained as
+the specification the probe was run against — do not re-run it.
 
 ### Objective
 
@@ -205,11 +266,32 @@ One new persistence contract carrying every known defect, one owner approval, on
 
 ### Main tasks
 
-- Implement true iterative width escalation in `local_iw.py` so `width_decision` records a real transition.
-- Stop persisting `frontier_before` / `frontier_after` / `visited_after`. Add a reader shim that rebuilds `frontier_order_summary` by a running FIFO fold — `cgas_certificate_contracts.py` is the only consumer of a full snapshot, and it already reduces the other two fields to `[0]` and a delta.
-- Replace the IW truncated novelty snapshots with emitted deltas, removing the 200-entry cap as a correctness hazard.
-- Add the per-record **size** bound the previous contract omitted.
-- Re-approve through the existing `cgas_trace_contract_approval` path.
+*Scoped by the v3 owner decision packet
+(`.claude/evidence/cgas-trace-contract-v3/owner-decision-packet/DECISION.md`), 2026-08-07.*
+
+- ~~Implement true iterative width escalation in `local_iw.py`.~~ **Built.** What remains is moving
+  `POLICY_LIMITS` — `local_iw_max_width` 1 → 2 plus `local_iw_escalate` — which is what invalidates
+  `POLICY_SHA256` and therefore the existing approval. The event-field drops below do **not** move
+  `NEW_CONTRACT_SHA256`, which describes stream framing only.
+- Stop persisting `frontier_before` / `frontier_after` / `visited_after`. Add a reader shim that
+  rebuilds `frontier_order_summary` by a running FIFO fold — the **only** certificate field that
+  needs a fold. `frontier_head` is `state_id` verbatim and `visited_delta` is this event's enqueued
+  successor ids, both already carried. `cgas_certificate_contracts.py` is the only production
+  consumer, but at **two** call sites: `expected_certificate` (line 38) and `_prior_bfs_visited`
+  (line 118), the second reading the *previous* expansion.
+- Replace the IW truncated novelty snapshots with an emitted `seen_feature_delta`. Note the second
+  consumer: `trace_contracts.py:196,238-239` hard-requires both snapshot keys on IW expand events and
+  is pinned by `test_cgas_fixture_archive.py` against release digest `3bc89431…6b3c`, so the required
+  field set must be **dispatched on trace contract version**, not edited in place.
+- Add the per-record **size** bound the previous contract omitted: `MAX_EVENT_BYTES` enforced on
+  `len(line)` in `write_trace_stream` (`cgas_trace_stream_v2.py:68-69`), mirroring the record-count
+  bound five lines below it. `verify_trace_stream:114` already refuses lines over 16 MiB on the read
+  side; today there is no write-side counterpart. Element-count bounds belong in the emitters and in
+  `bounds_proof`, not in the schema-agnostic stream writer.
+- Correct the IW record-count formula for escalation: it prices one search pass, and escalation runs
+  up to `max_width` passes into one stream.
+- Re-approve through the existing `cgas_trace_contract_approval` path, publishing to **new** paths —
+  `_require_compatible_destination` raises rather than overwriting the v2 artifacts.
 
 ### Owner action required
 
@@ -257,12 +339,23 @@ ordering pays for itself. At >=30 per cell it is 613–919 — *larger* than the
 and the ordering buys nothing, because the production corpus would have to be built to run the gate
 meant to size it. **State the stability bar before planning this phase.**
 
-The lever that settles it is off-plan expansions: BFS expands a mean of 275 states per instance
-against a 5.22-step plan, a 53× ratio. Harvesting certificate targets from expansions rather than
-only from the replayed plan puts every sizing target within reach of 50–100 instances. **Decide
-this before Phase 0b**, since it is a question about what the trace contract must retain. Contract
-v3 as specified does not foreclose it — the three dropped fields are the reconstructible ones, and
-the per-event data off-plan certificates need is retained.
+The lever that settles it is off-plan expansions: BFS expands a mean of 274.8 states per instance
+against a 5.23-step plan, a **52.6×** ratio. Harvesting certificate targets from expansions rather
+than only from the replayed plan cuts the instance count from 306 to 6 at the loose bar, and from
+917 to 18 at the conventional one.
+
+**But it cuts the render bill by nothing.** Every certificate row needs an aligned pre-state PNG, so
+renders track rows, and the row target is set by the matrix regardless of harvesting mode: 1,598
+renders at ≥10/40%, 4,795 at ≥30/40%, either way. The lever acts on enumeration, planning, and BFS
+tracing — not on the external render service. And 4–18 instances is not a usable pilot: the matrix
+stratifies by object count, so an **instance-diversity floor binds independently** of the
+observations-per-cell bar, and nothing in the repo states it. Both numbers are needed before this
+phase can be planned.
+
+Contract v3 does not foreclose off-plan harvesting — the three dropped fields are the reconstructible
+ones, and `state_atoms` / `successors` / `enqueued` are retained, so a certificate can be built for
+any expansion in the stream. Confirming that retention is a contract property is decision 2 of the
+v3 packet.
 
 The other levers remain more instances and longer-horizon instances. Decide on evidence, not now.
 
@@ -411,8 +504,8 @@ The 481 target, the paired-exact requirement, and `local_iw_width=1` were all ap
 
 ## Practical Build Order
 
-1. Probe IW width 1→2 on already-enumerated ranks. **(Gate A — reporting milestone)**
-2. Ship trace contract v3: width escalation, dropped BFS snapshots, IW novelty deltas, per-record size bound. Obtain owner approval. **(Gate 0b)**
+1. ~~Probe IW width 1→2 on already-enumerated ranks.~~ **Done 2026-08-07 (Gate A reported).**
+2. Ship trace contract v3: width escalation, dropped BFS snapshots, IW novelty deltas, per-record size bound. Obtain owner approval. **(Gate 0b) — packet drafted, awaiting a ruling.**
 3. Regenerate the corpus under v3; release the v2 stream bytes.
 4. Build the pilot corpus and run the direct-VLM calibration baseline. **(Gate 3 — go/no-go)**
 5. Freeze the scaffold palette, costs, and route-label policy; derive the corpus-scale target.
@@ -423,31 +516,45 @@ The 481 target, the paired-exact requirement, and `local_iw_width=1` were all ap
 
 ## Recommended Next Milestone
 
-**Run the Phase A probe and report the IW width-2 exact rate per planner and per object count.**
+**Rule on the trace contract v3 owner decision packet, then implement v3 under RED/GREEN TDD.**
 
-It is the cheapest experiment in the plan, and it sizes the corpus question before anything
-expensive is built. It does not decide whether width escalation ships — that is settled by the
-vacuous `width_decision` invariant, independently of yield. What it decides is whether escalation
-alone is *sufficient* to supply the corpus, or whether decoupling the BFS and IW arms has to
-accompany it.
+`.claude/evidence/cgas-trace-contract-v3/owner-decision-packet/DECISION.md` — drafted 2026-08-07,
+awaiting a ruling. It carries two decisions: authorize contract v3 (width escalation on in policy,
+the three reconstructible BFS snapshot fields dropped with a reader shim, the truncated IW novelty
+snapshots replaced by an emitted delta, a per-record size bound enforced at write time, the IW
+record-count formula corrected for escalation, and release of the 2,252.82 GiB of v2 streams); and
+confirm that per-expansion certificate data stays retained, so off-plan certificate harvesting is
+not foreclosed.
+
+A companion packet in the same directory, `DECISION-pilot-provenance.md`, asks whether the
+calibration pilot needs release-grade provenance or only reproducibility. It is separate because its
+answer depends on the pilot's size, and it does not block v3.
+
+Nothing downstream can move until v3 is ruled on: no further Todo 3 round fits on disk under v2, and
+no width-2 corpus can carry a sound `seen_feature_delta`.
 
 ## Immediate Next Steps
 
-1. Implement true width escalation in `local_iw.py` behind the probe, without touching the frozen approved policy.
-2. Run the probe over the 281 already-characterized candidate ranks; report **per planner** the
-   exact rate, expansions, peak novelty-table size, and plan-length inflation against BFS optimal,
-   per object count. Raise `local_iw_novelty_max_expansions` in the probe's own limits so the n=12
-   result is a planner measurement rather than a cap artifact.
-3. Draft trace contract v3 covering all four corrections, with its unapproved owner packet.
-4. Size the pilot corpus for calibration, and decide whether it can reuse the 53 already-characterized paired-exact instances.
-5. Specify the bounded certificate-store API and its no-oracle-leakage tests.
-6. Create one direct-VLM calibration configuration and one evaluation command that reports first certificate failures.
+1. Obtain the owner ruling on `DECISION.md` — contract v3, and off-plan certificate retention.
+2. Implement v3 test-first in `scripts/phase3/`. First files: `cgas_bfs.py`, `local_iw.py`,
+   `cgas_certificate_contracts.py`, `trace_contracts.py` (version-dispatched IW required fields, so
+   the fixture pinned to release digest `3bc89431…6b3c` stays green), `cgas_trace_stream_v2.py`, and
+   a new `cgas_trace_contract_v3.py`. Publish the v3 migration packet and owner-approval template to
+   **new** paths — `_require_compatible_destination` raises rather than overwrites — and re-approve
+   through `cgas_trace_contract_approval.py`.
+3. Regenerate the corpus under v3, verify against Gate 0b, then release the v2 stream bytes.
+4. State the first-failure-matrix stability bar (≥10 vs ≥30 observations per cell) and an
+   instance-diversity floor. These size the pilot and decide the companion packet.
+5. Size the pilot corpus for calibration, and decide whether it can reuse the 158 already-enumerated
+   width-2 paired-exact instances.
+6. Specify the bounded certificate-store API and its no-oracle-leakage tests.
+7. Create one direct-VLM calibration configuration and one evaluation command that reports first certificate failures.
 
 ## Gates and Falsification
 
 | Gate | Passes when | If it fails |
 |---|---|---|
-| **A** IW width 2 measured | *Reporting milestone, not a stop.* Rates reported per planner and per object count, with the n=12 expansion cap raised so it does not masquerade as a planner result | Pass/fail deferred to 0c. A weak lift argues for decoupled arms **in addition to** escalation, not instead of it |
+| **A** IW width 2 measured | **REPORTED 2026-08-07.** 18.9% → 58.7% overall; per-object-count rates, expansions, true novelty peaks, and plan-length inflation all recorded. Pass/fail was deferred to 0c by the amendment | n/a — discharged. A weak lift would have argued for decoupled arms **in addition to** escalation; the lift was not weak |
 | **0b** Contract v3 sound | Streams verify; certificates match fixture semantics on overlapping instances; regeneration fits comfortably on disk | Do not regenerate at scale |
 | **3** Calibration *(hard stop)* | A recurrent, certificate-localized failure exists | No justified adaptive-scaffolding method — reconsider the direction before building the corpus |
 | **0c** Corpus | Derived quotas reached; every row has decodable image, replay-valid transition, accepted certificate | Exclude rows; do not repair by inference |

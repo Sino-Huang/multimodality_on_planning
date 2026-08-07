@@ -1,0 +1,66 @@
+1. Off-plan expansion ratio (width-2 paired-exact set)
+
+   instances                            158
+   mean plan length                    5.23   median 6.0, max 10
+   mean BFS expansions / instance     274.8   median 39.0
+   off-plan ratio                      52.6x
+
+   certificate rows per instance, on-plan        10.46
+   certificate rows per instance, off-plan       549.6
+   (two rows per step -- one BFS certificate, one IW certificate)
+
+2. Pilot instances needed for a stable first-failure matrix
+
+   21 cells = 7 invariant families x 3 object counts; held-out fraction 0.164
+
+   harvest                  bar  fail%      rows   renders  instances
+   ---------------------- ----- ------ --------- --------- ----------
+   on-plan (today)         >=10    40%     3,197     1,598        306
+   on-plan (today)         >=10    60%     2,131     1,066        204
+   on-plan (today)         >=30    40%     9,590     4,795        917
+   on-plan (today)         >=30    60%     6,393     3,197        612
+   off-plan expansions     >=10    40%     3,197     1,598          6
+   off-plan expansions     >=10    60%     2,131     1,066          4
+   off-plan expansions     >=30    40%     9,590     4,795         18
+   off-plan expansions     >=30    60%     6,393     3,197         12
+
+   Production target is 481 instances. On-plan at >=30/cell the 'pilot' exceeds it;
+   off-plan it is small at every bar.
+
+   READ THE RENDER COLUMN. It does not move. Off-plan harvesting cuts the number
+   of instances to enumerate, plan, and BFS-trace by ~50x; it cuts the render bill
+   by nothing, because every certificate row still needs an aligned pre-state PNG.
+   The lever is on characterization cost, not on the external render service.
+
+3. n=4 quota ceiling under width 2 (sizing input for Phase 0c)
+
+   universe closed at                 210
+   characterized in round 1            88
+   exact at width 1                    14   -> ceiling 136
+   exact at width 2                    67   (76.1%) -> ceiling 189
+   EXPECTED_OBJECT_COUNTS[4]          190   -> still short by 1
+
+4. Todos 5-10: what exists
+
+   todo module                                 kind              module   test
+   ---- -------------------------------------- ---------------- ------- ------
+      5 cgas_production_review_packet          release-process  MISSING     no
+      6 cgas_partition_materialize             correctness      MISSING     no
+      7 cgas_production_staging                release-process  MISSING     no
+      8 cgas_certificates_alignment_binding    correctness      MISSING    yes
+     10 cgas_production_release                release-process  MISSING     no
+
+   Correctness invariants a pilot must not lose, and where they are enforced today:
+
+     ok replay-valid transitions           scripts/phase3/cgas_alignment.py
+         build_alignment rejects unproven replays
+     ok certificate re-derivation          scripts/phase3/cgas_certificates.py
+         verify_steps rebuilds every certificate from the trace and fails closed
+     ok no oracle leakage                  scripts/phase3/cgas_certificate_contracts.py
+         validate_model_input against ORACLE_FIELDS
+     ok schema validity                    scripts/phase3/cgas_certificate_contracts.py
+         step_schema, validated with Draft202012Validator
+     ok certificate <-> alignment binding  tests/phase3/test_cgas_certificates_alignment_binding.py
+         12 tests over the EXISTING modules
+     ok release digest immutability        scripts/phase3/cgas_release_gate.py
+         present and working

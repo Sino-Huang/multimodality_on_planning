@@ -1,0 +1,619 @@
+{
+  "digest_impact": {
+    "contract_sha256_in_approval": "5649fc7b7b4955a8879c3d997342a3d74594c9faa7458e5dc177bf3e977a0b9d",
+    "new_contract_moves": false,
+    "new_contract_sha256_v2": "5649fc7b7b4955a8879c3d997342a3d74594c9faa7458e5dc177bf3e977a0b9d",
+    "new_contract_sha256_v3": "5649fc7b7b4955a8879c3d997342a3d74594c9faa7458e5dc177bf3e977a0b9d",
+    "packet_digest_reproduces": true,
+    "packet_sha256_in_approval": "f7b93250c8302e30e8c9e15b163f2f1d3b69a57d2e7de4c58fe02e4ec67e289b",
+    "packet_sha256_v2": "f7b93250c8302e30e8c9e15b163f2f1d3b69a57d2e7de4c58fe02e4ec67e289b",
+    "policy_keys_changed": [
+      "local_iw_escalate",
+      "local_iw_max_width",
+      "local_iw_novelty_max_expansions"
+    ],
+    "policy_moves": true,
+    "policy_sha256_in_approval": "559c3a7cc4fd4833726ca3a5dcbd09149b83915e0a77871e4d350c489bd76c1e",
+    "policy_sha256_v2": "559c3a7cc4fd4833726ca3a5dcbd09149b83915e0a77871e4d350c489bd76c1e",
+    "policy_sha256_v3": "51acff53d15652663d2212902d3d94261e44de9e3edf66b9970fc3c75197d436",
+    "policy_v2": {
+      "local_iw_max_width": 1,
+      "local_iw_novelty_max_expansions": 10000,
+      "local_iw_recovery": "disabled",
+      "local_iw_width": 1,
+      "local_max_applicable_actions": 2000,
+      "max_expansions": 10000,
+      "max_grounded_actions": 100000,
+      "max_grounded_atoms": 100000,
+      "max_plan_length": 128
+    },
+    "policy_v3": {
+      "local_iw_escalate": 1,
+      "local_iw_max_width": 2,
+      "local_iw_novelty_max_expansions": 50000,
+      "local_iw_recovery": "disabled",
+      "local_iw_width": 1,
+      "local_max_applicable_actions": 2000,
+      "max_expansions": 10000,
+      "max_grounded_actions": 100000,
+      "max_grounded_atoms": 100000,
+      "max_plan_length": 128
+    }
+  },
+  "field_consumers": {
+    "classified_count": 65,
+    "hit_count": 65,
+    "rows": [
+      {
+        "line": 84,
+        "lineage": "slice",
+        "note": "slice BFS emitter",
+        "path": "examples/planning_benchmark_slice/experts/bfs.py",
+        "role": "emitter",
+        "source": "frontier_before = [problem.state_id(item) for item in frontier]"
+      },
+      {
+        "line": 88,
+        "lineage": "slice",
+        "note": "slice BFS emitter",
+        "path": "examples/planning_benchmark_slice/experts/bfs.py",
+        "role": "emitter",
+        "source": "visited_after = set(visited_before)"
+      },
+      {
+        "line": 93,
+        "lineage": "slice",
+        "note": "slice BFS emitter",
+        "path": "examples/planning_benchmark_slice/experts/bfs.py",
+        "role": "emitter",
+        "source": "was_visited = next_id in visited_after"
+      },
+      {
+        "line": 96,
+        "lineage": "slice",
+        "note": "slice BFS emitter",
+        "path": "examples/planning_benchmark_slice/experts/bfs.py",
+        "role": "emitter",
+        "source": "visited_after.add(next_id)"
+      },
+      {
+        "line": 113,
+        "lineage": "slice",
+        "note": "slice BFS emitter",
+        "path": "examples/planning_benchmark_slice/experts/bfs.py",
+        "role": "emitter",
+        "source": "\"frontier_after\": [problem.state_id(item) for item in frontier],"
+      },
+      {
+        "line": 114,
+        "lineage": "slice",
+        "note": "slice BFS emitter",
+        "path": "examples/planning_benchmark_slice/experts/bfs.py",
+        "role": "emitter",
+        "source": "\"frontier_before\": frontier_before,"
+      },
+      {
+        "line": 118,
+        "lineage": "slice",
+        "note": "slice BFS emitter",
+        "path": "examples/planning_benchmark_slice/experts/bfs.py",
+        "role": "emitter",
+        "source": "\"visited_after\": sorted(visited_after),"
+      },
+      {
+        "line": 138,
+        "lineage": "slice",
+        "note": "slice IW emitter (local variable)",
+        "path": "examples/planning_benchmark_slice/experts/iterated_width.py",
+        "role": "emitter",
+        "source": "novelty_table_before: set[NoveltyItem] = set()"
+      },
+      {
+        "line": 140,
+        "lineage": "slice",
+        "note": "slice IW emitter (local variable)",
+        "path": "examples/planning_benchmark_slice/experts/iterated_width.py",
+        "role": "emitter",
+        "source": "novel_item = first_novel_item(current_items, novelty_table_before)"
+      },
+      {
+        "line": 142,
+        "lineage": "slice",
+        "note": "slice IW emitter (local variable)",
+        "path": "examples/planning_benchmark_slice/experts/iterated_width.py",
+        "role": "emitter",
+        "source": "novelty_table_after = set(novelty_table_before)"
+      },
+      {
+        "line": 144,
+        "lineage": "slice",
+        "note": "slice IW emitter (local variable)",
+        "path": "examples/planning_benchmark_slice/experts/iterated_width.py",
+        "role": "emitter",
+        "source": "novelty_table_after.update(current_items)"
+      },
+      {
+        "line": 147,
+        "lineage": "slice",
+        "note": "slice IW emitter (local variable)",
+        "path": "examples/planning_benchmark_slice/experts/iterated_width.py",
+        "role": "emitter",
+        "source": "frontier_after: list[str] = []"
+      },
+      {
+        "line": 151,
+        "lineage": "slice",
+        "note": "slice IW emitter (local variable)",
+        "path": "examples/planning_benchmark_slice/experts/iterated_width.py",
+        "role": "emitter",
+        "source": "is_novel = first_novel_item(next_items, novelty_table_after) is not None"
+      },
+      {
+        "line": 154,
+        "lineage": "slice",
+        "note": "slice IW emitter (local variable)",
+        "path": "examples/planning_benchmark_slice/experts/iterated_width.py",
+        "role": "emitter",
+        "source": "frontier_after.append(problem.state_id(next_state))"
+      },
+      {
+        "line": 176,
+        "lineage": "slice",
+        "note": "slice IW emitter",
+        "path": "examples/planning_benchmark_slice/experts/iterated_width.py",
+        "role": "emitter",
+        "source": "\"frontier_after\": frontier_after,"
+      },
+      {
+        "line": 178,
+        "lineage": "slice",
+        "note": "slice IW emitter",
+        "path": "examples/planning_benchmark_slice/experts/iterated_width.py",
+        "role": "emitter",
+        "source": "\"novelty_table_after\": serialize_novelty_table(novelty_table_after),"
+      },
+      {
+        "line": 179,
+        "lineage": "slice",
+        "note": "slice IW emitter",
+        "path": "examples/planning_benchmark_slice/experts/iterated_width.py",
+        "role": "emitter",
+        "source": "\"novelty_table_before\": serialize_novelty_table(novelty_table_before),"
+      },
+      {
+        "line": 330,
+        "lineage": "slice",
+        "note": "slice prose serializer",
+        "path": "examples/planning_benchmark_slice/modality_serializers.py",
+        "role": "reads-value",
+        "source": "f\"from {len(payload.get('frontier_before', []))} to {len(payload.get('frontier_after', []))} entries.\""
+      },
+      {
+        "line": 31,
+        "lineage": "slice",
+        "note": "slice schema field list",
+        "path": "examples/planning_benchmark_slice/trajectory_schema.py",
+        "role": "defines-name",
+        "source": "\"frontier_before\","
+      },
+      {
+        "line": 32,
+        "lineage": "slice",
+        "note": "slice schema field list",
+        "path": "examples/planning_benchmark_slice/trajectory_schema.py",
+        "role": "defines-name",
+        "source": "\"frontier_after\","
+      },
+      {
+        "line": 34,
+        "lineage": "slice",
+        "note": "slice schema field list",
+        "path": "examples/planning_benchmark_slice/trajectory_schema.py",
+        "role": "defines-name",
+        "source": "\"visited_after\","
+      },
+      {
+        "line": 47,
+        "lineage": "slice",
+        "note": "slice schema field list",
+        "path": "examples/planning_benchmark_slice/trajectory_schema.py",
+        "role": "defines-name",
+        "source": "\"novelty_table_before\","
+      },
+      {
+        "line": 48,
+        "lineage": "slice",
+        "note": "slice schema field list",
+        "path": "examples/planning_benchmark_slice/trajectory_schema.py",
+        "role": "defines-name",
+        "source": "\"novelty_table_after\","
+      },
+      {
+        "line": 303,
+        "lineage": "slice",
+        "note": "slice canonicalization",
+        "path": "examples/planning_benchmark_slice/trajectory_schema.py",
+        "role": "reads-value",
+        "source": "for path in (\"frontier_before\", \"frontier_after\", \"visited_before\", \"visited_after\"):"
+      },
+      {
+        "line": 319,
+        "lineage": "slice",
+        "note": "slice validator",
+        "path": "examples/planning_benchmark_slice/trajectory_schema.py",
+        "role": "requires-key",
+        "source": "_require_list(payload, \"novelty_table_before\", source, errors, prefix=\"iterated_width\")"
+      },
+      {
+        "line": 320,
+        "lineage": "slice",
+        "note": "slice validator",
+        "path": "examples/planning_benchmark_slice/trajectory_schema.py",
+        "role": "requires-key",
+        "source": "_require_list(payload, \"novelty_table_after\", source, errors, prefix=\"iterated_width\")"
+      },
+      {
+        "line": 428,
+        "lineage": "slice",
+        "note": "slice canonicalization",
+        "path": "examples/planning_benchmark_slice/trajectory_schema.py",
+        "role": "reads-value",
+        "source": "for field in (\"visited_before\", \"visited_after\"):"
+      },
+      {
+        "line": 450,
+        "lineage": "slice",
+        "note": "slice canonicalization",
+        "path": "examples/planning_benchmark_slice/trajectory_schema.py",
+        "role": "reads-value",
+        "source": "for field in (\"novelty_table_before\", \"novelty_table_after\"):"
+      },
+      {
+        "line": 131,
+        "lineage": "cgas-production",
+        "note": "frontier_after: identify() over the live FIFO deque",
+        "path": "scripts/phase3/cgas_bfs.py",
+        "role": "emitter",
+        "source": "\"frontier_after\": [self.identify(item[0]) for item in frontier],"
+      },
+      {
+        "line": 132,
+        "lineage": "cgas-production",
+        "note": "frontier_before: literal [state_id] -- zero information",
+        "path": "scripts/phase3/cgas_bfs.py",
+        "role": "emitter",
+        "source": "\"frontier_before\": [state_id],"
+      },
+      {
+        "line": 136,
+        "lineage": "cgas-production",
+        "note": "visited_after: full sorted visited list",
+        "path": "scripts/phase3/cgas_bfs.py",
+        "role": "emitter",
+        "source": "\"visited_after\": list(self._visited),"
+      },
+      {
+        "line": 37,
+        "lineage": "cgas-production",
+        "note": "visited_after of THIS expansion",
+        "path": "scripts/phase3/cgas_certificate_contracts.py",
+        "role": "reads-value",
+        "source": "visited_after = _strings(expansion, \"visited_after\")"
+      },
+      {
+        "line": 38,
+        "lineage": "cgas-production",
+        "note": "frontier_before[0] -> frontier_head; frontier_after -> frontier_order_summary; visited_after -> visited_delta",
+        "path": "scripts/phase3/cgas_certificate_contracts.py",
+        "role": "reads-value",
+        "source": "return {\"kind\": \"bfs\", \"frontier_head\": _strings(expansion, \"frontier_before\")[0], \"frontier_order_summary\": _strings(expansion, \"frontier_after\"), \"visited_delta\": sorted(set(visited_after) - previous), \"expanded_state\": _text(expansion, \"state_id\")}"
+      },
+      {
+        "line": 41,
+        "lineage": "cgas-production",
+        "note": "novelty_table_before -> seen_feature_delta",
+        "path": "scripts/phase3/cgas_certificate_contracts.py",
+        "role": "reads-value",
+        "source": "before = set(_strings(event, \"novelty_table_before\"))"
+      },
+      {
+        "line": 42,
+        "lineage": "cgas-production",
+        "note": "novelty_table_after -> seen_feature_delta",
+        "path": "scripts/phase3/cgas_certificate_contracts.py",
+        "role": "reads-value",
+        "source": "after = set(_strings(event, \"novelty_table_after\"))"
+      },
+      {
+        "line": 118,
+        "lineage": "cgas-production",
+        "note": "visited_after of the PREVIOUS expansion -- second call site, easy to miss",
+        "path": "scripts/phase3/cgas_certificate_contracts.py",
+        "role": "reads-value",
+        "source": "return set() if index == 0 else set(_strings(_mapping_item(expansions[index - 1], \"previous_expansion\"), \"visited_after\"))"
+      },
+      {
+        "line": 261,
+        "lineage": "cgas-production",
+        "note": "novelty_table_before on expand events (truncated to 200)",
+        "path": "scripts/phase3/local_iw.py",
+        "role": "emitter",
+        "source": "\"novelty_table_before\": list(before),"
+      },
+      {
+        "line": 262,
+        "lineage": "cgas-production",
+        "note": "novelty_table_after on expand events (truncated to 200)",
+        "path": "scripts/phase3/local_iw.py",
+        "role": "emitter",
+        "source": "\"novelty_table_after\": list(serialized_novelty_table(table)),"
+      },
+      {
+        "line": 276,
+        "lineage": "cgas-production",
+        "note": "novelty_table_before on prune events",
+        "path": "scripts/phase3/local_iw.py",
+        "role": "emitter",
+        "source": "\"novelty_table_before\": list(table),"
+      },
+      {
+        "line": 277,
+        "lineage": "cgas-production",
+        "note": "novelty_table_after on prune events",
+        "path": "scripts/phase3/local_iw.py",
+        "role": "emitter",
+        "source": "\"novelty_table_after\": list(table),"
+      },
+      {
+        "line": 196,
+        "lineage": "cgas-production",
+        "note": "IW expand events must carry both novelty snapshots",
+        "path": "scripts/phase3/trace_contracts.py",
+        "role": "requires-key",
+        "source": "return (\"decision\", \"frontier_size_after\", \"novel_item\", \"novelty_table_before\", \"novelty_table_after\", \"successors\")"
+      },
+      {
+        "line": 238,
+        "lineage": "cgas-production",
+        "note": "novelty_table_before must be a list",
+        "path": "scripts/phase3/trace_contracts.py",
+        "role": "requires-key",
+        "source": "_list(event, \"novelty_table_before\")"
+      },
+      {
+        "line": 239,
+        "lineage": "cgas-production",
+        "note": "novelty_table_after must be a list",
+        "path": "scripts/phase3/trace_contracts.py",
+        "role": "requires-key",
+        "source": "_list(event, \"novelty_table_after\")"
+      },
+      {
+        "line": 103,
+        "lineage": "cgas-test",
+        "note": "frontier_after == the two successor ids",
+        "path": "tests/phase3/test_cgas_planner_semantic_parity.py",
+        "role": "asserts",
+        "source": "assert expansions[0][\"frontier_after\"] == [successors[0][\"state_id\"], successors[1][\"state_id\"]]"
+      },
+      {
+        "line": 184,
+        "lineage": "cgas-test",
+        "note": "novelty_table_after contents",
+        "path": "tests/phase3/test_cgas_planner_semantic_parity.py",
+        "role": "asserts",
+        "source": "assert events[0][\"novelty_table_after\"] == [\"(start)\"]"
+      },
+      {
+        "line": 202,
+        "lineage": "cgas-test",
+        "note": "novelty_table_after contents",
+        "path": "tests/phase3/test_cgas_planner_semantic_parity.py",
+        "role": "asserts",
+        "source": "assert events[1][\"novelty_table_after\"] == [\"(p)\", \"(q)\", \"(r)\"]"
+      },
+      {
+        "line": 203,
+        "lineage": "cgas-test",
+        "note": "novelty_table_before == novelty_table_after on a prune",
+        "path": "tests/phase3/test_cgas_planner_semantic_parity.py",
+        "role": "asserts",
+        "source": "assert events[2][\"novelty_table_before\"] == events[2][\"novelty_table_after\"] == [\"(p)\", \"(q)\", \"(r)\"]"
+      },
+      {
+        "line": 74,
+        "lineage": "cgas-test",
+        "note": "pins the exact IW event key set",
+        "path": "tests/phase3/test_cgas_provenance.py",
+        "role": "asserts",
+        "source": "{\"novelty_table_before\", \"novelty_table_after\", \"novel_item\", \"width_decision\"}"
+      },
+      {
+        "line": 112,
+        "lineage": "cgas-test",
+        "note": "frontier_before == [state_id]",
+        "path": "tests/phase3/test_cgas_provenance.py",
+        "role": "asserts",
+        "source": "assert bfs_rows[0][\"planner_trace\"][\"expansions\"][0][\"frontier_before\"] == ["
+      },
+      {
+        "line": 118,
+        "lineage": "cgas-test",
+        "note": "pins the exact IW event key set",
+        "path": "tests/phase3/test_cgas_provenance.py",
+        "role": "asserts",
+        "source": "{\"novelty_table_before\", \"novelty_table_after\", \"novel_item\", \"width_decision\"}"
+      },
+      {
+        "line": 67,
+        "lineage": "slice",
+        "note": "asserts R1 on the SLICE emitter",
+        "path": "tests/planning_benchmark/test_experts_bfs_iw.py",
+        "role": "asserts",
+        "source": "assert bfs[\"frontier_before\"] == [first_step[\"state_id\"]]"
+      },
+      {
+        "line": 68,
+        "lineage": "slice",
+        "note": "asserts R2 on the SLICE emitter",
+        "path": "tests/planning_benchmark/test_experts_bfs_iw.py",
+        "role": "asserts",
+        "source": "assert bfs[\"frontier_after\"] == expected_fifo_after"
+      },
+      {
+        "line": 70,
+        "lineage": "slice",
+        "note": "asserts sortedness on the SLICE emitter",
+        "path": "tests/planning_benchmark/test_experts_bfs_iw.py",
+        "role": "asserts",
+        "source": "assert bfs[\"visited_after\"] == sorted(bfs[\"visited_after\"])"
+      },
+      {
+        "line": 84,
+        "lineage": "slice",
+        "note": "slice IW novelty snapshot",
+        "path": "tests/planning_benchmark/test_experts_bfs_iw.py",
+        "role": "asserts",
+        "source": "assert iw[\"novelty_table_before\"] == []"
+      },
+      {
+        "line": 86,
+        "lineage": "slice",
+        "note": "slice IW novelty snapshot",
+        "path": "tests/planning_benchmark/test_experts_bfs_iw.py",
+        "role": "asserts",
+        "source": "assert iw[\"novelty_table_after\"] == first_step[\"state_atoms\"]"
+      },
+      {
+        "line": 143,
+        "lineage": "slice",
+        "note": "slice serializer field set",
+        "path": "tests/planning_benchmark/test_modality_serializers.py",
+        "role": "asserts",
+        "source": "assert {\"frontier_before\", \"frontier_after\", \"visited_before\", \"visited_after\"} <= set("
+      },
+      {
+        "line": 149,
+        "lineage": "slice",
+        "note": "slice serializer field set",
+        "path": "tests/planning_benchmark/test_modality_serializers.py",
+        "role": "asserts",
+        "source": "assert {\"width\", \"novelty_table_before\", \"novelty_table_after\", \"decision\"} <= set("
+      },
+      {
+        "line": 71,
+        "lineage": "slice",
+        "note": "slice schema",
+        "path": "tests/planning_benchmark/test_trajectory_schema.py",
+        "role": "asserts",
+        "source": "\"invalid_missing_bfs_frontier\": \"bfs.frontier_before\","
+      },
+      {
+        "line": 73,
+        "lineage": "slice",
+        "note": "slice schema",
+        "path": "tests/planning_benchmark/test_trajectory_schema.py",
+        "role": "asserts",
+        "source": "\"invalid_missing_iterated_width_novelty\": \"iterated_width.novelty_table_after\","
+      },
+      {
+        "line": 116,
+        "lineage": "slice",
+        "note": "slice schema",
+        "path": "tests/planning_benchmark/test_trajectory_schema.py",
+        "role": "asserts",
+        "source": "\"frontier_before\": [\"state_z\", \"state_a\"],"
+      },
+      {
+        "line": 117,
+        "lineage": "slice",
+        "note": "slice schema",
+        "path": "tests/planning_benchmark/test_trajectory_schema.py",
+        "role": "asserts",
+        "source": "\"frontier_after\": [\"state_m\", \"state_b\", \"state_y\"],"
+      },
+      {
+        "line": 119,
+        "lineage": "slice",
+        "note": "slice schema",
+        "path": "tests/planning_benchmark/test_trajectory_schema.py",
+        "role": "asserts",
+        "source": "\"visited_after\": [\"state_m\", \"state_b\", \"state_y\"],"
+      },
+      {
+        "line": 130,
+        "lineage": "slice",
+        "note": "slice schema",
+        "path": "tests/planning_benchmark/test_trajectory_schema.py",
+        "role": "asserts",
+        "source": "assert canonical[\"bfs\"][\"frontier_before\"] == [\"state_z\", \"state_a\"]"
+      },
+      {
+        "line": 131,
+        "lineage": "slice",
+        "note": "slice schema",
+        "path": "tests/planning_benchmark/test_trajectory_schema.py",
+        "role": "asserts",
+        "source": "assert canonical[\"bfs\"][\"frontier_after\"] == [\"state_m\", \"state_b\", \"state_y\"]"
+      },
+      {
+        "line": 133,
+        "lineage": "slice",
+        "note": "slice schema",
+        "path": "tests/planning_benchmark/test_trajectory_schema.py",
+        "role": "asserts",
+        "source": "assert canonical[\"bfs\"][\"visited_after\"] == [\"state_b\", \"state_m\", \"state_y\"]"
+      }
+    ],
+    "unclassified": [],
+    "vanished": []
+  },
+  "novelty_truncation": {
+    "by_object_count": {
+      "12": {
+        "clipped_peak": 200,
+        "n": 8,
+        "saturated": 5,
+        "true_peak": 12185,
+        "understatement_max": 60.9,
+        "understatement_mean": 36.6
+      },
+      "4": {
+        "clipped_peak": 200,
+        "n": 8,
+        "saturated": 3,
+        "true_peak": 229,
+        "understatement_max": 4.5,
+        "understatement_mean": 1.5
+      },
+      "8": {
+        "clipped_peak": 200,
+        "n": 8,
+        "saturated": 8,
+        "true_peak": 2681,
+        "understatement_max": 13.4,
+        "understatement_mean": 9.0
+      }
+    },
+    "clip": 200,
+    "instrumented": 24
+  },
+  "record_bounds": {
+    "bfs_max_records_v2": 1000010002,
+    "bfs_max_records_v3": 1000010002,
+    "candidates": 281,
+    "iw_formula_v2": "1 + 2 * local_iw_novelty_max_expansions * local_max_applicable_actions + 2",
+    "iw_formula_v3": "1 + 2 * widths * local_iw_novelty_max_expansions * local_max_applicable_actions + 2",
+    "iw_max_records_v2": 40000003,
+    "iw_max_records_v3": 400000003,
+    "iw_max_records_v3_at_v2_cap": 80000003,
+    "observed_max_single_width_expansions": 8725,
+    "observed_max_total_expansions": 8851,
+    "observed_mean_total_expansions": 1290.4,
+    "v2_cap": 10000,
+    "v2_margin_over_observed_max": 1.15,
+    "v3_cap": 50000,
+    "v3_margin_over_observed_max": 5.73,
+    "widths_under_escalation": 2
+  }
+}

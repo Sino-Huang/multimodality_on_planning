@@ -1,0 +1,187 @@
+{
+  "m2_audit": {
+    "existing_guards": [
+      {
+        "enforced_in": "scripts/phase3/cgas_alignment.py",
+        "how": "build_alignment rejects unproven replays",
+        "invariant": "replay-valid transitions",
+        "present": true
+      },
+      {
+        "enforced_in": "scripts/phase3/cgas_certificates.py",
+        "how": "verify_steps rebuilds every certificate from the trace and fails closed",
+        "invariant": "certificate re-derivation",
+        "present": true
+      },
+      {
+        "enforced_in": "scripts/phase3/cgas_certificate_contracts.py",
+        "how": "validate_model_input against ORACLE_FIELDS",
+        "invariant": "no oracle leakage",
+        "present": true
+      },
+      {
+        "enforced_in": "scripts/phase3/cgas_certificate_contracts.py",
+        "how": "step_schema, validated with Draft202012Validator",
+        "invariant": "schema validity",
+        "present": true
+      },
+      {
+        "enforced_in": "tests/phase3/test_cgas_certificates_alignment_binding.py",
+        "how": "12 tests over the EXISTING modules",
+        "invariant": "certificate <-> alignment binding",
+        "present": true
+      },
+      {
+        "enforced_in": "scripts/phase3/cgas_release_gate.py",
+        "how": "present and working",
+        "invariant": "release digest immutability",
+        "present": true
+      }
+    ],
+    "modules": [
+      {
+        "kind": "release-process",
+        "module": "cgas_production_review_packet",
+        "module_present": false,
+        "purpose": "assemble a human review packet",
+        "test_present": false,
+        "todo": 5
+      },
+      {
+        "kind": "correctness",
+        "module": "cgas_partition_materialize",
+        "module_present": false,
+        "purpose": "materialize the selected partition",
+        "test_present": false,
+        "todo": 6
+      },
+      {
+        "kind": "release-process",
+        "module": "cgas_production_staging",
+        "module_present": false,
+        "purpose": "stage before publication",
+        "test_present": false,
+        "todo": 7
+      },
+      {
+        "kind": "correctness",
+        "module": "cgas_certificates_alignment_binding",
+        "module_present": false,
+        "purpose": "bind certificates to aligned renders",
+        "test_present": true,
+        "todo": 8
+      },
+      {
+        "kind": "release-process",
+        "module": "cgas_production_release",
+        "module_present": false,
+        "purpose": "atomic release with rollback",
+        "test_present": false,
+        "todo": 10
+      }
+    ]
+  },
+  "n4_ceiling": {
+    "ceiling_width1": 136,
+    "ceiling_width2": 189,
+    "characterized": 88,
+    "exact_width1": 14,
+    "exact_width2": 67,
+    "rate_width2": 76.1,
+    "required": 190,
+    "universe": 210
+  },
+  "off_plan": {
+    "max_plan_length": 10,
+    "mean_bfs_expansions": 274.8,
+    "mean_plan_length": 5.23,
+    "median_bfs_expansions": 39.0,
+    "median_plan_length": 6.0,
+    "off_plan_ratio": 52.6,
+    "paired_exact_instances_width2": 158,
+    "steps_per_instance_off_plan": 549.6,
+    "steps_per_instance_on_plan": 10.46
+  },
+  "sizing": [
+    {
+      "bar": 10,
+      "failure_rate": 0.4,
+      "failures_needed": 210,
+      "harvest": "on-plan (today)",
+      "held_out_steps": 525,
+      "instances": 306,
+      "renders": 1598,
+      "total_steps": 3197
+    },
+    {
+      "bar": 10,
+      "failure_rate": 0.6,
+      "failures_needed": 210,
+      "harvest": "on-plan (today)",
+      "held_out_steps": 350,
+      "instances": 204,
+      "renders": 1066,
+      "total_steps": 2131
+    },
+    {
+      "bar": 30,
+      "failure_rate": 0.4,
+      "failures_needed": 630,
+      "harvest": "on-plan (today)",
+      "held_out_steps": 1575,
+      "instances": 917,
+      "renders": 4795,
+      "total_steps": 9590
+    },
+    {
+      "bar": 30,
+      "failure_rate": 0.6,
+      "failures_needed": 630,
+      "harvest": "on-plan (today)",
+      "held_out_steps": 1050,
+      "instances": 612,
+      "renders": 3197,
+      "total_steps": 6393
+    },
+    {
+      "bar": 10,
+      "failure_rate": 0.4,
+      "failures_needed": 210,
+      "harvest": "off-plan expansions",
+      "held_out_steps": 525,
+      "instances": 6,
+      "renders": 1598,
+      "total_steps": 3197
+    },
+    {
+      "bar": 10,
+      "failure_rate": 0.6,
+      "failures_needed": 210,
+      "harvest": "off-plan expansions",
+      "held_out_steps": 350,
+      "instances": 4,
+      "renders": 1066,
+      "total_steps": 2131
+    },
+    {
+      "bar": 30,
+      "failure_rate": 0.4,
+      "failures_needed": 630,
+      "harvest": "off-plan expansions",
+      "held_out_steps": 1575,
+      "instances": 18,
+      "renders": 4795,
+      "total_steps": 9590
+    },
+    {
+      "bar": 30,
+      "failure_rate": 0.6,
+      "failures_needed": 630,
+      "harvest": "off-plan expansions",
+      "held_out_steps": 1050,
+      "instances": 12,
+      "renders": 3197,
+      "total_steps": 6393
+    }
+  ]
+}
