@@ -106,6 +106,13 @@ CLASSIFICATION: tuple[tuple[str, int, str, str, str], ...] = (
     ("tests/phase3/test_cgas_planner_semantic_parity.py", 184, "cgas-test", "asserts", "novelty_table_after contents"),
     ("tests/phase3/test_cgas_planner_semantic_parity.py", 202, "cgas-test", "asserts", "novelty_table_after contents"),
     ("tests/phase3/test_cgas_planner_semantic_parity.py", 203, "cgas-test", "asserts", "novelty_table_before == novelty_table_after on a prune"),
+    # --- v3 contract surface (added 2026-08-07): names the removed fields so the
+    #      drop is a signed, auditable contract property instead of an accident ---
+    ("scripts/phase3/cgas_trace_contract_v3.py", 69, "cgas-production", "defines-name", "v3 contract: the BFS fields v3 removes"),
+    ("scripts/phase3/cgas_trace_contract_v3.py", 70, "cgas-production", "defines-name", "v3 contract: the IW fields v3 removes"),
+    ("scripts/phase3/cgas_trace_contract_v3.py", 78, "cgas-production", "defines-name", "v3 contract: reconstruction rule R1"),
+    ("scripts/phase3/cgas_trace_contract_v3.py", 79, "cgas-production", "defines-name", "v3 contract: reconstruction rule R2"),
+    ("scripts/phase3/cgas_trace_contract_v3.py", 80, "cgas-production", "defines-name", "v3 contract: reconstruction rule R3"),
     # --- trace-v1 traversal validator: a SECOND IW consumer ---------------
     ("scripts/phase3/trace_contracts.py", 196, "cgas-production", "requires-key", "IW expand events must carry both novelty snapshots"),
     ("scripts/phase3/trace_contracts.py", 238, "cgas-production", "requires-key", "novelty_table_before must be a list"),

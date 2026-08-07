@@ -1,9 +1,10 @@
 A. Consumers of the five fields trace contract v3 removes
 
-   65 occurrences in scripts, tests, examples; 65 classified; 0 unclassified; 0 stale.
+   70 occurrences in scripts, tests, examples; 70 classified; 0 unclassified; 0 stale.
 
    lineage          role             n
    ---------------- -------------- ---
+   cgas-production  defines-name     5
    cgas-production  emitter          7
    cgas-production  reads-value      5
    cgas-production  requires-key     3

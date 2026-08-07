@@ -120,8 +120,10 @@ enqueued successor ids, which the event already carries. So:
 
 **The consumer claim, audited.** The prior packet asserted `cgas_certificate_contracts.py` is the
 only consumer of a full snapshot. `audit_v3_contract_surface.py` censuses every occurrence of the
-five affected field names across `scripts/`, `tests/`, and `examples/` — **65 occurrences, all 65
-classified**, and it fails loudly if the census and the classification ever disagree. The claim
+five affected field names across `scripts/`, `tests/`, and `examples/` — **70 occurrences, all 70
+classified**, and it fails loudly if the census and the classification ever disagree. (It was 65 when
+this packet was first drafted; `cgas_trace_contract_v3.py` has since added 5 `defines-name`
+occurrences by naming the removed fields in the signed contract. No consumer was added.) The claim
 survives, with three refinements:
 
 1. **It is two call sites in that module, not one.** `expected_certificate` (line 38) and
@@ -133,7 +135,7 @@ survives, with three refinements:
    and `test_cgas_planner_semantic_parity.py:103`. Expected, but it is scope.
 3. **`examples/planning_benchmark_slice/` is a separate lineage.** It has its own BFS and IW
    emitters, its own `trajectory_schema` requiring these names, and 15 test assertions on them. It
-   does not read CGAS streams and v3 does not touch it. 41 of the 65 occurrences are there, which is
+   does not read CGAS streams and v3 does not touch it. 43 of the 70 occurrences are there, which is
    why a raw grep makes this change look much larger than it is.
 
 `scripts/phase3/trace_contracts.py` does **not** cover BFS, so it is unaffected by 1b. It is very
