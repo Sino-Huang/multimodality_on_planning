@@ -120,22 +120,21 @@ enqueued successor ids, which the event already carries. So:
 
 **The consumer claim, audited.** The prior packet asserted `cgas_certificate_contracts.py` is the
 only consumer of a full snapshot. `audit_v3_contract_surface.py` censuses every occurrence of the
-five affected field names across `scripts/`, `tests/`, and `examples/` — **70 occurrences, all 70
-classified**, and it fails loudly if the census and the classification ever disagree. (It was 65 when
-this packet was first drafted; `cgas_trace_contract_v3.py` has since added 5 `defines-name`
-occurrences by naming the removed fields in the signed contract. No consumer was added.) The claim
-survives, with three refinements:
+five affected field names across `scripts/`, `tests/`, and `examples/` — **65 occurrences, all 65
+classified**, and it fails loudly if the census and the classification ever disagree. It was 70
+before slice 1: removing the three BFS emitter lines and three snapshot-reader lines eliminated six
+occurrences, while the Gate 0b reconstruction test added one. Before slice 1, the claim had three
+refinements:
 
-1. **It is two call sites in that module, not one.** `expected_certificate` (line 38) and
+1. **It was two call sites in that module, not one.** `expected_certificate` (line 38) and
    `_prior_bfs_visited` (line 118). The second reads the *previous* expansion's `visited_after`, so a
    stateless per-event shim silently returns the wrong `visited_delta` for every event after the
-   first. R4 makes this moot in the redesign, but only if the redesign is written against R4 rather
-   than against a naive port of the current code.
-2. **Two CGAS tests assert on the raw fields** and will go RED: `test_cgas_provenance.py:112`
-   and `test_cgas_planner_semantic_parity.py:103`. Expected, but it is scope.
+   first. Slice 1 applies R4 directly and deletes `_prior_bfs_visited`.
+2. **Two CGAS tests asserted on the raw fields:** `test_cgas_provenance.py:112` and
+   `test_cgas_planner_semantic_parity.py:103`. Slice 1 changes them to assert the fields are absent.
 3. **`examples/planning_benchmark_slice/` is a separate lineage.** It has its own BFS and IW
    emitters, its own `trajectory_schema` requiring these names, and 15 test assertions on them. It
-   does not read CGAS streams and v3 does not touch it. 43 of the 70 occurrences are there, which is
+   does not read CGAS streams and v3 does not touch it. 43 of the 65 occurrences are there, which is
    why a raw grep makes this change look much larger than it is.
 
 `scripts/phase3/trace_contracts.py` does **not** cover BFS, so it is unaffected by 1b. It is very

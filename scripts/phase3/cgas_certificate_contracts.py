@@ -33,9 +33,22 @@ def expected_certificate(source: dict[str, object]) -> dict[str, object]:
     match algorithm:
         case "breadth_first_search":
             expansion = _bfs_expansion(source, trace)
-            previous = _prior_bfs_visited(source, trace)
-            visited_after = _strings(expansion, "visited_after")
-            return {"kind": "bfs", "frontier_head": _strings(expansion, "frontier_before")[0], "frontier_order_summary": _strings(expansion, "frontier_after"), "visited_delta": sorted(set(visited_after) - previous), "expanded_state": _text(expansion, "state_id")}
+            expansions = _list(trace, "expansions")
+            index = expansions.index(expansion)
+            frontier = [_text(_mapping_item(expansions[0], "first_expansion"), "state_id")]
+            enqueued: list[str] = []
+            for item in expansions[: index + 1]:
+                enqueued = _bfs_enqueued(_mapping_item(item, "bfs_expansion"))
+                frontier = [*frontier[1:], *enqueued]
+            state_id = _text(expansion, "state_id")
+            visited_delta = sorted([*enqueued, *([state_id] if index == 0 else [])])
+            return {
+                "kind": "bfs",
+                "frontier_head": state_id,
+                "frontier_order_summary": frontier,
+                "visited_delta": visited_delta,
+                "expanded_state": state_id,
+            }
         case "iterated_width":
             event = _iw_event(source, trace)
             before = set(_strings(event, "novelty_table_before"))
@@ -111,11 +124,9 @@ def _bfs_expansion(source: dict[str, object], trace: dict[str, object]) -> dict[
     return matches[0]
 
 
-def _prior_bfs_visited(source: dict[str, object], trace: dict[str, object]) -> set[str]:
-    expansion = _bfs_expansion(source, trace)
-    expansions = _list(trace, "expansions")
-    index = expansions.index(expansion)
-    return set() if index == 0 else set(_strings(_mapping_item(expansions[index - 1], "previous_expansion"), "visited_after"))
+def _bfs_enqueued(expansion: dict[str, object]) -> list[str]:
+    successors = [_mapping_item(item, "bfs_successor") for item in _list(expansion, "successors")]
+    return [_text(successor, "state_id") for successor in successors if successor.get("enqueued") is True]
 
 
 def _iw_event(source: dict[str, object], trace: dict[str, object]) -> dict[str, object]:

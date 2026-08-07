@@ -1,14 +1,14 @@
 A. Consumers of the five fields trace contract v3 removes
 
-   70 occurrences in scripts, tests, examples; 70 classified; 0 unclassified; 0 stale.
+   65 occurrences in scripts, tests, examples; 65 classified; 0 unclassified; 0 stale.
 
    lineage          role             n
    ---------------- -------------- ---
    cgas-production  defines-name     5
-   cgas-production  emitter          7
-   cgas-production  reads-value      5
+   cgas-production  emitter          4
+   cgas-production  reads-value      2
    cgas-production  requires-key     3
-   cgas-test        asserts          7
+   cgas-test        asserts          8
    slice            asserts         15
    slice            defines-name     5
    slice            emitter         17
@@ -17,16 +17,10 @@ A. Consumers of the five fields trace contract v3 removes
 
    Every line that CONSUMES a value (reads-value / requires-key) on the CGAS path:
 
-     scripts/phase3/cgas_certificate_contracts.py:37  [reads-value]
-       visited_after of THIS expansion
-     scripts/phase3/cgas_certificate_contracts.py:38  [reads-value]
-       frontier_before[0] -> frontier_head; frontier_after -> frontier_order_summary; visited_after -> visited_delta
-     scripts/phase3/cgas_certificate_contracts.py:41  [reads-value]
+     scripts/phase3/cgas_certificate_contracts.py:54  [reads-value]
        novelty_table_before -> seen_feature_delta
-     scripts/phase3/cgas_certificate_contracts.py:42  [reads-value]
+     scripts/phase3/cgas_certificate_contracts.py:55  [reads-value]
        novelty_table_after -> seen_feature_delta
-     scripts/phase3/cgas_certificate_contracts.py:118  [reads-value]
-       visited_after of the PREVIOUS expansion -- second call site, easy to miss
      scripts/phase3/trace_contracts.py:196  [requires-key]
        IW expand events must carry both novelty snapshots
      scripts/phase3/trace_contracts.py:238  [requires-key]

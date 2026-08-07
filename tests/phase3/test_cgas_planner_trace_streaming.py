@@ -52,7 +52,7 @@ def test_bfs_streaming_preserves_search_without_retaining_events() -> None:
     trace_bytes = json.dumps(
         retained.trace, allow_nan=False, ensure_ascii=True, separators=(",", ":"), sort_keys=True
     ).encode()
-    assert hashlib.sha256(trace_bytes).hexdigest() == "9f6fb29a80e4363ab3055f5ef7c4984aab3eb60a161da4a254cd21bc0852c70f"
+    assert hashlib.sha256(trace_bytes).hexdigest() == "169fe23465573c613076c944ef121117a595d4a05629102b27904b8ee457478a"
 
 
 def test_iw_streaming_preserves_search_without_retaining_events() -> None:

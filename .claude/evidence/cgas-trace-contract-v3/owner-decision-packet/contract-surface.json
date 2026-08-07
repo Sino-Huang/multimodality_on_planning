@@ -41,8 +41,8 @@
     }
   },
   "field_consumers": {
-    "classified_count": 70,
-    "hit_count": 70,
+    "classified_count": 65,
+    "hit_count": 65,
     "rows": [
       {
         "line": 84,
@@ -269,47 +269,7 @@
         "source": "for field in (\"novelty_table_before\", \"novelty_table_after\"):"
       },
       {
-        "line": 131,
-        "lineage": "cgas-production",
-        "note": "frontier_after: identify() over the live FIFO deque",
-        "path": "scripts/phase3/cgas_bfs.py",
-        "role": "emitter",
-        "source": "\"frontier_after\": [self.identify(item[0]) for item in frontier],"
-      },
-      {
-        "line": 132,
-        "lineage": "cgas-production",
-        "note": "frontier_before: literal [state_id] -- zero information",
-        "path": "scripts/phase3/cgas_bfs.py",
-        "role": "emitter",
-        "source": "\"frontier_before\": [state_id],"
-      },
-      {
-        "line": 136,
-        "lineage": "cgas-production",
-        "note": "visited_after: full sorted visited list",
-        "path": "scripts/phase3/cgas_bfs.py",
-        "role": "emitter",
-        "source": "\"visited_after\": list(self._visited),"
-      },
-      {
-        "line": 37,
-        "lineage": "cgas-production",
-        "note": "visited_after of THIS expansion",
-        "path": "scripts/phase3/cgas_certificate_contracts.py",
-        "role": "reads-value",
-        "source": "visited_after = _strings(expansion, \"visited_after\")"
-      },
-      {
-        "line": 38,
-        "lineage": "cgas-production",
-        "note": "frontier_before[0] -> frontier_head; frontier_after -> frontier_order_summary; visited_after -> visited_delta",
-        "path": "scripts/phase3/cgas_certificate_contracts.py",
-        "role": "reads-value",
-        "source": "return {\"kind\": \"bfs\", \"frontier_head\": _strings(expansion, \"frontier_before\")[0], \"frontier_order_summary\": _strings(expansion, \"frontier_after\"), \"visited_delta\": sorted(set(visited_after) - previous), \"expanded_state\": _text(expansion, \"state_id\")}"
-      },
-      {
-        "line": 41,
+        "line": 54,
         "lineage": "cgas-production",
         "note": "novelty_table_before -> seen_feature_delta",
         "path": "scripts/phase3/cgas_certificate_contracts.py",
@@ -317,20 +277,12 @@
         "source": "before = set(_strings(event, \"novelty_table_before\"))"
       },
       {
-        "line": 42,
+        "line": 55,
         "lineage": "cgas-production",
         "note": "novelty_table_after -> seen_feature_delta",
         "path": "scripts/phase3/cgas_certificate_contracts.py",
         "role": "reads-value",
         "source": "after = set(_strings(event, \"novelty_table_after\"))"
-      },
-      {
-        "line": 118,
-        "lineage": "cgas-production",
-        "note": "visited_after of the PREVIOUS expansion -- second call site, easy to miss",
-        "path": "scripts/phase3/cgas_certificate_contracts.py",
-        "role": "reads-value",
-        "source": "return set() if index == 0 else set(_strings(_mapping_item(expansions[index - 1], \"previous_expansion\"), \"visited_after\"))"
       },
       {
         "line": 69,
@@ -429,15 +381,23 @@
         "source": "_list(event, \"novelty_table_after\")"
       },
       {
-        "line": 103,
+        "line": 11,
         "lineage": "cgas-test",
-        "note": "frontier_after == the two successor ids",
-        "path": "tests/phase3/test_cgas_planner_semantic_parity.py",
+        "note": "Gate 0b strips all three BFS snapshots before rebuilding fixture certificates",
+        "path": "tests/phase3/test_cgas_bfs_reader_shim.py",
         "role": "asserts",
-        "source": "assert expansions[0][\"frontier_after\"] == [successors[0][\"state_id\"], successors[1][\"state_id\"]]"
+        "source": "SNAPSHOT_FIELDS = (\"frontier_before\", \"frontier_after\", \"visited_after\")"
       },
       {
-        "line": 184,
+        "line": 102,
+        "lineage": "cgas-test",
+        "note": "frontier_after is absent from native BFS traces",
+        "path": "tests/phase3/test_cgas_planner_semantic_parity.py",
+        "role": "asserts",
+        "source": "assert \"frontier_after\" not in expansions[0]"
+      },
+      {
+        "line": 183,
         "lineage": "cgas-test",
         "note": "novelty_table_after contents",
         "path": "tests/phase3/test_cgas_planner_semantic_parity.py",
@@ -445,7 +405,7 @@
         "source": "assert events[0][\"novelty_table_after\"] == [\"(start)\"]"
       },
       {
-        "line": 202,
+        "line": 201,
         "lineage": "cgas-test",
         "note": "novelty_table_after contents",
         "path": "tests/phase3/test_cgas_planner_semantic_parity.py",
@@ -453,7 +413,7 @@
         "source": "assert events[1][\"novelty_table_after\"] == [\"(p)\", \"(q)\", \"(r)\"]"
       },
       {
-        "line": 203,
+        "line": 202,
         "lineage": "cgas-test",
         "note": "novelty_table_before == novelty_table_after on a prune",
         "path": "tests/phase3/test_cgas_planner_semantic_parity.py",
@@ -471,13 +431,13 @@
       {
         "line": 112,
         "lineage": "cgas-test",
-        "note": "frontier_before == [state_id]",
+        "note": "frontier_before is absent from regenerated traces",
         "path": "tests/phase3/test_cgas_provenance.py",
         "role": "asserts",
-        "source": "assert bfs_rows[0][\"planner_trace\"][\"expansions\"][0][\"frontier_before\"] == ["
+        "source": "assert \"frontier_before\" not in bfs_rows[0][\"planner_trace\"][\"expansions\"][0]"
       },
       {
-        "line": 118,
+        "line": 116,
         "lineage": "cgas-test",
         "note": "pins the exact IW event key set",
         "path": "tests/phase3/test_cgas_provenance.py",

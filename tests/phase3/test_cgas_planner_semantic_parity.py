@@ -99,8 +99,7 @@ def test_bfs_uses_sorted_actions_and_fifo_frontier_order() -> None:
     assert result.trace["expansion_count"] == 2
     expansions = _records(result.trace, "expansions")
     assert expansions[0]["actions_considered"] == ["(to-a)", "(to-b)"]
-    successors = _records(expansions[0], "successors")
-    assert expansions[0]["frontier_after"] == [successors[0]["state_id"], successors[1]["state_id"]]
+    assert "frontier_after" not in expansions[0]
 
 
 def test_bfs_allows_goal_on_final_permitted_expansion() -> None:

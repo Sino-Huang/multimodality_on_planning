@@ -109,9 +109,7 @@ def test_cgas_cli_publishes_canonical_bfs_and_exact_width_one_iw_for_every_split
             "(pickup b)",
             "(pickup c)",
         ]
-        assert bfs_rows[0]["planner_trace"]["expansions"][0]["frontier_before"] == [
-            bfs_rows[0]["state_before_id"]
-        ]
+        assert "frontier_before" not in bfs_rows[0]["planner_trace"]["expansions"][0]
         assert iw_rows[0]["planner"]["width"] == 1
         assert "plan_recovery" not in iw_rows[0]["planner_trace"]
         assert all(

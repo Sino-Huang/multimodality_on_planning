@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-from bisect import insort
 from collections import deque
 from dataclasses import dataclass
 from typing import Final
@@ -70,11 +69,10 @@ def run_fifo_bfs(
                     (), _trace(expansions, expansion_count, trace_sink is not None), "skipped_resource_limit"
                 )
             visited.add(successor)
-            state_index.add(successor_id)
             frontier.append((successor, next_plan))
             if is_goal:
                 if retain_expansion:
-                    record_trace_event(expansions, trace_sink, state_index.expansion(state, frontier, successor_rows))
+                    record_trace_event(expansions, trace_sink, state_index.expansion(state, successor_rows))
                 trace = _trace(expansions, expansion_count, trace_sink is not None)
                 return BFSResult(
                     next_plan,
@@ -82,7 +80,7 @@ def run_fifo_bfs(
                     "success_full_trace" if trace["trace_complete"] is True else "success_truncated_trace",
                 )
         if retain_expansion:
-            record_trace_event(expansions, trace_sink, state_index.expansion(state, frontier, successor_rows))
+            record_trace_event(expansions, trace_sink, state_index.expansion(state, successor_rows))
     return BFSResult((), _trace(expansions, expansion_count, trace_sink is not None), "failed_no_plan_extracted")
 
 
@@ -102,12 +100,11 @@ def _trace(
 
 
 class _StateIndex:
-    __slots__ = ("_identities", "_visited")
+    __slots__ = ("_identities",)
 
     def __init__(self, start: frozenset[Atom]) -> None:
         identity = _state_id(start)
         self._identities = {start: identity}
-        self._visited = [identity]
 
     def identify(self, state: frozenset[Atom]) -> str:
         identity = self._identities.get(state)
@@ -116,24 +113,17 @@ class _StateIndex:
             self._identities[state] = identity
         return identity
 
-    def add(self, identity: str) -> None:
-        insort(self._visited, identity)
-
     def expansion(
         self,
         state: frozenset[Atom],
-        frontier: deque[tuple[frozenset[Atom], tuple[str, ...]]],
         successors: list[dict[str, JSONValue]],
     ) -> dict[str, JSONValue]:
         state_id = self.identify(state)
         return {
             "actions_considered": [row["action"] for row in successors],
-            "frontier_after": [self.identify(item[0]) for item in frontier],
-            "frontier_before": [state_id],
             "state_atoms": _atoms(state),
             "state_id": state_id,
             "successors": successors,
-            "visited_after": list(self._visited),
         }
 
 
