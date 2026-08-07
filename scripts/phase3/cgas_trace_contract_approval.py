@@ -4,18 +4,15 @@ import argparse
 import hashlib
 import json
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Sequence
+from typing import Callable, Final, Sequence
 
+from . import cgas_trace_contract_v2, cgas_trace_contract_v3
 from .cgas_trace_contract_v2 import (
-    CONTRACT_ID,
-    NEW_CONTRACT_SHA256,
-    POLICY_SHA256,
     TraceContractPacketError,
     _canonical_bytes,
     _publish_immutable,
-    validate_packet_bytes,
 )
 from .local_planner_types import JSONValue
 
@@ -30,16 +27,60 @@ class TraceApprovalError(RuntimeError):
 
 
 @dataclass(frozen=True, slots=True)
+class ContractBinding:
+    """One trace contract's approval surface.
+
+    The validator dispatches on the `contract_id` the owner artifact declares, not on
+    anything the caller asserts, so a signature can only ever approve the contract it
+    names. Rule prefixes are per contract because error strings are checked by tests
+    and quoted in the production plan.
+    """
+
+    contract_id: str
+    approval_scope: str
+    status: str
+    rule_prefix: str
+    contract_sha256: str
+    policy_sha256: str
+    validate_packet: Callable[[bytes, Path], dict[str, JSONValue]]
+
+
+_V2_BINDING: Final = ContractBinding(
+    cgas_trace_contract_v2.CONTRACT_ID,
+    "trace_v2_persistence_only",
+    "approved_trace_v2",
+    "trace_v2",
+    cgas_trace_contract_v2.NEW_CONTRACT_SHA256,
+    cgas_trace_contract_v2.POLICY_SHA256,
+    cgas_trace_contract_v2.validate_packet_bytes,
+)
+_V3_BINDING: Final = ContractBinding(
+    cgas_trace_contract_v3.CONTRACT_ID,
+    cgas_trace_contract_v3.APPROVAL_SCOPE,
+    "approved_trace_v3",
+    "trace_v3",
+    cgas_trace_contract_v3.NEW_CONTRACT_SHA256,
+    cgas_trace_contract_v3.POLICY_SHA256,
+    cgas_trace_contract_v3.validate_packet_bytes,
+)
+BINDINGS: Final = {binding.contract_id: binding for binding in (_V2_BINDING, _V3_BINDING)}
+# An unreadable or unrecognised artifact is reported under v2's rules, which is what
+# every caller and the production plan already expect from malformed input.
+DEFAULT_BINDING: Final = _V2_BINDING
+
+
+@dataclass(frozen=True, slots=True)
 class ApprovedTraceContract:
     packet_sha256: str
     owner_approval_sha256: str
     policy_sha256: str
     contract_sha256: str
     status: str
+    contract_id: str = cgas_trace_contract_v2.CONTRACT_ID
 
     def to_record(self) -> dict[str, str | bool]:
         return {
-            "contract_id": CONTRACT_ID,
+            "contract_id": self.contract_id,
             "contract_sha256": self.contract_sha256,
             "owner_approval_sha256": self.owner_approval_sha256,
             "owner_approved": True,
@@ -54,12 +95,13 @@ class VerifiedOwnerApproval:
     contract: ApprovedTraceContract
     approved_at: str
     owner_id: str
+    binding: ContractBinding = field(default=DEFAULT_BINDING)
 
     def approved_record(self) -> dict[str, str | bool]:
         return {
             "approved_at": self.approved_at,
-            "approval_scope": "trace_v2_persistence_only",
-            "contract_id": CONTRACT_ID,
+            "approval_scope": self.binding.approval_scope,
+            "contract_id": self.binding.contract_id,
             "contract_sha256": self.contract.contract_sha256,
             "owner_approval_sha256": self.contract.owner_approval_sha256,
             "owner_approved": True,
@@ -74,35 +116,41 @@ class VerifiedOwnerApproval:
 def verify_owner_approval(packet_path: Path, approval_path: Path) -> VerifiedOwnerApproval:
     packet_bytes = packet_path.read_bytes()
     approval_bytes = approval_path.read_bytes()
-    approval = _parse_approval(approval_bytes, approval_path)
+    binding = binding_for(approval_bytes)
+    approval = _parse_approval(approval_bytes, approval_path, binding)
     packet_sha256 = hashlib.sha256(packet_bytes).hexdigest()
     if approval.get("packet_sha256") != packet_sha256:
-        raise TraceApprovalError("trace_v2_approval_packet_mismatch", approval_path)
+        raise TraceApprovalError(f"{binding.rule_prefix}_approval_packet_mismatch", approval_path)
     try:
-        packet = validate_packet_bytes(packet_bytes, packet_path)
+        packet = binding.validate_packet(packet_bytes, packet_path)
     except TraceContractPacketError as error:
         raise TraceApprovalError(error.rule, error.path) from error
     expected_bindings = {
-        "approval_scope": "trace_v2_persistence_only",
-        "contract_id": CONTRACT_ID,
+        "approval_scope": binding.approval_scope,
+        "contract_id": binding.contract_id,
         "contract_sha256": packet["new_contract_sha256"],
         "owner_approved": True,
         "policy_sha256": packet["policy_sha256"],
         "schema_version": "cgas_trace_contract_owner_approval_v1",
     }
     if any(approval.get(key) != value for key, value in expected_bindings.items()):
-        raise TraceApprovalError("trace_v2_approval_contract_mismatch", approval_path)
+        raise TraceApprovalError(f"{binding.rule_prefix}_approval_contract_mismatch", approval_path)
     owner_id = approval.get("owner_id")
     approved_at = approval.get("approved_at")
     if not isinstance(owner_id, str) or not owner_id.strip():
-        raise TraceApprovalError("trace_v2_approval_owner_identity_missing", approval_path)
+        raise TraceApprovalError(f"{binding.rule_prefix}_approval_owner_identity_missing", approval_path)
     if not isinstance(approved_at, str) or not approved_at.strip():
-        raise TraceApprovalError("trace_v2_approval_owner_identity_missing", approval_path)
+        raise TraceApprovalError(f"{binding.rule_prefix}_approval_owner_identity_missing", approval_path)
     owner_approval_sha256 = hashlib.sha256(approval_bytes).hexdigest()
     contract = ApprovedTraceContract(
-        packet_sha256, owner_approval_sha256, POLICY_SHA256, NEW_CONTRACT_SHA256, "approved_trace_v2"
+        packet_sha256,
+        owner_approval_sha256,
+        binding.policy_sha256,
+        binding.contract_sha256,
+        binding.status,
+        binding.contract_id,
     )
-    return VerifiedOwnerApproval(contract, approved_at, owner_id)
+    return VerifiedOwnerApproval(contract, approved_at, owner_id, binding)
 
 
 def validate_owner_approval(packet_path: Path, approval_path: Path, output_path: Path) -> ApprovedTraceContract:
@@ -111,13 +159,27 @@ def validate_owner_approval(packet_path: Path, approval_path: Path, output_path:
     return verified.contract
 
 
-def _parse_approval(contents: bytes, path: Path) -> dict[str, JSONValue]:
+def binding_for(contents: bytes) -> ContractBinding:
+    """Pick the contract from what the owner artifact declares about itself."""
+    try:
+        value = json.loads(contents)
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        return DEFAULT_BINDING
+    if not isinstance(value, dict):
+        return DEFAULT_BINDING
+    contract_id = value.get("contract_id")
+    if not isinstance(contract_id, str):
+        return DEFAULT_BINDING
+    return BINDINGS.get(contract_id, DEFAULT_BINDING)
+
+
+def _parse_approval(contents: bytes, path: Path, binding: ContractBinding) -> dict[str, JSONValue]:
     if not contents.endswith(b"\n") or contents.endswith(b"\n\n"):
-        raise TraceApprovalError("trace_v2_approval_noncanonical", path)
+        raise TraceApprovalError(f"{binding.rule_prefix}_approval_noncanonical", path)
     try:
         value = json.loads(contents)
     except (UnicodeDecodeError, json.JSONDecodeError) as error:
-        raise TraceApprovalError("trace_v2_approval_malformed", path) from error
+        raise TraceApprovalError(f"{binding.rule_prefix}_approval_malformed", path) from error
     expected_keys = {
         "approved_at",
         "approval_scope",
@@ -130,7 +192,7 @@ def _parse_approval(contents: bytes, path: Path) -> dict[str, JSONValue]:
         "schema_version",
     }
     if not isinstance(value, dict) or set(value) != expected_keys or _canonical_bytes(value) + b"\n" != contents:
-        raise TraceApprovalError("trace_v2_approval_noncanonical", path)
+        raise TraceApprovalError(f"{binding.rule_prefix}_approval_noncanonical", path)
     return value
 
 

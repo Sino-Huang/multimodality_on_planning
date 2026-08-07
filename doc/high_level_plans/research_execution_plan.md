@@ -516,39 +516,51 @@ The 481 target, the paired-exact requirement, and `local_iw_width=1` were all ap
 
 ## Recommended Next Milestone
 
-**Rule on the trace contract v3 owner decision packet, then implement v3 under RED/GREEN TDD.**
+**Implement the v3 event shape in the emitters, test-first, then regenerate.**
 
-`.claude/evidence/cgas-trace-contract-v3/owner-decision-packet/DECISION.md` — drafted 2026-08-07,
-awaiting a ruling. It carries two decisions: authorize contract v3 (width escalation on in policy,
-the three reconstructible BFS snapshot fields dropped with a reader shim, the truncated IW novelty
-snapshots replaced by an emitted delta, a per-record size bound enforced at write time, the IW
-record-count formula corrected for escalation, and release of the 2,252.82 GiB of v2 streams); and
-confirm that per-expansion certificate data stays retained, so off-plan certificate harvesting is
-not foreclosed.
+Contract v3 was **approved by the owner on 2026-08-07** —
+`.claude/evidence/cgas-trace-contract-v3/approved-trace-v3.json`. The decision packet that carried
+it is at `.claude/evidence/cgas-trace-contract-v3/owner-decision-packet/DECISION.md`.
 
-A companion packet in the same directory, `DECISION-pilot-provenance.md`, asks whether the
-calibration pilot needs release-grade provenance or only reproducibility. It is separate because its
-answer depends on the pilot's size, and it does not block v3.
+Done: the contract module (`scripts/phase3/cgas_trace_contract_v3.py`), its migration packet, the
+owner signature, and a contract-aware approval path that still reproduces the v2 record
+byte-for-byte.
 
-Nothing downstream can move until v3 is ruled on: no further Todo 3 round fits on disk under v2, and
-no width-2 corpus can carry a sound `seen_feature_delta`.
+Remaining for M1: the three emitter slices in *Immediate Next Steps* 2, the runner cutover in step 3,
+and regeneration. Nothing is blocked on a decision.
+
+`DECISION-pilot-provenance.md` — whether the calibration pilot needs release-grade provenance or only
+reproducibility — is still open, and is rulable once the stability bar is stated. It does not block
+any of the above.
 
 ## Immediate Next Steps
 
-1. Obtain the owner ruling on `DECISION.md` — contract v3, and off-plan certificate retention.
-2. Implement v3 test-first in `scripts/phase3/`. First files: `cgas_bfs.py`, `local_iw.py`,
-   `cgas_certificate_contracts.py`, `trace_contracts.py` (version-dispatched IW required fields, so
-   the fixture pinned to release digest `3bc89431…6b3c` stays green), `cgas_trace_stream_v2.py`, and
-   a new `cgas_trace_contract_v3.py`. Publish the v3 migration packet and owner-approval template to
-   **new** paths — `_require_compatible_destination` raises rather than overwrites — and re-approve
-   through `cgas_trace_contract_approval.py`.
-3. Regenerate the corpus under v3, verify against Gate 0b, then release the v2 stream bytes.
-4. State the first-failure-matrix stability bar (≥10 vs ≥30 observations per cell) and an
-   instance-diversity floor. These size the pilot and decide the companion packet.
-5. Size the pilot corpus for calibration, and decide whether it can reuse the 158 already-enumerated
+1. ~~Obtain the owner ruling on `DECISION.md`.~~ **Contract v3 approved 2026-08-07.**
+   `.claude/evidence/cgas-trace-contract-v3/approved-trace-v3.json`, contract `be1a3eb9…34d1`,
+   policy `51acff53…d436`, packet `ee908a71…b55f`. The v3 contract module and the approval path are
+   implemented and green; the emitters are not.
+2. Implement the v3 event shape test-first in `scripts/phase3/`, in this order — each is a separable
+   RED/GREEN slice:
+   - `cgas_bfs.py` stops emitting `frontier_before` / `frontier_after` / `visited_after`;
+     `cgas_certificate_contracts.py` reconstructs `frontier_head` and `visited_delta` per R1/R4 and
+     `frontier_order_summary` by a running FIFO fold. Note the second call site at line 118, which
+     reads the *previous* expansion.
+   - `local_iw.py` emits `seen_feature_delta` instead of the two truncated novelty snapshots;
+     `trace_contracts._iw_required_fields` dispatches on trace contract version so the fixture
+     pinned to release digest `3bc89431…6b3c` stays green.
+   - `cgas_trace_stream_v2.py` enforces `MAX_EVENT_BYTES` on `len(line)` at write time, version
+     gated so the existing 4 MB v2 records still verify.
+3. **Cut the runner over to v3.** `cgas_candidate_characterization_contracts.validate_approval`
+   hardcodes the `trace-v2-*` filenames, and `ApprovedTraceModel` pins v2 literals. Both must move
+   together, and only at regeneration — checkpoint 1 records v2's `approved_trace_sha256`
+   (`bd6909f9…26a8`), so flipping them earlier invalidates the existing chain.
+4. Regenerate the corpus under v3, verify against Gate 0b, then release the v2 stream bytes.
+5. State the first-failure-matrix stability bar (≥10 vs ≥30 observations per cell) and an
+   instance-diversity floor. These size the pilot and decide `DECISION-pilot-provenance.md`.
+6. Size the pilot corpus for calibration, and decide whether it can reuse the 158 already-enumerated
    width-2 paired-exact instances.
-6. Specify the bounded certificate-store API and its no-oracle-leakage tests.
-7. Create one direct-VLM calibration configuration and one evaluation command that reports first certificate failures.
+7. Specify the bounded certificate-store API and its no-oracle-leakage tests.
+8. Create one direct-VLM calibration configuration and one evaluation command that reports first certificate failures.
 
 ## Gates and Falsification
 

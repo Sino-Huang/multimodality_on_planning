@@ -252,3 +252,137 @@ def _canonical(value: object) -> bytes:
 def _digest(value: object) -> str:
     payload = json.dumps(value, ensure_ascii=True, sort_keys=True, separators=(",", ":"), allow_nan=False)
     return hashlib.sha256(payload.encode()).hexdigest()
+
+
+def _signed_approval(packet_path: Path, owner_id: str = "test-only-owner", **overrides: object) -> dict[str, object]:
+    packet = json.loads(packet_path.read_text(encoding="utf-8"))
+    approval: dict[str, object] = {
+        "approval_scope": "trace_v3_persistence_and_policy",
+        "approved_at": "2026-08-07T00:00:00Z",
+        "contract_id": "cgas_trace_contract_v3",
+        "contract_sha256": packet["new_contract_sha256"],
+        "owner_approved": True,
+        "owner_id": owner_id,
+        "packet_sha256": hashlib.sha256(packet_path.read_bytes()).hexdigest(),
+        "policy_sha256": packet["policy_sha256"],
+        "schema_version": "cgas_trace_contract_owner_approval_v1",
+    }
+    approval.update(overrides)
+    return approval
+
+
+def test_owner_approval_validates_and_publishes_an_approved_v3_contract(tmp_path: Path) -> None:
+    # Given: an immutable v3 packet and a separately supplied owner decision.
+    from scripts.phase3.cgas_trace_contract_approval import validate_owner_approval
+    from scripts.phase3.cgas_trace_contract_v3 import NEW_CONTRACT_SHA256, POLICY_SHA256, publish_migration_packet
+
+    packet = tmp_path / "packet.json"
+    publish_migration_packet(packet, tmp_path / "owner.template.json")
+    owner = tmp_path / "owner-approval.json"
+    owner.write_bytes(_canonical(_signed_approval(packet)))
+    output = tmp_path / "approved.json"
+
+    # When: the approval is validated against the exact packet bytes.
+    approved = validate_owner_approval(packet, owner, output)
+
+    # Then: the published record binds the v3 contract, not v2's, and carries the
+    # owner artifact's own digest so the signature cannot be swapped after the fact.
+    assert approved.status == "approved_trace_v3"
+    assert approved.contract_sha256 == NEW_CONTRACT_SHA256
+    assert approved.policy_sha256 == POLICY_SHA256
+    assert approved.owner_approval_sha256 == hashlib.sha256(owner.read_bytes()).hexdigest()
+    record = json.loads(output.read_text(encoding="utf-8"))
+    assert record["contract_id"] == "cgas_trace_contract_v3"
+    assert record["approval_scope"] == "trace_v3_persistence_and_policy"
+    assert record["owner_approved"] is True
+    assert record["owner_id"] == "test-only-owner"
+
+
+def test_approval_refuses_a_v3_signature_against_the_v2_packet(tmp_path: Path) -> None:
+    # Given: a v3 owner signature and the signed v2 packet it does not describe.
+    from scripts.phase3.cgas_trace_contract_approval import TraceApprovalError, validate_owner_approval
+    from scripts.phase3.cgas_trace_contract_v3 import publish_migration_packet
+
+    v3_packet = tmp_path / "packet.json"
+    publish_migration_packet(v3_packet, tmp_path / "owner.template.json")
+    owner = tmp_path / "owner-approval.json"
+    owner.write_bytes(_canonical(_signed_approval(v3_packet)))
+    v2_packet = REPOSITORY_ROOT / ".claude/evidence/cgas-production-p0/trace-v2-migration-packet.json"
+    output = tmp_path / "approved.json"
+
+    # When: the v3 signature is pointed at the v2 packet.
+    # Then: cross-contract approval fails closed and publishes nothing.
+    with pytest.raises(TraceApprovalError):
+        validate_owner_approval(v2_packet, owner, output)
+    assert not output.exists()
+
+
+def test_approval_never_synthesizes_the_owner_for_v3(tmp_path: Path) -> None:
+    # Given: v3 approvals missing the two fields that make them attributable.
+    from scripts.phase3.cgas_trace_contract_approval import TraceApprovalError, validate_owner_approval
+    from scripts.phase3.cgas_trace_contract_v3 import publish_migration_packet
+
+    packet = tmp_path / "packet.json"
+    publish_migration_packet(packet, tmp_path / "owner.template.json")
+    output = tmp_path / "approved.json"
+
+    for index, mutate in enumerate(
+        (
+            lambda value: value.pop("owner_id"),
+            lambda value: value.pop("approved_at"),
+            lambda value: value.update({"owner_id": "   "}),
+            lambda value: value.update({"owner_approved": False}),
+        )
+    ):
+        approval = _signed_approval(packet)
+        mutate(approval)
+        owner = tmp_path / f"owner-{index}.json"
+        owner.write_bytes(_canonical(approval))
+
+        # When/Then: each is refused and nothing is published.
+        with pytest.raises(TraceApprovalError):
+            validate_owner_approval(packet, owner, output)
+    assert not output.exists()
+
+
+def test_approval_refuses_a_v3_packet_tampered_after_signature(tmp_path: Path) -> None:
+    # Given: a validly signed v3 approval.
+    from scripts.phase3.cgas_trace_contract_approval import TraceApprovalError, validate_owner_approval
+    from scripts.phase3.cgas_trace_contract_v3 import publish_migration_packet
+
+    packet = tmp_path / "packet.json"
+    publish_migration_packet(packet, tmp_path / "owner.template.json")
+    owner = tmp_path / "owner-approval.json"
+    owner.write_bytes(_canonical(_signed_approval(packet)))
+    validate_owner_approval(packet, owner, tmp_path / "approved.json")
+
+    # When: the packet bytes change after the owner signed them.
+    packet.write_bytes(packet.read_bytes().replace(b'"owner_approved":false', b'"owner_approved":true'))
+
+    # Then: the stale approval is refused under a v3 rule, with no side effect.
+    stale = tmp_path / "stale-approved.json"
+    with pytest.raises(TraceApprovalError, match="trace_v3_approval_packet_mismatch"):
+        validate_owner_approval(packet, owner, stale)
+    assert not stale.exists()
+
+
+def test_the_committed_v2_approval_still_reproduces_byte_for_byte(tmp_path: Path) -> None:
+    # Given: the owner's real 2026-08-03 v2 approval and the record published from it.
+    # This is the regression guard on making the approval path contract-aware: the v2
+    # lineage must be bit-identical, because reservoir_checkpoint_000001.json binds it.
+    from scripts.phase3.cgas_trace_contract_approval import validate_owner_approval
+
+    evidence = REPOSITORY_ROOT / ".claude/evidence/cgas-production-p0"
+    committed = (evidence / "approved-trace-v2.json").read_bytes()
+    output = tmp_path / "approved-trace-v2.json"
+
+    # When: the same inputs are re-validated today.
+    approved = validate_owner_approval(
+        evidence / "trace-v2-migration-packet.json", evidence / "trace-v2-owner-approval.json", output
+    )
+
+    # Then: the bytes are identical to what the checkpoint chain already records.
+    assert output.read_bytes() == committed
+    assert approved.status == "approved_trace_v2"
+    assert json.loads(committed)["approval_scope"] == "trace_v2_persistence_only"
+
