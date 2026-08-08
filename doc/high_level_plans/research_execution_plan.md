@@ -269,37 +269,27 @@ One new persistence contract carrying every known defect, one owner approval, on
 *Scoped by the v3 owner decision packet
 (`.claude/evidence/cgas-trace-contract-v3/owner-decision-packet/DECISION.md`), 2026-08-07.*
 
-- ~~Implement true iterative width escalation in `local_iw.py`.~~ **Built.** What remains is moving
-  `POLICY_LIMITS` — `local_iw_max_width` 1 → 2 plus `local_iw_escalate` — which is what invalidates
-  `POLICY_SHA256` and therefore the existing approval. The event-field drops below do **not** move
-  `NEW_CONTRACT_SHA256`, which describes stream framing only.
-- Stop persisting `frontier_before` / `frontier_after` / `visited_after`. Add a reader shim that
-  rebuilds `frontier_order_summary` by a running FIFO fold — the **only** certificate field that
-  needs a fold. `frontier_head` is `state_id` verbatim and `visited_delta` is this event's enqueued
-  successor ids, both already carried. `cgas_certificate_contracts.py` is the only production
-  consumer, but at **two** call sites: `expected_certificate` (line 38) and `_prior_bfs_visited`
-  (line 118), the second reading the *previous* expansion.
-- Replace the IW truncated novelty snapshots with an emitted `seen_feature_delta`. Note the second
-  consumer: `trace_contracts.py:196,238-239` hard-requires both snapshot keys on IW expand events and
-  is pinned by `test_cgas_fixture_archive.py` against release digest `3bc89431…6b3c`, so the required
-  field set must be **dispatched on trace contract version**, not edited in place.
-- Add the per-record **size** bound the previous contract omitted: `MAX_EVENT_BYTES` enforced on
-  `len(line)` in `write_trace_stream` (`cgas_trace_stream_v2.py:68-69`), mirroring the record-count
-  bound five lines below it. `verify_trace_stream:114` already refuses lines over 16 MiB on the read
-  side; today there is no write-side counterpart. Element-count bounds belong in the emitters and in
-  `bounds_proof`, not in the schema-agnostic stream writer.
-- Correct the IW record-count formula for escalation: it prices one search pass, and escalation runs
-  up to `max_width` passes into one stream.
-- Re-approve through the existing `cgas_trace_contract_approval` path, publishing to **new** paths —
-  `_require_compatible_destination` raises rather than overwriting the v2 artifacts.
+- **Completed 2026-08-09.** The signed v3 contract, emitter shapes, reader compatibility, per-record
+  bound, escalation policy, approval path, and characterization runner are implemented.
+- Isolated round 1 regenerated at `tmp/cgas-p0-characterized-v3`: 281 characterized candidates,
+  158 paired-exact rows, 562 verified streams, and 3,000,099,088 stream bytes in 7:46.76 wall time.
+- Exact replay was read-only and all checkpoint/current/stream hashes remained byte-identical.
+- The bounded overlap comparison checked 22,036 BFS events across 24 deterministic streams and all
+  14,252 bound v2 IW events. Retained fields and certificate semantics had zero mismatches; the only
+  summary movement was the approved IW lift (112 new exact successes, zero regressions).
 
 ### Owner action required
 
-The width change invalidates the 558 existing streams. Retain the characterization checkpoints and accounting — small, immutable, still evidentially useful. Release the 2.25 TB of stream bytes.
+The width change invalidates the 558 existing streams for new characterization. The v2 checkpoint,
+accounting, and all 1,116 v2 stream files remain immutable evidence. Any later release of their
+2,252.82 GiB is a separate destructive operation and was not performed by Gate 0b.
 
 ### Gate
 
-Regenerated streams verify under v3, and certificates rebuilt from them match the fixture release's certificate semantics on overlapping instances.
+**PASSED 2026-08-09.** Every regenerated stream verifies under v3; checkpoint/approval/contract/
+policy bindings are explicit; replay is byte-identical; and bounded overlapping certificate
+semantics match with zero unexplained mismatches. Evidence:
+`.claude/evidence/cgas-trace-contract-v3/gate0b-round1-2026-08-09/`.
 
 ---
 
@@ -505,8 +495,8 @@ The 481 target, the paired-exact requirement, and `local_iw_width=1` were all ap
 ## Practical Build Order
 
 1. ~~Probe IW width 1→2 on already-enumerated ranks.~~ **Done 2026-08-07 (Gate A reported).**
-2. Ship trace contract v3: width escalation, dropped BFS snapshots, IW novelty deltas, per-record size bound. Obtain owner approval. **(Gate 0b) — packet drafted, awaiting a ruling.**
-3. Regenerate the corpus under v3; release the v2 stream bytes.
+2. ~~Ship and approve trace contract v3: escalation, compact BFS events, exact IW deltas, and a per-record bound.~~ **Done 2026-08-08.**
+3. ~~Regenerate isolated round 1 and verify Gate 0b.~~ **Passed 2026-08-09.** The immutable v2 corpus was retained; any later byte release requires a separate destructive operation.
 4. Build the pilot corpus and run the direct-VLM calibration baseline. **(Gate 3 — go/no-go)**
 5. Freeze the scaffold palette, costs, and route-label policy; derive the corpus-scale target.
 6. Re-specify selector constants and build the production corpus. **(Gate 0c)** — in parallel, implement audited bounded memory and route labels.
@@ -516,45 +506,19 @@ The 481 target, the paired-exact requirement, and `local_iw_width=1` were all ap
 
 ## Recommended Next Milestone
 
-**Implement the v3 event shape in the emitters, test-first, then regenerate.**
+**State the Phase 3 first-failure stability bar and instance-diversity floor.**
 
-Contract v3 was **approved by the owner on 2026-08-07** —
-`.claude/evidence/cgas-trace-contract-v3/approved-trace-v3.json`. The decision packet that carried
-it is at `.claude/evidence/cgas-trace-contract-v3/owner-decision-packet/DECISION.md`.
-
-Done: the contract module (`scripts/phase3/cgas_trace_contract_v3.py`), its migration packet, the
-owner signature, and a contract-aware approval path that still reproduces the v2 record
-byte-for-byte.
-
-Remaining for M1: the three emitter slices in *Immediate Next Steps* 2, the runner cutover in step 3,
-and regeneration. Nothing is blocked on a decision.
-
-`DECISION-pilot-provenance.md` — whether the calibration pilot needs release-grade provenance or only
-reproducibility — is still open, and is rulable once the stability bar is stated. It does not block
-any of the above.
+Gate 0b passed on 2026-08-09. Contract v3 is approved, implemented, regenerated, replay-verified,
+and semantically compared against the immutable v2 overlap. The next decision is the ≥10 versus ≥30
+observations-per-cell bar plus a structural-diversity floor; together they size the calibration
+pilot and make `DECISION-pilot-provenance.md` rulable. No Phase 3 run has started.
 
 ## Immediate Next Steps
 
-1. ~~Obtain the owner ruling on `DECISION.md`.~~ **Contract v3 approved 2026-08-07.**
-   `.claude/evidence/cgas-trace-contract-v3/approved-trace-v3.json`, contract `be1a3eb9…34d1`,
-   policy `51acff53…d436`, packet `ee908a71…b55f`. The v3 contract module and the approval path are
-   implemented and green; the emitters are not.
-2. Implement the v3 event shape test-first in `scripts/phase3/`, in this order — each is a separable
-   RED/GREEN slice:
-   - `cgas_bfs.py` stops emitting `frontier_before` / `frontier_after` / `visited_after`;
-     `cgas_certificate_contracts.py` reconstructs `frontier_head` and `visited_delta` per R1/R4 and
-     `frontier_order_summary` by a running FIFO fold. Note the second call site at line 118, which
-     reads the *previous* expansion.
-   - `local_iw.py` emits `seen_feature_delta` instead of the two truncated novelty snapshots;
-     `trace_contracts._iw_required_fields` dispatches on trace contract version so the fixture
-     pinned to release digest `3bc89431…6b3c` stays green.
-   - `cgas_trace_stream_v2.py` enforces `MAX_EVENT_BYTES` on `len(line)` at write time, version
-     gated so the existing 4 MB v2 records still verify.
-3. **Cut the runner over to v3.** `cgas_candidate_characterization_contracts.validate_approval`
-   hardcodes the `trace-v2-*` filenames, and `ApprovedTraceModel` pins v2 literals. Both must move
-   together, and only at regeneration — checkpoint 1 records v2's `approved_trace_sha256`
-   (`bd6909f9…26a8`), so flipping them earlier invalidates the existing chain.
-4. Regenerate the corpus under v3, verify against Gate 0b, then release the v2 stream bytes.
+1. ~~Approve, implement, and cut the characterization runner over to trace v3.~~ **Done 2026-08-08.**
+2. ~~Regenerate isolated v3 round 1 and verify Gate 0b.~~ **Passed 2026-08-09.** The v2 corpus remains immutable and present.
+3. Preserve `tmp/cgas-p0-characterized-v3` as the resumable v3 round-1 root. Do not create checkpoint 2 until the next selector/corpus decision authorizes it.
+4. Treat any release of v2 stream bytes as an explicit, separately approved destructive task; Gate 0b did not perform it.
 5. State the first-failure-matrix stability bar (≥10 vs ≥30 observations per cell) and an
    instance-diversity floor. These size the pilot and decide `DECISION-pilot-provenance.md`.
 6. Size the pilot corpus for calibration, and decide whether it can reuse the 158 already-enumerated
@@ -567,7 +531,7 @@ any of the above.
 | Gate | Passes when | If it fails |
 |---|---|---|
 | **A** IW width 2 measured | **REPORTED 2026-08-07.** 18.9% → 58.7% overall; per-object-count rates, expansions, true novelty peaks, and plan-length inflation all recorded. Pass/fail was deferred to 0c by the amendment | n/a — discharged. A weak lift would have argued for decoupled arms **in addition to** escalation; the lift was not weak |
-| **0b** Contract v3 sound | Streams verify; certificates match fixture semantics on overlapping instances; regeneration fits comfortably on disk | Do not regenerate at scale |
+| **0b** Contract v3 sound | **PASSED 2026-08-09.** 562/562 streams verified; 3.00 GB regenerated in 7:46.76; replay byte-identical; 22,036 sampled BFS and all 14,252 bound v2 IW events had zero certificate mismatches | n/a — discharged; immutable v2 bytes retained |
 | **3** Calibration *(hard stop)* | A recurrent, certificate-localized failure exists | No justified adaptive-scaffolding method — reconsider the direction before building the corpus |
 | **0c** Corpus | Derived quotas reached; every row has decodable image, replay-valid transition, accepted certificate | Exclude rows; do not repair by inference |
 | **5** Method | CGAS separates from direct on fidelity and from always-on memory on cost | Report the negative result, per proposal §8 |
