@@ -1,0 +1,460 @@
+{
+  "bindings": {
+    "analysis_implementation_sha256": "a7960153f6802df08fac5e127bf44f873ba8f9739d79a8fec810c90b53ccf0f7",
+    "approved_trace_path": ".claude/evidence/cgas-trace-contract-v3/approved-trace-v3.json",
+    "approved_trace_sha256": "bf00880f94692160d42103aab689ea2501607b48df53114b282bdc404b34dbe7",
+    "candidate_config_path": "configs/cgas/production_p0_candidates.json",
+    "candidate_config_sha256": "4d4830321a4a7cbc6e17bec9ecb5e1f121cbdea2f66445212fd129df38325e5b",
+    "checkpoint_path": "tmp/cgas-p0-characterized-v3/checkpoints/reservoir_checkpoint_000001.json",
+    "checkpoint_sha256": "0fa9d3e5bcad06e6e50381a2142d4b6777818feffb0e1a4012c010a1fdebf76b",
+    "contract_sha256": "be1a3eb9f42d387e57a7e714ce95154f2657833114a68d41e5b88342ef1234d1",
+    "current_index_path": "tmp/cgas-p0-characterized-v3/current.json",
+    "current_index_sha256": "e86d42a7ec94c29169cadb4eb65baa93e5b4502eda65bc9bbb333b5c9a2bce97",
+    "evidence_adapter_sha256": "b18282ac141641108e60917023cbca12dc81a15f2571084d73f4dc916d1faa23",
+    "owner_approval_sha256": "2f98142c8b303a07060f7942bab603e21fceed510a7faa01a52d9b6611560557",
+    "policy_sha256": "51acff53d15652663d2212902d3d94261e44de9e3edf66b9970fc3c75197d436",
+    "release_sha256": "3bc894314f4fa674ff36489c664d8cc9db7f23e2144c5ffcef1444fd30feb6c3",
+    "selector_config_sha256": "3783c7fdda618849a7de0dcb3074258bbde309af384afb4ec0cb8173a6eb2a05",
+    "selector_implementation_sha256": "a83be53cb0e5096662be73881c95a899de9783633b5d56c61bcb408cf593f2e7"
+  },
+  "command": "cd /data/scratch/projects/punim0478/sukaih/multimodality_on_planning && source ~/cd_vlaplan && python .claude/evidence/cgas-trace-contract-v3/owner-decision-packet/derive_pilot_scope.py",
+  "read_only": true,
+  "report": {
+    "characterized_candidate_count": 281,
+    "composition_signature_counts": [
+      [
+        4,
+        14
+      ],
+      [
+        8,
+        26
+      ],
+      [
+        12,
+        9
+      ]
+    ],
+    "diversity_floor": {
+      "failed_object_counts": [],
+      "min_goal_edge_levels_per_object_count": 3,
+      "min_instances_per_object_count": 30,
+      "min_instances_per_repeated_signature": 2,
+      "min_repeated_composition_signatures_per_object_count": 5,
+      "min_structural_profiles_per_object_count": 3,
+      "passed": true
+    },
+    "goal_edge_level_counts": [
+      [
+        4,
+        3
+      ],
+      [
+        8,
+        6
+      ],
+      [
+        12,
+        7
+      ]
+    ],
+    "object_count_counts": [
+      [
+        4,
+        67
+      ],
+      [
+        8,
+        59
+      ],
+      [
+        12,
+        32
+      ]
+    ],
+    "off_plan_certificate_rows": {
+      "mean": 383.670886,
+      "total": 60620
+    },
+    "off_plan_only_certificate_rows": {
+      "mean": 373.227848,
+      "total": 58970
+    },
+    "on_plan_certificate_rows": {
+      "mean": 10.443038,
+      "total": 1650
+    },
+    "paired_exact_count": 158,
+    "per_object_count": [
+      {
+        "candidates": 67,
+        "composition_signatures": 14,
+        "goal_edge_levels": 3,
+        "mean_off_plan_rows": 63.19402985074627,
+        "mean_on_plan_rows": 12.447761194029852,
+        "object_count": 4,
+        "repeated_composition_signatures": 11,
+        "structural_profiles": 5
+      },
+      {
+        "candidates": 59,
+        "composition_signatures": 26,
+        "goal_edge_levels": 6,
+        "mean_off_plan_rows": 598.2372881355932,
+        "mean_on_plan_rows": 8.94915254237288,
+        "object_count": 8,
+        "repeated_composition_signatures": 17,
+        "structural_profiles": 17
+      },
+      {
+        "candidates": 32,
+        "composition_signatures": 9,
+        "goal_edge_levels": 7,
+        "mean_off_plan_rows": 659.0625,
+        "mean_on_plan_rows": 9.0,
+        "object_count": 12,
+        "repeated_composition_signatures": 7,
+        "structural_profiles": 9
+      }
+    ],
+    "plan_length": {
+      "histogram": [
+        [
+          2,
+          29
+        ],
+        [
+          4,
+          45
+        ],
+        [
+          6,
+          51
+        ],
+        [
+          8,
+          25
+        ],
+        [
+          10,
+          8
+        ]
+      ],
+      "maximum": 10,
+      "mean": 5.21519,
+      "median": 6.0
+    },
+    "recommendation": {
+      "pool_feasible_off_plan": true,
+      "pool_feasible_on_plan": false,
+      "proposed_diversity_floor_instances": 90,
+      "proposed_stability_bar": 10,
+      "stability_bar": "owner_decision_required"
+    },
+    "sizing": [
+      {
+        "bar": 10,
+        "candidate_pool_feasible": false,
+        "failure_rate": 0.4,
+        "harvest": "on_plan",
+        "pilot_instance_count": 325,
+        "pilot_instances_by_object_count": [
+          [
+            4,
+            86
+          ],
+          [
+            8,
+            120
+          ],
+          [
+            12,
+            119
+          ]
+        ],
+        "raw_instance_count": 325,
+        "raw_instances_by_object_count": [
+          [
+            4,
+            86
+          ],
+          [
+            8,
+            120
+          ],
+          [
+            12,
+            119
+          ]
+        ]
+      },
+      {
+        "bar": 10,
+        "candidate_pool_feasible": true,
+        "failure_rate": 0.4,
+        "harvest": "off_plan",
+        "pilot_instance_count": 90,
+        "pilot_instances_by_object_count": [
+          [
+            4,
+            30
+          ],
+          [
+            8,
+            30
+          ],
+          [
+            12,
+            30
+          ]
+        ],
+        "raw_instance_count": 21,
+        "raw_instances_by_object_count": [
+          [
+            4,
+            17
+          ],
+          [
+            8,
+            2
+          ],
+          [
+            12,
+            2
+          ]
+        ]
+      },
+      {
+        "bar": 10,
+        "candidate_pool_feasible": false,
+        "failure_rate": 0.6,
+        "harvest": "on_plan",
+        "pilot_instance_count": 217,
+        "pilot_instances_by_object_count": [
+          [
+            4,
+            58
+          ],
+          [
+            8,
+            80
+          ],
+          [
+            12,
+            79
+          ]
+        ],
+        "raw_instance_count": 217,
+        "raw_instances_by_object_count": [
+          [
+            4,
+            58
+          ],
+          [
+            8,
+            80
+          ],
+          [
+            12,
+            79
+          ]
+        ]
+      },
+      {
+        "bar": 10,
+        "candidate_pool_feasible": true,
+        "failure_rate": 0.6,
+        "harvest": "off_plan",
+        "pilot_instance_count": 90,
+        "pilot_instances_by_object_count": [
+          [
+            4,
+            30
+          ],
+          [
+            8,
+            30
+          ],
+          [
+            12,
+            30
+          ]
+        ],
+        "raw_instance_count": 16,
+        "raw_instances_by_object_count": [
+          [
+            4,
+            12
+          ],
+          [
+            8,
+            2
+          ],
+          [
+            12,
+            2
+          ]
+        ]
+      },
+      {
+        "bar": 30,
+        "candidate_pool_feasible": false,
+        "failure_rate": 0.4,
+        "harvest": "on_plan",
+        "pilot_instance_count": 971,
+        "pilot_instances_by_object_count": [
+          [
+            4,
+            257
+          ],
+          [
+            8,
+            358
+          ],
+          [
+            12,
+            356
+          ]
+        ],
+        "raw_instance_count": 971,
+        "raw_instances_by_object_count": [
+          [
+            4,
+            257
+          ],
+          [
+            8,
+            358
+          ],
+          [
+            12,
+            356
+          ]
+        ]
+      },
+      {
+        "bar": 30,
+        "candidate_pool_feasible": true,
+        "failure_rate": 0.4,
+        "harvest": "off_plan",
+        "pilot_instance_count": 111,
+        "pilot_instances_by_object_count": [
+          [
+            4,
+            51
+          ],
+          [
+            8,
+            30
+          ],
+          [
+            12,
+            30
+          ]
+        ],
+        "raw_instance_count": 62,
+        "raw_instances_by_object_count": [
+          [
+            4,
+            51
+          ],
+          [
+            8,
+            6
+          ],
+          [
+            12,
+            5
+          ]
+        ]
+      },
+      {
+        "bar": 30,
+        "candidate_pool_feasible": false,
+        "failure_rate": 0.6,
+        "harvest": "on_plan",
+        "pilot_instance_count": 648,
+        "pilot_instances_by_object_count": [
+          [
+            4,
+            172
+          ],
+          [
+            8,
+            239
+          ],
+          [
+            12,
+            237
+          ]
+        ],
+        "raw_instance_count": 648,
+        "raw_instances_by_object_count": [
+          [
+            4,
+            172
+          ],
+          [
+            8,
+            239
+          ],
+          [
+            12,
+            237
+          ]
+        ]
+      },
+      {
+        "bar": 30,
+        "candidate_pool_feasible": true,
+        "failure_rate": 0.6,
+        "harvest": "off_plan",
+        "pilot_instance_count": 94,
+        "pilot_instances_by_object_count": [
+          [
+            4,
+            34
+          ],
+          [
+            8,
+            30
+          ],
+          [
+            12,
+            30
+          ]
+        ],
+        "raw_instance_count": 42,
+        "raw_instances_by_object_count": [
+          [
+            4,
+            34
+          ],
+          [
+            8,
+            4
+          ],
+          [
+            12,
+            4
+          ]
+        ]
+      }
+    ],
+    "structural_profile_counts": [
+      [
+        4,
+        5
+      ],
+      [
+        8,
+        17
+      ],
+      [
+        12,
+        9
+      ]
+    ]
+  },
+  "schema_version": "cgas_phase3_pilot_scope_v1"
+}

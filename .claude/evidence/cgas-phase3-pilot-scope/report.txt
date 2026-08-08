@@ -1,0 +1,38 @@
+CGAS Phase 3 pilot-scope analysis
+
+checkpoint: 0fa9d3e5bcad06e6e50381a2142d4b6777818feffb0e1a4012c010a1fdebf76b
+approval:   bf00880f94692160d42103aab689ea2501607b48df53114b282bdc404b34dbe7
+contract:   be1a3eb9f42d387e57a7e714ce95154f2657833114a68d41e5b88342ef1234d1
+policy:     51acff53d15652663d2212902d3d94261e44de9e3edf66b9970fc3c75197d436
+config:     4d4830321a4a7cbc6e17bec9ecb5e1f121cbdea2f66445212fd129df38325e5b
+command:    cd /data/scratch/projects/punim0478/sukaih/multimodality_on_planning && source ~/cd_vlaplan && python .claude/evidence/cgas-trace-contract-v3/owner-decision-packet/derive_pilot_scope.py
+
+characterized candidates: 281
+paired-exact candidates:  158
+plan length: mean 5.215, median 6, max 10
+on-plan certificate rows: mean 10.443, total 1650
+off-plan certificate capacity: mean 383.671, total 60620
+off-plan-only capacity: mean 373.228, total 58970
+
+object  candidates  compositions  repeated>=2  stack-profiles  goal-edge-levels
+     4          67            14           11               5                 3
+     8          59            26           17              17                 6
+    12          32             9            7               9                 7
+
+proposed diversity floor: >=30 candidates/object count; >=5 composition signatures/object count
+  with >=2 candidates/signature; >=3 stack profiles and >=3 goal-edge levels/object count
+diversity floor passed: true
+
+bar  fail  harvest   raw-by-count             pilot-by-count           total  pool-feasible
+ 10   40%  on_plan   ((4, 86), (8, 120), (12, 119)) ((4, 86), (8, 120), (12, 119))   325  false
+ 10   40%  off_plan  ((4, 17), (8, 2), (12, 2)) ((4, 30), (8, 30), (12, 30))    90  true
+ 10   60%  on_plan   ((4, 58), (8, 80), (12, 79)) ((4, 58), (8, 80), (12, 79))   217  false
+ 10   60%  off_plan  ((4, 12), (8, 2), (12, 2)) ((4, 30), (8, 30), (12, 30))    90  true
+ 30   40%  on_plan   ((4, 257), (8, 358), (12, 356)) ((4, 257), (8, 358), (12, 356))   971  false
+ 30   40%  off_plan  ((4, 51), (8, 6), (12, 5)) ((4, 51), (8, 30), (12, 30))   111  true
+ 30   60%  on_plan   ((4, 172), (8, 239), (12, 237)) ((4, 172), (8, 239), (12, 237))   648  false
+ 30   60%  off_plan  ((4, 34), (8, 4), (12, 4)) ((4, 34), (8, 30), (12, 30))    94  true
+
+recommendation: propose >=10 observations/cell and the measured 90-instance diversity floor;
+the owner must rule on the stability bar and off-plan harvesting before Phase 3 starts.
+The 158-candidate pool is infeasible for on-plan sizing and feasible for every off-plan alternative.

@@ -116,21 +116,23 @@ the release machinery. Hence the conditions below rather than a bare "skip Todos
 
 ## The size dependency
 
-From `DECISION.md` decision 2 — the pilot instance count, which decides how much of this argument
-matters:
+Updated 2026-08-09 from the signed-v3 pilot-scope analysis at
+`.claude/evidence/cgas-phase3-pilot-scope/`. The earlier table used a Phase A aggregate and
+approximated expansion capacity as `2 * BFS expansions`; the canonical report now uses separate BFS
+and IW yields per object count and applies an explicit diversity floor.
 
 | harvest | ≥10/cell | ≥30/cell |
 | --- | --- | --- |
-| on-plan (today) | 204–306 instances | **612–917 instances** |
-| off-plan expansions | 4–6 instances | 12–18 instances |
+| on-plan | 217–325 instances | **648–971 instances** |
+| off-plan expansions, after diversity floor | **90 instances** | **94–111 instances** |
 
-At 612–917 the "pilot" exceeds the 481-instance production target and the question dissolves: you
-would be building the production corpus, and it should go through the production path. At 204–306 the
-audit's recommendation is live and worth roughly half the remaining distance to training. Below ~50
-the corpus is small enough to audit by inspection.
+The existing 158 paired-exact candidates are insufficient for every on-plan alternative and
+sufficient for every off-plan alternative. They pass the proposed floor: at least 30 candidates,
+five composition signatures represented at least twice, three initial stack profiles, and three
+goal-edge levels at each object count. The tightest object-count pool is 12 objects at 32 candidates.
 
-**So this decision cannot be taken before the stability bar is stated.** That is the flagged
-follow-up in `DECISION.md`, and it is the real precondition here.
+The provenance recommendation is therefore actionable only together with the stability and harvest
+rulings. No such ruling is recorded by this evidence.
 
 ---
 
@@ -153,9 +155,10 @@ Phase 0c. Todo 8 needs no module.
 
 I hold this loosely on one point and firmly on another. Firmly: release process does not defend
 against the failure mode that would kill the project, so paying for it here buys the wrong
-insurance. Loosely: if the stability bar comes back at ≥30 and off-plan harvesting is declined, the
-pilot is 612–917 instances and this recommendation should be withdrawn rather than argued for.
+insurance. Loosely: if off-plan harvesting is declined, the pilot is 217–971 instances and this
+recommendation should be withdrawn rather than argued for.
 
-**Decision requested:** rule that the calibration pilot needs reproducibility rather than
-release-grade provenance, subject to conditions 1–4 — **or** state the stability bar first and defer
-this until the pilot's size is known.
+**Decision requested:** approve or reject (1) the proposed `>=10 observations/cell` bar, (2) the
+90-instance diversity floor above, (3) off-plan certificate harvesting, and, if all three are
+approved, (4) reproducibility rather than release-grade provenance subject to conditions 1–4. No
+owner approval is implied by this packet.
