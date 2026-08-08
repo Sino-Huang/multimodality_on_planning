@@ -97,11 +97,11 @@ CLASSIFICATION: tuple[tuple[str, int, str, str, str], ...] = (
     ("tests/phase3/test_cgas_provenance.py", 120, "cgas-test", "asserts", "published width-1 events omit both snapshots"),
     # --- v3 contract surface (added 2026-08-07): names the removed fields so the
     #      drop is a signed, auditable contract property instead of an accident ---
-    ("scripts/phase3/cgas_trace_contract_v3.py", 69, "cgas-production", "defines-name", "v3 contract: the BFS fields v3 removes"),
-    ("scripts/phase3/cgas_trace_contract_v3.py", 70, "cgas-production", "defines-name", "v3 contract: the IW fields v3 removes"),
-    ("scripts/phase3/cgas_trace_contract_v3.py", 78, "cgas-production", "defines-name", "v3 contract: reconstruction rule R1"),
-    ("scripts/phase3/cgas_trace_contract_v3.py", 79, "cgas-production", "defines-name", "v3 contract: reconstruction rule R2"),
-    ("scripts/phase3/cgas_trace_contract_v3.py", 80, "cgas-production", "defines-name", "v3 contract: reconstruction rule R3"),
+    ("scripts/phase3/cgas_trace_contract_v3.py", 75, "cgas-production", "defines-name", "v3 contract: the BFS fields v3 removes"),
+    ("scripts/phase3/cgas_trace_contract_v3.py", 76, "cgas-production", "defines-name", "v3 contract: the IW fields v3 removes"),
+    ("scripts/phase3/cgas_trace_contract_v3.py", 84, "cgas-production", "defines-name", "v3 contract: reconstruction rule R1"),
+    ("scripts/phase3/cgas_trace_contract_v3.py", 85, "cgas-production", "defines-name", "v3 contract: reconstruction rule R2"),
+    ("scripts/phase3/cgas_trace_contract_v3.py", 86, "cgas-production", "defines-name", "v3 contract: reconstruction rule R3"),
     # --- trace-v1 traversal validator: legacy-v1 compatibility only --------
     ("scripts/phase3/trace_contracts.py", 214, "cgas-production", "requires-key", "legacy v1 IW expand events require both novelty snapshots"),
     ("scripts/phase3/trace_contracts.py", 240, "cgas-production", "requires-key", "legacy v1 novelty_table_before must be a list"),

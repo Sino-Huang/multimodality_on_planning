@@ -13,8 +13,8 @@ from .cgas_candidate_characterization_models import JsonObject, PlannerInputMode
 from .cgas_candidate_characterization_planners import PlannerRunRequest, run_planners
 from .cgas_partition_characterization import _failure_row, _success_row
 from .cgas_partition_contracts import DEFAULT_LIMITS, CharacterizationInput
-from .cgas_trace_contract_v2 import NEW_CONTRACT_SHA256, POLICY_LIMITS
-from .cgas_trace_contract_v2 import POLICY_SHA256 as TRACE_POLICY_SHA256
+from .cgas_trace_contract_v3 import NEW_CONTRACT_SHA256, POLICY_LIMITS
+from .cgas_trace_contract_v3 import POLICY_SHA256 as TRACE_POLICY_SHA256
 from .local_planner_types import RecoveryPolicy
 from .pddl import PDDLError, ground_actions, parse_task
 
@@ -112,7 +112,7 @@ def _attach_trace(row: JsonObject, planner_name: str, binding: TraceBindingModel
     planner = row.get(planner_name)
     if not isinstance(planner, dict):
         raise CandidateCharacterizationError("characterization_planner_invalid", Path(planner_name))
-    planner["trace_v2"] = binding.model_dump(mode="json")
+    planner["trace_v3"] = binding.model_dump(mode="json")
 
 
 def _canonical_planner_bytes(planner: PlannerInputModel) -> bytes:

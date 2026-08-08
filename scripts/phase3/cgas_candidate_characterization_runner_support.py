@@ -12,7 +12,7 @@ from .cgas_candidate_characterization_contracts import (
 )
 from .cgas_candidate_characterization_models import CheckpointModel, JsonObject, PlannerInputModel, RangeBindingModel
 from .cgas_candidate_characterization_ranges import CandidateBatch
-from .cgas_trace_contract_v2 import POLICY_SHA256
+from .cgas_trace_contract_v3 import POLICY_SHA256
 
 
 def validate_paths(

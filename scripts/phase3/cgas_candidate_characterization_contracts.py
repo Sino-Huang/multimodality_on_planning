@@ -19,7 +19,12 @@ from .cgas_candidate_characterization_models import (
 from .cgas_partition_contracts import EXPECTED_OBJECT_COUNTS, EXPECTED_SPLIT_COUNTS
 from .cgas_partition_selection import CALIBRATION_SIZE, MIN_EVALUATION_ROWS, MIN_OOD_SIGNATURES, POLICY
 from .cgas_trace_contract_approval import TraceApprovalError, verify_owner_approval
-from .cgas_trace_contract_v2 import NEW_CONTRACT_SHA256, POLICY_SHA256
+from .cgas_trace_contract_v3 import (
+    NEW_CONTRACT_SHA256,
+    OWNER_APPROVAL_PATH,
+    PACKET_PATH,
+    POLICY_SHA256,
+)
 
 ModelT = TypeVar("ModelT", bound=StrictModel)
 
@@ -64,13 +69,16 @@ def parse_canonical_model(path: Path, model_type: type[ModelT], code: str) -> tu
 
 def validate_approval(path: Path) -> tuple[ApprovedTraceModel, str]:
     approval, contents = parse_canonical_model(path, ApprovedTraceModel, "approved_trace_contract_invalid")
-    packet = path.with_name("trace-v2-migration-packet.json")
-    owner = path.with_name("trace-v2-owner-approval.json")
+    packet = path.with_name(PACKET_PATH.name)
+    owner = path.with_name(OWNER_APPROVAL_PATH.name)
     try:
         verified = verify_owner_approval(packet, owner)
     except (OSError, TraceApprovalError) as error:
         raise CandidateCharacterizationError("approved_trace_contract_invalid", path) from error
-    expected = ApprovedTraceModel.model_validate(verified.approved_record())
+    try:
+        expected = ApprovedTraceModel.model_validate(verified.approved_record())
+    except ValidationError as error:
+        raise CandidateCharacterizationError("approved_trace_contract_invalid", path) from error
     if (
         approval != expected
         or approval.contract_sha256 != NEW_CONTRACT_SHA256

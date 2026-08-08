@@ -7,6 +7,7 @@ from pathlib import Path
 
 from pydantic import TypeAdapter, ValidationError
 
+from . import cgas_trace_contract_v2, cgas_trace_contract_v3
 from .cgas_candidate_characterization_contracts import (
     CandidateCharacterizationError,
     sha256,
@@ -24,6 +25,7 @@ from .cgas_candidate_characterization_models import (
     SelectorBindingModel,
     StreamCursorModel,
 )
+from .cgas_trace_stream_v2 import ContractId
 
 
 @dataclass(frozen=True, slots=True)
@@ -119,13 +121,24 @@ def validate_checkpoint(checkpoint: CheckpointModel, path: Path, repository_root
     _validate_range_progression(checkpoint, accounting, path)
     from .cgas_candidate_characterization_traces import TraceValidationRequest, validate_trace_binding
 
+    trace_key, contract_id = _checkpoint_trace_binding(checkpoint, path)
     for row in characterizations:
         bfs = row.get("bfs")
-        bfs_binding = bfs.get("trace_v2") if isinstance(bfs, dict) else None
-        validate_trace_binding(TraceValidationRequest(repository_root, bfs_binding, "bfs", path))
+        bfs_binding = bfs.get(trace_key) if isinstance(bfs, dict) else None
+        validate_trace_binding(TraceValidationRequest(repository_root, bfs_binding, "bfs", path, contract_id))
         iw = row.get("iw_width_1")
-        iw_binding = iw.get("trace_v2") if isinstance(iw, dict) else None
-        validate_trace_binding(TraceValidationRequest(repository_root, iw_binding, "iw", path))
+        iw_binding = iw.get(trace_key) if isinstance(iw, dict) else None
+        validate_trace_binding(TraceValidationRequest(repository_root, iw_binding, "iw", path, contract_id))
+
+
+def _checkpoint_trace_binding(checkpoint: CheckpointModel, path: Path) -> tuple[str, ContractId]:
+    match checkpoint.approved_trace_contract_sha256:
+        case cgas_trace_contract_v2.NEW_CONTRACT_SHA256:
+            return "trace_v2", cgas_trace_contract_v2.CONTRACT_ID
+        case cgas_trace_contract_v3.NEW_CONTRACT_SHA256:
+            return "trace_v3", cgas_trace_contract_v3.CONTRACT_ID
+        case _:
+            raise CandidateCharacterizationError("approved_trace_binding_invalid", path)
 
 
 def _validate_range_progression(

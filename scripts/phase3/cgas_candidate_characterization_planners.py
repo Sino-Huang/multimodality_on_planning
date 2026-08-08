@@ -109,4 +109,4 @@ def _validate_reuse(
 
 
 def _trace_path(request: PlannerRunRequest, planner: Planner) -> Path:
-    return request.output_root / "traces" / request.candidate_id / f"{planner}.trace-v2.jsonl"
+    return request.output_root / "traces" / request.candidate_id / f"{planner}.trace-v3.jsonl"

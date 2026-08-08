@@ -12,8 +12,10 @@ from pydantic import ValidationError
 from .cgas_candidate_characterization_contracts import CandidateCharacterizationError, confined
 from .cgas_candidate_characterization_models import JsonValue as PersistedJsonValue
 from .cgas_candidate_characterization_models import TraceBindingModel
+from .cgas_trace_contract_v3 import CONTRACT_ID
 from .cgas_trace_stream_v2 import (
     CompletionStatus,
+    ContractId,
     Planner,
     TraceStreamError,
     TraceVerification,
@@ -43,6 +45,7 @@ class TraceValidationRequest:
     binding_value: PersistedJsonValue | None
     expected_planner: Planner
     error_path: Path
+    expected_contract_id: ContractId
 
 
 class TraceEventSpool:
@@ -63,9 +66,16 @@ class TraceEventSpool:
     def publish(self, status: str, plan: tuple[str, ...]) -> TraceBindingModel:
         self._handle.flush()
         self._handle.seek(0)
-        output = self._output_root / "traces" / self._candidate_id / f"{self._planner}.trace-v2.jsonl"
+        output = self._output_root / "traces" / self._candidate_id / f"{self._planner}.trace-v3.jsonl"
         verification = write_trace_stream(
-            TraceWriteRequest(output, self._planner, _completion_status(status, output), plan, self._row_count),
+            TraceWriteRequest(
+                output,
+                self._planner,
+                _completion_status(status, output),
+                plan,
+                self._row_count,
+                CONTRACT_ID,
+            ),
             (parse_canonical_json_line(line, output, "trace_spool_invalid") for line in self._handle),
         )
         return trace_binding(self._repository_root, output, verification)
@@ -88,9 +98,9 @@ class TraceEventSpool:
 def persist_trace(request: TracePersistenceRequest) -> TraceBindingModel:
     events = _events(request.trace.get(request.event_field), request.output_root)
     status = _completion_status(request.status, request.output_root)
-    output = request.output_root / "traces" / request.candidate_id / f"{request.planner}.trace-v2.jsonl"
+    output = request.output_root / "traces" / request.candidate_id / f"{request.planner}.trace-v3.jsonl"
     verification = write_trace_stream(
-        TraceWriteRequest(output, request.planner, status, request.plan, len(events)),
+        TraceWriteRequest(output, request.planner, status, request.plan, len(events), CONTRACT_ID),
         events,
     )
     return trace_binding(request.repository_root, output, verification)
@@ -106,7 +116,9 @@ def validate_trace_binding(request: TraceValidationRequest) -> None:
         verification = verify_trace_stream(path)
     except (ValidationError, TraceStreamError, OSError) as error:
         raise CandidateCharacterizationError("characterization_trace_invalid", request.error_path) from error
-    if binding != trace_binding(request.repository_root, path, verification):
+    if verification.contract_id != request.expected_contract_id or binding != trace_binding(
+        request.repository_root, path, verification
+    ):
         raise CandidateCharacterizationError("characterization_trace_invalid", request.error_path)
 
 

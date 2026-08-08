@@ -38,6 +38,7 @@ APPROVAL_SCOPE: Final = "trace_v3_persistence_and_policy"
 EVIDENCE_ROOT: Final = Path(".claude/evidence/cgas-trace-contract-v3/owner-decision-packet")
 PACKET_PATH: Final = Path(".claude/evidence/cgas-trace-contract-v3/trace-v3-migration-packet.json")
 OWNER_TEMPLATE_PATH: Final = Path(".claude/evidence/cgas-trace-contract-v3/trace-v3-owner-approval.template.json")
+OWNER_APPROVAL_PATH: Final = Path(".claude/evidence/cgas-trace-contract-v3/trace-v3-owner-approval.json")
 
 # verify_trace_stream refuses any line above this. write_trace_stream has no counterpart
 # in v2, so a writer can emit a stream its own verifier rejects; MAX_EVENT_BYTES is the
@@ -63,7 +64,12 @@ POLICY_LIMITS: Final = {
 IW_WIDTHS: Final = POLICY_LIMITS["local_iw_max_width"] - POLICY_LIMITS["local_iw_width"] + 1
 BFS_MAX_RECORDS: Final = V2_BFS_MAX_RECORDS
 IW_MAX_RECORDS: Final = (
-    1 + 2 * IW_WIDTHS * POLICY_LIMITS["local_iw_novelty_max_expansions"] * POLICY_LIMITS["local_max_applicable_actions"] + 2
+    1
+    + 2
+    * IW_WIDTHS
+    * POLICY_LIMITS["local_iw_novelty_max_expansions"]
+    * POLICY_LIMITS["local_max_applicable_actions"]
+    + 2
 )
 
 BFS_EVENT_FIELDS_REMOVED: Final = ("frontier_after", "frontier_before", "visited_after")
@@ -165,11 +171,17 @@ def build_migration_packet() -> dict[str, JSONValue]:
                 "widths_formula": "local_iw_max_width - local_iw_width + 1",
             },
             "record_size": {
-                "element_bound": "one record holds one expansion: at most max_grounded_actions successors, each carrying at most max_grounded_atoms atoms",
+                "element_bound": (
+                    "one record holds one expansion: at most max_grounded_actions successors, "
+                    "each carrying at most max_grounded_atoms atoms"
+                ),
                 "enforced_at": "write_trace_stream, on len(canonical_event_line), before the write",
                 "max_event_bytes": MAX_EVENT_BYTES,
                 "reader_line_ceiling": READER_LINE_CEILING,
-                "stated_not_derived": "the policy element ceilings exceed observation by ~3 orders of magnitude, so a byte bound derived from them enforces nothing; MAX_EVENT_BYTES is stated against measurement and pinned here",
+                "stated_not_derived": (
+                    "the policy element ceilings exceed observation by ~3 orders of magnitude, so a byte bound "
+                    "derived from them enforces nothing; MAX_EVENT_BYTES is stated against measurement and pinned here"
+                ),
             },
         },
         "contract_id": CONTRACT_ID,

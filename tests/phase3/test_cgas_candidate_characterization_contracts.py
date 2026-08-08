@@ -103,7 +103,7 @@ def test_checkpoint_binds_verified_bfs_and_iw_trace_streams(tmp_path: Path) -> N
         for planner_name in ("bfs", "iw_width_1"):
             planner = row[planner_name]
             assert isinstance(planner, dict)
-            binding = planner["trace_v2"]
+            binding = planner["trace_v3"]
             assert isinstance(binding, dict)
             trace_path = request.repository_root / str(binding["path"])
             verified = verify_trace_stream(trace_path)
@@ -117,7 +117,7 @@ def test_replay_rejects_tampered_bound_trace_stream(tmp_path: Path) -> None:
     report = run_next_round(request, execution_fixture().dependencies())
     checkpoint = json.loads(report.checkpoint_path.read_bytes())
     row = json.loads(checkpoint["characterization"]["canonical_jsonl"].splitlines()[0])
-    trace_path = request.repository_root / row["bfs"]["trace_v2"]["path"]
+    trace_path = request.repository_root / row["bfs"]["trace_v3"]["path"]
     trace_path.write_bytes(trace_path.read_bytes().replace(b'"record_type":"trailer"', b'"record_type":"changed"'))
 
     # When/Then: chain validation refuses read-only success for the stale checkpoint binding.

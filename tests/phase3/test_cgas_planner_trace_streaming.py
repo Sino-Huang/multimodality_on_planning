@@ -62,8 +62,10 @@ def test_iw_streaming_preserves_search_without_retaining_events() -> None:
     assert status is None
     limits = _limits()
     sink = RecordingSink()
+    width_one_limits = {**limits, "local_iw_escalate": 0, "local_iw_max_width": 1}
 
     # When: IW(1) runs through both trace retention modes.
+    width_one = run_iterated_width(LocalPlannerRequest("iw", task, tuple(grounded), width_one_limits))
     retained = run_iterated_width(LocalPlannerRequest("iw", task, tuple(grounded), limits))
     streamed = run_iterated_width(LocalPlannerRequest("iw", task, tuple(grounded), limits, sink))
 
@@ -72,8 +74,10 @@ def test_iw_streaming_preserves_search_without_retaining_events() -> None:
     assert streamed.trace["events"] == []
     assert streamed.trace["trace_complete"] is True
     retained_events = retained.trace["events"]
+    width_one_events = width_one.trace["events"]
     assert isinstance(retained_events, list)
-    assert len(sink.events) == len(retained_events)
+    assert isinstance(width_one_events, list)
+    assert sink.events == [*width_one_events, *retained_events]
 
 
 def test_verified_trace_rerun_replays_non_degenerate_success_without_replacing_streams(tmp_path: Path) -> None:

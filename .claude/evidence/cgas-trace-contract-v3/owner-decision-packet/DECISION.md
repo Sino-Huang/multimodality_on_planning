@@ -121,7 +121,8 @@ enqueued successor ids, which the event already carries. So:
 **The consumer claim, audited.** The prior packet asserted `cgas_certificate_contracts.py` is the
 only consumer of a full snapshot. `audit_v3_contract_surface.py` censuses every occurrence of the
 five affected field names across `scripts/`, `tests/`, and `examples/` — **62 occurrences, all 62
-classified**, and it fails loudly if the census and the classification ever disagree. It was 70
+classified** (census refreshed after the 2026-08-08 runner cutover; count unchanged), and it fails
+loudly if the census and the classification ever disagree. It was 70
 before slice 1 and 65 before slice 2. Slice 2 removed four IW emitter occurrences and added one more
 explicit absence assertion; the remaining CGAS production reads are confined to legacy-v1 fixture
 compatibility. Before slice 1, the claim had three refinements:

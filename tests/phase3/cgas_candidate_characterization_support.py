@@ -21,9 +21,9 @@ from scripts.phase3.cgas_candidate_characterization_runner_support import planne
 from scripts.phase3.cgas_candidate_characterization_traces import TracePersistenceRequest, persist_trace
 
 ROOT = Path(__file__).resolve().parents[2]
-APPROVAL = ROOT / ".claude/evidence/cgas-production-p0/approved-trace-v2.json"
-PACKET = ROOT / ".claude/evidence/cgas-production-p0/trace-v2-migration-packet.json"
-OWNER_APPROVAL = ROOT / ".claude/evidence/cgas-production-p0/trace-v2-owner-approval.json"
+APPROVAL = ROOT / ".claude/evidence/cgas-trace-contract-v3/approved-trace-v3.json"
+PACKET = ROOT / ".claude/evidence/cgas-trace-contract-v3/trace-v3-migration-packet.json"
+OWNER_APPROVAL = ROOT / ".claude/evidence/cgas-trace-contract-v3/trace-v3-owner-approval.json"
 CONFIG = ROOT / "configs/cgas/production_p0_candidates.json"
 
 
@@ -109,8 +109,8 @@ class RecordingExecution:
             "replay": {"goal_satisfied": True, "replay_ok": True},
             "source_eligibility": "eligible_complete_trace",
         }
-        bfs = {**planner, "trace_v2": bfs_binding.model_dump(mode="json")}
-        iw = {**planner, "trace_v2": iw_binding.model_dump(mode="json")}
+        bfs = {**planner, "trace_v3": bfs_binding.model_dump(mode="json")}
+        iw = {**planner, "trace_v3": iw_binding.model_dump(mode="json")}
         return {
             "approved_trace_sha256": request.approved_trace_sha256,
             "bfs": bfs,
@@ -144,13 +144,13 @@ def request_fixture(
     checkpoint: Path | None = None,
     feedback: Path | None = None,
 ) -> NextRoundRequest:
-    approval = repository / "approved-trace-v2.json"
+    approval = repository / "approved-trace-v3.json"
     config = repository / "production-p0-candidates.json"
     candidate_root = repository / "candidates"
     if not approval.exists():
         approval.write_bytes(APPROVAL.read_bytes())
-        (repository / "trace-v2-migration-packet.json").write_bytes(PACKET.read_bytes())
-        (repository / "trace-v2-owner-approval.json").write_bytes(OWNER_APPROVAL.read_bytes())
+        (repository / "trace-v3-migration-packet.json").write_bytes(PACKET.read_bytes())
+        (repository / "trace-v3-owner-approval.json").write_bytes(OWNER_APPROVAL.read_bytes())
         config.write_bytes(CONFIG.read_bytes())
         candidate_root.mkdir()
     return NextRoundRequest(

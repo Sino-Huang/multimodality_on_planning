@@ -26,9 +26,9 @@ class StrictModel(BaseModel):
 
 
 class ApprovedTraceModel(StrictModel):
-    approval_scope: Literal["trace_v2_persistence_only"]
+    approval_scope: Literal["trace_v3_persistence_and_policy"]
     approved_at: StrictStr = Field(min_length=1)
-    contract_id: Literal["cgas_trace_contract_v2"]
+    contract_id: Literal["cgas_trace_contract_v3"]
     contract_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")
     owner_approval_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")
     owner_approved: Literal[True]
@@ -36,7 +36,7 @@ class ApprovedTraceModel(StrictModel):
     packet_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")
     policy_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")
     schema_version: Literal["cgas_trace_contract_approval_v1"]
-    status: Literal["approved_trace_v2"]
+    status: Literal["approved_trace_v3"]
 
 
 class AccountingRowModel(StrictModel):

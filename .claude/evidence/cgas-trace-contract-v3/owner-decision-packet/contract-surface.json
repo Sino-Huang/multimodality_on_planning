@@ -285,7 +285,7 @@
         "source": "after = set(_strings(event, \"novelty_table_after\"))"
       },
       {
-        "line": 69,
+        "line": 75,
         "lineage": "cgas-production",
         "note": "v3 contract: the BFS fields v3 removes",
         "path": "scripts/phase3/cgas_trace_contract_v3.py",
@@ -293,7 +293,7 @@
         "source": "BFS_EVENT_FIELDS_REMOVED: Final = (\"frontier_after\", \"frontier_before\", \"visited_after\")"
       },
       {
-        "line": 70,
+        "line": 76,
         "lineage": "cgas-production",
         "note": "v3 contract: the IW fields v3 removes",
         "path": "scripts/phase3/cgas_trace_contract_v3.py",
@@ -301,7 +301,7 @@
         "source": "IW_EVENT_FIELDS_REMOVED: Final = (\"novelty_table_after\", \"novelty_table_before\")"
       },
       {
-        "line": 78,
+        "line": 84,
         "lineage": "cgas-production",
         "note": "v3 contract: reconstruction rule R1",
         "path": "scripts/phase3/cgas_trace_contract_v3.py",
@@ -309,7 +309,7 @@
         "source": "\"R1\": \"frontier_before[i] == [state_id[i]]\","
       },
       {
-        "line": 79,
+        "line": 85,
         "lineage": "cgas-production",
         "note": "v3 contract: reconstruction rule R2",
         "path": "scripts/phase3/cgas_trace_contract_v3.py",
@@ -317,7 +317,7 @@
         "source": "\"R2\": \"frontier_after[i] == frontier_after[i-1][1:] + enqueued(i)\","
       },
       {
-        "line": 80,
+        "line": 86,
         "lineage": "cgas-production",
         "note": "v3 contract: reconstruction rule R3",
         "path": "scripts/phase3/cgas_trace_contract_v3.py",
