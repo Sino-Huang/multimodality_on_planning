@@ -10,12 +10,42 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Final, Literal, TypeAlias
 
-from .cgas_trace_contract_v2 import BFS_MAX_RECORDS, CONTRACT_ID, IW_MAX_RECORDS, NEW_CONTRACT_SHA256
+from . import cgas_trace_contract_v2, cgas_trace_contract_v3
 from .cgas_trace_v2_json import TraceJsonError, canonical_json_bytes, parse_canonical_json_line
 from .local_planner_types import JSONValue
 
 Planner: TypeAlias = Literal["bfs", "iw"]
+ContractId: TypeAlias = Literal["cgas_trace_contract_v2", "cgas_trace_contract_v3"]
 CompletionStatus: TypeAlias = Literal["success_full_trace", "skipped_resource_limit", "failed_no_plan_extracted"]
+
+
+@dataclass(frozen=True, slots=True)
+class _TraceContractBinding:
+    contract_id: ContractId
+    contract_sha256: str
+    bfs_max_records: int
+    iw_max_records: int
+    max_event_bytes: int | None
+
+
+_V2_BINDING: Final = _TraceContractBinding(
+    cgas_trace_contract_v2.CONTRACT_ID,
+    cgas_trace_contract_v2.NEW_CONTRACT_SHA256,
+    cgas_trace_contract_v2.BFS_MAX_RECORDS,
+    cgas_trace_contract_v2.IW_MAX_RECORDS,
+    None,
+)
+_V3_BINDING: Final = _TraceContractBinding(
+    cgas_trace_contract_v3.CONTRACT_ID,
+    cgas_trace_contract_v3.NEW_CONTRACT_SHA256,
+    cgas_trace_contract_v3.BFS_MAX_RECORDS,
+    cgas_trace_contract_v3.IW_MAX_RECORDS,
+    cgas_trace_contract_v3.MAX_EVENT_BYTES,
+)
+_CONTRACT_BINDINGS: Final = {
+    _V2_BINDING.contract_id: _V2_BINDING,
+    _V3_BINDING.contract_id: _V3_BINDING,
+}
 
 
 @dataclass(frozen=True, slots=True)
@@ -34,6 +64,7 @@ class TraceWriteRequest:
     completion_status: CompletionStatus
     success_plan: tuple[str, ...]
     expected_record_count: int
+    contract_id: ContractId = cgas_trace_contract_v2.CONTRACT_ID
 
 
 @dataclass(frozen=True, slots=True)
@@ -45,10 +76,12 @@ class TraceVerification:
     stream_sha256: str
     success_plan_sha256: str | None
     contract_sha256: str
+    contract_id: ContractId = cgas_trace_contract_v2.CONTRACT_ID
 
 
 def write_trace_stream(request: TraceWriteRequest, events: Iterable[Mapping[str, JSONValue]]) -> TraceVerification:
-    _validate_request(request)
+    binding = _binding(request.contract_id, request.output)
+    _validate_request(request, binding)
     request.output.parent.mkdir(parents=True, exist_ok=True)
     descriptor, temporary_name = tempfile.mkstemp(prefix=f".{request.output.name}-", dir=request.output.parent)
     temporary = Path(temporary_name)
@@ -66,19 +99,21 @@ def write_trace_stream(request: TraceWriteRequest, events: Iterable[Mapping[str,
                 }
                 current_sha256 = hashlib.sha256(_canonical_bytes(preimage, request.output)).hexdigest()
                 line = _canonical_bytes({"current_event_sha256": current_sha256, **preimage}, request.output) + b"\n"
+                if binding.max_event_bytes is not None and len(line) > binding.max_event_bytes:
+                    raise TraceStreamError("trace_v3_record_size_exceeded", request.output)
                 handle.write(line)
                 stream_digest.update(line)
                 previous_sha256 = current_sha256
                 record_count += 1
-                if record_count + 1 > _record_bound(request.planner):
+                if record_count + 1 > _record_bound(request.planner, binding):
                     raise TraceStreamError("trace_v2_record_bound_exceeded", request.output)
             if record_count != request.expected_record_count:
                 raise TraceStreamError("trace_v2_record_count_mismatch", request.output)
             success_plan_sha256 = _success_plan_digest(request)
             trailer = {
                 "completion_status": request.completion_status,
-                "contract_id": CONTRACT_ID,
-                "contract_sha256": NEW_CONTRACT_SHA256,
+                "contract_id": binding.contract_id,
+                "contract_sha256": binding.contract_sha256,
                 "final_event_sha256": previous_sha256,
                 "planner": request.planner,
                 "record_count": record_count,
@@ -108,6 +143,7 @@ def verify_trace_stream(path: Path) -> TraceVerification:
     previous_sha256: str | None = None
     record_count = 0
     trailer: dict[str, JSONValue] | None = None
+    largest_event_line = 0
     try:
         with path.open("rb") as handle:
             for line in handle:
@@ -130,18 +166,19 @@ def verify_trace_stream(path: Path) -> TraceVerification:
                     raise TraceStreamError("trace_v2_hash_chain_mismatch", path)
                 previous_sha256 = current
                 record_count += 1
+                largest_event_line = max(largest_event_line, len(line))
                 stream_digest.update(line)
     except OSError as error:
         raise TraceStreamError("trace_v2_read_failed", path) from error
     if trailer is None:
         raise TraceStreamError("trace_v2_missing_trailer", path)
-    return _verify_trailer(trailer, record_count, previous_sha256, stream_digest.hexdigest(), path)
+    return _verify_trailer(trailer, record_count, previous_sha256, stream_digest.hexdigest(), largest_event_line, path)
 
 
-def _validate_request(request: TraceWriteRequest) -> None:
+def _validate_request(request: TraceWriteRequest, binding: _TraceContractBinding) -> None:
     if request.output.suffix != ".jsonl":
         raise TraceStreamError("trace_v2_uncompressed_jsonl_required", request.output)
-    if request.expected_record_count < 0 or request.expected_record_count + 1 > _record_bound(request.planner):
+    if request.expected_record_count < 0 or request.expected_record_count + 1 > _record_bound(request.planner, binding):
         raise TraceStreamError("trace_v2_record_bound_exceeded", request.output)
     if request.completion_status == "success_full_trace":
         return
@@ -172,6 +209,7 @@ def _verify_trailer(
     record_count: int,
     final_event_sha256: str | None,
     stream_sha256: str,
+    largest_event_line: int,
     path: Path,
 ) -> TraceVerification:
     expected_keys = {
@@ -187,11 +225,13 @@ def _verify_trailer(
     }
     if set(trailer) != expected_keys:
         raise TraceStreamError("trace_v2_trailer_mismatch", path)
+    contract_id = trailer.get("contract_id")
+    binding = _binding(contract_id, path)
     planner = _planner(trailer.get("planner"), path)
     completion_status = _completion_status(trailer.get("completion_status"), path)
     expected_values = {
-        "contract_id": CONTRACT_ID,
-        "contract_sha256": NEW_CONTRACT_SHA256,
+        "contract_id": binding.contract_id,
+        "contract_sha256": binding.contract_sha256,
         "final_event_sha256": final_event_sha256,
         "record_count": record_count,
         "stream_sha256": stream_sha256,
@@ -204,11 +244,15 @@ def _verify_trailer(
             raise TraceStreamError("trace_v2_success_plan_digest_missing", path)
     elif success_plan_sha256 is not None:
         raise TraceStreamError("trace_v2_trailer_mismatch", path)
-    if record_count + 1 > _record_bound(planner):
+    if binding.max_event_bytes is not None and largest_event_line > binding.max_event_bytes:
+        raise TraceStreamError("trace_v3_record_size_exceeded", path)
+    if record_count + 1 > _record_bound(planner, binding):
         raise TraceStreamError("trace_v2_record_bound_exceeded", path)
     return TraceVerification(
         planner, completion_status, record_count, final_event_sha256, stream_sha256,
-        success_plan_sha256 if isinstance(success_plan_sha256, str) else None, NEW_CONTRACT_SHA256,
+        success_plan_sha256 if isinstance(success_plan_sha256, str) else None,
+        binding.contract_sha256,
+        binding.contract_id,
     )
 
 
@@ -256,11 +300,20 @@ def _install_stream(temporary: Path, output: Path, verification: TraceVerificati
 _fsync_descriptor: Final = os.fsync
 
 
-def _record_bound(planner: str) -> int:
+def _binding(contract_id: object, path: Path) -> _TraceContractBinding:
+    if not isinstance(contract_id, str):
+        raise TraceStreamError("trace_v2_contract_unsupported", path)
+    binding = _CONTRACT_BINDINGS.get(contract_id)
+    if binding is None:
+        raise TraceStreamError("trace_v2_contract_unsupported", path)
+    return binding
+
+
+def _record_bound(planner: str, binding: _TraceContractBinding) -> int:
     if planner == "bfs":
-        return BFS_MAX_RECORDS
+        return binding.bfs_max_records
     if planner == "iw":
-        return IW_MAX_RECORDS
+        return binding.iw_max_records
     raise TraceStreamError("trace_v2_planner_unsupported", Path(planner))
 
 

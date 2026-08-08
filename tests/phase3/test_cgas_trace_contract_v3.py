@@ -20,6 +20,21 @@ V2_APPROVAL_SHA256 = "bd6909f99ce32484f3a33863cde936c0a3128935dabaf85da783870ae7
 READER_LINE_CEILING = 16 * 1024 * 1024  # cgas_trace_stream_v2.verify_trace_stream, read side only
 
 
+def _event_with_line_size(target: int, path: Path) -> dict[str, str]:
+    from scripts.phase3 import cgas_trace_stream_v2 as stream
+
+    event = {"payload": ""}
+    preimage = {
+        "event": event,
+        "previous_event_sha256": None,
+        "record_type": "event",
+        "sequence": 0,
+    }
+    current = hashlib.sha256(stream._canonical_bytes(preimage, path)).hexdigest()
+    base_line = stream._canonical_bytes({"current_event_sha256": current, **preimage}, path) + b"\n"
+    return {"payload": "x" * (target - len(base_line))}
+
+
 def test_v3_pins_the_policy_the_decision_packet_specifies() -> None:
     # Given: the policy the owner decision packet asks to be authorized.
     from scripts.phase3.cgas_trace_contract_v3 import POLICY_LIMITS, POLICY_SHA256
@@ -101,6 +116,86 @@ def test_max_event_bytes_sits_below_the_reader_line_ceiling() -> None:
     record_size = build_migration_packet()["bounds_proof"]["record_size"]
     assert record_size["max_event_bytes"] == MAX_EVENT_BYTES
     assert record_size["reader_line_ceiling"] == READER_LINE_CEILING
+
+
+def test_v3_accepts_an_event_line_at_the_signed_byte_limit(tmp_path: Path) -> None:
+    from scripts.phase3 import cgas_trace_contract_v3 as v3
+    from scripts.phase3.cgas_trace_stream_v2 import TraceWriteRequest, verify_trace_stream, write_trace_stream
+
+    output = tmp_path / "v3-boundary.jsonl"
+    event = _event_with_line_size(v3.MAX_EVENT_BYTES, output)
+    request = TraceWriteRequest(output, "bfs", "failed_no_plan_extracted", (), 1, v3.CONTRACT_ID)
+
+    write_trace_stream(request, (event,))
+    verified = verify_trace_stream(output)
+
+    assert len(output.read_bytes().splitlines(keepends=True)[0]) == v3.MAX_EVENT_BYTES
+    assert verified.contract_id == v3.CONTRACT_ID
+    assert verified.contract_sha256 == v3.NEW_CONTRACT_SHA256
+
+
+def test_v3_rejects_the_first_byte_over_the_signed_limit(tmp_path: Path) -> None:
+    from scripts.phase3 import cgas_trace_contract_v3 as v3
+    from scripts.phase3.cgas_trace_stream_v2 import TraceStreamError, TraceWriteRequest, write_trace_stream
+
+    output = tmp_path / "v3-too-large.jsonl"
+    event = _event_with_line_size(v3.MAX_EVENT_BYTES + 1, output)
+    request = TraceWriteRequest(output, "bfs", "failed_no_plan_extracted", (), 1, v3.CONTRACT_ID)
+
+    with pytest.raises(TraceStreamError) as raised:
+        write_trace_stream(request, (event,))
+
+    assert raised.value == TraceStreamError("trace_v3_record_size_exceeded", output)
+    assert not output.exists()
+    assert not tuple(tmp_path.glob(f".{output.name}-*"))
+
+
+def test_v3_rejection_preserves_existing_destination_byte_for_byte(tmp_path: Path) -> None:
+    from scripts.phase3 import cgas_trace_contract_v3 as v3
+    from scripts.phase3.cgas_trace_stream_v2 import TraceStreamError, TraceWriteRequest, write_trace_stream
+
+    output = tmp_path / "v3-existing.jsonl"
+    output.write_bytes(b"accepted destination bytes\n")
+    before = output.read_bytes()
+    event = _event_with_line_size(v3.MAX_EVENT_BYTES + 1, output)
+    request = TraceWriteRequest(output, "bfs", "failed_no_plan_extracted", (), 1, v3.CONTRACT_ID)
+
+    with pytest.raises(TraceStreamError, match="trace_v3_record_size_exceeded"):
+        write_trace_stream(request, (event,))
+
+    assert output.read_bytes() == before
+    assert not tuple(tmp_path.glob(f".{output.name}-*"))
+
+
+def test_v3_writer_and_verifier_bind_the_same_trailer_contract(tmp_path: Path) -> None:
+    from scripts.phase3 import cgas_trace_contract_v3 as v3
+    from scripts.phase3.cgas_trace_stream_v2 import TraceWriteRequest, verify_trace_stream, write_trace_stream
+
+    output = tmp_path / "v3-success.jsonl"
+    request = TraceWriteRequest(output, "bfs", "success_full_trace", ("(finish)",), 1, v3.CONTRACT_ID)
+
+    written = write_trace_stream(request, ({"state": "goal"},))
+    verified = verify_trace_stream(output)
+    trailer = json.loads(output.read_bytes().splitlines()[-1])
+
+    assert written == verified
+    assert trailer["contract_id"] == v3.CONTRACT_ID
+    assert trailer["contract_sha256"] == v3.NEW_CONTRACT_SHA256
+
+
+def test_v2_accepts_event_lines_larger_than_the_v3_limit(tmp_path: Path) -> None:
+    from scripts.phase3 import cgas_trace_contract_v3 as v3
+    from scripts.phase3.cgas_trace_stream_v2 import TraceWriteRequest, verify_trace_stream, write_trace_stream
+
+    output = tmp_path / "v2-large.jsonl"
+    event = _event_with_line_size(v3.MAX_EVENT_BYTES + 1, output)
+    request = TraceWriteRequest(output, "bfs", "failed_no_plan_extracted", (), 1)
+
+    write_trace_stream(request, (event,))
+    verified = verify_trace_stream(output)
+
+    assert len(output.read_bytes().splitlines(keepends=True)[0]) == v3.MAX_EVENT_BYTES + 1
+    assert verified.contract_id == "cgas_trace_contract_v2"
 
 
 def test_contract_digest_covers_the_event_body_not_only_the_framing() -> None:
@@ -385,4 +480,3 @@ def test_the_committed_v2_approval_still_reproduces_byte_for_byte(tmp_path: Path
     assert output.read_bytes() == committed
     assert approved.status == "approved_trace_v2"
     assert json.loads(committed)["approval_scope"] == "trace_v2_persistence_only"
-
