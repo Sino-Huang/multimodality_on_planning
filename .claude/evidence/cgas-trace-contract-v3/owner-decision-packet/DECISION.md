@@ -120,11 +120,11 @@ enqueued successor ids, which the event already carries. So:
 
 **The consumer claim, audited.** The prior packet asserted `cgas_certificate_contracts.py` is the
 only consumer of a full snapshot. `audit_v3_contract_surface.py` censuses every occurrence of the
-five affected field names across `scripts/`, `tests/`, and `examples/` — **65 occurrences, all 65
+five affected field names across `scripts/`, `tests/`, and `examples/` — **62 occurrences, all 62
 classified**, and it fails loudly if the census and the classification ever disagree. It was 70
-before slice 1: removing the three BFS emitter lines and three snapshot-reader lines eliminated six
-occurrences, while the Gate 0b reconstruction test added one. Before slice 1, the claim had three
-refinements:
+before slice 1 and 65 before slice 2. Slice 2 removed four IW emitter occurrences and added one more
+explicit absence assertion; the remaining CGAS production reads are confined to legacy-v1 fixture
+compatibility. Before slice 1, the claim had three refinements:
 
 1. **It was two call sites in that module, not one.** `expected_certificate` (line 38) and
    `_prior_bfs_visited` (line 118). The second reads the *previous* expansion's `visited_after`, so a
@@ -134,7 +134,7 @@ refinements:
    `test_cgas_planner_semantic_parity.py:103`. Slice 1 changes them to assert the fields are absent.
 3. **`examples/planning_benchmark_slice/` is a separate lineage.** It has its own BFS and IW
    emitters, its own `trajectory_schema` requiring these names, and 15 test assertions on them. It
-   does not read CGAS streams and v3 does not touch it. 43 of the 65 occurrences are there, which is
+   does not read CGAS streams and v3 does not touch it. 43 of the 62 occurrences are there, which is
    why a raw grep makes this change look much larger than it is.
 
 `scripts/phase3/trace_contracts.py` does **not** cover BFS, so it is unaffected by 1b. It is very

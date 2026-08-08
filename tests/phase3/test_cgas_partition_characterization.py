@@ -31,7 +31,7 @@ from scripts.phase3.pddl import GroundAction, PDDLTask, parse_task
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 FIXTURE_PATH = REPOSITORY_ROOT / "tests/fixtures/planning/blocksworld_nontrivial.json"
 CHARACTERIZE_AST_SHA256 = "d2867a5e5960b4b4b3434253f59aeee9f274f45435036d5f9bbe239bd3c17a47"
-REPRESENTATIVE_ROW_SHA256 = "7d642607a6e7ff4c92a63a52a9656ce1a2b63a7b5c11d79998fa62af80671377"
+REPRESENTATIVE_ROW_SHA256 = "21635fe1dbabd3fa41899d1679483fcbcf199bf5ebc09c9252ae3f1d2c4404d7"
 
 
 def test_characterization_kernel_ast_and_representative_row_bytes_are_frozen(tmp_path: Path) -> None:

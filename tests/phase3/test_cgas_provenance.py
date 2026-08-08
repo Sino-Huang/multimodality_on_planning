@@ -60,7 +60,7 @@ def test_local_width_one_iw_records_novelty_evidence_for_real_expansion_and_prun
         )
     )
 
-    # Then: both the accepted expansion and the later prune carry complete novelty evidence.
+    # Then: both the accepted expansion and the later prune carry exact delta evidence.
     events_value = result.trace["events"]
     assert isinstance(events_value, list)
     events = [event for event in events_value if isinstance(event, dict)]
@@ -71,10 +71,10 @@ def test_local_width_one_iw_records_novelty_evidence_for_real_expansion_and_prun
         decisions.add(decision)
     assert decisions == {"expand", "prune"}
     assert all(
-        {"novelty_table_before", "novelty_table_after", "novel_item", "width_decision"}
-        <= event.keys()
+        {"seen_feature_delta", "novel_item", "width_decision"} <= event.keys()
         for event in events
     )
+    assert all("novelty_table_before" not in event and "novelty_table_after" not in event for event in events)
 
 
 def test_cgas_cli_publishes_canonical_bfs_and_exact_width_one_iw_for_every_split(
@@ -113,8 +113,11 @@ def test_cgas_cli_publishes_canonical_bfs_and_exact_width_one_iw_for_every_split
         assert iw_rows[0]["planner"]["width"] == 1
         assert "plan_recovery" not in iw_rows[0]["planner_trace"]
         assert all(
-            {"novelty_table_before", "novelty_table_after", "novel_item", "width_decision"}
-            <= event.keys()
+            {"seen_feature_delta", "novel_item", "width_decision"} <= event.keys()
+            for event in iw_rows[0]["planner_trace"]["events"]
+        )
+        assert all(
+            "novelty_table_before" not in event and "novelty_table_after" not in event
             for event in iw_rows[0]["planner_trace"]["events"]
         )
 

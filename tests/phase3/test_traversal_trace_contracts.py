@@ -7,6 +7,11 @@ from typing import Any
 
 import pytest
 
+from scripts.phase3.cgas_trace_contract_v3 import (
+    CONTRACT_ID as CGAS_TRACE_CONTRACT_VERSION,
+    IW_EVENT_FIELDS_ADDED,
+    IW_EVENT_FIELDS_REMOVED,
+)
 from scripts.phase3.trace_contracts import (
     FrozenSourceIdentity,
     TraceContractError,
@@ -56,6 +61,33 @@ def test_rejects_absent_unsupported_and_legacy_trace_versions() -> None:
             project_traversal_events(_identity(candidate), candidate)
 
     assert trace["trace_contract_version"] == "phase3_traversal_trace_v1"
+
+
+def test_projects_iw_v1_snapshots_and_signed_v3_delta_as_distinct_versions() -> None:
+    # Given: the immutable v1 fixture and the same event migrated to the signed v3 shape.
+    v1 = _case("iw_valid")["source_row"]
+    v3 = _v3_iw_row()
+
+    # When: both explicit versions cross the traversal boundary.
+    v1_events = project_traversal_events(_identity(v1), v1)
+    v3_events = project_traversal_events(_identity(v3), v3)
+
+    # Then: both project without field-presence inference and preserve their native metadata.
+    assert v1["supervised_target"]["planner_trace"]["trace_contract_version"] == "phase3_traversal_trace_v1"
+    assert v3["supervised_target"]["planner_trace"]["trace_contract_version"] == CGAS_TRACE_CONTRACT_VERSION
+    assert IW_EVENT_FIELDS_REMOVED[0] in v1_events[0].planner_metadata
+    assert IW_EVENT_FIELDS_ADDED[0] in v3_events[0].planner_metadata
+
+
+def test_signed_v3_iw_requires_delta_even_when_legacy_snapshots_are_present() -> None:
+    # Given: a v1-shaped IW event relabeled as v3 without changing its fields.
+    source_row = _case("iw_valid")["source_row"]
+    source_row["supervised_target"]["planner_trace"]["trace_contract_version"] = CGAS_TRACE_CONTRACT_VERSION
+
+    # When: the v3-required field set is selected by the version literal.
+    # Then: legacy snapshot presence cannot make the v3 event valid.
+    with pytest.raises(TraceContractError, match=f"missing_required_field: {IW_EVENT_FIELDS_ADDED[0]}"):
+        project_traversal_events(_identity(source_row), source_row)
 
 
 def test_graphplan_layers_never_claim_concrete_state_or_frame() -> None:
@@ -166,6 +198,18 @@ def _identity(source_row: dict[str, Any]) -> FrozenSourceIdentity:
         example_id=source_row["example_id"],
         planner=source_row["planner"],
     )
+
+
+def _v3_iw_row() -> dict[str, Any]:
+    source_row = _case("iw_valid")["source_row"]
+    trace = source_row["supervised_target"]["planner_trace"]
+    trace["trace_contract_version"] = CGAS_TRACE_CONTRACT_VERSION
+    event = trace["events"][0]
+    event["novel_item"] = "(start)"
+    event[IW_EVENT_FIELDS_ADDED[0]] = ["(start)"]
+    for field in IW_EVENT_FIELDS_REMOVED:
+        event.pop(field)
+    return source_row
 
 
 _DOCUMENTED_EVENT_FIELDS = {

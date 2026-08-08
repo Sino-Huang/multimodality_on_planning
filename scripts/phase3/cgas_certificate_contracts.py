@@ -3,6 +3,7 @@ from __future__ import annotations
 from copy import deepcopy
 from typing import Final
 
+from . import cgas_trace_contract_v3
 from .cgas_serialization import canonical, digest_text
 
 
@@ -51,9 +52,20 @@ def expected_certificate(source: dict[str, object]) -> dict[str, object]:
             }
         case "iterated_width":
             event = _iw_event(source, trace)
-            before = set(_strings(event, "novelty_table_before"))
-            after = set(_strings(event, "novelty_table_after"))
-            return {"kind": "iw", "novelty_tuple": _text(event, "novel_item"), "seen_feature_delta": sorted(after - before), "width_decision": _text(event, "width_decision")}
+            match _text(trace, "trace_contract_version"):
+                case "phase3_traversal_trace_v1":
+                    before = set(_strings(event, "novelty_table_before"))
+                    after = set(_strings(event, "novelty_table_after"))
+                    seen_feature_delta = sorted(after - before)
+                case cgas_trace_contract_v3.CONTRACT_ID:
+                    seen_feature_delta = _strings(event, cgas_trace_contract_v3.IW_EVENT_FIELDS_ADDED[0])
+                case unsupported:
+                    raise CertificateError(
+                        "unsupported_iw_trace_contract_version",
+                        _text(source, "record_id"),
+                        unsupported,
+                    )
+            return {"kind": "iw", "novelty_tuple": _text(event, "novel_item"), "seen_feature_delta": seen_feature_delta, "width_decision": _text(event, "width_decision")}
         case unsupported:
             raise CertificateError("unsupported_planner", _text(source, "record_id"), unsupported)
 

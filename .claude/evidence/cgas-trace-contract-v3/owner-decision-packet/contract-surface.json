@@ -41,8 +41,8 @@
     }
   },
   "field_consumers": {
-    "classified_count": 65,
-    "hit_count": 65,
+    "classified_count": 62,
+    "hit_count": 62,
     "rows": [
       {
         "line": 84,
@@ -269,17 +269,17 @@
         "source": "for field in (\"novelty_table_before\", \"novelty_table_after\"):"
       },
       {
-        "line": 54,
+        "line": 57,
         "lineage": "cgas-production",
-        "note": "novelty_table_before -> seen_feature_delta",
+        "note": "legacy v1 novelty_table_before -> seen_feature_delta",
         "path": "scripts/phase3/cgas_certificate_contracts.py",
         "role": "reads-value",
         "source": "before = set(_strings(event, \"novelty_table_before\"))"
       },
       {
-        "line": 55,
+        "line": 58,
         "lineage": "cgas-production",
-        "note": "novelty_table_after -> seen_feature_delta",
+        "note": "legacy v1 novelty_table_after -> seen_feature_delta",
         "path": "scripts/phase3/cgas_certificate_contracts.py",
         "role": "reads-value",
         "source": "after = set(_strings(event, \"novelty_table_after\"))"
@@ -325,57 +325,25 @@
         "source": "\"R3\": \"visited_after[i] == sorted(visited_after[i-1] | enqueued(i))\","
       },
       {
-        "line": 261,
+        "line": 214,
         "lineage": "cgas-production",
-        "note": "novelty_table_before on expand events (truncated to 200)",
-        "path": "scripts/phase3/local_iw.py",
-        "role": "emitter",
-        "source": "\"novelty_table_before\": list(before),"
-      },
-      {
-        "line": 262,
-        "lineage": "cgas-production",
-        "note": "novelty_table_after on expand events (truncated to 200)",
-        "path": "scripts/phase3/local_iw.py",
-        "role": "emitter",
-        "source": "\"novelty_table_after\": list(serialized_novelty_table(table)),"
-      },
-      {
-        "line": 276,
-        "lineage": "cgas-production",
-        "note": "novelty_table_before on prune events",
-        "path": "scripts/phase3/local_iw.py",
-        "role": "emitter",
-        "source": "\"novelty_table_before\": list(table),"
-      },
-      {
-        "line": 277,
-        "lineage": "cgas-production",
-        "note": "novelty_table_after on prune events",
-        "path": "scripts/phase3/local_iw.py",
-        "role": "emitter",
-        "source": "\"novelty_table_after\": list(table),"
-      },
-      {
-        "line": 196,
-        "lineage": "cgas-production",
-        "note": "IW expand events must carry both novelty snapshots",
+        "note": "legacy v1 IW expand events require both novelty snapshots",
         "path": "scripts/phase3/trace_contracts.py",
         "role": "requires-key",
         "source": "return (\"decision\", \"frontier_size_after\", \"novel_item\", \"novelty_table_before\", \"novelty_table_after\", \"successors\")"
       },
       {
-        "line": 238,
+        "line": 240,
         "lineage": "cgas-production",
-        "note": "novelty_table_before must be a list",
+        "note": "legacy v1 novelty_table_before must be a list",
         "path": "scripts/phase3/trace_contracts.py",
         "role": "requires-key",
         "source": "_list(event, \"novelty_table_before\")"
       },
       {
-        "line": 239,
+        "line": 241,
         "lineage": "cgas-production",
-        "note": "novelty_table_after must be a list",
+        "note": "legacy v1 novelty_table_after must be a list",
         "path": "scripts/phase3/trace_contracts.py",
         "role": "requires-key",
         "source": "_list(event, \"novelty_table_after\")"
@@ -397,36 +365,44 @@
         "source": "assert \"frontier_after\" not in expansions[0]"
       },
       {
-        "line": 183,
+        "line": 184,
         "lineage": "cgas-test",
-        "note": "novelty_table_after contents",
+        "note": "width-1 expand omits novelty_table_before",
         "path": "tests/phase3/test_cgas_planner_semantic_parity.py",
         "role": "asserts",
-        "source": "assert events[0][\"novelty_table_after\"] == [\"(start)\"]"
+        "source": "assert \"novelty_table_before\" not in events[0]"
       },
       {
-        "line": 201,
+        "line": 185,
         "lineage": "cgas-test",
-        "note": "novelty_table_after contents",
+        "note": "width-1 expand omits novelty_table_after",
         "path": "tests/phase3/test_cgas_planner_semantic_parity.py",
         "role": "asserts",
-        "source": "assert events[1][\"novelty_table_after\"] == [\"(p)\", \"(q)\", \"(r)\"]"
+        "source": "assert \"novelty_table_after\" not in events[0]"
       },
       {
-        "line": 202,
+        "line": 204,
         "lineage": "cgas-test",
-        "note": "novelty_table_before == novelty_table_after on a prune",
+        "note": "expand and prune events omit novelty_table_before",
         "path": "tests/phase3/test_cgas_planner_semantic_parity.py",
         "role": "asserts",
-        "source": "assert events[2][\"novelty_table_before\"] == events[2][\"novelty_table_after\"] == [\"(p)\", \"(q)\", \"(r)\"]"
+        "source": "assert all(\"novelty_table_before\" not in event for event in events)"
       },
       {
-        "line": 74,
+        "line": 205,
         "lineage": "cgas-test",
-        "note": "pins the exact IW event key set",
+        "note": "expand and prune events omit novelty_table_after",
+        "path": "tests/phase3/test_cgas_planner_semantic_parity.py",
+        "role": "asserts",
+        "source": "assert all(\"novelty_table_after\" not in event for event in events)"
+      },
+      {
+        "line": 77,
+        "lineage": "cgas-test",
+        "note": "local width-1 events omit both snapshots",
         "path": "tests/phase3/test_cgas_provenance.py",
         "role": "asserts",
-        "source": "{\"novelty_table_before\", \"novelty_table_after\", \"novel_item\", \"width_decision\"}"
+        "source": "assert all(\"novelty_table_before\" not in event and \"novelty_table_after\" not in event for event in events)"
       },
       {
         "line": 112,
@@ -437,12 +413,12 @@
         "source": "assert \"frontier_before\" not in bfs_rows[0][\"planner_trace\"][\"expansions\"][0]"
       },
       {
-        "line": 116,
+        "line": 120,
         "lineage": "cgas-test",
-        "note": "pins the exact IW event key set",
+        "note": "published width-1 events omit both snapshots",
         "path": "tests/phase3/test_cgas_provenance.py",
         "role": "asserts",
-        "source": "{\"novelty_table_before\", \"novelty_table_after\", \"novel_item\", \"width_decision\"}"
+        "source": "\"novelty_table_before\" not in event and \"novelty_table_after\" not in event"
       },
       {
         "line": 67,

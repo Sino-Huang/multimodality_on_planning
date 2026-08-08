@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Final, Literal, Mapping, NoReturn, Sequence, TypeAlias
 
+from . import cgas_trace_contract_v3
 from .local_planner_types import JSONValue
 
 
@@ -14,6 +15,7 @@ TRACE_CONTRACT_VERSION: Final = "phase3_traversal_trace_v1"
 ACTIVE_PLANNERS: Final = frozenset({"ff", "gbfs", "iw", "graphplan"})
 CONCRETE_EVENT_KINDS: Final = frozenset({"expansion", "generation", "revisit", "backtrack"})
 PlannerName: TypeAlias = Literal["ff", "gbfs", "iw", "graphplan"]
+IWTraceContractVersion: TypeAlias = Literal["phase3_traversal_trace_v1", "cgas_trace_contract_v3"]
 JSONMapping: TypeAlias = Mapping[str, JSONValue]
 
 
@@ -82,15 +84,18 @@ def project_traversal_events(identity: FrozenSourceIdentity, source_row: JSONMap
     planner = _planner(planner_text)
     _equal(planner, identity.planner, "source_identity_mismatch: planner")
     trace = _mapping(_mapping(source_row, "supervised_target"), "planner_trace")
-    _equal(_text(trace, "trace_contract_version"), TRACE_CONTRACT_VERSION, "unsupported_trace_contract_version")
+    trace_contract_version = _text(trace, "trace_contract_version")
     match planner_text:
         case "ff":
+            _equal(trace_contract_version, TRACE_CONTRACT_VERSION, "unsupported_trace_contract_version")
             return _ff_events(identity, trace)
         case "gbfs":
+            _equal(trace_contract_version, TRACE_CONTRACT_VERSION, "unsupported_trace_contract_version")
             return _gbfs_events(identity, trace)
         case "iw":
-            return _iw_events(identity, trace)
+            return _iw_events(identity, trace, _iw_trace_contract_version(trace_contract_version))
         case "graphplan":
+            _equal(trace_contract_version, TRACE_CONTRACT_VERSION, "unsupported_trace_contract_version")
             return _graphplan_events(identity, trace)
         case unsupported:
             assert_never(unsupported, "unsupported_active_planner")
@@ -117,14 +122,21 @@ def _gbfs_events(identity: FrozenSourceIdentity, trace: JSONMapping) -> tuple[Tr
     )
 
 
-def _iw_events(identity: FrozenSourceIdentity, trace: JSONMapping) -> tuple[TraversalEvent, ...]:
+def _iw_events(
+    identity: FrozenSourceIdentity,
+    trace: JSONMapping,
+    trace_contract_version: IWTraceContractVersion,
+) -> tuple[TraversalEvent, ...]:
     _equal(_text(trace, "algorithm"), "iterated_width", "planner_algorithm_mismatch")
     _integer(trace, "width")
-    return tuple(
-        _concrete_event(identity, "iw", index, event, None)
-        for index, value in enumerate(_list(trace, "events"))
-        for event in (_item_mapping(value, f"events[{index}]"),)
-    )
+    events: list[TraversalEvent] = []
+    for index, value in enumerate(_list(trace, "events")):
+        event = _item_mapping(value, f"events[{index}]")
+        for field in _iw_required_fields(trace_contract_version, event):
+            _value(event, field)
+        _validate_iw_event_fields(trace_contract_version, event)
+        events.append(_concrete_event(identity, "iw", index, event, None))
+    return tuple(events)
 
 
 def _graphplan_events(identity: FrozenSourceIdentity, trace: JSONMapping) -> tuple[TraversalEvent, ...]:
@@ -180,7 +192,7 @@ def _graphplan_extraction_event(identity: FrozenSourceIdentity, index: int, extr
 
 def _concrete_event(identity: FrozenSourceIdentity, planner: PlannerName, index: int, event: JSONMapping, action_key: str | None) -> TraversalEvent:
     atoms = tuple(sorted(_strings(event, "state_atoms") if planner != "gbfs" else _strings(event, "selected_state_atoms")))
-    required = ("step_index", "current_heuristic", "selected_successor", "successor_heuristics", "relaxation_metadata", "tie_break_rule") if planner == "ff" else ("current_heuristic", "successor_heuristics", "frontier_size_after", "visited_count_after", "tie_break_rule") if planner == "gbfs" else _iw_required_fields(event)
+    required = ("step_index", "current_heuristic", "selected_successor", "successor_heuristics", "relaxation_metadata", "tie_break_rule") if planner == "ff" else ("current_heuristic", "successor_heuristics", "frontier_size_after", "visited_count_after", "tie_break_rule") if planner == "gbfs" else ()
     for field in required:
         _value(event, field)
     action = _text(event, action_key) if action_key is not None else _optional_action(event)
@@ -190,14 +202,68 @@ def _concrete_event(identity: FrozenSourceIdentity, planner: PlannerName, index:
     return TraversalEvent(identity, "concrete_state", planner, kind, index, _node_id(identity, kind, index), None, action, "trace_recorded", _state_hash(atoms), dict(event))
 
 
-def _iw_required_fields(event: JSONMapping) -> tuple[str, ...]:
-    match _text(event, "decision"):
-        case "expand":
-            return ("decision", "frontier_size_after", "novel_item", "novelty_table_before", "novelty_table_after", "successors")
-        case "prune":
-            return ("decision", "frontier_size_after")
+def _iw_required_fields(
+    trace_contract_version: IWTraceContractVersion,
+    event: JSONMapping,
+) -> tuple[str, ...]:
+    decision = _text(event, "decision")
+    match trace_contract_version:
+        case "phase3_traversal_trace_v1":
+            match decision:
+                case "expand":
+                    return ("decision", "frontier_size_after", "novel_item", "novelty_table_before", "novelty_table_after", "successors")
+                case "prune":
+                    return ("decision", "frontier_size_after")
+                case unsupported:
+                    assert_never(unsupported, "unsupported_iw_decision")
+        case cgas_trace_contract_v3.CONTRACT_ID:
+            match decision:
+                case "expand":
+                    return ("decision", "frontier_size_after", "novel_item", cgas_trace_contract_v3.IW_EVENT_FIELDS_ADDED[0], "successors")
+                case "prune":
+                    return ("decision", "frontier_size_after", cgas_trace_contract_v3.IW_EVENT_FIELDS_ADDED[0])
+                case unsupported:
+                    assert_never(unsupported, "unsupported_iw_decision")
         case unsupported:
-            assert_never(unsupported, "unsupported_iw_decision")
+            assert_never(unsupported, "unsupported_trace_contract_version")
+
+
+def _validate_iw_event_fields(
+    trace_contract_version: IWTraceContractVersion,
+    event: JSONMapping,
+) -> None:
+    match trace_contract_version:
+        case "phase3_traversal_trace_v1":
+            match _text(event, "decision"):
+                case "expand":
+                    _list(event, "novel_item")
+                    _list(event, "novelty_table_before")
+                    _list(event, "novelty_table_after")
+                case "prune":
+                    pass
+                case unsupported:
+                    assert_never(unsupported, "unsupported_iw_decision")
+        case cgas_trace_contract_v3.CONTRACT_ID:
+            match _text(event, "decision"):
+                case "expand":
+                    _text(event, "novel_item")
+                case "prune":
+                    pass
+                case unsupported:
+                    assert_never(unsupported, "unsupported_iw_decision")
+            _strings(event, cgas_trace_contract_v3.IW_EVENT_FIELDS_ADDED[0])
+        case unsupported:
+            assert_never(unsupported, "unsupported_trace_contract_version")
+
+
+def _iw_trace_contract_version(value: str) -> IWTraceContractVersion:
+    match value:
+        case "phase3_traversal_trace_v1":
+            return value
+        case cgas_trace_contract_v3.CONTRACT_ID:
+            return value
+        case unsupported:
+            assert_never(unsupported, "unsupported_trace_contract_version")
 
 
 def _concrete_event_kind(event: JSONMapping) -> str:
@@ -233,10 +299,6 @@ def _validate_concrete_event_fields(event: JSONMapping, planner: PlannerName) ->
         _text(event, "tie_break_rule")
     else:
         _integer(event, "frontier_size_after")
-        if _text(event, "decision") == "expand":
-            _list(event, "novel_item")
-            _list(event, "novelty_table_before")
-            _list(event, "novelty_table_after")
 
 
 def _validate_successor(successor: JSONMapping, planner: PlannerName, path: str) -> None:

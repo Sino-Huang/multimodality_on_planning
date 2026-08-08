@@ -85,20 +85,16 @@ SOURCE_ROOTS = ("scripts", "tests", "examples")
 #   defines-name     a constant/schema listing the name, no read of a stream
 # ---------------------------------------------------------------------------
 CLASSIFICATION: tuple[tuple[str, int, str, str, str], ...] = (
-    # --- CGAS certificate builder: only the slice-2 IW reader remains ------
-    ("scripts/phase3/cgas_certificate_contracts.py", 54, "cgas-production", "reads-value", "novelty_table_before -> seen_feature_delta"),
-    ("scripts/phase3/cgas_certificate_contracts.py", 55, "cgas-production", "reads-value", "novelty_table_after -> seen_feature_delta"),
-    # --- CGAS IW emitter --------------------------------------------------
-    ("scripts/phase3/local_iw.py", 261, "cgas-production", "emitter", "novelty_table_before on expand events (truncated to 200)"),
-    ("scripts/phase3/local_iw.py", 262, "cgas-production", "emitter", "novelty_table_after on expand events (truncated to 200)"),
-    ("scripts/phase3/local_iw.py", 276, "cgas-production", "emitter", "novelty_table_before on prune events"),
-    ("scripts/phase3/local_iw.py", 277, "cgas-production", "emitter", "novelty_table_after on prune events"),
-    # --- CGAS tests that pin the IW event field SET (these go RED under v3) ---
-    ("tests/phase3/test_cgas_provenance.py", 74, "cgas-test", "asserts", "pins the exact IW event key set"),
-    ("tests/phase3/test_cgas_provenance.py", 116, "cgas-test", "asserts", "pins the exact IW event key set"),
-    ("tests/phase3/test_cgas_planner_semantic_parity.py", 183, "cgas-test", "asserts", "novelty_table_after contents"),
-    ("tests/phase3/test_cgas_planner_semantic_parity.py", 201, "cgas-test", "asserts", "novelty_table_after contents"),
-    ("tests/phase3/test_cgas_planner_semantic_parity.py", 202, "cgas-test", "asserts", "novelty_table_before == novelty_table_after on a prune"),
+    # --- CGAS certificate builder: legacy-v1 compatibility only ------------
+    ("scripts/phase3/cgas_certificate_contracts.py", 57, "cgas-production", "reads-value", "legacy v1 novelty_table_before -> seen_feature_delta"),
+    ("scripts/phase3/cgas_certificate_contracts.py", 58, "cgas-production", "reads-value", "legacy v1 novelty_table_after -> seen_feature_delta"),
+    # --- CGAS tests pin that regenerated v3 events omit both snapshots ------
+    ("tests/phase3/test_cgas_planner_semantic_parity.py", 184, "cgas-test", "asserts", "width-1 expand omits novelty_table_before"),
+    ("tests/phase3/test_cgas_planner_semantic_parity.py", 185, "cgas-test", "asserts", "width-1 expand omits novelty_table_after"),
+    ("tests/phase3/test_cgas_planner_semantic_parity.py", 204, "cgas-test", "asserts", "expand and prune events omit novelty_table_before"),
+    ("tests/phase3/test_cgas_planner_semantic_parity.py", 205, "cgas-test", "asserts", "expand and prune events omit novelty_table_after"),
+    ("tests/phase3/test_cgas_provenance.py", 77, "cgas-test", "asserts", "local width-1 events omit both snapshots"),
+    ("tests/phase3/test_cgas_provenance.py", 120, "cgas-test", "asserts", "published width-1 events omit both snapshots"),
     # --- v3 contract surface (added 2026-08-07): names the removed fields so the
     #      drop is a signed, auditable contract property instead of an accident ---
     ("scripts/phase3/cgas_trace_contract_v3.py", 69, "cgas-production", "defines-name", "v3 contract: the BFS fields v3 removes"),
@@ -106,10 +102,10 @@ CLASSIFICATION: tuple[tuple[str, int, str, str, str], ...] = (
     ("scripts/phase3/cgas_trace_contract_v3.py", 78, "cgas-production", "defines-name", "v3 contract: reconstruction rule R1"),
     ("scripts/phase3/cgas_trace_contract_v3.py", 79, "cgas-production", "defines-name", "v3 contract: reconstruction rule R2"),
     ("scripts/phase3/cgas_trace_contract_v3.py", 80, "cgas-production", "defines-name", "v3 contract: reconstruction rule R3"),
-    # --- trace-v1 traversal validator: a SECOND IW consumer ---------------
-    ("scripts/phase3/trace_contracts.py", 196, "cgas-production", "requires-key", "IW expand events must carry both novelty snapshots"),
-    ("scripts/phase3/trace_contracts.py", 238, "cgas-production", "requires-key", "novelty_table_before must be a list"),
-    ("scripts/phase3/trace_contracts.py", 239, "cgas-production", "requires-key", "novelty_table_after must be a list"),
+    # --- trace-v1 traversal validator: legacy-v1 compatibility only --------
+    ("scripts/phase3/trace_contracts.py", 214, "cgas-production", "requires-key", "legacy v1 IW expand events require both novelty snapshots"),
+    ("scripts/phase3/trace_contracts.py", 240, "cgas-production", "requires-key", "legacy v1 novelty_table_before must be a list"),
+    ("scripts/phase3/trace_contracts.py", 241, "cgas-production", "requires-key", "legacy v1 novelty_table_after must be a list"),
     # --- CGAS tests that pin the raw fields -------------------------------
     ("tests/phase3/test_cgas_bfs_reader_shim.py", 11, "cgas-test", "asserts", "Gate 0b strips all three BFS snapshots before rebuilding fixture certificates"),
     ("tests/phase3/test_cgas_provenance.py", 112, "cgas-test", "asserts", "frontier_before is absent from regenerated traces"),
@@ -440,9 +436,9 @@ def render_novelty(novelty: dict[str, object]) -> str:
     lines.append("   'understated' is per instance: true_peak / trace-visible peak, max and mean")
     lines.append("   over the instrumented runs at that object count.")
     lines.append("")
-    lines.append("   seen_feature_delta is computed as the difference of two CLIPPED snapshots")
-    lines.append("   (cgas_certificate_contracts.py:41-43), so at width 2 it is unsound by the")
-    lines.append("   understatement factor above. Emitting the delta removes the clip from the")
+    lines.append("   Under legacy v1, seen_feature_delta was reconstructed from two CLIPPED snapshots")
+    lines.append("   (cgas_certificate_contracts.py:57-58), so at width 2 it was unsound by the")
+    lines.append("   understatement factor above. The v3 emitter removes the clip from the")
     lines.append("   correctness path entirely -- the delta is bounded by novelty_items(state, 2),")
     lines.append("   which is |atoms| + C(|atoms|, 2) and does not grow with the search.")
     return "\n".join(lines) + "\n"

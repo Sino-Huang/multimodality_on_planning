@@ -3,8 +3,9 @@ from __future__ import annotations
 from collections import deque
 from typing import Final
 
+from .cgas_trace_contract_v3 import CONTRACT_ID as TRACE_CONTRACT_VERSION
 from .local_goal_regression import GoalRegressionRequest, recover_goal_regression_plan, should_try_goal_regression_first
-from .local_iw_novelty import first_novel, novelty_items, serialize_tuple, serialized_novelty_table, state_atoms
+from .local_iw_novelty import first_novel, novelty_items, serialize_tuple, state_atoms
 from .local_planner_types import (
     JSONValue,
     LocalPlannerRequest,
@@ -89,11 +90,14 @@ def _run_single_width(request: LocalPlannerRequest, width: int, max_width: int) 
         if novel_item is None:
             trace_event_count += 1
             if request.trace_sink is not None or len(events) < request.limits["max_trace_steps"]:
-                table = serialized_novelty_table(novelty_table)
-                record_trace_event(events, request.trace_sink, _iw_prune_event(node.state, table, len(frontier), width))
+                record_trace_event(events, request.trace_sink, _iw_prune_event(node.state, len(frontier), width))
             continue
         retain_event = request.trace_sink is not None or len(events) < request.limits["max_trace_steps"]
-        novelty_before = serialized_novelty_table(novelty_table) if retain_event else []
+        seen_feature_delta = (
+            sorted(serialize_tuple(item) for item in current_items if item not in novelty_table)
+            if retain_event
+            else []
+        )
         novelty_table.update(current_items)
         expansions += 1
         if expansions > _limit(request, "local_iw_novelty_max_expansions", request.limits["gbfs_max_expansions"]):
@@ -147,7 +151,7 @@ def _run_single_width(request: LocalPlannerRequest, width: int, max_width: int) 
                     record_trace_event(
                         events,
                         request.trace_sink,
-                        _iw_event(node.state, novelty_before, novelty_table, novel_item, successors, frontier, width),
+                        _iw_event(node.state, seen_feature_delta, novel_item, successors, frontier, width),
                     )
                 trace = _iw_trace(width, events, expansions, trace_event_count, request.trace_sink is not None)
                 return LocalPlannerResult(
@@ -162,7 +166,7 @@ def _run_single_width(request: LocalPlannerRequest, width: int, max_width: int) 
             record_trace_event(
                 events,
                 request.trace_sink,
-                _iw_event(node.state, novelty_before, novelty_table, novel_item, successors, frontier, width),
+                _iw_event(node.state, seen_feature_delta, novel_item, successors, frontier, width),
             )
     return _recover_at_max_width(
         request,
@@ -185,7 +189,7 @@ def _iw_trace(
     streamed: bool = False,
 ) -> dict[str, JSONValue]:
     return {
-        "trace_contract_version": "phase3_traversal_trace_v1",
+        "trace_contract_version": TRACE_CONTRACT_VERSION,
         "algorithm": "iterated_width",
         "width": width,
         "events": events,
@@ -246,8 +250,7 @@ def _recover_at_max_width(
 
 def _iw_event(
     state: frozenset[Atom],
-    before: list[str],
-    table: set[tuple[str, ...]],
+    seen_feature_delta: list[str],
     novel: tuple[str, ...],
     successors: list[JSONValue],
     frontier: deque[SearchNode],
@@ -258,23 +261,21 @@ def _iw_event(
         "event_kind": "expansion",
         "state_atoms": list(state_atoms(state)),
         "novel_item": serialize_tuple(novel),
-        "novelty_table_before": list(before),
-        "novelty_table_after": list(serialized_novelty_table(table)),
+        "seen_feature_delta": seen_feature_delta,
         "successors": successors,
         "frontier_size_after": len(frontier),
         "width_decision": f"width_{width}_novel",
     }
 
 
-def _iw_prune_event(state: frozenset[Atom], table: list[str], frontier_size: int, width: int) -> dict[str, JSONValue]:
+def _iw_prune_event(state: frozenset[Atom], frontier_size: int, width: int) -> dict[str, JSONValue]:
     return {
         "decision": "prune",
         "event_kind": "backtrack",
         "state_atoms": list(state_atoms(state)),
         "frontier_size_after": frontier_size,
         "novel_item": [],
-        "novelty_table_before": list(table),
-        "novelty_table_after": list(table),
+        "seen_feature_delta": [],
         "width_decision": f"width_{width}_seen",
     }
 

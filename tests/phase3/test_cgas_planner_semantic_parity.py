@@ -176,11 +176,13 @@ def test_iw_singleton_features_match_independent_width_one_fixture() -> None:
     # When: native IW runs at width one without recovery.
     result = run_iterated_width(_iw_request(task, (action,)))
 
-    # Then: its singleton table matches the independently enumerated width-one feature set.
+    # Then: its exact singleton delta matches the independently enumerated width-one feature set.
     events = _records(result.trace, "events")
     assert _singleton_features({"start"}) == reference_novelty_items(["(start)"], width=1)
     assert events[0]["novel_item"] == "(start)"
-    assert events[0]["novelty_table_after"] == ["(start)"]
+    assert events[0]["seen_feature_delta"] == ["(start)"]
+    assert "novelty_table_before" not in events[0]
+    assert "novelty_table_after" not in events[0]
     assert result.plan == ["(finish)"]
 
 
@@ -195,11 +197,12 @@ def test_iw_updates_singleton_table_then_prunes_non_novel_node() -> None:
     # When: native IW exhausts the novelty graph.
     result = run_iterated_width(_iw_request(task, actions))
 
-    # Then: table growth is recorded before the later non-novel prune.
+    # Then: each expansion records only its exact growth and the prune records none.
     events = _records(result.trace, "events")
     assert [event["decision"] for event in events] == ["expand", "expand", "prune"]
-    assert events[1]["novelty_table_after"] == ["(p)", "(q)", "(r)"]
-    assert events[2]["novelty_table_before"] == events[2]["novelty_table_after"] == ["(p)", "(q)", "(r)"]
+    assert [event["seen_feature_delta"] for event in events] == [["(p)"], ["(q)", "(r)"], []]
+    assert all("novelty_table_before" not in event for event in events)
+    assert all("novelty_table_after" not in event for event in events)
 
 
 def test_iw_prunes_duplicate_visited_successor() -> None:
