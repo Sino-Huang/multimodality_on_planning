@@ -1,0 +1,71 @@
+{
+  "basedpyright": {
+    "command": "source ~/cd_vlaplan && basedpyright scripts/phase3/cgas_pilot_manifest.py scripts/phase3/cgas_pilot_manifest_approval.py scripts/phase3/cgas_pilot_manifest_models.py scripts/phase3/cgas_pilot_manifest_selection.py tests/phase3/test_cgas_pilot_manifest.py",
+    "result": "0 errors, 0 warnings, 0 notes",
+    "status": "passed"
+  },
+  "broad_cgas_tests": {
+    "command": "source ~/cd_vlaplan && pytest -q $(rg --files tests | rg '/test_cgas_.*\\.py$')",
+    "failed": 3,
+    "failures": [
+      "tests/phase3/test_cgas_planner_blocker_probe.py::test_probe_records_repeated_native_searches_without_authoritative_fields",
+      "tests/phase3/test_cgas_planner_alternative_profile_probe.py::test_alternative_profiles_are_deterministic_and_non_authoritative",
+      "tests/phase3/test_cgas_planner_alternative_profile_probe.py::test_final_retained_probe_matches_current_cli_semantics"
+    ],
+    "passed": 476,
+    "pre_existing_evidence": ".claude/evidence/cgas-trace-contract-v3/gate0b-round1-2026-08-09/README.md",
+    "result": "3 failed, 476 passed in 437.90s",
+    "status": "pre_existing_failures_only"
+  },
+  "contract_surface": {
+    "command": "source ~/cd_vlaplan && python .claude/evidence/cgas-trace-contract-v3/owner-decision-packet/audit_v3_contract_surface.py",
+    "result": "62 occurrences, 62 classified, 0 unclassified, 0 stale",
+    "status": "passed"
+  },
+  "focused_tests": {
+    "command": "source ~/cd_vlaplan && pytest -q tests/phase3/test_cgas_pilot_manifest.py tests/phase3/test_cgas_partition_selection.py tests/phase3/test_cgas_production_population.py tests/phase3/test_cgas_characterization_checkpoint.py tests/phase3/test_cgas_pilot_scope.py tests/phase3/test_cgas_certificates_alignment_binding.py tests/phase3/test_cgas_qwenvl_preflight.py -k 'not test_run_real_v3_publishes_only_digest_bound_pilot_contracts'",
+    "result": "55 passed, 1 deselected in 13.85s",
+    "status": "passed"
+  },
+  "independent_review": {
+    "artifact": ".claude/evidence/cgas-phase3-pilot-manifest/independent-review.md",
+    "result": "APPROVED; code quality CLEAR; no blockers",
+    "status": "passed"
+  },
+  "immutability": {
+    "checkpoint_2": "absent in v2 and v3 roots",
+    "release_sha256": "3bc894314f4fa674ff36489c664d8cc9db7f23e2144c5ffcef1444fd30feb6c3",
+    "result": "all bound input lists and v2/v3 root metadata digests unchanged",
+    "status": "passed",
+    "v2_root_metadata_sha256": "3e1d918ad6f17bd86c6bd119afe111e1672118f2f23e7a1cb76d1bf27b63536f",
+    "v3_root_metadata_sha256": "a4e86491848c7064e6d250fada7d02e8c0d639bcfca0223594a56c60c68274be"
+  },
+  "manual_qa": {
+    "command": "source ~/cd_vlaplan && python -m scripts.phase3.cgas_pilot_manifest --repository . --checkpoint tmp/cgas-p0-characterized-v3/checkpoints/reservoir_checkpoint_000001.json --checkpoint-index tmp/cgas-p0-characterized-v3/current.json --scope-report .claude/evidence/cgas-phase3-pilot-scope/report.json --approval .claude/evidence/cgas-phase3-pilot-manifest/pilot-owner-approval.json --output .claude/evidence/cgas-phase3-pilot-manifest",
+    "first_result": "exit 0; all 562 real v3 streams verified; read_only=false",
+    "replay_result": "exit 0; all 562 real v3 streams verified; read_only=true; artifact bytes unchanged",
+    "status": "passed"
+  },
+  "no_excuse": {
+    "command": "source ~/cd_vlaplan && python /home/sukaih/.codex/plugins/cache/sisyphuslabs/omo/4.19.4/skills/programming/scripts/python/check-no-excuse-rules.py scripts/phase3/cgas_pilot_manifest.py scripts/phase3/cgas_pilot_manifest_approval.py scripts/phase3/cgas_pilot_manifest_models.py scripts/phase3/cgas_pilot_manifest_selection.py tests/phase3/test_cgas_pilot_manifest.py",
+    "result": "no violations in 5 file(s)",
+    "status": "passed"
+  },
+  "red": {
+    "approval_implementation_mutation_failures": 1,
+    "boundary_failures": 6,
+    "result": "6 unimplemented-boundary failures plus 1 approval-implementation provenance mutation failure",
+    "status": "captured"
+  },
+  "ruff": {
+    "command": "source ~/cd_vlaplan && ruff check scripts/phase3/cgas_pilot_manifest.py scripts/phase3/cgas_pilot_manifest_approval.py scripts/phase3/cgas_pilot_manifest_models.py scripts/phase3/cgas_pilot_manifest_selection.py tests/phase3/test_cgas_pilot_manifest.py",
+    "result": "All checks passed!",
+    "status": "passed"
+  },
+  "schema_version": "cgas_phase3_pilot_manifest_gates_v1",
+  "staged_secret_scan": {
+    "command": "source ~/cd_vlaplan && python /home/sukaih/.codex/skills/secret-guard/scripts/scan_secrets.py staged",
+    "result": "No secrets detected",
+    "status": "passed"
+  }
+}

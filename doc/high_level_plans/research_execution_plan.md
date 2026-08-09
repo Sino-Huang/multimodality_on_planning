@@ -506,14 +506,14 @@ The 481 target, the paired-exact requirement, and `local_iw_width=1` were all ap
 
 ## Recommended Next Milestone
 
-**Rule on the decision-ready Phase 3 pilot scope.**
+**Materialize the approved Phase 3 pilot source rows.**
 
-Gate 0b passed on 2026-08-09. Contract v3 is approved, implemented, regenerated, replay-verified,
-and semantically compared against the immutable v2 overlap. Read-only analysis of the signed v3
-checkpoint proposes `>=10 observations/cell`, a 90-instance diversity floor, and off-plan
-certificate harvesting. The existing 158-candidate pool is infeasible for all on-plan alternatives
-and feasible for all off-plan alternatives. The owner still must rule on the bar, floor, harvesting,
-and pilot provenance. No Phase 3 run has started.
+Gate 0b passed on 2026-08-09. The owner approved `>=10 observations/cell`, the measured 90-instance
+diversity floor, off-plan certificate harvesting, and reproducibility-only pilot provenance under
+the four recorded conditions. The deterministic source manifest and row-budget contract are frozen
+under `.claude/evidence/cgas-phase3-pilot-manifest/`: 90 paired-exact instances, 30 per object count,
+with a composition-isolated 75 train / 15 held-out-calibration assignment. No source rows have been
+materialized, rendered, converted to a Qwen corpus, or used for training.
 
 ## Immediate Next Steps
 
@@ -521,10 +521,12 @@ and pilot provenance. No Phase 3 run has started.
 2. ~~Regenerate isolated v3 round 1 and verify Gate 0b.~~ **Passed 2026-08-09.** The v2 corpus remains immutable and present.
 3. Preserve `tmp/cgas-p0-characterized-v3` as the resumable v3 round-1 root. Do not create checkpoint 2 until the next selector/corpus decision authorizes it.
 4. Treat any release of v2 stream bytes as an explicit, separately approved destructive task; Gate 0b did not perform it.
-5. Review `.claude/evidence/cgas-phase3-pilot-scope/` and rule on the proposed `>=10` stability bar,
-   90-instance diversity floor, off-plan harvesting, and conditional reproducibility provenance.
-6. After that ruling, freeze the pilot manifest. The existing 158 paired-exact candidates are
-   sufficient only under off-plan harvesting; do not select or materialize a pilot before approval.
+5. ~~Review `.claude/evidence/cgas-phase3-pilot-scope/` and rule on the proposed `>=10` stability bar,
+   90-instance diversity floor, off-plan harvesting, and conditional reproducibility provenance.~~
+   **Approved 2026-08-09.**
+6. ~~After that ruling, freeze the pilot manifest.~~ **Done 2026-08-09.** The approved deterministic
+   source manifest and row-budget contract are under `.claude/evidence/cgas-phase3-pilot-manifest/`;
+   no pilot data rows were materialized.
 7. Specify the bounded certificate-store API and its no-oracle-leakage tests.
 8. Create one direct-VLM calibration configuration and one evaluation command that reports first certificate failures.
 

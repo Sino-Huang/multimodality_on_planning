@@ -1,0 +1,47 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_________ test_run_real_v3_publishes_only_digest_bound_pilot_contracts _________
+
+tmp_path = PosixPath('/tmp/pytest-of-sukaih/pytest-115/test_run_real_v3_publishes_onl0')
+
+    def test_run_real_v3_publishes_only_digest_bound_pilot_contracts(tmp_path: Path) -> None:
+        # Given: the real signed v3 round, exact owner approval, and a fresh evidence root.
+        request = PilotManifestRequest(
+            ROOT,
+            ROOT / "tmp/cgas-p0-characterized-v3",
+            ROOT / ".claude/evidence/cgas-trace-contract-v3/approved-trace-v3.json",
+            ROOT / "configs/cgas/production_p0_candidates.json",
+            SCOPE_REPORT,
+            OWNER_APPROVAL,
+            tmp_path / "pilot",
+        )
+        checkpoint_before = CHECKPOINT.read_bytes()
+
+        # When: the complete boundary runs twice over the same inputs.
+        first = run(request)
+        identities = tuple((path.stat().st_ino, path.stat().st_mtime_ns) for path in _report_paths(first))
+        second = run(request)
+
+        # Then: only the three approved contract artifacts exist and replay is byte-identical/read-only.
+        manifest = TypeAdapter(JsonObject).validate_json(first.manifest_path.read_bytes())
+        bindings = TypeAdapter(JsonObject).validate_python(manifest["bindings"])
+        budget = TypeAdapter(JsonObject).validate_json(first.row_budget_path.read_bytes())
+        report = TypeAdapter(JsonObject).validate_json(first.report_path.read_bytes())
+        assert first.read_only is False
+        assert second.read_only is True
+        assert sorted(path.name for path in request.output_root.iterdir()) == [
+            "pilot-manifest-report.json",
+            "pilot-row-budget.json",
+            "pilot-source-manifest.json",
+        ]
+        assert tuple((path.stat().st_ino, path.stat().st_mtime_ns) for path in _report_paths(second)) == identities
+        assert manifest["schema_version"] == "cgas_phase3_pilot_source_manifest_v1"
+>       assert bindings["pilot_approval_implementation_sha256"] == hashlib.sha256(
+            (ROOT / "scripts/phase3/cgas_pilot_manifest_approval.py").read_bytes()
+        ).hexdigest()
+E       KeyError: 'pilot_approval_implementation_sha256'
+
+tests/phase3/test_cgas_pilot_manifest.py:166: KeyError
+=========================== short test summary info ============================
+FAILED tests/phase3/test_cgas_pilot_manifest.py::test_run_real_v3_publishes_only_digest_bound_pilot_contracts
+1 failed in 300.18s (0:05:00)

@@ -1,0 +1,165 @@
+FFFFFF                                                                   [100%]
+=================================== FAILURES ===================================
+__________ test_owner_approval_binds_exact_scope_report_and_v3_inputs __________
+
+tmp_path = PosixPath('/tmp/pytest-of-sukaih/pytest-105/test_owner_approval_binds_exac0')
+
+    def test_owner_approval_binds_exact_scope_report_and_v3_inputs(tmp_path: Path) -> None:
+        # Given: the owner's canonical ruling and the exact signed-v3 scope report it approves.
+        expected_digest = hashlib.sha256(OWNER_APPROVAL.read_bytes()).hexdigest()
+
+        # When: the approval boundary validates the pair.
+>       actual_digest = validate_pilot_approval(SCOPE_REPORT, OWNER_APPROVAL)
+
+tests/phase3/test_cgas_pilot_manifest.py:36:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+scope_report_path = PosixPath('/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/.claude/evidence/cgas-phase3-pilot-scope/report.json')
+approval_path = PosixPath('/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/.claude/evidence/cgas-phase3-pilot-manifest/pilot-owner-approval.json')
+
+    def validate_pilot_approval(scope_report_path: Path, approval_path: Path) -> str:
+>       raise PilotManifestError("pilot_manifest_not_implemented", approval_path)
+E       scripts.phase3.cgas_pilot_manifest.PilotManifestError: pilot_manifest_not_implemented:/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/.claude/evidence/cgas-phase3-pilot-manifest/pilot-owner-approval.json
+
+/scratch/punim0478/sukaih/multimodality_on_planning/scripts/phase3/cgas_pilot_manifest.py:55: PilotManifestError
+_______ test_selection_is_deterministic_and_proves_every_approved_clause _______
+
+    def test_selection_is_deterministic_and_proves_every_approved_clause() -> None:
+        # Given: all 281 real characterization rows from the signed v3 checkpoint.
+        rows = _real_rows()
+
+        # When: selection receives either checkpoint order.
+>       first = select_pilot_rows(rows)
+
+tests/phase3/test_cgas_pilot_manifest.py:53:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+rows = ({'approved_trace_sha256': 'bf00880f94692160d42103aab689ea2501607b48df53114b282bdc404b34dbe7', 'bfs': {'characterizati...ear_count":4,"handempty":true,"on_edges":8,"ontable_count":4,"stack_heights":[1,1,1,9]},"object_count":12}', ...}, ...)
+
+    def select_pilot_rows(rows: Sequence[JsonObject]) -> PilotSelection:
+>       raise PilotManifestError("pilot_manifest_not_implemented", Path("selection"))
+E       scripts.phase3.cgas_pilot_manifest.PilotManifestError: pilot_manifest_not_implemented:selection
+
+/scratch/punim0478/sukaih/multimodality_on_planning/scripts/phase3/cgas_pilot_manifest.py:59: PilotManifestError
+_______ test_selection_refuses_a_pool_below_the_approved_diversity_floor _______
+
+    def test_selection_refuses_a_pool_below_the_approved_diversity_floor() -> None:
+        # Given: the real checkpoint with all but four 12-object composition signatures removed.
+        rows = _real_rows()
+        signatures = sorted({str(row["composition_signature"]) for row in rows if row["object_count"] == 12})[:4]
+        reduced = tuple(
+            row
+            for row in rows
+            if row["object_count"] != 12 or str(row["composition_signature"]) in signatures
+        )
+
+        # When/Then: the approved five-repeated-signature floor is not relaxed.
+        with pytest.raises(PilotManifestError, match="pilot_object_count_capacity_unavailable"):
+>           select_pilot_rows(reduced)
+
+tests/phase3/test_cgas_pilot_manifest.py:91:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+rows = ({'approved_trace_sha256': 'bf00880f94692160d42103aab689ea2501607b48df53114b282bdc404b34dbe7', 'bfs': {'characterizati...:{"clear_count":2,"handempty":true,"on_edges":2,"ontable_count":2,"stack_heights":[1,3]},"object_count":4}', ...}, ...)
+
+    def select_pilot_rows(rows: Sequence[JsonObject]) -> PilotSelection:
+>       raise PilotManifestError("pilot_manifest_not_implemented", Path("selection"))
+E       scripts.phase3.cgas_pilot_manifest.PilotManifestError: pilot_manifest_not_implemented:selection
+
+/scratch/punim0478/sukaih/multimodality_on_planning/scripts/phase3/cgas_pilot_manifest.py:59: PilotManifestError
+
+During handling of the above exception, another exception occurred:
+
+    def test_selection_refuses_a_pool_below_the_approved_diversity_floor() -> None:
+        # Given: the real checkpoint with all but four 12-object composition signatures removed.
+        rows = _real_rows()
+        signatures = sorted({str(row["composition_signature"]) for row in rows if row["object_count"] == 12})[:4]
+        reduced = tuple(
+            row
+            for row in rows
+            if row["object_count"] != 12 or str(row["composition_signature"]) in signatures
+        )
+
+        # When/Then: the approved five-repeated-signature floor is not relaxed.
+>       with pytest.raises(PilotManifestError, match="pilot_object_count_capacity_unavailable"):
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'pilot_object_count_capacity_unavailable'
+E         Actual message: 'pilot_manifest_not_implemented:selection'
+
+tests/phase3/test_cgas_pilot_manifest.py:90: AssertionError
+______ test_row_budget_pins_fraction_harvest_stability_and_sampling_order ______
+
+    def test_row_budget_pins_fraction_harvest_stability_and_sampling_order() -> None:
+        # Given: the deterministic real-checkpoint selection and its future manifest identity.
+>       selection = select_pilot_rows(_real_rows())
+
+tests/phase3/test_cgas_pilot_manifest.py:96:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+rows = ({'approved_trace_sha256': 'bf00880f94692160d42103aab689ea2501607b48df53114b282bdc404b34dbe7', 'bfs': {'characterizati...ear_count":4,"handempty":true,"on_edges":8,"ontable_count":4,"stack_heights":[1,1,1,9]},"object_count":12}', ...}, ...)
+
+    def select_pilot_rows(rows: Sequence[JsonObject]) -> PilotSelection:
+>       raise PilotManifestError("pilot_manifest_not_implemented", Path("selection"))
+E       scripts.phase3.cgas_pilot_manifest.PilotManifestError: pilot_manifest_not_implemented:selection
+
+/scratch/punim0478/sukaih/multimodality_on_planning/scripts/phase3/cgas_pilot_manifest.py:59: PilotManifestError
+_________ test_publication_is_write_once_idempotent_and_collision_safe _________
+
+tmp_path = PosixPath('/tmp/pytest-of-sukaih/pytest-105/test_publication_is_write_once0')
+
+    def test_publication_is_write_once_idempotent_and_collision_safe(tmp_path: Path) -> None:
+        # Given: one absent canonical artifact path.
+        destination = tmp_path / "manifest.json"
+
+        # When: exact bytes are published and replayed.
+>       first_read_only = publish_once(destination, b"{\"version\":1}\n")
+
+tests/phase3/test_cgas_pilot_manifest.py:122:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = PosixPath('/tmp/pytest-of-sukaih/pytest-105/test_publication_is_write_once0/manifest.json')
+contents = b'{"version":1}\n'
+
+    def publish_once(path: Path, contents: bytes) -> bool:
+>       raise PilotManifestError("pilot_manifest_not_implemented", path)
+E       scripts.phase3.cgas_pilot_manifest.PilotManifestError: pilot_manifest_not_implemented:/tmp/pytest-of-sukaih/pytest-105/test_publication_is_write_once0/manifest.json
+
+/scratch/punim0478/sukaih/multimodality_on_planning/scripts/phase3/cgas_pilot_manifest.py:67: PilotManifestError
+_________ test_run_real_v3_publishes_only_digest_bound_pilot_contracts _________
+
+tmp_path = PosixPath('/tmp/pytest-of-sukaih/pytest-105/test_run_real_v3_publishes_onl0')
+
+    def test_run_real_v3_publishes_only_digest_bound_pilot_contracts(tmp_path: Path) -> None:
+        # Given: the real signed v3 round, exact owner approval, and a fresh evidence root.
+        request = PilotManifestRequest(
+            ROOT,
+            ROOT / "tmp/cgas-p0-characterized-v3",
+            ROOT / ".claude/evidence/cgas-trace-contract-v3/approved-trace-v3.json",
+            ROOT / "configs/cgas/production_p0_candidates.json",
+            SCOPE_REPORT,
+            OWNER_APPROVAL,
+            tmp_path / "pilot",
+        )
+        checkpoint_before = CHECKPOINT.read_bytes()
+
+        # When: the complete boundary runs twice over the same inputs.
+>       first = run(request)
+
+tests/phase3/test_cgas_pilot_manifest.py:148:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+request = PilotManifestRequest(repository_root=PosixPath('/data/scratch/projects/punim0478/sukaih/multimodality_on_planning'), c...owner-approval.json'), output_root=PosixPath('/tmp/pytest-of-sukaih/pytest-105/test_run_real_v3_publishes_onl0/pilot'))
+
+    def run(request: PilotManifestRequest) -> PilotManifestReport:
+>       raise PilotManifestError("pilot_manifest_not_implemented", request.output_root)
+E       scripts.phase3.cgas_pilot_manifest.PilotManifestError: pilot_manifest_not_implemented:/tmp/pytest-of-sukaih/pytest-105/test_run_real_v3_publishes_onl0/pilot
+
+/scratch/punim0478/sukaih/multimodality_on_planning/scripts/phase3/cgas_pilot_manifest.py:71: PilotManifestError
+=========================== short test summary info ============================
+FAILED tests/phase3/test_cgas_pilot_manifest.py::test_owner_approval_binds_exact_scope_report_and_v3_inputs
+FAILED tests/phase3/test_cgas_pilot_manifest.py::test_selection_is_deterministic_and_proves_every_approved_clause
+FAILED tests/phase3/test_cgas_pilot_manifest.py::test_selection_refuses_a_pool_below_the_approved_diversity_floor
+FAILED tests/phase3/test_cgas_pilot_manifest.py::test_row_budget_pins_fraction_harvest_stability_and_sampling_order
+FAILED tests/phase3/test_cgas_pilot_manifest.py::test_publication_is_write_once_idempotent_and_collision_safe
+FAILED tests/phase3/test_cgas_pilot_manifest.py::test_run_real_v3_publishes_only_digest_bound_pilot_contracts
+6 failed in 1.89s

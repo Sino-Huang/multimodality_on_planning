@@ -1,0 +1,99 @@
+........................................................................ [ 15%]
+........................................................................ [ 30%]
+....................................................F................... [ 45%]
+........................................................................ [ 60%]
+..................................FF.................................... [ 75%]
+........................................................................ [ 90%]
+...............................................                          [100%]
+=================================== FAILURES ===================================
+___ test_probe_records_repeated_native_searches_without_authoritative_fields ___
+
+    def test_probe_records_repeated_native_searches_without_authoritative_fields() -> None:
+        # Given: two unique, caller-selected diagnostic targets below the repository tmp boundary.
+        first = _probe_path(f"pytest-first-{uuid4().hex}")
+        second = _probe_path(f"pytest-second-{uuid4().hex}")
+
+        # When: the frozen characterization profile is probed twice.
+        first_run = _run_probe(first)
+        second_run = _run_probe(second)
+
+        # Then: the normalized scientific record is byte-identical and timing is retained separately.
+>       assert first.read_bytes() == second.read_bytes()
+
+tests/phase3/test_cgas_planner_blocker_probe.py:25:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/home/sukaih/miniconda3/envs/ada_vla/lib/python3.10/pathlib.py:1126: in read_bytes
+    with self.open(mode='rb') as f:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = PosixPath('/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/tmp/cgas-planner-blocker-investigation-pytest-first-56d81f71faeb491c8ad3d80760aed6b1/probe.json')
+mode = 'rb', buffering = -1, encoding = None, errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return self._accessor.open(self, mode, buffering, encoding, errors,
+                                   newline)
+E       FileNotFoundError: [Errno 2] No such file or directory: '/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/tmp/cgas-planner-blocker-investigation-pytest-first-56d81f71faeb491c8ad3d80760aed6b1/probe.json'
+
+/home/sukaih/miniconda3/envs/ada_vla/lib/python3.10/pathlib.py:1119: FileNotFoundError
+______ test_alternative_profiles_are_deterministic_and_non_authoritative _______
+
+    def test_alternative_profiles_are_deterministic_and_non_authoritative() -> None:
+        # Given: two write-once alternative-profile evidence targets.
+        first = _output_path(uuid4().hex)
+        second = _output_path(uuid4().hex)
+
+        # When: the four approved profiles run twice each.
+        first_run = _run_probe(first)
+        second_run = _run_probe(second)
+
+        # Then: normalized scientific records are identical and timing remains separate.
+>       assert first_run.returncode == second_run.returncode == 0
+E       assert 1 == 0
+E        +  where 1 = CompletedProcess(args=['/home/sukaih/miniconda3/envs/ada_vla/bin/python', '-m', 'scripts.phase3.cgas_planner_alternati...ve_hash_mismatch")\nscripts.phase3.cgas_planner_blocker_probe.PlannerBlockerProbeError: authoritative_hash_mismatch\n').returncode
+
+tests/phase3/test_cgas_planner_alternative_profile_probe.py:26: AssertionError
+___________ test_final_retained_probe_matches_current_cli_semantics ____________
+
+    def test_final_retained_probe_matches_current_cli_semantics() -> None:
+        # Given: the final write-once retained probe from the current implementation contract.
+        retained = json.loads(FINAL_RETAINED_PROBE.read_text(encoding="utf-8"))
+        output = _output_path(uuid4().hex)
+
+        # When: the CLI writes a new equivalent diagnostic record.
+        result = _run_probe(output)
+>       current = json.loads(output.read_text(encoding="utf-8"))
+
+tests/phase3/test_cgas_planner_alternative_profile_probe.py:66:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/home/sukaih/miniconda3/envs/ada_vla/lib/python3.10/pathlib.py:1134: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = PosixPath('/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/tmp/cgas-planner-alternative-profile-3c71485959604157b9748012832544a7/probe.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return self._accessor.open(self, mode, buffering, encoding, errors,
+                                   newline)
+E       FileNotFoundError: [Errno 2] No such file or directory: '/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/tmp/cgas-planner-alternative-profile-3c71485959604157b9748012832544a7/probe.json'
+
+/home/sukaih/miniconda3/envs/ada_vla/lib/python3.10/pathlib.py:1119: FileNotFoundError
+=========================== short test summary info ============================
+FAILED tests/phase3/test_cgas_planner_blocker_probe.py::test_probe_records_repeated_native_searches_without_authoritative_fields
+FAILED tests/phase3/test_cgas_planner_alternative_profile_probe.py::test_alternative_profiles_are_deterministic_and_non_authoritative
+FAILED tests/phase3/test_cgas_planner_alternative_profile_probe.py::test_final_retained_probe_matches_current_cli_semantics
+3 failed, 476 passed in 437.90s (0:07:17)
