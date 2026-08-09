@@ -506,14 +506,14 @@ The 481 target, the paired-exact requirement, and `local_iw_width=1` were all ap
 
 ## Recommended Next Milestone
 
-**Materialize the approved Phase 3 pilot source rows.**
+**Render the verified pilot-state request after the owner resolves off-plan action targeting.**
 
-Gate 0b passed on 2026-08-09. The owner approved `>=10 observations/cell`, the measured 90-instance
-diversity floor, off-plan certificate harvesting, and reproducibility-only pilot provenance under
-the four recorded conditions. The deterministic source manifest and row-budget contract are frozen
-under `.claude/evidence/cgas-phase3-pilot-manifest/`: 90 paired-exact instances, 30 per object count,
-with a composition-isolated 75 train / 15 held-out-calibration assignment. No source rows have been
-materialized, rendered, converted to a Qwen corpus, or used for training.
+The deterministic certificate-source index was materialized on 2026-08-09 under the non-release
+`tmp/cgas-phase3-pilot-expansion-index-v1` root. It contains exactly 31,171 expansion rows: 790
+replay-plan rows and 30,381 off-plan-only rows. The read-only coverage audit found 16,822 unique
+required states and zero existing covered states. No Qwen rows were created because no approved
+policy chooses one action target for an off-plan expansion; the pending decision is recorded under
+`.claude/evidence/cgas-phase3-pilot-materialization/`.
 
 ## Immediate Next Steps
 
@@ -525,10 +525,15 @@ materialized, rendered, converted to a Qwen corpus, or used for training.
    90-instance diversity floor, off-plan harvesting, and conditional reproducibility provenance.~~
    **Approved 2026-08-09.**
 6. ~~After that ruling, freeze the pilot manifest.~~ **Done 2026-08-09.** The approved deterministic
-   source manifest and row-budget contract are under `.claude/evidence/cgas-phase3-pilot-manifest/`;
-   no pilot data rows were materialized.
-7. Specify the bounded certificate-store API and its no-oracle-leakage tests.
-8. Create one direct-VLM calibration configuration and one evaluation command that reports first certificate failures.
+   source manifest and row-budget contract are under `.claude/evidence/cgas-phase3-pilot-manifest/`.
+7. ~~Materialize the approved pilot certificate-source index and audit existing render coverage.~~
+   **Done 2026-08-09.** The non-release index has 31,171 rows (790 replay-plan, 30,381 off-plan-only);
+   all 16,822 unique states need rendering. Digest-bound evidence is under
+   `.claude/evidence/cgas-phase3-pilot-materialization/`.
+8. Resolve the off-plan action-target policy before creating Qwen rows; then render the canonical
+   missing-state request, align accepted replay states, and run `verify_steps`.
+9. Specify the bounded certificate-store API and its no-oracle-leakage tests.
+10. Create one direct-VLM calibration configuration and one evaluation command that reports first certificate failures.
 
 ## Gates and Falsification
 
