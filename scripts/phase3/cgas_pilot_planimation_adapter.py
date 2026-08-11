@@ -5,6 +5,7 @@ import hashlib
 import inspect
 import json
 import os
+import re
 import shlex
 import tempfile
 from collections import Counter
@@ -18,7 +19,8 @@ from .cgas_pilot_expansion_index import PilotExpansionIndexError, state_sha256
 from .cgas_pilot_representative_mapping import POLICY_ID
 from .cgas_pilot_representative_mapping import SCHEMA_VERSION as MAPPING_SCHEMA_VERSION
 from .io_utils import file_sha256, stable_hash, write_json
-from .planimation_pairing_contracts import RenderConfig, StateRenderer
+from .pddl import PDDLError, PDDLTask, canonical_atom, parse_task
+from .planimation_pairing_contracts import RenderConfig, RendererResult, StateRenderer
 from .planimation_pairing_rendering import _render_one_state, render_state_with_planimation
 from .render_semantics import validate_render_artifacts
 from .traversal_state_types import JSONValue
@@ -75,10 +77,80 @@ class PilotRenderResult:
     counts: dict[str, int]
 
 
+_ZERO_PADDED_BLOCK_OBJECT = re.compile(r"^b\d{2,}$")
+PLANIMATION_COMPAT_PROBLEM_NAME = "problem.planimation-compat.pddl"
+
+
+def format_planimation_compat_problem(task: PDDLTask, *, problem_name: str | None = None) -> str | None:
+    """Format a parsed Blocksworld task in the July-compatible Planimation layout.
+
+    A zero-padded bNN object namespace is renamed bijectively to b1..bN by parsed
+    symbol order (never naive substring replacement), and init/goal atoms are emitted
+    in sorted canonical order. Returns None for problems without a zero-padded bNN
+    namespace so callers can pass the original problem through unchanged.
+    """
+    objects = tuple(sorted(task.objects_by_type.get("object", ())))
+    if not objects or not all(_ZERO_PADDED_BLOCK_OBJECT.fullmatch(obj) for obj in objects):
+        return None
+    renamed = {obj: f"b{index + 1}" for index, obj in enumerate(objects)}
+    name = task.problem_name if problem_name is None else problem_name
+    lines: list[str] = ["", ""]
+    lines.append(f"(define (problem {name})")
+    lines.append(f"(:domain {task.domain_name})")
+    lines.append("(:objects " + " ".join(renamed[obj] for obj in objects) + " )")
+    lines.append("(:init")
+    lines.extend(
+        f"  {canonical_atom(tuple(renamed.get(part, part) for part in atom))}" for atom in sorted(task.init)
+    )
+    lines.append(")")
+    if task.goal:
+        goal_atoms = sorted(
+            canonical_atom(tuple(renamed.get(part, part) for part in atom)) for atom in task.goal
+        )
+        lines.append("(:goal")
+        lines.append("(and")
+        lines.extend(goal_atoms[:-1])
+        lines.append(f"{goal_atoms[-1]})")
+        lines.append(")")
+    else:
+        lines.append("(:goal (and))")
+    lines.append(")")
+    lines.append("")
+    lines.append("")
+    return "\n".join(lines) + "\n"
+
+
+def _planimation_compat_problem_path(domain_path: Path, problem_path: Path, cache_dir: Path) -> Path:
+    try:
+        task = parse_task(domain_path, problem_path)
+    except (PDDLError, OSError):
+        return problem_path
+    formatted = format_planimation_compat_problem(task)
+    if formatted is None:
+        return problem_path
+    compat_path = cache_dir / PLANIMATION_COMPAT_PROBLEM_NAME
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    compat_path.write_text(formatted, encoding="utf-8")
+    return compat_path
+
+
+def render_state_with_planimation_compat(
+    domain_path: Path, problem_path: Path, profile_path: Path, cache_dir: Path, config: RenderConfig
+) -> RendererResult:
+    """Render a derived state with Planimation using a July-compatible problem layout.
+
+    Only cache_dir/problem.planimation-compat.pddl is written; the b00-bound cache
+    problem.pddl is never modified. Problems without a zero-padded bNN object
+    namespace are passed through unchanged via the original problem path.
+    """
+    compat_path = _planimation_compat_problem_path(domain_path, problem_path, cache_dir)
+    return render_state_with_planimation(domain_path, compat_path, profile_path, cache_dir, config)
+
+
 def render_missing_states(
     request: PilotRenderRequest,
     *,
-    renderer: StateRenderer = render_state_with_planimation,
+    renderer: StateRenderer = render_state_with_planimation_compat,
 ) -> PilotRenderResult:
     """Render requested canonical states with fail-closed, digest-bound resume."""
     _assert_output_root(request.repository_root, request.output_root)

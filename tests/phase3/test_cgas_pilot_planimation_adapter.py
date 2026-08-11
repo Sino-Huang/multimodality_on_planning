@@ -11,6 +11,112 @@ from scripts.phase3.cgas_candidate_accounting import PlannerInput
 from scripts.phase3.cgas_pilot_expansion_index import state_sha256
 from scripts.phase3.planimation_pairing_contracts import RenderConfig, RendererResult, StateRenderer
 
+_MINIMAL_DOMAIN = (
+    "(define (domain blocksworld-4ops) (:requirements :strips) "
+    "(:predicates (clear ?x) (on-table ?x) (arm-empty) (holding ?x) (on ?x ?y)))"
+)
+
+_BUNDLE_02_SEMANTIC_INPUT = """(define (problem 0322c69e499f0e2ba7161d25787a1260a275bd22382438a7f48e51e9da3737c4-00014e0bdfd513580c65f03b94e5c0a1)
+  (:domain blocksworld-4ops)
+  (:objects b00 b01 b02 b03 b04 b05 b06 b07)
+  (:init
+  (arm-empty)
+  (clear b03)
+  (clear b04)
+  (clear b07)
+  (on b01 b00)
+  (on b02 b01)
+  (on b03 b02)
+  (on b04 b05)
+  (on b07 b06)
+  (on-table b00)
+  (on-table b05)
+  (on-table b06)
+)
+  (:goal (and
+    (on b01 b00)
+    (on b02 b01)
+    (on b04 b03)
+    (on b05 b04)
+    (on b07 b06)
+  ))
+)
+"""
+
+_BUNDLE_03_GOLDEN = (
+    b"\n\n"
+    b"(define (problem cgas-phase3-regression-replay-03-canonicalized-pilot-delta)\n"
+    b"(:domain blocksworld-4ops)\n"
+    b"(:objects b1 b2 b3 b4 b5 b6 b7 b8 )\n"
+    b"(:init\n"
+    b"  (arm-empty)\n"
+    b"  (clear b4)\n"
+    b"  (clear b5)\n"
+    b"  (clear b8)\n"
+    b"  (on b2 b1)\n"
+    b"  (on b3 b2)\n"
+    b"  (on b4 b3)\n"
+    b"  (on b5 b6)\n"
+    b"  (on b8 b7)\n"
+    b"  (on-table b1)\n"
+    b"  (on-table b6)\n"
+    b"  (on-table b7)\n"
+    b")\n"
+    b"(:goal\n"
+    b"(and\n"
+    b"(on b2 b1)\n"
+    b"(on b3 b2)\n"
+    b"(on b5 b4)\n"
+    b"(on b6 b5)\n"
+    b"(on b8 b7))\n"
+    b")\n"
+    b")\n"
+    b"\n"
+    b"\n"
+)
+
+_TWELVE_OBJECT_INPUT = """(define (problem twelve-object-fixture)
+  (:domain blocksworld-4ops)
+  (:objects b00 b01 b02 b03 b04 b05 b06 b07 b08 b09 b10 b11)
+  (:init
+  (clear b05)
+  (clear b07)
+  (clear b08)
+  (clear b10)
+  (holding b09)
+  (on b01 b00)
+  (on b02 b01)
+  (on b04 b03)
+  (on b05 b04)
+  (on b07 b06)
+  (on b10 b11)
+  (on b11 b02)
+  (on-table b00)
+  (on-table b03)
+  (on-table b06)
+  (on-table b08)
+)
+  (:goal (and
+    (on b01 b00)
+    (on b10 b11)
+    (holding b09)
+  ))
+)
+"""
+
+_LEGACY_B1_INPUT = """(define (problem legacy-fixture)
+  (:domain blocksworld-4ops)
+  (:objects b1 b2 b3)
+  (:init
+  (arm-empty)
+  (on b1 b2)
+  (on-table b1)
+  (on-table b3)
+)
+  (:goal (and (on b1 b2)))
+)
+"""
+
 
 def _jsonl(path: Path, rows: list[dict[str, object]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -1108,3 +1214,178 @@ def test_planimation_renderer_uses_only_canonical_endpoint(tmp_path: Path, monke
     )
     assert result["status"] == "success"
     assert observed == [["https://planimation.planning.domains/upload/pddl"]]
+
+
+def test_planimation_compat_formatter_matches_bundle_03_golden_bytes(tmp_path: Path) -> None:
+    from scripts.phase3.cgas_pilot_planimation_adapter import format_planimation_compat_problem
+    from scripts.phase3.pddl import parse_task
+
+    domain = tmp_path / "domain.pddl"
+    domain.write_text(_MINIMAL_DOMAIN, encoding="utf-8")
+    problem = tmp_path / "problem.pddl"
+    problem.write_text(_BUNDLE_02_SEMANTIC_INPUT, encoding="utf-8")
+    formatted = format_planimation_compat_problem(
+        parse_task(domain, problem),
+        problem_name="cgas-phase3-regression-replay-03-canonicalized-pilot-delta",
+    )
+    assert formatted is not None
+    assert formatted.encode("utf-8") == _BUNDLE_03_GOLDEN
+
+
+def test_planimation_compat_formatter_renames_twelve_objects_without_collisions(tmp_path: Path) -> None:
+    from scripts.phase3.cgas_pilot_planimation_adapter import format_planimation_compat_problem
+    from scripts.phase3.pddl import parse_task
+
+    domain = tmp_path / "domain.pddl"
+    domain.write_text(_MINIMAL_DOMAIN, encoding="utf-8")
+    problem = tmp_path / "problem.pddl"
+    problem.write_text(_TWELVE_OBJECT_INPUT, encoding="utf-8")
+    formatted = format_planimation_compat_problem(parse_task(domain, problem))
+    assert formatted is not None
+    assert "(:objects b1 b2 b3 b4 b5 b6 b7 b8 b9 b10 b11 b12 )" in formatted
+    assert "b00" not in formatted
+    assert "b09" not in formatted
+    assert "(on b11 b12)" in formatted  # (on b10 b11) across the b1/b10 token boundary
+    assert "(on b12 b3)" in formatted  # (on b11 b02)
+    assert "(holding b10)" in formatted  # (holding b09)
+    assert "(clear b11)" in formatted  # (clear b10)
+    compat = tmp_path / "compat.pddl"
+    compat.write_text(formatted, encoding="utf-8")
+    parsed = parse_task(domain, compat)
+    assert set(parsed.objects_by_type["object"]) == {f"b{index}" for index in range(1, 13)}
+    assert ("on", "b11", "b12") in parsed.init
+    assert ("holding", "b10") in parsed.init
+    assert ("on", "b2", "b1") in parsed.init
+    assert ("on-table", "b1") in parsed.init
+
+
+def test_planimation_compat_formatter_passes_through_legacy_b1_namespace(tmp_path: Path) -> None:
+    from scripts.phase3.cgas_pilot_planimation_adapter import format_planimation_compat_problem
+    from scripts.phase3.pddl import parse_task
+
+    domain = tmp_path / "domain.pddl"
+    domain.write_text(_MINIMAL_DOMAIN, encoding="utf-8")
+    problem = tmp_path / "problem.pddl"
+    problem.write_text(_LEGACY_B1_INPUT, encoding="utf-8")
+    assert format_planimation_compat_problem(parse_task(domain, problem)) is None
+
+
+def test_planimation_compat_renderer_passes_through_legacy_b1_problem(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import scripts.phase3.cgas_pilot_planimation_adapter as adapter
+    from scripts.phase3.planimation_pairing_contracts import RenderConfig, RendererResult
+
+    domain = tmp_path / "domain.pddl"
+    domain.write_text(_MINIMAL_DOMAIN, encoding="utf-8")
+    problem = tmp_path / "problem.pddl"
+    problem.write_text(_LEGACY_B1_INPUT, encoding="utf-8")
+    profile = tmp_path / "profile.pddl"
+    profile.write_text("profile", encoding="utf-8")
+    cache = tmp_path / "cache"
+    cache.mkdir()
+    observed: list[Path] = []
+
+    def fake(
+        _domain: Path, problem_path: Path, _profile: Path, _cache: Path, _config: RenderConfig
+    ) -> RendererResult:
+        observed.append(problem_path)
+        return {"status": "success", "attempts": 1}
+
+    monkeypatch.setattr(adapter, "render_state_with_planimation", fake)
+    result = adapter.render_state_with_planimation_compat(
+        domain, problem, profile, cache, RenderConfig(max_attempts=1)
+    )
+    assert result["status"] == "success"
+    assert observed == [problem]
+    assert list(cache.iterdir()) == []
+
+
+def test_planimation_compat_default_renderer_uploads_compat_and_keeps_cache_b00(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import scripts.phase3.cgas_pilot_planimation_adapter as adapter
+    from scripts.phase3.cgas_candidate_accounting import planner_input_record
+    from scripts.phase3.cgas_candidate_space import build_candidate
+    from scripts.phase3.pddl import canonical_atom, parse_task
+
+    atoms = [
+        "(arm-empty)",
+        "(clear b03)",
+        "(clear b04)",
+        "(clear b07)",
+        "(on b01 b00)",
+        "(on b02 b01)",
+        "(on b03 b02)",
+        "(on b04 b05)",
+        "(on b07 b06)",
+        "(on-table b00)",
+        "(on-table b05)",
+        "(on-table b06)",
+    ]
+    digest = state_sha256(atoms)
+    candidate = build_candidate(8, 0)
+    source = planner_input_record(PlannerInput(8, 0, "emitted", candidate.candidate_id, 0, candidate))
+    source_digest = hashlib.sha256(
+        (json.dumps(source, allow_nan=False, ensure_ascii=True, separators=(",", ":"), sort_keys=True) + "\n").encode()
+    ).hexdigest()
+    index_row: dict[str, object] = {
+        "schema_version": "cgas_phase3_pilot_expansion_index_v1",
+        "candidate_id": candidate.candidate_id,
+        "instance_id": candidate.candidate_id,
+        "object_count": 8,
+        "raw_rank": 0,
+        "role": "train",
+        "planner": "bfs",
+        "row_id": "row-0",
+        "event_sequence": 0,
+        "event_sha256": hashlib.sha256(b"event-row-0").hexdigest(),
+        "trace_path": "traces/row-0.jsonl",
+        "trace_stream_sha256": hashlib.sha256(b"stream-row-0").hexdigest(),
+        "trace_contract_id": "cgas_trace_contract_v3",
+        "trace_contract_sha256": hashlib.sha256(b"contract").hexdigest(),
+        "replay_plan_member": True,
+        "replay_step_index": 0,
+        "source_record_sha256": source_digest,
+        "state_atoms": atoms,
+        "state_sha256": digest,
+    }
+    request_row = {"partitions": ["train|8|bfs"], "state_atoms": atoms, "state_sha256": digest}
+    index = tmp_path / "index.jsonl"
+    request = tmp_path / "request.jsonl"
+    _jsonl(index, [index_row])
+    _jsonl(request, [request_row])
+    domain = tmp_path / "domain.pddl"
+    domain.write_text(_MINIMAL_DOMAIN, encoding="utf-8")
+    profile = tmp_path / "profile.pddl"
+    profile.write_text("profile", encoding="utf-8")
+    monkeypatch.setattr(adapter, "_candidate_problem", lambda _row: _BUNDLE_02_SEMANTIC_INPUT)
+    captured: list[tuple[Path, bytes, Path]] = []
+
+    def fake_inner(
+        domain_path: Path, problem_path: Path, profile_path: Path, cache_dir: Path, config: RenderConfig
+    ) -> RendererResult:
+        captured.append((problem_path, problem_path.read_bytes(), cache_dir))
+        return _fake_renderer([])(domain_path, problem_path, profile_path, cache_dir, config)
+
+    monkeypatch.setattr(adapter, "render_state_with_planimation", fake_inner)
+    result = adapter.render_missing_states(
+        adapter.PilotRenderRequest(tmp_path, request, index, tmp_path / "outputs/out", domain, profile)
+    )
+    assert result.counts["succeeded"] == 1
+    assert len(captured) == 1
+    compat_path, compat_bytes, cache_dir = captured[0]
+    assert compat_path == cache_dir / "problem.planimation-compat.pddl"
+    assert b"(:objects b1 b2 b3 b4 b5 b6 b7 b8 )" in compat_bytes
+    assert b"b00" not in compat_bytes
+    cache_problem = cache_dir / "problem.pddl"
+    assert cache_problem.exists()
+    assert b"b00" in cache_problem.read_bytes()
+    parsed = parse_task(domain, cache_problem)
+    assert {obj for obj in parsed.objects_by_type["object"]} == {f"b{index:02d}" for index in range(8)}
+    assert sorted(canonical_atom(atom) for atom in parsed.init) == sorted(atoms)
+    record = json.loads(result.manifest_path.read_text())
+    assert record["state_sha256"] == digest
+    assert record["candidate_id"] == candidate.candidate_id
+    assert record["source_record_sha256"] == source_digest
+    assert record["transition"]["state_before"] == sorted(atoms)
