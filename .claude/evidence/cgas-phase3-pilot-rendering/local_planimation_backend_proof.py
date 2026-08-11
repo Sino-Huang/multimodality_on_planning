@@ -761,8 +761,7 @@ def main(argv: list[str] | None = None) -> int:
     except ProofError as exc:
         report["exception"] = {"type": type(exc).__name__, "detail": exc.detail}
         return _emit_hard_stop(output_root, report, exc.reason, exception=report["exception"])
-    except Exception as exc:  # noqa: BLE001 - capture exact unexpected failures.
-        detail = f"{type(exc).__name__}: {exc}"
+    except Exception as exc:
         report["exception"] = {"type": type(exc).__name__, "detail": str(exc)}
         return _emit_hard_stop(output_root, report, "harness_exception", exception=report["exception"])
     finally:

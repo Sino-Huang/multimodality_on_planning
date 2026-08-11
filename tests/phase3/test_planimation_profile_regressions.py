@@ -8,17 +8,32 @@ from pathlib import Path
 
 import pytest
 
-from scripts.phase3.render_semantics import _decode_png, _parse_stage_zero_sprites, _sprite_has_coverage, validate_render_artifacts
+from scripts.phase3.render_semantics import (
+    _decode_png,
+    _parse_stage_zero_sprites,
+    _sprite_has_coverage,
+    validate_render_artifacts,
+)
 
 ROOT = Path(__file__).parents[2]
 PROOF_HARNESS = ROOT / ".claude/evidence/cgas-phase3-pilot-rendering/local_planimation_backend_proof.py"
-FAILED_FERRY_CANARY = ROOT / ".claude/evidence/planimation-pilot-contract-and-render-recovery/task-5-planimation-pilot-contract-and-render-recovery/ferry-failed-attempt"
-FAILED_ELEVATORS_CANARY = ROOT / ".claude/evidence/planimation-pilot-contract-and-render-recovery/task-5-planimation-pilot-contract-and-render-recovery/elevators-failed-attempt"
+FAILED_FERRY_CANARY = ROOT / (
+    ".claude/evidence/planimation-pilot-contract-and-render-recovery/"
+    "task-5-planimation-pilot-contract-and-render-recovery/ferry-failed-attempt"
+)
+FAILED_ELEVATORS_CANARY = ROOT / (
+    ".claude/evidence/planimation-pilot-contract-and-render-recovery/"
+    "task-5-planimation-pilot-contract-and-render-recovery/elevators-failed-attempt"
+)
 IMAGE_SECTION_SHA256 = {
     "data/pddl_instances/gripper/gripper_AP.pddl": "9acbc33f9b0719cd4bb2e1f4e469a12d834e823719b180eab95165d0ca53216c",
     "data/pddl_instances/ferry/ap.pddl": "871681463f96a3bd8af434bccbf54b2d7f8cbf0bf4cf14e6117fbfddcdaea355",
-    "data/pddl_instances/elevators/elevators_ap.pddl": "98eabfd7f6a20104385a146aee971c6331c00514a81254280fc7a1c1f8f39a19",
-    "data/pddl_instances/logistics/logistics_ap.pddl": "4d7044a096d5c3203214644fc3869e41c99cc1f417614cccc22f9e6873c29fb5",
+    "data/pddl_instances/elevators/elevators_ap.pddl": (
+        "98eabfd7f6a20104385a146aee971c6331c00514a81254280fc7a1c1f8f39a19"
+    ),
+    "data/pddl_instances/logistics/logistics_ap.pddl": (
+        "4d7044a096d5c3203214644fc3869e41c99cc1f417614cccc22f9e6873c29fb5"
+    ),
 }
 
 
