@@ -16,7 +16,8 @@ _MINIMAL_DOMAIN = (
     "(:predicates (clear ?x) (on-table ?x) (arm-empty) (holding ?x) (on ?x ?y)))"
 )
 
-_BUNDLE_02_SEMANTIC_INPUT = """(define (problem 0322c69e499f0e2ba7161d25787a1260a275bd22382438a7f48e51e9da3737c4-00014e0bdfd513580c65f03b94e5c0a1)
+_BUNDLE_02_SEMANTIC_INPUT = """(define (problem 0322c69e499f0e2ba7161d25787a1260a275bd22382438a7f48e51e9da3737c4-\
+00014e0bdfd513580c65f03b94e5c0a1)
   (:domain blocksworld-4ops)
   (:objects b00 b01 b02 b03 b04 b05 b06 b07)
   (:init
@@ -1274,7 +1275,7 @@ def test_planimation_compat_renderer_passes_through_legacy_b1_problem(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     import scripts.phase3.cgas_pilot_planimation_adapter as adapter
-    from scripts.phase3.planimation_pairing_contracts import RenderConfig, RendererResult
+    from scripts.phase3.planimation_pairing_contracts import RenderConfig
 
     domain = tmp_path / "domain.pddl"
     domain.write_text(_MINIMAL_DOMAIN, encoding="utf-8")
