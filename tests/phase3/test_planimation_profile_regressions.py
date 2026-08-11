@@ -271,3 +271,39 @@ def test_profile_materialization_is_idempotent_and_leaves_unrelated_text_alone()
     assert harness._materialize_profile_text("(:predicate on :parameters (?x ?y))") == (
         "(:predicate on :parameters (?x ?y))"
     )
+
+
+def test_twelve_object_problem_identifier_avoids_reserved_init_goal_substrings() -> None:
+    # Given: the canonical 12-object problem source with an empty goal.
+    source = (
+        "(define (problem cgas-phase3-regression-replay-04-12obj-empty-goal)\n"
+        "(:domain blocksworld-4ops)\n"
+        "(:objects b00 b01 b02 b03 b04 b05 b06 b07 b08 b09 b10 b11 )\n"
+        "(:init\n"
+        "  (clear b05)\n"
+        "  (clear b08)\n"
+        "  (holding b09)\n"
+        "  (on b01 b00)\n"
+        "  (on b02 b01)\n"
+        "  (on-table b00)\n"
+        ")\n"
+        "(:goal (and))\n"
+        ")\n"
+    )
+
+    # When: the proof harness builds the 12-object non-empty-goal problem.
+    built = _proof_harness()._build_twelve_object_problem(source)
+
+    # Then: the generated problem identifier is exact and contains neither
+    # reserved substring "init" nor "goal".
+    identifier = _form(built, "(problem ")
+    assert identifier == "(problem cgas-phase3-local-proof-04-12obj)"
+    assert "init" not in identifier
+    assert "goal" not in identifier
+
+    # And: the actual :init and :goal sections remain present and unchanged.
+    init = _form(built, "(:init")
+    assert "(clear b09)" in init
+    assert "(holding b10)" in init
+    assert "(on b02 b01)" in init
+    assert _form(built, "(:goal") == "(:goal (and\n(on b10 b9)\n))"

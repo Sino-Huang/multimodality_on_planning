@@ -410,7 +410,7 @@ def _build_twelve_object_problem(source_text: str) -> str:
     )
     renamed, name_count = re.subn(
         r"\(problem [^)]*\)",
-        "(problem cgas-phase3-local-proof-04-12obj-nonempty-goal)",
+        "(problem cgas-phase3-local-proof-04-12obj)",
         renamed,
         count=1,
     )
