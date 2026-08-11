@@ -306,4 +306,4 @@ def test_twelve_object_problem_identifier_avoids_reserved_init_goal_substrings()
     assert "(clear b9)" in init
     assert "(holding b10)" in init
     assert "(on b3 b2)" in init
-    assert _form(built, "(:goal") == "(:goal (and\n(on b10 b9)\n))"
+    assert _form(built, "(:goal") == "(:goal (and\n(on b10 b9))\n)"
