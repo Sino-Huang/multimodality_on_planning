@@ -531,7 +531,15 @@ policy chooses one action target for an off-plan expansion; the pending decision
    all 16,822 unique states need rendering. Digest-bound evidence is under
    `.claude/evidence/cgas-phase3-pilot-materialization/`.
 8. Resolve the off-plan action-target policy before creating Qwen rows; then render the canonical
-   missing-state request, align accepted replay states, and run `verify_steps`.
+   missing-state request, align accepted replay states, and run `verify_steps`. **Rendering status:
+   blocked at the remote boundary.** The owner-approved representative mapping
+   (`replay_then_held_out_then_stable_source_v1`) is materialized and adapter-bound (committed
+   `f9a5081`). Two authorized one-state smokes (2026-08-10, and a mapping-bound 2026-08-11) both
+   failed at `https://planimation.planning.domains/upload/pddl` with the same downstream error
+   (`API error: The process ends with an exception / Unexpected status from the server`), byte-identical
+   and localized to the hosted backend's downstream planner path. No production render or replay
+   alignment has started; coverage is 0/16,822. Evidence:
+   `.claude/evidence/cgas-phase3-pilot-rendering/`.
 9. Specify the bounded certificate-store API and its no-oracle-leakage tests.
 10. Create one direct-VLM calibration configuration and one evaluation command that reports first certificate failures.
 

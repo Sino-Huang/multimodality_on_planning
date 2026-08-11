@@ -56,6 +56,16 @@
 - Report counts: 5,339 duplicate groups, 4,293 multi-candidate groups, 4,282 distinct-goal ambiguity groups, 321 cross-role groups, 108 replay-containing duplicate groups, maximum group size 52, and 325 selections differing from the first physical index row.
 - Representative distribution: 16,815 BFS and 7 IW; 4,844 held-out calibration and 11,978 train.
 - Publication was rerun against the same output root and accepted byte-identically. No network call occurred.
+- Mapping milestone committed `f9a5081` and pushed to `origin/main` on 2026-08-11 after 40 focused / 198 regression passes, clean Ruff/basedpyright, and independent review PASS.
+
+## Mapping-Bound Smoke (2026-08-11, Red)
+- Owner authorized exactly one fresh mapping-bound smoke on 2026-08-11. It ran against the canonical endpoint with one attempt, zero delay, and a new output root `outputs/image_frames/cgas-phase3-pilot-planimation-adapter-smoke-v2`; the pre-hardening `...-v1-smoke` directory was not resumed.
+- Subset: 1 requested state `00014e0bdf...`, 2-row index, 1-row mapping. Mapping SHA `e7703cb4faf05b69496dd244b545ee7171ab37f5abc419dad3d4af30059bb4bd` pinned via `--expected-mapping-sha256`. Mapping-selected representative: `cgas-pilot-expansion-20b7ac18577176c1fa927b68` (candidate `0322c69e...`, 8 objects, raw_rank 93, bfs, train) — the same row the frozen 16,822-row production mapping selects for this state under `replay_then_held_out_then_stable_source_v1`.
+- Client-side binding validated end to end: mapping pin matched, `source_record_sha256 37d284f8...`, run contract `880a79c99f35505385d63aaab1c8743de2384cae6415ee2168801020ad25b40b`, renderer config `ad0ca46c...`, domain `2eed94c5...`, profile `9ded071f...`. The derived `problem.pddl` persisted in the state cache and `candidate_problems/`.
+- Remote result: requested 1, processed 1, succeeded 0, failed 1, remaining 1. Single recorded attempt returned the byte-identical 2026-08-10 error: `Failed to submit PDDL bundle. Attempts: https://planimation.planning.domains/upload/pddl -> API error: The process ends with an exception \n\n Unexpected status from the server`. No VFG or PNG returned.
+- This confirms the mapping milestone did not change the remote boundary: the failure remains localized to the hosted Planimation backend's downstream planner path per `canonical-vfg-root-cause-20260810.md`.
+- No production render (Phase 7) was started and no replay alignment (Phase 8) was generated. No fallback was attempted and no further external request is authorized. Evidence: `.claude/evidence/cgas-phase3-pilot-rendering/verification-20260811.md`.
+
 
 ## Replay Alignment
 - Adapter implemented and unit-tested with frozen defaults (790 authoritative rows and the frozen index digest), artifact containment, digest revalidation, and semantic revalidation. The real 790-row output was deliberately not generated because replay render prerequisites are incomplete.
