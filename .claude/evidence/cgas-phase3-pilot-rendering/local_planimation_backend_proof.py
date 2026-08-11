@@ -116,6 +116,21 @@ def _sha256_bytes(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
+def _materialize_profile_text(profile_text: str) -> str:
+    """Replace the Planimation ``RANDOMCOLOR`` sentinel with one fixed color.
+
+    The pinned backend's ``Random_color`` extension turns the exact literal
+    ``(color RANDOMCOLOR)`` into a process-global ``random.choice`` draw, so
+    consecutive requests carrying that sentinel differ byte-for-byte and
+    seeding once cannot cover the server process's draws. Replacing the exact
+    sentinel with one valid concrete color (``(color GREY)``) here makes the
+    submitted profile deterministic while the on-disk profile and its verified
+    hash stay untouched. ``str.replace`` matches exactly, is a no-op for any
+    other text, and is idempotent across repeated calls.
+    """
+    return profile_text.replace("(color RANDOMCOLOR)", "(color GREY)")
+
+
 def _file_record(path: Path, display: str) -> dict[str, Any]:
     data = path.read_bytes()
     return {"path": display, "sha256": _sha256_bytes(data), "size": len(data)}
@@ -570,7 +585,11 @@ def main(argv: list[str] | None = None) -> int:
         # --- Replay-3, exactly twice --------------------------------------- #
         domain_text = domain_path.read_text(encoding="utf-8")
         problem_text = problem_path.read_text(encoding="utf-8")
-        profile_text = profile_path.read_text(encoding="utf-8")
+        # Hash-verified above; materialize once so run1/run2, the empty-plan
+        # probe, and the 12-object submission all send the same deterministic text.
+        profile_text = _materialize_profile_text(
+            profile_path.read_text(encoding="utf-8")
+        )
 
         run1_path = output_root / "replay3-run1.vfg.json"
         run2_path = output_root / "replay3-run2.vfg.json"

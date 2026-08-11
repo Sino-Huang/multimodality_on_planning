@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import json
 import re
 from pathlib import Path
@@ -10,6 +11,7 @@ import pytest
 from scripts.phase3.render_semantics import _decode_png, _parse_stage_zero_sprites, _sprite_has_coverage, validate_render_artifacts
 
 ROOT = Path(__file__).parents[2]
+PROOF_HARNESS = ROOT / ".claude/evidence/cgas-phase3-pilot-rendering/local_planimation_backend_proof.py"
 FAILED_FERRY_CANARY = ROOT / ".claude/evidence/planimation-pilot-contract-and-render-recovery/task-5-planimation-pilot-contract-and-render-recovery/ferry-failed-attempt"
 FAILED_ELEVATORS_CANARY = ROOT / ".claude/evidence/planimation-pilot-contract-and-render-recovery/task-5-planimation-pilot-contract-and-render-recovery/elevators-failed-attempt"
 IMAGE_SECTION_SHA256 = {
@@ -26,6 +28,18 @@ def _normalized_profile(relative_path: str) -> str:
     assert marker == "(:image"
     without_comments = re.sub(r";[^\n]*", "", before_images)
     return re.sub(r"\s+", " ", without_comments).strip().lower()
+
+
+def _proof_harness():
+    """Load the local-only proof harness module (established importlib pattern)."""
+    spec = importlib.util.spec_from_file_location(
+        "_local_planimation_backend_proof_test", PROOF_HARNESS
+    )
+    assert spec is not None
+    assert spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 def _image_section_sha256(relative_path: str) -> str:
@@ -203,3 +217,42 @@ def test_ferry_on_car_stays_in_location_coverage_lane() -> None:
 @pytest.mark.parametrize("profile_path", IMAGE_SECTION_SHA256)
 def test_embedded_image_section_matches_source_bytes(profile_path: str) -> None:
     assert _image_section_sha256(profile_path) == IMAGE_SECTION_SHA256[profile_path]
+
+
+def test_profile_materialization_replaces_exact_randomcolor_sentinel() -> None:
+    # Given: the exact Planimation sentinel that the pinned backend turns into a
+    # process-global random.choice draw (see its Random_color extension).
+    source = (
+        "(:visual block\n"
+        "    :properties((prefabImage img-block)\n"
+        "        (color RANDOMCOLOR)\n"
+        "        (width 80))\n"
+        ")\n"
+    )
+
+    # When: the harness materializes the in-memory profile text before submission.
+    materialized = _proof_harness()._materialize_profile_text(source)
+
+    # Then: the exact sentinel is replaced with one valid concrete color.
+    assert "(color RANDOMCOLOR)" not in materialized
+    assert "(color GREY)" in materialized
+
+
+def test_profile_materialization_is_idempotent_and_leaves_unrelated_text_alone() -> None:
+    # Given: a profile carrying the sentinel plus unrelated colors.
+    source = (
+        "(:visual block :properties((color RANDOMCOLOR) (width 80)))\n"
+        "(:visual claw :properties((color BLACK) (width 80)))\n"
+    )
+
+    # When: the materializer is applied repeatedly.
+    harness = _proof_harness()
+    once = harness._materialize_profile_text(source)
+    twice = harness._materialize_profile_text(once)
+
+    # Then: it is idempotent and unrelated text stays byte-for-byte unchanged.
+    assert twice == once
+    assert "(color BLACK)" in once
+    assert harness._materialize_profile_text("(:predicate on :parameters (?x ?y))") == (
+        "(:predicate on :parameters (?x ?y))"
+    )
