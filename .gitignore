@@ -270,3 +270,7 @@ starVLA/model/framework/VLM4A/QwenGR00T_v2.py
 outputs/
 
 .claude/archive/
+
+# BEGIN oh-my-opencode-slim clonedeps
+.slim/clonedeps/repos/
+# END oh-my-opencode-slim clonedeps

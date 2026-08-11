@@ -1,0 +1,15 @@
+{
+  "version": "1.0.0",
+  "updatedAt": "2026-08-11T00:00:00.000Z",
+  "dependencies": [
+    {
+      "name": "planimation/backend",
+      "resolvedVersion": "v0.1.7",
+      "repoUrl": "https://github.com/planimation/backend.git",
+      "ref": "94d82afb5ee122ce579dd11ca1953b7c85ca5824",
+      "path": ".slim/clonedeps/repos/planimation__backend",
+      "packagePath": "server",
+      "reason": "Pinned GPL-separated local backend source for supplied-plan VFG determinism and semantic validation"
+    }
+  ]
+}
