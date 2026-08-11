@@ -54,13 +54,31 @@ The first commit attempt was not made; HEAD stayed at WIP SHA `0d287fdbba1a84c90
 - Observation: compat PDDL is 430 bytes/SHA `ca23d3def6ea76e4a45b8a12f159459c8d4bfdcad5862fe317a2b45b681fe5ff` and differs from successful replay-3 only in the problem-name line; the internal b00 problem remains 489 bytes/SHA `f5e8...daa9` (`f5e8e79e7c594b2ffa83906825016d7c368893abb3b1009dea277d367b81daa9`).
 - Suspected cause: problem-name sensitivity or hosted-backend nondeterminism. Confidence label: `medium`; causality is not established. No fix is proposed.
 
-## Next Session Options
+## Owner Follow-up Assessment — Local Planimation
 
-- **Option A:** Continue the high-level plan at the next dependency-ready parallel item: owner resolution of the off-plan action-target policy only. Hard boundary: this does not unblock rendering and must not generate Qwen rows until approved.
-- **Option B:** Investigate the recorded 8-object gate failure first using fast-fail/no-fallback style. Recommend B because this failed gate blocks the 12-object gate and production rendering.
+- Conclusion: agree that further serial hosted API probing is inefficient and non-reproducible for 16,822 states. Primary route is a pinned local upstream Planimation backend (`https://github.com/planimation/backend`) run as a separate local process, with a supplied local plan so it does not call `solver.planning.domains`.
+- Why: the upstream backend is current Python/Django and produces the actual VFG semantics; the repo already has VFG→PNG, semantic validation, local planners/Fast Downward, the renderer seam, and run-contract/digest binding. Local execution removes shared-service failure and latency and allows deterministic validation.
+- Critical caveats: the backend is GPL-3.0 while the project is MIT, so keep it as a separately cloned/installed aggregation with the license preserved, not copied/imported into project source; pin the commit SHA; parser compatibility and RANDOMCOLOR determinism must be proven; installing the backend alone is not fully offline unless a plan is supplied; do not use stale `planimation/backend:latest`; no installation was performed in this session.
+- Primary A: local upstream backend. Fallback B: project-specific Blocksworld stage-0 builder only if the upstream parser/runtime/license hard-stops; B requires a 12-object golden sample before production. Hosted route C is retired except a separately authorized spot-check, not a production route.
 
-**Recommendation: Option B.** The first action must be LOCAL-ONLY: inspect the exact one-line problem-name delta and the renderer naming contract against prior replay evidence; make no remote request without fresh explicit authorization. Required acceptance for any later authorized smoke remains: VFG persisted, PNG extracted, semantic validation passed, digest/provenance/run-contract validation passed, frozen bytes unchanged.
+## Exact Next Plan Action
 
-Reconcile with roadmap: 12-object smoke not run; production 16,822 render, coverage, 790-row alignment, `verify_steps`, Qwen, `planning_vlm`, model download/training all remain unstarted/blocked. Do not infer off-plan targets.
+This is the exact next dependency-ready rendering action and is LOCAL-ONLY:
 
-The exact next dependency-ready action on the rendering critical path is Option B's local-only first inspection. Future network activity needs fresh authorization.
+1. Use the repository's dependency-cloning workflow to clone `planimation/backend` into an ignored external-dependency workspace and pin/record an exact commit + GPL license; do not vendor it into project source.
+2. Inspect the pinned source to confirm the multipart `plan` field and setup requirements; run upstream unit tests in an isolated environment/process (all Python commands still prefixed by `source ~/cd_vlaplan`; do not perturb project dependencies unnecessarily).
+3. Start one local backend process at `127.0.0.1:8000` with no external planner use.
+4. Reproduce the exact accepted replay-3 bundle locally using domain SHA `2eed94c5a8fdfe2ac608c45cdf8a68274d69c1920bb4f831529f7bfaaaf79d81`, problem SHA `8a27cbb59978e68e9a48a1770d7852d0ad91b33e5af98643dea578c210244549`, profile SHA `9ded071f7ae255de719d753a815bf56ed6756393e14a6065a331e7d5297a8d32`, and the known four-step plan: `(unstack b5 b6)`, `(stack b5 b4)`, `(pickup b6)`, `(stack b6 b5)`.
+5. Acceptance: same input twice deterministic; VFG parses; existing local renderer extracts one PNG; semantic validation passes. Compare against replay-3 VFG SHA `337b988571ba3127c4d8a63fc99e2ea2fb77938d6e30bef95bf0199350dc1c64`/20,655 bytes. If bytes differ, record the exact semantic/envelope/color delta; byte-pinnability must be resolved before production.
+6. Probe empty-plan locally; if rejected, identify a bounded local plan-supply path. Then validate one 12-object non-empty-goal representative locally before any adapter integration.
+7. Only after those proofs, add a local `StateRenderer` seam and run the mapping-bound 8-object adapter smoke against localhost. Do not start the 16,822-state production render in that session.
+
+Hard stops: exact project domain/problem/profile rejected beyond a small reviewable upstream patch; supplied-plan path absent; dependency runtime cannot be isolated reproducibly; GPL aggregation rejected; nondeterministic/unpinnable VFG or semantic failure. On hard stop, assess fallback B — do not silently switch.
+
+Boundaries restated: no hosted request without fresh authorization; no 12-object hosted smoke; no production render; no replay alignment/Qwen/planning_vlm/training; no off-plan target inference.
+
+## Next Session Prompt
+
+```text
+Read .handoff/2026-08-11-cgas-planimation-canonical-8obj-smoke-failure.md first. Follow its Exact Next Plan Action: perform only the local Planimation backend proof through replay-3 determinism/VFG→PNG/semantic validation and one local 12-object validation. Pin the upstream commit, preserve GPL separation, supply a local plan, make no hosted API request, do not start production, and stop/record any hard-stop condition without fallback.
+```
