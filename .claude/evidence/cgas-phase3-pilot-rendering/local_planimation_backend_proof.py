@@ -466,7 +466,7 @@ def main(argv: list[str] | None = None) -> int:
     if output_root.exists():
         print(f"ERROR: --output-root must not exist: {output_root}", file=sys.stderr)
         return 2
-    backend_python = args.backend_python.expanduser().resolve()
+    backend_python = Path(os.path.abspath(args.backend_python.expanduser()))
     if not backend_python.is_file() or not os.access(backend_python, os.X_OK):
         print(
             f"ERROR: --backend-python is not an executable interpreter: {backend_python}",
