@@ -10,7 +10,7 @@ import shlex
 import tempfile
 from collections import Counter
 from collections.abc import Iterator, Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 from .cgas_candidate_accounting import PlannerInput, planner_input_record
@@ -79,6 +79,27 @@ class PilotRenderResult:
 
 _ZERO_PADDED_BLOCK_OBJECT = re.compile(r"^b\d{2,}$")
 PLANIMATION_COMPAT_PROBLEM_NAME = "problem.planimation-compat.pddl"
+# Optional per-row field carrying a supplied action sequence for the Planimation
+# render of that state. Absent rows render through the backend solver (historical
+# behavior); present rows must be a valid non-empty parenthesised plan.
+SUPPLIED_PLAN_FIELD = "supplied_plan"
+
+
+def _supplied_plan(index_row: dict[str, object]) -> str | None:
+    """Return the optional supplied plan bound to an index row, or None.
+
+    Only rows that explicitly carry ``supplied_plan`` get a supplied plan. The
+    value must be a non-empty string whose text contains at least one
+    parenthesised action (mirroring the pinned backend's acceptance test for its
+    multipart ``plan`` field); any present-but-invalid value fails closed so a
+    malformed row can never silently fall back to the hosted planner.
+    """
+    if SUPPLIED_PLAN_FIELD not in index_row:
+        return None
+    value = index_row.get(SUPPLIED_PLAN_FIELD)
+    if not isinstance(value, str) or not value.strip() or "(" not in value or ")" not in value:
+        raise PilotRenderError("supplied_plan_invalid")
+    return value
 
 
 def format_planimation_compat_problem(task: PDDLTask, *, problem_name: str | None = None) -> str | None:
@@ -434,9 +455,13 @@ def _render_state(
     state_atoms = _strings(state, "state_atoms", "request_state_atoms_invalid")
     state_payload: list[JSONValue] = list(state_atoms)
     transition: dict[str, JSONValue] = {"step_index": 0, "state_before": state_payload}
+    plan = _supplied_plan(index_row)
+    # The shared request config never carries a per-state plan; only this state's
+    # render uses a plan-bearing config, so absent-plan states stay byte-identical.
+    state_config = replace(request.config, plan=plan) if plan is not None else request.config
     record: dict[str, object] = {
         key: value
-        for key, value in _render_one_state(pair, transition, request.output_root, renderer, request.config).items()
+        for key, value in _render_one_state(pair, transition, request.output_root, renderer, state_config).items()
     }
     if record.get("status") == "success":
         record.update(
@@ -459,6 +484,11 @@ def _render_state(
             "raw_rank": index_row.get("raw_rank"),
         }
     )
+    if plan is not None:
+        # Direct per-state provenance receipt: the exact supplied plan digest.
+        # The plan itself is bound transitively via the expansion-index SHA256 in
+        # the run contract plus the cache identity, which includes the plan text.
+        record["supplied_plan_sha256"] = stable_hash(plan)
     return record
 
 

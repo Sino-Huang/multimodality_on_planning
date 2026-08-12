@@ -77,13 +77,23 @@ def post_pddl_for_vfg(
     animation_profile_path: Path,
     pddl_candidates: Sequence[str],
     timeout: int,
+    plan: str | None = None,
 ) -> tuple[bytes, str]:
-    """Submit one PDDL bundle through ordered upload endpoints."""
+    """Submit one PDDL bundle through ordered upload endpoints.
+
+    ``plan`` is an optional supplied action sequence. When non-None it is sent as
+    an additional multipart ``plan`` field, which selects the backend's supplied-
+    plan path instead of its hosted solver. When None the multipart body is
+    byte-for-byte identical to the historical three-field bundle (``domain``,
+    ``problem``, ``animation`` only).
+    """
     files = {
         "domain": (None, domain_path.read_text(encoding="utf-8")),
         "problem": (None, problem_path.read_text(encoding="utf-8")),
         "animation": (None, animation_profile_path.read_text(encoding="utf-8")),
     }
+    if plan is not None:
+        files["plan"] = (None, plan)
     errors: list[str] = []
     for url in pddl_candidates:
         try:

@@ -4,6 +4,7 @@ import hashlib
 import json
 from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -1390,3 +1391,143 @@ def test_planimation_compat_default_renderer_uploads_compat_and_keeps_cache_b00(
     assert record["candidate_id"] == candidate.candidate_id
     assert record["source_record_sha256"] == source_digest
     assert record["transition"]["state_before"] == sorted(atoms)
+
+
+def test_planimation_renderer_plan_forwarding_preserves_old_call_shape(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from scripts.phase3.planimation_pairing_rendering import render_state_with_planimation
+
+    vfg = json.dumps(
+        {
+            "visualStages": [
+                {
+                    "stageName": "Initial Stage",
+                    "visualSprites": [{"name": "token", "minX": 0.2, "maxX": 0.6, "minY": 0.2, "maxY": 0.6}],
+                }
+            ]
+        }
+    ).encode()
+    calls: list[dict[str, Any]] = []
+
+    def post(*args: Any, **kwargs: Any) -> tuple[bytes, str]:
+        calls.append({"args": args, "kwargs": kwargs})
+        return vfg, str(args[3][0])
+
+    monkeypatch.setattr("scripts.planimation_phase1.post_pddl_for_vfg", post)
+    cache = tmp_path / "cache"
+    cache.mkdir()
+    domain = tmp_path / "domain.pddl"
+    problem = tmp_path / "problem.pddl"
+    profile = tmp_path / "profile.pddl"
+    for path in (domain, problem, profile):
+        path.write_text("x", encoding="utf-8")
+
+    result = render_state_with_planimation(domain, problem, profile, cache, RenderConfig(max_attempts=1))
+    assert result["status"] == "success"
+    assert len(calls) == 1
+    assert calls[0]["kwargs"] == {}
+    assert calls[0]["args"][3] == ["https://planimation.planning.domains/upload/pddl"]
+    assert len(calls[0]["args"]) == 5  # historical five-positional shape, no plan kwarg
+
+    result = render_state_with_planimation(
+        domain, problem, profile, cache, RenderConfig(max_attempts=1, plan="(pickup b1)")
+    )
+    assert result["status"] == "success"
+    assert len(calls) == 2
+    assert calls[1]["kwargs"] == {"plan": "(pickup b1)"}
+    assert calls[1]["args"][3] == ["https://planimation.planning.domains/upload/pddl"]
+    assert len(calls[1]["args"]) == 5
+
+
+def test_cache_identity_binds_plan_only_when_present(tmp_path: Path) -> None:
+    from scripts.phase3.planimation_pairing_rendering import _cache_identity
+    from scripts.phase3.traversal_state_types import JSONValue
+
+    domain = tmp_path / "domain.pddl"
+    domain.write_text("(define (domain d))", encoding="utf-8")
+    problem = tmp_path / "problem.pddl"
+    problem.write_text("(define (problem p))", encoding="utf-8")
+    profile = tmp_path / "profile.pddl"
+    profile.write_text("profile", encoding="utf-8")
+    pair: dict[str, JSONValue] = {"domain_path": str(domain), "problem_path": str(problem)}
+    state_atoms = ["(arm-empty)"]
+    renderer = _fake_renderer([])
+
+    default = _cache_identity(pair, state_atoms, profile, renderer, RenderConfig())
+    explicit_none = _cache_identity(pair, state_atoms, profile, renderer, RenderConfig(plan=None))
+    assert default == explicit_none  # explicit plan=None keeps the historical identity
+
+    plan_a = _cache_identity(pair, state_atoms, profile, renderer, RenderConfig(plan="(pickup b1)"))
+    plan_b = _cache_identity(pair, state_atoms, profile, renderer, RenderConfig(plan="(stack b1 b2)"))
+    assert plan_a != default
+    assert plan_a != plan_b
+    assert plan_a["cache_key"] != default["cache_key"]
+    assert plan_b["cache_key"] != plan_a["cache_key"]
+
+
+def test_supplied_plan_validation() -> None:
+    from scripts.phase3.cgas_pilot_planimation_adapter import PilotRenderError, _supplied_plan
+
+    assert _supplied_plan({}) is None
+    assert _supplied_plan({"supplied_plan": "(pickup b1)"}) == "(pickup b1)"
+    for invalid in ("", "   ", "no-parentheses-text", 42, None, ["(pickup b1)"]):
+        with pytest.raises(PilotRenderError, match="supplied_plan_invalid"):
+            _supplied_plan({"supplied_plan": invalid})
+
+
+def test_render_state_carries_supplied_plan_to_renderer_and_writes_digest(
+    tmp_path: Path,
+) -> None:
+    from scripts.phase3.cgas_pilot_planimation_adapter import PilotRenderRequest, render_missing_states
+    from scripts.phase3.io_utils import stable_hash
+
+    index, request, row = _fixture(tmp_path)
+    row["supplied_plan"] = "(pickup b1)"
+    _jsonl(index, [row])
+    domain = tmp_path / "domain.pddl"
+    domain.write_text(_MINIMAL_DOMAIN, encoding="utf-8")
+    profile = tmp_path / "profile.pddl"
+    profile.write_text("profile", encoding="utf-8")
+    observed: list[str | None] = []
+
+    def capture(
+        domain_path: Path, problem_path: Path, profile_path: Path, cache_dir: Path, config: RenderConfig
+    ) -> RendererResult:
+        observed.append(config.plan)
+        return _fake_renderer([])(domain_path, problem_path, profile_path, cache_dir, config)
+
+    result = render_missing_states(
+        PilotRenderRequest(tmp_path, request, index, tmp_path / "outputs/out", domain, profile),
+        renderer=capture,
+    )
+    assert result.counts["succeeded"] == 1
+    assert observed == ["(pickup b1)"]
+    record = json.loads(result.manifest_path.read_text())
+    assert record["supplied_plan_sha256"] == stable_hash("(pickup b1)")
+
+
+def test_render_state_without_supplied_plan_omits_digest(tmp_path: Path) -> None:
+    from scripts.phase3.cgas_pilot_planimation_adapter import PilotRenderRequest, render_missing_states
+
+    index, request, _ = _fixture(tmp_path)
+    domain = tmp_path / "domain.pddl"
+    domain.write_text(_MINIMAL_DOMAIN, encoding="utf-8")
+    profile = tmp_path / "profile.pddl"
+    profile.write_text("profile", encoding="utf-8")
+    observed: list[str | None] = []
+
+    def capture(
+        domain_path: Path, problem_path: Path, profile_path: Path, cache_dir: Path, config: RenderConfig
+    ) -> RendererResult:
+        observed.append(config.plan)
+        return _fake_renderer([])(domain_path, problem_path, profile_path, cache_dir, config)
+
+    result = render_missing_states(
+        PilotRenderRequest(tmp_path, request, index, tmp_path / "outputs/out", domain, profile),
+        renderer=capture,
+    )
+    assert result.counts["succeeded"] == 1
+    assert observed == [None]
+    record = json.loads(result.manifest_path.read_text())
+    assert "supplied_plan_sha256" not in record

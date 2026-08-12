@@ -30,9 +30,19 @@ def render_state_with_planimation(
     errors: list[str] = []
     for attempt in range(1, config.max_attempts + 1):
         try:
-            vfg_bytes, used_url = post_pddl_for_vfg(
-                domain_path, problem_path, profile_path, pddl_urls, config.timeout_seconds
-            )
+            if config.plan is not None:
+                vfg_bytes, used_url = post_pddl_for_vfg(
+                    domain_path,
+                    problem_path,
+                    profile_path,
+                    pddl_urls,
+                    config.timeout_seconds,
+                    plan=config.plan,
+                )
+            else:
+                vfg_bytes, used_url = post_pddl_for_vfg(
+                    domain_path, problem_path, profile_path, pddl_urls, config.timeout_seconds
+                )
             trace_path = cache_dir / "trace.vfg.json"
             trace_path.write_bytes(vfg_bytes)
             frames_dir = cache_dir / "frames"
@@ -258,6 +268,11 @@ def _cache_identity(
         "request_delay_seconds": config.request_delay_seconds,
         "max_attempts": config.max_attempts,
     }
+    if config.plan is not None:
+        # A supplied plan changes the backend render, so it must be part of the
+        # cache identity. It is added only when present so that absent-plan runs
+        # keep the historical cache identity byte-for-byte.
+        config_payload["plan"] = config.plan
     identity: dict[str, JSONValue] = {
         "schema_version": SCHEMA_VERSION,
         "domain_path": str(pair["domain_path"]),

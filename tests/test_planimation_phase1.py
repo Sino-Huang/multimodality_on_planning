@@ -3,9 +3,11 @@ from __future__ import annotations
 import io
 import importlib
 import json
+import types
 import zipfile
 from io import BytesIO
 from pathlib import Path
+from typing import Any
 
 import pytest
 import requests
@@ -228,6 +230,44 @@ def test_post_pddl_propagates_unexpected_adapter_failure(
             ["https://example.test/upload"],
             timeout=3,
         )
+
+
+def test_post_pddl_supplied_plan_multipart_keys(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from scripts.planimation_phase1_client import post_pddl_for_vfg as client_post
+
+    domain_path = tmp_path / "domain.pddl"
+    problem_path = tmp_path / "problem.pddl"
+    profile_path = tmp_path / "profile.pddl"
+    for path in (domain_path, problem_path, profile_path):
+        path.write_text(f"content-{path.name}", encoding="utf-8")
+
+    captured: list[tuple[str, dict[str, Any]]] = []
+
+    def record_post(url: str, **kwargs: object) -> object:
+        files = kwargs.get("files")
+        assert isinstance(files, dict)
+        captured.append((url, files))
+        return types.SimpleNamespace(status_code=200, text="{}", content=b"{}", json=lambda: {})
+
+    monkeypatch.setattr("scripts.planimation_phase1_client.requests.post", record_post)
+
+    client_post(domain_path, problem_path, profile_path, ["https://example.test/upload/pddl"], timeout=3)
+    assert list(captured[0][1].keys()) == ["domain", "problem", "animation"]
+    assert captured[0][1]["domain"][1] == "content-domain.pddl"
+    assert captured[0][1]["problem"][1] == "content-problem.pddl"
+    assert captured[0][1]["animation"][1] == "content-profile.pddl"
+
+    captured.clear()
+    client_post(
+        domain_path,
+        problem_path,
+        profile_path,
+        ["https://example.test/upload/pddl"],
+        timeout=3,
+        plan="(pickup b1)\n(stack b1 b2)",
+    )
+    assert list(captured[0][1].keys()) == ["domain", "problem", "animation", "plan"]
+    assert captured[0][1]["plan"][1] == "(pickup b1)\n(stack b1 b2)"
 
 
 def test_select_entries_respects_domain_filter_and_limit(tmp_path: Path) -> None:

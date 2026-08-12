@@ -39,6 +39,10 @@ class RenderConfig:
     timeout_seconds: int = 90
     request_delay_seconds: float = 1.0
     max_attempts: int = 3
+    # Optional supplied action sequence sent as a multipart ``plan`` field. When
+    # None the historical three-field bundle is sent and the backend invokes its
+    # own solver. Appended last so existing positional constructions are unchanged.
+    plan: str | None = None
 
 
 class RendererResult(TypedDict):
