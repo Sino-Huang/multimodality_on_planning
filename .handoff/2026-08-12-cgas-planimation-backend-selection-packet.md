@@ -8,6 +8,8 @@
 - Recommended pinned-local production-path validation while explicitly reserving the final backend selection and any later 16,822-state render authorization to the owner.
 - Implementation/closure commit: `bf0fa8f` (`docs(phase3): prepare backend selection packet`).
 - Acceptance evidence: 26 packet assertions passed across 105 lines; `git diff --check` passed.
+- Independent critic review identified one applicable completeness gap in the hosted continuation. The packet now requires an owner-accepted disposition of the unresolved problem-name/hosted-behavior sensitivity after successful smokes and before any production-render authorization packet. The critic's authority-state objection is answered by citing the owner's explicit current-state instruction; the mandated final owner question is retained verbatim.
+- Review-closure commit: `4a28fa9` (`docs(phase3): close backend packet review`). Final verification passed 27 packet assertions across 106 lines and 5 handoff assertions; independent re-review at `critics/2026-08-12-critic-5.md` returned PASS with no remaining actionable findings.
 
 ## Authority / Limits
 
