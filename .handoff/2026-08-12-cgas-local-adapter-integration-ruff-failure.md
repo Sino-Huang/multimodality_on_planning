@@ -6,7 +6,7 @@
 - Exact local WIP commit: `2b2c6146b39d46344433ef929804b0019fe42734` (`wip: add local Planimation adapter seam`). Not pushed.
 - First pytest formal run: 62 passed, 1 failed; classified EASY because the test matched the stable reason code against the human-readable exception detail in one test file. Bounded fix applied.
 - One retest: `63 passed in 0.55s`.
-- No backend process, HTTP request, integration harness, 8-object/12-object smoke, production command, or 16,822-state render ran. Attempt output root was never created.
+- No real loopback integration validation, backend process, HTTP request, 8/12-object smoke, production command, or 16,822-state render ran; only hermetic guard tests exercised the harness's fail-closed CLI path before any server/network action. Attempt output root was never created.
 
 ## Failures
 
@@ -14,7 +14,7 @@ Failure 1 command:
 ```
 source ~/cd_vlaplan && python -m pytest tests/test_planimation_phase1.py tests/phase3/test_cgas_pilot_planimation_adapter.py tests/phase3/test_local_planimation_adapter_integration.py -q
 ```
-Output exactly:
+Recorded output transcription returned by the verification runner:
 ```
 Conda environment 'ada_vla' is already activated.
 ..........................................................F....          [100%]
@@ -56,6 +56,8 @@ tests/phase3/test_local_planimation_adapter_integration.py:33: AssertionError
 FAILED tests/phase3/test_local_planimation_adapter_integration.py::test_harness_refuses_non_loopback_urls
 1 failed, 62 passed in 0.78s
 ```
+
+Note: the received traceback transcription contains a duplicated/malformed context-manager line in its "During handling..." excerpt; the block is therefore preserved as received but is not claimed as byte-verbatim terminal evidence. The stable audited facts are the command, the failing test, the reason/detail mismatch, and the summary `1 failed, 62 passed in 0.78s`.
 
 EASY verdict: the single failure was a test-side mismatch — the assertion matched the stable reason code against the human-readable exception detail (`refusing non-loopback URL: ...`) instead of the structured `reason` attribute, in exactly one test file. The bounded test-only fix was applied (loop over the three invalid URLs, capture `excinfo`, assert `excinfo.value.reason == "refusing_non_loopback_url"`). The single retest passed 63.
 
