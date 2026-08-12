@@ -40,10 +40,14 @@ evidence is cold and should be opened only for a specific verification question.
 
 The pre-slimming hot context is preserved byte-for-byte in
 `.claude/archive/context-hot-snapshot-2026-08-10.tar.gz` (SHA-256
-`8b16b0231fd4d2eda359da80b3fdc16563a43eaa58828cc55d4456bb22ca45fc`). The earlier pre-migration
-evidence archive remains `.claude/archive/omo-evidence-2026-08-07.tar.gz`. Both are gitignored.
-Tracked files are also recoverable with `git show HEAD:<path>`; use Git history in a fresh clone
-where the local archives are absent.
+`8b16b0231fd4d2eda359da80b3fdc16563a43eaa58828cc55d4456bb22ca45fc`). Four post-snapshot session
+logs (`session-20260810-01a00ffc.md`, `session-20260810-9cfdb0cf.md`,
+`session-20260810-f9c6ef25.md`, `session-20260811-c79a798d.md`), removed from retired `.claude/logs/`,
+are preserved byte-for-byte in `.claude/archive/session-logs-2026-08-10-to-2026-08-11.tar.gz`
+(SHA-256 `61da47e64015cde758aaa8c82a13c4a2b5670236d7a16b880e99cc261e6bbd97`). The earlier
+pre-migration evidence archive remains `.claude/archive/omo-evidence-2026-08-07.tar.gz`. All three
+archives are gitignored. Tracked files are also recoverable with `git show HEAD:<path>`; use Git
+history in a fresh clone where the local archives are absent.
 
 ```bash
 tar -tzf .claude/archive/context-hot-snapshot-2026-08-10.tar.gz

@@ -530,27 +530,55 @@ policy chooses one action target for an off-plan expansion; the pending decision
    **Done 2026-08-09.** The non-release index has 31,171 rows (790 replay-plan, 30,381 off-plan-only);
    all 16,822 unique states need rendering. Digest-bound evidence is under
    `.claude/evidence/cgas-phase3-pilot-materialization/`.
-8. Resolve the off-plan action-target policy before creating Qwen rows; then render the canonical
-    missing-state request, align accepted replay states, and run `verify_steps`. **Rendering status:
-    blocked by a repository-side problem-writer compatibility delta, not by a hosted-backend outage.**
-    The owner-approved representative mapping (`replay_then_held_out_then_stable_source_v1`) is
-    materialized and adapter-bound (committed `f9a5081`). The 2026-08-11 regression replays refuted
-    the earlier blanket hosted-backend blocker: replay 1 (exact July-22 known-good problem) succeeded
-    today (trace SHA `8c3b2eaf…4da00`, 72,261 bytes), and replay 3 (same pilot semantics with
-    `b00..b07→b1..b8` naming and July formatting) succeeded (trace SHA `337b9885…c1c64`, 20,655
-    bytes), while replay 2 (the exact smoke-v2 transmitted problem) failed with the same downstream
-    error as the prior smokes and replay 4 (12-object empty-goal probe) failed at stage generation
-    (`Failed to generate stages \n\n 'init'`). The replay 2→3 pair proves a repository-side remote
-    compatibility delta; the compound probe changed both naming and formatting, so neither alone is
-    claimed causal, and replay 4 does not prove 12-object incompatibility. Exact unblock: patch the
-    adapter/problem writer to canonical `b1..bN` naming and July-compatible formatting under RED→GREEN,
-    review and gate, then require a canonicalized mapping-bound 8-object smoke AND a 12-object smoke
-    with a non-empty locally solvable representative goal to pass full VFG→PNG→semantic/digest/
-    provenance validation before the operator command is authorized. No production render or replay
-    alignment has started; coverage is 0/16,822. Evidence:
+8. Resolve the off-plan action-target policy before creating Qwen rows — a separate gate that
+    does not block state-only rendering. Render the canonical missing-state request, align
+    accepted replay states, and run `verify_steps` only after the state-only render's own
+    technical preconditions pass and the operator command is explicitly authorized. **Outcome B —
+    the pinned local Planimation proof closes LP3–LP5/LD2 technically but does NOT satisfy the
+    production-render unblock and does not authorize rendering.** The owner-approved representative
+    mapping (`replay_then_held_out_then_stable_source_v1`) is materialized and adapter-bound
+    (committed `f9a5081`). The 2026-08-11 regression replays refuted the earlier blanket
+    hosted-backend blocker: replay 1 (exact July-22 known-good problem) succeeded (trace SHA
+    `8c3b2eaf…4da00`, 72,261 bytes) and replay 3 (same pilot semantics with `b00..b07→b1..b8`
+    naming and July formatting) succeeded (trace SHA `337b9885…c1c64`, 20,655 bytes), while replay
+    2 (the exact smoke-v2 transmitted problem) failed with the same downstream error as the prior
+    smokes and replay 4 (12-object empty-goal probe) failed at stage generation (`Failed to
+    generate stages \n\n 'init'`). The replay 2→3 pair proves a repository-side remote
+    compatibility delta; the compound probe changed both naming and formatting, so neither alone
+    is claimed causal, and replay 4 does not prove 12-object incompatibility. The 2026-08-12
+    attempt-002 final proof against the pinned local backend (`.slim/clonedeps/repos/
+    planimation__backend` at `94d82afb…`, v0.1.7) closed LP3–LP5 and LD2 **technically**: the
+    loopback supplied-plan backend started with `hosted_requests: 0`; replay-3 local run1/run2 raw
+    bytes matched SHA `363c41eb…`; PNG semantic validation passed; the empty plan was rejected via
+    planner routing; the representative 12-object non-empty-goal VFG→PNG semantic validation
+    passed; focused verification was 14 passed, Ruff passed, and the fresh proof exited 0. Record:
+    `outputs/image_frames/loop-msp0by7b-4ommsi-attempt-002-final-verification/proof-report.json`
+    and the attempt-002 handoff. Exact remaining sequence before the production-render unblock:
+    (1) finalize, review, and gate the adapter/problem-writer canonical `b1..bN` + July formatting
+    patch; (2) select the actual production backend — if the pinned local backend is selected,
+    complete the separate owner decisions for the backend target, the local-vs-hosted
+    digest/provenance contract, and GPL-separated maintainability, plus a localhost
+    adapter/StateRenderer smoke; (3) pass the mapping-bound 8-object AND non-empty-goal 12-object
+    smokes through the selected actual production path with full VFG→PNG→semantic/digest/
+    provenance validation; (4) obtain explicit owner/operator authorization for the digest-bound
+    resumable 16,822-state render. The operator command remains non-executable; no production
+    render or replay alignment has started; coverage is 0/16,822. Evidence:
     `.claude/evidence/cgas-phase3-pilot-rendering/verification-20260811-regression-replays.md`.
 9. Specify the bounded certificate-store API and its no-oracle-leakage tests.
 10. Create one direct-VLM calibration configuration and one evaluation command that reports first certificate failures.
+11. Remaining gates before the first direct-VLM calibration training smoke, in order: (1)
+    finalize, review, and gate the adapter/problem-writer canonical `b1..bN` + July formatting
+    patch; (2) select the actual production backend — if switching to the pinned local backend,
+    complete the separate owner decisions (backend target, local-vs-hosted digest/provenance
+    contract, GPL-separated maintainability) and a localhost adapter/StateRenderer smoke; (3) pass
+    the mapping-bound 8-object and non-empty-goal 12-object smokes through the selected actual
+    production path with full VFG→PNG→semantic/digest/provenance validation; (4) obtain explicit
+    owner/operator authorization; (5) complete the digest-bound resumable 16,822-state render;
+    (6) perform 790-row replay alignment with accepted-byte binding and `verify_steps`; (7)
+    authorize and complete the pilot-corpus digest-bound release; (8) create the direct-VLM
+    calibration configuration and the first-certificate-failure evaluation command. Authorization
+    (4) is an owner decision taken after prerequisites (1)–(3) pass; it is not a substitute for
+    them, and further proof runs do not discharge it.
 
 ## Gates and Falsification
 

@@ -54,5 +54,15 @@ if [[ -f "$archive" ]]; then
     fi
 fi
 
+supplemental_archive=.claude/archive/session-logs-2026-08-10-to-2026-08-11.tar.gz
+expected_supplemental_sha256=61da47e64015cde758aaa8c82a13c4a2b5670236d7a16b880e99cc261e6bbd97
+if [[ -f "$supplemental_archive" ]]; then
+    actual_supplemental_sha256=$(sha256sum "$supplemental_archive" | awk '{print $1}')
+    if [[ "$actual_supplemental_sha256" != "$expected_supplemental_sha256" ]]; then
+        printf 'context recovery archive digest mismatch: %s\n' "$supplemental_archive" >&2
+        exit 1
+    fi
+fi
+
 printf 'agent context budget OK: files=%d knowledge_bytes=%d orientation_bytes=%d\n' \
     "$knowledge_files" "$knowledge_bytes" "$orientation_bytes"

@@ -76,9 +76,9 @@ Prove or hard-stop a pinned, GPL-separated local upstream Planimation backend th
 - [x] LP0: Verify current handoff assumptions, Git baseline, authority-plan dependency, and exact local assets.
 - [x] LP1: Clone `planimation/backend` under `.slim/clonedeps/repos/`, pin exact commit `94d82afb5ee122ce579dd11ca1953b7c85ca5824` (`v0.1.7`), preserve its GPL-3.0 license, and record source metadata without vendoring project code.
 - [x] LP2: Inspect supplied-plan handling and prepare an isolated environment. The seven hermetic upstream tests are scheduled for final verification; the eighth upstream test is excluded because its source makes a hosted solver request.
-- [ ] LP3: Start only a loopback backend process with a supplied local plan and no external planner use.
-- [ ] LP4: Submit the exact replay-3 bundle twice; compare VFG bytes and, if different, record exact semantic/envelope/color deltas. Parse VFG, extract one PNG, and pass existing semantic validation.
-- [ ] LP5: Probe empty-plan behavior, then validate one local 12-object non-empty-goal representative with a supplied local plan.
+- [x] LP3: Start only a loopback backend process with a supplied local plan and no external planner use. **Technically complete (attempt-002):** the loopback backend started with `hosted_requests: 0` per `outputs/image_frames/loop-msp0by7b-4ommsi-attempt-002-final-verification/proof-report.json`.
+- [x] LP4: Submit the exact replay-3 bundle twice; compare VFG bytes and, if different, record exact semantic/envelope/color deltas. Parse VFG, extract one PNG, and pass existing semantic validation. **Technically complete (attempt-002):** replay-3 local run1/run2 raw bytes matched SHA `363c41eb…`; VFG→PNG semantic validation passed.
+- [x] LP5: Probe empty-plan behavior, then validate one local 12-object non-empty-goal representative with a supplied local plan. **Technically complete (attempt-002):** the empty plan was rejected via planner routing; the representative 12-object non-empty-goal VFG→PNG semantic validation passed.
 - [x] LP6: Run final verification once. Command 1 failed during test-module import; exact output is preserved and no remediation was applied.
 - [ ] LP7: Finalize Git according to pass/fail policy and write `.handoff/2026-08-11-cgas-local-planimation-proof-{success|failure}.md` with the exact next dependency-ready action.
 
@@ -94,7 +94,7 @@ Prove or hard-stop a pinned, GPL-separated local upstream Planimation backend th
 - Stop and record the first hard-stop condition without switching to fallback B.
 
 ### Status
-**Session RED — final verification stopped before LP3.** `source ~/cd_vlaplan` reset cwd to the project root, so all seven selected upstream tests failed to import `server` before executing. Per policy there was no fix or rerun, the loopback backend/proof harness did not start, and replay-3/PNG/semantic/empty-plan/12-object validation remains pending for the next session. Exact output: `.claude/evidence/cgas-phase3-pilot-rendering/verification-20260811-local-planimation-backend-proof.md`.
+**Session GREEN — LP3/LP4/LP5 technically complete (attempt-002); not authorization.** The loopback supplied-plan backend started with `hosted_requests: 0`; replay-3 local run1/run2 raw bytes matched SHA `363c41eb…`; PNG semantic validation passed; the empty plan was rejected via planner routing; and the representative 12-object non-empty-goal VFG→PNG semantic validation passed (see `outputs/image_frames/loop-msp0by7b-4ommsi-attempt-002-final-verification/proof-report.json` and the attempt-002 handoff). Technical completion is distinct from authorization: the production 16,822-state render, the 790-row replay alignment, and the operator command remain unauthorized and unstarted. Exact output: `.claude/evidence/cgas-phase3-pilot-rendering/verification-20260811-local-planimation-backend-proof.md`.
 
 ## Local Planimation Backend Proof Resume — 2026-08-11
 
@@ -104,7 +104,7 @@ Prove or hard-stop a pinned, GPL-separated local upstream Planimation backend th
 - [x] LR3: Stop at the first formal verification failure and preserve exact evidence without remediation.
 - [ ] LR4: Commit failure evidence locally, write a separate failure handoff commit, and do not push.
 
-**Resume status RED.** Exact evidence: `.claude/evidence/cgas-phase3-pilot-rendering/verification-20260811-local-planimation-backend-proof-resume.md`. No hosted request or production action occurred.
+**Resume status — LR2 block superseded; proof completed technically in attempt-002 (not authorization).** The venv-interpreter block was resolved by the pinned local venv (`.slim/clonedeps/.venv-planimation-v0.1.7`), and the loopback proof through replay-3 determinism, PNG semantics, empty-plan rejection via planner routing, and 12-object non-empty-goal validation completed with `hosted_requests: 0`. No hosted request or production action occurred. Exact evidence: `.claude/evidence/cgas-phase3-pilot-rendering/verification-20260811-local-planimation-backend-proof-resume.md` and `outputs/image_frames/loop-msp0by7b-4ommsi-attempt-002-final-verification/proof-report.json`.
 
 ## Local Planimation Determinism Investigation — 2026-08-12
 
@@ -114,8 +114,8 @@ Resolve the replay-3 VFG color nondeterminism with one small, reviewable change 
 ### Evidence Path
 - [x] LD0: Trace the pinned backend's sprite/color construction and reconcile it with the two persisted replay-3 VFG artifacts.
 - [x] LD1: Add the smallest outside-clone deterministic control and focused regression coverage; do not normalize or weaken the VFG comparison.
-- [ ] LD2: Run final verification once: focused coverage followed by one fresh proof through replay-3, PNG semantics, empty-plan, and 12-object validation, stopping at the first hard stop. **Blocked:** focused tests passed, but the scoped Ruff gate failed before the proof command and was not remediated or rerun.
-- [ ] LD3: Finalize Git according to pass/fail policy and write the required handoff with the exact next dependency-ready action.
+- [x] LD2: Run final verification once: focused coverage followed by one fresh proof through replay-3, PNG semantics, empty-plan, and 12-object validation, stopping at the first hard stop. **Technically complete (attempt-002):** focused verification was 14 passed, Ruff passed, and the fresh proof exited 0 per `outputs/image_frames/loop-msp0by7b-4ommsi-attempt-002-final-verification/proof-report.json`.
+- [x] LD3: Finalize Git according to pass/fail policy and write the required handoff with the exact next dependency-ready action. Completed by implementation/closure commit `9a6bb13409d8cc04548929762385f5fdf536b3b9` and `.handoff/2026-08-12-cgas-local-planimation-loop-attempt-002-success.md`.
 
 ### Hard Boundaries
 - Do not edit `.slim/clonedeps/repos/planimation__backend/`.
@@ -123,4 +123,4 @@ Resolve the replay-3 VFG color nondeterminism with one small, reviewable change 
 - Do not proceed past any hard-stop condition.
 
 ### Status
-**Session RED — final verification stopped before the proof.** The harness now materializes only the exact `RANDOMCOLOR` sentinel to concrete `GREY` in memory after source hash verification; the pinned clone, on-disk input, backend process, and raw VFG byte-equality hard stop remain unchanged. Focused regression coverage passed (`13 passed`), then scoped Ruff failed with 8 diagnostics and the sequence stopped without remediation. Replay-3, PNG semantics, empty-plan, and 12-object validation were not rerun. Exact output: `.claude/evidence/cgas-phase3-pilot-rendering/verification-20260812-local-planimation-determinism-fix.md`.
+**Session GREEN — LD2 and LD3 complete (attempt-002); not authorization.** The harness materializes only the exact `RANDOMCOLOR` sentinel to concrete `GREY` in memory after source hash verification; the pinned clone, on-disk input, backend process, and raw VFG byte-equality hard stop remain unchanged. Focused verification was 14 passed, Ruff passed, and the fresh proof exited 0: replay-3 local run1/run2 raw bytes matched SHA `363c41eb…`; PNG semantic validation passed; the empty plan was rejected via planner routing; and the representative 12-object non-empty-goal VFG→PNG semantic validation passed. Git/handoff closure is recorded by commit `9a6bb13409d8cc04548929762385f5fdf536b3b9` and `.handoff/2026-08-12-cgas-local-planimation-loop-attempt-002-success.md`; production authorization remains ungranted. Exact output: `.claude/evidence/cgas-phase3-pilot-rendering/verification-20260812-local-planimation-determinism-fix.md` and `outputs/image_frames/loop-msp0by7b-4ommsi-attempt-002-final-verification/proof-report.json`.

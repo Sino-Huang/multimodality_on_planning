@@ -10,6 +10,11 @@ logs, and legacy `.omo` task state are preserved in
 `.claude/archive/context-hot-snapshot-2026-08-10.tar.gz` with SHA-256
 `8b16b0231fd4d2eda359da80b3fdc16563a43eaa58828cc55d4456bb22ca45fc`.
 
+Four post-snapshot session logs (`session-20260810-01a00ffc.md`, `session-20260810-9cfdb0cf.md`,
+`session-20260810-f9c6ef25.md`, `session-20260811-c79a798d.md`) removed from retired `.claude/logs/`
+are preserved byte-for-byte in `.claude/archive/session-logs-2026-08-10-to-2026-08-11.tar.gz` with
+SHA-256 `61da47e64015cde758aaa8c82a13c4a2b5670236d7a16b880e99cc261e6bbd97`.
+
 Prefer maintained sources in this order:
 
 1. `doc/high_level_plans/research_execution_plan.md`
