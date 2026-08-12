@@ -1,2 +1,0 @@
-# RAP/world-model LLM planning research (2026-07-27)
-Queries run: RAP Reasoning via Planning arXiv; R* language model planning MCTS arXiv; Language Agent Tree Search LATS arXiv; Tree of Thoughts deliberate problem solving arXiv; Monte Carlo Tree Search LLM world model; LLM+P classical planner arXiv; Voyager embodied lifelong learning arXiv; SayCan grounding language in robotics arXiv; Reflexion verbal reinforcement arXiv; Inner Monologue embodied reasoning arXiv; Open-world planning with LLMs arXiv; Graphplan PDDL LLM planning.

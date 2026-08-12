@@ -531,15 +531,24 @@ policy chooses one action target for an off-plan expansion; the pending decision
    all 16,822 unique states need rendering. Digest-bound evidence is under
    `.claude/evidence/cgas-phase3-pilot-materialization/`.
 8. Resolve the off-plan action-target policy before creating Qwen rows; then render the canonical
-   missing-state request, align accepted replay states, and run `verify_steps`. **Rendering status:
-   blocked at the remote boundary.** The owner-approved representative mapping
-   (`replay_then_held_out_then_stable_source_v1`) is materialized and adapter-bound (committed
-   `f9a5081`). Two authorized one-state smokes (2026-08-10, and a mapping-bound 2026-08-11) both
-   failed at `https://planimation.planning.domains/upload/pddl` with the same downstream error
-   (`API error: The process ends with an exception / Unexpected status from the server`), byte-identical
-   and localized to the hosted backend's downstream planner path. No production render or replay
-   alignment has started; coverage is 0/16,822. Evidence:
-   `.claude/evidence/cgas-phase3-pilot-rendering/`.
+    missing-state request, align accepted replay states, and run `verify_steps`. **Rendering status:
+    blocked by a repository-side problem-writer compatibility delta, not by a hosted-backend outage.**
+    The owner-approved representative mapping (`replay_then_held_out_then_stable_source_v1`) is
+    materialized and adapter-bound (committed `f9a5081`). The 2026-08-11 regression replays refuted
+    the earlier blanket hosted-backend blocker: replay 1 (exact July-22 known-good problem) succeeded
+    today (trace SHA `8c3b2eaf…4da00`, 72,261 bytes), and replay 3 (same pilot semantics with
+    `b00..b07→b1..b8` naming and July formatting) succeeded (trace SHA `337b9885…c1c64`, 20,655
+    bytes), while replay 2 (the exact smoke-v2 transmitted problem) failed with the same downstream
+    error as the prior smokes and replay 4 (12-object empty-goal probe) failed at stage generation
+    (`Failed to generate stages \n\n 'init'`). The replay 2→3 pair proves a repository-side remote
+    compatibility delta; the compound probe changed both naming and formatting, so neither alone is
+    claimed causal, and replay 4 does not prove 12-object incompatibility. Exact unblock: patch the
+    adapter/problem writer to canonical `b1..bN` naming and July-compatible formatting under RED→GREEN,
+    review and gate, then require a canonicalized mapping-bound 8-object smoke AND a 12-object smoke
+    with a non-empty locally solvable representative goal to pass full VFG→PNG→semantic/digest/
+    provenance validation before the operator command is authorized. No production render or replay
+    alignment has started; coverage is 0/16,822. Evidence:
+    `.claude/evidence/cgas-phase3-pilot-rendering/verification-20260811-regression-replays.md`.
 9. Specify the bounded certificate-store API and its no-oracle-leakage tests.
 10. Create one direct-VLM calibration configuration and one evaluation command that reports first certificate failures.
 

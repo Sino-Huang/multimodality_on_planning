@@ -44,4 +44,83 @@ Validate the frozen pilot bindings, render or resumably checkpoint all 16,822 ca
 - An attempted adapter CLI preflight was correctly denied because the command text retained the external endpoint and could transmit repository data. No bypass was attempted; the RED/GREEN unit test proves the source-identity failure occurs before renderer invocation.
 
 ## Status
-**Red - stopped at the first canonical smoke failure.** The representative-mapping milestone is committed as `f9a5081` and pushed to `origin/main`; focused 40 tests, 198 regression, clean Ruff/basedpyright, and independent review PASS preceded the push. On 2026-08-11 the owner authorized exactly one fresh mapping-bound smoke, and it ran against the canonical endpoint with one attempt, zero delay, and a new output root (`outputs/image_frames/cgas-phase3-pilot-planimation-adapter-smoke-v2`). The adapter's client-side binding passed end to end (mapping SHA `e7703cb4...` pinned and matched; mapping-selected representative `cgas-pilot-expansion-20b7ac18577176c1fa927b68`; run contract `880a79c9...`), but the remote returned the byte-identical downstream error from 2026-08-10: `API error: The process ends with an exception / Unexpected status from the server`. No VFG or PNG was returned. Production rendering and the 790-row replay alignment remain unstarted. Unblock requirement: the hosted Planimation backend's downstream planner must return `ok`/`PENDING` for the Blocksworld 4ops + 8-object + `blocksworld_AP` bundle, OR an owner-approved goal-independent local VFG producer must exist. Full record: `.claude/evidence/cgas-phase3-pilot-rendering/verification-20260811.md`.
+**Red - repository-side remote compatibility delta proven.** The representative-mapping milestone is committed as `f9a5081` and pushed to `origin/main`. On 2026-08-11 four separately authorized regression replays ran against the canonical endpoint (one attempt, zero delay, new output roots; exact July-22 known-good problem, exact smoke-v2 actually-transmitted problem, canonicalized pilot delta, and 12-object empty-goal probe). Replay 1 (July-22 known-good) SUCCEEDED, refuting a blanket upstream regression/outage; replay 3 (same pilot semantics, `b00..b07→b1..b8` + July formatting) SUCCEEDED; replay 2 (exact smoke-v2 transmitted problem) FAILED with the byte-identical downstream error from 2026-08-10 (`API error: The process ends with an exception / Unexpected status from the server`); replay 4 (12-object empty-goal) FAILED later at stage generation (`Failed to generate stages \n\n 'init'`). The replay 2→3 pair proves a repository-side remote compatibility delta in the problem writer; the compound probe changed BOTH object naming and formatting, so neither alone is claimed causal. Replay 4 does NOT prove 12-object incompatibility — empty-goal handling failed, object count is not isolated. Production 16,822-state rendering and the 790-row replay alignment remain unstarted. Unblock requirement (exact): the adapter/problem writer must be patched to canonical `b1..bN` naming and July-compatible formatting under RED→GREEN, reviewed, and gated, then a canonicalized mapping-bound 8-object smoke AND a 12-object smoke with a non-empty locally solvable representative goal must both pass full VFG→PNG→semantic/digest/provenance validation before the operator command is authorized. Full record: `.claude/evidence/cgas-phase3-pilot-rendering/verification-20260811-regression-replays.md`.
+
+## Continuation Session — 2026-08-11
+- [x] SG0: Verify the July known-good and August smoke-v2 bundle hashes; stage four immutable replay inputs under `tmp/` without network access.
+- [x] SG1: Run four separately authorized, single-attempt, zero-delay requests on new output roots: July verbatim, smoke-v2 verbatim, canonicalized pilot, and 12-object empty-goal probe.
+- [x] Decision: Classify the evidence as upstream regression, repository-side problem-writer delta, or a valid-smoke path. Do not start production unless a mapping-bound smoke is fully valid.
+- [ ] Finalize: Record exact evidence, run end-of-session verification once, then commit/push only on pass; on failure create a local `wip:` commit and handoff without pushing. **Blocked:** the first final checksum command failed because it ran from the repository root instead of the checksum manifest's staging directory. Per policy it was not rerun; no tests, commit, or push followed.
+
+**Current continuation status:** SG0 PASS, SG1 COMPLETE (4/4 replays run), Decision COMPLETE as
+**RED — repository-side remote compatibility delta**. Replay 1 (July-22 known-good verbatim)
+succeeded with trace SHA `8c3b2eaf…4da00` (72,261 bytes); replay 3 (canonicalized pilot: same
+semantics, `b00..b07→b1..b8` + July formatting) succeeded with trace SHA `337b9885…c1c64` (20,655
+bytes); replay 2 (smoke-v2 actually-transmitted verbatim) and replay 4 (12-object empty-goal probe)
+failed with exact persisted exceptions (`The process ends with an exception / Unexpected status
+from the server` and `Failed to generate stages \n\n 'init'` respectively). This refutes a blanket
+upstream regression (replay 1 succeeds today) and proves a repository-side delta; the compound
+probe changed BOTH naming and formatting, so neither alone is claimed causal. Replay 4 does NOT
+prove 12-object incompatibility (empty-goal stage-generation failure, not object-count failure);
+12-object compatibility remains unproven. Production 16,822-state rendering and 790-row replay
+alignment remain unstarted. Finalize FAILED at its first command: `sha256sum -c tmp/cgas-phase3-planimation-regression-replays-20260811/SHA256SUMS` returned exit 1 because its relative entries were resolved from the repository root. The failure was recorded verbatim and not rerun; no tests, commit, or push occurred. Full record: `.claude/evidence/cgas-phase3-pilot-rendering/verification-20260811-regression-replays.md`
+and `.handoff/2026-08-11-cgas-phase3-planimation-replay-classification.md`. The operator command
+must not be authorized/resumed until the writer patch plus both required smokes pass.
+
+## Local Planimation Backend Proof Session — 2026-08-11
+
+### Goal
+Prove or hard-stop a pinned, GPL-separated local upstream Planimation backend through replay-3 repeat determinism, VFG-to-PNG semantic validation, empty-plan behavior, and one representative 12-object non-empty-goal validation without hosted requests, adapter integration, or production rendering.
+
+### Evidence Path
+- [x] LP0: Verify current handoff assumptions, Git baseline, authority-plan dependency, and exact local assets.
+- [x] LP1: Clone `planimation/backend` under `.slim/clonedeps/repos/`, pin exact commit `94d82afb5ee122ce579dd11ca1953b7c85ca5824` (`v0.1.7`), preserve its GPL-3.0 license, and record source metadata without vendoring project code.
+- [x] LP2: Inspect supplied-plan handling and prepare an isolated environment. The seven hermetic upstream tests are scheduled for final verification; the eighth upstream test is excluded because its source makes a hosted solver request.
+- [ ] LP3: Start only a loopback backend process with a supplied local plan and no external planner use.
+- [ ] LP4: Submit the exact replay-3 bundle twice; compare VFG bytes and, if different, record exact semantic/envelope/color deltas. Parse VFG, extract one PNG, and pass existing semantic validation.
+- [ ] LP5: Probe empty-plan behavior, then validate one local 12-object non-empty-goal representative with a supplied local plan.
+- [x] LP6: Run final verification once. Command 1 failed during test-module import; exact output is preserved and no remediation was applied.
+- [ ] LP7: Finalize Git according to pass/fail policy and write `.handoff/2026-08-11-cgas-local-planimation-proof-{success|failure}.md` with the exact next dependency-ready action.
+
+### Hard Stops
+- Exact project domain/problem/profile rejected beyond a small reviewable upstream patch.
+- Supplied-plan path absent or invokes an external planner.
+- Dependency runtime cannot be isolated reproducibly.
+- GPL-separated aggregation is not maintainable.
+- Replay-3 VFG is nondeterministic/unpinnable or semantic validation fails.
+
+### Session Boundaries
+- No hosted API request, no 12-object hosted request, no adapter integration, no production render, no replay alignment, no Qwen/planning_vlm/training, and no fallback implementation.
+- Stop and record the first hard-stop condition without switching to fallback B.
+
+### Status
+**Session RED — final verification stopped before LP3.** `source ~/cd_vlaplan` reset cwd to the project root, so all seven selected upstream tests failed to import `server` before executing. Per policy there was no fix or rerun, the loopback backend/proof harness did not start, and replay-3/PNG/semantic/empty-plan/12-object validation remains pending for the next session. Exact output: `.claude/evidence/cgas-phase3-pilot-rendering/verification-20260811-local-planimation-backend-proof.md`.
+
+## Local Planimation Backend Proof Resume — 2026-08-11
+
+- [x] LR0: Verify prior handoff, project HEAD, clone pin, and command-local `PYTHONPATH` import.
+- [x] LR1: Run exactly seven hermetic upstream tests; all seven passed and hosted-solver `test_planimation_process` remained excluded.
+- [ ] LR2: Run loopback proof through replay-3 determinism, PNG semantics, empty-plan, and 12-object validation. **Blocked before startup:** harness resolved the venv interpreter symlink to base Conda Python, which lacks Django.
+- [x] LR3: Stop at the first formal verification failure and preserve exact evidence without remediation.
+- [ ] LR4: Commit failure evidence locally, write a separate failure handoff commit, and do not push.
+
+**Resume status RED.** Exact evidence: `.claude/evidence/cgas-phase3-pilot-rendering/verification-20260811-local-planimation-backend-proof-resume.md`. No hosted request or production action occurred.
+
+## Local Planimation Determinism Investigation — 2026-08-12
+
+### Goal
+Resolve the replay-3 VFG color nondeterminism with one small, reviewable change outside the pinned GPL clone, while preserving the byte-for-byte determinism hard stop, then resume the local-only proof through PNG semantics, empty-plan behavior, and one 12-object non-empty-goal validation.
+
+### Evidence Path
+- [x] LD0: Trace the pinned backend's sprite/color construction and reconcile it with the two persisted replay-3 VFG artifacts.
+- [x] LD1: Add the smallest outside-clone deterministic control and focused regression coverage; do not normalize or weaken the VFG comparison.
+- [ ] LD2: Run final verification once: focused coverage followed by one fresh proof through replay-3, PNG semantics, empty-plan, and 12-object validation, stopping at the first hard stop. **Blocked:** focused tests passed, but the scoped Ruff gate failed before the proof command and was not remediated or rerun.
+- [ ] LD3: Finalize Git according to pass/fail policy and write the required handoff with the exact next dependency-ready action.
+
+### Hard Boundaries
+- Do not edit `.slim/clonedeps/repos/planimation__backend/`.
+- Make no hosted request, do not start production, and do not add fallback behavior.
+- Do not proceed past any hard-stop condition.
+
+### Status
+**Session RED — final verification stopped before the proof.** The harness now materializes only the exact `RANDOMCOLOR` sentinel to concrete `GREY` in memory after source hash verification; the pinned clone, on-disk input, backend process, and raw VFG byte-equality hard stop remain unchanged. Focused regression coverage passed (`13 passed`), then scoped Ruff failed with 8 diagnostics and the sequence stopped without remediation. Replay-3, PNG semantics, empty-plan, and 12-object validation were not rerun. Exact output: `.claude/evidence/cgas-phase3-pilot-rendering/verification-20260812-local-planimation-determinism-fix.md`.

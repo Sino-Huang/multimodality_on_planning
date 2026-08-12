@@ -10,7 +10,7 @@ its decision 2 is settled. Nothing was implemented. Every number below is reprod
 
 ## Why this is a separate packet
 
-The pipeline audit (`.claude/knowledge/pipeline-state-audit-2026-08-07.md`) identified this as the
+The archived `pipeline-state-audit-2026-08-07.md` note identified this as the
 single biggest lever on the ~15–17 sessions between here and training start: Todos 5–10 exist to
 produce an auditable production release, and a calibration pilot may need none of them. Bypassing
 them halves the distance to training data.

@@ -70,6 +70,14 @@
 ## Replay Alignment
 - Adapter implemented and unit-tested with frozen defaults (790 authoritative rows and the frozen index digest), artifact containment, digest revalidation, and semantic revalidation. The real 790-row output was deliberately not generated because replay render prerequisites are incomplete.
 
+## Regression Replay SG0 Staging (2026-08-11)
+- Local-only staging root: `tmp/cgas-phase3-planimation-regression-replays-20260811/`; 27 checksum entries independently verified, with no network request and no reserved output root created.
+- Replay 1 is the exact July-22 8-object success problem at cache key `e02d4b71c070add447b722ecda732979`: problem SHA `0e7f043f2033bb6419c86bdba8ab1a0f53fdf38fe7ec8adaaa3e5fb172763fd1`, domain SHA `2eed94c5...79d81`, profile SHA `9ded071f...8d32`.
+- Replay 2 uses the actually transmitted smoke-v2 derived problem, not the candidate template: problem SHA `f5e8e79e7c594b2ffa83906825016d7c368893abb3b1009dea277d367b81daa9`. The `df2f5c26...` candidate problem is retained and labeled reference-only.
+- Replay 3 preserves replay 2's ordered 12 init atoms and 5 goal atoms while applying `b00..b07 -> b1..b8` and July problem formatting; generated problem SHA `8a27cbb59978e68e9a48a1770d7852d0ad91b33e5af98643dea578c210244549`.
+- Replay 4 binds 12-object state `0002870c...ea51`, its 16 ordered state atoms, and exactly `(:goal (and))`; generated problem SHA `a4376855d9f032efbdcb6db2bbf13505b39fa741e30ab0290f5d2a963a48bb64`.
+- The staged harness accepts only `--max-attempts 1 --request-delay-seconds 0`, one exact URL candidate, and a nonexistent output root. Static inspection confirms one POST path and no preflight, fallback, visualization request, or PNG call. It has not been executed.
+
 ## Verification
 - Focused adapter/alignment suite: 23 passed.
 - Relevant rendering, coverage, expansion-index, and replay regression suite: 143 passed.
@@ -82,3 +90,28 @@
 - Broader Ruff/basedpyright probes that added unchanged legacy `scripts/planimation_phase1_client.py` and `tests/test_planimation_phase1.py` exposed pre-existing import/type diagnostics outside this milestone; scoped milestone checks remain green, and `git diff` confirms those legacy files were not modified.
 - Final mapping verification: 29 focused tests and 151 relevant Phase 3 tests passed; Ruff and basedpyright are clean; six immutable inputs and both diff checks pass; final independent re-review returned PASS with no CRITICAL or HIGH blocker.
 - No commit or push has occurred.
+
+## Regression Replay SG1 Outcomes (2026-08-11, Classification: RED — repo-side delta)
+- Four separately authorized single-attempt zero-delay replays ran against `https://planimation.planning.domains/upload/pddl`; all four used domain SHA `2eed94c5...79d81`, profile SHA `9ded071f...8d32`, timeout 30, attempts 1, delay 0, unique new output roots.
+- Replay 1 (exact July-22 known-good, problem `0e7f043f...763fd1`): **success**; trace SHA `8c3b2eafb14a39a2cb4c4b820d05bb281874793a6ee12e7327f648faaa54da00`, 72,261 bytes → refutes blanket upstream regression/outage.
+- Replay 2 (exact actually-transmitted smoke-v2 problem `f5e8e79e...81daa9`): **failed**; exact exception `Failed to submit PDDL bundle. Attempts: https://planimation.planning.domains/upload/pddl -> API error: The process ends with an exception \n\n Unexpected status from the server`.
+- Replay 3 (canonicalized pilot delta, problem `8a27cbb5...4549`; same 12 init + 5 goal atoms as replay 2 with `b00..b07→b1..b8` and July formatting): **success**; trace SHA `337b988571ba3127c4d8a63fc99e2ea2fb77938d6e30bef95bf0199350dc1c64`, 20,655 bytes → proves a repository-side remote compatibility delta (replay 2 fails, replay 3 succeeds with semantics preserved).
+- Replay 4 (12-object empty-goal probe, problem `a4376855...bb64`, state `0002870c...ea51`): **failed**; exact exception `Failed to submit PDDL bundle. Attempts: https://planimation.planning.domains/upload/pddl -> API error: Failed to generate stages \n\n 'init'` — empty-goal stage-generation failure, NOT evidence of 12-object incompatibility; 12-object compatibility remains unproven.
+- The replay 2→3 compound probe changed BOTH object naming and formatting; neither alone is claimed causal.
+- Production 16,822-state rendering and 790-row replay alignment remain unstarted. Operator command is not authorized until the writer patch (canonical `b1..bN` naming + July-compatible formatting, RED→GREEN) and both smokes (canonicalized mapping-bound 8-object; 12-object with non-empty locally solvable representative goal) pass full VFG→PNG→semantic/digest/provenance validation.
+- Evidence: `.claude/evidence/cgas-phase3-pilot-rendering/verification-20260811-regression-replays.md`; handoff `.handoff/2026-08-11-cgas-phase3-planimation-replay-classification.md`. No code was changed.
+- Final verification stopped at its first command: `sha256sum -c tmp/cgas-phase3-planimation-regression-replays-20260811/SHA256SUMS` was invoked from the repository root, so all 26 relative entries failed open/read and the command exited 1. Per session policy it was not rerun or fixed; focused tests, Git staging, commit, and push were not attempted. The full output is preserved in the handoff.
+
+## Local Planimation Backend Proof Baseline (2026-08-11)
+- Required handoff read first: `.handoff/2026-08-11-cgas-planimation-canonical-8obj-smoke-failure.md`.
+- Git baseline: branch `main`, HEAD `92e19b5b407bbb2f78c1f0f7e8ea0690b0d6f6d9`, upstream `origin/main` at `bec48d768cb94c30bb1409b93300ec7bdf1490dd`, ahead by three prior local closure commits.
+- The working tree contains substantial unrelated modified/deleted/untracked context-storage and Phase 3 evidence dirt. Preserve it exactly; stage only files owned by this session.
+- `.slim/clonedeps.json` and `.ignore` do not yet exist. `.gitignore` has no clonedeps managed block. Root `AGENTS.md` currently contains only the required Python activation instruction.
+- No hosted API request is authorized. This session is local-only and must hard-stop without fallback on any listed handoff condition.
+- Upstream ref verification: both `refs/heads/develop` and `refs/tags/v0.1.7` resolve to `94d82afb5ee122ce579dd11ca1953b7c85ca5824`.
+- GPL separation: source cloned only under ignored `.slim/clonedeps/repos/planimation__backend/`; upstream `LICENSE.txt` is GPL-3.0 and remains inside the separate clone. No upstream code is copied into project source.
+- Supplied-plan source proof: `server/app/views.py:100-104` takes `Plan_generator.get_plan_actions` when the multipart `plan` contains parentheses; empty/absent plans take `get_plan` and therefore must be probed only with a loopback `url` override.
+- Runtime isolation: project Python is 3.10.20. A separate venv at `.slim/clonedeps/.venv-planimation-v0.1.7` installed the upstream `server/requirements.txt` without changing project dependencies; resolved Django is 5.2.17.
+- Determinism risk is concrete before execution: `server/app/vfg/extension/Random_color.py:14,43` uses process-global unseeded `random.choice`, called for each `RANDOMCOLOR` property by `Initialise.py:52-54`. Replay-3's profile uses `RANDOMCOLOR`, so the runtime proof must compare exact responses and hard-stop with color-path deltas if they differ.
+- Final verification RED: the seven explicitly selected non-network upstream tests all failed at import with `ModuleNotFoundError: No module named 'server'` because `source ~/cd_vlaplan` changed cwd back to the project root. No test body, backend process, loopback POST, renderer, semantic gate, empty-plan probe, or 12-object validation ran. No fix/rerun was applied; hosted requests remained zero. Full exact output is in `.claude/evidence/cgas-phase3-pilot-rendering/verification-20260811-local-planimation-backend-proof.md`.
+- Resumed verification: explicit command-local `PYTHONPATH` fixed the import context and all seven selected hermetic upstream tests passed in 0.044s. The loopback harness then hard-stopped before backend startup. Persisted `proof-report.json` records that `--backend-python` became `/home/sukaih/miniconda3/envs/ada_vla/bin/python3.10`; source inspection of the harness shows `Path.resolve()` follows the venv `bin/python` symlink, discarding the venv launch path. The base interpreter lacks Django, producing the exact backend log `ModuleNotFoundError: No module named 'django'`. No loopback POST or hosted request occurred. Full evidence: `.claude/evidence/cgas-phase3-pilot-rendering/verification-20260811-local-planimation-backend-proof-resume.md`.

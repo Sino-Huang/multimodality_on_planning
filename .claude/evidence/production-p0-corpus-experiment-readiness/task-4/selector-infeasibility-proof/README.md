@@ -128,5 +128,6 @@ The `{4: 190}` element of `EXPECTED_OBJECT_COUNTS` is unsatisfiable. The plan fo
 worker from altering selector constants, quotas, or paired-exact semantics, so this is
 escalated with measured facts and **no proposed remediation**.
 
-See also `.claude/knowledge/production-p0-todo4-infeasibility-2026-08-06.md` and
-`.claude/knowledge/production-p0-server-restart-handoff-2026-08-06.md`.
+The former `production-p0-todo4-infeasibility-2026-08-06.md` and
+`production-p0-server-restart-handoff-2026-08-06.md` notes are preserved in
+`.claude/archive/context-hot-snapshot-2026-08-10.tar.gz` and Git history.

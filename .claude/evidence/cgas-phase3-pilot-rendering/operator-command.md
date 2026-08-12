@@ -1,5 +1,17 @@
 # Authorized Operator Command
 
+> **⚠️ NOT EXECUTABLE — do not run.** The 2026-08-11 regression replays proved a repository-side
+> remote compatibility delta (replay 2 fails, replay 3 succeeds with semantic init/goal preserved),
+> so this command is **not authorized and not executable** until BOTH of the following pass:
+> 1. the adapter/problem-writer patch to canonical `b1..bN` naming and July-compatible formatting
+>    (RED→GREEN, then independent review and focused/regression/Ruff/basedpyright); AND
+> 2. a canonicalized mapping-bound 8-object smoke AND a 12-object smoke with a non-empty locally
+>    solvable representative goal, each passing full VFG→PNG→semantic/digest/provenance validation.
+> Production 16,822-state rendering and 790-row replay alignment remain unstarted. Do not
+> authorize/resume this command until the writer patch plus both valid smokes. See
+> `verification-20260811-regression-replays.md` and
+> `.handoff/2026-08-11-cgas-phase3-planimation-replay-classification.md`.
+
 Do not execute this command without renewed authorization to transmit repository-derived PDDL/state data to `https://planimation.planning.domains` and a valid smoke result. The owner-approved representative mapping is now materialized locally and bound below; the prior authorized smoke still failed at the remote planner boundary. Retain this command only as the deterministic checkpoint until a fresh smoke is separately authorized and succeeds.
 
 The command is both the initial production command and the crash-safe resume command. The adapter validates the frozen request/index digests and cardinalities before rendering, revalidates retained successes, rejects contract drift, appends and fsyncs each checkpoint record, and atomically republishes its manifest/report.
