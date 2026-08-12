@@ -2,12 +2,12 @@
 
 ## Current Authority State
 
-The adapter/problem-writer compatibility work is complete. Canonical `b1..bN` naming and July-compatible problem formatting are implemented, tested, and integrated into the adapter's default production path by implementation commit `b9e2e65` and Ruff closure commit `020b812` in:
+Per the owner-provided current authority state for this decision, the adapter/problem-writer compatibility work is complete. Canonical `b1..bN` naming and July-compatible problem formatting are implemented, tested, and integrated into the adapter's default production path by implementation commit `b9e2e65` and Ruff closure commit `020b812` in:
 
 - `scripts/phase3/cgas_pilot_planimation_adapter.py`;
 - `tests/phase3/test_cgas_pilot_planimation_adapter.py`.
 
-Accordingly, the older wording in `doc/high_level_plans/research_execution_plan.md` that lists the writer patch as the next unfinished gate is superseded by the integrated commits. The next unresolved gate is selection of the backend for the two required production-path smokes.
+Accordingly, the owner's explicit current-state instruction supersedes the older wording in `doc/high_level_plans/research_execution_plan.md` that lists the writer patch as the next unfinished gate. The next unresolved gate is selection of the backend for the two required production-path smokes.
 
 Production coverage remains **0/16,822**. No production render, 790-row replay alignment, pilot release, model implementation, or training has started. The command in `.claude/evidence/cgas-phase3-pilot-rendering/operator-command.md` remains non-executable.
 
@@ -37,7 +37,8 @@ Evidence: `.claude/evidence/cgas-phase3-pilot-rendering/verification-20260811-re
 3. Run the representative non-empty-goal 12-object smoke through the same path and constraints.
 4. Require both smokes to complete VFG→PNG generation and semantic validation, with accepted VFG/PNG digests and complete backend, endpoint, input, mapping, and implementation provenance.
 5. Resolve or bound the unexplained problem-name/hosted-behavior sensitivity sufficiently to justify accepting successful smoke receipts as production-path evidence. A further unexplained failure leaves the hosted branch blocked.
-6. Only after both smokes pass, prepare a separate owner/operator decision on whether to authorize the digest-bound resumable 16,822-state render.
+6. After both smokes pass, record an explicit evidence disposition for the unresolved problem-name/hosted-behavior sensitivity: either establish its cause or define an owner-accepted operational bound showing why the successful production-path receipts are sufficient. Without that disposition, the hosted branch remains blocked.
+7. Only after both smokes pass and the sensitivity disposition is accepted, prepare a separate owner/operator decision on whether to authorize the digest-bound resumable 16,822-state render.
 
 ## Pinned Local Backend Assessment
 
@@ -88,9 +89,9 @@ The recommendation does not convert the supplied-plan proof into an adapter-path
 
 ### If hosted is selected
 
-The exact next milestone is: **separately authorize and execute only the mapping-bound canonicalized 8-object smoke and then the representative non-empty-goal 12-object smoke through the hosted integrated adapter/`StateRenderer` production path, with one attempt per smoke, no retry or fallback, and full VFG→PNG→semantic/digest/provenance acceptance.**
+The exact next milestone is: **separately authorize and execute only the mapping-bound canonicalized 8-object smoke and then the representative non-empty-goal 12-object smoke through the hosted integrated adapter/`StateRenderer` production path, with one attempt per smoke, no retry or fallback, and full VFG→PNG→semantic/digest/provenance acceptance; if both pass, record and obtain owner acceptance of the problem-name/hosted-behavior sensitivity disposition.**
 
-If either smoke fails, stop and record the evidence; do not start the 16,822-state render. If both pass, prepare a new, separate production-render authorization packet.
+If either smoke fails, stop and record the evidence; do not start the 16,822-state render. If both pass but the sensitivity remains neither causally resolved nor operationally bounded to the owner's satisfaction, remain blocked. Only after both passes and an accepted disposition may a new, separate production-render authorization packet be prepared.
 
 ### If the pinned local backend is selected
 
