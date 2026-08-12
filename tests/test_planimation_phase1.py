@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import io
 import importlib
+import io
 import json
 import types
 import zipfile
@@ -24,7 +24,6 @@ from scripts.planimation_phase1 import (
     unique_asset_downloads,
     validate_entry_assets,
 )
-
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 REAL_MANIFEST_PATH = REPO_ROOT / "data" / "pddl_instances" / "manifest.json"

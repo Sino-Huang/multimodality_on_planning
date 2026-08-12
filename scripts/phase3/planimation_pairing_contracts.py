@@ -19,7 +19,9 @@ CURRENT_TRACE_ROOTS = (
     Path("outputs/reasoning_traces/curriculum/phase3_curriculum_traces_safe_no_visitall_strict_v1_1st_round"),
 )
 CURRENT_IMAGE_FRAME_ROOT = Path("outputs/image_frames/phase3_planimation_frames_stratified_pilot_20260725")
-CURRENT_SELECTION_CACHE_ROOT = Path("outputs/image_frames/phase3_planimation_frames_safe_no_visitall_strict_v1_20260722_005800")
+CURRENT_SELECTION_CACHE_ROOT = Path(
+    "outputs/image_frames/phase3_planimation_frames_safe_no_visitall_strict_v1_20260722_005800"
+)
 CURRENT_TEXT_RECORD_ROOT = Path("outputs/reasoning_traces/vlm_records/stratified_pilot_20260725")
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 
