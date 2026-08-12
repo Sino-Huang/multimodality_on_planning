@@ -1,18 +1,29 @@
 # Authorized Operator Command
 
-> **⚠️ NOT EXECUTABLE — do not run.** The 2026-08-11 regression replays proved a repository-side
-> remote compatibility delta (replay 2 fails, replay 3 succeeds with semantic init/goal preserved),
-> so this command is **not authorized and not executable** until BOTH of the following pass:
-> 1. the adapter/problem-writer patch to canonical `b1..bN` naming and July-compatible formatting
->    (RED→GREEN, then independent review and focused/regression/Ruff/basedpyright); AND
-> 2. a canonicalized mapping-bound 8-object smoke AND a 12-object smoke with a non-empty locally
->    solvable representative goal, each passing full VFG→PNG→semantic/digest/provenance validation.
-> Production 16,822-state rendering and 790-row replay alignment remain unstarted. Do not
-> authorize/resume this command until the writer patch plus both valid smokes. See
-> `verification-20260811-regression-replays.md` and
+> **⚠️ NOT EXECUTABLE — do not run. Superseded backend path.** On 2026-08-12 the owner selected
+> the pinned local `planimation/backend` commit `94d82afb5ee122ce579dd11ca1953b7c85ca5824`
+> (`v0.1.7`) as the production backend target for the two required smokes. This hosted command is
+> therefore superseded as the selected backend path and remains **not authorized and not
+> executable**. The adapter/problem-writer patch to canonical `b1..bN` naming and July-compatible
+> formatting is complete, tested, reviewed, and integrated (`b9e2e65`, Ruff closure `020b812`); it
+> must not be reopened. The remaining gate before any render is: validate the integrated
+> adapter/`StateRenderer` against localhost, then pass a mapping-bound 8-object smoke AND a
+> 12-object smoke with a non-empty locally solvable representative goal through the localhost
+> production path, each passing full VFG→PNG→semantic/digest/provenance validation, with one
+> bounded execution path, no hosted request, and no hosted fallback. Those smokes are defined in
+> prose only (see `backend-selection-decision-packet-20260812.md`) and require separate execution
+> authorization. Production 16,822-state rendering and 790-row replay alignment remain unstarted;
+> coverage is 0/16,822. Even if both smokes pass, the 16,822-state render requires a further
+> separate owner/operator decision. See `verification-20260811-regression-replays.md` and
 > `.handoff/2026-08-11-cgas-phase3-planimation-replay-classification.md`.
 
-Do not execute this command without renewed authorization to transmit repository-derived PDDL/state data to `https://planimation.planning.domains` and a valid smoke result. The owner-approved representative mapping is now materialized locally and bound below; the prior authorized smoke still failed at the remote planner boundary. Retain this command only as the deterministic checkpoint until a fresh smoke is separately authorized and succeeds.
+Do not execute this command. It transmits repository-derived PDDL/state data to
+`https://planimation.planning.domains` and is superseded as the selected backend path: the pinned
+local backend (`94d82afb…`, v0.1.7) was selected on 2026-08-12. The owner-approved representative
+mapping remains materialized and bound below. No executable localhost command is provided here; the
+localhost production-path smokes are defined as a prose milestone only in
+`backend-selection-decision-packet-20260812.md` and require separate execution authorization. Retain
+this command only as the superseded deterministic checkpoint record; do not resume it.
 
 The command is both the initial production command and the crash-safe resume command. The adapter validates the frozen request/index digests and cardinalities before rendering, revalidates retained successes, rejects contract drift, appends and fsyncs each checkpoint record, and atomically republishes its manifest/report.
 

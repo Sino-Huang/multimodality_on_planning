@@ -553,31 +553,36 @@ policy chooses one action target for an off-plan expansion; the pending decision
     planner routing; the representative 12-object non-empty-goal VFG→PNG semantic validation
     passed; focused verification was 14 passed, Ruff passed, and the fresh proof exited 0. Record:
     `outputs/image_frames/loop-msp0by7b-4ommsi-attempt-002-final-verification/proof-report.json`
-    and the attempt-002 handoff. Exact remaining sequence before the production-render unblock:
-    (1) finalize, review, and gate the adapter/problem-writer canonical `b1..bN` + July formatting
-    patch; (2) select the actual production backend — if the pinned local backend is selected,
-    complete the separate owner decisions for the backend target, the local-vs-hosted
-    digest/provenance contract, and GPL-separated maintainability, plus a localhost
-    adapter/StateRenderer smoke; (3) pass the mapping-bound 8-object AND non-empty-goal 12-object
-    smokes through the selected actual production path with full VFG→PNG→semantic/digest/
-    provenance validation; (4) obtain explicit owner/operator authorization for the digest-bound
-    resumable 16,822-state render. The operator command remains non-executable; no production
-    render or replay alignment has started; coverage is 0/16,822. Evidence:
+    and the attempt-002 handoff. **Backend selected 2026-08-12: the pinned local backend.** The
+    adapter/problem-writer canonical `b1..bN` + July formatting patch is complete, tested, and
+    reviewed/integrated by `b9e2e65` with Ruff closure `020b812`; do not reopen it. The owner
+    approved the exact pinned commit `94d82afb…` (`v0.1.7`), the local digest/provenance contract
+    (local bytes are not expected to match hosted bytes), and the GPL-separated maintainability
+    model, and authorized future localhost validation of the integrated adapter/`StateRenderer`.
+    Exact remaining sequence before the production-render unblock: (1) validate the integrated
+    adapter/`StateRenderer` against localhost; (2) pass the mapping-bound 8-object AND
+    non-empty-goal 12-object localhost production-path smokes with full VFG→PNG→semantic/digest/
+    provenance validation, one bounded execution path, no hosted request or fallback — these
+    smokes are defined in prose only and require separate execution authorization; (3) obtain
+    explicit owner/operator authorization for the digest-bound resumable 16,822-state render. The
+    hosted operator command remains non-executable and superseded as the selected backend path; no
+    production render or replay alignment has started; coverage is 0/16,822. Evidence:
     `.claude/evidence/cgas-phase3-pilot-rendering/verification-20260811-regression-replays.md`.
 9. Specify the bounded certificate-store API and its no-oracle-leakage tests.
 10. Create one direct-VLM calibration configuration and one evaluation command that reports first certificate failures.
 11. Remaining gates before the first direct-VLM calibration training smoke, in order: (1)
-    finalize, review, and gate the adapter/problem-writer canonical `b1..bN` + July formatting
-    patch; (2) select the actual production backend — if switching to the pinned local backend,
-    complete the separate owner decisions (backend target, local-vs-hosted digest/provenance
-    contract, GPL-separated maintainability) and a localhost adapter/StateRenderer smoke; (3) pass
-    the mapping-bound 8-object and non-empty-goal 12-object smokes through the selected actual
-    production path with full VFG→PNG→semantic/digest/provenance validation; (4) obtain explicit
-    owner/operator authorization; (5) complete the digest-bound resumable 16,822-state render;
-    (6) perform 790-row replay alignment with accepted-byte binding and `verify_steps`; (7)
-    authorize and complete the pilot-corpus digest-bound release; (8) create the direct-VLM
+    validate the integrated adapter/`StateRenderer` against localhost — the adapter/problem-writer
+    canonical `b1..bN` + July formatting patch is complete and integrated (`b9e2e65`, Ruff closure
+    `020b812`); the pinned local backend (`94d82afb…`, `v0.1.7`), local digest/provenance contract,
+    and GPL-separated maintainability model were approved by the owner on 2026-08-12; (2) pass the
+    mapping-bound 8-object and non-empty-goal 12-object localhost production-path smokes with full
+    VFG→PNG→semantic/digest/provenance validation, one bounded execution path, no hosted request or
+    fallback — defined in prose only, separate execution authorization required; (3) obtain
+    explicit owner/operator authorization; (4) complete the digest-bound resumable 16,822-state
+    render; (5) perform 790-row replay alignment with accepted-byte binding and `verify_steps`;
+    (6) authorize and complete the pilot-corpus digest-bound release; (7) create the direct-VLM
     calibration configuration and the first-certificate-failure evaluation command. Authorization
-    (4) is an owner decision taken after prerequisites (1)–(3) pass; it is not a substitute for
+    (3) is an owner decision taken after prerequisites (1)–(2) pass; it is not a substitute for
     them, and further proof runs do not discharge it.
 
 ## Gates and Falsification
