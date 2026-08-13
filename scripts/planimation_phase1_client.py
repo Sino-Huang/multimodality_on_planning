@@ -23,6 +23,18 @@ class HostPreflightResult(TypedDict, total=False):
     error: str
 
 
+class VisualisationPayload(TypedDict, total=False):
+    vfg: str
+    fileType: str
+    params: dict[str, str | int]
+
+
+class VisualisationPostKwargs(TypedDict, total=False):
+    json: VisualisationPayload
+    data: str
+    headers: dict[str, str]
+
+
 def derive_endpoint_candidates(
     base_url: str | None, pddl_url: str | None, vfg_url: str | None
 ) -> tuple[list[str], list[str], str]:
@@ -129,7 +141,7 @@ def post_vfg_for_visualisation(
         vfg_text = json.dumps(json.loads(vfg_bytes.decode("utf-8")))
     except (UnicodeDecodeError, json.JSONDecodeError) as error:
         raise RuntimeError("Returned VFG payload is not valid UTF-8 JSON") from error
-    payload = {"vfg": vfg_text, "fileType": output_format}
+    payload: VisualisationPayload = {"vfg": vfg_text, "fileType": output_format}
     if output_format in {"gif", "mp4", "webm", "png"}:
         payload["params"] = {
             "fileType": output_format,
@@ -139,7 +151,7 @@ def post_vfg_for_visualisation(
         }
     errors: list[str] = []
     for url in vfg_candidates:
-        request_attempts = (
+        request_attempts: tuple[VisualisationPostKwargs, VisualisationPostKwargs] = (
             {"json": payload},
             {"data": json.dumps(payload), "headers": {"Content-Type": "application/json"}},
         )
