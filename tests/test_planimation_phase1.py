@@ -55,7 +55,6 @@ EXPECTED_REAL_DOMAIN_IDS = {
 LEGACY_README_ONLY_DOMAIN_IDS = {"zenotravel", "floortile", "hiking", "nurikabe", "peg", "tpp"}
 
 
-
 def build_base64_png() -> str:
     image = Image.new("RGBA", (1, 1), (255, 255, 255, 255))
     buffer = BytesIO()
@@ -207,9 +206,7 @@ def test_preflight_host_reports_named_request_failure(monkeypatch: pytest.Monkey
     assert "offline" in str(report["error"])
 
 
-def test_post_pddl_propagates_unexpected_adapter_failure(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_post_pddl_propagates_unexpected_adapter_failure(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     domain_path = tmp_path / "domain.pddl"
     problem_path = tmp_path / "problem.pddl"
     profile_path = tmp_path / "profile.pddl"

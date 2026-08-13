@@ -303,9 +303,7 @@ def _build_fixture(repo_root: Path, fixture_dir: Path) -> dict[str, Any]:
         )
     )
     source_digest = hashlib.sha256(
-        (
-            json.dumps(source, allow_nan=False, ensure_ascii=True, separators=(",", ":"), sort_keys=True) + "\n"
-        ).encode()
+        (json.dumps(source, allow_nan=False, ensure_ascii=True, separators=(",", ":"), sort_keys=True) + "\n").encode()
     ).hexdigest()
     if source_digest != FIXTURE_SOURCE_RECORD_SHA256:
         raise ProofError(
@@ -424,11 +422,7 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 2
 
-    backend_python = (
-        args.backend_python
-        if args.backend_python is not None
-        else repo_root / ISOLATED_VENV_PYTHON
-    )
+    backend_python = args.backend_python if args.backend_python is not None else repo_root / ISOLATED_VENV_PYTHON
     backend_python = Path(os.path.abspath(backend_python.expanduser()))
     if not backend_python.is_file() or not os.access(backend_python, os.X_OK):
         print(
@@ -512,16 +506,12 @@ def main(argv: list[str] | None = None) -> int:
             materialized_profile,
             _materialize_profile_text(profile_path.read_text(encoding="utf-8")),
         )
-        report["inputs"]["profile_materialized"] = _file_record(
-            materialized_profile, str(materialized_profile)
-        )
+        report["inputs"]["profile_materialized"] = _file_record(materialized_profile, str(materialized_profile))
 
         fixture = _build_fixture(repo_root, output_root / "fixture")
         report["fixture"] = fixture
 
-        proc, log_handle = _start_server(
-            backend_python, server_dir, args.port, output_root / "backend.log"
-        )
+        proc, log_handle = _start_server(backend_python, server_dir, args.port, output_root / "backend.log")
         _wait_for_loopback(proc, args.port, output_root / "backend.log")
         report["backend"]["started"] = True
         print(f"backend listening on {base_url}")
@@ -576,11 +566,7 @@ def main(argv: list[str] | None = None) -> int:
             "run_contract_path": str(output_root / "diagnostics" / "run-contract.json"),
         }
 
-        rows = [
-            json.loads(line)
-            for line in manifest_path.read_text(encoding="utf-8").splitlines()
-            if line.strip()
-        ]
+        rows = [json.loads(line) for line in manifest_path.read_text(encoding="utf-8").splitlines() if line.strip()]
         if len(rows) != 1:
             raise ProofError("manifest_row_count_mismatch", f"expected 1 row, got {len(rows)}")
         record = rows[0]
@@ -636,9 +622,7 @@ def main(argv: list[str] | None = None) -> int:
             "adapter_implementation_sha256": run_contract.get("adapter_implementation_sha256"),
             "rendering_implementation_sha256": run_contract.get("rendering_implementation_sha256"),
             "renderer_implementation_sha256": run_contract.get("renderer_implementation_sha256"),
-            "planimation_client_implementation_sha256": run_contract.get(
-                "planimation_client_implementation_sha256"
-            ),
+            "planimation_client_implementation_sha256": run_contract.get("planimation_client_implementation_sha256"),
             "render_config": run_contract.get("render_config"),
             "binding_note": (
                 "the shared run-contract render_config cannot hold a per-state plan; the supplied "

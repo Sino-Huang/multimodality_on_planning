@@ -228,9 +228,7 @@ def test_rejects_ambiguous_state_source_before_render(tmp_path: Path) -> None:
 
     index, request, row = _fixture(tmp_path)
     other_candidate = build_candidate(2, 0)
-    other_source = planner_input_record(
-        PlannerInput(2, 0, "emitted", other_candidate.candidate_id, 0, other_candidate)
-    )
+    other_source = planner_input_record(PlannerInput(2, 0, "emitted", other_candidate.candidate_id, 0, other_candidate))
     other = {
         **row,
         "candidate_id": other_candidate.candidate_id,
@@ -238,18 +236,20 @@ def test_rejects_ambiguous_state_source_before_render(tmp_path: Path) -> None:
         "object_count": 2,
         "raw_rank": 0,
         "row_id": "row-1",
-        "source_record_sha256": hashlib.sha256(
-            (
-                json.dumps(
-                    other_source,
-                    allow_nan=False,
-                    ensure_ascii=True,
-                    separators=(",", ":"),
-                    sort_keys=True,
-                )
-                + "\n"
-            ).encode()
-        ).hexdigest(),
+        "source_record_sha256": (
+            hashlib.sha256(
+                (
+                    json.dumps(
+                        other_source,
+                        allow_nan=False,
+                        ensure_ascii=True,
+                        separators=(",", ":"),
+                        sort_keys=True,
+                    )
+                    + "\n"
+                ).encode()
+            ).hexdigest()
+        ),
     }
     _jsonl(index, [row, other])
     domain = tmp_path / "domain.pddl"
@@ -273,9 +273,7 @@ def test_mapping_selects_one_ambiguous_source(tmp_path: Path, monkeypatch: pytes
 
     index, request, row = _fixture(tmp_path)
     other_candidate = build_candidate(2, 0)
-    other_source = planner_input_record(
-        PlannerInput(2, 0, "emitted", other_candidate.candidate_id, 0, other_candidate)
-    )
+    other_source = planner_input_record(PlannerInput(2, 0, "emitted", other_candidate.candidate_id, 0, other_candidate))
     other = {
         **row,
         "candidate_id": other_candidate.candidate_id,
@@ -288,18 +286,20 @@ def test_mapping_selects_one_ambiguous_source(tmp_path: Path, monkeypatch: pytes
         "trace_stream_sha256": hashlib.sha256(b"stream-row-1").hexdigest(),
         "replay_plan_member": False,
         "replay_step_index": None,
-        "source_record_sha256": hashlib.sha256(
-            (
-                json.dumps(
-                    other_source,
-                    allow_nan=False,
-                    ensure_ascii=True,
-                    separators=(",", ":"),
-                    sort_keys=True,
-                )
-                + "\n"
-            ).encode()
-        ).hexdigest(),
+        "source_record_sha256": (
+            hashlib.sha256(
+                (
+                    json.dumps(
+                        other_source,
+                        allow_nan=False,
+                        ensure_ascii=True,
+                        separators=(",", ":"),
+                        sort_keys=True,
+                    )
+                    + "\n"
+                ).encode()
+            ).hexdigest()
+        ),
     }
     _jsonl(index, [other, row])
     result = build_representative_mapping(request, index, tmp_path / "mapping")
@@ -307,10 +307,7 @@ def test_mapping_selects_one_ambiguous_source(tmp_path: Path, monkeypatch: pytes
     domain.write_text("domain", encoding="utf-8")
     profile = tmp_path / "profile.pddl"
     profile.write_text("profile", encoding="utf-8")
-    problem = (
-        "(define (problem fixture) (:domain blocksworld-4ops) (:objects b00) "
-        "(:init (arm-empty)) (:goal (and)))"
-    )
+    problem = "(define (problem fixture) (:domain blocksworld-4ops) (:objects b00) " "(:init (arm-empty)) (:goal (and)))"
     monkeypatch.setattr("scripts.phase3.cgas_pilot_planimation_adapter._candidate_problem", lambda _row: problem)
     calls: list[str] = []
     rendered = render_missing_states(
@@ -367,9 +364,7 @@ def test_mapping_binding_fast_fails_before_render(
 
     index, request, row = _fixture(tmp_path)
     other_candidate = build_candidate(2, 0)
-    other_source = planner_input_record(
-        PlannerInput(2, 0, "emitted", other_candidate.candidate_id, 0, other_candidate)
-    )
+    other_source = planner_input_record(PlannerInput(2, 0, "emitted", other_candidate.candidate_id, 0, other_candidate))
     other = {
         **row,
         "candidate_id": other_candidate.candidate_id,
@@ -382,18 +377,20 @@ def test_mapping_binding_fast_fails_before_render(
         "trace_stream_sha256": hashlib.sha256(b"stream-row-1").hexdigest(),
         "replay_plan_member": False,
         "replay_step_index": None,
-        "source_record_sha256": hashlib.sha256(
-            (
-                json.dumps(
-                    other_source,
-                    allow_nan=False,
-                    ensure_ascii=True,
-                    separators=(",", ":"),
-                    sort_keys=True,
-                )
-                + "\n"
-            ).encode()
-        ).hexdigest(),
+        "source_record_sha256": (
+            hashlib.sha256(
+                (
+                    json.dumps(
+                        other_source,
+                        allow_nan=False,
+                        ensure_ascii=True,
+                        separators=(",", ":"),
+                        sort_keys=True,
+                    )
+                    + "\n"
+                ).encode()
+            ).hexdigest()
+        ),
     }
     _jsonl(index, [other, row])
     result = build_representative_mapping(request, index, tmp_path / "mapping")
@@ -422,9 +419,7 @@ def test_mapping_binding_fast_fails_before_render(
     assert calls == []
 
 
-def test_mapping_binding_mismatch_and_count_mismatch_fast_fail(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_mapping_binding_mismatch_and_count_mismatch_fast_fail(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     from scripts.phase3.cgas_candidate_accounting import planner_input_record
     from scripts.phase3.cgas_candidate_space import build_candidate
     from scripts.phase3.cgas_pilot_planimation_adapter import PilotRenderError, PilotRenderRequest, render_missing_states
@@ -432,9 +427,7 @@ def test_mapping_binding_mismatch_and_count_mismatch_fast_fail(
 
     index, request, row = _fixture(tmp_path)
     other_candidate = build_candidate(2, 0)
-    other_source = planner_input_record(
-        PlannerInput(2, 0, "emitted", other_candidate.candidate_id, 0, other_candidate)
-    )
+    other_source = planner_input_record(PlannerInput(2, 0, "emitted", other_candidate.candidate_id, 0, other_candidate))
     other = {
         **row,
         "candidate_id": other_candidate.candidate_id,
@@ -447,18 +440,20 @@ def test_mapping_binding_mismatch_and_count_mismatch_fast_fail(
         "trace_stream_sha256": hashlib.sha256(b"stream-row-1").hexdigest(),
         "replay_plan_member": False,
         "replay_step_index": None,
-        "source_record_sha256": hashlib.sha256(
-            (
-                json.dumps(
-                    other_source,
-                    allow_nan=False,
-                    ensure_ascii=True,
-                    separators=(",", ":"),
-                    sort_keys=True,
-                )
-                + "\n"
-            ).encode()
-        ).hexdigest(),
+        "source_record_sha256": (
+            hashlib.sha256(
+                (
+                    json.dumps(
+                        other_source,
+                        allow_nan=False,
+                        ensure_ascii=True,
+                        separators=(",", ":"),
+                        sort_keys=True,
+                    )
+                    + "\n"
+                ).encode()
+            ).hexdigest()
+        ),
     }
     _jsonl(index, [other, row])
     result = build_representative_mapping(request, index, tmp_path / "mapping")
@@ -508,9 +503,7 @@ def test_mapping_dropped_row_fast_fails(tmp_path: Path, monkeypatch: pytest.Monk
 
     index, request, row = _fixture(tmp_path)
     other_candidate = build_candidate(2, 0)
-    other_source = planner_input_record(
-        PlannerInput(2, 0, "emitted", other_candidate.candidate_id, 0, other_candidate)
-    )
+    other_source = planner_input_record(PlannerInput(2, 0, "emitted", other_candidate.candidate_id, 0, other_candidate))
     other = {
         **row,
         "candidate_id": other_candidate.candidate_id,
@@ -523,18 +516,20 @@ def test_mapping_dropped_row_fast_fails(tmp_path: Path, monkeypatch: pytest.Monk
         "trace_stream_sha256": hashlib.sha256(b"stream-row-1").hexdigest(),
         "replay_plan_member": False,
         "replay_step_index": None,
-        "source_record_sha256": hashlib.sha256(
-            (
-                json.dumps(
-                    other_source,
-                    allow_nan=False,
-                    ensure_ascii=True,
-                    separators=(",", ":"),
-                    sort_keys=True,
-                )
-                + "\n"
-            ).encode()
-        ).hexdigest(),
+        "source_record_sha256": (
+            hashlib.sha256(
+                (
+                    json.dumps(
+                        other_source,
+                        allow_nan=False,
+                        ensure_ascii=True,
+                        separators=(",", ":"),
+                        sort_keys=True,
+                    )
+                    + "\n"
+                ).encode()
+            ).hexdigest()
+        ),
     }
     _jsonl(index, [other, row])
     result = build_representative_mapping(request, index, tmp_path / "mapping")
@@ -680,9 +675,7 @@ def test_rejects_run_contract_drift_on_resume(tmp_path: Path, monkeypatch: pytes
         render_missing_states(render_request, renderer=_fake_renderer([]))
 
 
-def test_rejects_default_renderer_dependency_drift_on_resume(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_rejects_default_renderer_dependency_drift_on_resume(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     import scripts.phase3.cgas_pilot_planimation_adapter as adapter
 
     index, request, _ = _fixture(tmp_path)
@@ -1288,16 +1281,12 @@ def test_planimation_compat_renderer_passes_through_legacy_b1_problem(
     cache.mkdir()
     observed: list[Path] = []
 
-    def fake(
-        _domain: Path, problem_path: Path, _profile: Path, _cache: Path, _config: RenderConfig
-    ) -> RendererResult:
+    def fake(_domain: Path, problem_path: Path, _profile: Path, _cache: Path, _config: RenderConfig) -> RendererResult:
         observed.append(problem_path)
         return {"status": "success", "attempts": 1}
 
     monkeypatch.setattr(adapter, "render_state_with_planimation", fake)
-    result = adapter.render_state_with_planimation_compat(
-        domain, problem, profile, cache, RenderConfig(max_attempts=1)
-    )
+    result = adapter.render_state_with_planimation_compat(domain, problem, profile, cache, RenderConfig(max_attempts=1))
     assert result["status"] == "success"
     assert observed == [problem]
     assert list(cache.iterdir()) == []

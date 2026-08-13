@@ -120,14 +120,10 @@ def format_planimation_compat_problem(task: PDDLTask, *, problem_name: str | Non
     lines.append(f"(:domain {task.domain_name})")
     lines.append("(:objects " + " ".join(renamed[obj] for obj in objects) + " )")
     lines.append("(:init")
-    lines.extend(
-        f"  {canonical_atom(tuple(renamed.get(part, part) for part in atom))}" for atom in sorted(task.init)
-    )
+    lines.extend(f"  {canonical_atom(tuple(renamed.get(part, part) for part in atom))}" for atom in sorted(task.init))
     lines.append(")")
     if task.goal:
-        goal_atoms = sorted(
-            canonical_atom(tuple(renamed.get(part, part) for part in atom)) for atom in task.goal
-        )
+        goal_atoms = sorted(canonical_atom(tuple(renamed.get(part, part) for part in atom)) for atom in task.goal)
         lines.append("(:goal")
         lines.append("(and")
         lines.extend(goal_atoms[:-1])
@@ -182,9 +178,7 @@ def render_missing_states(
     domain_path = (request.domain_path or request.repository_root / DEFAULT_DOMAIN_PATH).resolve()
     profile_path = (request.profile_path or _default_profile_path(request.repository_root)).resolve()
     mapping_sha256 = (
-        file_sha256(request.representative_mapping_path)
-        if request.representative_mapping_path is not None
-        else None
+        file_sha256(request.representative_mapping_path) if request.representative_mapping_path is not None else None
     )
     contract_record = _run_contract(request, domain_path, profile_path, renderer)
     contract = stable_hash(contract_record)
