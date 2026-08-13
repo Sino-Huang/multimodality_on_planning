@@ -15,18 +15,18 @@ Failure 1 command:
 ```
 source ~/cd_vlaplan && black --check scripts/planimation_phase1_client.py scripts/phase3/planimation_pairing_contracts.py scripts/phase3/planimation_pairing_rendering.py scripts/phase3/cgas_pilot_planimation_adapter.py .claude/evidence/cgas-phase3-pilot-rendering/local_planimation_adapter_integration.py tests/test_planimation_phase1.py tests/phase3/test_cgas_pilot_planimation_adapter.py tests/phase3/test_local_planimation_adapter_integration.py
 ```
-Output exactly:
+Actual stdout/stderr, verbatim:
 ```
 Conda environment 'ada_vla' is already activated.
 zsh:1: command not found: black
-Exit 127.
 ```
+Exit code: `127`.
 
 Failure 2 initial basedpyright command:
 ```
 source ~/cd_vlaplan && basedpyright scripts/planimation_phase1_client.py scripts/phase3/planimation_pairing_contracts.py scripts/phase3/planimation_pairing_rendering.py scripts/phase3/cgas_pilot_planimation_adapter.py .claude/evidence/cgas-phase3-pilot-rendering/local_planimation_adapter_integration.py
 ```
-Full output exactly:
+Actual stdout/stderr, verbatim:
 ```
 Conda environment 'ada_vla' is already activated.
 /data/scratch/projects/punim0478/sukaih/multimodality_on_planning/scripts/planimation_phase1_client.py
@@ -61,19 +61,19 @@ Conda environment 'ada_vla' is already activated.
       "dict[str, str]" is not assignable to "tuple[str, str]"
       "dict[str, str]" is not assignable to "None" (reportArgumentType)
 7 errors, 0 warnings, 0 notes
-Exit code was 0, but the gate was red due to diagnostics.
 ```
+Exit code: `0`, but the gate was red due to diagnostics.
 
 Failure 3 is the final repeated exact Black command, same command, same output, same exit 127:
 ```
 source ~/cd_vlaplan && black --check scripts/planimation_phase1_client.py scripts/phase3/planimation_pairing_contracts.py scripts/phase3/planimation_pairing_rendering.py scripts/phase3/cgas_pilot_planimation_adapter.py .claude/evidence/cgas-phase3-pilot-rendering/local_planimation_adapter_integration.py tests/test_planimation_phase1.py tests/phase3/test_cgas_pilot_planimation_adapter.py tests/phase3/test_local_planimation_adapter_integration.py
 ```
-Output exactly:
+Actual stdout/stderr, verbatim:
 ```
 Conda environment 'ada_vla' is already activated.
 zsh:1: command not found: black
-Exit 127.
 ```
+Exit code: `127`.
 
 ## Suspected Root Cause
 - High confidence: Black is declared only as optional dev dependency in pyproject.toml (`black>=24.2.0`) but is absent from PATH and absent as Python module in ada_vla. Project Makefile route also invokes the same missing binary. Installing/environment mutation was prohibited, so no permitted route could execute the exact command.
@@ -85,4 +85,4 @@ Exit 127.
 
 Exact smallest first command: `source ~/cd_vlaplan && black --version`, followed only if present by the exact Black gate.
 
-No claim that the target root is absent (it was not checked); no integration success claim. Current HEAD after source WIP is `44ed548`. This handoff file is not committed yet; no handoff commit hash is claimed.
+No claim that the target root is absent (it was not checked); no integration success claim. Current HEAD after source WIP was `44ed548`. The initial handoff publication commit is `6eec999` (`docs(phase3): hand off Black-unavailable stop`).
