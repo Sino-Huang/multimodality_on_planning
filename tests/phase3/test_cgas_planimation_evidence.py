@@ -53,7 +53,10 @@ def _valid_attempt(tmp_path: Path) -> dict[str, Any]:
     return {
         "schema_version": SCHEMA_VERSION,
         "status": "success",
-        "backend": {"commit": APPROVED_BACKEND_COMMIT},
+        "backend": {
+            "commit": APPROVED_BACKEND_COMMIT,
+            "endpoint": "http://127.0.0.1:18321/upload/pddl",
+        },
         "fixture": {"supplied_plan_text": "(pickup b1)"},
         "plan_submission": {
             "expected_plan_text": "(pickup b1)",
@@ -162,6 +165,17 @@ def test_build_certification_rejects_inconsistent_recorded_submitted_plan(tmp_pa
 
     with pytest.raises(ValueError, match="submitted_plan_text_mismatch"):
         build_certification(report, tmp_path)
+
+
+def test_build_certification_fails_plan_post_to_unapproved_loopback_endpoint(tmp_path: Path) -> None:
+    report = _valid_attempt(tmp_path)
+    report["network"]["calls"][0]["url"] = "http://127.0.0.1:18322/upload/pddl"
+
+    result = build_certification(report, tmp_path)
+
+    assert result["claims"]["loopback_plan_submission"] == "fail"
+    assert result["claims"]["no_hosted_client_request"] == "pass"
+    assert result["certified"] is False
 
 
 @pytest.mark.parametrize(

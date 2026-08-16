@@ -411,6 +411,74 @@ def _capture_request_evidence(report: dict[str, Any], recorder: dict[str, Any] |
         }
 
 
+def _capture_adapter_evidence(
+    report: dict[str, Any],
+    result: Any,
+    repo_root: Path,
+    output_root: Path,
+) -> None:
+    """Collect every safely readable post-adapter certification input."""
+    from scripts.phase3.render_semantics import validate_render_artifacts
+
+    manifest_path = result.manifest_path
+    run_contract_path = output_root / "diagnostics" / "run-contract.json"
+    report["adapter"] = {
+        "manifest_path": str(manifest_path),
+        "report_path": str(result.report_path),
+        "counts": dict(result.counts),
+        "run_contract_path": str(run_contract_path),
+    }
+
+    rows = [json.loads(line) for line in manifest_path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    if len(rows) != 1:
+        raise ProofError("manifest_row_count_mismatch", f"expected 1 row, got {len(rows)}")
+    record = rows[0]
+
+    frame_rel = str(record["frame_path"])
+    trace_rel = str(record["trace_path"])
+    frame_path = Path(frame_rel) if Path(frame_rel).is_absolute() else repo_root / frame_rel
+    trace_path = Path(trace_rel) if Path(trace_rel).is_absolute() else repo_root / trace_rel
+    if not frame_path.is_file() or not trace_path.is_file():
+        raise ProofError("render_artifacts_missing", f"frame={frame_path} trace={trace_path}")
+    vfg = json.loads(trace_path.read_text(encoding="utf-8"))
+    if not isinstance(vfg, dict) or not isinstance(vfg.get("visualStages"), list):
+        raise ProofError("render_vfg_invalid", "VFG has no visualStages list")
+    receipt = validate_render_artifacts(trace_path, frame_path)
+    report["render"] = {
+        "status": record.get("status"),
+        "frame_path": str(frame_path),
+        "frame_sha256": record.get("png_sha256"),
+        "png_dimensions": list(receipt.png_dimensions),
+        "vfg_path": str(trace_path),
+        "vfg_sha256": record.get("vfg_sha256"),
+        "visualStages_count": len(vfg["visualStages"]),
+        "semantic_receipt": receipt.to_record(),
+        "supplied_plan_sha256": record.get("supplied_plan_sha256"),
+        "renderer_config_sha256": record.get("renderer_config_sha256"),
+        "cache_key": record.get("cache_key"),
+    }
+
+    run_contract = json.loads(run_contract_path.read_text(encoding="utf-8"))
+    report["provenance"] = {
+        "run_contract_sha256": run_contract.get("run_contract_sha256"),
+        "request_sha256": run_contract.get("request_sha256"),
+        "expansion_index_sha256": run_contract.get("expansion_index_sha256"),
+        "domain_sha256": run_contract.get("domain_sha256"),
+        "profile_sha256": run_contract.get("profile_sha256"),
+        "adapter_implementation_sha256": run_contract.get("adapter_implementation_sha256"),
+        "rendering_implementation_sha256": run_contract.get("rendering_implementation_sha256"),
+        "renderer_implementation_sha256": run_contract.get("renderer_implementation_sha256"),
+        "planimation_client_implementation_sha256": run_contract.get("planimation_client_implementation_sha256"),
+        "render_config": run_contract.get("render_config"),
+        "binding_note": (
+            "the shared run-contract render_config cannot hold a per-state plan; the supplied "
+            "plan is bound transitively by the expansion-index SHA256 (the row carrying "
+            "supplied_plan lives in that index) plus the per-record supplied_plan_sha256 and "
+            "the plan-bearing cache identity"
+        ),
+    }
+
+
 def _emit_hard_stop(output_root: Path, report: dict[str, Any], reason: str, **extra: Any) -> int:
     report["status"] = "hard_stop"
     report["reason"] = reason
@@ -422,16 +490,18 @@ def _emit_hard_stop(output_root: Path, report: dict[str, Any], reason: str, **ex
     return 1
 
 
-def _emit_success(output_root: Path, report: dict[str, Any]) -> int:
-    report["status"] = "success"
+def _emit_certification_result(output_root: Path, report: dict[str, Any]) -> int:
+    report["status"] = "hard_stop"
+    report["reason"] = "integration_certification_failed"
     report["hosted_requests"] = 0
     report.update(build_certification(report, output_root))
     if report["certified"] is not True:
-        report["status"] = "hard_stop"
-        report["reason"] = "integration_certification_failed"
         _write_json(output_root / "proof-report.json", report)
         print("HARD STOP: integration_certification_failed", file=sys.stderr)
         return 1
+    report["status"] = "success"
+    report.pop("reason")
+    report.update(build_certification(report, output_root))
     _write_json(output_root / "proof-report.json", report)
     print("SUCCESS: proof-report.json written")
     return 0
@@ -574,7 +644,6 @@ def main(argv: list[str] | None = None) -> int:
             render_missing_states,
         )
         from scripts.phase3.planimation_pairing_contracts import RenderConfig
-        from scripts.phase3.render_semantics import validate_render_artifacts
 
         result = render_missing_states(
             PilotRenderRequest(
@@ -593,114 +662,9 @@ def main(argv: list[str] | None = None) -> int:
             )
         )
 
-        expected_counts = {
-            "requested": 1,
-            "processed": 1,
-            "succeeded": 1,
-            "failed": 0,
-            "duplicate": 0,
-            "collision": 0,
-            "remaining": 0,
-        }
-        if result.counts != expected_counts:
-            raise ProofError(
-                "adapter_counts_mismatch",
-                f"expected {expected_counts}, got {result.counts}",
-            )
-        manifest_path = result.manifest_path
-        report["adapter"] = {
-            "manifest_path": str(manifest_path),
-            "report_path": str(result.report_path),
-            "counts": dict(result.counts),
-            "run_contract_path": str(output_root / "diagnostics" / "run-contract.json"),
-        }
-
-        rows = [json.loads(line) for line in manifest_path.read_text(encoding="utf-8").splitlines() if line.strip()]
-        if len(rows) != 1:
-            raise ProofError("manifest_row_count_mismatch", f"expected 1 row, got {len(rows)}")
-        record = rows[0]
-        if record.get("status") != "success":
-            raise ProofError("render_not_success", f"manifest status: {record.get('status')}")
-        if record.get("supplied_plan_sha256") != fixture["supplied_plan_sha256"]:
-            raise ProofError(
-                "supplied_plan_digest_mismatch",
-                f"record {record.get('supplied_plan_sha256')} != fixture {fixture['supplied_plan_sha256']}",
-            )
-
-        frame_rel = str(record["frame_path"])
-        trace_rel = str(record["trace_path"])
-        frame_path = Path(frame_rel) if Path(frame_rel).is_absolute() else repo_root / frame_rel
-        trace_path = Path(trace_rel) if Path(trace_rel).is_absolute() else repo_root / trace_rel
-        if not frame_path.is_file() or not trace_path.is_file():
-            raise ProofError("render_artifacts_missing", f"frame={frame_path} trace={trace_path}")
-        if record.get("png_sha256") != _sha256_bytes(frame_path.read_bytes()):
-            raise ProofError("render_png_hash_mismatch")
-        if record.get("vfg_sha256") != _sha256_bytes(trace_path.read_bytes()):
-            raise ProofError("render_vfg_hash_mismatch")
-        vfg = json.loads(trace_path.read_text(encoding="utf-8"))
-        if not isinstance(vfg, dict) or not isinstance(vfg.get("visualStages"), list):
-            raise ProofError("render_vfg_invalid", "VFG has no visualStages list")
-        receipt = validate_render_artifacts(trace_path, frame_path)
-        if receipt.status != "success":
-            raise ProofError(
-                "render_semantic_invalid",
-                f"semantic gate: {receipt.reason}",
-            )
-        report["render"] = {
-            "status": "success",
-            "frame_path": str(frame_path),
-            "frame_sha256": record.get("png_sha256"),
-            "png_dimensions": list(receipt.png_dimensions),
-            "vfg_path": str(trace_path),
-            "vfg_sha256": record.get("vfg_sha256"),
-            "visualStages_count": len(vfg["visualStages"]),
-            "semantic_receipt": receipt.to_record(),
-            "supplied_plan_sha256": record.get("supplied_plan_sha256"),
-            "renderer_config_sha256": record.get("renderer_config_sha256"),
-            "cache_key": record.get("cache_key"),
-        }
-
-        run_contract_path = output_root / "diagnostics" / "run-contract.json"
-        run_contract = json.loads(run_contract_path.read_text(encoding="utf-8"))
-        report["provenance"] = {
-            "run_contract_sha256": run_contract.get("run_contract_sha256"),
-            "request_sha256": run_contract.get("request_sha256"),
-            "expansion_index_sha256": run_contract.get("expansion_index_sha256"),
-            "domain_sha256": run_contract.get("domain_sha256"),
-            "profile_sha256": run_contract.get("profile_sha256"),
-            "adapter_implementation_sha256": run_contract.get("adapter_implementation_sha256"),
-            "rendering_implementation_sha256": run_contract.get("rendering_implementation_sha256"),
-            "renderer_implementation_sha256": run_contract.get("renderer_implementation_sha256"),
-            "planimation_client_implementation_sha256": run_contract.get("planimation_client_implementation_sha256"),
-            "render_config": run_contract.get("render_config"),
-            "binding_note": (
-                "the shared run-contract render_config cannot hold a per-state plan; the supplied "
-                "plan is bound transitively by the expansion-index SHA256 (the row carrying "
-                "supplied_plan lives in that index) plus the per-record supplied_plan_sha256 and "
-                "the plan-bearing cache identity"
-            ),
-        }
-
-        calls = recorder["calls"]
-        if len(calls) != 1:
-            raise ProofError("unexpected_request_count", f"expected 1 POST, got {len(calls)}")
-        call = calls[0]
-        if not call["plan_present"]:
-            raise ProofError(
-                "supplied_plan_field_absent",
-                "the recorded POST did not carry the multipart 'plan' field",
-            )
-        if not call["plan_nonempty"]:
-            raise ProofError(
-                "supplied_plan_field_empty",
-                "the recorded multipart 'plan' field was empty",
-            )
-        if call["url"] != f"{base_url}/upload/pddl":
-            raise ProofError("unexpected_endpoint", f"POSTed {call['url']}")
-        _assert_loopback_url(call["url"])
         _capture_request_evidence(report, recorder)
-
-        return _emit_success(output_root, report)
+        _capture_adapter_evidence(report, result, repo_root, output_root)
+        return _emit_certification_result(output_root, report)
 
     except ProofError as exc:
         _capture_request_evidence(report, recorder)

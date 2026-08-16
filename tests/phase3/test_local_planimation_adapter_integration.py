@@ -5,6 +5,7 @@ import importlib.util
 import json
 import types
 from pathlib import Path
+from typing import Any
 
 import pytest
 from PIL import Image
@@ -61,7 +62,10 @@ def _certifiable_report(root: Path, harness: types.ModuleType) -> dict[str, obje
 
     return {
         "schema_version": harness.SCHEMA_VERSION,
-        "backend": {"commit": harness.BACKEND_PIN},
+        "backend": {
+            "commit": harness.BACKEND_PIN,
+            "endpoint": "http://127.0.0.1:18321/upload/pddl",
+        },
         "fixture": {"supplied_plan_text": harness.PLAN_TEXT},
         "adapter": {
             "counts": {
@@ -92,6 +96,92 @@ def _certifiable_report(root: Path, harness: types.ModuleType) -> dict[str, obje
         },
         "hosted_requests": 0,
     }
+
+
+def _adapter_result(
+    root: Path,
+    report: dict[str, object],
+    *,
+    counts: dict[str, int] | None = None,
+    png_sha256: str | None = None,
+) -> types.SimpleNamespace:
+    render = report["render"]
+    assert isinstance(render, dict)
+    manifest_path = root / "manifest.jsonl"
+    manifest_path.write_text(
+        json.dumps(
+            {
+                "status": "success",
+                "frame_path": str(root / "frame.png"),
+                "trace_path": str(root / "trace.vfg.json"),
+                "png_sha256": png_sha256 or render["frame_sha256"],
+                "vfg_sha256": render["vfg_sha256"],
+                "supplied_plan_sha256": "supplied-plan-digest",
+                "renderer_config_sha256": "renderer-config-digest",
+                "cache_key": "cache-key",
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    diagnostics = root / "diagnostics"
+    diagnostics.mkdir()
+    (diagnostics / "run-contract.json").write_text(
+        json.dumps(
+            {
+                "run_contract_sha256": "run-contract-digest",
+                "request_sha256": "request-digest",
+                "expansion_index_sha256": "expansion-index-digest",
+                "domain_sha256": "domain-digest",
+                "profile_sha256": "profile-digest",
+                "adapter_implementation_sha256": "adapter-digest",
+                "rendering_implementation_sha256": "rendering-digest",
+                "renderer_implementation_sha256": "renderer-digest",
+                "planimation_client_implementation_sha256": "client-digest",
+                "render_config": {"base_url": "http://127.0.0.1:18321"},
+            }
+        ),
+        encoding="utf-8",
+    )
+    return types.SimpleNamespace(
+        manifest_path=manifest_path,
+        report_path=root / "adapter-report.json",
+        counts=counts
+        or {
+            "requested": 1,
+            "processed": 1,
+            "succeeded": 1,
+            "failed": 0,
+            "duplicate": 0,
+            "collision": 0,
+            "remaining": 0,
+        },
+    )
+
+
+def _one_plan_call(harness: types.ModuleType) -> dict[str, object]:
+    return {
+        "url": "http://127.0.0.1:18321/upload/pddl",
+        "plan_present": True,
+        "plan_nonempty": True,
+        "plan_text": harness.PLAN_TEXT,
+    }
+
+
+def _emit_adapter_report(
+    root: Path,
+    harness: types.ModuleType,
+    report: dict[str, object],
+    result: types.SimpleNamespace,
+    calls: list[dict[str, object]],
+) -> tuple[int, dict[str, Any]]:
+    report["adapter"] = None
+    report["render"] = None
+    harness._capture_request_evidence(report, {"calls": calls})
+    harness._capture_adapter_evidence(report, result, root, root)
+    exit_code = harness._emit_certification_result(root, report)
+    saved = json.loads((root / "proof-report.json").read_text(encoding="utf-8"))
+    return exit_code, saved
 
 
 def test_harness_refuses_non_loopback_urls() -> None:
@@ -208,7 +298,7 @@ def test_harness_success_report_records_plan_and_certifies(tmp_path: Path) -> No
     }
     harness._capture_request_evidence(report, recorder)
 
-    assert harness._emit_success(tmp_path, report) == 0
+    assert harness._emit_certification_result(tmp_path, report) == 0
 
     saved = json.loads((tmp_path / "proof-report.json").read_text(encoding="utf-8"))
     assert saved["plan_submission"] == {
@@ -220,10 +310,94 @@ def test_harness_success_report_records_plan_and_certifies(tmp_path: Path) -> No
     assert saved["certified"] is True
 
 
+def test_harness_continues_safe_checks_after_render_counts_fail(tmp_path: Path) -> None:
+    harness = _load_harness()
+    report = _certifiable_report(tmp_path, harness)
+    result = _adapter_result(
+        tmp_path,
+        report,
+        counts={
+            "requested": 1,
+            "processed": 1,
+            "succeeded": 0,
+            "failed": 1,
+            "duplicate": 0,
+            "collision": 0,
+            "remaining": 0,
+        },
+    )
+
+    exit_code, saved = _emit_adapter_report(tmp_path, harness, report, result, [_one_plan_call(harness)])
+
+    assert exit_code == 1
+    assert saved["status"] == "hard_stop"
+    assert saved["reason"] == "integration_certification_failed"
+    assert saved["action_sequences"] == {
+        "expected": ["(pickup b1)"],
+        "submitted": ["(pickup b1)"],
+        "vfg": ["(pickup b1)"],
+    }
+    assert saved["claims"]["render_counts_exact"] == "fail"
+    assert {saved["claims"][name] for name in CLAIM_NAMES if name != "render_counts_exact"} == {"pass"}
+    assert set(saved["diagnostics"]) == set(CLAIM_NAMES)
+    assert saved["certified"] is False
+
+
+def test_harness_continues_vfg_and_semantic_checks_after_artifact_digest_fails(tmp_path: Path) -> None:
+    from scripts.phase3.cgas_planimation_evidence import verify_attempt
+
+    harness = _load_harness()
+    report = _certifiable_report(tmp_path, harness)
+    result = _adapter_result(tmp_path, report, png_sha256="0" * 64)
+
+    exit_code, saved = _emit_adapter_report(tmp_path, harness, report, result, [_one_plan_call(harness)])
+
+    assert exit_code == 1
+    assert saved["claims"]["render_artifacts_valid"] == "fail"
+    assert saved["claims"]["vfg_action_sequence_match"] == "pass"
+    assert saved["claims"]["semantic_validation_pass"] == "pass"
+    assert saved["claims"]["render_counts_exact"] == "pass"
+    assert set(saved["diagnostics"]) == set(CLAIM_NAMES)
+    expected = {
+        field: saved[field] for field in ("schema_version", "action_sequences", "claims", "diagnostics", "certified")
+    }
+    assert verify_attempt(tmp_path) == expected
+
+
+def test_harness_preserves_complete_report_after_multiple_loopback_requests_fail_claim(tmp_path: Path) -> None:
+    harness = _load_harness()
+    report = _certifiable_report(tmp_path, harness)
+    result = _adapter_result(tmp_path, report)
+    call = _one_plan_call(harness)
+
+    exit_code, saved = _emit_adapter_report(tmp_path, harness, report, result, [call, dict(call)])
+
+    assert exit_code == 1
+    assert saved["claims"]["loopback_plan_submission"] == "fail"
+    assert {saved["claims"][name] for name in CLAIM_NAMES if name != "loopback_plan_submission"} == {"pass"}
+    assert saved["action_sequences"] == {
+        "expected": ["(pickup b1)"],
+        "submitted": ["(pickup b1)"],
+        "vfg": ["(pickup b1)"],
+    }
+    assert set(saved["diagnostics"]) == set(CLAIM_NAMES)
+
+
 def test_harness_report_wording_preserves_isolation_and_parser_boundaries() -> None:
     source = HARNESS_PATH.read_text(encoding="utf-8")
     assert "no claim of network-level interception" in source
     assert "integrated client path" in source
     assert "does not directly observe a parser invocation" in source
-    assert "backend_log_plan_parse_evidence" not in source
-    assert "get_plan_actions" not in source
+    for removed_gate in (
+        "adapter_counts_mismatch",
+        "render_png_hash_mismatch",
+        "render_vfg_hash_mismatch",
+        "render_semantic_invalid",
+        "unexpected_request_count",
+        "supplied_plan_field_absent",
+        "supplied_plan_field_empty",
+        "unexpected_endpoint",
+        "backend_log_plan_parse_evidence",
+        "get_plan_actions",
+    ):
+        assert removed_gate not in source

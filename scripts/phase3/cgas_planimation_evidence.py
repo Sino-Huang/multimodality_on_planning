@@ -126,16 +126,18 @@ def build_certification(report: Mapping[str, Any], attempt_root: Path) -> dict[s
         calls = network.get("calls")
         if not isinstance(calls, list):
             raise EvidenceMalformedError("network_calls_invalid")
-        loopback_submission = len(calls) == 1 and _valid_plan_call(calls[0])
+        backend_evidence = report.get("backend")
+        approved_endpoint = backend_evidence.get("endpoint") if isinstance(backend_evidence, Mapping) else None
+        loopback_submission = len(calls) == 1 and _valid_plan_call(calls[0], approved_endpoint)
         if loopback_submission:
             call_plan = parse_action_sequence(calls[0]["plan_text"])
             if not submitted or call_plan != submitted:
                 raise EvidenceMalformedError("submitted_plan_text_mismatch")
         claims["loopback_plan_submission"] = "pass" if loopback_submission else "fail"
         diagnostics["loopback_plan_submission"] = (
-            "exactly one HTTP loopback /upload/pddl POST carried a non-empty multipart plan"
+            "exactly one POST to the approved HTTP loopback /upload/pddl endpoint carried a non-empty multipart plan"
             if loopback_submission
-            else "render POST count, endpoint, or multipart plan evidence did not match"
+            else "render POST count, approved endpoint, or multipart plan evidence did not match"
         )
         all_client_loopback = all(isinstance(call, Mapping) and _is_loopback_url(call.get("url")) for call in calls)
         no_hosted = all_client_loopback and network.get("hosted_requests") == 0 and report.get("hosted_requests") == 0
@@ -259,13 +261,20 @@ def _is_loopback_url(value: Any) -> bool:
     return parts.scheme == "http" and parts.hostname in LOOPBACK_HOSTS
 
 
-def _valid_plan_call(value: Any) -> bool:
-    if not isinstance(value, Mapping) or not _is_loopback_url(value.get("url")):
+def _valid_plan_call(value: Any, approved_endpoint: Any) -> bool:
+    if (
+        not isinstance(value, Mapping)
+        or not isinstance(approved_endpoint, str)
+        or not _is_loopback_url(approved_endpoint)
+        or value.get("url") != approved_endpoint
+    ):
         return False
     plan_text = value.get("plan_text")
-    parts = urlsplit(str(value["url"]))
+    parts = urlsplit(approved_endpoint)
     return (
         parts.path == "/upload/pddl"
+        and not parts.query
+        and not parts.fragment
         and value.get("plan_present") is True
         and value.get("plan_nonempty") is True
         and isinstance(plan_text, str)
