@@ -1,0 +1,1 @@
+{"partitions":["train|4|bfs"],"state_atoms":["(arm-empty)","(clear b00)","(clear b01)","(clear b02)","(clear b03)","(on-table b00)","(on-table b01)","(on-table b02)","(on-table b03)"],"state_sha256":"f54dae457ab98b6fc9d2f70c56459291b43962759f986d49440d3d03c8ca6b05"}
