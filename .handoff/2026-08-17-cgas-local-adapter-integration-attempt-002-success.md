@@ -65,10 +65,25 @@ The complete 67 KiB run root is retained, including:
 
 The output remains a synthetic 4-object localhost certification only. It does not authorize the separately gated 8-object smoke, 12-object smoke, 16,822-state production render, replay alignment, or corpus release.
 
-## Focused validation
+## Validation
 
 Before execution:
 
 - focused verifier, harness, adapter, and forwarding tests: `105 passed`
 - focused basedpyright: `0 errors, 0 warnings, 0 notes`
 - focused Ruff: `All checks passed!`
+
+After execution:
+
+- offline certification verifier: exit `0`, `certified: true`, all eight claims `pass`
+- full project test directory: collection stopped with the same 13 pre-existing, unrelated import errors documented on issue #3—two missing `receipt_path` imports and eleven missing `VIEW_ROOT` imports
+- required CI workflows: none configured under `.github/workflows/`
+
+The certification commit changes only retained run evidence and documentation; it does not modify any module involved in those 13 collection errors.
+
+## Review
+
+The mandatory two-axis review compared this evidence commit against `5a49310`:
+
+- standards: no findings
+- issue #4 specification: no findings
