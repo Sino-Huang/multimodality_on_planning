@@ -29,9 +29,7 @@ def _valid_attempt(tmp_path: Path) -> dict[str, Any]:
         "visualStages": [
             {
                 "stageName": "Initial Stage",
-                "visualSprites": [
-                    {"name": "token", "minX": 0.2, "maxX": 0.6, "minY": 0.2, "maxY": 0.6}
-                ],
+                "visualSprites": [{"name": "token", "minX": 0.2, "maxX": 0.6, "minY": 0.2, "maxY": 0.6}],
             },
             {"stageName": "(pickup b1)", "visualSprites": []},
         ]
@@ -207,9 +205,7 @@ def test_build_certification_fails_wrong_vfg_action_order(tmp_path: Path) -> Non
 
 
 @pytest.mark.parametrize("action_stages", ([], ["(pickup b1)", "(stack b1 b2)"]))
-def test_build_certification_fails_missing_or_extra_vfg_action_stages(
-    tmp_path: Path, action_stages: list[str]
-) -> None:
+def test_build_certification_fails_missing_or_extra_vfg_action_stages(tmp_path: Path, action_stages: list[str]) -> None:
     report = _valid_attempt(tmp_path)
     trace_path = tmp_path / "trace.vfg.json"
     vfg = json.loads(trace_path.read_text(encoding="utf-8"))
@@ -303,9 +299,7 @@ def test_cli_returns_one_for_not_observed_claims(tmp_path: Path, capsys: pytest.
     assert payload["certified"] is False
 
 
-def test_cli_returns_two_for_malformed_or_tampered_evidence(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_cli_returns_two_for_malformed_or_tampered_evidence(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     report = _valid_attempt(tmp_path)
     report.update(build_certification(report, tmp_path))
     report["certified"] = False

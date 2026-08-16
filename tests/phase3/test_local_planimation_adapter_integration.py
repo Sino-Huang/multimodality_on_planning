@@ -41,9 +41,7 @@ def _certifiable_report(root: Path, harness: types.ModuleType) -> dict[str, obje
                 "visualStages": [
                     {
                         "stageName": "Initial Stage",
-                        "visualSprites": [
-                            {"name": "token", "minX": 0.2, "maxX": 0.6, "minY": 0.2, "maxY": 0.6}
-                        ],
+                        "visualSprites": [{"name": "token", "minX": 0.2, "maxX": 0.6, "minY": 0.2, "maxY": 0.6}],
                     },
                     {"stageName": "(pickup b1)", "visualSprites": []},
                 ]
