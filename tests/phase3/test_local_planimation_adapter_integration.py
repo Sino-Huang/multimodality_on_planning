@@ -1,10 +1,15 @@
 from __future__ import annotations
 
+import hashlib
 import importlib.util
+import json
 import types
 from pathlib import Path
 
 import pytest
+from PIL import Image
+
+from scripts.phase3.cgas_planimation_evidence import CLAIM_NAMES
 
 HARNESS_PATH = (
     Path(__file__).resolve().parents[2]
@@ -26,6 +31,69 @@ def _load_harness() -> types.ModuleType:
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def _certifiable_report(root: Path, harness: types.ModuleType) -> dict[str, object]:
+    trace_path = root / "trace.vfg.json"
+    trace_path.write_text(
+        json.dumps(
+            {
+                "visualStages": [
+                    {
+                        "stageName": "Initial Stage",
+                        "visualSprites": [
+                            {"name": "token", "minX": 0.2, "maxX": 0.6, "minY": 0.2, "maxY": 0.6}
+                        ],
+                    },
+                    {"stageName": "(pickup b1)", "visualSprites": []},
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    frame_path = root / "frame.png"
+    image = Image.new("RGBA", (100, 100), (255, 255, 255, 255))
+    for x in range(20, 60):
+        for y in range(40, 80):
+            image.putpixel((x, y), (32, 96, 160, 255))
+    image.save(frame_path, format="PNG")
+
+    def digest(path: Path) -> str:
+        return hashlib.sha256(path.read_bytes()).hexdigest()
+
+    return {
+        "schema_version": harness.SCHEMA_VERSION,
+        "backend": {"commit": harness.BACKEND_PIN},
+        "fixture": {"supplied_plan_text": harness.PLAN_TEXT},
+        "adapter": {
+            "counts": {
+                "requested": 1,
+                "processed": 1,
+                "succeeded": 1,
+                "failed": 0,
+                "duplicate": 0,
+                "collision": 0,
+                "remaining": 0,
+            }
+        },
+        "render": {
+            "status": "success",
+            "frame_path": frame_path.name,
+            "frame_sha256": digest(frame_path),
+            "vfg_path": trace_path.name,
+            "vfg_sha256": digest(trace_path),
+            "visualStages_count": 2,
+            "semantic_receipt": {
+                "status": "success",
+                "reason": "validated_expected_object_coverage",
+                "png_dimensions": [100, 100],
+                "sprite_count": 1,
+                "covered_sprite_count": 1,
+                "minimum_object_coverage": 0.01,
+            },
+        },
+        "hosted_requests": 0,
+    }
 
 
 def test_harness_refuses_non_loopback_urls() -> None:
@@ -68,10 +136,96 @@ def test_harness_output_root_guard_fails_closed_before_any_server(tmp_path: Path
     assert harness.main(["--output-root", str(existing)]) == 2
 
 
-def test_harness_report_wording_does_not_overclaim_network_interception() -> None:
+def test_harness_records_present_and_nonempty_multipart_plan_text() -> None:
+    harness = _load_harness()
+
+    assert harness._multipart_plan_observation({"plan": (None, " (pickup b1) ")}) == {
+        "plan_present": True,
+        "plan_nonempty": True,
+        "plan_text": " (pickup b1) ",
+    }
+    assert harness._multipart_plan_observation({}) == {
+        "plan_present": False,
+        "plan_nonempty": False,
+        "plan_text": None,
+    }
+
+
+def test_harness_hard_stop_report_contains_complete_certification(tmp_path: Path) -> None:
+    harness = _load_harness()
+    report = {"schema_version": harness.SCHEMA_VERSION}
+
+    assert harness._emit_hard_stop(tmp_path, report, "backend_server_startup_timeout") == 1
+
+    saved = json.loads((tmp_path / "proof-report.json").read_text(encoding="utf-8"))
+    assert saved["action_sequences"] == {"expected": [], "submitted": [], "vfg": []}
+    assert set(saved["claims"]) == set(CLAIM_NAMES)
+    assert set(saved["claims"].values()) == {"not_observed"}
+    assert set(saved["diagnostics"]) == set(CLAIM_NAMES)
+    assert saved["certified"] is False
+
+
+def test_harness_hard_stop_records_absent_multipart_plan_without_crashing(tmp_path: Path) -> None:
+    harness = _load_harness()
+    report = {
+        "schema_version": harness.SCHEMA_VERSION,
+        "fixture": {"supplied_plan_text": harness.PLAN_TEXT},
+        "plan_submission": None,
+        "hosted_requests": 0,
+    }
+    recorder = {
+        "calls": [
+            {
+                "url": "http://127.0.0.1:18321/upload/pddl",
+                "plan_present": False,
+                "plan_nonempty": False,
+                "plan_text": None,
+            }
+        ]
+    }
+    harness._capture_request_evidence(report, recorder)
+
+    assert harness._emit_hard_stop(tmp_path, report, "supplied_plan_field_absent") == 1
+
+    saved = json.loads((tmp_path / "proof-report.json").read_text(encoding="utf-8"))
+    assert saved["network"]["calls"] == recorder["calls"]
+    assert saved["action_sequences"]["expected"] == ["(pickup b1)"]
+    assert saved["action_sequences"]["submitted"] == []
+    assert saved["claims"]["loopback_plan_submission"] == "fail"
+    assert saved["certified"] is False
+
+
+def test_harness_success_report_records_plan_and_certifies(tmp_path: Path) -> None:
+    harness = _load_harness()
+    report = _certifiable_report(tmp_path, harness)
+    recorder = {
+        "calls": [
+            {
+                "url": "http://127.0.0.1:18321/upload/pddl",
+                "plan_present": True,
+                "plan_nonempty": True,
+                "plan_text": harness.PLAN_TEXT,
+            }
+        ]
+    }
+    harness._capture_request_evidence(report, recorder)
+
+    assert harness._emit_success(tmp_path, report) == 0
+
+    saved = json.loads((tmp_path / "proof-report.json").read_text(encoding="utf-8"))
+    assert saved["plan_submission"] == {
+        "expected_plan_text": harness.PLAN_TEXT,
+        "submitted_plan_text": harness.PLAN_TEXT,
+    }
+    assert saved["network"]["calls"][0]["plan_nonempty"] is True
+    assert set(saved["claims"].values()) == {"pass"}
+    assert saved["certified"] is True
+
+
+def test_harness_report_wording_preserves_isolation_and_parser_boundaries() -> None:
     source = HARNESS_PATH.read_text(encoding="utf-8")
-    # The report basis must explicitly limit the observable to the integrated
-    # client requests and disclaim any network-level interception of the backend.
     assert "no claim of network-level interception" in source
     assert "integrated client path" in source
-    assert "hosted_requests" in source
+    assert "does not directly observe a parser invocation" in source
+    assert "backend_log_plan_parse_evidence" not in source
+    assert "get_plan_actions" not in source

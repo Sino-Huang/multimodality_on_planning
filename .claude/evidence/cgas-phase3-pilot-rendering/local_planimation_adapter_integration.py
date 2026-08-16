@@ -14,10 +14,10 @@ the compat ``b1..b4`` namespace. Loopback only: every HTTP POST issued by the
 integrated client path is recorded in-process and must resolve to ``127.0.0.1``.
 
 The supplied-plan path is selected by the presence of the multipart ``plan``
-field; the harness records that observable on the outbound request and confirms
-the backend parsed the supplied actions (its log prints them) rather than
-contacting its hosted solver. It does not claim stronger network interception
-than that.
+field; the harness records its exact text and non-empty status on the outbound
+request. Ordered VFG action stages provide the offline interpretation evidence
+under the pinned backend commit; this does not directly observe a parser invocation
+and makes no claim of network-level interception of the backend subprocess.
 
 Hard-stops on any failure. Never falls back to a hosted or solver URL. Never uses
 the mapping-bound 8-object or representative 12-object fixtures. Writes a
@@ -45,12 +45,22 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
 
+REPOSITORY_IMPORT_ROOT = Path(__file__).resolve().parents[3]
+if str(REPOSITORY_IMPORT_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPOSITORY_IMPORT_ROOT))
+
+from scripts.phase3.cgas_planimation_evidence import (  # noqa: E402
+    APPROVED_BACKEND_COMMIT,
+    SCHEMA_VERSION,
+    build_certification,
+)
+
 # --------------------------------------------------------------------------- #
 # Pinned inputs.                                                               #
 # --------------------------------------------------------------------------- #
 
 BACKEND_CLONE = ".slim/clonedeps/repos/planimation__backend"
-BACKEND_PIN = "94d82afb5ee122ce579dd11ca1953b7c85ca5824"
+BACKEND_PIN = APPROVED_BACKEND_COMMIT
 ISOLATED_VENV_PYTHON = ".slim/clonedeps/.venv-planimation-v0.1.7/bin/python"
 DOMAIN_REL = "modules/pddl-generators/blocksworld/4ops/domain.pddl"
 PROFILE_REL = "data/pddl_instances/blocksworld/blocksworld_AP.pddl"
@@ -76,8 +86,6 @@ LOOPBACK_HOSTS = frozenset({"127.0.0.1", "localhost", "::1"})
 SERVER_STARTUP_TIMEOUT_SECONDS = 180.0
 SERVER_TERMINATE_GRACE_SECONDS = 10.0
 UPLOAD_TIMEOUT_SECONDS = 120.0
-
-SCHEMA_VERSION = "cgas_phase3_pilot_planimation_local_loopback_v1"
 
 
 class ProofError(RuntimeError):
@@ -245,6 +253,18 @@ def _terminate_server(proc: subprocess.Popen[bytes] | None, log_handle: Any) -> 
 # --------------------------------------------------------------------------- #
 
 
+def _multipart_plan_observation(files: Any) -> dict[str, Any]:
+    if not isinstance(files, dict) or "plan" not in files:
+        return {"plan_present": False, "plan_nonempty": False, "plan_text": None}
+    field = files["plan"]
+    plan_text = field[1] if isinstance(field, tuple) and len(field) >= 2 and isinstance(field[1], str) else None
+    return {
+        "plan_present": True,
+        "plan_nonempty": isinstance(plan_text, str) and bool(plan_text.strip()),
+        "plan_text": plan_text,
+    }
+
+
 def _install_post_recorder(repo_root: Path) -> dict[str, Any]:
     """Wrap ``requests.post`` used by the integrated client path.
 
@@ -261,12 +281,7 @@ def _install_post_recorder(repo_root: Path) -> dict[str, Any]:
 
     def recording_post(url: str, *args: Any, **kwargs: Any) -> Any:
         _assert_loopback_url(str(url))
-        state["calls"].append(
-            {
-                "url": str(url),
-                "plan_present": isinstance(kwargs.get("files"), dict) and "plan" in kwargs["files"],
-            }
-        )
+        state["calls"].append({"url": str(url), **_multipart_plan_observation(kwargs.get("files"))})
         return real_post(url, *args, **kwargs)
 
     client_module.requests.post = recording_post
@@ -371,11 +386,37 @@ def _build_fixture(repo_root: Path, fixture_dir: Path) -> dict[str, Any]:
 # --------------------------------------------------------------------------- #
 
 
+def _capture_request_evidence(report: dict[str, Any], recorder: dict[str, Any] | None) -> None:
+    if recorder is None or not recorder["calls"]:
+        return
+    calls = list(recorder["calls"])
+    report["network"] = {
+        "calls": calls,
+        "recorded_post_urls": [call["url"] for call in calls],
+        "all_loopback": True,
+        "hosted_requests": 0,
+        "basis": (
+            "every HTTP POST issued by the integrated client path was recorded in-process and asserted "
+            "loopback-only; multipart plan text, presence, and non-empty status were recorded. Ordered VFG "
+            "action stages support interpretation under the pinned backend commit but do not directly observe "
+            "a parser invocation. hosted_requests=0 is limited to the project client; no claim of "
+            "network-level interception of the backend subprocess."
+        ),
+    }
+    submitted_plan_text = calls[0].get("plan_text")
+    if isinstance(submitted_plan_text, str) and submitted_plan_text.strip():
+        report["plan_submission"] = {
+            "expected_plan_text": PLAN_TEXT,
+            "submitted_plan_text": submitted_plan_text,
+        }
+
+
 def _emit_hard_stop(output_root: Path, report: dict[str, Any], reason: str, **extra: Any) -> int:
     report["status"] = "hard_stop"
     report["reason"] = reason
     report["hosted_requests"] = 0
     report.update(extra)
+    report.update(build_certification(report, output_root))
     _write_json(output_root / "proof-report.json", report)
     print(f"HARD STOP: {reason}", file=sys.stderr)
     return 1
@@ -384,6 +425,13 @@ def _emit_hard_stop(output_root: Path, report: dict[str, Any], reason: str, **ex
 def _emit_success(output_root: Path, report: dict[str, Any]) -> int:
     report["status"] = "success"
     report["hosted_requests"] = 0
+    report.update(build_certification(report, output_root))
+    if report["certified"] is not True:
+        report["status"] = "hard_stop"
+        report["reason"] = "integration_certification_failed"
+        _write_json(output_root / "proof-report.json", report)
+        print("HARD STOP: integration_certification_failed", file=sys.stderr)
+        return 1
     _write_json(output_root / "proof-report.json", report)
     print("SUCCESS: proof-report.json written")
     return 0
@@ -481,6 +529,7 @@ def main(argv: list[str] | None = None) -> int:
             "profile_materialization": "RANDOMCOLOR sentinel -> GREY (in-memory/temp fixture only; source untouched)",
         },
         "fixture": None,
+        "plan_submission": None,
         "adapter": None,
         "render": None,
         "provenance": None,
@@ -641,43 +690,24 @@ def main(argv: list[str] | None = None) -> int:
                 "supplied_plan_field_absent",
                 "the recorded POST did not carry the multipart 'plan' field",
             )
+        if not call["plan_nonempty"]:
+            raise ProofError(
+                "supplied_plan_field_empty",
+                "the recorded multipart 'plan' field was empty",
+            )
         if call["url"] != f"{base_url}/upload/pddl":
             raise ProofError("unexpected_endpoint", f"POSTed {call['url']}")
         _assert_loopback_url(call["url"])
-
-        log_text = (output_root / "backend.log").read_text(encoding="utf-8", errors="replace")
-        plan_parse_evidence = PLAN_TEXT.lower() in log_text.lower()
-        solver_url_absent = "solver.planning.domains" not in log_text
-        report["network"] = {
-            "recorded_post_urls": [call["url"]],
-            "all_loopback": True,
-            "hosted_requests": 0,
-            "supplied_plan_selected_by_multipart_field": True,
-            "plan_field_observed_on_request": call["plan_present"],
-            "backend_log_plan_parse_evidence": plan_parse_evidence,
-            "backend_log_solver_url_absent": solver_url_absent,
-            "basis": (
-                "every HTTP POST issued by the integrated client path was recorded in-process and "
-                "asserted loopback-only; the supplied-plan path is selected by the multipart 'plan' "
-                "field, whose presence was observed on the recorded request (the client adds it "
-                "only when a plan is set); the backend log shows the supplied actions being parsed "
-                "by get_plan_actions and contains no solver URL. hosted_requests=0 means zero "
-                "requests to any non-loopback URL by this harness and by the integrated client "
-                "path; no claim of network-level interception of the backend subprocess is made."
-            ),
-        }
-        if not plan_parse_evidence or not solver_url_absent:
-            raise ProofError(
-                "backend_log_evidence_missing",
-                f"plan_parse_evidence={plan_parse_evidence} solver_url_absent={solver_url_absent}",
-            )
+        _capture_request_evidence(report, recorder)
 
         return _emit_success(output_root, report)
 
     except ProofError as exc:
+        _capture_request_evidence(report, recorder)
         report["exception"] = {"type": type(exc).__name__, "detail": exc.detail}
         return _emit_hard_stop(output_root, report, exc.reason, exception=report["exception"])
     except Exception as exc:
+        _capture_request_evidence(report, recorder)
         report["exception"] = {"type": type(exc).__name__, "detail": str(exc)}
         return _emit_hard_stop(output_root, report, "harness_exception", exception=report["exception"])
     finally:
