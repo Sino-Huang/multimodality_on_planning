@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from pathlib import Path
 from typing import Any
 
@@ -97,6 +98,41 @@ def _valid_attempt(tmp_path: Path) -> dict[str, Any]:
     }
 
 
+def _production_smoke_attempt(tmp_path: Path) -> dict[str, Any]:
+    report = _valid_attempt(tmp_path)
+    report["inputs"] = {"fixture_selector": "8-object"}
+    report["backend"]["startup_timeout_seconds"] = 180
+    report["provenance"] = {
+        "render_config": {
+            "timeout_seconds": 90,
+            "request_delay_seconds": 0,
+            "max_attempts": 1,
+        }
+    }
+    fixture = report["fixture"]
+    assert isinstance(fixture, dict)
+    fixture.update(
+        {
+            "fixture_id": "8-object",
+            "object_count": 8,
+            "schema_version": "cgas_phase3_planimation_smoke_fixture_v1",
+            "expected_actions": ["(pickup b1)"],
+            "semantic_expectations": {
+                "minimum_covered_object_count": 8,
+                "expected_action_count": 1,
+                "expected_visual_stage_count": 2,
+            },
+            "resource_expectations": {
+                "adapter_request_timeout_seconds": 90,
+                "backend_startup_timeout_seconds": 180,
+                "max_attempts": 1,
+                "request_delay_seconds": 0,
+            },
+        }
+    )
+    return report
+
+
 def test_parse_action_sequence_normalizes_one_grounded_action() -> None:
     assert parse_action_sequence("  (PickUp   B1)  ") == ("(pickup b1)",)
 
@@ -157,6 +193,224 @@ def test_build_certification_passes_all_required_claims(tmp_path: Path) -> None:
     assert result["claims"] == dict.fromkeys(CLAIM_NAMES, "pass")
     assert set(result["diagnostics"]) == set(CLAIM_NAMES)
     assert result["certified"] is True
+
+
+def test_build_certification_preserves_legacy_four_object_selector(tmp_path: Path) -> None:
+    report = _valid_attempt(tmp_path)
+    report["inputs"] = {"fixture_selector": "4-object"}
+
+    assert build_certification(report, tmp_path)["certified"] is True
+
+
+@pytest.mark.parametrize("selector", ("8-object", "12-object"))
+def test_build_certification_passes_checked_in_production_smoke_fixtures(tmp_path: Path, selector: str) -> None:
+    fixture_path = Path(__file__).resolve().parents[2] / f"configs/cgas/planimation_smoke/{selector}.json"
+    checked_fixture: dict[str, Any] = json.loads(fixture_path.read_text(encoding="utf-8"))
+    object_count = checked_fixture["problem_identity"]["object_count"]
+    supplied_plan = checked_fixture["supplied_plan"]
+    expected_actions = checked_fixture["expected_actions"]
+    resource_expectations = checked_fixture["resource_expectations"]
+    semantic_expectations = checked_fixture["semantic_expectations"]
+    assert object_count in (8, 12)
+    assert expected_actions
+    report = _valid_attempt(tmp_path)
+
+    sprites: list[dict[str, object]] = []
+    image = Image.new("RGBA", (400, 300), (255, 255, 255, 255))
+    for index in range(object_count):
+        column, row = index % 4, index // 4
+        min_x = 0.05 + column * 0.24
+        max_x = min_x + 0.14
+        min_y = 0.05 + row * 0.28
+        max_y = min_y + 0.16
+        sprites.append(
+            {"name": f"b{index + 1}", "minX": min_x, "maxX": max_x, "minY": min_y, "maxY": max_y}
+        )
+        for x in range(math.floor(min_x * image.width), math.ceil(max_x * image.width)):
+            for y in range(
+                math.floor((1.0 - max_y) * image.height),
+                math.ceil((1.0 - min_y) * image.height),
+            ):
+                image.putpixel((x, y), (32, 96, 160, 255))
+
+    trace_path = tmp_path / "trace.vfg.json"
+    trace_path.write_text(
+        json.dumps(
+            {
+                "visualStages": [
+                    {"stageName": "Initial Stage", "visualSprites": sprites},
+                    *({"stageName": action, "visualSprites": []} for action in expected_actions),
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    frame_path = tmp_path / "frame.png"
+    image.save(frame_path, format="PNG")
+
+    report["fixture"] = {
+        "fixture_id": checked_fixture["fixture_id"],
+        "object_count": object_count,
+        "schema_version": checked_fixture["schema_version"],
+        "supplied_plan_text": supplied_plan,
+        "expected_actions": expected_actions,
+        "semantic_expectations": semantic_expectations,
+        "resource_expectations": resource_expectations,
+    }
+    report["inputs"] = {"fixture_selector": selector}
+    report["backend"]["startup_timeout_seconds"] = resource_expectations["backend_startup_timeout_seconds"]
+    report["provenance"] = {
+        "render_config": {
+            "timeout_seconds": resource_expectations["adapter_request_timeout_seconds"],
+            "request_delay_seconds": resource_expectations["request_delay_seconds"],
+            "max_attempts": resource_expectations["max_attempts"],
+        }
+    }
+    report["plan_submission"] = {
+        "expected_plan_text": supplied_plan,
+        "submitted_plan_text": supplied_plan,
+    }
+    report["network"]["calls"][0]["plan_text"] = supplied_plan
+    report["render"] = {
+        "status": "success",
+        "frame_path": frame_path.name,
+        "frame_sha256": _sha256(frame_path),
+        "vfg_path": trace_path.name,
+        "vfg_sha256": _sha256(trace_path),
+        "visualStages_count": len(expected_actions) + 1,
+        "semantic_receipt": {
+            "status": "success",
+            "reason": "validated_expected_object_coverage",
+            "png_dimensions": [400, 300],
+            "sprite_count": object_count,
+            "covered_sprite_count": object_count,
+            "minimum_object_coverage": 0.01,
+        },
+    }
+
+    result = build_certification(report, tmp_path)
+
+    assert result["action_sequences"] == {
+        "expected": expected_actions,
+        "submitted": expected_actions,
+        "vfg": expected_actions,
+    }
+    assert result["claims"] == dict.fromkeys(CLAIM_NAMES, "pass")
+    assert result["certified"] is True
+
+
+@pytest.mark.parametrize(
+    ("field", "replacement", "reason"),
+    (
+        ("schema_version", None, "smoke_fixture_schema_version_invalid"),
+        ("schema_version", "wrong", "smoke_fixture_schema_version_invalid"),
+        ("expected_actions", None, "fixture_expected_actions_invalid"),
+        ("semantic_expectations", None, "fixture_semantic_expectations_invalid"),
+    ),
+)
+def test_build_certification_requires_production_smoke_fixture_contract(
+    tmp_path: Path,
+    field: str,
+    replacement: object,
+    reason: str,
+) -> None:
+    report = _production_smoke_attempt(tmp_path)
+    fixture = report["fixture"]
+    assert isinstance(fixture, dict)
+    if replacement is None:
+        fixture.pop(field)
+    else:
+        fixture[field] = replacement
+
+    with pytest.raises(ValueError, match=reason):
+        build_certification(report, tmp_path)
+
+
+@pytest.mark.parametrize("mutation", ("strip_discriminator", "mismatched_selector"))
+def test_build_certification_rejects_smoke_fixture_selector_count_mismatch(
+    tmp_path: Path,
+    mutation: str,
+) -> None:
+    report = _production_smoke_attempt(tmp_path)
+    fixture = report["fixture"]
+    assert isinstance(fixture, dict)
+    if mutation == "strip_discriminator":
+        for field in ("fixture_id", "schema_version", "expected_actions", "semantic_expectations"):
+            fixture.pop(field)
+    else:
+        fixture["fixture_id"] = "12-object"
+
+    with pytest.raises(ValueError, match="smoke_fixture_selector_count_mismatch"):
+        build_certification(report, tmp_path)
+
+
+def test_build_certification_uses_authoritative_smoke_selector_for_fixture_metadata(tmp_path: Path) -> None:
+    report = _production_smoke_attempt(tmp_path)
+    fixture = report["fixture"]
+    assert isinstance(fixture, dict)
+    fixture.pop("fixture_id")
+    fixture.pop("object_count")
+
+    with pytest.raises(ValueError, match="smoke_fixture_selector_count_mismatch"):
+        build_certification(report, tmp_path)
+
+
+def test_build_certification_binds_smoke_backend_timeout_to_execution_evidence(tmp_path: Path) -> None:
+    report = _production_smoke_attempt(tmp_path)
+    report["backend"]["startup_timeout_seconds"] = 1
+
+    with pytest.raises(ValueError, match="fixture_resource_execution_mismatch"):
+        build_certification(report, tmp_path)
+
+
+def test_build_certification_binds_smoke_adapter_resources_to_execution_evidence(tmp_path: Path) -> None:
+    report = _production_smoke_attempt(tmp_path)
+    report["provenance"]["render_config"]["max_attempts"] = 2
+
+    with pytest.raises(ValueError, match="fixture_resource_execution_mismatch"):
+        build_certification(report, tmp_path)
+
+
+def test_build_certification_rejects_weakened_production_smoke_coverage_expectation(tmp_path: Path) -> None:
+    report = _production_smoke_attempt(tmp_path)
+    fixture = report["fixture"]
+    assert isinstance(fixture, dict)
+    fixture["semantic_expectations"]["minimum_covered_object_count"] = 1
+
+    with pytest.raises(ValueError, match="fixture_semantic_expectations_invalid"):
+        build_certification(report, tmp_path)
+
+
+def test_build_certification_requires_production_smoke_resource_expectations(tmp_path: Path) -> None:
+    report = _production_smoke_attempt(tmp_path)
+    fixture = report["fixture"]
+    assert isinstance(fixture, dict)
+    fixture.pop("resource_expectations")
+
+    with pytest.raises(ValueError, match="fixture_resource_expectations_invalid"):
+        build_certification(report, tmp_path)
+
+
+def test_build_certification_fails_fixture_semantic_expectations(tmp_path: Path) -> None:
+    report = _valid_attempt(tmp_path)
+    report["fixture"]["semantic_expectations"] = {
+        "minimum_covered_object_count": 2,
+        "expected_action_count": 1,
+        "expected_visual_stage_count": 2,
+    }
+
+    result = build_certification(report, tmp_path)
+
+    assert result["claims"]["semantic_validation_pass"] == "fail"
+    assert result["certified"] is False
+
+
+def test_build_certification_rejects_tampered_fixture_expected_actions(tmp_path: Path) -> None:
+    report = _valid_attempt(tmp_path)
+    report["fixture"]["expected_actions"] = ["(stack b1 b2)"]
+
+    with pytest.raises(ValueError, match="fixture_expected_actions_mismatch"):
+        build_certification(report, tmp_path)
 
 
 def test_build_certification_rejects_inconsistent_recorded_submitted_plan(tmp_path: Path) -> None:

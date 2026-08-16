@@ -9,9 +9,10 @@ Drives the actual integrated production path
 against the pinned local ``planimation/backend`` clone
 (``.slim/clonedeps/repos/planimation__backend`` at commit
 ``94d82afb5ee122ce579dd11ca1953b7c85ca5824``) running under the existing isolated
-venv, with a synthetic 4-object Blocksworld fixture and a real supplied action in
-the compat ``b1..b4`` namespace. Loopback only: every HTTP POST issued by the
-integrated client path is recorded in-process and must resolve to ``127.0.0.1``.
+venv. The default synthetic 4-object Blocksworld fixture is preserved; checked-in
+8- and 12-object fixtures can select the same downstream adapter and the Integration Certification flow.
+Loopback only: every HTTP POST issued by the integrated client path is
+recorded in-process and must resolve to ``127.0.0.1``.
 
 The supplied-plan path is selected by the presence of the multipart ``plan``
 field; the harness records its exact text and non-empty status on the outbound
@@ -19,14 +20,14 @@ request. Ordered VFG action stages provide the offline interpretation evidence
 under the pinned backend commit; this does not directly observe a parser invocation
 and makes no claim of network-level interception of the backend subprocess.
 
-Hard-stops on any failure. Never falls back to a hosted or solver URL. Never uses
-the mapping-bound 8-object or representative 12-object fixtures. Writes a
+Hard-stops on any failure. Never falls back to a hosted or solver URL. Writes a
 machine-readable ``proof-report.json`` into the output root.
 
 Usage (invocation shape; do not execute here):
   source ~/cd_vlaplan && python \
       .claude/evidence/cgas-phase3-pilot-rendering/local_planimation_adapter_integration.py \
       --output-root /absolute/new/output-root \
+      [--fixture {4-object,8-object,12-object}] \
       [--backend-python <repo>/.slim/clonedeps/.venv-planimation-v0.1.7/bin/python] \
       [--port 8000]
 """
@@ -51,8 +52,12 @@ if str(REPOSITORY_IMPORT_ROOT) not in sys.path:
 
 from scripts.phase3.cgas_planimation_evidence import (  # noqa: E402
     APPROVED_BACKEND_COMMIT,
+    EvidenceMalformedError,
     SCHEMA_VERSION,
+    SMOKE_FIXTURE_SCHEMA_VERSION,
     build_certification,
+    parse_action_sequence,
+    validate_smoke_fixture_contract,
 )
 
 # --------------------------------------------------------------------------- #
@@ -86,6 +91,32 @@ LOOPBACK_HOSTS = frozenset({"127.0.0.1", "localhost", "::1"})
 SERVER_STARTUP_TIMEOUT_SECONDS = 180.0
 SERVER_TERMINATE_GRACE_SECONDS = 10.0
 UPLOAD_TIMEOUT_SECONDS = 120.0
+SMOKE_FIXTURE_PATHS = {
+    "8-object": "configs/cgas/planimation_smoke/8-object.json",
+    "12-object": "configs/cgas/planimation_smoke/12-object.json",
+}
+SMOKE_FIXTURE_IDENTITIES = {
+    "8-object": {
+        "candidate_id": "0322c69e499f0e2ba7161d25787a1260a275bd22382438a7f48e51e9da3737c4",
+        "object_count": 8,
+        "planner": "bfs",
+        "raw_rank": 93,
+        "role": "train",
+        "row_id": "cgas-pilot-expansion-20b7ac18577176c1fa927b68",
+        "source_record_sha256": "37d284f8b8b34c5a9b351092734ed663169e8191408044a6337d645a33e66198",
+        "state_sha256": "00014e0bdfd513580c65f03b94e5c0a1487c34c7be37bd1fadf92bf9643e5f7f",
+    },
+    "12-object": {
+        "candidate_id": "ca6fb5aa595c065744e0172f1b50d4e237bd4c851d094de684127a240cd3e85d",
+        "object_count": 12,
+        "planner": "bfs",
+        "raw_rank": 9,
+        "role": "held_out_calibration",
+        "row_id": "cgas-pilot-expansion-347abc61e3ddea26d65eed27",
+        "source_record_sha256": "eb8d5b84e65bf9d8be846d0144583f65f289b38719df673489e5c117e8ce7073",
+        "state_sha256": "0002870c7b4fc6cd2c137f636c641655ec1f9addf7679404671df53f7d02ea51",
+    },
+}
 
 
 class ProofError(RuntimeError):
@@ -166,6 +197,183 @@ def _git_rev(clone_dir: Path) -> str:
     if result.returncode != 0:
         raise ProofError("backend_git_unavailable", result.stderr.strip())
     return result.stdout.strip()
+
+
+def _require_exact_keys(value: Any, keys: set[str], reason: str) -> dict[str, Any]:
+    if not isinstance(value, dict) or set(value) != keys:
+        raise ProofError(reason)
+    return value
+
+
+def load_smoke_fixture(repo_root: Path, selector: str) -> dict[str, Any]:
+    """Load and identity-check one checked-in Planimation smoke fixture."""
+    relative_path = SMOKE_FIXTURE_PATHS.get(selector)
+    if relative_path is None:
+        raise ProofError("smoke_fixture_selector_invalid")
+    try:
+        raw = json.loads((repo_root / relative_path).read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ProofError("smoke_fixture_unreadable") from exc
+    fixture = _require_exact_keys(
+        raw,
+        {
+            "expected_actions",
+            "fixture_id",
+            "problem_identity",
+            "resource_expectations",
+            "schema_version",
+            "semantic_expectations",
+            "state_atoms",
+            "supplied_plan",
+        },
+        "smoke_fixture_schema_invalid",
+    )
+    if fixture["schema_version"] != SMOKE_FIXTURE_SCHEMA_VERSION or fixture["fixture_id"] != selector:
+        raise ProofError("smoke_fixture_schema_invalid")
+    identity = _require_exact_keys(
+        fixture["problem_identity"],
+        {
+            "candidate_id",
+            "object_count",
+            "planner",
+            "raw_rank",
+            "role",
+            "row_id",
+            "source_record_sha256",
+            "state_sha256",
+        },
+        "smoke_fixture_identity_invalid",
+    )
+    object_count = identity["object_count"]
+    raw_rank = identity["raw_rank"]
+    if (
+        not isinstance(object_count, int)
+        or isinstance(object_count, bool)
+        or object_count <= 0
+        or not isinstance(raw_rank, int)
+        or isinstance(raw_rank, bool)
+        or raw_rank < 0
+        or not all(
+            isinstance(identity[key], str) and identity[key]
+            for key in identity
+            if key not in {"object_count", "raw_rank"}
+        )
+    ):
+        raise ProofError("smoke_fixture_identity_invalid")
+    if identity != SMOKE_FIXTURE_IDENTITIES[selector]:
+        raise ProofError("smoke_fixture_selector_identity_mismatch")
+
+    sys.path.insert(0, str(repo_root))
+    from scripts.phase3.cgas_candidate_accounting import PlannerInput, planner_input_record
+    from scripts.phase3.cgas_candidate_space import build_candidate
+    from scripts.phase3.cgas_pilot_expansion_index import state_sha256
+
+    candidate = build_candidate(object_count, raw_rank)
+    source = planner_input_record(
+        PlannerInput(object_count, raw_rank, "emitted", candidate.candidate_id, raw_rank, candidate)
+    )
+    source_digest = hashlib.sha256(
+        (json.dumps(source, allow_nan=False, ensure_ascii=True, separators=(",", ":"), sort_keys=True) + "\n").encode()
+    ).hexdigest()
+    state_atoms = fixture["state_atoms"]
+    if (
+        candidate.candidate_id != identity["candidate_id"]
+        or source_digest != identity["source_record_sha256"]
+        or not isinstance(state_atoms, list)
+        or not state_atoms
+        or not all(isinstance(atom, str) and atom for atom in state_atoms)
+        or state_atoms != sorted(set(state_atoms))
+        or state_sha256(state_atoms) != identity["state_sha256"]
+    ):
+        raise ProofError("smoke_fixture_identity_mismatch")
+
+    expected_actions = fixture["expected_actions"]
+    try:
+        normalized_actions = [parse_action_sequence(action) for action in expected_actions]
+        supplied_actions = parse_action_sequence(fixture["supplied_plan"])
+    except (TypeError, ValueError) as exc:
+        raise ProofError("smoke_fixture_expected_actions_invalid") from exc
+    if (
+        not isinstance(expected_actions, list)
+        or not expected_actions
+        or any(len(action) != 1 for action in normalized_actions)
+        or [action[0] for action in normalized_actions] != expected_actions
+        or not isinstance(fixture["supplied_plan"], str)
+    ):
+        raise ProofError("smoke_fixture_expected_actions_invalid")
+    if tuple(expected_actions) != supplied_actions:
+        raise ProofError("smoke_fixture_action_sequence_mismatch")
+    try:
+        validate_smoke_fixture_contract(
+            semantic_expectations=fixture["semantic_expectations"],
+            resource_expectations=fixture["resource_expectations"],
+            object_count=object_count,
+            expected_action_count=len(expected_actions),
+        )
+    except EvidenceMalformedError as exc:
+        reason = {
+            "fixture_semantic_expectations_invalid": "smoke_fixture_semantic_expectations_invalid",
+            "fixture_resource_expectations_invalid": "smoke_fixture_resource_expectations_invalid",
+        }.get(str(exc), "smoke_fixture_schema_invalid")
+        raise ProofError(reason) from exc
+    return fixture
+
+
+def materialize_smoke_fixture(fixture: dict[str, Any], fixture_dir: Path) -> dict[str, Any]:
+    """Materialize one validated fixture as the shared adapter's JSONL inputs."""
+    from scripts.phase3.io_utils import stable_hash
+
+    identity = fixture["problem_identity"]
+    fixture_id = fixture["fixture_id"]
+    state_atoms = fixture["state_atoms"]
+    index_row = {
+        "schema_version": "cgas_phase3_pilot_expansion_index_v1",
+        "candidate_id": identity["candidate_id"],
+        "instance_id": identity["candidate_id"],
+        "object_count": identity["object_count"],
+        "raw_rank": identity["raw_rank"],
+        "role": identity["role"],
+        "planner": identity["planner"],
+        "row_id": identity["row_id"],
+        "event_sequence": 0,
+        "event_sha256": hashlib.sha256(f"event-{fixture_id}".encode()).hexdigest(),
+        "trace_path": f"traces/{fixture_id}.jsonl",
+        "trace_stream_sha256": hashlib.sha256(f"stream-{fixture_id}".encode()).hexdigest(),
+        "trace_contract_id": "cgas_trace_contract_v3",
+        "trace_contract_sha256": hashlib.sha256(f"contract-{fixture_id}".encode()).hexdigest(),
+        "replay_plan_member": True,
+        "replay_step_index": 0,
+        "source_record_sha256": identity["source_record_sha256"],
+        "state_atoms": state_atoms,
+        "state_sha256": identity["state_sha256"],
+        "supplied_plan": fixture["supplied_plan"],
+    }
+    request_row = {
+        "partitions": [f"{identity['role']}|{identity['object_count']}|{identity['planner']}"],
+        "state_atoms": state_atoms,
+        "state_sha256": identity["state_sha256"],
+    }
+    index_path = fixture_dir / "index.jsonl"
+    request_path = fixture_dir / "request.jsonl"
+    fixture_dir.mkdir(parents=True, exist_ok=True)
+    for path, row in ((index_path, index_row), (request_path, request_row)):
+        _atomic_write_text(
+            path,
+            json.dumps(row, allow_nan=False, ensure_ascii=True, separators=(",", ":"), sort_keys=True) + "\n",
+        )
+    return {
+        **identity,
+        "fixture_id": fixture_id,
+        "schema_version": fixture["schema_version"],
+        "state_atoms": state_atoms,
+        "supplied_plan_text": fixture["supplied_plan"],
+        "supplied_plan_sha256": stable_hash(fixture["supplied_plan"]),
+        "expected_actions": fixture["expected_actions"],
+        "semantic_expectations": fixture["semantic_expectations"],
+        "resource_expectations": fixture["resource_expectations"],
+        "index_path": str(index_path),
+        "request_path": str(request_path),
+    }
 
 
 # --------------------------------------------------------------------------- #
@@ -404,9 +612,15 @@ def _capture_request_evidence(report: dict[str, Any], recorder: dict[str, Any] |
         ),
     }
     submitted_plan_text = calls[0].get("plan_text")
-    if isinstance(submitted_plan_text, str) and submitted_plan_text.strip():
+    fixture = report.get("fixture")
+    expected_plan_text = fixture.get("supplied_plan_text") if isinstance(fixture, dict) else None
+    if (
+        isinstance(expected_plan_text, str)
+        and isinstance(submitted_plan_text, str)
+        and submitted_plan_text.strip()
+    ):
         report["plan_submission"] = {
-            "expected_plan_text": PLAN_TEXT,
+            "expected_plan_text": expected_plan_text,
             "submitted_plan_text": submitted_plan_text,
         }
 
@@ -517,6 +731,7 @@ def main(argv: list[str] | None = None) -> int:
         description="LOCAL-ONLY loopback integration harness for the CGAS Phase 3 Planimation adapter."
     )
     parser.add_argument("--output-root", required=True, type=Path)
+    parser.add_argument("--fixture", choices=("4-object", *SMOKE_FIXTURE_PATHS), default="4-object")
     parser.add_argument("--backend-python", type=Path)
     parser.add_argument("--port", default=8000, type=int)
     args = parser.parse_args(argv)
@@ -597,6 +812,7 @@ def main(argv: list[str] | None = None) -> int:
             "domain": domain_rec,
             "profile_source": profile_rec,
             "profile_materialization": "RANDOMCOLOR sentinel -> GREY (in-memory/temp fixture only; source untouched)",
+            "fixture_selector": args.fixture,
         },
         "fixture": None,
         "plan_submission": None,
@@ -627,11 +843,28 @@ def main(argv: list[str] | None = None) -> int:
         )
         report["inputs"]["profile_materialized"] = _file_record(materialized_profile, str(materialized_profile))
 
-        fixture = _build_fixture(repo_root, output_root / "fixture")
+        if args.fixture == "4-object":
+            fixture = _build_fixture(repo_root, output_root / "fixture")
+            resources = {
+                "backend_startup_timeout_seconds": int(SERVER_STARTUP_TIMEOUT_SECONDS),
+                "adapter_request_timeout_seconds": 90,
+                "request_delay_seconds": 0,
+                "max_attempts": 1,
+            }
+        else:
+            checked_in_fixture = load_smoke_fixture(repo_root, args.fixture)
+            fixture = materialize_smoke_fixture(checked_in_fixture, output_root / "fixture")
+            resources = fixture["resource_expectations"]
         report["fixture"] = fixture
+        report["backend"]["startup_timeout_seconds"] = resources["backend_startup_timeout_seconds"]
 
         proc, log_handle = _start_server(backend_python, server_dir, args.port, output_root / "backend.log")
-        _wait_for_loopback(proc, args.port, output_root / "backend.log")
+        _wait_for_loopback(
+            proc,
+            args.port,
+            output_root / "backend.log",
+            timeout=resources["backend_startup_timeout_seconds"],
+        )
         report["backend"]["started"] = True
         print(f"backend listening on {base_url}")
 
@@ -655,9 +888,9 @@ def main(argv: list[str] | None = None) -> int:
                 profile_path=materialized_profile,
                 config=RenderConfig(
                     base_url=base_url,
-                    timeout_seconds=90,
-                    request_delay_seconds=0,
-                    max_attempts=1,
+                    timeout_seconds=resources["adapter_request_timeout_seconds"],
+                    request_delay_seconds=resources["request_delay_seconds"],
+                    max_attempts=resources["max_attempts"],
                 ),
             )
         )

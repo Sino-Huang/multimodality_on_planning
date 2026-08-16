@@ -1,0 +1,47 @@
+{
+  "expected_actions": [
+    "(stack b10 b9)"
+  ],
+  "fixture_id": "12-object",
+  "problem_identity": {
+    "candidate_id": "ca6fb5aa595c065744e0172f1b50d4e237bd4c851d094de684127a240cd3e85d",
+    "object_count": 12,
+    "planner": "bfs",
+    "raw_rank": 9,
+    "role": "held_out_calibration",
+    "row_id": "cgas-pilot-expansion-347abc61e3ddea26d65eed27",
+    "source_record_sha256": "eb8d5b84e65bf9d8be846d0144583f65f289b38719df673489e5c117e8ce7073",
+    "state_sha256": "0002870c7b4fc6cd2c137f636c641655ec1f9addf7679404671df53f7d02ea51"
+  },
+  "resource_expectations": {
+    "adapter_request_timeout_seconds": 90,
+    "backend_startup_timeout_seconds": 180,
+    "max_attempts": 1,
+    "request_delay_seconds": 0
+  },
+  "schema_version": "cgas_phase3_planimation_smoke_fixture_v1",
+  "semantic_expectations": {
+    "expected_action_count": 1,
+    "expected_visual_stage_count": 2,
+    "minimum_covered_object_count": 12
+  },
+  "state_atoms": [
+    "(clear b05)",
+    "(clear b07)",
+    "(clear b08)",
+    "(clear b10)",
+    "(holding b09)",
+    "(on b01 b00)",
+    "(on b02 b01)",
+    "(on b04 b03)",
+    "(on b05 b04)",
+    "(on b07 b06)",
+    "(on b10 b11)",
+    "(on b11 b02)",
+    "(on-table b00)",
+    "(on-table b03)",
+    "(on-table b06)",
+    "(on-table b08)"
+  ],
+  "supplied_plan": "(stack b10 b9)"
+}

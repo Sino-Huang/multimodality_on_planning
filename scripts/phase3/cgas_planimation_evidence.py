@@ -15,6 +15,11 @@ from .render_semantics import validate_render_artifacts
 
 APPROVED_BACKEND_COMMIT = "94d82afb5ee122ce579dd11ca1953b7c85ca5824"
 SCHEMA_VERSION = "cgas_phase3_planimation_integration_certification_v1"
+SMOKE_FIXTURE_SCHEMA_VERSION = "cgas_phase3_planimation_smoke_fixture_v1"
+SMOKE_FIXTURE_OBJECT_COUNTS = {
+    "8-object": 8,
+    "12-object": 12,
+}
 CLAIM_NAMES = (
     "expected_action_sequence_match",
     "loopback_plan_submission",
@@ -94,15 +99,65 @@ def build_certification(report: Mapping[str, Any], attempt_root: Path) -> dict[s
     diagnostics = dict.fromkeys(CLAIM_NAMES, "evidence not observed before hard stop")
     action_sequences: dict[str, list[str]] = {"expected": [], "submitted": [], "vfg": []}
 
+    fixture_selector = _fixture_selector(report)
+    production_smoke = fixture_selector in SMOKE_FIXTURE_OBJECT_COUNTS
     fixture = _optional_mapping(report.get("fixture"), "fixture", completed)
     expected: tuple[str, ...] = ()
     submitted: tuple[str, ...] = ()
+    semantic_expectations: Mapping[str, Any] | None = None
+    resource_expectations: Mapping[str, Any] | None = None
     if fixture is not None:
+        fixture_id = fixture.get("fixture_id")
+        object_count = fixture.get("object_count")
+        if production_smoke:
+            assert fixture_selector is not None
+            if (
+                fixture_id != fixture_selector
+                or object_count != SMOKE_FIXTURE_OBJECT_COUNTS[fixture_selector]
+            ):
+                raise EvidenceMalformedError("smoke_fixture_selector_count_mismatch")
+            if fixture.get("schema_version") != SMOKE_FIXTURE_SCHEMA_VERSION:
+                raise EvidenceMalformedError("smoke_fixture_schema_version_invalid")
         expected_text = fixture.get("supplied_plan_text")
         if not isinstance(expected_text, str):
             raise EvidenceMalformedError("expected_plan_text_missing")
         expected = parse_action_sequence(expected_text)
         action_sequences["expected"] = list(expected)
+        raw_expected_actions = fixture.get("expected_actions")
+        if raw_expected_actions is None:
+            if production_smoke:
+                raise EvidenceMalformedError("fixture_expected_actions_invalid")
+        else:
+            if not isinstance(raw_expected_actions, list) or not raw_expected_actions:
+                raise EvidenceMalformedError("fixture_expected_actions_invalid")
+            try:
+                parsed_actions = tuple(parse_action_sequence(action) for action in raw_expected_actions)
+            except (TypeError, ValueError) as exc:
+                raise EvidenceMalformedError("fixture_expected_actions_invalid") from exc
+            if any(
+                len(action) != 1 or action[0] != raw
+                for action, raw in zip(parsed_actions, raw_expected_actions, strict=True)
+            ):
+                raise EvidenceMalformedError("fixture_expected_actions_invalid")
+            if tuple(action[0] for action in parsed_actions) != expected:
+                raise EvidenceMalformedError("fixture_expected_actions_mismatch")
+        raw_expectations = fixture.get("semantic_expectations")
+        raw_resources = fixture.get("resource_expectations")
+        if production_smoke:
+            semantic_expectations, resource_expectations = validate_smoke_fixture_contract(
+                semantic_expectations=raw_expectations,
+                resource_expectations=raw_resources,
+                object_count=object_count,
+                expected_action_count=len(expected),
+            )
+        elif raw_expectations is not None:
+            semantic_expectations = _semantic_expectations(raw_expectations)
+        if not production_smoke and raw_resources is not None:
+            _resource_expectations(raw_resources)
+    if production_smoke and completed:
+        if resource_expectations is None:
+            raise EvidenceMalformedError("fixture_resource_expectations_invalid")
+        _validate_smoke_resource_execution(resource_expectations, report)
 
     submission = _optional_mapping(report.get("plan_submission"), "plan_submission", completed)
     if submission is not None:
@@ -215,12 +270,26 @@ def build_certification(report: Mapping[str, Any], attempt_root: Path) -> dict[s
         if not isinstance(saved_receipt, Mapping):
             raise EvidenceMalformedError("semantic_receipt_invalid")
         rerun_receipt = validate_render_artifacts(trace_path, frame_path).to_record()
-        semantic_pass = saved_receipt.get("status") == "success" and dict(saved_receipt) == rerun_receipt
+        fixture_semantics_pass = True
+        if semantic_expectations is not None:
+            fixture_semantics_pass = (
+                rerun_receipt["covered_sprite_count"]
+                >= semantic_expectations["minimum_covered_object_count"]
+                and len(expected) == semantic_expectations["expected_action_count"]
+                and len(vfg_actions) == semantic_expectations["expected_action_count"]
+                and isinstance(stages, list)
+                and len(stages) == semantic_expectations["expected_visual_stage_count"]
+            )
+        semantic_pass = (
+            saved_receipt.get("status") == "success"
+            and dict(saved_receipt) == rerun_receipt
+            and fixture_semantics_pass
+        )
         claims["semantic_validation_pass"] = "pass" if semantic_pass else "fail"
         diagnostics["semantic_validation_pass"] = (
-            "independent semantic validation succeeded and matched the saved receipt"
+            "independent Render Validation matched the saved receipt and fixture expectations"
             if semantic_pass
-            else "independent semantic validation failed or differed from the saved receipt"
+            else "Render Validation, saved receipt, or fixture expectations differed"
         )
 
     return {
@@ -230,6 +299,99 @@ def build_certification(report: Mapping[str, Any], attempt_root: Path) -> dict[s
         "diagnostics": diagnostics,
         "certified": all(status == "pass" for status in claims.values()),
     }
+
+
+def validate_smoke_fixture_contract(
+    *,
+    semantic_expectations: Any,
+    resource_expectations: Any,
+    object_count: Any,
+    expected_action_count: int,
+) -> tuple[Mapping[str, Any], Mapping[str, Any]]:
+    semantics = _semantic_expectations(semantic_expectations)
+    if (
+        not isinstance(object_count, int)
+        or isinstance(object_count, bool)
+        or semantics["minimum_covered_object_count"] != object_count
+        or semantics["expected_action_count"] != expected_action_count
+        or semantics["expected_visual_stage_count"] != expected_action_count + 1
+    ):
+        raise EvidenceMalformedError("fixture_semantic_expectations_invalid")
+    return semantics, _resource_expectations(resource_expectations)
+
+
+def _semantic_expectations(value: Any) -> Mapping[str, Any]:
+    keys = {"minimum_covered_object_count", "expected_action_count", "expected_visual_stage_count"}
+    if not isinstance(value, Mapping) or set(value) != keys:
+        raise EvidenceMalformedError("fixture_semantic_expectations_invalid")
+    if any(not isinstance(value[key], int) or isinstance(value[key], bool) or value[key] <= 0 for key in keys):
+        raise EvidenceMalformedError("fixture_semantic_expectations_invalid")
+    if value["expected_visual_stage_count"] != value["expected_action_count"] + 1:
+        raise EvidenceMalformedError("fixture_semantic_expectations_invalid")
+    return value
+
+
+def _fixture_selector(report: Mapping[str, Any]) -> str | None:
+    inputs = report.get("inputs")
+    if inputs is None:
+        return None
+    if not isinstance(inputs, Mapping):
+        raise EvidenceMalformedError("inputs_invalid")
+    selector = inputs.get("fixture_selector")
+    if selector is None:
+        return None
+    if selector not in {"4-object", *SMOKE_FIXTURE_OBJECT_COUNTS}:
+        raise EvidenceMalformedError("smoke_fixture_selector_invalid")
+    return selector
+
+
+def _validate_smoke_resource_execution(resources: Mapping[str, Any], report: Mapping[str, Any]) -> None:
+    backend = report.get("backend")
+    provenance = report.get("provenance")
+    render_config = provenance.get("render_config") if isinstance(provenance, Mapping) else None
+    observed = (
+        backend.get("startup_timeout_seconds") if isinstance(backend, Mapping) else None,
+        render_config.get("timeout_seconds") if isinstance(render_config, Mapping) else None,
+        render_config.get("request_delay_seconds") if isinstance(render_config, Mapping) else None,
+        render_config.get("max_attempts") if isinstance(render_config, Mapping) else None,
+    )
+    expected = (
+        resources["backend_startup_timeout_seconds"],
+        resources["adapter_request_timeout_seconds"],
+        resources["request_delay_seconds"],
+        resources["max_attempts"],
+    )
+    if any(
+        not isinstance(value, int) or isinstance(value, bool) or value != expected_value
+        for value, expected_value in zip(observed, expected, strict=True)
+    ):
+        raise EvidenceMalformedError("fixture_resource_execution_mismatch")
+
+
+def _resource_expectations(value: Any) -> Mapping[str, Any]:
+    keys = {
+        "adapter_request_timeout_seconds",
+        "backend_startup_timeout_seconds",
+        "max_attempts",
+        "request_delay_seconds",
+    }
+    if not isinstance(value, Mapping) or set(value) != keys:
+        raise EvidenceMalformedError("fixture_resource_expectations_invalid")
+    timeout_values = (
+        value["adapter_request_timeout_seconds"],
+        value["backend_startup_timeout_seconds"],
+    )
+    if (
+        any(not isinstance(timeout, int) or isinstance(timeout, bool) or not 1 <= timeout <= 300 for timeout in timeout_values)
+        or value["max_attempts"] != 1
+        or not isinstance(value["max_attempts"], int)
+        or isinstance(value["max_attempts"], bool)
+        or value["request_delay_seconds"] != 0
+        or not isinstance(value["request_delay_seconds"], int)
+        or isinstance(value["request_delay_seconds"], bool)
+    ):
+        raise EvidenceMalformedError("fixture_resource_expectations_invalid")
+    return value
 
 
 def _optional_mapping(value: Any, name: str, required: bool) -> Mapping[str, Any] | None:
