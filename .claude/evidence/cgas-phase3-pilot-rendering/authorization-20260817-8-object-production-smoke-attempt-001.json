@@ -1,0 +1,14 @@
+{
+  "schema_version": "cgas_localhost_run_authorization_v1",
+  "issue_url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/6",
+  "authorization_source": "repository owner via interactive question",
+  "authorization_message": "Authorize exact run (Recommended)",
+  "authorization_context": "Approval of the immediately preceding proposal naming this exact output root, fixture, and port.",
+  "recorded_at": "2026-08-17T12:36:41+10:00",
+  "recorded_before_execution": true,
+  "output_root": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/image_frames/cgas-8-object-production-smoke-20260817-attempt-001",
+  "port": 18080,
+  "fixture_config": "configs/cgas/planimation_smoke/8-object.json",
+  "execution_limit": 1,
+  "scope": "One fixture-bound 8-object request through the integrated localhost production adapter path; no retry, hosted request, fallback, 12-object smoke, production render, replay alignment, or corpus release."
+}
