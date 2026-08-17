@@ -11,7 +11,9 @@ The repository owner authorized the exact run proposed in the immediately preced
 - fixture config: `configs/cgas/planimation_smoke/8-object.json`
 - execution limit: exactly one attempt
 - authorization record: `.claude/evidence/cgas-phase3-pilot-rendering/authorization-20260817-8-object-production-smoke-attempt-001.json`
-- authorization was recorded before execution at `2026-08-17T12:36:41+10:00`
+- authorization was received before execution via the interactive answer
+- exact wall-clock authorization time was not captured
+- this record was materialized at `2026-08-17T12:36:41+10:00` after the attempt
 
 The preflight confirmed that the output root was absent and port `18080` was unbound before execution.
 
@@ -31,7 +33,7 @@ backend listening on http://127.0.0.1:18080
 SUCCESS: proof-report.json written
 ```
 
-The retained report records one POST to `http://127.0.0.1:18080/upload/pddl`, with `hosted_requests=0` and loopback-only network evidence. No retry, hosted request, fallback, 12-object smoke, production render, replay alignment, or corpus release occurred.
+The bounded smoke did perform Render Production (VFG and PNG). The retained report records one POST to `http://127.0.0.1:18080/upload/pddl`, with `hosted_requests=0` and loopback-only network evidence. No retry, hosted request, fallback, 12-object smoke, 16,822-state production-corpus render, replay alignment, or corpus release occurred.
 
 ## Certification result
 
@@ -103,6 +105,8 @@ The complete run root contains `15` regular files totaling `65,783` bytes, inclu
 - the derived problem PDDL, Planimation-compatible problem PDDL, `result.json`, VFG trace, and rendered PNG
 
 The generated output root is retained unchanged as evidence for this single 8-object localhost smoke attempt.
+
+The committed report and diagnostics preserve host-specific absolute paths as provenance, so the retained evidence bundle is host-bound; the offline verifier remains the direct validation path when the retained attempt root is available.
 
 ## Validation
 
