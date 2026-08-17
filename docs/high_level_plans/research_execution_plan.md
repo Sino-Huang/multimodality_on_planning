@@ -5,6 +5,11 @@ sequenced the work so that the one decision that could kill the method — the c
 came after the most expensive artifact. See *What changed in this revision* for the four owner
 decisions that forced the rewrite.
 
+**Implementation specification confirmed 2026-08-17.** The concrete Planimation evidence contract,
+Gate-3 calibration design, CGAS support routes, live-memory semantics, route-label procedure, and
+final evaluation rule are recorded in [`research_implementation_spec.md`](./research_implementation_spec.md).
+That specification refines this plan without reordering its gates or granting execution authorization.
+
 *Amended 2026-08-07 (twice). First, Phase A only: Gate A's stated pass condition referred forward to
 a number Phase 3 produces two phases later, so it was not evaluable and was demoted to a reporting
 milestone. Second, after Phase A ran: its result is folded into the Current Baseline, Phase A is
