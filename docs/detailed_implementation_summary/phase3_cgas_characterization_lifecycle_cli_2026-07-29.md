@@ -8,7 +8,7 @@
 
 `finalize` rejects any existing/dangling/special final entry, requires valid work with 481 checkpoints, then delegates only private three-file candidate assembly and atomic `regular_bundle_linkat_v1` publication. It neither computes rows directly nor adopts/replaces a final. `verify` is read-only; its final target is the bundle file and it verifies in memory without extraction.
 
-The final bundle SHA-256 identifies contract-scoped provenance: it is stable across repeat and resumed histories only when the run-contract bytes and fingerprint are identical. The bundle SHA is therefore contract-scoped, including the checkpoint publication policy and fixed `shard_count=1` profile.
+The final bundle identity is contract-scoped provenance: it is stable across repeat and resumed histories only when the run-contract bytes and identity are identical. The bundle identity is therefore contract-scoped, including the checkpoint publication policy and fixed `shard_count=1` profile.
 
 ## Owner-Approved Production Commands
 

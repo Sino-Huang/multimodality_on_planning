@@ -1,10 +1,10 @@
 # Phase 3 CGAS Characterization Determinism Oracles
 
-The synthetic-only 481-row integration oracle finalizes forward, reverse, and two-batch resumed checkpoint histories through the public CLI. For one unchanged run contract, it retains comparison evidence before fixture cleanup: run-contract bytes/SHA-256 and fingerprint, whole-bundle bytes/SHA-256, parsed header fingerprint, parsed member name/size/SHA-256 table, JSONL SHA-256, manifest SHA-256, and the same-contract byte-identity classification. All three logical members and the final bundle must be byte-identical.
+The synthetic-only 481-row integration oracle finalizes forward, reverse, and two-batch resumed checkpoint histories through the public CLI. For one unchanged run contract, it retains comparison evidence before fixture cleanup: run-contract bytes and identity, whole-bundle bytes and identity, parsed header identity, parsed member name/size/identity table, JSONL identity, manifest identity, and the same-contract byte-identity classification. All three logical members and the final bundle must be byte-identical.
 
-The separate 2-vs-3-shard oracle deliberately uses contracts whose `shard_count` differs. It classifies run-contract bytes/SHA-256/fingerprint and bundle bytes/SHA-256 as expected inequality, while requiring exact scientific JSONL and manifest bytes. It also explicitly compares the manifest artifact SHA-256, source-record aggregate, object/split counts, and implementation digests. No product data, network activity, runner concurrency changes, or shard-state changes are involved.
+The separate 2-vs-3-shard oracle deliberately uses contracts whose `shard_count` differs. It classifies run-contract bytes/identity and bundle bytes/identity as expected inequality, while requiring exact scientific JSONL and manifest bytes. It also explicitly compares the manifest artifact identity, source-record aggregate, object/split counts, and implementation identities. No product data, network activity, runner concurrency changes, or shard-state changes are involved.
 
-Bundle SHA-256 is therefore contract-scoped provenance identity. It is an exact identity only within one run-contract fingerprint; it is not an oracle for scientific equality across contracts that intentionally bind different shard counts.
+The bundle's byte identity is therefore contract-scoped provenance. It is an exact identity only within one run contract; it is not an oracle for scientific equality across contracts that intentionally use different shard counts.
 
 ## Verification
 

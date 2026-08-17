@@ -94,7 +94,7 @@ def run_workflow(config: WorkflowConfig) -> dict[str, Any]:
         config,
         "Safety merge complete: "
         f"accepted_total={merge_summary.get('accepted_total')} "
-        f"duplicate_accepted_problem_hashes={merge_summary.get('duplicate_accepted_problem_hashes')}",
+        f"duplicate_accepted_problems={merge_summary.get('duplicate_accepted_problems')}",
     )
     final_summary = None
     final_root = _resolve(config.final_root, root=root)
@@ -109,7 +109,7 @@ def run_workflow(config: WorkflowConfig) -> dict[str, Any]:
             config,
             "Final root update complete: "
             f"accepted_total={final_summary.get('accepted_total')} "
-            f"duplicate_accepted_problem_hashes={final_summary.get('duplicate_accepted_problem_hashes')}",
+            f"duplicate_accepted_problems={final_summary.get('duplicate_accepted_problems')}",
         )
     plan_root = final_root if final_summary is not None else candidate_root
     plan_summary = None
@@ -264,7 +264,7 @@ def inspect_shards(shards_root: Path) -> ShardState:
             split = str(row["split"])
             bucket = str(row["bucket"])
             target_bucket = str(row.get("difficulty_target") or bucket)
-            rows_by_hash.append(row.get("normalized_problem_hash"))
+            rows_by_hash.append(row.get("normalized_problem_text"))
             counts[(domain, split, bucket)] += 1
             attempts[(domain, split, target_bucket)] += 1
         for row in rejections:
@@ -297,7 +297,7 @@ def merge_shards(*, shards_root: Path, candidate_root: Path) -> dict[str, Any]:
         raise RuntimeError(f"merge-shards failed:\nSTDOUT:\n{completed.stdout}\nSTDERR:\n{completed.stderr}")
     payload = json.loads(completed.stdout)
     summary = dict(payload["summary"])
-    if int(summary.get("duplicate_accepted_problem_hashes", -1)) != 0:
+    if int(summary.get("duplicate_accepted_problems", -1)) != 0:
         raise RuntimeError(f"Staged merge has duplicate hashes: {summary}")
     return summary
 
@@ -308,7 +308,7 @@ def update_final_root(
     final_root: Path,
     safety_summary: dict[str, Any],
 ) -> dict[str, Any]:
-    if int(safety_summary.get("duplicate_accepted_problem_hashes", -1)) != 0:
+    if int(safety_summary.get("duplicate_accepted_problems", -1)) != 0:
         raise RuntimeError("Refusing to update final root because safety merge has duplicate hashes")
     if int(safety_summary.get("accepted_total", 0)) <= 0:
         raise RuntimeError("Refusing to update final root from an empty safety merge")
@@ -333,7 +333,7 @@ def update_final_root(
     summary = dict(payload["summary"])
     if int(summary.get("accepted_total", -1)) != int(safety_summary.get("accepted_total", -2)):
         raise RuntimeError(f"Final root total differs from safety merge: final={summary} safety={safety_summary}")
-    if int(summary.get("duplicate_accepted_problem_hashes", -1)) != 0:
+    if int(summary.get("duplicate_accepted_problems", -1)) != 0:
         raise RuntimeError(f"Final root update has duplicate hashes: {summary}")
     return summary
 

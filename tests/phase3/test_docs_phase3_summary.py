@@ -46,7 +46,7 @@ def test_curriculum_extension_summary_contains_safe_runbook() -> None:
         "5,153 accepted",
         "accepted_total=4492",
         "7995` target should be treated as aspirational only",
-        "duplicate_accepted_problem_hashes=0",
+        "duplicate_accepted_problems=0",
         "save_fast_downward_plans",
         "extend_curriculum_workflow",
         "--update-root",

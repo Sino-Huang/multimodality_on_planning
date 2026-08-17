@@ -8,7 +8,7 @@ Todo 4 adds provenance-safe concrete traversal-state candidates for strict FF, G
 
 ## Implementation
 
-- `scripts/phase3/traversal_states.py` projects strict concrete events into candidates whose event IDs include frozen root, JSONL location, physical line, Todo 2 node ID, and candidate role. The content-addressed `state_asset_hash` is intentionally separate from the event ID.
+- `scripts/phase3/traversal_states.py` projects strict concrete events into candidates whose event IDs include frozen root, JSONL location, physical line, Todo 2 node ID, and candidate role. The content-addressed state asset identity is intentionally separate from the event ID.
 - FF selected and recorded-successor states are retained only after their normalized action deterministically reproduces the recorded successor atoms. GBFS and IW selected states are recorded directly; their successor states are reconstructed from the validated parent state by normalized-action lookup, precondition checking, delete effects, then add effects.
 - Unknown, malformed, inapplicable, atom-mismatched, unsupported-PDDL, non-concrete, and strict-contract-invalid sources are exclusion records, never candidates. Duplicate successor payloads are collapsed only when the entire payload is identical, so conflicting action records retain distinct graph semantics.
 - `scripts/phase3/traversal_state_projection_cli.py` writes a deterministic fixture projection report without rendering or writing under `outputs/`.

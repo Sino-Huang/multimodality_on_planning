@@ -1,14 +1,14 @@
 # Phase 3 CGAS Partition Approval Gate - 2026-07-30
 
-This change adds the smallest executable prerequisite for a valid non-empty P0 partition: a separate owner-approval boundary that consumes a draft JSON and a matching owner-approval JSON, refuses the current empty fail-closed receipt, and only emits an approved partition when the approval artifact binds the exact draft bytes.
+This change adds the smallest executable prerequisite for a valid non-empty P0 partition: a separate owner-approval boundary that consumes a draft JSON and a matching owner-approval JSON, refuses the current empty fail-closed receipt, and only emits an approved partition when the approval artifact matches the exact draft bytes.
 
 The selector module remains responsible for producing the deterministic draft. A new `scripts/phase3/cgas_partition_approval.py` module now owns the approval path so the existing draft evidence stays stable while the approval boundary becomes executable and testable.
 
 ## Behavior
 
 - Current empty receipt stays blocked with `partition_records_empty`.
-- A synthetic non-empty draft can be approved only when the approval artifact matches the draft digest, policy digest, record count, and schema version.
-- Approved output is marked `status=approved_p0_partition`, `owner_approved=true`, and includes an `owner_approval_digest`.
+- A synthetic non-empty draft can be approved only when the approval artifact matches the draft identity, policy identity, record count, and schema version.
+- Approved output is marked `status=approved_p0_partition`, `owner_approved=true`, and includes an owner-approval identity.
 
 ## Verification
 

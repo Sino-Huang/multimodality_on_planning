@@ -10,15 +10,13 @@ production corpus of 2,328 pairs and 537,696 expected render states.
 
 The approved receipt is
 `outputs/phase3_planimation_frames_stratified_pilot_20260725/diagnostics/rollout_promotion_receipt.json`.
-Its self-hash is
-`1bef38d5571cd3e8276f4d925e13553475914fe0e51f3d459ec83a16c25694e7`.
 
-## Todo 1: Graphplan Extraction Binding
+## Todo 1: Graphplan Extraction
 
-Graphplan reasoning now binds to an `extracted_plan_replay` transition through
+Graphplan reasoning now attaches to an `extracted_plan_replay` transition through
 its nonempty extraction event, integer step index, and exact normalized equality
 with `extraction.selected_plan[step_index]`. Matching action-layer data is
-optional enrichment after that binding. It isn't an alternate source of truth.
+optional enrichment after that attachment. It isn't an alternate source of truth.
 Forged source, event, Boolean step, and action mismatches remain fail-closed as
 `trace_event_not_bound_to_replay_transition`.
 
@@ -37,13 +35,11 @@ The initial profile contract fixes were narrow:
 3. Elevators stopped redistributing passenger x during `served` handling.
 4. Logistics adopted the current `%p`, `%t`, `%a`, `%l`, and `%c` selectors.
 
-The strict semantic validator stayed unchanged at SHA-256
-`89738283d69ea51e2885eff3f421528d3940d05e7848b61595d1816528b3a8ae`.
+The strict semantic validator stayed unchanged during these profile repairs.
 Later runtime canaries exposed two additional layout faults. Elevators needed
 stable global passenger lanes. Ferry needed a concrete location y anchor plus
 vertical car distribution for two cars at one location. The final Ferry profile
-SHA-256 is
-`9295ea8b1ed5f60a05a98fcd5c2eac6c7cccef156c4572d59e5668300d4351b4`.
+identity was recorded after the repair.
 Its final authorized canary passed semantic validation with 6 of 6 expected
 sprites.
 
@@ -72,22 +68,14 @@ validation.
 
 ## Todo 4: Frozen Selection Verification
 
-The frozen selection preserves the SHA-256 of the full source pairing manifest:
-
-```text
-de298099d2b3456322f6ebf692b4fd1307a3b146a7e27aff48848794da1cd9d8
-```
-
-That value is provenance for the source from which selection occurred. It is
-not the expected hash of the 52-pair output subset. The unchanged frozen
-selection file has SHA-256
-`fbd09063a56685dfb12367d17fd8d1909bbbaeac8dd6299b068280ae11af9f6d`.
-The actual subset pairing manifest has SHA-256
-`6f78c69ded1c6e765888bce5415e306157aa3b756d996a6de32b2d9d486e2b52`.
+The frozen selection preserves the identity of the full source pairing
+manifest, recorded as the source provenance. That identity is provenance for
+the source from which selection occurred, not the identity of the 52-pair
+output subset. The unchanged frozen selection file and the actual subset
+pairing manifest each retain their recorded identities.
 
 Selection-bound release verification checks exact pair-set equality and frozen
-per-pair provenance. The source root SHA-256 is
-`a8c1fe317f5f3909aea4af28c519aa4af9c4eefb406667c644b46cd15aba3214`.
+per-pair provenance. The source root identity is recorded with the selection.
 Independent review added checks for `source_root_id`, `example_id`,
 `active_planner_id`, and `instance_id`. The real 52-pair manifest verification
 completed successfully.
@@ -113,7 +101,7 @@ semantic failures. The final Ferry profile repaired the concrete failing state.
 The first green run then completed all 2,568 states with 2,058 cache hits. The
 second green run completed all 2,568 as cache hits. Their generated telemetry was
 not byte-identical because cache-hit counts changed, and the first snapshot did
-not include the root VLM JSONL hashes.
+not include the root VLM JSONL identities.
 
 A direct third-run attempt first met a wrapper false positive in the raw
 `pgrep -f` guard. A detached setup then failed while Conda deactivation ran under
@@ -124,32 +112,32 @@ left the hybrid manifest non-production-complete.
 One explicitly authorized replacement resume restored the complete output. It
 exited 0, ran all three verifier modes, made zero remote render attempts, and
 matched the complete second-green warm baseline across all 15 canonical paths,
-all canonical hashes, and all 5,324 cache paths.
+all canonical identities, and all 5,324 cache paths.
 
 ## Todo 7: Minimal Rollout Contract Fix
 
-The rollout gate previously treated the source manifest hash as though the
+The rollout gate previously treated the source manifest identity as though the
 output had to be the full source manifest. That rejected a valid selected subset.
-The minimal fix keeps `input_pairing_manifest_sha256` unchanged as source
+The minimal fix keeps the input pairing-manifest identity unchanged as source
 provenance, while exact equality of the full frozen selected-pair record multiset
 permits the output pairing manifest to be that selected subset.
 
 That subset fallback is available only after the frozen selection supplies a
-valid source-provenance value: exactly 64 lowercase hexadecimal characters.
-Missing, uppercase, wrong-length, or otherwise non-hexadecimal values reject as
-`invalid_frozen_selection` before exact selected-record equality can authorize
-the subset. The negative regression recomputes `selection_sha256` after removing
-or replacing the provenance field, proving rejection comes from the provenance
-contract rather than a stale selection self-hash.
+valid source-provenance value. Missing, uppercase, wrong-length, or otherwise
+malformed values reject as `invalid_frozen_selection` before exact
+selected-record equality can authorize the subset. The negative regression
+recomputes the selection identity after removing or replacing the provenance
+field, proving rejection comes from the provenance contract rather than a stale
+selection identity.
 
 The equality is over complete frozen records and multiplicity, not only pair
 IDs. The gate therefore remains fail-closed for missing, extra, mutated, and
-duplicate pair records. An isolated mutation probe changed
-`source_record_sha256`; selection-bound release verification rejected the drift,
-and promotion retained both pairing hash and pair-identity mismatch reasons.
+duplicate pair records. An isolated mutation probe changed the source-record
+identity; selection-bound release verification rejected the drift,
+and promotion retained both pairing identity and pair-identity mismatch reasons.
 
 The regression was first run red and failed as expected because the source
-manifest hash differed from the selected subset manifest. After the fix, the
+manifest identity differed from the selected subset manifest. After the fix, the
 regression and focused gate/verifier suite passed with 21 tests. Basedpyright
 reported 0 errors, 0 warnings, and 0 notes. Compileall and `git diff --check`
 both exited 0. Ruff wasn't available in the activated environment and wasn't
@@ -158,25 +146,19 @@ installed.
 ## Recovery Promotion Chain
 
 The original failed temporary fixture attempt is preserved. It made one remote
-request because `request_delay_seconds=1.0` was part of renderer config SHA-256
-`cb01219d76039a088d453a46b67ca1a316d94f0cf486438c85947812e9a469d6`,
-which selected cache key `ad347eb66b12107b3630f86ae399c411` instead of the
-pilot cache entry.
+request because `request_delay_seconds=1.0` was part of the renderer config
+identity, which selected a different cache key instead of the pilot cache entry.
 
 Recovery used the exact pilot renderer config: base URL
 `https://planimation.planning.domains`, timeout 90 seconds, request delay 0.0,
-and maximum attempts 3. Its config SHA-256 is
-`6c51ad1a5be2f0e5ca73f562f9392439520b01e4c5d4a8e0e8f08c2b7c78f5af`,
-and the fixture cache key is `45e2c4e6959e5c6b317384d94317d7b6`.
+and maximum attempts 3. Its config identity was recorded, and the fixture cache
+key was recorded.
 
 The clean recovery root ran a cache-only fixture first, then a cache-only
-changed-canary. The fixture covered 1 state. Its receipt file-byte SHA-256 is
-`d59677121f0b40b23df01b25e7802a7ccc1b30c3693ff5fbaf45b92ac92eed38`,
-while its embedded `receipt_sha256` self-hash is
-`0df245b600361967bb5c1e24f0cdf8912956356337df329b99e1fec79d153941`.
+changed-canary. The fixture covered 1 state. Its receipt file-byte identity and
+embedded receipt identity were both recorded.
 The changed-canary covered 39 states across 18 cache directories and produced
-receipt SHA-256
-`f82b4585eff12a14d38e2f018d77e49a5d14a5aba66701c6f9cf84eac06fdab9`.
+a receipt with a recorded identity.
 Both stages passed manifest, render, and release verification without an
 external network connection.
 
@@ -186,10 +168,9 @@ in the shell before generator output, with no connect syscall. The other omitted
 no state manifest, and made no network connection.
 
 The actual pilot promotion used the changed-canary receipt as its prior receipt.
-It ran once, exited 0, and produced the approved receipt SHA-256
-`1bef38d5571cd3e8276f4d925e13553475914fe0e51f3d459ec83a16c25694e7`.
+It ran once, exited 0, and produced the approved receipt.
 
-## Final Approved Counts and Hashes
+## Final Approved Counts and Identities
 
 The approved pilot has:
 
@@ -201,11 +182,11 @@ The approved pilot has:
 - Six domains: Blocksworld, Elevators, Ferry, Gripper, Logistics, and Towers of Hanoi.
 - `output_mode="production"`, `partial=false`, `production_complete=true`, and `skipped={}`.
 
-The frozen output hashes are:
+The frozen output identities are:
 
-- State manifest: `73c6c5519b20c531f7a8902438e0e8177ebc2202f67a9579bb2c44e219d9b22e`.
-- Hybrid manifest: `3083610ddc17f3950641d1c17023d8fff32ffc8aa71a73bbfc284e2c622b7bc7`.
-- Pairing manifest: `6f78c69ded1c6e765888bce5415e306157aa3b756d996a6de32b2d9d486e2b52`.
+- State manifest.
+- Hybrid manifest.
+- Pairing manifest.
 
 ## Preservation Proof
 

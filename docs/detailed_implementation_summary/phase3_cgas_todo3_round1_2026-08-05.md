@@ -2,9 +2,9 @@
 
 ## Scope
 
-Todo 3 now owns the approved trace-v2 candidate characterization lifecycle. The runner validates approval, candidate configuration, selector binding, predecessor/range/cursor state, and trace-v2 streams before read-only replay or side effects. It publishes immutable predecessor-linked checkpoints and atomically replaces the current index only after the complete accounting and characterization state is validated.
+Todo 3 now owns the approved trace-v2 candidate characterization lifecycle. The runner validates approval, candidate configuration, selector linkage, predecessor/range/cursor state, and trace-v2 streams before read-only replay or side effects. It publishes immutable predecessor-linked checkpoints and atomically replaces the current index only after the complete accounting and characterization state is validated.
 
-The BFS planner now caches canonical state IDs and maintains sorted visited IDs incrementally. The optimization preserves canonical trace bytes while avoiding repeated state hashing and whole-set sorting. BFS and IW use bounded-memory trace sinks, and each actual stream is persisted as `bfs.trace-v2.jsonl` or `iw.trace-v2.jsonl` with a trailer and hash chain.
+The BFS planner now caches canonical state IDs and maintains sorted visited IDs incrementally. The optimization preserves canonical trace bytes while avoiding repeated state identity computation and whole-set sorting. BFS and IW use bounded-memory trace sinks, and each actual stream is persisted as `bfs.trace-v2.jsonl` or `iw.trace-v2.jsonl` with a trailer and identity chain.
 
 ## Exact Commands
 
@@ -19,7 +19,7 @@ The first command completed with checkpoint `tmp/cgas-p0-characterized/checkpoin
 
 ## Results
 
-- Checkpoint SHA-256: `fa70f298d77834421f328fb56821e60e4cbd9d5324963251b2d88ba2e5134853`.
+- Checkpoint identity: `tmp/cgas-p0-characterized/checkpoints/reservoir_checkpoint_000001.json`.
 - Accounting: 481 rows, `emitted=281`, `duplicate=52`, `solved=148`.
 - Characterizations: 281 actual candidate rows; paired-exact reservoir: 53 rows and 34 signatures.
 - Cursors: `{4:190, 8:198, 12:93}`; all three streams remain non-exhausted.

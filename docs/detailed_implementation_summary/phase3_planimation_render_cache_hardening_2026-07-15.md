@@ -2,7 +2,7 @@
 
 Todo 3 makes replay-state rendering content-addressed and verifies every cached artifact before reuse. Profile selection now comes from the repository-managed curriculum configuration; historical render-result profile paths are not accepted as runtime inputs.
 
-Each cache result persists repository-relative `profile_path`, profile/domain/problem/state hashes, renderer configuration identity, derived-PDDL hash, VFG hash, PNG SHA-256, decoded dimensions, and the deterministic `nontransparent_pixels` semantic image check. A cache hit validates all of those values, reparses derived PDDL state, validates VFG structure, and decodes the PNG.
+Each cache result persists repository-relative `profile_path`, profile/domain/problem/state identities, renderer configuration identity, derived-PDDL text, VFG identity, PNG identity, decoded dimensions, and the deterministic `nontransparent_pixels` semantic image check. A cache hit validates all of those values, reparses derived PDDL state, validates VFG structure, and decodes the PNG.
 
 Raster ZIP extraction now validates all entries before writing. Only bounded PNG files contained within the requested output root are accepted; traversal paths, symlinks, oversized members, excessive compression, and excessive aggregate payloads are rejected.
 

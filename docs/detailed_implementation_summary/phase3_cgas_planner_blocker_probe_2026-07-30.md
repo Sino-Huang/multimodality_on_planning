@@ -8,7 +8,7 @@
 
 - The CLI accepts only a previously absent `tmp/cgas-planner-blocker-investigation-<token>/probe.json` target. It rejects traversal, symlinks, the CGAS state directory, evidence/draft locations, planning data, targets outside repository `tmp`, and occupied destinations.
 - The canonical `probe.json` excludes timing so identical runs produce identical bytes. `timings.jsonl` separately retains wall and CPU nanoseconds for each planner and repeat.
-- The record pins the final bundle, characterization member, and draft SHA-256 values before and after the probe; it also binds each source record, domain/problem PDDL, persisted `plan/sas_plan`, BFS implementation, IW implementation, replay result, full limits, statuses, counts, plan lengths, trace completeness, and disabled recovery.
+- The record pins the final bundle, characterization member, and draft identities before and after the probe; it also records each source record, domain/problem PDDL, persisted `plan/sas_plan`, BFS implementation, IW implementation, replay result, full limits, statuses, counts, plan lengths, trace completeness, and disabled recovery.
 - The record is explicitly `diagnostic_only: true` and `non_authoritative: true`. It contains no eligibility, approval, role, promotion, or publication field.
 - Repository source files are resolved canonically only after rejecting lexical traversal and every symlinked parent component. Output is created below a `tmp` descriptor and then published through the verified newly-created evidence-directory descriptor using `O_NOFOLLOW` and `O_EXCL`, so a later pathname replacement cannot redirect either file.
 - The 60-second SIGALRM limit is fresh-process-only: an active pre-existing `ITIMER_REAL` is rejected without changing its timer or handler. A handler without an active timer is restored after each planner invocation.
@@ -20,7 +20,7 @@ Retained execution evidence: `tmp/cgas-planner-blocker-investigation-20260730t10
 - Each persisted SAS plan replayed to its goal.
 - Canonical BFS reached `10001` expansions with `skipped_resource_limit` for all three rows.
 - Native unrecovered IW(1) exhausted novelty at 73 (dev), 71 (test), and 90 (train) expansions with `failed_no_plan_extracted` and no recovery.
-- The verified bundle, characterization member, and draft SHA-256 values were identical before and after the diagnostic run.
+- The verified bundle, characterization member, and draft identities were identical before and after the diagnostic run.
 
 ## Hardening Evidence
 

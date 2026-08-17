@@ -8,7 +8,7 @@ Todo 2 introduces `phase3_traversal_trace_v1` as the required nested trace contr
 
 ## Implementation
 
-- `scripts/phase3/trace_contracts.py` parses one Todo 1 frozen source row into typed traversal events with frozen source identity, supervision mode, planner, event kind/index, node and parent IDs, action, concrete-state source/hash, and planner metadata.
+- `scripts/phase3/trace_contracts.py` parses one Todo 1 frozen source row into typed traversal events with frozen source identity, supervision mode, planner, event kind/index, node and parent IDs, action, concrete-state source/identity, and planner metadata.
 - FF, GBFS, and IW events retain recorded concrete-state semantics. Graphplan proposition/action layers, mutexes, and extraction are emitted as `planner_semantics`; they do not claim a concrete state or frame.
 - Missing, malformed, legacy, unsupported-version, and `bfs` traces produce stable `trace_contract_exclusion: <reason>` errors. Pairing records malformed traces as ineligible and `build_vlm_records` rejects an unmatched trace event instead of falling back to plan-level reasoning.
 - The four local emitters stamp new traces with the contract version.

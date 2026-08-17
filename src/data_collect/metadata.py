@@ -8,7 +8,7 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Mapping
 
-from .hashing import DuplicateProblemHash
+from .normalization import DuplicateProblem
 
 
 RESULT_SCHEMA_VERSION = 1
@@ -16,7 +16,7 @@ SUMMARY_SCHEMA_VERSION = 1
 ACCEPTED_STATUS = "accepted"
 REJECTED_STATUS = "rejected"
 SUMMARY_STATUS = "summary"
-DUPLICATE_HASH_REASON = "duplicate_hash"
+DUPLICATE_PROBLEM_REASON = "duplicate_problem"
 
 
 def _validate_identifier_fragment(name: str, value: str) -> str:
@@ -82,10 +82,7 @@ class AcceptedInstanceMetadata:
     generator_cwd: str = ""
     stdout_path: str = ""
     stderr_path: str = ""
-    domain_hash: str = ""
-    normalized_domain_hash: str = ""
-    problem_hash: str = ""
-    normalized_problem_hash: str = ""
+    normalized_problem_text: str = ""
     render_status: str = ""
     render_artifact_paths: tuple[str, ...] = ()
     render_result_path: str = ""
@@ -136,10 +133,7 @@ class AcceptedInstanceMetadata:
             generator_cwd=str(payload.get("generator_cwd", "")),
             stdout_path=str(payload.get("stdout_path", "")),
             stderr_path=str(payload.get("stderr_path", "")),
-            domain_hash=str(payload.get("domain_hash", "")),
-            normalized_domain_hash=str(payload.get("normalized_domain_hash", "")),
-            problem_hash=str(payload.get("problem_hash", "")),
-            normalized_problem_hash=str(payload.get("normalized_problem_hash", "")),
+            normalized_problem_text=str(payload.get("normalized_problem_text", "")),
             render_status=str(payload.get("render_status", "")),
             render_artifact_paths=tuple(str(item) for item in payload.get("render_artifact_paths", ())),
             render_result_path=str(payload.get("render_result_path", "")),
@@ -169,8 +163,7 @@ class RejectedCandidateMetadata:
     rejection_reason: str = ""
     rejection_stage: str = ""
     message: str = ""
-    problem_hash: str = ""
-    normalized_problem_hash: str = ""
+    normalized_problem_text: str = ""
     duplicate_of_instance_id: str = ""
     generator_command: tuple[str, ...] = ()
     generator_cwd: str = ""
@@ -202,8 +195,7 @@ class RejectedCandidateMetadata:
             rejection_reason=str(payload.get("rejection_reason", "")),
             rejection_stage=str(payload.get("rejection_stage", "")),
             message=str(payload.get("message", "")),
-            problem_hash=str(payload.get("problem_hash", "")),
-            normalized_problem_hash=str(payload.get("normalized_problem_hash", "")),
+            normalized_problem_text=str(payload.get("normalized_problem_text", "")),
             duplicate_of_instance_id=str(payload.get("duplicate_of_instance_id", "")),
             generator_command=tuple(str(item) for item in payload.get("generator_command", ())),
             generator_cwd=str(payload.get("generator_cwd", "")),
@@ -221,7 +213,7 @@ class SummaryMetadata:
 
     accepted_total: int
     rejected_total: int
-    duplicate_accepted_problem_hashes: int
+    duplicate_accepted_problems: int
     domains_completed: int
     accepted_by_split: dict[str, int] = field(default_factory=dict)
     accepted_by_bucket: dict[str, int] = field(default_factory=dict)
@@ -237,7 +229,7 @@ class SummaryMetadata:
     def __post_init__(self) -> None:
         _validate_non_negative("accepted_total", self.accepted_total)
         _validate_non_negative("rejected_total", self.rejected_total)
-        _validate_non_negative("duplicate_accepted_problem_hashes", self.duplicate_accepted_problem_hashes)
+        _validate_non_negative("duplicate_accepted_problems", self.duplicate_accepted_problems)
         _validate_non_negative("domains_completed", self.domains_completed)
         _validate_non_negative("render_failed_accepted", self.render_failed_accepted)
         _validate_non_negative("resumed_accepted_total", self.resumed_accepted_total)
@@ -256,7 +248,7 @@ class SummaryMetadata:
         return cls(
             accepted_total=int(payload.get("accepted_total", 0)),
             rejected_total=int(payload.get("rejected_total", 0)),
-            duplicate_accepted_problem_hashes=int(payload.get("duplicate_accepted_problem_hashes", 0)),
+            duplicate_accepted_problems=int(payload.get("duplicate_accepted_problems", 0)),
             domains_completed=int(payload.get("domains_completed", 0)),
             accepted_by_split={str(key): int(value) for key, value in dict(payload.get("accepted_by_split", {})).items()},
             accepted_by_bucket={str(key): int(value) for key, value in dict(payload.get("accepted_by_bucket", {})).items()},
@@ -290,13 +282,12 @@ def build_duplicate_rejection(
     split: str,
     bucket: str,
     attempt_index: int,
-    normalized_problem_hash: str,
-    duplicate: DuplicateProblemHash,
+    normalized_problem_text: str,
+    duplicate: DuplicateProblem,
     seed: int | None = None,
-    problem_hash: str = "",
-    message: str = "Normalized problem hash already accepted in another split or bucket.",
+    message: str = "Normalized problem already accepted in another split or bucket.",
 ) -> RejectedCandidateMetadata:
-    """Build the canonical duplicate-hash rejection payload."""
+    """Build the canonical duplicate-problem rejection payload."""
 
     return RejectedCandidateMetadata(
         candidate_id=candidate_id,
@@ -305,18 +296,17 @@ def build_duplicate_rejection(
         bucket=bucket,
         attempt_index=attempt_index,
         seed=seed,
-        rejection_reason=DUPLICATE_HASH_REASON,
+        rejection_reason=DUPLICATE_PROBLEM_REASON,
         rejection_stage="dedupe",
         message=message,
-        problem_hash=problem_hash,
-        normalized_problem_hash=normalized_problem_hash,
+        normalized_problem_text=normalized_problem_text,
         duplicate_of_instance_id=duplicate.existing_instance_id,
         details={
             "existing_bucket": duplicate.existing_bucket,
             "existing_domain_id": duplicate.existing_domain_id,
             "existing_instance_id": duplicate.existing_instance_id,
             "existing_split": duplicate.existing_split,
-            "normalized_problem_hash": duplicate.normalized_problem_hash,
+            "normalized_problem_text": duplicate.normalized_problem_text,
         },
     )
 
@@ -325,7 +315,7 @@ def build_summary_metadata(
     *,
     accepted_instances: list[AcceptedInstanceMetadata],
     rejected_candidates: list[RejectedCandidateMetadata],
-    duplicate_accepted_problem_hashes: int = 0,
+    duplicate_accepted_problems: int = 0,
     resumed_accepted_total: int = 0,
     domains_completed: int | None = None,
     notes: str = "",
@@ -343,7 +333,7 @@ def build_summary_metadata(
     return SummaryMetadata(
         accepted_total=len(accepted_instances),
         rejected_total=len(rejected_candidates),
-        duplicate_accepted_problem_hashes=duplicate_accepted_problem_hashes,
+        duplicate_accepted_problems=duplicate_accepted_problems,
         domains_completed=completed_domains,
         accepted_by_split=dict(accepted_by_split),
         accepted_by_bucket=dict(accepted_by_bucket),
@@ -438,7 +428,7 @@ def write_summary_metadata(summary_path: Path, summary: SummaryMetadata) -> None
 
 __all__ = [
     "ACCEPTED_STATUS",
-    "DUPLICATE_HASH_REASON",
+    "DUPLICATE_PROBLEM_REASON",
     "AcceptedInstanceMetadata",
     "REJECTED_STATUS",
     "RESULT_SCHEMA_VERSION",

@@ -8,7 +8,7 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
 
-from .hashing import strip_pddl_comments
+from .normalization import strip_pddl_comments
 from .metadata import AcceptedInstanceMetadata
 
 

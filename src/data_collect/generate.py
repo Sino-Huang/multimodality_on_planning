@@ -12,9 +12,9 @@ from typing import Any, Mapping, Sequence
 from .adapters import GenerationSpec, GeneratorAdapter, GeneratorRejection, build_domain_registry
 from .config import CurriculumConfig, DomainConfig
 from .difficulty import DIFFICULTY_BUCKETS, hybrid_measured_percentile
-from .hashing import AcceptedProblemFingerprint, AcceptedProblemHashIndex, build_pddl_hash_info
+from .normalization import AcceptedProblemIdentity, AcceptedProblemIndex, normalize_pddl
 from .metadata import (
-    DUPLICATE_HASH_REASON,
+    DUPLICATE_PROBLEM_REASON,
     AcceptedInstanceMetadata,
     RejectedCandidateMetadata,
     SummaryMetadata,
@@ -96,16 +96,16 @@ def orchestrate_generation(
 
     accepted_instances: list[AcceptedInstanceMetadata] = list(existing_accepted)
     rejected_candidates: list[RejectedCandidateMetadata] = list(existing_rejections)
-    hash_index = AcceptedProblemHashIndex(
-        AcceptedProblemFingerprint(
-            normalized_problem_hash=instance.normalized_problem_hash,
+    problem_index = AcceptedProblemIndex(
+        AcceptedProblemIdentity(
+            normalized_problem_text=instance.normalized_problem_text,
             instance_id=instance.instance_id,
             domain_id=instance.domain_id,
             split=instance.split,
             bucket=instance.bucket,
         )
         for instance in existing_accepted
-        if instance.normalized_problem_hash
+        if instance.normalized_problem_text
     )
 
     next_attempt_index = _build_next_attempt_index(existing_accepted, existing_rejections, selected_domains, selected_splits)
@@ -136,7 +136,7 @@ def orchestrate_generation(
                 continue
 
             pool_candidates: list[AcceptedInstanceMetadata] = []
-            pool_by_hash: dict[str, AcceptedInstanceMetadata] = {}
+            pool_by_text: dict[str, AcceptedInstanceMetadata] = {}
             current_attempt_counts = {
                 bucket: historical_attempt_counts[(domain.domain_id, split, bucket)]
                 for bucket in DIFFICULTY_BUCKETS
@@ -217,18 +217,18 @@ def orchestrate_generation(
                         rejected_candidates.append(rendered_or_rejection)
                         continue
 
-                    hashed_candidate = _annotate_hashes(rendered_or_rejection)
+                    normalized_candidate = _annotate_identity(rendered_or_rejection)
                     duplicate_rejection = _check_duplicate_candidate(
-                        candidate=hashed_candidate,
-                        accepted_hash_index=hash_index,
-                        pool_by_hash=pool_by_hash,
+                        candidate=normalized_candidate,
+                        accepted_problem_index=problem_index,
+                        pool_by_text=pool_by_text,
                     )
                     if duplicate_rejection is not None:
                         rejected_candidates.append(duplicate_rejection)
                         continue
 
-                    pool_by_hash[hashed_candidate.normalized_problem_hash] = hashed_candidate
-                    pool_candidates.append(hashed_candidate)
+                    pool_by_text[normalized_candidate.normalized_problem_text] = normalized_candidate
+                    pool_candidates.append(normalized_candidate)
                     bucket_pool_count += 1
 
             measured_pool = hybrid_measured_percentile(pool_candidates) if pool_candidates else ()
@@ -251,9 +251,9 @@ def orchestrate_generation(
                 )
                 write_result_metadata(_accepted_result_path(resolved_output_root, finalized), finalized, force=force)
                 accepted_instances.append(finalized)
-                if finalized.normalized_problem_hash:
-                    hash_index.register(
-                        normalized_problem_hash=finalized.normalized_problem_hash,
+                if finalized.normalized_problem_text:
+                    problem_index.register(
+                        normalized_problem_text=finalized.normalized_problem_text,
                         instance_id=finalized.instance_id,
                         domain_id=finalized.domain_id,
                         split=finalized.split,
@@ -277,12 +277,12 @@ def orchestrate_generation(
                 "resumed_only": False,
             }
 
-    duplicate_accepted_problem_hashes = _count_duplicate_problem_hashes(accepted_instances)
+    duplicate_accepted_problems = _count_duplicate_problems(accepted_instances)
     domains_completed = _count_completed_domains(accepted_instances, selected_domains, selected_splits, resolved_quotas)
     summary = build_summary_metadata(
         accepted_instances=_sorted_accepted_instances(accepted_instances),
         rejected_candidates=_sorted_rejections(rejected_candidates),
-        duplicate_accepted_problem_hashes=duplicate_accepted_problem_hashes,
+        duplicate_accepted_problems=duplicate_accepted_problems,
         resumed_accepted_total=len(existing_accepted),
         domains_completed=domains_completed,
         extra={
@@ -453,8 +453,8 @@ def _derive_candidate_seed(
     if span <= 0:
         raise ValueError("seed_range must span at least one integer")
     token = f"{seed}:{domain_id}:{split}:{target_bucket}:{attempt_index}"
-    hashed = sum((index + 1) * ord(character) for index, character in enumerate(token))
-    return int(seed_range.start) + (hashed % span)
+    folded = sum((index + 1) * ord(character) for index, character in enumerate(token))
+    return int(seed_range.start) + (folded % span)
 
 
 def _build_generation_rejection(
@@ -483,26 +483,21 @@ def _build_generation_rejection(
     )
 
 
-def _annotate_hashes(candidate: AcceptedInstanceMetadata) -> AcceptedInstanceMetadata:
-    domain_hash_info = build_pddl_hash_info(Path(candidate.domain_path).read_text(encoding="utf-8"))
-    problem_hash_info = build_pddl_hash_info(Path(candidate.problem_path).read_text(encoding="utf-8"))
+def _annotate_identity(candidate: AcceptedInstanceMetadata) -> AcceptedInstanceMetadata:
     return replace(
         candidate,
-        domain_hash=domain_hash_info.raw_sha256,
-        normalized_domain_hash=domain_hash_info.normalized_sha256,
-        problem_hash=problem_hash_info.raw_sha256,
-        normalized_problem_hash=problem_hash_info.normalized_sha256,
+        normalized_problem_text=normalize_pddl(Path(candidate.problem_path).read_text(encoding="utf-8")),
     )
 
 
 def _check_duplicate_candidate(
     *,
     candidate: AcceptedInstanceMetadata,
-    accepted_hash_index: AcceptedProblemHashIndex,
-    pool_by_hash: Mapping[str, AcceptedInstanceMetadata],
+    accepted_problem_index: AcceptedProblemIndex,
+    pool_by_text: Mapping[str, AcceptedInstanceMetadata],
 ) -> RejectedCandidateMetadata | None:
-    if candidate.normalized_problem_hash in pool_by_hash:
-        existing = pool_by_hash[candidate.normalized_problem_hash]
+    if candidate.normalized_problem_text in pool_by_text:
+        existing = pool_by_text[candidate.normalized_problem_text]
         return RejectedCandidateMetadata(
             candidate_id=candidate.candidate_id,
             domain_id=candidate.domain_id,
@@ -510,11 +505,10 @@ def _check_duplicate_candidate(
             bucket=candidate.bucket,
             attempt_index=candidate.attempt_index,
             seed=candidate.seed,
-            rejection_reason=DUPLICATE_HASH_REASON,
+            rejection_reason=DUPLICATE_PROBLEM_REASON,
             rejection_stage=DEDUPE_REJECTION_STAGE,
-            message="Normalized problem hash already exists in the current candidate pool.",
-            problem_hash=candidate.problem_hash,
-            normalized_problem_hash=candidate.normalized_problem_hash,
+            message="Normalized problem already exists in the current candidate pool.",
+            normalized_problem_text=candidate.normalized_problem_text,
             duplicate_of_instance_id=existing.candidate_id,
             generator_command=candidate.generator_command,
             generator_cwd=candidate.generator_cwd,
@@ -522,12 +516,12 @@ def _check_duplicate_candidate(
             stderr_path=candidate.stderr_path,
             details={
                 "existing_candidate_id": existing.candidate_id,
-                "normalized_problem_hash": candidate.normalized_problem_hash,
+                "normalized_problem_text": candidate.normalized_problem_text,
                 "source": "candidate_pool",
             },
         )
 
-    existing = accepted_hash_index.get(candidate.normalized_problem_hash)
+    existing = accepted_problem_index.get(candidate.normalized_problem_text)
     if existing is None:
         return None
 
@@ -538,11 +532,10 @@ def _check_duplicate_candidate(
         bucket=candidate.bucket,
         attempt_index=candidate.attempt_index,
         seed=candidate.seed,
-        rejection_reason=DUPLICATE_HASH_REASON,
+        rejection_reason=DUPLICATE_PROBLEM_REASON,
         rejection_stage=DEDUPE_REJECTION_STAGE,
-        message="Normalized problem hash already accepted in an existing output.",
-        problem_hash=candidate.problem_hash,
-        normalized_problem_hash=candidate.normalized_problem_hash,
+        message="Normalized problem already accepted in an existing output.",
+        normalized_problem_text=candidate.normalized_problem_text,
         duplicate_of_instance_id=existing.instance_id,
         generator_command=candidate.generator_command,
         generator_cwd=candidate.generator_cwd,
@@ -553,7 +546,7 @@ def _check_duplicate_candidate(
             "existing_domain_id": existing.domain_id,
             "existing_instance_id": existing.instance_id,
             "existing_split": existing.split,
-            "normalized_problem_hash": existing.normalized_problem_hash,
+            "normalized_problem_text": existing.normalized_problem_text,
             "source": "accepted_outputs",
         },
     )
@@ -570,8 +563,7 @@ def _build_selection_rejection(candidate: AcceptedInstanceMetadata) -> RejectedC
         rejection_reason=SELECTION_NOT_SELECTED_REASON,
         rejection_stage=SELECTION_REJECTION_STAGE,
         message="Candidate passed generation and rendering but was not selected for measured-difficulty quotas.",
-        problem_hash=candidate.problem_hash,
-        normalized_problem_hash=candidate.normalized_problem_hash,
+        normalized_problem_text=candidate.normalized_problem_text,
         generator_command=candidate.generator_command,
         generator_cwd=candidate.generator_cwd,
         stdout_path=candidate.stdout_path,
@@ -633,10 +625,7 @@ def _finalize_selected_candidate(
         generator_cwd=candidate.generator_cwd,
         stdout_path=str(final_dir / Path(candidate.stdout_path).name),
         stderr_path=str(final_dir / Path(candidate.stderr_path).name),
-        domain_hash=candidate.domain_hash,
-        normalized_domain_hash=candidate.normalized_domain_hash,
-        problem_hash=candidate.problem_hash,
-        normalized_problem_hash=candidate.normalized_problem_hash,
+        normalized_problem_text=candidate.normalized_problem_text,
         render_status=candidate.render_status,
         render_artifact_paths=tuple(_rebase_path(path, source_root=staging_dir, target_root=final_dir) for path in candidate.render_artifact_paths),
         render_result_path=_rebase_path(candidate.render_result_path, source_root=staging_dir, target_root=final_dir),
@@ -716,8 +705,8 @@ def _write_jsonl(path: Path, payloads: Sequence[Mapping[str, Any]]) -> None:
     path.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")
 
 
-def _count_duplicate_problem_hashes(instances: Sequence[AcceptedInstanceMetadata]) -> int:
-    counts = Counter(instance.normalized_problem_hash for instance in instances if instance.normalized_problem_hash)
+def _count_duplicate_problems(instances: Sequence[AcceptedInstanceMetadata]) -> int:
+    counts = Counter(instance.normalized_problem_text for instance in instances if instance.normalized_problem_text)
     return sum(count - 1 for count in counts.values() if count > 1)
 
 

@@ -1,13 +1,13 @@
-# Phase 3 CGAS Persisted Alignment Acceptance Binding
+# Phase 3 CGAS Persisted Alignment Acceptance
 
 ## Change
 
 Todo 4 now accepts alignment rows only after Todo 3's persisted-output verifier
-confirms the manifest and source-derived row bindings. The verifier rejects a
-missing or malformed manifest, incorrect manifest source/alignment digest or
+confirms the manifest and source-derived row matches. The verifier rejects a
+missing or malformed manifest, incorrect manifest source/alignment identity or
 counts, malformed schema, missing/duplicate/unknown source transitions,
-action/state/split/status/index divergence, unreadable PNG paths, and PNG hash
-divergence. `render_manifest_digest` remains required as a structural SHA-256
+action/state/split/status/index divergence, unreadable PNG paths, and PNG identity
+divergence. The render-manifest identity remains required as a structural
 value because Todo 4 has no render-manifest input from which to recompute it.
 
 Both `build_steps()` and `verify_steps()` invoke the gate before constructing
@@ -26,6 +26,6 @@ git diff --check
 The focused suite reports `55 passed`. Basedpyright reports zero errors,
 warnings, and notes. A fresh CLI build and verification of the retained fixture
 accept 12 rows with all counters zero. A copied alignment fixture with only a
-tampered `alignment_digest` fails verify with zero accepted rows and
+tampered alignment identity fails verify with zero accepted rows and
 `alignment_manifest_mismatch`. Receipts are in
 `.omo/evidence/task-4-cgas-dataloader-and-experiment-support/remediation-7/`.

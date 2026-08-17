@@ -8,8 +8,8 @@ Stage A/B builds a local, canonical characterization of the 481 accepted Blocksw
 
 - Input rows are parsed with `AcceptedInstanceMetadata.from_dict` from `data/curriculum_pddl/accepted_manifest.jsonl`.
 - The population assertion is 481 total, split 402 train/39 dev/40 test, and PDDL object counts 4:190/8:198/12:93.
-- Records retain source-record, domain, and problem SHA-256 digests; PDDL-derived init/goal stack descriptors; and a name-invariant composition signature.
-- Metrics use canonical FIFO BFS and exact width-1 local IW. Planner records bind limits and implementation metadata while exposing a typed characterization outcome, exact-search metrics, retained-trace metadata, and source eligibility as separate facts.
+- Records retain source-record, domain, and problem identities; PDDL-derived init/goal stack descriptors; and a name-invariant composition signature.
+- Metrics use canonical FIFO BFS and exact width-1 local IW. Planner records carry limits and implementation metadata while exposing a typed characterization outcome, exact-search metrics, retained-trace metadata, and source eligibility as separate facts.
 - Failure records remain in the artifact with a stable reason. `partition` is always null.
 
 ## Verification

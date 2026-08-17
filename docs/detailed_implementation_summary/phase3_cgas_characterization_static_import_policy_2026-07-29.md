@@ -6,10 +6,10 @@ The immutable characterization run contract resolves repository-local imports fr
 
 ## Policy
 
-- Reject direct or aliased `exec`, `eval`, `compile`, dynamic import functions, import-sensitive `getattr`, `vars`, `globals`, and `locals` access. Canonicalize Python's implicit `__builtins__` binding to `builtins` before alias propagation, closing direct and assignment-chain reflection paths to `__import__` and dynamic-code functions.
+- Reject direct or aliased `exec`, `eval`, `compile`, dynamic import functions, import-sensitive `getattr`, `vars`, `globals`, and `locals` access. Canonicalize Python's implicit `__builtins__` name to `builtins` before alias propagation, closing direct and assignment-chain reflection paths to `__import__` and dynamic-code functions.
 - Reject reflected access to `importlib` import functions, `sys.path`, `os.environ`, and site path injection helpers with stable typed reasons.
 - Permit literal reflection unrelated to import resolution, such as platform capability constants.
-- Keep standard-library and site-package modules out of the closure; bind only sorted repository-relative source files.
+- Keep standard-library and site-package modules out of the closure; include only sorted repository-relative source files.
 
 ## Verification
 

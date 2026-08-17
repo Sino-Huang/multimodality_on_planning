@@ -28,14 +28,14 @@ Rendering produces one pre-action frame per plan action and one terminal diagnos
 
 Each pair reloads its source row from the frozen source root and records:
 
-- `source_root_id` and `source_root_sha256`
+- `source_root_id` and the source root identity
 - root-relative `source_jsonl` and physical `source_line_index`
-- `source_record_sha256` and `source_split_sha256`
-- `pair_id`, `example_id`, `plan_hash`, planner, split, and instance identity
+- the source record identity and source split identity
+- `pair_id`, `example_id`, plan identity, planner, split, and instance identity
 
 The required traversal contract is `phase3_traversal_trace_v1` for FF, GBFS, IW, and Graphplan. Missing, malformed, legacy, unsupported-version, and legacy `bfs` traces are controlled exclusions. There is no compatibility alias, inferred version, or plan-level fallback.
 
-Rollout preparation freezes selected pair IDs and the same source-root, JSONL, line, record, planner, split, domain, and plan-length identity. The selection receives its own SHA-256 and the input pairing-manifest SHA-256 before rendering.
+Rollout preparation freezes selected pair IDs and the same source-root, JSONL, line, record, planner, split, domain, and plan-length identity. The selection receives its own identity and the input pairing-manifest identity before rendering.
 
 ## Concrete State and Graphplan Boundary
 
@@ -45,13 +45,13 @@ Graphplan proposition layers, action layers, mutexes, and extraction events are 
 
 ## Render, Cache, and Semantic Gates
 
-The render cache identity includes the managed profile path and SHA-256, domain and problem hashes, concrete state hash, renderer configuration, schema identity, derived-PDDL hash, VFG hash, PNG hash, and decoded dimensions. A cache hit is accepted only after those receipts, the derived state, VFG structure, PNG decoding, and semantic image checks pass. Stale metadata or a corrupt image forces a rerender.
+The render cache identity includes the managed profile path and identity, domain and problem text, concrete state key, renderer configuration, schema identity, derived-PDDL text, VFG identity, PNG identity, and decoded dimensions. A cache hit is accepted only after those receipts, the derived state, VFG structure, PNG decoding, and semantic image checks pass. Stale metadata or a corrupt image forces a rerender.
 
 Raster archive extraction rejects escaping paths, symlinks, non-PNG members, oversized members, excessive compression, and excessive aggregate payloads before writing any member.
 
 Semantic image validation decodes each PNG, validates stage-zero VFG sprite geometry, and rejects malformed, boolean, nonnumeric, out-of-canvas, degenerate, or coincident bounds. Each required sprite needs at least 1 percent non-background coverage inside its projected image bounds.
 
-Render verification requires exactly `plan_length + 1` successful state renders for each training-eligible pair. Release verification also checks artifact hashes, strict record validation, split isolation, unique IDs, expected pair coverage, and reconciled manifest counts.
+Render verification requires exactly `plan_length + 1` successful state renders for each training-eligible pair. Release verification also checks artifact identities, strict record validation, split isolation, unique IDs, expected pair coverage, and reconciled manifest counts.
 
 ## Generator and Verifier Modes
 
@@ -67,13 +67,13 @@ Render verification requires exactly `plan_length + 1` successful state renders 
 
 - `--mode manifest` validates the nonempty pairing manifest, schema, strict pair records, and immutable source reload.
 - `--mode render` adds render reports, the hybrid output manifest, state-render records, semantic image receipts, and exact render cardinality.
-- `--mode release` adds both strict schemas, all six split JSONL files, production-complete policy, artifacts and hashes, split isolation, IDs, coverage, and count reconciliation.
+- `--mode release` adds both strict schemas, all six split JSONL files, production-complete policy, artifacts and identities, split isolation, IDs, coverage, and count reconciliation.
 
 ## Rollout Stages and Receipts
 
 `scripts/phase3/rollout_gates.py prepare` freezes a deterministic selection. `assess` requires selection integrity, release-mode verification, stage coverage, and any required prior approved receipt. The ordered stages are `fixture`, `changed-canary`, `stratified-pilot`, `complete-domain`, and `frozen-full`.
 
-The approved fixture receipt records one pair, two state renders, one train full record, one train step record, verified semantic image QA, and hashes for the hybrid output and state-render manifests. Its evidence root is `tmp/phase3_release_fixture_task9_fixture_cli_20260715`.
+The approved fixture receipt records one pair, two state renders, one train full record, one train step record, verified semantic image QA, and identities for the hybrid output and state-render manifests. Its evidence root is `tmp/phase3_release_fixture_task9_fixture_cli_20260715`.
 
 The active-source changed-canary receipt is blocked. `tmp/phase3_task9_active_probe_20260715/reports/pairing_summary.json` records 688 pairs and `training_eligible=0`; all 688 have `trace_contract_exclusion:missing_required_field: trace_contract_version`. Its frozen selection has no pair IDs, and its promotion receipt is not approved. No active-source canary image or contact sheet exists, so none is claimed.
 

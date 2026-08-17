@@ -2,9 +2,9 @@
 
 ## Change
 
-Checkpoints now retain each canonical characterization row as canonical JSON text alongside its digest. Work verification validates checkpoint structure, bindings, canonical row text, and row digest without invoking the characterization kernel. Assembly consumes the verified checkpoint rows in checkpoint-index order.
+Checkpoints now retain each canonical characterization row as canonical JSON text alongside its identity. Work verification validates checkpoint structure, linkages, canonical row text, and row identity without invoking the characterization kernel. Assembly consumes the verified checkpoint rows in checkpoint-index order.
 
-Final candidate verification remains authoritative: it recomputes every contract row once and applies final row, replay, policy, and manifest validation. Final publication uses that verified candidate result, then validates the generated anonymous bundle's fingerprint and inode/durability state without repeating the scientific recomputation.
+Final candidate verification remains authoritative: it recomputes every contract row once and applies final row, replay, policy, and manifest validation. Final publication uses that verified candidate result, then validates the generated anonymous bundle's identity and inode/durability state without repeating the scientific recomputation.
 
 ## Verification
 

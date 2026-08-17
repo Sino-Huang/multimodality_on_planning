@@ -6,14 +6,14 @@
 
 ## Sound Feasibility Boundary
 
-The verified `planning_cgas_v1-characterization-481.cgas` bundle remains SHA-256 `942d7be93ad0eb0ec6580bfe380fb8f09141662140ffc3d3c98e7f09a10ddaf4` after analysis.
+The verified `planning_cgas_v1-characterization-481.cgas` bundle remains unchanged (byte-identical) after analysis.
 
 - Actual paired-exact eligibility is 24 rows, 10 composition signatures, and object distribution `((4, 24),)`.
 - Every 12-object row is ineligible. `structural_ood_ineligible` is therefore an authoritative current blocker.
 - Structural OOD, exact-39 calibration, and dev/test feasibility are `indeterminate_non_exact_metrics` until successor paired-exact metrics exist. Bounded/non-exact values cannot soundly stand in for those successor values.
 - The earlier 409 OOD, 127 OOD-signature, 72 residual, 11 residual-group, and 33 post-calibration figures are retracted as feasibility conclusions. They depended on bounded/non-exact metrics and are no longer reported, including `dev_test_minimum_unavailable`.
 
-The report imports only the selector's existing paired-exact predicate and grouping semantics. The selector source remains byte-identical because its owner-review draft includes an implementation digest; its real-bundle regression proves the prior draft output remains unchanged.
+The report imports only the selector's existing paired-exact predicate and grouping semantics. The selector source remains byte-identical because its owner-review draft includes an implementation identity; its real-bundle regression proves the prior draft output remains unchanged.
 
 ## Verification
 

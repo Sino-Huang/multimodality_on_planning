@@ -33,7 +33,7 @@ All active pairing and release modules remain below 250 lines. `git diff --check
 
 ## Follow-Up: Rollout JSON Contracts
 
-`scripts/phase3/io_utils.py` now has a narrow `JSONValue`/`JSONRecord` boundary. `read_jsonl` rejects any non-object row with a controlled path-and-line error, while `read_json_object` provides the same object contract for selection and promotion receipt files. `write_jsonl` and `write_json` accept only object records; `stable_hash` remains intentionally capable of hashing all JSON values.
+`scripts/phase3/io_utils.py` now has a narrow `JSONValue`/`JSONRecord` boundary. `read_jsonl` rejects any non-object row with a controlled path-and-line error, while `read_json_object` provides the same object contract for selection and promotion receipt files. `write_jsonl` and `write_json` accept only object records; the stable identity helper remains intentionally capable of handling all JSON values.
 
 `prepare_selection` validates every persisted pairing record through `validate_pair_record` before filtering eligibility, sorting, counting transitions, or writing `rollout_selection.json`. This rejects boolean integers and unsupported active planner identities such as legacy `bfs` at selection time, rather than leaving rejection to the release verifier. Selection arithmetic no longer calls `int(...)` on persisted values.
 

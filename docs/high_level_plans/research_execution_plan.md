@@ -40,7 +40,7 @@ The execution sequence is intentionally narrow, and its ordering principle is no
 |---|---|---|
 | Deterministic symbolic Blocksworld benchmark, expert traces, PDDL generation | Complete | `scripts/phase3/`, 159 modules |
 | BFS-vs-GBFS provenance decision | **Resolved.** P0 systematic search is canonical FIFO BFS. | `scripts/phase3/cgas_bfs.py` |
-| Aligned pre-action renders, replay-valid transitions, semantic verifier, versioned provenance | **Complete and released** at fixture scale | `data/planning_cgas_v1`, release digest `3bc89431…6b3c`, archived byte-for-byte at `data/planning_cgas_fixture_v1` |
+| Aligned pre-action renders, replay-valid transitions, semantic verifier, versioned provenance | **Complete and released** at fixture scale | `data/planning_cgas_v1`, archived byte-for-byte at `data/planning_cgas_fixture_v1` |
 | Typed BFS and IW certificates in the released schema | **Complete** | `cgas_certificates.py`, `cgas_certificate_contracts.py` |
 | One-invariant counterfactual generator with contract tests | **Complete** — 3-4 counterfactuals per row | `tests/phase3/test_cgas_counterfactuals.py` |
 | No-oracle-leakage contract | **Complete**, and already forward-declares `route_label`, `scaffold_costs`, `memory_payload` | `cgas_certificate_contracts.ORACLE_FIELDS` |
@@ -166,7 +166,7 @@ Four owner decisions, taken on the evidence above:
 
 | # | Decision | Consequence |
 |---|---|---|
-| 1 | **Raise IW to true iterative width 1→2** rather than decoupling the planner arms | Makes `width_decision` a real invariant; lifts the yield that gates the corpus; invalidates the frozen policy digest and the existing streams |
+| 1 | **Raise IW to true iterative width 1→2** rather than decoupling the planner arms | Makes `width_decision` a real invariant; lifts the yield that gates the corpus; invalidates the frozen policy and the existing streams |
 | 2 | **Drop the three redundant BFS snapshot fields** from persistence | 2.25 TB per round becomes ~6.6 GB; makes regeneration affordable, which is what makes decision 1 affordable |
 | 3 | **No starVLA — this is a VLM study. Three backbones, not four** | Phase 4 moves to a standalone `planning_vlm/` package; generalization evidence for reviewers without 4x the runtime work |
 | 4 | **Re-derive corpus scale from experiment needs** rather than holding 481 | `EXPECTED_*` selector constants become derived quantities, re-specified under a corrected planner |
@@ -224,7 +224,7 @@ decision 1.
 
 ### Two measurement hazards that would corrupt the result
 
-- **The expansion cap can bind at n=12 and read as a planner result.**
+- **The expansion cap can engage at n=12 and read as a planner result.**
   `DEFAULT_LIMITS["local_iw_novelty_max_expansions"]` is 10,000
   (`cgas_partition_contracts.py:15-27`), while the atom-pair universe bound on the width-2 novelty
   table reaches 325 / 3,321 / **14,365** for n=4/8/12. At n=12 the cap can trip before novelty
@@ -232,7 +232,7 @@ decision 1.
   count that matters most for corpus scale. The probe must pass its own limits mapping with that
   cap raised. It must **not** edit `DEFAULT_LIMITS`, which is contract surface, nor
   `local_iw_max_width`, which is 1 there.
-  *Measured 2026-08-07: the hazard did not bind on these instances — the largest width-2 run was
+  *Measured 2026-08-07: the hazard did not engage on these instances — the largest width-2 run was
   8,851 expansions — but it was real to guard against, and the cap is still raised in v3 as margin.*
 - **"Exact" here is not optimality.** `_planner_record` (`cgas_characterization_rows.py:143-147`)
   defines IW-exact as `"plan_recovery" not in trace` — solved by pure novelty search without falling
@@ -278,7 +278,7 @@ One new persistence contract carrying every known defect, one owner approval, on
   bound, escalation policy, approval path, and characterization runner are implemented.
 - Isolated round 1 regenerated at `tmp/cgas-p0-characterized-v3`: 281 characterized candidates,
   158 paired-exact rows, 562 verified streams, and 3,000,099,088 stream bytes in 7:46.76 wall time.
-- Exact replay was read-only and all checkpoint/current/stream hashes remained byte-identical.
+- Exact replay was read-only and all checkpoint/current/stream files remained byte-identical.
 - The bounded overlap comparison checked 22,036 BFS events across 24 deterministic streams and all
   14,252 bound v2 IW events. Retained fields and certificate semantics had zero mismatches; the only
   summary movement was the approved IW lift (112 new exact successes, zero regressions).
@@ -292,7 +292,7 @@ accounting, and all 1,116 v2 stream files remain immutable evidence. Any later r
 ### Gate
 
 **PASSED 2026-08-09.** Every regenerated stream verifies under v3; checkpoint/approval/contract/
-policy bindings are explicit; replay is byte-identical; and bounded overlapping certificate
+policy links are explicit; replay is byte-identical; and bounded overlapping certificate
 semantics match with zero unexplained mismatches. Evidence:
 `.claude/evidence/cgas-trace-contract-v3/gate0b-round1-2026-08-09/`.
 
@@ -343,7 +343,7 @@ than only from the replayed plan cuts the instance count from 306 to 6 at the lo
 renders track rows, and the row target is set by the matrix regardless of harvesting mode: 1,598
 renders at ≥10/40%, 4,795 at ≥30/40%, either way. The lever acts on enumeration, planning, and BFS
 tracing — not on the external render service. And 4–18 instances is not a usable pilot: the matrix
-stratifies by object count, so an **instance-diversity floor binds independently** of the
+stratifies by object count, so an **instance-diversity floor applies independently** of the
 observations-per-cell bar, and nothing in the repo states it. Both numbers are needed before this
 phase can be planned.
 
@@ -533,7 +533,7 @@ policy chooses one action target for an off-plan expansion; the pending decision
    source manifest and row-budget contract are under `.claude/evidence/cgas-phase3-pilot-manifest/`.
 7. ~~Materialize the approved pilot certificate-source index and audit existing render coverage.~~
    **Done 2026-08-09.** The non-release index has 31,171 rows (790 replay-plan, 30,381 off-plan-only);
-   all 16,822 unique states need rendering. Digest-bound evidence is under
+   all 16,822 unique states need rendering. Evidence for the resumable path is under
    `.claude/evidence/cgas-phase3-pilot-materialization/`.
 8. Resolve the off-plan action-target policy before creating Qwen rows — a separate gate that
     does not block state-only rendering. Render the canonical missing-state request, align
@@ -561,15 +561,15 @@ policy chooses one action target for an off-plan expansion; the pending decision
     and the attempt-002 handoff. **Backend selected 2026-08-12: the pinned local backend.** The
     adapter/problem-writer canonical `b1..bN` + July formatting patch is complete, tested, and
     reviewed/integrated by `b9e2e65` with Ruff closure `020b812`; do not reopen it. The owner
-    approved the exact pinned commit `94d82afb…` (`v0.1.7`), the local digest/provenance contract
+    approved the exact pinned commit `94d82afb…` (`v0.1.7`), the local provenance contract
     (local bytes are not expected to match hosted bytes), and the GPL-separated maintainability
     model, and authorized future localhost validation of the integrated adapter/`StateRenderer`.
     Exact remaining sequence before the production-render unblock: (1) validate the integrated
     adapter/`StateRenderer` against localhost; (2) pass the mapping-bound 8-object AND
-    non-empty-goal 12-object localhost production-path smokes with full VFG→PNG→semantic/digest/
+    non-empty-goal 12-object localhost production-path smokes with full VFG→PNG→semantic/
     provenance validation, one bounded execution path, no hosted request or fallback — these
     smokes are defined in prose only and require separate execution authorization; (3) obtain
-    explicit owner/operator authorization for the digest-bound resumable 16,822-state render. The
+    explicit owner/operator authorization for the resumable 16,822-state render. The
     hosted operator command remains non-executable and superseded as the selected backend path; no
     production render or replay alignment has started; coverage is 0/16,822. Evidence:
     `.claude/evidence/cgas-phase3-pilot-rendering/verification-20260811-regression-replays.md`.
@@ -578,14 +578,14 @@ policy chooses one action target for an off-plan expansion; the pending decision
 11. Remaining gates before the first direct-VLM calibration training smoke, in order: (1)
     validate the integrated adapter/`StateRenderer` against localhost — the adapter/problem-writer
     canonical `b1..bN` + July formatting patch is complete and integrated (`b9e2e65`, Ruff closure
-    `020b812`); the pinned local backend (`94d82afb…`, `v0.1.7`), local digest/provenance contract,
+    `020b812`); the pinned local backend (`94d82afb…`, `v0.1.7`), local provenance contract,
     and GPL-separated maintainability model were approved by the owner on 2026-08-12; (2) pass the
     mapping-bound 8-object and non-empty-goal 12-object localhost production-path smokes with full
-    VFG→PNG→semantic/digest/provenance validation, one bounded execution path, no hosted request or
+    VFG→PNG→semantic/provenance validation, one bounded execution path, no hosted request or
     fallback — defined in prose only, separate execution authorization required; (3) obtain
-    explicit owner/operator authorization; (4) complete the digest-bound resumable 16,822-state
-    render; (5) perform 790-row replay alignment with accepted-byte binding and `verify_steps`;
-    (6) authorize and complete the pilot-corpus digest-bound release; (7) create the direct-VLM
+    explicit owner/operator authorization; (4) complete the resumable 16,822-state
+    render; (5) perform 790-row replay alignment with accepted-byte freezing and `verify_steps`;
+    (6) authorize and complete the pilot-corpus resumable release; (7) create the direct-VLM
     calibration configuration and the first-certificate-failure evaluation command. Authorization
     (3) is an owner decision taken after prerequisites (1)–(2) pass; it is not a substitute for
     them, and further proof runs do not discharge it.

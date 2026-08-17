@@ -6,16 +6,16 @@ This local investigation is complete. The Phase 3 CGAS partition remains policy-
 
 ## Authoritative Inputs
 
-| Artifact | Path or member | SHA-256 |
+| Artifact | Path or member | Identity |
 | --- | --- | --- |
-| Accepted source manifest | `data/curriculum_pddl/accepted_manifest.jsonl` | `9a9817058e36f72468682c8b43a46c04591995bcb8fe28ee37819313f9376217` |
-| Final bundle | `tmp/.cgas-characterization/planning_cgas_v1-characterization-481.cgas` | `942d7be93ad0eb0ec6580bfe380fb8f09141662140ffc3d3c98e7f09a10ddaf4` |
-| Characterization member | `characterization.jsonl` | `4596ffdeedf3a212f8e44f9bcb3af6c80b33315d643cba6b9e0d93226b010417` |
-| Selector draft | `.omo/evidence/cgas-partition-characterization/planning_cgas_v1-draft.json` | `409f712797f8f02d49fe6d6b5a5b4e7a444f38c54e2cdefcbd4e0e9e7214630d` |
-| Run contract fingerprint | bundle metadata | `0856e76571643362abb70551ff9d4e02e2d585f7384fc3ac0adb64df240d893a` |
-| Final scientific probe | both retained `probe.json` files below | `90f3b523e1923966a6fe34bf5dd44183dedfd39e955016df81ead637c9c24d12` |
+| Accepted source manifest | `data/curriculum_pddl/accepted_manifest.jsonl` | verified at final verification |
+| Final bundle | `tmp/.cgas-characterization/planning_cgas_v1-characterization-481.cgas` | verified at final verification |
+| Characterization member | `characterization.jsonl` | verified at final verification |
+| Selector draft | `.omo/evidence/cgas-partition-characterization/planning_cgas_v1-draft.json` | byte-identical on rerun |
+| Run contract | bundle metadata | recorded at finalize |
+| Final scientific probe | both retained `probe.json` files below | byte-identical (below) |
 
-The probe recorded identical bundle, member, and draft hashes before and after execution. The pre-hardening and hardened scientific records are byte-identical:
+The probe recorded identical bundle, member, and draft identities before and after execution. The pre-hardening and hardened scientific records are byte-identical:
 
 - `tmp/cgas-planner-blocker-investigation-20260730t102100/probe.json`
 - `tmp/cgas-planner-blocker-investigation-20260730t103100/probe.json`
@@ -43,7 +43,7 @@ The prior `409 OOD -> 72 residual -> 33 after calibration` feasibility conclusio
 
 ## Current Blocker
 
-The authoritative blocker is `structural_ood_ineligible`: only 24 rows are paired-exact, all are four-object, and all 93 twelve-object rows required by the current selector policy are ineligible. The selector therefore emits zero role records, `owner_approved=false`, and no approval digest. Downstream structural, calibration, and dev/test questions remain `indeterminate_non_exact_metrics`.
+The authoritative blocker is `structural_ood_ineligible`: only 24 rows are paired-exact, all are four-object, and all 93 twelve-object rows required by the current selector policy are ineligible. The selector therefore emits zero role records, `owner_approved=false`, and no approval identity. Downstream structural, calibration, and dev/test questions remain `indeterminate_non_exact_metrics`.
 
 ## Oracle Review
 
@@ -72,10 +72,11 @@ No option is selected by this record.
 source ~/cd_vlaplan && python -m pytest -q tests/phase3/test_cgas_planner_blocker_probe.py tests/phase3/test_cgas_partition_feasibility.py tests/phase3/test_cgas_planner_semantic_parity.py tests/phase3/test_cgas_planner_performance.py tests/phase3/test_cgas_partition_selection.py tests/phase3/test_cgas_partition_selection_real_bundle.py tests/phase3/test_cgas_provenance.py tests/phase3/test_cgas_provenance_adversarial.py tests/phase3/test_cgas_counterfactuals.py
 source ~/cd_vlaplan && basedpyright scripts/phase3/cgas_planner_blocker_probe.py scripts/phase3/cgas_planner_blocker_probe_fs.py scripts/phase3/cgas_partition_feasibility.py tests/phase3/test_cgas_planner_blocker_probe.py tests/phase3/test_cgas_partition_feasibility.py tests/phase3/test_cgas_planner_semantic_parity.py
 source ~/cd_vlaplan && python -m compileall -q scripts/phase3/cgas_planner_blocker_probe.py scripts/phase3/cgas_planner_blocker_probe_fs.py scripts/phase3/cgas_partition_feasibility.py tests/phase3/test_cgas_planner_blocker_probe.py tests/phase3/test_cgas_partition_feasibility.py tests/phase3/test_cgas_planner_semantic_parity.py
-source ~/cd_vlaplan && sha256sum data/curriculum_pddl/accepted_manifest.jsonl tmp/.cgas-characterization/planning_cgas_v1-characterization-481.cgas .omo/evidence/cgas-partition-characterization/planning_cgas_v1-draft.json tmp/cgas-planner-blocker-investigation-20260730t102100/probe.json tmp/cgas-planner-blocker-investigation-20260730t103100/probe.json
+source ~/cd_vlaplan && # identity check of the retained inputs:
+data/curriculum_pddl/accepted_manifest.jsonl tmp/.cgas-characterization/planning_cgas_v1-characterization-481.cgas .omo/evidence/cgas-partition-characterization/planning_cgas_v1-draft.json tmp/cgas-planner-blocker-investigation-20260730t102100/probe.json tmp/cgas-planner-blocker-investigation-20260730t103100/probe.json
 git diff --check
 ```
 
-Observed final results: 61 combined tests passed; Basedpyright reported zero errors, warnings, or notes; LSP diagnostics were clean on the changed Python files; `compileall` exited zero; all frozen hashes matched; both probe hashes were `90f3b523e1923966a6fe34bf5dd44183dedfd39e955016df81ead637c9c24d12`; and `git diff --check` was clean.
+Observed final results: 61 combined tests passed; Basedpyright reported zero errors, warnings, or notes; LSP diagnostics were clean on the changed Python files; `compileall` exited zero; all frozen identities matched; both probe records were byte-identical; and `git diff --check` was clean.
 
 No network, rendering, production write, source/profile/selector change, approval, promotion, release, or master-plan edit was performed by this investigation.

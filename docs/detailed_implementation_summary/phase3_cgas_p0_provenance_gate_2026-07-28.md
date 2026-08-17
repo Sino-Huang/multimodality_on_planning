@@ -17,6 +17,6 @@ git diff --check
 
 ## Result
 
-The generator snapshots the source manifest and referenced PDDL under the candidate root, then publishes `source/train.jsonl`, `source/dev.jsonl`, `source/test.jsonl`, `manifest.json`, and digest-bound `approved.json` only after every split has replay-valid BFS and IW coverage. BFS records bind a distinct `collections.deque` implementation with sorted legal actions. IW is sourced from the local implementation at exactly width one and rejects `plan_recovery` output.
+The generator snapshots the source manifest and referenced PDDL under the candidate root, then publishes `source/train.jsonl`, `source/dev.jsonl`, `source/test.jsonl`, `manifest.json`, and a resumable `approved.json` only after every split has replay-valid BFS and IW coverage. BFS records are tied to a distinct `collections.deque` implementation with sorted legal actions. IW is sourced from the local implementation at exactly width one and rejects `plan_recovery` output.
 
-Verification regenerates rows, provenance digests, trace evidence, stable record IDs, and derived structural-OOD membership from the retained inputs. Any mismatch reports zero accepted rows, requires the approval digest, and withdraws `source/` to `.invalid-source` so invalid JSONL is not trainable. Publication restores the previous output root if the candidate move fails after staging.
+Verification regenerates rows, provenance identities, trace evidence, stable record IDs, and derived structural-OOD membership from the retained inputs. Any mismatch reports zero accepted rows, requires the approval identity, and withdraws `source/` to `.invalid-source` so invalid JSONL is not trainable. Publication restores the previous output root if the candidate move fails after staging.

@@ -13,6 +13,6 @@ source ~/cd_vlaplan && source .venv/bin/activate && python -m compileall -q scri
 source ~/cd_vlaplan && source .venv/bin/activate && python scripts/phase3/generate_planimation_vlm.py --help
 ```
 
-Observed result: focused suite `48 passed in 0.51s`; basedpyright reported zero errors/warnings/notes; compilation and CLI help exited zero. Receipt details and hashes are in `.omo/evidence/phase3-task-6-render-validation.json`.
+Observed result: focused suite `48 passed in 0.51s`; basedpyright reported zero errors/warnings/notes; compilation and CLI help exited zero. Receipt details and identities are in `.omo/evidence/phase3-task-6-render-validation.json`.
 
-The fixture-local renderer smoke wrote one `100x100` PNG from a concrete VFG in `tmp/phase3_task6_render_smoke`; semantic validation accepted one covered sprite. Its trace and PNG SHA-256 values are retained in the evidence receipt.
+The fixture-local renderer smoke wrote one `100x100` PNG from a concrete VFG in `tmp/phase3_task6_render_smoke`; semantic validation accepted one covered sprite. Its trace and PNG identities are retained in the evidence receipt.

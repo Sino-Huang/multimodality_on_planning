@@ -62,8 +62,7 @@ trace recorded both cars at `(false, false)` and failed closed.
 One later explicitly authorized bounded remote canary used endpoint
 `https://planimation.planning.domains`, timeout 90 seconds, and a maximum of
 three attempts for the final y-anchored profile. It completed successfully in
-one actual attempt. The remote metadata records profile SHA-256
-`9295ea8b1ed5f60a05a98fcd5c2eac6c7cccef156c4572d59e5668300d4351b4`; the
+one actual attempt. The remote metadata records the profile identity; the
 unchanged validator returned `success`, `validated_expected_object_coverage`,
 and `6/6` coverage for a `1024x1024` frame.
 

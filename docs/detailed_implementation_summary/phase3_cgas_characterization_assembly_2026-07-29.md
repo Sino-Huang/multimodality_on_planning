@@ -10,7 +10,7 @@ Task 7 adds private candidate assembly only. It does not rename, publish, create
 
 `scripts/phase3/cgas_characterization_assembly_fs.py` creates a random mode-0700 candidate under a supplied owner-controlled `<repository>/tmp` private parent. It writes exactly three mode-0600 files with `O_NOFOLLOW|O_EXCL`, short-write handling, per-file fsync, and candidate-directory fsync. Failure retains the private candidate path for inspection.
 
-The standalone final verifier runs against the private candidate before it is returned. It authoritatively validates canonical rows, newline form, manifest digests/counts/schema/implementation/policy bindings, literal `owner_approved=false`, and the exact three-file profile.
+The standalone final verifier runs against the private candidate before it is returned. It authoritatively validates canonical rows, newline form, manifest identities/counts/schema/implementation/policy linkages, literal `owner_approved=false`, and the exact three-file profile.
 
 ## Tests
 

@@ -205,7 +205,7 @@ The 8- and 12-object smokes remain separately authorized executions. They are no
 
 After the 4/8/12-object gates and explicit render authorization:
 
-1. Render the 16,822 missing pilot states through the digest-bound resumable production path.
+1. Render the 16,822 missing pilot states through the resumable production path.
 2. Perform replay alignment for the 790 rows with authoritative on-plan actions.
 3. Run the existing certificate and corpus release gates.
 4. Release the pilot corpus before starting Gate-3 model training.
