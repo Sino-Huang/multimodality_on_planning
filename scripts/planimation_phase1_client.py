@@ -90,6 +90,7 @@ def post_pddl_for_vfg(
     pddl_candidates: Sequence[str],
     timeout: int,
     plan: str | None = None,
+    solver_url: str | None = None,
 ) -> tuple[bytes, str]:
     """Submit one PDDL bundle through ordered upload endpoints.
 
@@ -97,7 +98,8 @@ def post_pddl_for_vfg(
     an additional multipart ``plan`` field, which selects the backend's supplied-
     plan path instead of its hosted solver. When None the multipart body is
     byte-for-byte identical to the historical three-field bundle (``domain``,
-    ``problem``, ``animation`` only).
+    ``problem``, ``animation`` only). ``solver_url`` is an optional backend URL
+    field for callers that need to block default solver delegation.
     """
     files = {
         "domain": (None, domain_path.read_text(encoding="utf-8")),
@@ -106,6 +108,8 @@ def post_pddl_for_vfg(
     }
     if plan is not None:
         files["plan"] = (None, plan)
+    if solver_url is not None:
+        files["url"] = (None, solver_url)
     errors: list[str] = []
     for url in pddl_candidates:
         try:

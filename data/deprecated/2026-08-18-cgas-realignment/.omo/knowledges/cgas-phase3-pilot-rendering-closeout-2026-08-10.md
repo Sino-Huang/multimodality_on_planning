@@ -1,3 +1,8 @@
+> **Historical record (2026-08-18):** This closeout documents the demoted CGAS Phase 3 pilot
+> rendering milestone. It is retained as evidence/infrastructure provenance only. It is not a
+> current result of the active Search Process Policy program (GitHub issue #38, tickets #39-#108)
+> and is not an active milestone. Do not cite it as #38 evidence.
+
 # CGAS Phase 3 Pilot Rendering Closeout (rolling through 2026-08-11)
 
 The Phase 3 Planimation adapter and replay-alignment patch is locally hardened and verified. It binds canonical state digests, frozen production request/index digests and cardinalities, repository-contained output paths, renderer configuration, all rendering implementation sources (including the dynamic Planimation facade/client/frame renderer), semantic validation, and crash-safe checkpoint/resume behavior. Replay alignment defaults to the frozen 790-row/index contract and rejects missing, duplicate, colliding, outside-root, hash-invalid, or semantically invalid artifacts.

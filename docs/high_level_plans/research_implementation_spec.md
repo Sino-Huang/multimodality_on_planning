@@ -74,7 +74,7 @@ The new evidence module owns only:
 - the verification CLI.
 
 The existing integration harness at
-`.claude/evidence/cgas-phase3-pilot-rendering/local_planimation_adapter_integration.py`
+`data/deprecated/2026-08-18-cgas-realignment/.claude/evidence/cgas-phase3-pilot-rendering/local_planimation_adapter_integration.py`
 remains responsible for launching the backend, invoking the real adapter path, capturing artifacts, and writing `proof-report.json`.
 
 ### 1.3 Action Sequence contract
@@ -270,7 +270,7 @@ Gate 3 compares three no-support inference arms:
 All arms use matched observations, task instructions, action vocabulary, split, and evaluation decoder. Certificate context and live memory are introduced only in the later routing study.
 
 The terminology analysis is recorded in
-`.claude/knowledge/vlm-adaptation-taxonomy-cgas-2026-08-16.md`.
+`data/deprecated/2026-08-18-cgas-realignment/.claude/knowledge/vlm-adaptation-taxonomy-cgas-2026-08-16.md`.
 
 ### 4.6 Metrics
 

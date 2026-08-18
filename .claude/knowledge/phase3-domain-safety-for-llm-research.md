@@ -6,7 +6,7 @@ For LLM planning-trace research with the current local Phase 3 planners, prefer 
 
 ## Evidence
 
-- Medium one-domain probe evidence recorded in `doc/detailed_implementation_summary/phase3_medium_trace_generation_fix.md` reports all-four local planner success for `blocksworld`, `elevators`, `ferry`, `gripper`, `logistics`, `towers_of_hanoi`, and `visitall`.
+- Medium one-domain probe evidence recorded in `docs/detailed_implementation_summary/phase3_medium_trace_generation_fix.md` reports all-four local planner success for `blocksworld`, `elevators`, `ferry`, `gripper`, `logistics`, `towers_of_hanoi`, and `visitall`.
 - The same medium note says `15puzzle`, `depot`, `driverlog`, `freecell`, `grid`, and `storage` still need lifted planning, domain heuristics, or stronger search to avoid broad timeouts.
 - `snake` and `sokoban` remain unsupported by the current local parser: `snake` needs negative preconditions, and `sokoban` needs equality/quantifiers.
 - The archived pre-migration `phase3-hard-one-per-domain-config-investigation.md` note found only two hard successes out of 60 planner attempts: Graphplan for `elevators-dev-hard-0000` and Graphplan for `towers_of_hanoi-dev-hard-0000`. Recover that note through Git history or `.claude/archive/omo-evidence-2026-08-07.tar.gz` when the raw audit is needed.

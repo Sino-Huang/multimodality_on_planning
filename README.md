@@ -18,7 +18,7 @@
 
 In StarVLA (also a pun on "start VLA" ),  each functional component (model, data, trainer, config, evaluation, etc.) follows a top-down, intuitive separation and high-cohesion, low-coupling principle, enabling plug-and-play design, rapid prototyping, and independent debugging.
 
-Planning-trace experiments should account for LLM context-window limits. On `blocksworld-train-medium-0011`, the final valid plan has only 10 actions, but raw reasoning traces can be much larger: active GBFS traces remain frontier-heavy, FF-style is roughly 32k-37k estimated tokens, Graphplan is roughly 461k-527k, and IW(3) is roughly 2.57M-2.93M. Future planner-model work should therefore use an external memory manager for frontier, visited/best-depth, novelty, mutex, and planning-graph state, letting the LLM attend only to the current path, selected candidates, and retrieved facts instead of the full raw trace.
+Planning research in this repository is governed by the Search Process Policy program. The active study trains VLMs to execute BFS, IW, A*+h_max, and A*+landmark-count through a trusted search runtime; external search memory (frontier, visited/best-depth, novelty, and landmark state) is a runtime/data boundary, not an internal unbounded model state. The active research execution tree is GitHub issue #38 (`Spec: Teach VLMs executable search processes across modalities`) and its ready-for-agent tickets #39-#108.
 
 ## News
 
@@ -401,6 +401,6 @@ Here's how our community has grown over time:
 ## Rules for OpenCode 
 note that you shall always run `source ~/cd_vlaplan && python <script>` to init the environment, though for the planimation image collection, I want you to use uv venv, and thus the command shall always starts from `source ~/cd_vlaplan && source .venv/bin/activate && <command>`
 
-After all the smoke test and Oracle consult finish, you need to save your implementation information into doc/detailed_implementation_summary folder and specify which phase you are working with in its file title prefix, also make sure you save the commands needed to run in the document too.
+After all the smoke test and Oracle consult finish, you need to save your implementation information into docs/detailed_implementation_summary folder and specify which phase you are working with in its file title prefix, also make sure you save the commands needed to run in the document too.
 
 <!-- *Chart updates automatically. Click to interact with the full timeline.* -->

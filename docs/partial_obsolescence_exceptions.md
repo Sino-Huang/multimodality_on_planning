@@ -46,12 +46,22 @@ for the new research claim.
   Integration Certification contract, verifier contracts, split protocol, and
   statistical/cost-order material; revise Support Routes, Live Memory, Route
   Labels, the CGAS Pareto rule, and CGAS-specific scope boundaries.
-- `CONTEXT.md`: Plan Submission, Plan Interpretation, Action Sequence, Render
-  Production, Render Validation, Plan Provenance, Integration Certification,
-  Attempt, and Evidence Bundle remain current. Adaptive Scaffolding, Support
-  Route, Live Memory, Route Label, Joint Action-and-Certificate SFT, Planning
-  Certificate as the headline target, and Verified Joint Step as the headline
-  outcome require later terminology review.
+- `CONTEXT.md`: resolved as a documentation exception on 2026-08-18 under the
+  supervisor-approved #38 context cleanup. The glossary is now #38-first:
+  Search Process Policy terms lead; Plan Submission, Plan Interpretation,
+  Action Sequence, Render Production, Render Validation, Plan Provenance,
+  Integration Certification, Attempt, and Evidence Bundle remain current
+  infrastructure terms; Adaptive Scaffolding, Support Route, Live Memory,
+  Route Label, Joint Action-and-Certificate SFT, Planning Certificate, and
+  Verified Joint Step are retained with their meanings under an explicit
+  "Historical CGAS terms (not the current target)" section, demoted from
+  headline claims and not usable as efficacy evidence.
+- `research_target_assessment.md`: the existing CGAS #1..#37 issue group map is
+  read-only, immutable historical evidence and must not be edited, duplicated,
+  or deleted. The group-level disposition and absolute no-deletion rule in
+  `docs/research-presentations/issue-migration-plan-2026-08-18.md` are its
+  disposition source; consult that plan rather than copying the map into this
+  register.
 - `task_plan.md`: retain active rendering, replay alignment, and Planimation
   smoke operations; revise CGAS calibration-corpus framing.
 - `notes.md`: retain rendering and pilot facts; revise stale CGAS framing.

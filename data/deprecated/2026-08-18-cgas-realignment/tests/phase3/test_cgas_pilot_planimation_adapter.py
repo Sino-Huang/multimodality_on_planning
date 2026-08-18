@@ -168,6 +168,29 @@ def _fixture(tmp_path: Path) -> tuple[Path, Path, dict[str, object]]:
     return index, request, index_row
 
 
+def _additional_index_row(row: dict[str, object]) -> dict[str, object]:
+    from scripts.phase3.cgas_candidate_accounting import planner_input_record
+    from scripts.phase3.cgas_candidate_space import build_candidate
+
+    candidate = build_candidate(2, 0)
+    source = planner_input_record(PlannerInput(2, 0, "emitted", candidate.candidate_id, 0, candidate))
+    source_digest = hashlib.sha256(
+        (json.dumps(source, allow_nan=False, ensure_ascii=True, separators=(",", ":"), sort_keys=True) + "\n").encode()
+    ).hexdigest()
+    atoms = ["(arm-empty)", "(clear b00)", "(clear b01)", "(on-table b00)", "(on-table b01)"]
+    return {
+        **row,
+        "candidate_id": candidate.candidate_id,
+        "instance_id": candidate.candidate_id,
+        "object_count": 2,
+        "raw_rank": 0,
+        "row_id": "row-1",
+        "source_record_sha256": source_digest,
+        "state_atoms": atoms,
+        "state_sha256": state_sha256(atoms),
+    }
+
+
 def _fake_renderer(counter: list[str]) -> StateRenderer:
     def render(_domain: Path, _problem: Path, _profile: Path, cache: Path, _config: RenderConfig) -> RendererResult:
         from PIL import Image
@@ -623,6 +646,65 @@ def test_renders_digest_bound_manifest_and_resumes(tmp_path: Path, monkeypatch: 
     assert len(rows[0]["png_sha256"]) == 64
 
 
+def test_reports_mixed_terminal_states_as_complete(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from scripts.phase3.cgas_pilot_planimation_adapter import PilotRenderRequest, render_missing_states
+
+    index, request, row = _fixture(tmp_path)
+    additional = _additional_index_row(row)
+    _jsonl(index, [row, additional])
+    _jsonl(
+        request,
+        [
+            json.loads(request.read_text()),
+            {
+                "partitions": ["train|2|bfs"],
+                "state_atoms": additional["state_atoms"],
+                "state_sha256": additional["state_sha256"],
+            },
+        ],
+    )
+    domain = tmp_path / "domain.pddl"
+    domain.write_text(_MINIMAL_DOMAIN, encoding="utf-8")
+    profile = tmp_path / "profile.pddl"
+    profile.write_text("profile", encoding="utf-8")
+    monkeypatch.setattr(
+        "scripts.phase3.cgas_pilot_planimation_adapter._candidate_problem",
+        lambda _row: (
+            "(define (problem fixture) (:domain blocksworld-4ops) (:objects b00 b01) "
+            "(:init (arm-empty)) (:goal (and)))"
+        ),
+    )
+    calls: list[str] = []
+    successful = _fake_renderer([])
+
+    def mixed(
+        render_domain: Path, render_problem: Path, render_profile: Path, cache: Path, config: RenderConfig
+    ) -> RendererResult:
+        calls.append(cache.name)
+        if len(calls) == 1:
+            return {"status": "failed", "attempts": 1, "message": "expected"}
+        return successful(render_domain, render_problem, render_profile, cache, config)
+
+    result = render_missing_states(
+        PilotRenderRequest(tmp_path, request, index, tmp_path / "outputs/out", domain, profile), renderer=mixed
+    )
+    report = json.loads(result.report_path.read_text())
+    assert result.counts == {
+        "requested": 2,
+        "processed": 2,
+        "succeeded": 1,
+        "failed": 1,
+        "duplicate": 0,
+        "collision": 0,
+        "remaining": 0,
+    }
+    assert report["status"] == "complete"
+    assert sorted(json.loads(line)["status"] for line in result.manifest_path.read_text().splitlines()) == [
+        "failed",
+        "success",
+    ]
+
+
 def test_counts_identical_request_duplicates_once(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     from scripts.phase3.cgas_pilot_planimation_adapter import PilotRenderRequest, render_missing_states
 
@@ -849,7 +931,16 @@ def test_rejects_expected_production_binding_mismatch(tmp_path: Path) -> None:
         )
 
 
-def test_rejects_conflicting_successful_resume_records(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.parametrize(
+    ("initial_status", "duplicate_status"),
+    [("success", "success"), ("failed", "failed"), ("failed", "success")],
+)
+def test_rejects_conflicting_terminal_resume_records(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    initial_status: str,
+    duplicate_status: str,
+) -> None:
     from scripts.phase3.cgas_pilot_planimation_adapter import PilotRenderError, PilotRenderRequest, render_missing_states
 
     index, request, _ = _fixture(tmp_path)
@@ -867,17 +958,26 @@ def test_rejects_conflicting_successful_resume_records(tmp_path: Path, monkeypat
         ),
     )
     render_request = PilotRenderRequest(tmp_path, request, index, tmp_path / "outputs/out", domain, profile)
-    result = render_missing_states(render_request, renderer=_fake_renderer([]))
+
+    def render(
+        render_domain: Path, render_problem: Path, render_profile: Path, cache: Path, config: RenderConfig
+    ) -> RendererResult:
+        if initial_status == "failed":
+            return {"status": "failed", "attempts": 1, "message": "expected"}
+        return _fake_renderer([])(render_domain, render_problem, render_profile, cache, config)
+
+    result = render_missing_states(render_request, renderer=render)
     record = json.loads(result.manifest_path.read_text())
-    record["png_sha256"] = "0" * 64
+    record["status"] = duplicate_status
+    record["message"] = "conflicting"
     checkpoint = result.manifest_path.with_name("render-checkpoint.jsonl")
     with checkpoint.open("a", encoding="utf-8") as handle:
         handle.write(json.dumps(record, sort_keys=True) + "\n")
-    with pytest.raises(PilotRenderError, match="manifest_success_collision"):
+    with pytest.raises(PilotRenderError, match="manifest_record_collision"):
         render_missing_states(render_request, renderer=_fake_renderer([]))
 
 
-def test_retries_prior_failed_state(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_resumes_prior_failed_state_without_renderer_call(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     from scripts.phase3.cgas_pilot_planimation_adapter import PilotRenderRequest, render_missing_states
 
     index, request, _ = _fixture(tmp_path)
@@ -901,12 +1001,152 @@ def test_retries_prior_failed_state(tmp_path: Path, monkeypatch: pytest.MonkeyPa
     ) -> RendererResult:
         return {"status": "failed", "attempts": 1, "message": "temporary"}
 
-    render_missing_states(render_request, renderer=temporary_failure)
+    first = render_missing_states(render_request, renderer=temporary_failure)
+    manifest_before = first.manifest_path.read_bytes()
+    checkpoint = first.manifest_path.with_name("render-checkpoint.jsonl")
+    checkpoint_before = checkpoint.read_bytes()
     calls: list[str] = []
     result = render_missing_states(render_request, renderer=_fake_renderer(calls))
+    report = json.loads(result.report_path.read_text())
+    assert result.counts == {
+        "requested": 1,
+        "processed": 0,
+        "succeeded": 0,
+        "failed": 1,
+        "duplicate": 0,
+        "collision": 0,
+        "remaining": 0,
+    }
+    assert report["schema_version"] == "cgas_phase3_pilot_planimation_adapter_v4"
+    assert report["status"] == "complete"
+    assert len(calls) == 0
+    assert result.manifest_path.read_bytes() == manifest_before
+    assert checkpoint.read_bytes() == checkpoint_before
+
+
+def test_promotes_checkpoint_only_failed_state_to_manifest(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from scripts.phase3.cgas_pilot_planimation_adapter import PilotRenderRequest, render_missing_states
+
+    index, request, _ = _fixture(tmp_path)
+    domain = tmp_path / "domain.pddl"
+    domain.write_text(_MINIMAL_DOMAIN, encoding="utf-8")
+    profile = tmp_path / "profile.pddl"
+    profile.write_text("profile", encoding="utf-8")
+    monkeypatch.setattr(
+        "scripts.phase3.cgas_pilot_planimation_adapter._candidate_problem",
+        lambda _row: (
+            "(define (problem fixture) (:domain blocksworld-4ops) (:objects b00 b01) "
+            "(:init (arm-empty)) (:goal (and)))"
+        ),
+    )
+    render_request = PilotRenderRequest(tmp_path, request, index, tmp_path / "outputs/out", domain, profile)
+
+    def fail(_domain: Path, _problem: Path, _profile: Path, _cache: Path, _config: RenderConfig) -> RendererResult:
+        return {"status": "failed", "attempts": 1, "message": "expected"}
+
+    first = render_missing_states(render_request, renderer=fail)
+    failed_record = json.loads(first.manifest_path.read_text())
+    checkpoint = first.manifest_path.with_name("render-checkpoint.jsonl")
+    checkpoint_before = checkpoint.read_bytes()
+    first.manifest_path.unlink()
+    calls: list[str] = []
+    result = render_missing_states(render_request, renderer=_fake_renderer(calls))
+    assert result.counts["processed"] == 0
+    assert result.counts["failed"] == 1
+    assert result.counts["remaining"] == 0
+    assert json.loads(result.manifest_path.read_text()) == failed_record
+    assert checkpoint.read_bytes() == checkpoint_before
+    assert calls == []
+
+
+def test_resume_renders_unaccounted_state_after_terminal_failure(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from scripts.phase3.cgas_pilot_planimation_adapter import PilotRenderRequest, render_missing_states
+
+    index, request, row = _fixture(tmp_path)
+    additional = _additional_index_row(row)
+    _jsonl(index, [row, additional])
+    _jsonl(
+        request,
+        [
+            json.loads(request.read_text()),
+            {"partitions": ["train|2|bfs"], "state_atoms": additional["state_atoms"], "state_sha256": additional["state_sha256"]},
+        ],
+    )
+    domain = tmp_path / "domain.pddl"
+    domain.write_text(_MINIMAL_DOMAIN, encoding="utf-8")
+    profile = tmp_path / "profile.pddl"
+    profile.write_text("profile", encoding="utf-8")
+    monkeypatch.setattr(
+        "scripts.phase3.cgas_pilot_planimation_adapter._candidate_problem",
+        lambda _row: "(define (problem fixture) (:domain blocksworld-4ops) (:objects b00) (:init (arm-empty)) (:goal (and)))",
+    )
+    calls: list[str] = []
+    successful = _fake_renderer([])
+
+    def interrupted(
+        render_domain: Path, render_problem: Path, render_profile: Path, cache: Path, config: RenderConfig
+    ) -> RendererResult:
+        calls.append(cache.name)
+        if len(calls) == 1:
+            return {"status": "failed", "attempts": 1, "message": "expected"}
+        if len(calls) == 2:
+            raise KeyboardInterrupt
+        return successful(render_domain, render_problem, render_profile, cache, config)
+
+    render_request = PilotRenderRequest(tmp_path, request, index, tmp_path / "outputs/out", domain, profile)
+    with pytest.raises(KeyboardInterrupt):
+        render_missing_states(render_request, renderer=interrupted)
+    result = render_missing_states(render_request, renderer=interrupted)
     assert result.counts["processed"] == 1
     assert result.counts["succeeded"] == 1
-    assert len(calls) == 1
+    assert result.counts["failed"] == 1
+    assert result.counts["remaining"] == 0
+    assert len(calls) == 3
+    assert sorted(json.loads(line)["status"] for line in result.manifest_path.read_text().splitlines()) == [
+        "failed",
+        "success",
+    ]
+
+
+@pytest.mark.parametrize(
+    ("mutation", "expected_rule"),
+    [
+        (lambda record: record.update({"source_row_id": "other-row"}), "manifest_provenance_mismatch"),
+        (lambda record: record["transition"].update({"state_before": []}), "manifest_state_hash_mismatch"),
+        (lambda record: record.update({"run_contract_sha256": "0" * 64}), "run_contract_mismatch"),
+        (lambda record: record.update({"status": "pending"}), "manifest_status_invalid"),
+    ],
+)
+def test_rejects_failed_resume_record_drift(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    mutation: Callable[[dict[str, object]], None],
+    expected_rule: str,
+) -> None:
+    from scripts.phase3.cgas_pilot_planimation_adapter import PilotRenderError, PilotRenderRequest, render_missing_states
+
+    index, request, _ = _fixture(tmp_path)
+    domain = tmp_path / "domain.pddl"
+    domain.write_text(_MINIMAL_DOMAIN, encoding="utf-8")
+    profile = tmp_path / "profile.pddl"
+    profile.write_text("profile", encoding="utf-8")
+    monkeypatch.setattr(
+        "scripts.phase3.cgas_pilot_planimation_adapter._candidate_problem",
+        lambda _row: "(define (problem fixture) (:domain blocksworld-4ops) (:objects b00) (:init (arm-empty)) (:goal (and)))",
+    )
+
+    def fail(_domain: Path, _problem: Path, _profile: Path, _cache: Path, _config: RenderConfig) -> RendererResult:
+        return {"status": "failed", "attempts": 1, "message": "expected"}
+
+    render_request = PilotRenderRequest(tmp_path, request, index, tmp_path / "outputs/out", domain, profile)
+    result = render_missing_states(render_request, renderer=fail)
+    record = json.loads(result.manifest_path.read_text())
+    mutation(record)
+    checkpoint = result.manifest_path.with_name("render-checkpoint.jsonl")
+    _jsonl(result.manifest_path, [record])
+    _jsonl(checkpoint, [record])
+    with pytest.raises(PilotRenderError, match=expected_rule):
+        render_missing_states(render_request, renderer=_fake_renderer([]))
 
 
 def test_rejects_modified_prior_png(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -1172,6 +1412,46 @@ def test_cli_rejects_mapping_expectations_without_mapping_path() -> None:
         main([*base, "--production-contract"])
 
 
+def test_cli_reports_complete_when_all_states_are_terminal_failures(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    import scripts.phase3.cgas_pilot_planimation_adapter as adapter
+
+    index, request, _ = _fixture(tmp_path)
+    domain = tmp_path / "domain.pddl"
+    domain.write_text(_MINIMAL_DOMAIN, encoding="utf-8")
+    profile = tmp_path / "profile.pddl"
+    profile.write_text("profile", encoding="utf-8")
+    output = tmp_path / "outputs/out"
+
+    def fail(_pair: object, _transition: object, _output: Path, _renderer: StateRenderer, _config: RenderConfig) -> dict[str, object]:
+        return {"status": "failed", "attempts": 1, "message": "expected"}
+
+    monkeypatch.setattr(adapter, "_render_one_state", fail)
+    assert (
+        adapter.main(
+            [
+                str(request),
+                str(index),
+                "--repository-root",
+                str(tmp_path),
+                "--output-root",
+                str(output),
+                "--domain-path",
+                str(domain),
+                "--profile-path",
+                str(profile),
+            ]
+        )
+        == 0
+    )
+    printed = json.loads(capsys.readouterr().out)
+    report = json.loads(Path(printed["report_path"]).read_text())
+    assert printed["counts"]["failed"] == 1
+    assert printed["counts"]["remaining"] == 0
+    assert report["status"] == "complete"
+
+
 def test_planimation_renderer_uses_only_canonical_endpoint(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     from scripts.phase3.planimation_pairing_rendering import render_state_with_planimation
 
@@ -1428,6 +1708,12 @@ def test_planimation_renderer_plan_forwarding_preserves_old_call_shape(
     assert calls[1]["args"][3] == ["https://planimation.planning.domains/upload/pddl"]
     assert len(calls[1]["args"]) == 5
 
+    result = render_state_with_planimation(
+        domain, problem, profile, cache, RenderConfig(max_attempts=1, solver_url="http://127.0.0.1:18082/forbidden-solver")
+    )
+    assert result["status"] == "success"
+    assert calls[2]["kwargs"] == {"solver_url": "http://127.0.0.1:18082/forbidden-solver"}
+
 
 def test_cache_identity_binds_plan_only_when_present(tmp_path: Path) -> None:
     from scripts.phase3.planimation_pairing_rendering import _cache_identity
@@ -1493,7 +1779,8 @@ def test_render_state_carries_supplied_plan_to_renderer_and_writes_digest(
     assert result.counts["succeeded"] == 1
     assert observed == ["(pickup b1)"]
     record = json.loads(result.manifest_path.read_text())
-    assert record["supplied_plan_sha256"] == stable_hash("(pickup b1)")
+    assert record["supplied_plan_actions"] == ["(pickup b1)"]
+    assert "supplied_plan_sha256" not in record
 
 
 def test_render_state_without_supplied_plan_omits_digest(tmp_path: Path) -> None:
@@ -1519,4 +1806,186 @@ def test_render_state_without_supplied_plan_omits_digest(tmp_path: Path) -> None
     assert result.counts["succeeded"] == 1
     assert observed == [None]
     record = json.loads(result.manifest_path.read_text())
+    assert "supplied_plan_actions" not in record
+
+
+def test_generated_plan_provenance_survives_checkpoint_only_resume(tmp_path: Path) -> None:
+    from scripts.phase3.cgas_pilot_planimation_adapter import PilotRenderRequest, render_missing_states
+    from scripts.phase3.io_utils import stable_hash
+
+    index, request, _ = _fixture(tmp_path)
+    domain = tmp_path / "domain.pddl"
+    domain.write_text(_MINIMAL_DOMAIN, encoding="utf-8")
+    profile = tmp_path / "profile.pddl"
+    profile.write_text("profile", encoding="utf-8")
+    calls: list[str] = []
+
+    def local_plan(
+        domain_path: Path, problem_path: Path, profile_path: Path, cache_dir: Path, config: RenderConfig
+    ) -> RendererResult:
+        calls.append(cache_dir.name)
+        return {
+            **_fake_renderer([])(domain_path, problem_path, profile_path, cache_dir, config),
+            "planning_status": "planning_submitted",
+            "planimation_request_count": 1,
+            "planner_metadata": {
+                "source": "local_lama_first",
+                "planning_status": "planning_submitted",
+                "planimation_request_count": 1,
+                "actions": ["(pickup b1)"],
+                "action_count": 1,
+            },
+        }
+
+    render_request = PilotRenderRequest(tmp_path, request, index, tmp_path / "outputs/out", domain, profile)
+    first = render_missing_states(render_request, renderer=local_plan)
+    first.manifest_path.unlink()
+    resumed = render_missing_states(render_request, renderer=local_plan)
+
+    assert len(calls) == 1
+    record = json.loads(resumed.manifest_path.read_text())
+    assert record["planner_metadata"]["source"] == "local_lama_first"
+    assert record["planner_metadata"]["actions"] == ["(pickup b1)"]
+    assert record["supplied_plan_actions"] == ["(pickup b1)"]
     assert "supplied_plan_sha256" not in record
+
+
+def test_generated_plan_provenance_drift_stops_before_renderer(tmp_path: Path) -> None:
+    from scripts.phase3.cgas_pilot_planimation_adapter import PilotRenderError, PilotRenderRequest, render_missing_states
+
+    index, request, _ = _fixture(tmp_path)
+    domain = tmp_path / "domain.pddl"
+    domain.write_text(_MINIMAL_DOMAIN, encoding="utf-8")
+    profile = tmp_path / "profile.pddl"
+    profile.write_text("profile", encoding="utf-8")
+    calls: list[str] = []
+
+    def local_plan(
+        domain_path: Path, problem_path: Path, profile_path: Path, cache_dir: Path, config: RenderConfig
+    ) -> RendererResult:
+        calls.append(cache_dir.name)
+        return {
+            **_fake_renderer([])(domain_path, problem_path, profile_path, cache_dir, config),
+            "planning_status": "planning_submitted",
+            "planimation_request_count": 1,
+            "planner_metadata": {
+                "source": "local_lama_first",
+                "planning_status": "planning_submitted",
+                "planimation_request_count": 1,
+                "actions": ["(pickup b1)"],
+                "action_count": 1,
+            },
+        }
+
+    render_request = PilotRenderRequest(tmp_path, request, index, tmp_path / "outputs/out", domain, profile)
+    result = render_missing_states(render_request, renderer=local_plan)
+    record = json.loads(result.manifest_path.read_text())
+    record["planner_metadata"]["actions"] = ["(putdown b1)"]
+    checkpoint = result.manifest_path.with_name("render-checkpoint.jsonl")
+    _jsonl(result.manifest_path, [record])
+    _jsonl(checkpoint, [record])
+
+    with pytest.raises(PilotRenderError, match="manifest_provenance_mismatch"):
+        render_missing_states(render_request, renderer=local_plan)
+    assert len(calls) == 1
+
+
+def test_terminal_planning_residue_is_checkpointed_and_resumed_without_renderer(tmp_path: Path) -> None:
+    from scripts.phase3.cgas_pilot_planimation_adapter import PilotRenderRequest, render_missing_states
+
+    index, request, _ = _fixture(tmp_path)
+    domain = tmp_path / "domain.pddl"
+    domain.write_text(_MINIMAL_DOMAIN, encoding="utf-8")
+    profile = tmp_path / "profile.pddl"
+    profile.write_text("profile", encoding="utf-8")
+    calls: list[str] = []
+
+    def residue(
+        _domain: Path, _problem: Path, _profile: Path, cache_dir: Path, _config: RenderConfig
+    ) -> RendererResult:
+        calls.append(cache_dir.name)
+        return {
+            "status": "failed",
+            "attempts": 0,
+            "message": "planning_plan_residue",
+            "planning_status": "planning_plan_residue",
+            "planimation_request_count": 0,
+            "planner_metadata": {
+                "source": "local_lama_first",
+                "planning_status": "planning_plan_residue",
+                "planimation_request_count": 0,
+                "action_count": 0,
+            },
+        }
+
+    render_request = PilotRenderRequest(tmp_path, request, index, tmp_path / "outputs/out", domain, profile)
+    first = render_missing_states(render_request, renderer=residue)
+    resumed = render_missing_states(render_request, renderer=residue)
+
+    assert first.counts["failed"] == 1
+    assert resumed.counts["failed"] == 1
+    assert resumed.counts["processed"] == 0
+    assert len(calls) == 1
+    record = json.loads(resumed.manifest_path.read_text())
+    assert record["planning_status"] == "planning_plan_residue"
+    assert record["planimation_request_count"] == 0
+
+
+def test_render_cache_rehydrates_generated_plan_metadata(tmp_path: Path) -> None:
+    from scripts.phase3.planimation_pairing_rendering import _render_one_state
+    from scripts.phase3.traversal_state_types import JSONValue
+
+    domain = tmp_path / "domain.pddl"
+    domain.write_text(_MINIMAL_DOMAIN, encoding="utf-8")
+    problem = tmp_path / "source.pddl"
+    problem.write_text(
+        "(define (problem p) (:domain blocksworld-4ops) (:objects b00) "
+        "(:init (arm-empty) (clear b00) (on-table b00)) (:goal (and (holding b00))))",
+        encoding="utf-8",
+    )
+    profile = tmp_path / "profile.pddl"
+    profile.write_text("profile", encoding="utf-8")
+    output = tmp_path / "outputs/out"
+    pair: dict[str, JSONValue] = {
+        "pair_id": "pair",
+        "domain": "blocksworld",
+        "instance_id": "instance",
+        "split": "train",
+        "planner": "bfs",
+        "domain_path": str(domain),
+        "problem_path": str(problem),
+        "profile_path": str(profile),
+    }
+    transition: dict[str, JSONValue] = {
+        "step_index": 0,
+        "state_before": ["(arm-empty)", "(clear b00)", "(on-table b00)"],
+    }
+    calls: list[str] = []
+
+    def renderer(
+        domain_path: Path, problem_path: Path, profile_path: Path, cache_dir: Path, config: RenderConfig
+    ) -> RendererResult:
+        calls.append(cache_dir.name)
+        return {
+            **_fake_renderer([])(domain_path, problem_path, profile_path, cache_dir, config),
+            "planning_status": "planning_submitted",
+            "planimation_request_count": 1,
+            "planner_metadata": {
+                "source": "local_lama_first",
+                "planning_status": "planning_submitted",
+                "planimation_request_count": 1,
+                "actions": ["(pickup b1)"],
+                "action_count": 1,
+            },
+        }
+
+    config = RenderConfig(plan="(pickup b1)", solver_url="http://127.0.0.1:18082/forbidden-solver")
+    _render_one_state(pair, transition, output, renderer, config)
+    cached = _render_one_state(pair, transition, output, renderer, config)
+
+    assert len(calls) == 1
+    assert cached["cache_hit"] is True
+    assert cached["planning_status"] == "planning_submitted"
+    metadata = cached["planner_metadata"]
+    assert isinstance(metadata, dict)
+    assert metadata["actions"] == ["(pickup b1)"]

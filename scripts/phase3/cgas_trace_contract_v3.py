@@ -35,10 +35,19 @@ PREDECESSOR_CONTRACT_ID: Final = V2_CONTRACT_ID
 PREDECESSOR_CONTRACT_SHA256: Final = V2_CONTRACT_SHA256
 TRACE_V2_APPROVAL_SHA256: Final = "bd6909f99ce32484f3a33863cde936c0a3128935dabaf85da783870ae7ee26a8"
 APPROVAL_SCOPE: Final = "trace_v3_persistence_and_policy"
-EVIDENCE_ROOT: Final = Path(".claude/evidence/cgas-trace-contract-v3/owner-decision-packet")
-PACKET_PATH: Final = Path(".claude/evidence/cgas-trace-contract-v3/trace-v3-migration-packet.json")
-OWNER_TEMPLATE_PATH: Final = Path(".claude/evidence/cgas-trace-contract-v3/trace-v3-owner-approval.template.json")
-OWNER_APPROVAL_PATH: Final = Path(".claude/evidence/cgas-trace-contract-v3/trace-v3-owner-approval.json")
+# Legacy packet publication labels/defaults in the ignored outputs namespace.
+# No archived evidence is read: the retired agent-state tree now lives only
+# under the cold archive data/deprecated/2026-08-18-cgas-realignment/, which no
+# active code may read.
+EVIDENCE_ROOT: Final = Path("outputs/deprecated/phase3/cgas-trace-contract-v3/owner-decision-packet")
+PACKET_PATH: Final = Path("outputs/deprecated/phase3/cgas-trace-contract-v3/trace-v3-migration-packet.json")
+OWNER_TEMPLATE_PATH: Final = Path("outputs/deprecated/phase3/cgas-trace-contract-v3/trace-v3-owner-approval.template.json")
+
+# Generated packets default to an ignored outputs location; pass explicit CLI
+# paths to publish elsewhere.
+DEFAULT_OUTPUT_ROOT: Final = Path("outputs/deprecated/phase3/cgas-trace-contract-v3")
+DEFAULT_PACKET_OUTPUT: Final = DEFAULT_OUTPUT_ROOT / PACKET_PATH.name
+DEFAULT_OWNER_TEMPLATE_OUTPUT: Final = DEFAULT_OUTPUT_ROOT / OWNER_TEMPLATE_PATH.name
 
 # verify_trace_stream refuses any line above this. write_trace_stream has no counterpart
 # in v2, so a writer can emit a stream its own verifier rejects; MAX_EVENT_BYTES is the
@@ -277,8 +286,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Publish the unapproved CGAS trace-v3 migration packet.")
     subcommands = parser.add_subparsers(dest="command", required=True)
     packet = subcommands.add_parser("packet")
-    packet.add_argument("--output", type=Path, default=PACKET_PATH)
-    packet.add_argument("--owner-template", type=Path, default=OWNER_TEMPLATE_PATH)
+    packet.add_argument("--output", type=Path, default=DEFAULT_PACKET_OUTPUT)
+    packet.add_argument("--owner-template", type=Path, default=DEFAULT_OWNER_TEMPLATE_OUTPUT)
     return parser
 
 

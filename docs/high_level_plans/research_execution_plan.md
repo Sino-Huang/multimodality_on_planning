@@ -47,7 +47,7 @@ The execution sequence is intentionally narrow, and its ordering principle is no
 | Production corpus machinery: finite lazy candidate streams, characterization runner, immutable checkpoint chain, selector, atomic release gate | **Built and exercised** for one full round (281 candidates characterized, 53 paired-exact) | `cgas_candidate_characterization*.py`, `cgas_production_population*.py`, `cgas_release_gate.py` |
 | Test surface | 109 test files under `tests/phase3/` | |
 | True iterative width escalation in IW | **Built 2026-08-07**, test-first, opt-in via `local_iw_escalate`. Off until v3 moves the policy. | `scripts/phase3/local_iw.py`, commit `1aff5e3` |
-| Phase A planner-configuration probe | **Run and reported** — Gate A discharged as a measurement | `.claude/evidence/phase-a-planner-configuration-probe/` |
+| Phase A planner-configuration probe | **Run and reported** — Gate A discharged as a measurement | `data/deprecated/2026-08-18-cgas-realignment/.claude/evidence/phase-a-planner-configuration-probe/` |
 
 **Revision 1's "Recommended First Milestone" is complete** — one dataset slice with aligned images, replay-valid actions, typed certificates, deterministic verifier results, and one-invariant counterfactuals — with the sole exception of the memory stub. It should be retired, not repeated.
 
@@ -76,7 +76,7 @@ The corpus is gated entirely by **IW width-1 solvability on a domain that is not
 ### Phase A settled this empirically
 
 *Measured 2026-08-07. Full result:
-`.claude/evidence/phase-a-planner-configuration-probe/README.md`. Read-only sweep over all 281
+`data/deprecated/2026-08-18-cgas-realignment/.claude/evidence/phase-a-planner-configuration-probe/README.md`. Read-only sweep over all 281
 round-1 candidate ranks; 330 s, no parallelism needed. The harness reproduced the recorded width-1
 column exactly, 0 of 281 disagreeing.*
 
@@ -198,7 +198,7 @@ And two structural changes that follow from them:
 
 *New in revision 2. Ran first because it was cheap and decisive.*
 **Status: complete, 2026-08-07.** Result folded into *Current Baseline* above; full report at
-`.claude/evidence/phase-a-planner-configuration-probe/README.md`. The section below is retained as
+`data/deprecated/2026-08-18-cgas-realignment/.claude/evidence/phase-a-planner-configuration-probe/README.md`. The section below is retained as
 the specification the probe was run against — do not re-run it.
 
 ### Objective
@@ -272,7 +272,7 @@ One new persistence contract carrying every known defect, one owner approval, on
 ### Main tasks
 
 *Scoped by the v3 owner decision packet
-(`.claude/evidence/cgas-trace-contract-v3/owner-decision-packet/DECISION.md`), 2026-08-07.*
+(`data/deprecated/2026-08-18-cgas-realignment/.claude/evidence/cgas-trace-contract-v3/owner-decision-packet/DECISION.md`), 2026-08-07.*
 
 - **Completed 2026-08-09.** The signed v3 contract, emitter shapes, reader compatibility, per-record
   bound, escalation policy, approval path, and characterization runner are implemented.
@@ -294,7 +294,7 @@ accounting, and all 1,116 v2 stream files remain immutable evidence. Any later r
 **PASSED 2026-08-09.** Every regenerated stream verifies under v3; checkpoint/approval/contract/
 policy links are explicit; replay is byte-identical; and bounded overlapping certificate
 semantics match with zero unexplained mismatches. Evidence:
-`.claude/evidence/cgas-trace-contract-v3/gate0b-round1-2026-08-09/`.
+`data/deprecated/2026-08-18-cgas-realignment/.claude/evidence/cgas-trace-contract-v3/gate0b-round1-2026-08-09/`.
 
 ---
 
@@ -518,7 +518,7 @@ The deterministic certificate-source index was materialized on 2026-08-09 under 
 replay-plan rows and 30,381 off-plan-only rows. The read-only coverage audit found 16,822 unique
 required states and zero existing covered states. No Qwen rows were created because no approved
 policy chooses one action target for an off-plan expansion; the pending decision is recorded under
-`.claude/evidence/cgas-phase3-pilot-materialization/`.
+`data/deprecated/2026-08-18-cgas-realignment/.claude/evidence/cgas-phase3-pilot-materialization/`.
 
 ## Immediate Next Steps
 
@@ -526,15 +526,15 @@ policy chooses one action target for an off-plan expansion; the pending decision
 2. ~~Regenerate isolated v3 round 1 and verify Gate 0b.~~ **Passed 2026-08-09.** The v2 corpus remains immutable and present.
 3. Preserve `tmp/cgas-p0-characterized-v3` as the resumable v3 round-1 root. Do not create checkpoint 2 until the next selector/corpus decision authorizes it.
 4. Treat any release of v2 stream bytes as an explicit, separately approved destructive task; Gate 0b did not perform it.
-5. ~~Review `.claude/evidence/cgas-phase3-pilot-scope/` and rule on the proposed `>=10` stability bar,
+5. ~~Review `data/deprecated/2026-08-18-cgas-realignment/.claude/evidence/cgas-phase3-pilot-scope/` and rule on the proposed `>=10` stability bar,
    90-instance diversity floor, off-plan harvesting, and conditional reproducibility provenance.~~
    **Approved 2026-08-09.**
 6. ~~After that ruling, freeze the pilot manifest.~~ **Done 2026-08-09.** The approved deterministic
-   source manifest and row-budget contract are under `.claude/evidence/cgas-phase3-pilot-manifest/`.
+   source manifest and row-budget contract are under `data/deprecated/2026-08-18-cgas-realignment/.claude/evidence/cgas-phase3-pilot-manifest/`.
 7. ~~Materialize the approved pilot certificate-source index and audit existing render coverage.~~
    **Done 2026-08-09.** The non-release index has 31,171 rows (790 replay-plan, 30,381 off-plan-only);
    all 16,822 unique states need rendering. Evidence for the resumable path is under
-   `.claude/evidence/cgas-phase3-pilot-materialization/`.
+   `data/deprecated/2026-08-18-cgas-realignment/.claude/evidence/cgas-phase3-pilot-materialization/`.
 8. Resolve the off-plan action-target policy before creating Qwen rows — a separate gate that
     does not block state-only rendering. Render the canonical missing-state request, align
     accepted replay states, and run `verify_steps` only after the state-only render's own
@@ -572,7 +572,7 @@ policy chooses one action target for an off-plan expansion; the pending decision
     explicit owner/operator authorization for the resumable 16,822-state render. The
     hosted operator command remains non-executable and superseded as the selected backend path; no
     production render or replay alignment has started; coverage is 0/16,822. Evidence:
-    `.claude/evidence/cgas-phase3-pilot-rendering/verification-20260811-regression-replays.md`.
+    `data/deprecated/2026-08-18-cgas-realignment/.claude/evidence/cgas-phase3-pilot-rendering/verification-20260811-regression-replays.md`.
 9. Specify the bounded certificate-store API and its no-oracle-leakage tests.
 10. Create one direct-VLM calibration configuration and one evaluation command that reports first certificate failures.
 11. Remaining gates before the first direct-VLM calibration training smoke, in order: (1)
