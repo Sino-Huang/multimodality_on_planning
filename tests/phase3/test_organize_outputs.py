@@ -98,9 +98,22 @@ def test_copy_publication_does_not_overwrite_competing_destination(
         destination.write_bytes(competing_contents)
         original_rename(source_path, destination_path, **options)
 
-    def competing_link(source_path: os.PathLike[str], destination_path: os.PathLike[str], **options: int | bool) -> None:
+    def competing_link(
+        source_path: os.PathLike[str],
+        destination_path: os.PathLike[str],
+        *,
+        src_dir_fd: int | None = None,
+        dst_dir_fd: int | None = None,
+        follow_symlinks: bool = True,
+    ) -> None:
         destination.write_bytes(competing_contents)
-        original_link(source_path, destination_path, **options)
+        original_link(
+            source_path,
+            destination_path,
+            src_dir_fd=src_dir_fd,
+            dst_dir_fd=dst_dir_fd,
+            follow_symlinks=follow_symlinks,
+        )
 
     monkeypatch.setattr(organize_outputs.os, "rename", competing_rename)
     monkeypatch.setattr(organize_outputs.os, "link", competing_link)
@@ -111,3 +124,102 @@ def test_copy_publication_does_not_overwrite_competing_destination(
     assert destination.read_bytes() == competing_contents
     assert hashlib.sha256(source.read_bytes()).hexdigest() == source_sha256
     assert not tuple(destination.parent.glob(f".{destination.name}.copy-*"))
+
+
+def test_record_metadata_rejects_symlink_without_reading_referent(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    referent = tmp_path / "referent.jsonl"
+    referent.write_bytes(b'{"referent":true}\n')
+    source = tmp_path / "source.jsonl"
+    source.symlink_to(referent)
+
+    def reject_path_digest(_path: Path) -> tuple[str, int]:
+        pytest.fail("record metadata must not digest a symlink referent by path")
+
+    monkeypatch.setattr(organize_outputs, "digest", reject_path_digest)
+
+    with pytest.raises(OrganizerError, match="record must be a regular file"):
+        organize_outputs._record_metadata(source)
+
+
+def test_record_metadata_rejects_fifo_with_nonblocking_open(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = tmp_path / "source.jsonl"
+    os.mkfifo(source)
+    original_open = os.open
+
+    def recording_open(
+        path: str | bytes | os.PathLike[str] | os.PathLike[bytes],
+        flags: int,
+        mode: int = 0o777,
+        *,
+        dir_fd: int | None = None,
+    ) -> int:
+        if os.fsdecode(path) == source.name:
+            assert flags & os.O_NOFOLLOW
+            assert flags & os.O_NONBLOCK
+            assert flags & os.O_CLOEXEC
+        return original_open(path, flags, mode, dir_fd=dir_fd)
+
+    monkeypatch.setattr(organize_outputs, "_open_descriptor", recording_open)
+
+    with pytest.raises(OrganizerError, match="record must be a regular file"):
+        organize_outputs._record_metadata(source)
+
+
+def test_copy_rejects_fifo_replacement_at_source_open_without_artifacts(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = tmp_path / "source.jsonl"
+    source.write_bytes(b'{"source":true}\n')
+    destination = tmp_path / "records/destination.jsonl"
+    original_open = os.open
+    replaced = False
+
+    def replace_source_with_fifo(
+        path: str | bytes | os.PathLike[str] | os.PathLike[bytes],
+        flags: int,
+        mode: int = 0o777,
+        *,
+        dir_fd: int | None = None,
+    ) -> int:
+        nonlocal replaced
+        if os.fsdecode(path) == source.name and not replaced:
+            replaced = True
+            source.unlink()
+            os.mkfifo(source)
+            assert flags & os.O_NOFOLLOW
+            assert flags & os.O_NONBLOCK
+            assert flags & os.O_CLOEXEC
+        return original_open(path, flags, mode, dir_fd=dir_fd)
+
+    monkeypatch.setattr(organize_outputs, "_open_descriptor", replace_source_with_fifo)
+
+    with pytest.raises(OrganizerError, match="record must be a regular file"):
+        organize_outputs._copy_file(source, destination)
+
+    assert replaced
+    assert not destination.exists()
+    assert not tuple(destination.parent.glob(f".{destination.name}.copy-*"))
+
+
+def test_copy_accepts_mode_0644_jsonl_source(tmp_path: Path) -> None:
+    source = tmp_path / "source.jsonl"
+    contents = b'{"source":true}\n'
+    source.write_bytes(contents)
+    source.chmod(0o644)
+    destination = tmp_path / "records/destination.jsonl"
+
+    organize_outputs._copy_file(source, destination)
+
+    assert destination.read_bytes() == contents
+    assert organize_outputs._record_metadata(source) == {
+        "sha256": hashlib.sha256(contents).hexdigest(),
+        "bytes": len(contents),
+        "lines": 1,
+    }

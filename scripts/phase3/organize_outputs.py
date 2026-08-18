@@ -1,18 +1,23 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import secrets
 import stat
 import sys
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Iterator, Sequence
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Literal
 
 from .output_layout_contracts import DEFAULT_OUTPUT_LAYOUT, serialize_catalog
+from .output_layout_inventory_types import OutputLayoutInventoryError
 from .output_layout_journal import OutputLayoutJournalError, digest, journal_path, read_record, write_record
 from .output_layout_lock import exclusive_output_layout_lock
+from .output_layout_receipt_io import close_descriptor as _close_descriptor
+from .output_layout_receipt_io import open_parent_directory as _open_parent_directory
 from .output_layout_rename import OutputLayoutRenameError, prepare_destination_parent, rename_noreplace
 from .output_layout_snapshot import snapshot_tree
 from .output_layout_writer_detection import find_overlapping_writer
@@ -22,6 +27,8 @@ CheckpointName = Literal["prepared_persisted", "rename_published", "move_verifie
 Checkpoint = Callable[[CheckpointName], None]
 _SIDE_CAR_RECEIPT = Path("outputs/deprecated/phase3/output_reorganization_20260726.json")
 _SIDE_CAR_NAMES = (".output_reorganization_20260726.json.txn", ".output_reorganization_20260726.json.swap")
+_RECORD_OPEN_FLAGS = os.O_RDONLY | os.O_CLOEXEC | os.O_NOFOLLOW | os.O_NONBLOCK
+_open_descriptor = os.open
 
 
 class OrganizerError(RuntimeError):
@@ -227,16 +234,21 @@ def _sidecar_json(path: Path) -> dict[str, object]:
 
 
 def _record_metadata(path: Path) -> dict[str, object]:
-    checksum, size = digest(path)
+    hasher = hashlib.sha256()
+    size = 0
     lines = 0
     try:
-        with path.open("r", encoding="utf-8") as handle:
+        with _open_regular_record(path) as descriptor, os.fdopen(descriptor, "rb", closefd=False) as handle:
             for line in handle:
-                json.loads(line)
+                hasher.update(line)
+                size += len(line)
+                json.loads(line.decode("utf-8"))
                 lines += 1
-    except (OSError, json.JSONDecodeError) as error:
+    except OrganizerError:
+        raise
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
         raise OrganizerError(rule="record JSONL is invalid", path=path) from error
-    return {"sha256": checksum, "bytes": size, "lines": lines}
+    return {"sha256": hasher.hexdigest(), "bytes": size, "lines": lines}
 
 
 def _copy_file(source: Path, destination: Path) -> None:
@@ -246,7 +258,7 @@ def _copy_file(source: Path, destination: Path) -> None:
         raise OrganizerError(rule=error.rule, path=destination) from error
     temporary = destination.parent / f".{destination.name}.copy-{secrets.token_hex(16)}"
     try:
-        with source.open("rb") as input_handle, temporary.open("xb") as output_handle:
+        with _open_regular_record(source) as descriptor, os.fdopen(descriptor, "rb", closefd=False) as input_handle, temporary.open("xb") as output_handle:
             os.chmod(temporary, 0o600)
             while chunk := input_handle.read(1024 * 1024):
                 output_handle.write(chunk)
@@ -277,6 +289,37 @@ def _copy_file(source: Path, destination: Path) -> None:
         if isinstance(error, OrganizerError):
             raise
         raise OrganizerError(rule="unable to copy record", path=destination) from error
+
+
+@contextmanager
+def _open_regular_record(path: Path) -> Iterator[int]:
+    parent_descriptor: int | None = None
+    descriptor: int | None = None
+    try:
+        try:
+            parent_descriptor = _open_parent_directory(path.parent)
+            descriptor = _open_descriptor(path.name, _RECORD_OPEN_FLAGS, dir_fd=parent_descriptor)
+            opened = os.fstat(descriptor)
+        except (OSError, OutputLayoutInventoryError) as error:
+            raise OrganizerError(rule="record must be a regular file", path=path) from error
+        if not stat.S_ISREG(opened.st_mode):
+            raise OrganizerError(rule="record must be a regular file", path=path)
+        yield descriptor
+    finally:
+        close_error: OutputLayoutInventoryError | None = None
+        if descriptor is not None:
+            try:
+                _close_descriptor(descriptor, f"unable to close record descriptor: {path}")
+            except OutputLayoutInventoryError as error:
+                close_error = error
+        if parent_descriptor is not None:
+            try:
+                _close_descriptor(parent_descriptor, f"unable to close record parent: {path.parent}")
+            except OutputLayoutInventoryError as error:
+                if close_error is None:
+                    close_error = error
+        if close_error is not None:
+            raise OrganizerError(rule="unable to close record", path=path) from close_error
 
 
 def _rename_regular_file(source: Path, destination: Path) -> None:
