@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import importlib.util
 import json
-import os
 import stat
 import sys
 import types
@@ -10,7 +9,6 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-
 
 HARNESS_PATH = (
     Path(__file__).resolve().parents[2]
@@ -104,7 +102,9 @@ def _patch_preflight(monkeypatch: pytest.MonkeyPatch, harness: types.ModuleType,
     monkeypatch.setattr(harness, "AUTHORIZED_OUTPUT_ROOT", output)
     monkeypatch.setattr(harness, "_backend_commit", lambda path: BACKEND_COMMIT)
     monkeypatch.setattr(harness, "_fast_downward_revision", lambda path: FAST_DOWNWARD_REVISION)
-    monkeypatch.setattr(harness, "_start_server", lambda *args: (process, open(output.parent / "backend-test.log", "wb")))
+    monkeypatch.setattr(
+        harness, "_start_server", lambda *args: (process, open(output.parent / "backend-test.log", "wb"))
+    )
     monkeypatch.setattr(harness, "_wait_for_loopback", lambda *args: None)
     return process
 

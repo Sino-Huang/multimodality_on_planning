@@ -5,7 +5,6 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import subprocess
 import sys
 import tempfile
 from dataclasses import dataclass
@@ -19,6 +18,7 @@ from scripts.phase3.cgas_pilot_lama_first_renderer import (
     LamaFirstHardStop,
     LocalLamaFirstRenderer,
 )
+
 # Deliberately reuse the production lifecycle and recorder helpers so this retained
 # certification path cannot drift from the security-sensitive runtime seam.
 from scripts.phase3.cgas_pilot_planimation_production import (
@@ -40,7 +40,6 @@ from scripts.phase3.cgas_pilot_planimation_production import (
 )
 from scripts.phase3.planimation_pairing_contracts import RenderConfig
 from scripts.phase3.render_semantics import validate_render_artifacts
-
 
 SCHEMA_VERSION: Final = "cgas_lama_first_production_smoke_v1"
 AUTHORIZATION_SCHEMA_VERSION: Final = "cgas_lama_first_production_smoke_authorization_v1"
@@ -276,7 +275,9 @@ def run(request: SmokeRequest) -> int:
     recorder: dict[str, Any] | None = None
     reason: str | None = None
     try:
-        process, log_handle = _start_server(paths["backend_python"], paths["server_dir"], request.port, output_root / "backend.log")
+        process, log_handle = _start_server(
+            paths["backend_python"], paths["server_dir"], request.port, output_root / "backend.log"
+        )
         _wait_for_loopback(process, request.port, output_root / "backend.log")
         backend = report["backend"]
         assert isinstance(backend, dict)
@@ -296,7 +297,9 @@ def run(request: SmokeRequest) -> int:
             problem_path = output_root / "candidate_problems" / f"{candidate_id}.pddl"
             problem_path.parent.mkdir(parents=True, exist_ok=True)
             problem_path.write_text(problem, encoding="utf-8")
-            result = dict(renderer(paths["domain"], problem_path, paths["profile"], output_root / "cases" / case_id, config))
+            result = dict(
+                renderer(paths["domain"], problem_path, paths["profile"], output_root / "cases" / case_id, config)
+            )
             case_records.append(_case_record(repository, case_id, object_count, raw_rank, candidate_id, result))
         if recorder is None or len(recorder["calls"]) != len(CASES):
             raise SmokeError("planimation_post_count_invalid")
@@ -305,7 +308,10 @@ def run(request: SmokeRequest) -> int:
             "all_loopback": True,
             "call_count": len(recorder["calls"]),
             "hosted_requests": 0,
-            "limitation": "Only project-client requests.post calls are intercepted; this proves loopback forbidden-solver containment, not OS-level network interception.",
+            "limitation": (
+                "Only project-client requests.post calls are intercepted; this proves loopback "
+                "forbidden-solver containment, not OS-level network interception."
+            ),
             "recorded_post_urls": list(recorder["calls"]),
         }
         report["status"] = "success"
@@ -329,7 +335,10 @@ def run(request: SmokeRequest) -> int:
                 "all_loopback": True,
                 "call_count": len(calls),
                 "hosted_requests": 0,
-                "limitation": "Only project-client requests.post calls are intercepted; this proves loopback forbidden-solver containment, not OS-level network interception.",
+                "limitation": (
+                    "Only project-client requests.post calls are intercepted; this proves loopback "
+                    "forbidden-solver containment, not OS-level network interception."
+                ),
                 "recorded_post_urls": calls,
             }
         if reason is not None:
