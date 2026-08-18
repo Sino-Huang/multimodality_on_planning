@@ -89,6 +89,7 @@ def test_copy_publication_does_not_overwrite_competing_destination(
     source = tmp_path / "source.jsonl"
     destination = tmp_path / "records/destination.jsonl"
     source.write_bytes(b'{"source":true}\n')
+    source_metadata = organize_outputs._record_metadata(source)
     source_sha256 = hashlib.sha256(source.read_bytes()).hexdigest()
     competing_contents = b'{"competitor":true}\n'
     original_rename = os.rename
@@ -119,7 +120,7 @@ def test_copy_publication_does_not_overwrite_competing_destination(
     monkeypatch.setattr(organize_outputs.os, "link", competing_link)
 
     with pytest.raises(OrganizerError, match="record copy destination collision"):
-        organize_outputs._copy_file(source, destination)
+        organize_outputs._copy_file(source, destination, source_metadata)
 
     assert destination.read_bytes() == competing_contents
     assert hashlib.sha256(source.read_bytes()).hexdigest() == source_sha256
@@ -177,6 +178,7 @@ def test_copy_rejects_fifo_replacement_at_source_open_without_artifacts(
 ) -> None:
     source = tmp_path / "source.jsonl"
     source.write_bytes(b'{"source":true}\n')
+    source_metadata = organize_outputs._record_metadata(source)
     destination = tmp_path / "records/destination.jsonl"
     original_open = os.open
     replaced = False
@@ -201,7 +203,7 @@ def test_copy_rejects_fifo_replacement_at_source_open_without_artifacts(
     monkeypatch.setattr(organize_outputs, "_open_descriptor", replace_source_with_fifo)
 
     with pytest.raises(OrganizerError, match="record must be a regular file"):
-        organize_outputs._copy_file(source, destination)
+        organize_outputs._copy_file(source, destination, source_metadata)
 
     assert replaced
     assert not destination.exists()
@@ -214,8 +216,9 @@ def test_copy_accepts_mode_0644_jsonl_source(tmp_path: Path) -> None:
     source.write_bytes(contents)
     source.chmod(0o644)
     destination = tmp_path / "records/destination.jsonl"
+    source_metadata = organize_outputs._record_metadata(source)
 
-    organize_outputs._copy_file(source, destination)
+    organize_outputs._copy_file(source, destination, source_metadata)
 
     assert destination.read_bytes() == contents
     assert organize_outputs._record_metadata(source) == {
@@ -223,3 +226,47 @@ def test_copy_accepts_mode_0644_jsonl_source(tmp_path: Path) -> None:
         "bytes": len(contents),
         "lines": 1,
     }
+
+
+def test_copy_records_rejects_regular_source_replacement_before_publication(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    repository = synthetic_repository(tmp_path)
+    copy = DEFAULT_OUTPUT_LAYOUT.physical_record_copies[0]
+    relocation = next(
+        item for item in DEFAULT_OUTPUT_LAYOUT.relocations if copy.source.value.startswith(f"{item.destination.value}/")
+    )
+    original_source = repository / relocation.source.value / Path(copy.source.value).name
+    expected_metadata = organize_outputs._record_metadata(original_source)
+    source = repository / copy.source.value
+    destination = repository / copy.destination.value
+    replacement = b'{"replacement":true}\n'
+    original_open = organize_outputs._open_descriptor
+    source_opens = 0
+
+    def replace_source_before_copy_open(
+        path: str | bytes | os.PathLike[str] | os.PathLike[bytes],
+        flags: int,
+        mode: int = 0o777,
+        *,
+        dir_fd: int | None = None,
+    ) -> int:
+        nonlocal source_opens
+        if os.fsdecode(path) == source.name:
+            source_opens += 1
+            if source_opens == 2:
+                source.unlink()
+                source.write_bytes(replacement)
+                source.chmod(0o644)
+        return original_open(path, flags, mode, dir_fd=dir_fd)
+
+    monkeypatch.setattr(organize_outputs, "_open_descriptor", replace_source_before_copy_open)
+
+    with pytest.raises(OrganizerError):
+        apply(repository)
+
+    assert source_opens == 2
+    assert expected_metadata != organize_outputs._record_metadata(source)
+    assert not destination.exists()
+    assert not tuple(destination.parent.glob(f".{destination.name}.copy-*"))

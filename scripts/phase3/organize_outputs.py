@@ -173,7 +173,7 @@ def _copy_records(repository: Path, journal: Path, checkpoint: Checkpoint | Chec
             if _record_metadata(destination) != source_meta:
                 raise OrganizerError(rule="record copy differs from canonical source", path=destination)
         else:
-            _copy_file(source, destination)
+            _copy_file(source, destination, source_meta)
             if _record_metadata(destination) != source_meta:
                 raise OrganizerError(rule="record copy verification failed", path=destination)
         entries.append({"source": copy.source.value, "destination": copy.destination.value, "metadata": source_meta})
@@ -251,7 +251,7 @@ def _record_metadata(path: Path) -> dict[str, object]:
     return {"sha256": hasher.hexdigest(), "bytes": size, "lines": lines}
 
 
-def _copy_file(source: Path, destination: Path) -> None:
+def _copy_file(source: Path, destination: Path, expected_metadata: dict[str, object]) -> None:
     try:
         prepare_destination_parent(source, destination)
     except OutputLayoutRenameError as error:
@@ -264,6 +264,8 @@ def _copy_file(source: Path, destination: Path) -> None:
                 output_handle.write(chunk)
             output_handle.flush()
             os.fsync(output_handle.fileno())
+        if _record_metadata(temporary) != expected_metadata:
+            raise OrganizerError(rule="record source changed during copy", path=source)
         if _exists(destination):
             raise OrganizerError(rule="record copy destination collision", path=destination)
         parent_descriptor = os.open(destination.parent, os.O_RDONLY | os.O_DIRECTORY | os.O_CLOEXEC | os.O_NOFOLLOW)
