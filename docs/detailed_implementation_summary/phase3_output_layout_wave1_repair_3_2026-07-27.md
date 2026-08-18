@@ -2,7 +2,7 @@
 
 ## Changes
 
-Repair 3 strengthens structured-view publication and bounded content hashing without changing the approved catalog. Publication returns a held `PublishedStage` descriptor, validates the exact published tree and protected targets through that descriptor, and requires the canonical pathname to retain the same identity before success. Failed private stages are durably retained at their original unique private pathname without rename or deletion.
+Repair 3 strengthens structured-view publication and bounded content reads without changing the approved catalog. Publication returns a held `PublishedStage` descriptor, validates the exact published tree and protected targets through that descriptor, and requires the canonical pathname to retain the same identity before success. Failed private stages are durably retained at their original unique private pathname without rename or deletion.
 
 The idempotent existing-view path now opens and retains both the canonical view descriptor and its immediate parent descriptor. After all protected links are verified, it repeats the exact-tree scan, validates the canonical pathname against the held identity, and performs one last exact-tree scan before returning success. First publication uses the same final ordering. These checks close false-success races where a same-permission writer inserted an extra entry after the fifteenth link check or immediately after pathname validation.
 

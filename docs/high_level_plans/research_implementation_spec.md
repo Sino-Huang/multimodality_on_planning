@@ -74,7 +74,7 @@ The new evidence module owns only:
 - the verification CLI.
 
 The existing integration harness at
-`.claude/evidence/cgas-phase3-pilot-rendering/local_planimation_adapter_integration.py`
+`data/deprecated/2026-08-18-cgas-realignment/.claude/evidence/cgas-phase3-pilot-rendering/local_planimation_adapter_integration.py`
 remains responsible for launching the backend, invoking the real adapter path, capturing artifacts, and writing `proof-report.json`.
 
 ### 1.3 Action Sequence contract
@@ -205,7 +205,7 @@ The 8- and 12-object smokes remain separately authorized executions. They are no
 
 After the 4/8/12-object gates and explicit render authorization:
 
-1. Render the 16,822 missing pilot states through the digest-bound resumable production path.
+1. Render the 16,822 missing pilot states through the resumable production path.
 2. Perform replay alignment for the 790 rows with authoritative on-plan actions.
 3. Run the existing certificate and corpus release gates.
 4. Release the pilot corpus before starting Gate-3 model training.
@@ -270,7 +270,7 @@ Gate 3 compares three no-support inference arms:
 All arms use matched observations, task instructions, action vocabulary, split, and evaluation decoder. Certificate context and live memory are introduced only in the later routing study.
 
 The terminology analysis is recorded in
-`.claude/knowledge/vlm-adaptation-taxonomy-cgas-2026-08-16.md`.
+`data/deprecated/2026-08-18-cgas-realignment/.claude/knowledge/vlm-adaptation-taxonomy-cgas-2026-08-16.md`.
 
 ### 4.6 Metrics
 

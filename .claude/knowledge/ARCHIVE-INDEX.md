@@ -19,7 +19,8 @@ Prefer maintained sources in this order:
 
 1. `doc/high_level_plans/research_execution_plan.md`
 2. `task_plan.md` and `notes.md`
-3. The active milestone's `.claude/evidence/<milestone>/verification*.md`
+3. The milestone's archived `data/deprecated/2026-08-18-cgas-realignment/.claude/evidence/<milestone>/verification*.md`
+   (historical records only; no active code or test may read the cold archive)
 4. Git history via `git show HEAD:<old-path>`
 5. The compressed snapshot for untracked or orchestration-only files
 

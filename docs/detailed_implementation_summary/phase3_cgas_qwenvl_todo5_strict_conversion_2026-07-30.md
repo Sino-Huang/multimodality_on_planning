@@ -1,6 +1,6 @@
 # Phase 3 CGAS Todo 5 Strict Qwen-VL Conversion
 
-Todo 5 now keeps Qwen conversion fail-closed at the model-input boundary. The converter rejects target-only fields such as `route_label`, `planner_trace`, and `replay_transitions` when they appear in the future model input before emitting a Qwen row. The focused conversion test fixture now rebuilds current authoritative source, alignment, and step roots from the Todo 2-4 builders so stale fixture hashes do not mask Todo 5 regressions.
+Todo 5 now keeps Qwen conversion fail-closed at the model-input boundary. The converter rejects target-only fields such as `route_label`, `planner_trace`, and `replay_transitions` when they appear in the future model input before emitting a Qwen row. The focused conversion test fixture now rebuilds current authoritative source, alignment, and step roots from the Todo 2-4 builders so stale fixture identities do not mask Todo 5 regressions.
 
 The Qwen registry exposes only the dedicated train/dev aliases:
 

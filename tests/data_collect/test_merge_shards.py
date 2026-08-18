@@ -29,13 +29,13 @@ def test_merge_shards_rebases_paths_and_aggregates_counts(tmp_path: Path) -> Non
     blocksworld = _write_shard(
         shards_root,
         "blocksworld",
-        accepted=[_accepted(shards_root / "blocksworld", domain_id="blocksworld", normalized_problem_hash="hash-a")],
+        accepted=[_accepted(shards_root / "blocksworld", domain_id="blocksworld", normalized_problem_text="text-a")],
         rejections=[_rejection(domain_id="blocksworld")],
     )
     ferry = _write_shard(
         shards_root,
         "ferry",
-        accepted=[_accepted(shards_root / "ferry", domain_id="ferry", normalized_problem_hash="hash-b")],
+        accepted=[_accepted(shards_root / "ferry", domain_id="ferry", normalized_problem_text="text-b")],
         rejections=[],
     )
 
@@ -92,17 +92,17 @@ def test_merge_shards_fails_on_duplicate_normalized_hashes(tmp_path: Path) -> No
     _write_shard(
         shards_root,
         "blocksworld",
-        accepted=[_accepted(shards_root / "blocksworld", domain_id="blocksworld", normalized_problem_hash="same-hash")],
+        accepted=[_accepted(shards_root / "blocksworld", domain_id="blocksworld", normalized_problem_text="same-text")],
         rejections=[],
     )
     _write_shard(
         shards_root,
         "ferry",
-        accepted=[_accepted(shards_root / "ferry", domain_id="ferry", normalized_problem_hash="same-hash")],
+        accepted=[_accepted(shards_root / "ferry", domain_id="ferry", normalized_problem_text="same-text")],
         rejections=[],
     )
 
-    with pytest.raises(RuntimeError, match="Duplicate normalized_problem_hash"):
+    with pytest.raises(RuntimeError, match="Duplicate normalized problem"):
         merge_shards(shards_root, tmp_path / "merged")
 
     assert not (tmp_path / "merged" / ACCEPTED_MANIFEST_FILENAME).exists()
@@ -114,7 +114,7 @@ def test_merge_shards_requires_resume_or_force_for_existing_output(tmp_path: Pat
     _write_shard(
         shards_root,
         "blocksworld",
-        accepted=[_accepted(shards_root / "blocksworld", domain_id="blocksworld", normalized_problem_hash="hash-a")],
+        accepted=[_accepted(shards_root / "blocksworld", domain_id="blocksworld", normalized_problem_text="text-a")],
         rejections=[],
     )
     output_root.mkdir()
@@ -140,7 +140,7 @@ def test_merge_shards_requires_resume_or_force_for_existing_output(tmp_path: Pat
         merge_shards(shards_root, output_root, force=True, resume=True)
 
 
-def _accepted(shard_root: Path, *, domain_id: str, normalized_problem_hash: str) -> AcceptedInstanceMetadata:
+def _accepted(shard_root: Path, *, domain_id: str, normalized_problem_text: str) -> AcceptedInstanceMetadata:
     split = "train"
     bucket = "easy"
     index = 0
@@ -173,10 +173,7 @@ def _accepted(shard_root: Path, *, domain_id: str, normalized_problem_hash: str)
         generator_cwd=str(shard_root / "generators" / domain_id),
         stdout_path=str(instance_dir / "generator.stdout"),
         stderr_path=str(instance_dir / "generator.stderr"),
-        domain_hash=f"domain-{normalized_problem_hash}",
-        normalized_domain_hash=f"normalized-domain-{normalized_problem_hash}",
-        problem_hash=f"problem-{normalized_problem_hash}",
-        normalized_problem_hash=normalized_problem_hash,
+        normalized_problem_text=normalized_problem_text,
         render_status="success",
         render_artifact_paths=(str(render_dir / "trace.vfg.json"), str(frames_dir / "frame_000.png")),
         render_result_path=str(render_dir / "result.json"),
@@ -218,7 +215,7 @@ def _write_shard(
         build_summary_metadata(
             accepted_instances=accepted,
             rejected_candidates=rejections,
-            duplicate_accepted_problem_hashes=0,
+            duplicate_accepted_problems=0,
         ),
     )
     return shard_root

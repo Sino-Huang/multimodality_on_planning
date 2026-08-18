@@ -276,3 +276,24 @@ outputs/
 # END oh-my-opencode-slim clonedeps
 
 .slim/
+
+# Keep the 2026-08-18 CGAS-realignment cold archive Git-visible. This block is
+# deliberately last: the last matching pattern wins, so these negations override
+# the global ignores above (e.g. **/*.log) for the moved subtrees only. Ignored
+# parent directories must be re-included level by level because Git does not
+# descend into ignored directories. Unrelated data/ and archive siblings stay
+# ignored.
+!data/deprecated/
+data/deprecated/*
+!data/deprecated/2026-08-18-cgas-realignment/
+data/deprecated/2026-08-18-cgas-realignment/*
+!data/deprecated/2026-08-18-cgas-realignment/.claude/
+data/deprecated/2026-08-18-cgas-realignment/.claude/knowledge/*
+!data/deprecated/2026-08-18-cgas-realignment/.claude/knowledge/vlm-adaptation-taxonomy-cgas-2026-08-16.md
+!data/deprecated/2026-08-18-cgas-realignment/.claude/evidence/**
+!data/deprecated/2026-08-18-cgas-realignment/.omo/
+!data/deprecated/2026-08-18-cgas-realignment/.omo/**
+!data/deprecated/2026-08-18-cgas-realignment/tests/
+data/deprecated/2026-08-18-cgas-realignment/tests/*
+!data/deprecated/2026-08-18-cgas-realignment/tests/phase3/
+!data/deprecated/2026-08-18-cgas-realignment/tests/phase3/**

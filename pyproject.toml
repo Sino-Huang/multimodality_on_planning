@@ -93,3 +93,28 @@ ignore = ["F722"]
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["E402", "F401"]
+
+[tool.pytest.ini_options]
+# Default discovery is bounded to tests/. The cold archive, retired agent-state
+# roots, generated outputs, cloned dependencies, and vendored trees must never
+# be walked by a bare pytest run; explicit paths still work for active trees.
+testpaths = ["tests"]
+norecursedirs = [
+    "*.egg",
+    ".*",
+    "_darcs",
+    "build",
+    "CVS",
+    "dist",
+    "node_modules",
+    "venv",
+    "{arch}",
+    "data/deprecated",
+    ".claude",
+    ".omo",
+    "outputs",
+    "tmp",
+    ".slim",
+    "modules",
+    "starVLA",
+]

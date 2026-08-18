@@ -20,7 +20,7 @@ def test_inspect_shards_counts_hashes_and_staging(tmp_path: Path) -> None:
         "split": "train",
         "bucket": "easy",
         "difficulty_target": "easy",
-        "normalized_problem_hash": "hash-a",
+        "normalized_problem_text": "text-a",
     }
     rejection = {"split": "train", "bucket": "easy"}
     _write_jsonl(shard / "accepted_manifest.jsonl", [accepted])
@@ -63,7 +63,7 @@ def test_update_final_root_requires_matching_clean_merge(
         calls.append(list(command))
         return SimpleNamespace(
             returncode=0,
-            stdout=json.dumps({"summary": {"accepted_total": 12, "duplicate_accepted_problem_hashes": 0}}),
+            stdout=json.dumps({"summary": {"accepted_total": 12, "duplicate_accepted_problems": 0}}),
             stderr="",
         )
 
@@ -72,7 +72,7 @@ def test_update_final_root_requires_matching_clean_merge(
     summary = update_final_root(
         shards_root=tmp_path / "shards",
         final_root=tmp_path / "curriculum_pddl",
-        safety_summary={"accepted_total": 12, "duplicate_accepted_problem_hashes": 0},
+        safety_summary={"accepted_total": 12, "duplicate_accepted_problems": 0},
     )
 
     assert summary["accepted_total"] == 12
@@ -94,7 +94,7 @@ def test_verbose_logs_progress_to_stderr(
                 "instance_id": "blocksworld-train-easy-0000",
                 "split": "train",
                 "bucket": "easy",
-                "normalized_problem_hash": "hash-a",
+                "normalized_problem_text": "text-a",
             }
         ],
     )
@@ -102,7 +102,7 @@ def test_verbose_logs_progress_to_stderr(
 
     monkeypatch.setattr(
         "scripts.phase3.extend_curriculum_workflow.merge_shards",
-        lambda *, shards_root, candidate_root: {"accepted_total": 1, "duplicate_accepted_problem_hashes": 0},
+        lambda *, shards_root, candidate_root: {"accepted_total": 1, "duplicate_accepted_problems": 0},
     )
 
     run_workflow(
@@ -146,7 +146,7 @@ def test_save_plans_targets_updated_final_root(
                 "instance_id": "blocksworld-train-easy-0000",
                 "split": "train",
                 "bucket": "easy",
-                "normalized_problem_hash": "hash-a",
+                "normalized_problem_text": "text-a",
             }
         ],
     )
@@ -157,11 +157,11 @@ def test_save_plans_targets_updated_final_root(
 
     monkeypatch.setattr(
         "scripts.phase3.extend_curriculum_workflow.merge_shards",
-        lambda *, shards_root, candidate_root: {"accepted_total": 1, "duplicate_accepted_problem_hashes": 0},
+        lambda *, shards_root, candidate_root: {"accepted_total": 1, "duplicate_accepted_problems": 0},
     )
     monkeypatch.setattr(
         "scripts.phase3.extend_curriculum_workflow.update_final_root",
-        lambda *, shards_root, final_root, safety_summary: {"accepted_total": 1, "duplicate_accepted_problem_hashes": 0},
+        lambda *, shards_root, final_root, safety_summary: {"accepted_total": 1, "duplicate_accepted_problems": 0},
     )
 
     def fake_save_plans(config):

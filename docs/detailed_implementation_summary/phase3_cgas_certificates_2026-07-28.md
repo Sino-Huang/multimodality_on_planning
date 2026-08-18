@@ -4,7 +4,7 @@
 
 Todo 4 adds `planning_cgas_v1` typed transition records. The builder reads only
 accepted Todo 2 source rows and Todo 3 alignment rows. It emits one record per
-transition with a stable ID, source hash, planner/version, split/OOD state,
+transition with a stable ID, source identity, planner/version, split/OOD state,
 task text, one aligned image, action target, certificate target, replay evidence,
 and target-only counterfactuals.
 
@@ -120,7 +120,7 @@ repair, the focused suite passed `14 passed`, and both fresh CLI reports accept
 the correct 12 unique rows with all counters at zero. Receipts are under
 `.omo/evidence/task-4-cgas-dataloader-and-experiment-support/remediation-3/`.
 
-## 2026-07-28 Full Stored-Record Binding
+## 2026-07-28 Full Stored-Record Matching
 
 Schema validity and certificate-field equality alone do not prove a stored
 record is the deterministic projection of its source and alignment manifests.
@@ -130,8 +130,7 @@ After the existing schema, oracle-policy, and certificate checks run,
 comparison remains in its dedicated validator so its invariant-specific reasons
 and failure counter are unchanged.
 
-The parameterized regression verifies that stale `action_target`, `source_hash`,
-`planner`, `alignment`, `replay_evidence`, and `counterfactual_targets` each
+The parameterized regression verifies that stale `action_target`, source identity, `planner`, `alignment`, `replay_evidence`, and `counterfactual_targets` each
 fail closed as exactly `record_mismatch:<field>`. The fresh fixture CLI still
 builds and verifies 12 accepted rows; an isolated stale-action CLI output
 reports zero accepted rows and `record_mismatch:action_target`.

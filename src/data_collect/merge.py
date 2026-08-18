@@ -17,7 +17,7 @@ from .generate import (
     _sorted_rejections,
     _write_jsonl,
 )
-from .hashing import AcceptedProblemHashIndex
+from .normalization import AcceptedProblemIndex
 from .metadata import (
     AcceptedInstanceMetadata,
     RejectedCandidateMetadata,
@@ -49,7 +49,7 @@ def merge_shards(
     accepted_instances: list[AcceptedInstanceMetadata] = []
     rejected_candidates: list[RejectedCandidateMetadata] = []
     copy_plan: list[tuple[Path, Path, AcceptedInstanceMetadata]] = []
-    hash_index = AcceptedProblemHashIndex()
+    problem_index = AcceptedProblemIndex()
 
     for shard_root in shard_roots:
         _load_shard_summary(shard_root)
@@ -58,7 +58,7 @@ def merge_shards(
         rejected_candidates.extend(shard_rejections)
 
         for instance in shard_accepted:
-            _register_unique_hash(hash_index, instance=instance, shard_root=shard_root)
+            _register_unique_problem(problem_index, instance=instance, shard_root=shard_root)
             rebased = _rebase_accepted_instance(instance, source_root=shard_root, target_root=resolved_output_root)
             source_instance_dir = _source_instance_dir(shard_root, instance)
             target_instance_dir = _accepted_instance_dir(resolved_output_root, rebased)
@@ -70,7 +70,7 @@ def merge_shards(
     summary = build_summary_metadata(
         accepted_instances=sorted_accepted,
         rejected_candidates=sorted_rejections,
-        duplicate_accepted_problem_hashes=0,
+        duplicate_accepted_problems=0,
         resumed_accepted_total=resumed_accepted_total,
         notes="Merged from finalized curriculum PDDL shards.",
         extra={
@@ -176,17 +176,17 @@ def _load_jsonl(path: Path) -> list[dict[str, Any]]:
     return payloads
 
 
-def _register_unique_hash(
-    hash_index: AcceptedProblemHashIndex,
+def _register_unique_problem(
+    problem_index: AcceptedProblemIndex,
     *,
     instance: AcceptedInstanceMetadata,
     shard_root: Path,
 ) -> None:
-    if not instance.normalized_problem_hash:
-        raise RuntimeError(f"Accepted instance {instance.instance_id} in {shard_root} is missing normalized_problem_hash")
+    if not instance.normalized_problem_text:
+        raise RuntimeError(f"Accepted instance {instance.instance_id} in {shard_root} is missing normalized_problem_text")
 
-    duplicate = hash_index.register(
-        normalized_problem_hash=instance.normalized_problem_hash,
+    duplicate = problem_index.register(
+        normalized_problem_text=instance.normalized_problem_text,
         instance_id=instance.instance_id,
         domain_id=instance.domain_id,
         split=instance.split,
@@ -197,8 +197,8 @@ def _register_unique_hash(
         return
 
     raise RuntimeError(
-        "Duplicate normalized_problem_hash while merging shards: "
-        f"{instance.normalized_problem_hash} from {shard_root} instance {instance.instance_id} "
+        "Duplicate normalized problem while merging shards: "
+        f"{instance.normalized_problem_text} from {shard_root} instance {instance.instance_id} "
         f"duplicates existing instance {duplicate.existing_instance_id} "
         f"({duplicate.existing_domain_id}/{duplicate.existing_split}/{duplicate.existing_bucket})"
     )

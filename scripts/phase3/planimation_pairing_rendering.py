@@ -4,7 +4,7 @@ import json
 import shutil
 import time
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, cast
 
 from PIL import Image, UnidentifiedImageError
 
@@ -30,14 +30,19 @@ def render_state_with_planimation(
     errors: list[str] = []
     for attempt in range(1, config.max_attempts + 1):
         try:
-            if config.plan is not None:
+            if config.plan is not None or config.solver_url is not None:
+                options: dict[str, str] = {}
+                if config.plan is not None:
+                    options["plan"] = config.plan
+                if config.solver_url is not None:
+                    options["solver_url"] = config.solver_url
                 vfg_bytes, used_url = post_pddl_for_vfg(
                     domain_path,
                     problem_path,
                     profile_path,
                     pddl_urls,
                     config.timeout_seconds,
-                    plan=config.plan,
+                    **options,
                 )
             else:
                 vfg_bytes, used_url = post_pddl_for_vfg(
@@ -114,6 +119,9 @@ def _render_one_state(
                 "semantic_image_metrics": cached["semantic_image_metrics"],
             }
         )
+        cached_renderer = cached.get("renderer")
+        if isinstance(cached_renderer, dict):
+            row.update(cached_renderer)
         return row
     cache_dir.mkdir(parents=True, exist_ok=True)
     try:
@@ -149,8 +157,8 @@ def _render_one_state(
             )
         renderer_metadata: dict[str, JSONValue] = {}
         for key, value in result.items():
-            if key not in {"frame_path", "trace_path"} and (isinstance(value, (str, int, float, bool)) or value is None):
-                renderer_metadata[key] = value
+            if key not in {"frame_path", "trace_path"} and _json_value(value):
+                renderer_metadata[key] = cast(JSONValue, value)
         write_json(
             cache_dir / "result.json",
             {
@@ -273,6 +281,8 @@ def _cache_identity(
         # cache identity. It is added only when present so that absent-plan runs
         # keep the historical cache identity byte-for-byte.
         config_payload["plan"] = config.plan
+    if config.solver_url is not None:
+        config_payload["solver_url"] = config.solver_url
     identity: dict[str, JSONValue] = {
         "schema_version": SCHEMA_VERSION,
         "domain_path": str(pair["domain_path"]),
@@ -292,6 +302,14 @@ def _valid_vfg(path: Path) -> str:
     if not isinstance(payload, dict) or not isinstance(payload.get("visualStages"), list):
         raise ValueError("renderer VFG does not contain visualStages")
     return file_sha256(path)
+
+
+def _json_value(value: object) -> bool:
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return True
+    if isinstance(value, list):
+        return all(_json_value(part) for part in value)
+    return isinstance(value, dict) and all(isinstance(key, str) and _json_value(part) for key, part in value.items())
 
 
 def _validated_cache(

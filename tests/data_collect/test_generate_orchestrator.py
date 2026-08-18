@@ -278,7 +278,7 @@ def test_resume_no_duplicates(tmp_path: Path) -> None:
     assert first.summary.accepted_total == 3
     assert second.summary.accepted_total == 3
     assert second.summary.resumed_accepted_total == 3
-    assert second.summary.duplicate_accepted_problem_hashes == 0
+    assert second.summary.duplicate_accepted_problems == 0
     assert registry["grid"].call_count == first_call_count
     manifest_lines = (tmp_path / "dataset" / "accepted_manifest.jsonl").read_text(encoding="utf-8").splitlines()
     assert len(manifest_lines) == 3
@@ -311,7 +311,7 @@ def test_force_overwrites_existing_outputs(tmp_path: Path) -> None:
     )
     after_payload = _load_json(output_root / "grid" / "train" / "easy" / "grid-train-easy-0000" / "result.json")
 
-    assert before_payload["normalized_problem_hash"] != after_payload["normalized_problem_hash"]
+    assert before_payload["normalized_problem_text"] != after_payload["normalized_problem_text"]
     assert second_registry["grid"].call_count > 0
     summary_payload = _load_json(output_root / SUMMARY_FILENAME)
     assert summary_payload["resumed_accepted_total"] == 0
@@ -433,7 +433,7 @@ def test_split_specific_resume_rejects_hashes_accepted_in_other_splits(tmp_path:
     assert train_result.summary.accepted_total == 1
     assert dev_result.summary.accepted_total == 2
     assert dev_result.summary.resumed_accepted_total == 1
-    assert dev_result.summary.duplicate_accepted_problem_hashes == 0
+    assert dev_result.summary.duplicate_accepted_problems == 0
     assert dev_result.summary.accepted_by_split == {"dev": 1, "train": 1}
     selection_report = dev_result.summary.extra["selection"]
     assert set(selection_report["grid"]) == {"dev"}

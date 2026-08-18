@@ -2,7 +2,7 @@
 
 ## Change
 
-`render_replay_states` retains its controlled malformed-plan diagnostic, and the persisted contract now recognizes `failure_kind=render_cardinality_invalid` as an exact compact failed-state variant. The variant deliberately carries no invented transition, state hash, cache, renderer, or artifact metadata because transition construction did not occur.
+`render_replay_states` retains its controlled malformed-plan diagnostic, and the persisted contract now recognizes `failure_kind=render_cardinality_invalid` as an exact compact failed-state variant. The variant deliberately carries no invented transition, state identity, cache, renderer, or artifact metadata because transition construction did not occur.
 
 Release validates that row successfully, then rejects the incomplete artifact at render coverage reconciliation. This preserves fail-closed release behavior while ensuring emitted rows satisfy their own persisted contract.
 

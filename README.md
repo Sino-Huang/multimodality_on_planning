@@ -18,7 +18,7 @@
 
 In StarVLA (also a pun on "start VLA" ),  each functional component (model, data, trainer, config, evaluation, etc.) follows a top-down, intuitive separation and high-cohesion, low-coupling principle, enabling plug-and-play design, rapid prototyping, and independent debugging.
 
-Planning-trace experiments should account for LLM context-window limits. On `blocksworld-train-medium-0011`, the final valid plan has only 10 actions, but raw reasoning traces can be much larger: active GBFS traces remain frontier-heavy, FF-style is roughly 32k-37k estimated tokens, Graphplan is roughly 461k-527k, and IW(3) is roughly 2.57M-2.93M. Future planner-model work should therefore use an external memory manager for frontier, visited/best-depth, novelty, mutex, and planning-graph state, letting the LLM attend only to the current path, selected candidates, and retrieved facts instead of the full raw trace.
+Planning research in this repository is governed by the Search Process Policy program. The active study trains VLMs to execute BFS, IW, A*+h_max, and A*+landmark-count through a trusted search runtime; external search memory (frontier, visited/best-depth, novelty, and landmark state) is a runtime/data boundary, not an internal unbounded model state. The active research execution tree is GitHub issue #38 (`Spec: Teach VLMs executable search processes across modalities`) and its ready-for-agent tickets #39-#108.
 
 ## News
 
@@ -396,6 +396,7 @@ The codebase was originally forked from [InternVLA-M1](https://github.com/Intern
 Here's how our community has grown over time:
 
 [![Star History Chart](https://api.star-history.com/svg?repos=starVLA/starVLA&type=date&legend=bottom-right)](https://www.star-history.com/#starVLA/starVLA&type=date&legend=bottom-right)
+
 
 
 <!-- *Chart updates automatically. Click to interact with the full timeline.* -->

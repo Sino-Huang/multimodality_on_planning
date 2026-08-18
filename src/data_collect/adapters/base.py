@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from ..hashing import normalize_pddl
+from ..normalization import normalize_pddl
 
 
 GENERATOR_TIMEOUT_REASON = "generator_timeout"

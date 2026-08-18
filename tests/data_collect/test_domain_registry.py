@@ -5,7 +5,7 @@ from pathlib import Path
 from src.data_collect.adapters import build_domain_adapter, build_domain_registry, registry_domain_ids
 from src.data_collect.adapters.base import GenerationSpec
 from src.data_collect.config import EXPECTED_DOMAIN_TO_GENERATOR, load_curriculum_config
-from src.data_collect.hashing import build_pddl_hash_info
+from src.data_collect.normalization import normalize_pddl
 
 
 def _typed_sokoban_problem() -> str:
@@ -256,13 +256,12 @@ def test_sokoban_presets_use_render_compatible_generator_shape() -> None:
         assert preset.parameters == {"grid_size": 5, "boxes": 1, "walls": 0}
 
 
-def test_sokoban_builder_varies_normalized_template_problem_hashes(tmp_path: Path) -> None:
+def test_sokoban_builder_varies_normalized_template_problem_texts(tmp_path: Path) -> None:
     curriculum_config = load_curriculum_config()
     domain = next(item for item in curriculum_config.domains if item.domain_id == "sokoban")
     adapter = build_domain_adapter(domain)
     raw_problem = _typed_sokoban_problem()
 
-    hashes: set[str] = set()
     normalized_texts: set[str] = set()
     for index in range(270):
         split = ("train", "dev", "test")[index % 3]
@@ -285,9 +284,7 @@ def test_sokoban_builder_varies_normalized_template_problem_hashes(tmp_path: Pat
 
         assert prepared.stdout_transform is not None
         transformed = prepared.stdout_transform(raw_problem)
-        hash_info = build_pddl_hash_info(transformed)
-        hashes.add(hash_info.normalized_sha256)
-        normalized_texts.add(hash_info.normalized_text)
+        normalized_texts.add(normalize_pddl(transformed))
 
         assert "(:domain template)" in transformed
         assert "ply1 - player" in transformed
@@ -295,7 +292,6 @@ def test_sokoban_builder_varies_normalized_template_problem_hashes(tmp_path: Pat
         assert "but1 - button" in transformed
         assert "(forall (?but - button)" in transformed
 
-    assert len(hashes) == 270
     assert len(normalized_texts) == 270
 
 
@@ -331,4 +327,4 @@ def test_sokoban_variant_changes_positive_position_symbols_not_comments(tmp_path
     assert "pos1_1 pos1_2 pos2_1 - pos" in first_problem
     assert "pos11_1 pos11_2 pos12_1 - pos" in second_problem
     assert "(right pos11_1 pos11_2)" in second_problem
-    assert build_pddl_hash_info(first_problem).normalized_sha256 != build_pddl_hash_info(second_problem).normalized_sha256
+    assert normalize_pddl(first_problem) != normalize_pddl(second_problem)

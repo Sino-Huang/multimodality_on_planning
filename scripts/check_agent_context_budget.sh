@@ -8,10 +8,10 @@ max_knowledge_files=6
 max_knowledge_bytes=25600
 max_orientation_bytes=25600
 
-knowledge_files=$(find .claude/knowledge .omo/knowledges -type f -name '*.md' | wc -l)
-knowledge_bytes=$(find .claude/knowledge .omo/knowledges -type f -name '*.md' -printf '%s\n' |
+knowledge_files=$(find .claude/knowledge -type f -name '*.md' | wc -l)
+knowledge_bytes=$(find .claude/knowledge -type f -name '*.md' -printf '%s\n' |
     awk '{sum += $1} END {print sum + 0}')
-orientation_bytes=$(find .claude/knowledge .claude/plans .omo/knowledges -type f -printf '%s\n' |
+orientation_bytes=$(find .claude/knowledge .claude/plans -type f -printf '%s\n' |
     awk '{sum += $1} END {print sum + 0}')
 orientation_bytes=$((
     orientation_bytes
@@ -33,7 +33,10 @@ if ((orientation_bytes > max_orientation_bytes)); then
     exit 1
 fi
 
-for retired_root in .claude/logs .omo/evidence .omo/ulw-loop; do
+# Retired active roots must stay absent or empty. .claude/evidence and .omo were
+# moved wholesale to the cold archive data/deprecated/2026-08-18-cgas-realignment/
+# (never counted here); .claude/logs was retired earlier.
+for retired_root in .claude/logs .claude/evidence .omo; do
     first_retired_file=""
     if [[ -d "$retired_root" ]]; then
         first_retired_file=$(find "$retired_root" -type f -print -quit)

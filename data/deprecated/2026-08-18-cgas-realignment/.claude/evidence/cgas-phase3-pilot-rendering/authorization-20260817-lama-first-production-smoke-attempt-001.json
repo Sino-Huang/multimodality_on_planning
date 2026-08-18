@@ -1,0 +1,21 @@
+{
+  "schema_version": "cgas_lama_first_production_smoke_authorization_v1",
+  "issue": 8,
+  "authorized": true,
+  "authorized_at": "2026-08-17T19:40:31+10:00",
+  "authorization_basis": "Owner explicitly authorized the exact bounded local LAMA-first integration smoke in the issue #8 execution workflow.",
+  "backend_commit": "94d82afb5ee122ce579dd11ca1953b7c85ca5824",
+  "fast_downward_revision": "b9fba250f5269a20cb0e950375720281621fb030",
+  "planner_alias": "lama-first",
+  "planner_time_limit_seconds": 120,
+  "case_ids": [
+    "8-object-raw-rank-93",
+    "12-object-raw-rank-9"
+  ],
+  "output_root": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/image_frames/cgas-lama-first-production-smoke-20260817-attempt-001",
+  "port": 18083,
+  "base_url": "http://127.0.0.1:18083",
+  "solver_url": "http://127.0.0.1:18083/forbidden-solver",
+  "hosted_requests": 0,
+  "fallback_allowed": false
+}

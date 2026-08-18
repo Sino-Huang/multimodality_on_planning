@@ -2,7 +2,7 @@
 
 `scripts/phase3/verify_planimation_vlm.py` now exposes explicit `manifest`, `render`, and `release` modes. The default remains `manifest`, preserving the existing manifest-only verification workflow.
 
-`release` is fail-closed: it requires all persisted manifests, schemas, reports, and six split JSONL files; reloads every source snapshot; verifies strict hybrid records, IDs, split isolation, expected pair coverage, semantic image receipts, artifact hashes, and reconciled counts. It accepts production-complete output only.
+`release` is fail-closed: it requires all persisted manifests, schemas, reports, and six split JSONL files; reloads every source snapshot; verifies strict hybrid records, IDs, split isolation, expected pair coverage, semantic image receipts, artifact identities, and reconciled counts. It accepts production-complete output only.
 
 ## Verification Commands
 

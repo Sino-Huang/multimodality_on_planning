@@ -3,8 +3,8 @@
 ## Changes
 
 - Frozen pairing rows now point to root-relative JSONL records rather than standalone trace copies.
-- Each row records root ID, root snapshot digest, JSONL relative path, split digest, physical line index, raw-record digest, example ID, and active planner ID.
-- Reload validates the full root snapshot once per source root in an operation, validates the selected split from that snapshot, then reopens and hashes the selected JSONL row.
+- Each row records root ID, root snapshot identity, JSONL relative path, split identity, physical line index, raw-record identity, example ID, and active planner ID.
+- Reload validates the full root snapshot once per source root in an operation, validates the selected split from that snapshot, then reopens and verifies the selected JSONL row.
 - Unsupported planners, including `bfs`, fail with `unsupported_active_planner`; changed source state fails with `source_snapshot_mismatch`.
 
 ## Verification
@@ -23,8 +23,8 @@ Observed result: a 688-row manifest verified with `errors: []` at `tmp/phase3_ta
 
 ## Review-Blocker Follow-Up
 
-- Source reload now verifies manifest planner, active planner ID, split, domain, instance ID, and plan hash against the row selected by its physical line index.
-- Each operation indexes a source JSONL once, retaining original raw bytes for the source-record SHA-256 check. Root snapshots remain cached once per root.
+- Source reload now verifies manifest planner, active planner ID, split, domain, instance ID, and plan identity against the row selected by its physical line index.
+- Each operation indexes a source JSONL once, retaining original raw bytes for the source-record identity check. Root snapshots remain cached once per root.
 - The preserved 688-row verifier completed in `7.37` seconds under the command below.
 
 ```bash

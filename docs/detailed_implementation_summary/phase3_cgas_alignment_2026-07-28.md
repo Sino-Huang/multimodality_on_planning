@@ -7,10 +7,10 @@ provenance-verified CGAS P0 source transitions to Planimation replay renders.
 It emits one `vision_available_step_aligned` record per accepted transition in
 `<output-root>/alignment/{train,dev,test}.jsonl`.
 
-Each record carries the source transition ID, replay `state_before` hash,
-action, PNG path/hash, VFG action index, source/render trace digests, and a
+Each record carries the source transition ID, replay `state_before` identity,
+action, PNG path/identity, VFG action index, source/render trace identities, and a
 mapping rationale. The verifier requires a readable t=0 initial frame, a
-matching persisted PNG/VFG digest, a decodable semantic render, a derived-PDDL
+matching persisted PNG/VFG identity, a decodable semantic render, a derived-PDDL
 initial state equal to replay `state_before`, and VFG actions matching the
 replay action prefix through the selected action.
 
@@ -29,6 +29,6 @@ source ~/cd_vlaplan && python -m scripts.phase3.cgas_alignment --verify --source
 - RED was captured before implementation: the new CLI module did not exist.
 - GREEN: 84 focused tests passed in 29.19s and basedpyright reported zero errors and warnings.
 - Direct CLI build and `--verify` each accepted 12 bounded-fixture rows with all five failure counters at zero.
-- Adversarial tests reject swapped frames, mutated VFG actions, missing t=0 frames, unreadable PNGs, and stale state hashes.
+- Adversarial tests reject swapped frames, mutated VFG actions, missing t=0 frames, unreadable PNGs, and stale state identities.
 
 Evidence is retained in `.omo/evidence/task-3-cgas-dataloader-and-experiment-support/`.

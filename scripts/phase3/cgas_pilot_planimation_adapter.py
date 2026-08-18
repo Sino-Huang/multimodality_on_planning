@@ -19,16 +19,15 @@ from .cgas_pilot_expansion_index import PilotExpansionIndexError, state_sha256
 from .cgas_pilot_representative_mapping import POLICY_ID
 from .cgas_pilot_representative_mapping import SCHEMA_VERSION as MAPPING_SCHEMA_VERSION
 from .io_utils import file_sha256, stable_hash, write_json
-from .pddl import PDDLError, PDDLTask, canonical_atom, parse_task
+from .pddl import PDDLError, PDDLTask, canonical_atom, normalize_action_string, parse_task
 from .planimation_pairing_contracts import RenderConfig, RendererResult, StateRenderer
 from .planimation_pairing_rendering import _render_one_state, render_state_with_planimation
 from .render_semantics import validate_render_artifacts
 from .traversal_state_types import JSONValue
 
-SCHEMA_VERSION = "cgas_phase3_pilot_planimation_adapter_v1"
+SCHEMA_VERSION = "cgas_phase3_pilot_planimation_adapter_v4"
 DEFAULT_DOMAIN_PATH = Path("modules/pddl-generators/blocksworld/4ops/domain.pddl")
 DEFAULT_OUTPUT_ROOT = Path("outputs/image_frames/cgas-phase3-pilot-planimation-adapter-v1")
-DEFAULT_MANIFEST_PATH = Path(".claude/evidence/cgas-phase3-pilot-manifest/pilot-source-manifest.json")
 DEFAULT_CHECKPOINT_PATH = Path("tmp/cgas-p0-characterized-v3/checkpoints/reservoir_checkpoint_000001.json")
 PRODUCTION_REQUEST_SHA256 = "13db7cba5fb1cf885bd203ff657e5c7714bda6f832c5970dbfe5a9dee36d0585"
 PRODUCTION_REQUEST_COUNT = 16_822
@@ -68,6 +67,7 @@ class PilotRenderRequest:
     representative_mapping_path: Path | None = None
     expected_mapping_sha256: str | None = None
     expected_mapping_count: int | None = None
+    resume_command: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -203,9 +203,16 @@ def render_missing_states(
             raise PilotRenderError("request_state_collision")
         _validate_source_row(indexed)
         existing = records.get(digest)
-        if existing is not None and existing.get("status") == "success":
-            _validate_manifest_record(existing, state, contract, request.output_root)
-            counts["succeeded"] += 1
+        if existing is not None:
+            status = _validate_manifest_record(
+                existing,
+                state,
+                indexed,
+                contract,
+                request.output_root,
+                mapping_sha256,
+            )
+            counts["succeeded" if status == "success" else "failed"] += 1
             continue
         record = _render_state(
             request=request,
@@ -217,13 +224,13 @@ def render_missing_states(
             contract=contract,
             mapping_sha256=mapping_sha256,
         )
+        status = _terminal_status(record, "render_status_invalid")
         records[digest] = record
         _append_checkpoint(checkpoint_path, record)
         counts["processed"] += 1
-        counts["succeeded"] += int(record.get("status") == "success")
-        counts["failed"] += int(record.get("status") != "success")
+        counts["succeeded" if status == "success" else "failed"] += 1
 
-    counts["remaining"] = counts["requested"] - counts["succeeded"]
+    counts["remaining"] = counts["requested"] - counts["succeeded"] - counts["failed"]
     _atomic_write_jsonl(manifest_path, [records[digest] for digest in sorted(records)])
     _atomic_write_json(
         report_path,
@@ -478,11 +485,12 @@ def _render_state(
             "raw_rank": index_row.get("raw_rank"),
         }
     )
-    if plan is not None:
-        # Direct per-state provenance receipt: the exact supplied plan digest.
-        # The plan itself is bound transitively via the expansion-index SHA256 in
-        # the run contract plus the cache identity, which includes the plan text.
-        record["supplied_plan_sha256"] = stable_hash(plan)
+    generated_plan = _generated_plan(record)
+    if plan is not None and generated_plan is not None:
+        raise PilotRenderError("generated_plan_conflicts_with_index_plan")
+    submitted_plan = plan if plan is not None else generated_plan
+    if submitted_plan is not None:
+        record["supplied_plan_actions"] = list(_normalized_plan_actions(submitted_plan))
     return record
 
 
@@ -501,10 +509,22 @@ def _run_contract(
     profile_path: Path,
     renderer: StateRenderer,
 ) -> dict[str, JSONValue]:
-    manifest = (request.pilot_manifest_path or request.repository_root / DEFAULT_MANIFEST_PATH).resolve()
+    # The pilot manifest must be bound explicitly; the retired default under
+    # .claude/evidence was removed with the cold-archive migration and is never
+    # substituted. Absence fails closed before any rendering.
+    if request.pilot_manifest_path is None:
+        raise PilotRenderError("run_contract_input_unavailable")
+    manifest = request.pilot_manifest_path.resolve()
     checkpoint = (request.checkpoint_path or request.repository_root / DEFAULT_CHECKPOINT_PATH).resolve()
     rendering_source = inspect.getsourcefile(_render_one_state)
-    renderer_source = inspect.getsourcefile(renderer)
+    try:
+        renderer_source = inspect.getsourcefile(renderer)
+    except TypeError:
+        renderer_source = None
+    if renderer_source is None:
+        renderer_call = getattr(renderer, "__call__", None)
+        if renderer_call is not None:
+            renderer_source = inspect.getsourcefile(renderer_call)
     semantics_source = inspect.getsourcefile(validate_render_artifacts)
     if rendering_source is None or renderer_source is None or semantics_source is None:
         raise PilotRenderError("run_contract_implementation_unavailable")
@@ -519,7 +539,7 @@ def _run_contract(
         if path.exists():
             optional[f"{name}_path"] = str(path)
             optional[f"{name}_sha256"] = file_sha256(path)
-        elif request.pilot_manifest_path is not None or request.checkpoint_path is not None:
+        elif name == "pilot_manifest" or request.checkpoint_path is not None:
             raise PilotRenderError("run_contract_input_unavailable")
     try:
         return {
@@ -551,7 +571,9 @@ def _run_contract(
                 "timeout_seconds": request.config.timeout_seconds,
                 "request_delay_seconds": request.config.request_delay_seconds,
                 "max_attempts": request.config.max_attempts,
+                **({"solver_url": request.config.solver_url} if request.config.solver_url is not None else {}),
             },
+            **_renderer_contract(renderer),
             **optional,
         }
     except OSError as error:
@@ -577,6 +599,9 @@ def _validated_prior_records(manifest: Path, checkpoint: Path, contract: str) ->
         if not path.exists():
             continue
         for record in _jsonl(path):
+            _terminal_status(record, "manifest_status_invalid")
+            if record.get("schema_version") != SCHEMA_VERSION:
+                raise PilotRenderError("manifest_schema_mismatch")
             if record.get("run_contract_sha256") != contract:
                 raise PilotRenderError("run_contract_mismatch")
             digest = _digest(record, "state_sha256", "manifest_state_hash_invalid")
@@ -588,25 +613,57 @@ def _validated_prior_records(manifest: Path, checkpoint: Path, contract: str) ->
             if state_sha256(atoms) != digest:
                 raise PilotRenderError("manifest_state_hash_mismatch")
             previous = records.get(digest)
-            if previous is not None:
-                previous_success = previous.get("status") == "success"
-                record_success = record.get("status") == "success"
-                if previous_success and record_success and previous != record:
-                    raise PilotRenderError("manifest_success_collision")
-                if previous_success:
-                    continue
+            if previous is not None and previous != record:
+                raise PilotRenderError("manifest_record_collision")
             records[digest] = record
     return records
 
 
+def _terminal_status(record: dict[str, object], rule: str) -> str:
+    status = record.get("status")
+    if status not in {"success", "failed"}:
+        raise PilotRenderError(rule)
+    return str(status)
+
+
 def _validate_manifest_record(
-    record: dict[str, object], state: dict[str, object], contract: str, output_root: Path
-) -> None:
+    record: dict[str, object],
+    state: dict[str, object],
+    index_row: dict[str, object],
+    contract: str,
+    output_root: Path,
+    mapping_sha256: str | None,
+) -> str:
+    status = _terminal_status(record, "manifest_status_invalid")
+    if record.get("schema_version") != SCHEMA_VERSION:
+        raise PilotRenderError("manifest_schema_mismatch")
     if record.get("run_contract_sha256") != contract:
         raise PilotRenderError("run_contract_mismatch")
     transition = _mapping(record, "transition", "manifest_transition_invalid")
     if transition.get("state_before") != state["state_atoms"]:
         raise PilotRenderError("manifest_state_collision")
+    expected_provenance = {
+        "source_row_id": index_row.get("row_id"),
+        "representative_mapping_sha256": mapping_sha256,
+        "source_record_sha256": index_row.get("source_record_sha256"),
+        "candidate_id": index_row.get("candidate_id"),
+        "object_count": index_row.get("object_count"),
+        "raw_rank": index_row.get("raw_rank"),
+    }
+    if any(record.get(field) != value for field, value in expected_provenance.items()):
+        raise PilotRenderError("manifest_provenance_mismatch")
+    plan = _supplied_plan(index_row)
+    generated_plan = _generated_plan(record)
+    if plan is not None and generated_plan is not None:
+        raise PilotRenderError("manifest_provenance_mismatch")
+    submitted_plan = plan if plan is not None else generated_plan
+    if submitted_plan is None:
+        if "supplied_plan_actions" in record:
+            raise PilotRenderError("manifest_provenance_mismatch")
+    elif record.get("supplied_plan_actions") != list(_normalized_plan_actions(submitted_plan)):
+        raise PilotRenderError("manifest_provenance_mismatch")
+    if status == "failed":
+        return status
     frame_path = Path(str(record.get("frame_path", "")))
     trace_path = Path(str(record.get("trace_path", "")))
     output_root = output_root.resolve()
@@ -626,6 +683,70 @@ def _validate_manifest_record(
             raise PilotRenderError("manifest_semantic_receipt_invalid")
     except OSError as error:
         raise PilotRenderError("manifest_artifact_unavailable") from error
+    return status
+
+
+def _renderer_contract(renderer: StateRenderer) -> dict[str, JSONValue]:
+    metadata = getattr(renderer, "run_contract_metadata", None)
+    if metadata is None:
+        return {}
+    if not callable(metadata):
+        raise PilotRenderError("run_contract_renderer_metadata_invalid")
+    value = metadata()
+    if not isinstance(value, dict) or not _json_value(value):
+        raise PilotRenderError("run_contract_renderer_metadata_invalid")
+    return {"production_renderer": value}
+
+
+def _generated_plan(record: dict[str, object]) -> str | None:
+    metadata = record.get("planner_metadata")
+    if metadata is None:
+        return None
+    if not isinstance(metadata, dict) or metadata.get("source") != "local_lama_first":
+        raise PilotRenderError("manifest_planner_provenance_invalid")
+    planning_status = metadata.get("planning_status")
+    if record.get("planning_status") != planning_status:
+        raise PilotRenderError("manifest_planner_provenance_invalid")
+    calls = metadata.get("planimation_request_count")
+    if not isinstance(calls, int) or isinstance(calls, bool) or calls < 0:
+        raise PilotRenderError("manifest_planner_provenance_invalid")
+    if record.get("planimation_request_count") != calls:
+        raise PilotRenderError("manifest_planner_provenance_invalid")
+    if planning_status != "planning_submitted":
+        if calls != 0:
+            raise PilotRenderError("manifest_planner_provenance_invalid")
+        return None
+    actions = metadata.get("actions")
+    count = metadata.get("action_count")
+    if (
+        not isinstance(actions, list)
+        or not all(isinstance(action, str) and action.startswith("(") and action.endswith(")") for action in actions)
+        or not isinstance(count, int)
+        or isinstance(count, bool)
+        or count != len(actions)
+        or count == 0
+        or calls != 1
+    ):
+        raise PilotRenderError("manifest_planner_provenance_invalid")
+    return "\n".join(actions)
+
+
+def _normalized_plan_actions(plan: str) -> tuple[str, ...]:
+    lines = [line.strip() for line in plan.splitlines() if line.strip()]
+    if not lines or any(not line.startswith("(") or not line.endswith(")") for line in lines):
+        raise PilotRenderError("supplied_plan_invalid")
+    try:
+        return tuple(normalize_action_string(line) for line in lines)
+    except PDDLError as error:
+        raise PilotRenderError("supplied_plan_invalid") from error
+
+
+def _json_value(value: object) -> bool:
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return True
+    if isinstance(value, list):
+        return all(_json_value(part) for part in value)
+    return isinstance(value, dict) and all(isinstance(key, str) and _json_value(part) for key, part in value.items())
 
 
 def _append_checkpoint(path: Path, record: dict[str, object]) -> None:
@@ -677,6 +798,8 @@ def _atomic_publish(path: Path, contents: bytes) -> None:
 
 
 def _resume_command(request: PilotRenderRequest, domain_path: Path, profile_path: Path) -> str:
+    if request.resume_command is not None:
+        return request.resume_command
     command = [
         "python",
         "-m",

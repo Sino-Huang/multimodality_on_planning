@@ -9,7 +9,7 @@ MODULES = [
     "src.data_collect.config",
     "src.data_collect.tools",
     "src.data_collect.metadata",
-    "src.data_collect.hashing",
+    "src.data_collect.normalization",
     "src.data_collect.rendering",
     "src.data_collect.difficulty",
     "src.data_collect.selection",

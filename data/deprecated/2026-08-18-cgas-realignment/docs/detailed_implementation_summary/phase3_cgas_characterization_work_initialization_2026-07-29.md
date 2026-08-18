@@ -1,0 +1,39 @@
+# Phase 3 CGAS Characterization Work Initialization
+
+## Change
+
+Wave 4 now treats a work root as resumable only after durable initialization completes. Initialization creates an `.initializing` sentinel before checkpoints and the run contract, fsyncs the marker's work-root and parent directory entries, fsyncs the contract and payload-directory entries, then removes the sentinel and fsyncs that removal in both directories. Any failure leaves its residue in place and reports `initialize_failed`.
+
+`require_work_root()` and verifier checkpoint-root inspection require the exact tree `{checkpoints, run-contract.json}`, ownership/mode-safe entries, and a contract matching the caller's canonical bytes. Partial or altered roots are rejected as `incomplete_initialization`. Fresh, shard, and resume convert work-root failures to stable `RunnerError` reasons before scientific work.
+
+Fresh and resume guards inspect the final and work names through an `O_NOFOLLOW` parent-directory descriptor. This detects dangling symlinks, symlinks, regular files, FIFOs, directories, and other existing entries without resolving the leaf. Default fresh creation repeats the descriptor check immediately before descriptor-relative `mkdir`; initialization keeps both the parent and newly opened root descriptors for the whole transaction. Marker, checkpoint, contract, unlink, chmod, and fsync operations are all descriptor-relative after root creation. The root's device, inode, owner, and mode are pinned and rechecked against both its open descriptor and parent entry before success, so a removed or substituted public path fails explicitly without redirecting writes.
+
+The versioned run-contract module owns the shared `MAX_RUN_CONTRACT_BYTES` policy (2 MiB). Work-root reads validate the pinned regular, owner, mode-0600, single-link descriptor and its size before any `pread`, read no more than 64 KiB per call, then recheck descriptor identity and size before returning canonical bytes to the verifier. Sparse 1 TiB and cap-plus-one leaves therefore fail as `incomplete_initialization`, which runner reports as `RunnerError` and verifier reports as an invalid result.
+
+Verifier checkpoint validation now pins descriptor-rooted `CheckpointEntry` identities (name, device, inode, size) before and after content validation. Runner derives completed indices solely from that snapshot, never from pathname `.exists()`. It rescans the no-follow checkpoint directory immediately before each characterizer call and after its own publication; dangling, special, malformed, new, or replaced entries and concurrent-shard changes raise `checkpoint_state_drift` before scientific work.
+
+New work and checkpoint directories are now opened with `O_NOFOLLOW` immediately after creation, normalized with descriptor-bound `fchmod(0700)`, revalidated as owner mode `0700` directories, and fsynced together with their parent. This removes inherited GPFS SGID bits without weakening later verifier checks. Runner does not create caller-supplied private roots; checkpoint publication continues to require those roots to already be owner mode `0700`.
+
+`RunContractSnapshot` is the canonical contract identity value: canonical bytes plus device, inode, and size from a no-follow owner mode-`0600`, single-link descriptor. For shard and resume, `pin_run_contract()` opens the work directory and `run-contract.json` with `O_NOFOLLOW` before the verifier callback and retains both descriptors until the operation returns or fails. It checks descriptor owner/mode/link count/size cap, rereads canonical bytes, and compares the descriptor against the directory entry after verifier execution, before and after every characterizer call, and before return. The verifier's reported contract bytes and identity are compared to the pinned contract as well.
+
+Retaining the original descriptor closes the GPFS inode-reuse gap that pathname snapshot/reopen checks cannot exclude: after unlink/recreate, even a same-byte replacement that reuses a directory name cannot become the held inode, while the unlinked original reports link count zero. Same-byte replacement, unlink, hardlink or additional link, and in-place mutation therefore fail as `run_contract_drift` before publication. The pin scope checks available FD capacity before acquisition and closes both the contract and work-directory descriptors on every exit path.
+
+## Verification
+
+Run from the repository root:
+
+```bash
+source ~/cd_vlaplan && PYTHONDONTWRITEBYTECODE=1 pytest -q tests/phase3/test_cgas_characterization_work.py
+source ~/cd_vlaplan && pytest -q tests/phase3/test_cgas_characterization_work.py tests/phase3/test_cgas_characterization_runner_resume.py tests/phase3/test_cgas_characterization_verifier.py tests/phase3/test_cgas_characterization_checkpoint.py
+source ~/cd_vlaplan && PYTHONDONTWRITEBYTECODE=1 pytest -q tests/phase3/test_cgas_characterization_work.py tests/phase3/test_cgas_characterization_runner.py tests/phase3/test_cgas_characterization_runner_resume.py tests/phase3/test_cgas_characterization_verifier.py tests/phase3/test_cgas_characterization_contract.py
+source ~/cd_vlaplan && PYTHONDONTWRITEBYTECODE=1 pytest -q tests/phase3/test_cgas_characterization_runner.py tests/phase3/test_cgas_characterization_runner_resume.py tests/phase3/test_cgas_characterization_work.py tests/phase3/test_cgas_characterization_verifier.py tests/phase3/test_cgas_characterization_checkpoint.py tests/phase3/test_cgas_characterization_assembly.py
+source ~/cd_vlaplan && PYTHONDONTWRITEBYTECODE=1 pytest -q tests/phase3/test_cgas_characterization_runner.py tests/phase3/test_cgas_characterization_runner_resume.py tests/phase3/test_cgas_characterization_work.py tests/phase3/test_cgas_characterization_verifier.py tests/phase3/test_cgas_characterization_checkpoint.py tests/phase3/test_cgas_characterization_checkpoint_publication.py tests/phase3/test_cgas_characterization_assembly.py
+source ~/cd_vlaplan && basedpyright scripts/phase3/cgas_characterization_runner.py scripts/phase3/cgas_characterization_work.py scripts/phase3/cgas_characterization_verifier.py scripts/phase3/cgas_characterization_checkpoint.py scripts/phase3/cgas_characterization_checkpoint_publication.py scripts/phase3/cgas_characterization_assembly.py tests/phase3/test_cgas_characterization_work.py tests/phase3/test_cgas_characterization_checkpoint.py
+source ~/cd_vlaplan && python -m compileall -q scripts/phase3/cgas_characterization_runner.py scripts/phase3/cgas_characterization_work.py scripts/phase3/cgas_characterization_verifier.py scripts/phase3/cgas_characterization_checkpoint.py scripts/phase3/cgas_characterization_checkpoint_publication.py scripts/phase3/cgas_characterization_assembly.py
+```
+
+Observed results: the focused pinned-root suite passed 67 tests, including root-path swaps after marker, checkpoint, contract, and file-sync boundaries; substituted outside targets remained empty and the moved root failed publication as indeterminate. Basedpyright reported 0 errors and compileall succeeded. A minimal import-level lifecycle driver initialized and re-required an exact work tree successfully.
+
+Pinned-contract evidence: the expanded runner/work/verifier/checkpoint/assembly/publication suite passed `109` tests in its second full run (63.07 seconds). A repository-local GPFS driver retained the contract descriptor while performing 20 same-byte unlink/recreate substitutions; `require_current()` rejected the substitution and `/proc/self/fd` returned to baseline after scope cleanup. `compileall`, LOC checks (contract pins 103, runner 185, verifier 232, contract FD tests 78), and `git diff --check` passed. See `.omo/evidence/cgas-characterization-runner/pinned-contract-descriptor-2026-07-29.json`.
+
+The broad `pytest -q tests/phase3` collection remains blocked by unrelated output-layout import errors, including missing `VIEW_ROOT` and `receipt_path` symbols.

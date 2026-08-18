@@ -45,6 +45,8 @@ class RenderConfig:
     # None the historical three-field bundle is sent and the backend invokes its
     # own solver. Appended last so existing positional constructions are unchanged.
     plan: str | None = None
+    # Optional backend solver URL. Absent with plan=None keeps historical multipart bytes.
+    solver_url: str | None = None
 
 
 class RendererResult(TypedDict):
@@ -54,6 +56,9 @@ class RendererResult(TypedDict):
     trace_path: NotRequired[str]
     used_pddl_url: NotRequired[str]
     message: NotRequired[str]
+    planning_status: NotRequired[str]
+    planimation_request_count: NotRequired[int]
+    planner_metadata: NotRequired[dict[str, JSONValue]]
 
 
 StateRenderer = Callable[[Path, Path, Path, Path, RenderConfig], RendererResult]

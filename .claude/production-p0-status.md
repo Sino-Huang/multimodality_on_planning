@@ -1,17 +1,21 @@
 # Current project status
 
-The characterization runner uses trace contract v3 and Gate 0b passed. The approved Phase 3 pilot
-scope and deterministic source index are materialized. The current critical path is pilot rendering
-before the direct-VLM Gate 3 calibration baseline.
+The active research target is GitHub issue #38 (`Spec: Teach VLMs executable search processes
+across modalities`); its ready-for-agent tickets #39-#108 are the execution frontier. No Search
+Process Policy training run or effect result exists yet.
 
-Production rendering is blocked at the canonical Planimation PDDL/profile-to-VFG endpoint. The
-hardened adapter and replay-alignment work is staged but uncommitted. Read `task_plan.md`, `notes.md`,
-and `.claude/evidence/cgas-phase3-pilot-rendering/verification-20260810.md` for exact state and gates.
+The former CGAS Phase 3 pilot critical path is historical. Retained Planimation rendering,
+replay-alignment, and Plan Provenance evidence is infrastructure only; it is not a current result
+and must not be cited as #38 evidence. Wholly CGAS-specific material is archived under
+`data/deprecated/2026-08-18-cgas-realignment/`; mixed retained/obsolete files are indexed in
+`docs/partial_obsolescence_exceptions.md`.
+
+No production or training run is authorized unless its GitHub ticket and gate explicitly
+authorize it.
 
 Standing constraints:
 
-- Preserve both characterization roots and the released fixture digest.
-- Do not create checkpoint 2, Qwen rows, or `planning_vlm/` without the decisions required by the
-  research execution plan.
 - Use `source ~/cd_vlaplan` for every Python command and install nothing.
-- Never recursively preload `.claude/evidence/`; open only task-referenced evidence.
+- Active evidence/tool state was moved to the cold archive
+  `data/deprecated/2026-08-18-cgas-realignment/` on 2026-08-18. No active code or test may read it;
+  open archived files only for a specific historical verification question.

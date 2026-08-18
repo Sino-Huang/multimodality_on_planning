@@ -9,7 +9,7 @@ The phase covers:
 - config-driven curriculum generation under `src/data_collect/`,
 - per-domain generator adapters for the selected 15 domains,
 - rendering-gated acceptance using the existing Planimation Phase 1 helpers,
-- deterministic metadata, rejection logging, hashing, and resumability,
+- deterministic metadata, rejection logging, identity tracking, and resumability,
 - smoke/full-run command documentation and artifact locations.
 
 This phase does **not** claim VLA training results. It is limited to dataset generation and verification.
@@ -40,7 +40,7 @@ source ~/cd_vlaplan && source .venv/bin/activate && uv pip install requests pill
 - `src/data_collect/adapters/**` - adapter contract plus registry for `15puzzle`, `blocksworld`, `depot`, `driverlog`, `elevators`, `ferry`, `freecell`, `grid`, `gripper`, `logistics`, `snake`, `sokoban`, `storage`, `towers_of_hanoi`, and `visitall`.
 - `src/data_collect/rendering.py` - render preflight, fake renderer test path, Planimation-backed renderer, render artifact gate.
 - `src/data_collect/difficulty.py` + `selection.py` - measured difficulty assignment and deterministic stratified selection.
-- `src/data_collect/metadata.py` + `hashing.py` - result schema, rejection schema, normalized PDDL hashing, duplicate detection, and resumability helpers.
+- `src/data_collect/metadata.py` + identity/dedupe helper module - result schema, rejection schema, normalized PDDL identity tracking, duplicate detection, and resumability helpers.
 - `src/data_collect/generate.py` - orchestration, staging, dedupe, selection, final manifest writing, and summary generation.
 - `tests/data_collect/**` - unit/integration-style tests for config, adapters, rendering, metadata, selection, CLI, and orchestrator behavior.
 
@@ -109,7 +109,7 @@ Smoke summary check:
   "accepted_total": 6,
   "domains_completed": 2,
   "render_failed_accepted": 0,
-  "duplicate_accepted_problem_hashes": 0,
+  "duplicate_accepted_problems": 0,
   "candidate_multiplier": 2
 }
 ```
@@ -142,7 +142,7 @@ accepted_total=3600
 domains_completed=15
 accepted_by_split={"train": 3000, "dev": 300, "test": 300}
 render_failed_accepted=0
-duplicate_accepted_problem_hashes=0
+duplicate_accepted_problems=0
 ```
 
 Evidence:
@@ -207,7 +207,7 @@ Accepted instances require all of the following:
 - at least one non-empty `trace.vfg.json`
 - at least one PNG frame under `render/frames/`
 - result metadata written for the accepted instance
-- normalized PDDL hash not duplicated across accepted train/dev/test splits
+- normalized PDDL text not duplicated across accepted train/dev/test splits
 
 The pipeline also records:
 

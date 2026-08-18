@@ -4,9 +4,9 @@ Date: 2026-06-28
 
 ## Scope
 
-This work extended the existing curriculum PDDL data-collection tooling rather than replacing it. The accepted-instance contract still comes from `src.data_collect generate`, shard assembly still comes from `src.data_collect merge-shards`, and duplicate prevention still uses normalized PDDL hashes through `AcceptedProblemHashIndex`.
+This work extended the existing curriculum PDDL data-collection tooling rather than replacing it. The accepted-instance contract still comes from `src.data_collect generate`, shard assembly still comes from `src.data_collect merge-shards`, and duplicate prevention still uses normalized PDDL text identity through the accepted-problem index.
 
-The initial requested target was approximately 8,000 accepted instances, represented by the historical `7995 = 533 * 15` per-domain target. Later workflow runs safely extended the visible root in place to 5,153 accepted instances with zero duplicate normalized problem hashes. Based on the observed generator yield, `7995` is no longer the recommended default target for the current generator/configuration mix: several domains appear low-yield or effectively exhausted under the existing settings, so repeated runs add rows slowly and unevenly.
+The initial requested target was approximately 8,000 accepted instances, represented by the historical `7995 = 533 * 15` per-domain target. Later workflow runs safely extended the visible root in place to 5,153 accepted instances with zero duplicate normalized problem texts. Based on the observed generator yield, `7995` is no longer the recommended default target for the current generator/configuration mix: several domains appear low-yield or effectively exhausted under the existing settings, so repeated runs add rows slowly and unevenly.
 
 ## Code changes
 
@@ -31,7 +31,7 @@ The initial requested target was approximately 8,000 accepted instances, represe
 - Updated data-collection tests for the new CLI flag and resumed-extension behavior.
 - Added `scripts/phase3/extend_curriculum_workflow.py`.
   - Resumably extends `data/curriculum_pddl_shards/<domain>` only.
-  - Verifies shard duplicate/missing hashes after bounded generation commands.
+  - Verifies shard duplicate/missing identities after bounded generation commands.
   - Staged-merges to a candidate root under `/tmp/opencode` by default.
   - Optionally runs Fast Downward plan saving. When `--update-root` is supplied, plans are saved after the final-root update so they appear under `data/curriculum_pddl`; otherwise they are saved under the staged candidate root.
   - Supports `--update-root` to update `data/curriculum_pddl` from the fully merged shards after a successful hidden safety merge.
@@ -41,15 +41,15 @@ The initial requested target was approximately 8,000 accepted instances, represe
 
 Read-only accounting at the latest checkpoint:
 
-- `data/curriculum_pddl`: 5,153 accepted rows, zero duplicate accepted problem hashes.
+- `data/curriculum_pddl`: 5,153 accepted rows, zero duplicate accepted problems.
 - `data/curriculum_pddl_shards`: merged into the final root through `scripts.phase3.extend_curriculum_workflow --update-root`.
-- No missing normalized hashes, missing PDDL paths, or missing render artifacts were found in the latest integrity checks.
+- No missing normalized problem texts, missing PDDL paths, or missing render artifacts were found in the latest integrity checks.
 - No plan files are present yet in the latest final root; run full Fast Downward plan saving after accepting this checkpoint as final.
 - Latest final-root summary:
   - `accepted_total=5153`
   - `accepted_by_split={"train": 4199, "dev": 475, "test": 479}`
   - `accepted_by_bucket={"easy": 1860, "medium": 1961, "hard": 1332}`
-  - `duplicate_accepted_problem_hashes=0`
+  - `duplicate_accepted_problems=0`
 
 Domain totals at the latest checkpoint:
 
@@ -75,7 +75,7 @@ source ~/cd_vlaplan && source .venv/bin/activate && pytest tests/data_collect/te
 
 Expected signal observed after review fixes: `30 passed`.
 
-Shard duplicate/hash checkpoint:
+Shard duplicate/identity checkpoint:
 
 ```bash
 source ~/cd_vlaplan && source .venv/bin/activate && python - <<'PY'
@@ -84,18 +84,18 @@ from collections import Counter
 from pathlib import Path
 root=Path('data/curriculum_pddl_shards')
 total=0
-hashes=[]
+identities=[]
 for shard in sorted(p for p in root.iterdir() if p.is_dir()):
     rows=[json.loads(line) for line in (shard/'accepted_manifest.jsonl').read_text(encoding='utf-8').splitlines() if line.strip()]
     total += len(rows)
-    hashes.extend(r.get('normalized_problem_hash') for r in rows)
+    identities.extend(r.get('normalized_problem_text') for r in rows)
     c=Counter((r['split'], r['bucket']) for r in rows)
     print(shard.name, len(rows), {b:c[('train',b)] for b in ('easy','medium','hard')})
-print({'TOTAL': total, 'duplicate_hashes': len(hashes)-len(set(hashes)), 'missing_hashes': sum(1 for h in hashes if not h)})
+print({'TOTAL': total, 'duplicate_ids': len(identities)-len(set(identities)), 'missing_ids': sum(1 for v in identities if not v)})
 PY
 ```
 
-Expected signal observed at the earlier checkpoint: `{'TOTAL': 4492, 'duplicate_hashes': 0, 'missing_hashes': 0}`. Later workflow runs moved the final root to the 5,153-row checkpoint above.
+Expected signal observed at the earlier checkpoint: `{'TOTAL': 4492, 'duplicate_ids': 0, 'missing_ids': 0}`. Later workflow runs moved the final root to the 5,153-row checkpoint above.
 
 Staged merge verification:
 
@@ -103,7 +103,7 @@ Staged merge verification:
 source ~/cd_vlaplan && source .venv/bin/activate && python -m src.data_collect merge-shards --shards-root data/curriculum_pddl_shards --output /tmp/opencode/curriculum_pddl_candidate_4492 --force --json
 ```
 
-Expected signal observed at the earlier checkpoint: `accepted_total=4492`, `duplicate_accepted_problem_hashes=0`. Use the compact verification command below for the latest final-root state.
+Expected signal observed at the earlier checkpoint: `accepted_total=4492`, `duplicate_accepted_problems=0`. Use the compact verification command below for the latest final-root state.
 
 Latest compact verification command:
 
@@ -115,7 +115,7 @@ from pathlib import Path
 
 root = Path('data/curriculum_pddl')
 rows = [json.loads(line) for line in (root / 'accepted_manifest.jsonl').read_text(encoding='utf-8').splitlines() if line.strip()]
-hashes = [row.get('normalized_problem_hash') for row in rows]
+identities = [row.get('normalized_problem_text') for row in rows]
 missing_paths = 0
 missing_render = 0
 plan_instances = 0
@@ -132,8 +132,8 @@ for row in rows:
         plan_instances += 1
 print(json.dumps({
     'accepted_total': len(rows),
-    'duplicate_hashes': len(hashes) - len(set(hashes)),
-    'missing_hashes': sum(1 for value in hashes if not value),
+    'duplicate_ids': len(identities) - len(set(identities)),
+    'missing_ids': sum(1 for value in identities if not value),
     'missing_domain_or_problem_paths': missing_paths,
     'missing_render_artifacts': missing_render,
     'plan_instances': plan_instances,
@@ -141,7 +141,7 @@ print(json.dumps({
 PY
 ```
 
-Expected signal at the latest checkpoint: `accepted_total=5153`, `duplicate_hashes=0`, `missing_hashes=0`, `missing_domain_or_problem_paths=0`, `missing_render_artifacts=0`.
+Expected signal at the latest checkpoint: `accepted_total=5153`, `duplicate_ids=0`, `missing_ids=0`, `missing_domain_or_problem_paths=0`, `missing_render_artifacts=0`.
 
 Fast Downward plan-save smoke on the protected baseline root:
 
@@ -224,7 +224,7 @@ After enough shard progress, verify by staged merge first:
 source ~/cd_vlaplan && source .venv/bin/activate && python -m src.data_collect merge-shards --shards-root data/curriculum_pddl_shards --output /tmp/opencode/curriculum_pddl_candidate_NEXT --force --json
 ```
 
-Only replace `data/curriculum_pddl` once the staged root has the intended accepted count, zero duplicate hashes, and successful plan-saving diagnostics.
+Only replace `data/curriculum_pddl` once the staged root has the intended accepted count, zero duplicate identities, and successful plan-saving diagnostics.
 
 ## Notes
 
