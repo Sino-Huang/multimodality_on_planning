@@ -1,13 +1,10 @@
-"""Versioned structural-strata policies and coverage verification.
-
-This module deliberately accepts already measured values. It does not infer
-structural measurements from PDDL or derive thresholds from a corpus.
-"""
+"""Versioned structural-strata policies and artifact-derived coverage profiles."""
 
 from __future__ import annotations
 
 from collections import Counter
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Sequence
 
 
@@ -119,6 +116,125 @@ class StructuralProfile:
             "object_count": self.object_count,
             "metadata": {"legacy_bucket": self.legacy_bucket},
         }
+
+
+def derive_structural_profile(
+    *,
+    instance_id: str,
+    split: str,
+    domain_path: Path,
+    problem_path: Path,
+    legacy_bucket: str | None = None,
+) -> StructuralProfile:
+    """Measure one accepted PDDL pair for a declared structural policy.
+
+    The measurements are intentionally artifact-local: goal atom count is the
+    horizon proxy, action-schema count is the branching proxy, and the problem
+    declaration supplies object count. Legacy difficulty buckets remain only
+    provenance metadata.
+    """
+
+    domain = _strip_pddl_comments(domain_path.read_text(encoding="utf-8")).lower()
+    problem = _strip_pddl_comments(problem_path.read_text(encoding="utf-8")).lower()
+    return StructuralProfile(
+        instance_id=instance_id,
+        split=split,
+        horizon=_goal_atom_count(problem),
+        branching_factor=len(_section_heads(domain, ":action")),
+        object_count=_object_declaration_count(problem),
+        legacy_bucket=legacy_bucket,
+    )
+
+
+def derive_structural_profiles(instances: Sequence[object]) -> tuple[StructuralProfile, ...]:
+    """Derive profiles from accepted metadata without trusting caller metrics."""
+
+    profiles: list[StructuralProfile] = []
+    for instance in instances:
+        instance_id = getattr(instance, "instance_id")
+        split = getattr(instance, "split")
+        domain_path = getattr(instance, "domain_path")
+        problem_path = getattr(instance, "problem_path")
+        legacy_bucket = getattr(instance, "bucket")
+        if not all(isinstance(value, str) for value in (instance_id, split, domain_path, problem_path, legacy_bucket)):
+            raise TypeError("accepted instance metadata must expose canonical PDDL paths and identifiers")
+        profiles.append(
+            derive_structural_profile(
+                instance_id=instance_id,
+                split=split,
+                domain_path=Path(domain_path),
+                problem_path=Path(problem_path),
+                legacy_bucket=legacy_bucket,
+            )
+        )
+    return tuple(profiles)
+
+
+def _strip_pddl_comments(pddl: str) -> str:
+    return "\n".join(line.split(";", maxsplit=1)[0] for line in pddl.splitlines())
+
+
+def _section_heads(pddl: str, name: str) -> tuple[int, ...]:
+    heads: list[int] = []
+    cursor = 0
+    while True:
+        start = pddl.find(f"({name}", cursor)
+        if start < 0:
+            return tuple(heads)
+        heads.append(start)
+        cursor = start + len(name) + 1
+
+
+def _section_body(pddl: str, name: str) -> str:
+    starts = _section_heads(pddl, name)
+    if not starts:
+        return ""
+    start = starts[0]
+    depth = 0
+    for index in range(start, len(pddl)):
+        character = pddl[index]
+        if character == "(":
+            depth += 1
+        elif character == ")":
+            depth -= 1
+            if depth == 0:
+                return pddl[start : index + 1]
+    raise ValueError(f"PDDL section {name!r} is not balanced")
+
+
+def _goal_atom_count(problem: str) -> int:
+    body = _section_body(problem, ":goal")
+    ignored = {":goal", "and", "or", "not", "imply", "forall", "exists"}
+    return sum(
+        1
+        for index, character in enumerate(body)
+        if character == "(" and _head_at(body, index) not in ignored
+    )
+
+
+def _head_at(pddl: str, start: int) -> str:
+    remainder = pddl[start + 1 :].lstrip()
+    return remainder.split(maxsplit=1)[0].split(")", maxsplit=1)[0]
+
+
+def _object_declaration_count(problem: str) -> int:
+    body = _section_body(problem, ":objects")
+    if not body:
+        return 0
+    tokens = body.replace("(", " ").replace(")", " ").split()[1:]
+    count = 0
+    names: list[str] = []
+    index = 0
+    while index < len(tokens):
+        token = tokens[index]
+        if token == "-":
+            count += len(names)
+            names = []
+            index += 2
+            continue
+        names.append(token)
+        index += 1
+    return count + len(names)
 
 
 def _validate_axis(ranges: tuple[StructuralRange, ...], axis_name: str) -> None:
@@ -318,5 +434,7 @@ __all__ = [
     "StructuralRange",
     "StructuralRequirement",
     "StructuralStrataPolicy",
+    "derive_structural_profile",
+    "derive_structural_profiles",
     "verify_structural_coverage",
 ]

@@ -107,6 +107,18 @@ class GateReceipt:
         if not isinstance(self.binding, ReceiptBinding):
             raise TypeError("binding must be a ReceiptBinding")
         object.__setattr__(self, "outcome", StopOutcome(self.outcome))
+        self._validate_semantics()
+
+    def _validate_semantics(self) -> None:
+        if self.outcome is StopOutcome.ANCESTOR_STOP:
+            if not _valid_digest(self.ancestor_receipt_digest):
+                raise ValueError(
+                    "GateReceipt semantics: ANCESTOR_STOP requires a valid ancestor receipt digest"
+                )
+        elif self.ancestor_receipt_digest is not None:
+            raise ValueError(
+                "GateReceipt semantics: only ANCESTOR_STOP may bind an ancestor receipt digest"
+            )
 
     def _unsigned_dict(self) -> dict[str, object]:
         return {
@@ -118,6 +130,7 @@ class GateReceipt:
         }
 
     def signed(self, signing_key: bytes | str) -> GateReceipt:
+        self._validate_semantics()
         return replace(self, signature=_signature(self._unsigned_dict(), signing_key))
 
     def verify_signature(self, signing_key: bytes | str) -> bool:
@@ -196,12 +209,79 @@ class RunReceipt:
         if not isinstance(self.binding, ReceiptBinding):
             raise TypeError("binding must be a ReceiptBinding")
         object.__setattr__(self, "outcome", StopOutcome(self.outcome))
-        if self.outcome is StopOutcome.INVALID and self.scientific_completion:
-            raise ValueError("INVALID can never claim scientific completion")
-        if self.start_permitted != (
-            self.outcome is StopOutcome.PASS and self.run_state == "authorized-to-start"
+        self._validate_semantics()
+
+    def _validate_semantics(self) -> None:
+        if self.outcome is StopOutcome.PASS:
+            valid_pass_state = (
+                self.run_state == "authorized-to-start"
+                and self.start_permitted
+                and not self.scientific_completion
+            ) or (
+                self.run_state == "completed"
+                and not self.start_permitted
+                and self.scientific_completion
+            )
+            if not valid_pass_state:
+                raise ValueError(
+                    "RunReceipt semantics: PASS must be authorized-to-start or a completed scientific completion"
+                )
+            if not _valid_digest(self.gate_receipt_digest) or not _valid_digest(
+                self.authorization_receipt_digest
+            ):
+                raise ValueError(
+                    "RunReceipt semantics: PASS requires valid gate and authorization receipt digests"
+                )
+            if self.ancestor_receipt_digest is not None:
+                raise ValueError(
+                    "RunReceipt semantics: PASS cannot bind an ancestor receipt digest"
+                )
+            return
+
+        if self.outcome is StopOutcome.VALID_STOP:
+            if (
+                self.run_state != "gated-not-run"
+                or self.start_permitted
+                or self.scientific_completion
+            ):
+                raise ValueError(
+                    "RunReceipt semantics: VALID_STOP must be gated-not-run and never scientific completion"
+                )
+            if not _valid_digest(self.gate_receipt_digest):
+                raise ValueError("RunReceipt semantics: VALID_STOP requires a valid gate receipt digest")
+            if self.ancestor_receipt_digest is not None:
+                raise ValueError(
+                    "RunReceipt semantics: VALID_STOP cannot bind an ancestor receipt digest"
+                )
+            return
+
+        if self.outcome is StopOutcome.ANCESTOR_STOP:
+            if (
+                self.run_state != "gated-not-run"
+                or self.start_permitted
+                or self.scientific_completion
+            ):
+                raise ValueError(
+                    "RunReceipt semantics: ANCESTOR_STOP must be gated-not-run and never scientific completion"
+                )
+            if not _valid_digest(self.gate_receipt_digest) or not _valid_digest(
+                self.ancestor_receipt_digest
+            ):
+                raise ValueError(
+                    "RunReceipt semantics: ANCESTOR_STOP requires valid gate and ancestor receipt digests"
+                )
+            return
+
+        if (
+            self.run_state != "invalid-not-run"
+            or self.start_permitted
+            or self.scientific_completion
         ):
-            raise ValueError("start_permitted must describe an authorized PASS start")
+            raise ValueError(
+                "RunReceipt semantics: INVALID must never start or claim scientific completion"
+            )
+        if self.ancestor_receipt_digest is not None:
+            raise ValueError("RunReceipt semantics: INVALID cannot bind an ancestor receipt digest")
 
     def _unsigned_dict(self) -> dict[str, object]:
         return {
@@ -219,6 +299,7 @@ class RunReceipt:
         }
 
     def signed(self, signing_key: bytes | str) -> RunReceipt:
+        self._validate_semantics()
         return replace(self, signature=_signature(self._unsigned_dict(), signing_key))
 
     def verify_signature(self, signing_key: bytes | str) -> bool:

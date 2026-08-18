@@ -5,10 +5,14 @@ import textwrap
 from dataclasses import dataclass
 from pathlib import Path
 from types import SimpleNamespace
+from typing import Sequence
+
+import pytest
 
 from src.data_collect.adapters.base import GenerationSpec, GeneratorAdapter, GeneratorRejection, GeneratorRunResult, NormalizedCandidate
 from src.data_collect.config import CurriculumConfig, DomainConfig, OutputPolicy, SeedRange, SplitConfig, TimeoutConfig
 from src.data_collect.generate import REJECTIONS_FILENAME, SUMMARY_FILENAME, orchestrate_generation
+from src.data_collect.metadata import AcceptedInstanceMetadata
 from src.data_collect.rendering import FakeRenderer
 
 VALID_DOMAIN_TEMPLATE = """
@@ -225,6 +229,33 @@ def test_fake_generation_exact_quotas(tmp_path: Path) -> None:
     rejection_payload = json.loads(rejection_lines[0])
     assert rejection_payload["rejection_stage"] == "generation"
     assert rejection_payload["rejection_reason"] == "invalid_pddl"
+
+
+def test_split_validator_runs_before_any_selected_instance_is_published(tmp_path: Path) -> None:
+    curriculum_config = _build_curriculum_config(tmp_path, ["grid"])
+    registry = _build_registry(tmp_path, ["grid"])
+    output_root = tmp_path / "dataset"
+    seen: list[AcceptedInstanceMetadata] = []
+
+    def reject_split(instances: Sequence[AcceptedInstanceMetadata]) -> None:
+        seen.extend(instances)
+        raise ValueError("split assignment conflict")
+
+    with pytest.raises(ValueError, match="split assignment conflict"):
+        orchestrate_generation(
+            curriculum_config,
+            output_root=output_root,
+            renderer=FakeRenderer(frame_count=1),
+            max_attempts_per_bucket=2,
+            seed=123,
+            registry=registry,
+            split_validator=reject_split,
+        )
+
+    assert seen
+    assert all(Path(instance.domain_path).is_file() for instance in seen)
+    assert not (output_root / "grid").exists()
+    assert not (output_root / "accepted_manifest.jsonl").exists()
 
 
 def test_rejections_written_to_jsonl_with_structured_reasons(tmp_path: Path) -> None:

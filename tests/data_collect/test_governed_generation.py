@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import replace
 from pathlib import Path
 from typing import TypedDict, cast
@@ -84,6 +84,8 @@ class TrackingAdapter(GeneratorAdapter):
 
 
 def _curriculum_config(root: Path) -> CurriculumConfig:
+    root.mkdir(parents=True, exist_ok=True)
+    (root / "config.json").write_text("{}\n", encoding="utf-8")
     return CurriculumConfig(
         config_path=root / "config.json",
         workspace_root=root,
@@ -108,6 +110,25 @@ def _curriculum_config(root: Path) -> CurriculumConfig:
 def _execution_result(receipt: GenerationRunReceipt) -> _ExecutionResult:
     assert receipt.execution_result is not None
     return cast(_ExecutionResult, receipt.execution_result)
+
+
+def _matching_structural_inputs() -> tuple[StructuralStrataPolicy, tuple[StructuralProfile, ...]]:
+    cell = StructuralCell("short", "narrow", "small")
+    policy = StructuralStrataPolicy(
+        version="fixture-v1",
+        horizon_ranges=(StructuralRange("short", 0, 3),),
+        branching_ranges=(StructuralRange("narrow", 0, 3),),
+        object_count_ranges=(StructuralRange("small", 0, 3),),
+        required_cells=(StructuralRequirement("train", cell, 1),),
+    )
+    profiles = (StructuralProfile("tiny-train-easy-0000", "train", 1, 0, 0, legacy_bucket="easy"),)
+    return policy, profiles
+
+
+def _write_structural_policy(root: Path, policy: StructuralStrataPolicy) -> Path:
+    path = root / "structural-policy.json"
+    path.write_text(json.dumps(policy.to_dict(), sort_keys=True) + "\n", encoding="utf-8")
+    return path
 
 
 def _request(
@@ -186,6 +207,7 @@ def _fake_orchestrator(call_count: list[int]):
         quotas_by_split: Mapping[str, Mapping[str, int]] | None = None,
         candidate_multiplier: int | None = None,
         registry: Mapping[str, GeneratorAdapter] | None = None,
+        split_validator: Callable[[Sequence[AcceptedInstanceMetadata]], None] | None = None,
     ) -> GenerationRunResult:
         del (
             curriculum_config,
@@ -197,10 +219,29 @@ def _fake_orchestrator(call_count: list[int]):
             splits,
             quotas_by_split,
             candidate_multiplier,
-            registry,
         )
         call_count[0] += 1
         resolved_output_root = Path(output_root).resolve()
+        staging_dir = resolved_output_root / ".staging" / "fixture"
+        staging_dir.mkdir(parents=True, exist_ok=True)
+        staging_domain_path = staging_dir / "domain.pddl"
+        staging_problem_path = staging_dir / "problem.pddl"
+        staging_domain_path.write_bytes(DOMAIN)
+        staging_problem_path.write_bytes(PROBLEM)
+        selected = AcceptedInstanceMetadata(
+            instance_id=build_instance_id("tiny", "train", "easy", 0),
+            candidate_id=build_candidate_id("tiny", "train", "easy", 0),
+            domain_id="tiny",
+            split="train",
+            bucket="easy",
+            index=0,
+            attempt_index=0,
+            domain_path=str(staging_domain_path),
+            problem_path=str(staging_problem_path),
+        )
+        if split_validator is not None:
+            split_validator((selected,))
+
         instance_dir = resolved_output_root / "tiny" / "train" / "easy" / "tiny-train-easy-0000"
         instance_dir.mkdir(parents=True, exist_ok=True)
         domain_path = instance_dir / "domain.pddl"
@@ -253,8 +294,12 @@ def _run(
     ledger_path: Path | None = None,
     structural_policy: StructuralStrataPolicy | None = None,
     structural_profiles: Sequence[StructuralProfile] | None = None,
+    structural_policy_artifact: StructuralStrataPolicy | None = None,
 ) -> tuple[GenerationRunReceipt, list[int], Path]:
     output_root = tmp_path / "dataset"
+    if structural_policy is None:
+        structural_policy = _matching_structural_inputs()[0]
+    assert structural_policy is not None
     calls = [0]
     monkeypatch.setattr(generate, "orchestrate_generation", _fake_orchestrator(calls))
     receipt = run_governed_generation(
@@ -267,6 +312,10 @@ def _run(
         split_ledger_path=ledger_path or tmp_path / "split-ledger.jsonl",
         structural_policy=structural_policy,
         structural_profiles=structural_profiles,
+        structural_policy_path=_write_structural_policy(
+            tmp_path,
+            structural_policy if structural_policy_artifact is None else structural_policy_artifact,
+        ),
     )
     return receipt, calls, output_root
 
@@ -283,7 +332,8 @@ def test_pass_orchestrates_and_writes_bound_ledger_and_canonical_bundle(monkeypa
     _assert_persisted_receipt(receipt, tmp_path / "governance")
     result = _execution_result(receipt)
     assert result["accepted_count"] == 1
-    assert result["structural_coverage"] == {"asserted": False}
+    assert result["structural_coverage"].get("asserted") is True
+    assert result["structural_coverage"].get("complete") is True
     assert Path(result["split_ledger_path"]) == ledger_path
     identity = whole_instance_identity(DOMAIN, PROBLEM)
     assert SplitLedger(ledger_path).assignments() == {identity: "train"}
@@ -296,13 +346,45 @@ def test_pass_orchestrates_and_writes_bound_ledger_and_canonical_bundle(monkeypa
         f"{relative_instance}/domain.pddl",
         f"{relative_instance}/problem.pddl",
         "manifests/accepted.json",
+        "contracts/generation-replay.json",
         "manifests/split-ledger.jsonl",
+        "manifests/structural-profiles.json",
         "manifests/summary.json",
     }
+    assert (
+        b'[{"branching_factor":0,"horizon":1,"instance_id":"tiny-train-easy-0000",'
+        b'"metadata":{"legacy_bucket":"easy"},"object_count":0,"split":"train"}]\n'
+        in bundle
+    )
     assert str(tmp_path).encode() not in bundle
     assert b"runtime.log" not in bundle
     assert b"elapsed_seconds" not in bundle
     assert output_root.joinpath(generate.ACCEPTED_MANIFEST_FILENAME).exists()
+
+
+def test_pass_without_structural_inputs_fails_before_orchestration(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    output_root = tmp_path / "dataset"
+    calls = [0]
+    monkeypatch.setattr(generate, "orchestrate_generation", _fake_orchestrator(calls))
+
+    receipt = run_governed_generation(
+        _request(output_root),
+        _curriculum_config(tmp_path),
+        output_root=output_root,
+        renderer=None,
+        max_attempts_per_bucket=1,
+        seed=7,
+        split_ledger_path=tmp_path / "split-ledger.jsonl",
+    )
+
+    assert calls == [0]
+    assert receipt.outcome is StopOutcome.INVALID
+    assert receipt.status == "execution_failed"
+    assert receipt.reason == "execute_raised:ValueError"
+    assert not output_root.exists()
 
 
 @pytest.mark.parametrize(
@@ -323,6 +405,7 @@ def test_terminal_receipts_are_write_once_per_binding(
     output_root = tmp_path / "dataset"
     receipt_root = tmp_path / "governance"
     request = _request(output_root, outcome=outcome, receipt_root=receipt_root)
+    structural_policy, structural_profiles = _matching_structural_inputs()
     calls = [0]
     monkeypatch.setattr(generate, "orchestrate_generation", _fake_orchestrator(calls))
     inputs = {
@@ -331,6 +414,9 @@ def test_terminal_receipts_are_write_once_per_binding(
         "max_attempts_per_bucket": 1,
         "seed": 7,
         "split_ledger_path": tmp_path / "split-ledger.jsonl",
+        "structural_policy": structural_policy,
+        "structural_profiles": structural_profiles,
+        "structural_policy_path": _write_structural_policy(tmp_path, structural_policy),
     }
 
     receipt = run_governed_generation(request, _curriculum_config(tmp_path), **inputs)
@@ -341,6 +427,61 @@ def test_terminal_receipts_are_write_once_per_binding(
 
     assert calls == [expected_orchestrator_calls]
     assert receipt.receipt_path.read_bytes() == original_bytes
+
+
+def test_attempt_is_reserved_before_orchestration_and_stale_reservation_blocks_reuse(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    output_root = tmp_path / "dataset"
+    receipt_root = tmp_path / "governance"
+    request = _request(output_root, receipt_root=receipt_root)
+    structural_policy, structural_profiles = _matching_structural_inputs()
+    calls = [0]
+
+    def crash_after_reservation(*args: object, **kwargs: object) -> GenerationRunResult:
+        del args, kwargs
+        calls[0] += 1
+        reservations = tuple(receipt_root.glob("generation-run-*.json"))
+        assert len(reservations) == 1
+        payload = json.loads(reservations[0].read_text(encoding="utf-8"))
+        assert payload["status"] == "reserved"
+        raise KeyboardInterrupt("simulated operator crash")
+
+    monkeypatch.setattr(generate, "orchestrate_generation", crash_after_reservation)
+    with pytest.raises(KeyboardInterrupt, match="operator crash"):
+        run_governed_generation(
+            request,
+            _curriculum_config(tmp_path),
+            output_root=output_root,
+            renderer=None,
+            max_attempts_per_bucket=1,
+            seed=7,
+            split_ledger_path=tmp_path / "split-ledger.jsonl",
+            structural_policy=structural_policy,
+            structural_profiles=structural_profiles,
+            structural_policy_path=_write_structural_policy(tmp_path, structural_policy),
+        )
+
+    reservation_path = next(receipt_root.glob("generation-run-*.json"))
+    original_bytes = reservation_path.read_bytes()
+    monkeypatch.setattr(generate, "orchestrate_generation", _fake_orchestrator(calls))
+    with pytest.raises(FileExistsError, match="new attempt_id"):
+        run_governed_generation(
+            request,
+            _curriculum_config(tmp_path),
+            output_root=output_root,
+            renderer=None,
+            max_attempts_per_bucket=1,
+            seed=7,
+            split_ledger_path=tmp_path / "split-ledger.jsonl",
+            structural_policy=structural_policy,
+            structural_profiles=structural_profiles,
+            structural_policy_path=_write_structural_policy(tmp_path, structural_policy),
+        )
+
+    assert calls == [1]
+    assert reservation_path.read_bytes() == original_bytes
 
 
 def test_invalid_authorization_never_invokes_generation(monkeypatch, tmp_path: Path) -> None:
@@ -362,6 +503,8 @@ def test_invalid_authorization_never_invokes_generation(monkeypatch, tmp_path: P
         seed=7,
         split_ledger_path=tmp_path / "split-ledger.jsonl",
         registry={"tiny": adapter},
+        structural_policy=_matching_structural_inputs()[0],
+        structural_profiles=_matching_structural_inputs()[1],
     )
 
     assert calls == [0]
@@ -399,6 +542,8 @@ def test_governed_stop_returns_without_touching_the_output_root(
         seed=7,
         split_ledger_path=tmp_path / "split-ledger.jsonl",
         force=True,
+        structural_policy=_matching_structural_inputs()[0],
+        structural_profiles=_matching_structural_inputs()[1],
     )
 
     assert calls == [0]
@@ -423,6 +568,9 @@ def test_conflicting_split_ledger_prevents_completed_pass_receipt(monkeypatch, t
     assert receipt.scientific_completion is False
     _assert_persisted_receipt(receipt, tmp_path / "governance")
     assert SplitLedger(ledger_path).assignments() == {whole_instance_identity(DOMAIN, PROBLEM): "test"}
+    output_root = tmp_path / "dataset"
+    assert not (output_root / "tiny").exists()
+    assert not (output_root / generate.ACCEPTED_MANIFEST_FILENAME).exists()
 
 
 def test_supplied_structural_policy_and_profiles_are_enforced(monkeypatch, tmp_path: Path) -> None:
@@ -438,9 +586,9 @@ def test_supplied_structural_policy_and_profiles_are_enforced(monkeypatch, tmp_p
         "tiny-train-easy-0000",
         "train",
         1,
-        1,
-        1,
-        legacy_bucket="hard",
+        0,
+        0,
+        legacy_bucket="easy",
     )
 
     passed, _, _ = _run(
@@ -455,11 +603,11 @@ def test_supplied_structural_policy_and_profiles_are_enforced(monkeypatch, tmp_p
         structural_policy=policy,
         structural_profiles=[],
     )
-    mismatched, _, _ = _run(
+    forged, _, _ = _run(
         monkeypatch,
-        tmp_path / "mismatched",
+        tmp_path / "forged",
         structural_policy=policy,
-        structural_profiles=[StructuralProfile("unrelated", "train", 1, 1, 1)],
+        structural_profiles=[StructuralProfile("tiny-train-easy-0000", "train", 2, 0, 0, legacy_bucket="easy")],
     )
 
     assert passed.outcome == StopOutcome.PASS
@@ -473,9 +621,30 @@ def test_supplied_structural_policy_and_profiles_are_enforced(monkeypatch, tmp_p
     assert failed.status == "execution_failed"
     assert failed.scientific_completion is False
     _assert_persisted_receipt(failed, tmp_path / "fail" / "governance")
-    assert mismatched.outcome == StopOutcome.INVALID
-    assert mismatched.scientific_completion is False
-    _assert_persisted_receipt(mismatched, tmp_path / "mismatched" / "governance")
+    assert forged.outcome == StopOutcome.INVALID
+    assert forged.scientific_completion is False
+    _assert_persisted_receipt(forged, tmp_path / "forged" / "governance")
+
+
+def test_structural_policy_artifact_must_match_supplied_policy_before_orchestration(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    policy, profiles = _matching_structural_inputs()
+
+    receipt, calls, output_root = _run(
+        monkeypatch,
+        tmp_path,
+        structural_policy=policy,
+        structural_profiles=profiles,
+        structural_policy_artifact=replace(policy, version="different-v1"),
+    )
+
+    assert calls == [0]
+    assert receipt.outcome == StopOutcome.INVALID
+    assert receipt.status == "execution_failed"
+    assert receipt.scientific_completion is False
+    assert not output_root.exists()
 
 
 def test_canonical_pddl_and_contract_artifacts_replay_across_fresh_roots(monkeypatch, tmp_path: Path) -> None:

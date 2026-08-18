@@ -3,13 +3,16 @@
 from __future__ import annotations
 
 import os
+import hashlib
+import json
 from pathlib import Path, PurePosixPath
-from typing import Mapping
+from typing import Mapping, Sequence
 
 
 ArtifactSource = bytes | bytearray | memoryview | str | os.PathLike[str]
 ArtifactSet = Mapping[str, ArtifactSource]
 _BUNDLE_MAGIC = b"canonical-generation-replay-v1\x00"
+REPLAY_CONTRACT_SCHEMA_VERSION = "generation_replay_contract_v1"
 
 
 class CanonicalReplayMismatch(AssertionError):
@@ -36,6 +39,44 @@ def build_canonical_bundle(artifacts: ArtifactSet) -> bytes:
         bundle.extend(len(content).to_bytes(8, "big"))
         bundle.extend(content)
     return bytes(bundle)
+
+
+def build_replay_contract(
+    *,
+    contract_id: str,
+    seed: int,
+    max_attempts_per_bucket: int,
+    candidate_multiplier: int,
+    require_rendering: bool,
+    selected_domains: Sequence[str],
+    selected_splits: Sequence[str],
+    quotas_by_split: Mapping[str, Mapping[str, int]],
+    source_artifacts: ArtifactSet,
+) -> bytes:
+    """Build the immutable, path-free contract required for generation replay."""
+
+    source_digests = {
+        _canonical_relative_path(name): hashlib.sha256(_read_exact_bytes(source)).hexdigest()
+        for name, source in source_artifacts.items()
+    }
+    payload = {
+        "candidate_multiplier": candidate_multiplier,
+        "contract_id": contract_id,
+        "max_attempts_per_bucket": max_attempts_per_bucket,
+        "quotas_by_split": {
+            split: {bucket: int(count) for bucket, count in sorted(quotas.items())}
+            for split, quotas in sorted(quotas_by_split.items())
+        },
+        "require_rendering": require_rendering,
+        "schema_version": REPLAY_CONTRACT_SCHEMA_VERSION,
+        "seed": seed,
+        "selected_domains": list(selected_domains),
+        "selected_splits": list(selected_splits),
+        "source_artifact_digests": dict(sorted(source_digests.items())),
+    }
+    return (
+        json.dumps(payload, allow_nan=False, ensure_ascii=True, separators=(",", ":"), sort_keys=True) + "\n"
+    ).encode("utf-8")
 
 
 def verify_canonical_replay(reference_artifacts: ArtifactSet, replayed_artifacts: ArtifactSet) -> bytes:
@@ -99,6 +140,8 @@ __all__ = [
     "ArtifactSet",
     "ArtifactSource",
     "CanonicalReplayMismatch",
+    "REPLAY_CONTRACT_SCHEMA_VERSION",
     "build_canonical_bundle",
+    "build_replay_contract",
     "verify_canonical_replay",
 ]

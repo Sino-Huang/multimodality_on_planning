@@ -216,3 +216,98 @@ def test_invalid_never_claims_scientific_completion() -> None:
             scientific_completion=True,
             gate_receipt_digest=gate.digest,
         )
+
+
+@pytest.mark.parametrize(
+    ("outcome", "run_state", "start_permitted", "scientific_completion", "ancestor_digest"),
+    [
+        (StopOutcome.PASS, "gated-not-run", False, False, None),
+        (StopOutcome.PASS, "authorized-to-start", True, True, None),
+        (StopOutcome.PASS, "completed", False, False, None),
+        (StopOutcome.VALID_STOP, "authorized-to-start", True, False, None),
+        (StopOutcome.VALID_STOP, "gated-not-run", False, True, None),
+        (StopOutcome.ANCESTOR_STOP, "gated-not-run", False, False, None),
+        (StopOutcome.ANCESTOR_STOP, "gated-not-run", False, False, "not-a-digest"),
+        (StopOutcome.INVALID, "authorized-to-start", True, False, None),
+        (StopOutcome.INVALID, "completed", False, True, None),
+    ],
+)
+def test_direct_run_receipt_construction_rejects_contradictory_states(
+    outcome: StopOutcome,
+    run_state: str,
+    start_permitted: bool,
+    scientific_completion: bool,
+    ancestor_digest: str | None,
+) -> None:
+    with pytest.raises(ValueError, match="RunReceipt semantics"):
+        RunReceipt(
+            binding=_binding(),
+            outcome=outcome,
+            run_state=run_state,
+            start_permitted=start_permitted,
+            scientific_completion=scientific_completion,
+            gate_receipt_digest="a" * 64,
+            authorization_receipt_digest="b" * 64 if outcome is StopOutcome.PASS else None,
+            ancestor_receipt_digest=ancestor_digest,
+        )
+
+
+def test_valid_completed_pass_receipt_can_claim_scientific_completion() -> None:
+    receipt = RunReceipt(
+        binding=_binding(),
+        outcome=StopOutcome.PASS,
+        run_state="completed",
+        start_permitted=False,
+        scientific_completion=True,
+        gate_receipt_digest="a" * 64,
+        authorization_receipt_digest="b" * 64,
+    ).signed(SIGNING_KEY)
+
+    assert receipt.verify_signature(SIGNING_KEY)
+
+
+@pytest.mark.parametrize(
+    ("outcome", "ancestor_digest"),
+    [
+        (StopOutcome.ANCESTOR_STOP, None),
+        (StopOutcome.ANCESTOR_STOP, "not-a-digest"),
+        (StopOutcome.PASS, "a" * 64),
+        (StopOutcome.VALID_STOP, "a" * 64),
+        (StopOutcome.INVALID, "a" * 64),
+    ],
+)
+def test_direct_gate_receipt_construction_rejects_invalid_ancestor_binding(
+    outcome: StopOutcome,
+    ancestor_digest: str | None,
+) -> None:
+    with pytest.raises(ValueError, match="GateReceipt semantics"):
+        GateReceipt(
+            binding=_binding(),
+            outcome=outcome,
+            ancestor_receipt_digest=ancestor_digest,
+        )
+
+
+def test_signing_revalidates_receipt_semantics() -> None:
+    run = RunReceipt(
+        binding=_binding(),
+        outcome=StopOutcome.PASS,
+        run_state="authorized-to-start",
+        start_permitted=True,
+        scientific_completion=False,
+        gate_receipt_digest="a" * 64,
+        authorization_receipt_digest="b" * 64,
+    )
+    object.__setattr__(run, "scientific_completion", True)
+
+    gate = GateReceipt(
+        binding=_binding(),
+        outcome=StopOutcome.ANCESTOR_STOP,
+        ancestor_receipt_digest="c" * 64,
+    )
+    object.__setattr__(gate, "ancestor_receipt_digest", None)
+
+    with pytest.raises(ValueError, match="RunReceipt semantics"):
+        run.signed(SIGNING_KEY)
+    with pytest.raises(ValueError, match="GateReceipt semantics"):
+        gate.signed(SIGNING_KEY)

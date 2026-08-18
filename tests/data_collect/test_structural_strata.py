@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import FrozenInstanceError
+from pathlib import Path
 
 import pytest
 
@@ -12,6 +13,7 @@ from src.data_collect.structural import (
     StructuralRange,
     StructuralRequirement,
     StructuralStrataPolicy,
+    derive_structural_profile,
     verify_structural_coverage,
 )
 
@@ -71,6 +73,46 @@ def test_declared_policy_and_profiles_are_immutable_and_json_compatible() -> Non
     }
     with pytest.raises(FrozenInstanceError):
         profile.horizon = 3  # type: ignore[misc]
+
+
+def test_derive_structural_profile_is_case_insensitive_for_valid_pddl(tmp_path: Path) -> None:
+    domain = """(define (domain tiny)
+    (:predicates (ready ?x) (clear ?x))
+    (:action move :parameters (?x) :precondition (ready ?x) :effect (clear ?x))
+    (:action wait :parameters (?x) :precondition (clear ?x) :effect (ready ?x)))
+"""
+    problem = """(define (problem p)
+    (:domain tiny)
+    (:objects a b c - thing)
+    (:init (ready a))
+    (:goal (and (clear a) (ready b))))
+"""
+    lowercase_domain = tmp_path / "lower-domain.pddl"
+    lowercase_problem = tmp_path / "lower-problem.pddl"
+    mixed_case_domain = tmp_path / "mixed-domain.pddl"
+    mixed_case_problem = tmp_path / "mixed-problem.pddl"
+    lowercase_domain.write_text(domain, encoding="utf-8")
+    lowercase_problem.write_text(problem, encoding="utf-8")
+    mixed_case_domain.write_text(domain.upper(), encoding="utf-8")
+    mixed_case_problem.write_text(problem.upper(), encoding="utf-8")
+
+    lowercase = derive_structural_profile(
+        instance_id="tiny-train-0000",
+        split="train",
+        domain_path=lowercase_domain,
+        problem_path=lowercase_problem,
+        legacy_bucket="easy",
+    )
+    mixed_case = derive_structural_profile(
+        instance_id="tiny-train-0000",
+        split="train",
+        domain_path=mixed_case_domain,
+        problem_path=mixed_case_problem,
+        legacy_bucket="easy",
+    )
+
+    assert lowercase == StructuralProfile("tiny-train-0000", "train", 2, 2, 3, legacy_bucket="easy")
+    assert mixed_case == lowercase
 
 
 def test_coverage_uses_fixed_structural_cells_and_split_minimums() -> None:
