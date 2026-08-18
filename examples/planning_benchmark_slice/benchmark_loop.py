@@ -9,9 +9,15 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Iterable, Sequence
 
-from .blocksworld import AtomSet, BlocksworldAction, BlocksworldProblem, IllegalActionError, parse_blocksworld
+from .blocksworld import (
+    AtomSet,
+    BlocksworldAction,
+    BlocksworldProblem,
+    IllegalActionError,
+    parse_blocksworld,
+)
+from .pddl_state import PDDLTransition
 from .validate_instance import InstanceValidationError, load_fixture, validate_fixture
-
 
 ACTION_PATTERN = re.compile(r"^\s*([A-Za-z_-]+)\s*\(([^()]*)\)\s*$")
 
@@ -32,6 +38,7 @@ class BlocksworldBenchmarkLoop:
     state: AtomSet = field(init=False)
     step_index: int = field(init=False, default=0)
     step_logs: list[dict[str, Any]] = field(init=False, default_factory=list)
+    transition_records: list[PDDLTransition] = field(init=False, default_factory=list)
 
     def __post_init__(self) -> None:
         if self.max_steps <= 0:
@@ -42,6 +49,7 @@ class BlocksworldBenchmarkLoop:
         self.state = self.problem.initial_state()
         self.step_index = 0
         self.step_logs = []
+        self.transition_records = []
         return self.observe()
 
     def observe(self) -> dict[str, Any]:
@@ -87,10 +95,11 @@ class BlocksworldBenchmarkLoop:
             )
 
         try:
-            post_state = self.problem.transition(pre_state, action)
+            transition = self.problem.transition_record(pre_state, action)
         except IllegalActionError as error:  # pragma: no cover - guarded by the explicit legal-action check above.
             raise BenchmarkLoopError("illegal_action", str(error), details=legal_action_check) from error
 
+        post_state = frozenset(transition.target_state.atoms)
         self.state = post_state
         self.step_index += 1
         terminal_status = self.terminal_status()
@@ -101,9 +110,11 @@ class BlocksworldBenchmarkLoop:
             "pre_state_id": pre_state_id,
             "post_state_id": self.problem.state_id(post_state),
             "post_state_atoms": sorted(post_state),
+            "transition_provenance": transition.provenance.to_dict(),
             "legal_action_check": legal_action_check,
             "terminal_status": terminal_status,
         }
+        self.transition_records.append(transition)
         self.step_logs.append(step_log)
         return step_log
 
@@ -190,7 +201,9 @@ def parse_action_text(action_text: str) -> BlocksworldAction:
         raise BenchmarkLoopError("illegal_action", str(error), details={"action": action_text}) from error
 
 
-def shortest_action_plan(problem: BlocksworldProblem, start_state: Iterable[str], *, max_depth: int) -> tuple[BlocksworldAction, ...] | None:
+def shortest_action_plan(
+    problem: BlocksworldProblem, start_state: Iterable[str], *, max_depth: int
+) -> tuple[BlocksworldAction, ...] | None:
     start = frozenset(start_state)
     if problem.is_goal(start):
         return tuple()
@@ -237,7 +250,10 @@ def load_scripted_actions(path: Path) -> list[str]:
     elif isinstance(payload, dict) and isinstance(payload.get("actions"), list):
         actions = payload["actions"]
     else:
-        raise BenchmarkLoopError("malformed_actions", "actions file must be a JSON list or an object with an actions list")
+        raise BenchmarkLoopError(
+            "malformed_actions",
+            "actions file must be a JSON list or an object with an actions list",
+        )
     if not all(isinstance(action, str) and action.strip() for action in actions):
         raise BenchmarkLoopError("malformed_actions", "every scripted action must be a non-empty string")
     return [str(action) for action in actions]

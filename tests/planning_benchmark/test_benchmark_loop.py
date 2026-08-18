@@ -7,8 +7,11 @@ from pathlib import Path
 
 import pytest
 
-from examples.planning_benchmark_slice.benchmark_loop import BenchmarkLoopError, load_validated_loop, shortest_action_plan
-
+from examples.planning_benchmark_slice.benchmark_loop import (
+    BenchmarkLoopError,
+    load_validated_loop,
+    shortest_action_plan,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FIXTURE_DIR = REPO_ROOT / "tests" / "fixtures" / "planning"
@@ -67,6 +70,25 @@ def test_step_log_contains_observation_state_ids_legality_and_terminal_status() 
         "on-table(c)",
     ]
     assert first_step["observation"]["legal_actions"] == ["pickup(a)", "pickup(b)", "pickup(c)"]
+
+
+def test_loop_retains_replayable_authority_transitions_and_logs_provenance() -> None:
+    loop = load_validated_loop(NONTRIVIAL_FIXTURE, max_steps=20)
+    payload = loop.run_oracle()
+
+    assert len(loop.transition_records) == 2
+    replayed = loop.problem.authority.replay(tuple(loop.transition_records))
+    assert replayed[-1].atoms == tuple(sorted(loop.state))
+
+    first_transition = loop.transition_records[0]
+    assert payload["step_logs"][0]["transition_provenance"] == {
+        "action": {"args": ["a"], "name": "pickup"},
+        "authority_id": loop.problem.authority.authority_id,
+        "provenance_id": first_transition.provenance.provenance_id,
+        "source_state_id": first_transition.source_state.state_id,
+        "target_state_id": first_transition.target_state.state_id,
+    }
+    json.dumps(payload)
 
 
 def test_invalid_action_raises_structured_error_without_mutating_state() -> None:

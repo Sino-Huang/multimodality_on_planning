@@ -3701,6 +3701,15 @@ wheels = [
 ]
 
 [[package]]
+name = "plado"
+version = "0.1.6"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/d7/0a/a7a151ab7bda12d7639e5d9539f44330a607d56919146db006f1162a97f0/plado-0.1.6.tar.gz", hash = "sha256:248cbd72c87e62db216198b7b8b42d9086f239803ba716bb4f93cea2d9588379", size = 69040, upload-time = "2025-10-14T10:32:32.841Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/9d/29/ce515a41d07db2d425ff2a328d7a374553a90171ade592d5575dbcd3d8f1/plado-0.1.6-py3-none-any.whl", hash = "sha256:a1608ca4e8ed4dc71c483f2089321cd2fb6993679eb73223865f9d3bfa044d80", size = 73191, upload-time = "2025-10-14T10:32:31.369Z" },
+]
+
+[[package]]
 name = "platformdirs"
 version = "4.11.0"
 source = { registry = "https://pypi.org/simple" }
@@ -5572,6 +5581,9 @@ wheels = [
 name = "starvla"
 version = "1.0.1"
 source = { editable = "." }
+dependencies = [
+    { name = "plado" },
+]
 
 [package.optional-dependencies]
 dev = [
@@ -5593,6 +5605,7 @@ requires-dist = [
     { name = "boto3", marker = "extra == 'sagemaker'" },
     { name = "gpustat", marker = "extra == 'dev'" },
     { name = "ipython", marker = "extra == 'dev'" },
+    { name = "plado", specifier = "==0.1.6" },
     { name = "pre-commit", marker = "extra == 'dev'" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.2.2" },
     { name = "sagemaker", marker = "extra == 'sagemaker'" },
