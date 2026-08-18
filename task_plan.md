@@ -11,7 +11,7 @@ Validate the frozen pilot inputs, render or resumably checkpoint all 16,822 cano
 - [ ] Phase 5: Execute resumable rendering and record exact progress, failures, duplicates, collisions, and resume command. (Blocked after both the 2026-08-10 smoke and the 2026-08-11 mapping-bound smoke failed at the remote downstream planner boundary.)
 - [ ] Phase 6: Rerun coverage, freeze accepted PNG bytes, and prepare replay-only alignment input for all authoritative replay rows.
 - [x] Phase 7: Run focused and regression tests, Ruff, basedpyright, collision checks, immutable comparisons, staged secret scan, and independent code review.
-- [ ] Phase 8: Update resolved plan status and durable findings, commit only this milestone with the honest RED count, and push normally.
+- [x] Phase 8: Update resolved plan status and durable findings, commit only this milestone with the honest RED count, and push normally. Completed by commit `456492a`, pushed to `origin/main`.
 
 ## Hard Boundaries
 - Do not infer an off-plan action target, create Qwen rows, or force off-plan events into `planning_cgas_v1` without a newer owner-approved policy.
@@ -50,7 +50,7 @@ Validate the frozen pilot inputs, render or resumably checkpoint all 16,822 cano
 - [x] SG0: Verify the July known-good and August smoke-v2 bundles; stage four immutable replay inputs under `tmp/` without network access.
 - [x] SG1: Run four separately authorized, single-attempt, zero-delay requests on new output roots: July verbatim, smoke-v2 verbatim, canonicalized pilot, and 12-object empty-goal probe.
 - [x] Decision: Classify the evidence as upstream regression, repository-side problem-writer delta, or a valid-smoke path. Do not start production unless a mapping-bound smoke is fully valid.
-- [ ] Finalize: Record exact evidence, run end-of-session verification once, then commit/push only on pass; on failure create a local `wip:` commit and handoff without pushing. **Blocked:** the first final verification command failed because it ran from the repository root instead of the manifest's staging directory. Per policy it was not rerun; no tests, commit, or push followed.
+- [ ] Finalize: Record exact evidence, run end-of-session verification once, then commit/push only on pass; on failure create a local `wip:` commit and handoff without pushing. **Blocked:** the first final verification command failed because it ran from the repository root instead of the manifest's staging directory. Per policy it was not rerun; the failure was preserved as historical evidence. The later milestone closure was committed as `456492a` and pushed to `origin/main`.
 
 **Current continuation status:** SG0 PASS, SG1 COMPLETE (4/4 replays run), Decision COMPLETE as
 **RED — repository-side remote compatibility delta**. Replay 1 (July-22 known-good verbatim)
@@ -63,7 +63,7 @@ upstream regression (replay 1 succeeds today) and proves a repository-side delta
 probe changed BOTH naming and formatting, so neither alone is claimed causal. Replay 4 does NOT
 prove 12-object incompatibility (empty-goal stage-generation failure, not object-count failure);
 12-object compatibility remains unproven. Production 16,822-state rendering and 790-row replay
-alignment remain unstarted. Finalize FAILED at its first command: the manifest verification under `tmp/cgas-phase3-planimation-regression-replays-20260811/` returned exit 1 because its relative entries were resolved from the repository root. The failure was recorded verbatim and not rerun; no tests, commit, or push occurred. Full record: `data/deprecated/2026-08-18-cgas-realignment/.claude/evidence/cgas-phase3-pilot-rendering/verification-20260811-regression-replays.md`
+alignment remain unstarted. Finalize FAILED at its first command: the manifest verification under `tmp/cgas-phase3-planimation-regression-replays-20260811/` returned exit 1 because its relative entries were resolved from the repository root. The failure was recorded verbatim and not rerun. The later milestone closure was committed as `456492a` and pushed to `origin/main`; production 16,822-state rendering and 790-row replay alignment remain unstarted. Full record: `data/deprecated/2026-08-18-cgas-realignment/.claude/evidence/cgas-phase3-pilot-rendering/verification-20260811-regression-replays.md`
 and `.handoff/2026-08-11-cgas-phase3-planimation-replay-classification.md`. The operator command
 must not be authorized/resumed until the writer patch plus both required smokes pass.
 

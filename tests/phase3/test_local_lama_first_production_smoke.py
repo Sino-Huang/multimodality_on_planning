@@ -14,9 +14,8 @@ import pytest
 
 HARNESS_PATH = (
     Path(__file__).resolve().parents[2]
-    / ".claude"
-    / "evidence"
-    / "cgas-phase3-pilot-rendering"
+    / "scripts"
+    / "phase3"
     / "local_lama_first_production_smoke.py"
 )
 BACKEND_COMMIT = "94d82afb5ee122ce579dd11ca1953b7c85ca5824"
