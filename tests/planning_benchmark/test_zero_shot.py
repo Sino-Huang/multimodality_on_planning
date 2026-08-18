@@ -5,8 +5,13 @@ import subprocess
 import sys
 from pathlib import Path
 
-from examples.planning_benchmark_slice.zero_shot import ALGORITHMS, MODALITIES, build_prompt_packages, leakage_errors_for_packages, score_model_output_payload
-
+from examples.planning_benchmark_slice.zero_shot import (
+    ALGORITHMS,
+    MODALITIES,
+    build_prompt_packages,
+    leakage_errors_for_packages,
+    score_model_output_payload,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FIXTURE_DIR = REPO_ROOT / "tests" / "fixtures" / "planning"
@@ -41,14 +46,17 @@ def _fixture(name: str) -> Path:
 def test_build_prompt_packages_covers_algorithm_modality_matrix_and_separates_gold() -> None:
     packages = build_prompt_packages(fixture_path=NONTRIVIAL_FIXTURE, algorithms=ALGORITHMS, modalities=MODALITIES)
 
-    assert len(packages) == 16
+    assert ALGORITHMS == ("bfs", "iterated_width")
+    assert len(packages) == 8
     assert sorted((package["algorithm"], package["modality"]) for package in packages) == sorted(
         (algorithm, modality) for algorithm in ALGORITHMS for modality in MODALITIES
     )
     assert leakage_errors_for_packages(packages) == []
 
     vision = next(package for package in packages if package["algorithm"] == "bfs" and package["modality"] == "vision")
-    language = next(package for package in packages if package["algorithm"] == "bfs" and package["modality"] == "language")
+    language = next(
+        package for package in packages if package["algorithm"] == "bfs" and package["modality"] == "language"
+    )
 
     assert "gold_scoring_metadata" in vision
     assert "model_facing" in vision
@@ -69,9 +77,7 @@ def test_zero_shot_build_cli_writes_deterministic_json_packages(tmp_path: Path) 
         str(NONTRIVIAL_FIXTURE),
         "--algorithms",
         "bfs",
-        "fast_forward",
         "iterated_width",
-        "graphplan",
         "--modalities",
         "vision",
         "language",
@@ -86,9 +92,9 @@ def test_zero_shot_build_cli_writes_deterministic_json_packages(tmp_path: Path) 
     assert result.returncode == 0
     assert result.stderr == ""
     assert payload["valid"] is True
-    assert payload["package_count"] == 16
+    assert payload["package_count"] == 8
     assert payload["leakage_errors"] == []
-    assert len(list(output.glob("*.json"))) == 16
+    assert len(list(output.glob("*.json"))) == 8
     assert (output / "blocksworld-dev-fixture-0000__bfs__vision.json").exists()
 
 

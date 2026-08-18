@@ -9,7 +9,6 @@ from typing import Any, Iterable, Sequence
 from .trajectory_schema import load_trajectory_records, validate_trajectory_records
 from .zero_shot import ALGORITHMS, normalize_algorithm, validate_modalities
 
-
 MODALITY_DATASET_SCHEMA_VERSION = "planning_modality_dataset_v1"
 MODALITY_RECORD_SCHEMA_VERSION = "planning_modality_record_v1"
 VISION_MODALITIES = frozenset({"vision", "vision_language", "vision_language_tool"})
@@ -67,7 +66,9 @@ def serialize_modalities(*, input_path: Path, output_dir: Path, modalities: Sequ
     leakage_errors = leakage_errors_for_records(records)
 
     output_dir.mkdir(parents=True, exist_ok=True)
-    by_modality = {modality: [record for record in records if record["modality"] == modality] for modality in selected_modalities}
+    by_modality = {
+        modality: [record for record in records if record["modality"] == modality] for modality in selected_modalities
+    }
     output_paths: dict[str, str] = {}
     counts_by_modality: dict[str, int] = {}
     counts_by_algorithm = {algorithm: {modality: 0 for modality in selected_modalities} for algorithm in ALGORITHMS}
@@ -84,9 +85,7 @@ def serialize_modalities(*, input_path: Path, output_dir: Path, modalities: Sequ
                 counts_by_algorithm[algorithm][modality] += 1
 
     active_counts_by_algorithm = {
-        algorithm: counts
-        for algorithm, counts in counts_by_algorithm.items()
-        if any(counts.values())
+        algorithm: counts for algorithm, counts in counts_by_algorithm.items() if any(counts.values())
     }
     vision_skip_reasons = _vision_skip_reasons(records)
     return {
@@ -213,7 +212,9 @@ def _build_modality_record(step: dict[str, Any], *, source: str, modality: str) 
         "evaluation_metadata": _evaluation_metadata(step, source=source),
         "instance_id": str(step["instance_id"]),
         "modality": modality,
-        "modality_boundary_note": "Only model_facing is intended for prompts; supervised_target and evaluation_metadata are not prompt input.",
+        "modality_boundary_note": (
+            "Only model_facing is intended for prompts; supervised_target and evaluation_metadata are not prompt input."
+        ),
         "model_facing": model_facing,
         "record_id": record_id,
         "schema_version": MODALITY_RECORD_SCHEMA_VERSION,
@@ -329,24 +330,10 @@ def _internal_state_update_target(step: dict[str, Any], *, algorithm: str) -> st
             "BFS dequeues the recorded state, expands its successors, and updates the FIFO frontier "
             f"from {len(payload.get('frontier_before', []))} to {len(payload.get('frontier_after', []))} entries."
         )
-    if algorithm == "fast_forward":
-        return (
-            "Fast Forward records the current relaxed heuristic and chooses the successor with the "
-            f"best {payload.get('tie_break_rule', 'tie-break rule')} score."
-        )
     if algorithm == "iterated_width":
         return (
             "Iterated Width applies the recorded novelty decision "
             f"{payload.get('decision', '<missing>')} at width {payload.get('width', '<missing>')}."
-        )
-    if algorithm == "graphplan":
-        proposition_layers = payload.get("proposition_layers", [])
-        action_layers = payload.get("action_layers", [])
-        mutex_pairs = payload.get("mutex_pairs", [])
-        return (
-            "Graphplan updates its layer graph with "
-            f"{len(proposition_layers)} proposition layers, {len(action_layers)} action layers, "
-            f"and {len(mutex_pairs)} action mutex pairs."
         )
     return f"Update the {algorithm} planner state according to the recorded scratchpad."
 
@@ -374,7 +361,11 @@ def _vision_skip_reasons(records: Sequence[dict[str, Any]]) -> list[dict[str, An
     for record in records:
         if record.get("modality") not in VISION_MODALITIES:
             continue
-        visual = record.get("model_facing", {}).get("visual_observation") if isinstance(record.get("model_facing"), dict) else None
+        visual = (
+            record.get("model_facing", {}).get("visual_observation")
+            if isinstance(record.get("model_facing"), dict)
+            else None
+        )
         if not isinstance(visual, dict):
             continue
         unavailable = visual.get("unavailable")
@@ -432,7 +423,9 @@ def _field_paths(value: Any, prefix: str = "") -> Iterable[str]:
 
 
 def _write_jsonl(path: Path, records: Sequence[dict[str, Any]]) -> None:
-    text = "".join(json.dumps(record, sort_keys=True, ensure_ascii=True, separators=(",", ":")) + "\n" for record in records)
+    text = "".join(
+        json.dumps(record, sort_keys=True, ensure_ascii=True, separators=(",", ":")) + "\n" for record in records
+    )
     path.write_text(text, encoding="utf-8")
 
 

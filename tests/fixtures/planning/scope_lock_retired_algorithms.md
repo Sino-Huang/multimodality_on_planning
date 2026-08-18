@@ -1,14 +1,12 @@
-# Scope Lock Fixture Missing World Model Decision
-
-This is a negative test fixture for the scope lock checker.
+# Scope Lock Fixture With Retired Algorithms
 
 ### blocksworld_p0_scope_decision
 
-The Phase 1-3 P0 acceptance scope is `blocksworld` only. The 15 domain curriculum remains future-compatible, but it is not Phase 1-3 acceptance scope.
+The Phase 1-3 acceptance scope is `blocksworld` only and remains future-compatible.
 
 ### algorithm_matrix_decision
 
-The exact active algorithm set is `bfs` and `iterated_width`.
+The algorithm set is `bfs`, `iterated_width`, `fast_forward`, and `graphplan`.
 
 ### modality_matrix_decision
 
@@ -17,6 +15,10 @@ The modality set names `vision`, `language`, `vision_language`, and `vision_lang
 ### planimation_role_decision
 
 Planimation is an offline rendering utility and not environment authority.
+
+### frozen_world_model_decision
+
+The frozen world model v0 is a deterministic symbolic representation. No learned encoder is used.
 
 ### artifact_policy_decision
 

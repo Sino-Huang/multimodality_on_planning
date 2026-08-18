@@ -5,10 +5,10 @@ import json
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any
 
 from examples.planning_benchmark_slice.generate_experts import generate_experts
 from examples.planning_benchmark_slice.trajectory_schema import validate_path
-
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FIXTURE_DIR = REPO_ROOT / "tests" / "fixtures" / "planning"
@@ -25,7 +25,7 @@ def _run_generate(*args: str) -> subprocess.CompletedProcess[str]:
     )
 
 
-def _load_steps(path: Path) -> list[dict[str, object]]:
+def _load_steps(path: Path) -> list[dict[str, Any]]:
     payload = json.loads(path.read_text(encoding="utf-8"))
     return list(payload["steps"])
 
@@ -109,20 +109,21 @@ def test_generate_experts_cli_writes_json_and_rejects_unsupported_algorithms(tmp
     assert (output / "blocksworld-dev-fixture-0000__bfs.json").exists()
     assert (output / "blocksworld-dev-fixture-0000__iterated_width.json").exists()
 
-    unsupported = _run_generate(
-        "--fixture",
-        str(NONTRIVIAL_FIXTURE),
-        "--algorithms",
-        "astar",
-        "--output",
-        str(tmp_path / "unsupported"),
-        "--json",
-    )
-    unsupported_payload = json.loads(unsupported.stdout)
-    assert unsupported.returncode != 0
-    assert unsupported_payload["valid"] is False
-    assert unsupported_payload["error"]["code"] == "unsupported_algorithm"
-    assert "unsupported algorithms" in unsupported_payload["error"]["message"]
+    for algorithm in ("astar", "fast_forward", "graphplan"):
+        unsupported = _run_generate(
+            "--fixture",
+            str(NONTRIVIAL_FIXTURE),
+            "--algorithms",
+            algorithm,
+            "--output",
+            str(tmp_path / f"unsupported_{algorithm}"),
+            "--json",
+        )
+        unsupported_payload = json.loads(unsupported.stdout)
+        assert unsupported.returncode != 0
+        assert unsupported_payload["valid"] is False
+        assert unsupported_payload["error"]["code"] == "unsupported_algorithm"
+        assert "unsupported algorithms" in unsupported_payload["error"]["message"]
 
 
 def test_generate_experts_outputs_are_byte_identical_across_runs(tmp_path: Path) -> None:

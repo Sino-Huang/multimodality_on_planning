@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -8,13 +9,11 @@ from pathlib import Path
 from examples.planning_benchmark_slice.trajectory_schema import (
     SCHEMA_VERSION,
     canonical_json_text,
-    canonical_mutex_pairs,
     canonical_novelty_table,
     canonicalize_trajectory_step,
     validate_path,
 )
 from examples.planning_benchmark_slice.zero_shot import ALGORITHMS
-
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 TRAJECTORY_FIXTURE_DIR = REPO_ROOT / "tests" / "fixtures" / "planning" / "trajectories"
@@ -31,26 +30,34 @@ def _run_validator(*args: str) -> subprocess.CompletedProcess[str]:
     )
 
 
-def test_valid_trajectory_fixture_directory_reports_all_algorithms() -> None:
-    payload = validate_path(VALID_DIR)
+def _active_valid_dir(tmp_path: Path) -> Path:
+    active_dir = tmp_path / "active_valid"
+    active_dir.mkdir()
+    for filename in ("bfs.json", "iterated_width.jsonl"):
+        shutil.copyfile(VALID_DIR / filename, active_dir / filename)
+    return active_dir
+
+
+def test_valid_trajectory_fixture_directory_reports_active_algorithms(tmp_path: Path) -> None:
+    payload = validate_path(_active_valid_dir(tmp_path))
 
     assert payload["valid"] is True
     assert payload["schema_version"] == SCHEMA_VERSION
-    assert payload["trajectory_count"] == 4
+    assert payload["trajectory_count"] == 2
     assert payload["algorithms_validated"] == list(ALGORITHMS)
     assert payload["by_algorithm"] == {algorithm: 1 for algorithm in ALGORITHMS}
     assert payload["error_count"] == 0
 
 
-def test_validator_cli_accepts_directory_and_emits_json_only_on_success() -> None:
-    result = _run_validator("--input", str(VALID_DIR), "--json")
+def test_validator_cli_accepts_directory_and_emits_json_only_on_success(tmp_path: Path) -> None:
+    result = _run_validator("--input", str(_active_valid_dir(tmp_path)), "--json")
 
     payload = json.loads(result.stdout)
     assert result.returncode == 0
     assert result.stderr == ""
     assert payload["valid"] is True
     assert payload["algorithms_validated"] == list(ALGORITHMS)
-    assert payload["file_count"] == 4
+    assert payload["file_count"] == 2
 
 
 def test_validator_accepts_single_json_and_jsonl_files() -> None:
@@ -66,12 +73,20 @@ def test_validator_accepts_single_json_and_jsonl_files() -> None:
     assert iw_payload["algorithms_validated"] == ["iterated_width"]
 
 
+def test_retired_trajectory_fixtures_are_rejected_as_inactive_algorithms() -> None:
+    for filename in ("fast_forward.json", "graphplan.json"):
+        payload = validate_path(VALID_DIR / filename)
+
+        assert payload["valid"] is False
+        assert payload["algorithms_validated"] == []
+        assert [error["code"] for error in payload["errors"]] == ["invalid_algorithm"]
+        assert [error["path"] for error in payload["errors"]] == ["algorithm"]
+
+
 def test_missing_algorithm_fields_are_structured_and_path_specific() -> None:
     cases = {
         "invalid_missing_bfs_frontier": "bfs.frontier_before",
-        "invalid_missing_fast_forward_heuristic": "fast_forward.heuristic_value",
         "invalid_missing_iterated_width_novelty": "iterated_width.novelty_table_after",
-        "invalid_missing_graphplan_mutex_layer": "graphplan.mutex_pairs",
     }
 
     for directory, expected_path in cases.items():
@@ -87,14 +102,10 @@ def test_missing_algorithm_fields_are_structured_and_path_specific() -> None:
 
 
 def test_deterministic_serialization_helpers_sort_unordered_fields() -> None:
-    assert canonical_novelty_table([{ "clear(b)", "on-table(a)"}, ["clear(a)", "arm-empty"], "holding(a)"]) == [
+    assert canonical_novelty_table([{"clear(b)", "on-table(a)"}, ["clear(a)", "arm-empty"], "holding(a)"]) == [
         "holding(a)",
         ["arm-empty", "clear(a)"],
         ["clear(b)", "on-table(a)"],
-    ]
-    assert canonical_mutex_pairs([["pickup(c)", "pickup(a)"], ("pickup(b)", "pickup(a)")]) == [
-        ["pickup(a)", "pickup(b)"],
-        ["pickup(a)", "pickup(c)"],
     ]
 
 
@@ -134,10 +145,10 @@ def test_canonicalize_bfs_preserves_fifo_frontier_order_but_sorts_visited_sets()
     assert [successor["action"] for successor in canonical["bfs"]["successors"]] == ["pickup(a)", "pickup(c)"]
 
 
-def test_canonicalize_trajectory_step_sorts_atoms_actions_bfs_and_graphplan_fields() -> None:
+def test_canonicalize_trajectory_step_sorts_atoms_actions_and_iw_novelty_fields() -> None:
     raw_step = {
         "trajectory_id": "t",
-        "algorithm": "graphplan",
+        "algorithm": "iterated_width",
         "domain": "blocksworld",
         "instance_id": "i",
         "step_index": 0,
@@ -148,14 +159,12 @@ def test_canonicalize_trajectory_step_sorts_atoms_actions_bfs_and_graphplan_fiel
         "selected_action": "pickup(a)",
         "is_terminal": False,
         "metadata": {"z": 1, "a": 2},
-        "graphplan": {
-            "proposition_layers": [
-                {"layer_index": 1, "atoms": ["holding(a)", "clear(b)"]},
-                {"layer_index": 0, "atoms": ["clear(b)", "arm-empty"]},
-            ],
-            "action_layers": [{"layer_index": 0, "actions": ["pickup(c)", "pickup(a)"]}],
-            "mutex_pairs": [["pickup(c)", "pickup(a)"]],
-            "extraction": {"no_goods": []},
+        "iterated_width": {
+            "width": 1,
+            "novelty_table_before": [{"clear(b)", "arm-empty"}, "holding(a)"],
+            "novelty_table_after": [["on-table(a)", "clear(a)"], "arm-empty"],
+            "novel_item": {"clear(b)", "arm-empty"},
+            "decision": "expand",
         },
     }
 
@@ -164,7 +173,13 @@ def test_canonicalize_trajectory_step_sorts_atoms_actions_bfs_and_graphplan_fiel
     assert canonical["state_atoms"] == ["arm-empty", "clear(b)"]
     assert canonical["goal_atoms"] == ["clear(a)", "on(a,b)"]
     assert canonical["legal_actions"] == ["pickup(a)", "pickup(c)"]
-    assert canonical["graphplan"]["mutex_pairs"] == [["pickup(a)", "pickup(c)"]]
-    assert canonical["graphplan"]["proposition_layers"][0]["layer_index"] == 0
-    assert canonical["graphplan"]["action_layers"][0]["actions"] == ["pickup(a)", "pickup(c)"]
+    assert canonical["iterated_width"]["novelty_table_before"] == [
+        "holding(a)",
+        ["arm-empty", "clear(b)"],
+    ]
+    assert canonical["iterated_width"]["novelty_table_after"] == [
+        "arm-empty",
+        ["clear(a)", "on-table(a)"],
+    ]
+    assert canonical["iterated_width"]["novel_item"] == ["arm-empty", "clear(b)"]
     assert json.loads(canonical_json_text(canonical))["metadata"] == {"a": 2, "z": 1}

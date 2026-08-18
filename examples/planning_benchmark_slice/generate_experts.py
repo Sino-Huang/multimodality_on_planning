@@ -12,7 +12,6 @@ from .trajectory_schema import SCHEMA_VERSION, TrajectorySchemaError, canonical_
 from .validate_instance import InstanceValidationError, load_fixture, validate_fixture
 from .zero_shot import normalize_algorithm, validate_algorithms
 
-
 GENERATION_SCHEMA_VERSION = "planning_expert_generation_v1"
 
 
@@ -25,15 +24,21 @@ class ExpertGenerationError(ValueError):
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Generate local Blocksworld expert trajectory traces.")
-    parser.add_argument("--fixture", required=True, type=Path, help="Fixture JSON containing Blocksworld PDDL text or paths.")
+    parser.add_argument(
+        "--fixture", required=True, type=Path, help="Fixture JSON containing Blocksworld PDDL text or paths."
+    )
     parser.add_argument(
         "--algorithms",
         nargs="+",
         required=True,
-        help="Expert algorithms to generate. Supported: bfs fast_forward iterated_width graphplan.",
+        help="Expert algorithms to generate. Supported: bfs iterated_width.",
     )
-    parser.add_argument("--output", required=True, type=Path, help="Output directory for generated trajectory JSON files.")
-    parser.add_argument("--json", action="store_true", help="Emit machine-readable JSON. This is also the default output.")
+    parser.add_argument(
+        "--output", required=True, type=Path, help="Output directory for generated trajectory JSON files."
+    )
+    parser.add_argument(
+        "--json", action="store_true", help="Emit machine-readable JSON. This is also the default output."
+    )
     return parser
 
 
@@ -84,8 +89,6 @@ def generate_experts(*, fixture_path: Path, algorithms: Sequence[str], output_di
             "selected_actions": [record["selected_action"] for record in records],
             "trajectory_count": 1,
         }
-        if algorithm == "graphplan":
-            algorithm_summary.update(_graphplan_summary(records))
         by_algorithm[algorithm] = algorithm_summary
 
     validation = validate_path(output_dir)
@@ -107,33 +110,6 @@ def _error_payload(error: Exception) -> dict[str, Any]:
             "message": str(error),
         },
         "valid": False,
-    }
-
-
-def _graphplan_summary(records: Sequence[dict[str, Any]]) -> dict[str, Any]:
-    layer_count = 0
-    mutex_pair_count = 0
-    goal_statuses: list[bool] = []
-    for record in records:
-        graphplan = record.get("graphplan")
-        if not isinstance(graphplan, dict):
-            continue
-        proposition_layers = graphplan.get("proposition_layers")
-        action_layers = graphplan.get("action_layers")
-        mutex_pairs = graphplan.get("mutex_pairs")
-        extraction = graphplan.get("extraction")
-        if isinstance(proposition_layers, list):
-            layer_count += len(proposition_layers)
-        if isinstance(action_layers, list):
-            layer_count += len(action_layers)
-        if isinstance(mutex_pairs, list):
-            mutex_pair_count += len(mutex_pairs)
-        if isinstance(extraction, dict) and isinstance(extraction.get("goal_present_without_mutex"), bool):
-            goal_statuses.append(extraction["goal_present_without_mutex"])
-    return {
-        "goal_present_without_mutex": goal_statuses,
-        "layer_count": layer_count,
-        "mutex_pair_count": mutex_pair_count,
     }
 
 

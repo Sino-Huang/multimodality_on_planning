@@ -58,7 +58,7 @@ If generated outputs are absent or untracked, regenerate them from the repositor
 root before running the registry smoke:
 
 ```bash
-source ~/cd_vlaplan && source .venv/bin/activate && python -m examples.planning_benchmark_slice.generate_experts --fixture tests/fixtures/planning/blocksworld_nontrivial.json --algorithms bfs fast_forward iterated_width graphplan --output outputs/planning_artifacts/expert_smoke --json
+source ~/cd_vlaplan && source .venv/bin/activate && python -m examples.planning_benchmark_slice.generate_experts --fixture tests/fixtures/planning/blocksworld_nontrivial.json --algorithms bfs iterated_width --output outputs/planning_artifacts/expert_smoke --json
 ```
 
 Then serialize all four modalities:
