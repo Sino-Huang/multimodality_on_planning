@@ -2,31 +2,72 @@
 
 ## Evidence Boundary
 
-- Certified 4-, 8-, and 12-object smoke Attempts support the planning-rendering evidence contract and Integration Certification for their declared fixtures.
-- The repository contains planning certificates, verifier contracts, curriculum-generation infrastructure, and a small supervised corpus.
-- No trained model, Gate-3 calibration, Live Memory, Route Label generator, adaptive controller, or comparative CGAS efficacy result exists.
-- The complete production pilot corpus is blocked by open issue #8; the full test suite remains blocked by 13 documented pre-existing collection errors.
+- Issue #38 is the ratified, still-open authority for the current Search Process Policy program. Terminology ratification completed in #39 and bounded pytest discovery completed in #40.
+- The repository contains reusable historical planning, modality-serialization, trace, verifier, and planning-rendering provenance infrastructure. Certified 4-, 8-, and 12-object smoke Attempts support Integration Certification for their declared fixtures only.
+- No current Search Episode Harness, Trusted Search Runtime, Typed Search Operation API, Search Memory contract, A* variants, Search Process Policy training data, trained policy, or model-efficacy result exists. All substantive tickets #41--#108 remain open.
+- The full test suite remains blocked by 13 documented historical phase-3 collection errors. Retained rendering uses locally supplied plans; it is not planning or Search Process Policy evidence.
 
 ## Root Decision
 
 **D1. Manuscript genre and truthful contribution**
 
-- Option A: a preregistered research protocol for CGAS.
-- Option B: an infrastructure and evidence-contract paper centered on Planning Certificates and Integration Certification.
-- Option C: an empirical CGAS paper, drafted only as a result-ready skeleton until the evaluation program completes.
-- Option D: a technical report that combines the demonstrated infrastructure with the proposed CGAS protocol, while separating them explicitly.
+- Selected: an empirical Search Process Policy paper drafted as a result-ready skeleton until the runtime and evaluation program complete.
+- Constraint: before empirical gates complete, the title, abstract, and conclusion must not imply demonstrated performance, modality effects, or algorithmic success.
 
-Status: OPEN. This decision determines the title, abstract, section structure, and permissible conclusion.
+Status: SET on 2026-08-18. This decision determines the title, abstract, section structure, and permissible conclusion.
 
 ## Dependent Decisions
 
-- D2: precise central claim and title, after D1.
-- D3: abstract commitment and reader promise, after D1 and D2.
-- D4: section architecture, after D1 through D3.
-- D5: evidence tables and figures, after D4.
-- D6: related-work comparison and novelty claim, after D1 and D2.
-- D7: limitations and negative-result policy, after D1 and D4.
+- D2: precise central claim and title, after D1. SET: assess whether a VLM can learn to execute declared classical search algorithms as a Search Process Policy by issuing Typed Search Operations, including model-owned exploration decisions, under a Trusted Search Runtime that validates and applies operations without repair. The working title is "Can Vision-Language Models Learn to Execute Classical Search Algorithms?" Primary evidence is full-episode budgeted success, reported separately from operation validity, invariant compliance, and invalid-operation budget charges. Transfer beyond planning is gated and secondary. Any priority claim requires [TODO: cite] support.
+- D3: abstract commitment and reader promise, after D1 and D2. SET: use study language that states the question, intervention, controls, planned staged evaluation, and explicit result placeholders; reserve performance claims for completed gates. Do not call the evaluation frozen before its preregistration prerequisites are fixed.
+- D4: section architecture, after D1 through D3. SET: Abstract; Introduction; Related Work; Search Process Policy; Experimental Design; Results; Discussion and Limitations; Conclusion; Appendix. The mandatory Appendix contains the full evidence contract. Historical infrastructure is confined to feasibility and implementation context or appendices.
+- D5: evidence tables and figures, after D4. SET: make the primary display an algorithm-by-training-arm matrix with separate columns for full-episode budgeted success, operation validity, Algorithm Invariant compliance, invalid-operation rate, and charged budget. Do not combine these measures into a composite. Use secondary panels for modality cells, trusted-successor versus model-generated-successor results, and gated transfer.
+- D6: related-work comparison and novelty claim, after D1 and D2. SET: use a citation-supported, scoped comparison around algorithm-conditioned Typed Search Operation policies, model-owned search decisions, a no-repair Trusted Search Runtime, invariant-checked full episodes, and matched modalities.
+- D7: limitations and negative-result policy, after D1 and D4. SET: once gates are frozen, report each as PASS, VALID_STOP, INVALID, or ANCESTOR_STOP; show null effects, invariant failures, invalid-operation charges, and validity separately; limit conclusions to passed gates.
+
+## Section Decisions
+
+- D8: Introduction. SET: foreground the gap between local operational competence and full-episode structural/process competence; direct plans or local transition accuracy do not establish algorithm execution.
+- D9: Related Work. SET: compare four threads: classical planning/search, neural algorithm execution, LLM/VLM planning, and runtime verification/tool use.
+- D10: Search Process Policy. SET: present a formal task and interface contract before examples: Modality Observation, Typed Search Operation, Search Memory, model/runtime ownership, Algorithm Invariants, and learning objective.
+- D11: Experimental Design. SET: present the staged #38 sequence: BFS sanity, IW structural gate, A* variants, modality matrix, DAgger, final primary evaluation, replication, and gated transfer. The final evaluation remains unfrozen until the preregistration prerequisites below are decided.
+- D12: Results. SET: lead with gate receipts, then interpret effects only within passed scope; primary display is the structural algorithm-by-training-arm matrix with separate success, validity, invariant, and invalid-operation budget measures.
+- D13: Discussion and Limitations. SET: distinguish trusted-successor structural/process competence from model-generated-successor end-to-end competence; modality and transfer claims are conditional secondary findings.
+- D14: Appendix. SET: include operation schemas, invariants, runtime pseudocode, data/splits, receipt tables, statistics, adapters, and retained-infrastructure feasibility details.
+
+## Preregistration Prerequisites
+
+Before the planned final evaluation is called frozen, define and record:
+
+- the arm-level data source, Search-Trace Segment construction, and per-algorithm allocation;
+- compute parity, checkpoint-selection rule, and number of independent training and evaluation seeds;
+- the episode-budget unit, whole-instance split procedure, and fixed Search Memory capacity;
+- the estimand, uncertainty interval or statistical test, success threshold, invariant-compliance rule, and validity and invalid-operation reporting denominators for every algorithm-by-arm cell.
+
+Until these choices are set, the paper is a result-ready empirical skeleton rather than a preregistered evaluation protocol.
+
+## Section Blueprint
+
+- Title: "Can Vision-Language Models Learn to Execute Classical Search Algorithms?"
+- Abstract: study language only. State the structural/process competence gap, the algorithm-conditioned Typed Search Operation intervention, no-repair Trusted Search Runtime, four-arm comparison, planned staged evaluation, and explicit [TODO: result] findings.
+- Introduction: establish that action-level or transition-level operational competence does not establish full-episode algorithm execution. State three contributions: the Search Process Policy formulation, the no-repair runtime and planned evaluation protocol, and evidence reported only after gates run.
+- Related Work: organize classical planning/search, neural algorithm execution, LLM/VLM planning, and runtime verification/tool use. Include a compact axis table covering algorithm conditioning, model-owned exploration, no-repair runtime, invariant-checked episodes, matched modalities, and transfer.
+- Search Process Policy: formally define task inputs, Modality Observation, common Typed Search Operation envelope, Search Memory, Algorithm Invariants, learning objective, and model/runtime ownership. One algorithm-conditioned policy is used across named algorithms; the declared algorithm controls legality and invariants.
+- Experimental Design: define the four arms (base, operational-only SFT, offline process SFT, process SFT plus DAgger), planned budgets, whole-instance splits, and the staged gate path from BFS through IW, A*, modality, DAgger, final evaluation, replication, and transfer. State the Preregistration Prerequisites before reporting final results.
+- Results: present gate receipts before effects. The primary table is algorithm by training arm, with separate columns for full-episode budgeted success, operation validity, Algorithm Invariant compliance, invalid-operation rate, and charged budget; it does not combine these measures. Secondary panels cover modality, trusted-successor versus model-generated-successor results, and frozen-policy transfer only after the protocol is frozen.
+- Discussion and Limitations: distinguish trusted-successor structural/process competence from model-generated-successor end-to-end competence. Lead with the runtime boundary: the contract does not prove unassisted internal search or general autonomy. Interpret modality and transfer only at passed gates.
+- Conclusion: give a gate-bounded answer to the main question, identify claims not yet supported, and state only the next gated step.
+- Appendix: retain the complete evidence contract, including interfaces, invariants, pseudocode, data and splits, statistics, adapters, all receipts, and narrowly scoped feasibility details of retained infrastructure.
 
 ## Author Decision Log
 
-No author decisions have been accepted in this session.
+- D1 accepted on 2026-08-18: write a result-ready empirical Search Process Policy manuscript skeleton, with unrun results explicitly marked as pending.
+- D2 accepted on 2026-08-18: headline the question of direct learning and execution of classical search algorithms through a model-owned Typed Search Operation policy. Operational controls and modality conditions are secondary; transfer is gated and secondary.
+- D3 accepted on 2026-08-18: the abstract uses study language and result placeholders rather than unearned outcome claims; the planned evaluation is not yet frozen.
+- D6 accepted on 2026-08-18: novelty is a scoped, citation-dependent comparison, not a broad priority assertion.
+- D4 accepted on 2026-08-18: use an empirical-study architecture that separates the intervention, evaluation contract, results, and limitations.
+- D5 accepted on 2026-08-18: center results on the structural algorithm-by-training-arm matrix, reporting success, validity, invariant compliance, invalid-operation rate, and charged budget separately, with modality and transfer as secondary analyses.
+- D7 accepted on 2026-08-18: preserve prespecified stop receipts, null findings, and failures in the main narrative.
+- D8--D14 accepted on 2026-08-18: section scopes are fixed as above; the arm-level protocol parameters required for a frozen final evaluation remain open.
+- D15--D22 accepted on 2026-08-18: the contribution list, related-work axis table, shared policy design, four-arm control, separate primary reporting measures, frozen-policy transfer after preregistration, runtime limitation, and gate-bounded conclusion are fixed in the Section Blueprint.
+- Author confirmation received on 2026-08-18: the Section Blueprint captures the intended manuscript. The grilling frontier is closed.

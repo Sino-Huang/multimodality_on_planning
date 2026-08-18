@@ -1,8 +1,32 @@
 # Manuscript Domain Model
 
-This manuscript-local glossary preserves the canonical planning-research language while the paper's argument is decided. It does not supersede the project-wide glossary.
+This manuscript-local glossary preserves the #38 canonical planning-research language while the paper's argument is decided. It does not supersede the project-wide glossary.
 
 ## Canonical Terms
+
+**Search Process Policy**: A VLM policy trained to execute a declared search algorithm by emitting Typed Search Operations under a Trusted Search Runtime, rather than proposing a complete plan directly.
+
+**Typed Search Operation**: A discrete, runtime-checkable search step, such as expanding a node, generating a successor, updating a frontier, or applying a goal test, issued by the policy within a declared algorithm.
+
+**Search-Trace Segment**: A bounded, ordered slice of Typed Search Operations and state observations used as a training or evaluation unit.
+
+**Search Episode Harness**: The evaluation seam into which a formal task, declared algorithm, Modality Observation adapter, policy adapter, and frozen budget enter, and from which one complete episode and evidence record leaves.
+
+**Trusted Search Runtime**: The deterministic executor that applies Typed Search Operations, maintains algorithm state, and checks invariants, so the model does not own unbounded search bookkeeping.
+
+**Search Memory**: The external runtime/data boundary that holds frontier, visited or best-depth, novelty, and landmark state for the runtime; it is not internal unbounded model state.
+
+**Algorithm Invariant**: A deterministic property of the declared algorithm, such as BFS layer order, IW novelty pruning, or A* frontier order under h_max or landmark-count, checked by the Trusted Search Runtime on every operation.
+
+**Modality Observation**: A task state rendered in one declared modality (text, image, or paired) and presented to the policy under a fixed adapter contract.
+
+**text-state**: The state and goal represented as a compact relational serialization.
+
+**visual-state**: The same state and goal represented as a rendered state plus a partial-goal constraint image.
+
+**multimodal-state**: The same state and goal represented by both text-state and visual-state.
+
+## Retained Infrastructure Terms
 
 **Plan Submission**: Transmission of a particular supplied plan from the project adapter to a planning or rendering backend.
 
@@ -12,29 +36,19 @@ This manuscript-local glossary preserves the canonical planning-research languag
 
 **Render Production**: Creation of a visualisation output and its rendered image for a planning state.
 
-**Render Validation**: Confirmation that a produced visualisation and image satisfy the declared structural and semantic checks.
+**Render Validation**: Confirmation that a produced visualisation and image satisfy declared structural and semantic checks.
 
 **Plan Provenance**: Evidence that links a produced visualisation to the exact supplied plan that the backend interpreted.
-
-**Planning Certificate**: A structured symbolic record paired with a proposed action and next state, checked directly by deterministic planning invariants rather than treated as a latent representation.
-
-**Joint Action-and-Certificate SFT**: Task-specific supervised fine-tuning that teaches one model to predict both a grounded action and its Planning Certificate.
-
-**Adaptive Scaffolding**: Runtime allocation of bounded certificate or memory support according to a learned, verifier-supervised route choice.
-
-**Support Route**: One fixed information boundary offered to the model: direct observation, prior-certificate context, or live-memory context.
-
-**Live Memory**: A bounded, problem-instance-local store keyed by canonical state identity and containing only previously observed, verifier-approved action, certificate, and outcome records.
-
-**Verified Joint Step**: A prediction whose grounded action is applicable, whose Planning Certificate satisfies its invariants, and whose action and certificate describe the same transition.
-
-**Route Label**: The least-cost Support Route that produces a Verified Joint Step under counterfactual execution of the same frozen model.
 
 **Integration Certification**: The complete finding that Plan Submission, Plan Interpretation, Plan Provenance, Render Production, Render Validation, and required execution-isolation checks all passed.
 
 **Attempt**: One authorized, immutable execution with its own identity and retained outcome, whether successful or unsuccessful.
 
 **Evidence Bundle**: The self-contained records from an Attempt that allow an independent reproducer to verify its claims offline.
+
+## Historical CGAS Terms
+
+Planning Certificate, Joint Action-and-Certificate SFT, Adaptive Scaffolding, Support Route, Live Memory, Verified Joint Step, and Route Label are historical CGAS terms. They may describe retained infrastructure but cannot support a current Search Process Policy efficacy claim.
 
 ## Claim Status Terms
 
