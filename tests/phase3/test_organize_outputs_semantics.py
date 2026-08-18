@@ -1,115 +1,79 @@
 from __future__ import annotations
 
+from inspect import Parameter, signature
+import json
 from pathlib import Path
 
 import pytest
 
 from scripts.phase3.organize_outputs import OrganizerError, apply, verify
 from scripts.phase3.output_layout_contracts import DEFAULT_OUTPUT_LAYOUT
-from scripts.phase3.output_layout_inventory import read_receipt, seal_receipt, write_receipt
-from organize_outputs_support import receipt_path, repository
+from scripts.phase3.output_layout_journal import journal_path
+from organize_outputs_support import repository
 
 
-def test_complete_receipt_requires_verified_status_and_destination_snapshot(tmp_path: Path) -> None:
-    # Given: all physical moves completed but a resealed semantically partial complete receipt.
+def test_public_api_uses_canonical_journal_without_receipt_override() -> None:
+    assert tuple(signature(apply).parameters) == ("repository", "checkpoint")
+    assert signature(apply).parameters["checkpoint"].kind is Parameter.KEYWORD_ONLY
+    assert tuple(signature(verify).parameters) == ("repository",)
+
+
+def test_complete_journal_requires_matching_destination_snapshot(tmp_path: Path) -> None:
     repository_root = repository(tmp_path)
-    path = receipt_path(repository_root)
-    apply(repository_root, path)
-    receipt = read_receipt(path)
-    receipt.pop("receipt_sha256")
-    for relocation in receipt["relocations"]:
-        relocation["status"] = "prepared"
-        relocation["destination_snapshot"] = None
-    write_receipt(path, seal_receipt(receipt))
+    apply(repository_root)
+    prepared_path = journal_path(repository_root) / "prepared.json"
+    prepared = json.loads(prepared_path.read_text(encoding="utf-8"))
+    prepared["relocations"][0]["snapshot"] = {}
+    prepared_path.write_text(json.dumps(prepared) + "\n", encoding="utf-8")
 
-    # When: read-only verification sees valid destinations and absent sources.
-    with pytest.raises(OrganizerError):
-        verify(repository_root, path)
+    with pytest.raises(OrganizerError, match="tree differs from prepared snapshot"):
+        verify(repository_root)
 
-    # Then: receipt semantics, not only live files, control completion.
     assert not (repository_root / DEFAULT_OUTPUT_LAYOUT.relocations[0].source.value).exists()
 
 
-def test_preflight_rejects_unknown_root_and_destination_collision_before_receipt(tmp_path: Path) -> None:
-    # Given: synthetic layouts with an extra root or a pre-existing destination collision.
-    unknown_root = repository(tmp_path / "unknown")
-    (unknown_root / "outputs/unapproved-root").mkdir()
-    collision_root = repository(tmp_path / "collision")
-    collision = collision_root / DEFAULT_OUTPUT_LAYOUT.relocations[0].destination.value
-    collision.mkdir(parents=True)
-
-    # When: apply preflights each layout.
-    for repository_root in (unknown_root, collision_root):
-        with pytest.raises(OrganizerError):
-            apply(repository_root, receipt_path(repository_root))
-
-    # Then: neither failure creates a receipt or starts a relocation.
-    assert not receipt_path(unknown_root).exists()
-    assert not receipt_path(collision_root).exists()
-    assert (collision_root / DEFAULT_OUTPUT_LAYOUT.relocations[0].source.value).is_dir()
-
-
-def test_verify_rejects_extra_view_entry_without_mutation(tmp_path: Path) -> None:
-    # Given: an otherwise exact synthetic complete layout with an extra view entry.
+def test_apply_rejects_unknown_root_before_creating_journal(tmp_path: Path) -> None:
     repository_root = repository(tmp_path)
-    path = receipt_path(repository_root)
-    apply(repository_root, path)
-    extra = repository_root / "outputs/datasets/phase3/planimation/stratified_pilot_20260725/extra.txt"
-    extra.write_text("extra\n", encoding="utf-8")
+    unknown = repository_root / "outputs/unapproved-root"
+    unknown.mkdir()
 
-    # When: verify runs through its read-only view path.
-    with pytest.raises(OrganizerError):
-        verify(repository_root, path)
+    with pytest.raises(OrganizerError, match="outputs root does not match migration state"):
+        apply(repository_root)
 
-    # Then: the extra entry is not removed or rewritten.
-    assert extra.read_text(encoding="utf-8") == "extra\n"
+    assert not journal_path(repository_root).exists()
+    assert (repository_root / DEFAULT_OUTPUT_LAYOUT.relocations[0].source.value).is_dir()
 
 
-def test_later_source_and_protected_mutations_fail_before_completion(tmp_path: Path) -> None:
+def test_source_and_moved_destination_mutations_stop_resume(tmp_path: Path) -> None:
     repository_root = repository(tmp_path)
-    path = receipt_path(repository_root)
-    calls = 0
+    move_verified = 0
 
-    def mutate_before_next_rename(checkpoint: str) -> None:
-        nonlocal calls
+    def mutate_second_source(checkpoint: str) -> None:
+        nonlocal move_verified
         if checkpoint == "move_verified":
-            calls += 1
-            if calls == 1:
+            move_verified += 1
+            if move_verified == 1:
                 source = repository_root / DEFAULT_OUTPUT_LAYOUT.relocations[1].source.value / "payload-1.txt"
                 source.write_text("changed\n", encoding="utf-8")
 
-    with pytest.raises(OrganizerError):
-        apply(repository_root, path, checkpoint=mutate_before_next_rename)
-    assert (repository_root / DEFAULT_OUTPUT_LAYOUT.relocations[1].source.value).is_dir()
-    protected = repository_root / DEFAULT_OUTPUT_LAYOUT.protected_roots[0].path.value / "protected-0.txt"
-    protected.write_text("changed\n", encoding="utf-8")
-    with pytest.raises(OrganizerError):
-        apply(repository_root, path)
+    with pytest.raises(OrganizerError, match="tree differs from prepared snapshot"):
+        apply(repository_root, checkpoint=mutate_second_source)
+
+    first_destination = repository_root / DEFAULT_OUTPUT_LAYOUT.relocations[0].destination.value / "payload-0.txt"
+    first_destination.write_text("changed\n", encoding="utf-8")
+    with pytest.raises(OrganizerError, match="tree differs from prepared snapshot"):
+        apply(repository_root)
 
 
-def test_protected_mutation_does_not_rewrite_complete_receipt(tmp_path: Path) -> None:
+def test_verify_rejects_destination_mutation_without_rewriting_complete_journal(tmp_path: Path) -> None:
     repository_root = repository(tmp_path)
-    path = receipt_path(repository_root)
-    apply(repository_root, path)
-    before = path.read_bytes()
-    protected = repository_root / DEFAULT_OUTPUT_LAYOUT.protected_roots[0].path.value / "protected-0.txt"
-    protected.write_text("changed\n", encoding="utf-8")
-    with pytest.raises(OrganizerError):
-        apply(repository_root, path)
-    assert path.read_bytes() == before
+    apply(repository_root)
+    complete_path = journal_path(repository_root) / "complete.json"
+    before = complete_path.read_bytes()
+    destination = repository_root / DEFAULT_OUTPUT_LAYOUT.relocations[0].destination.value / "payload-0.txt"
+    destination.write_text("changed\n", encoding="utf-8")
 
+    with pytest.raises(OrganizerError, match="tree differs from prepared snapshot"):
+        verify(repository_root)
 
-def test_preflight_rejects_destination_and_receipt_parent_symlinks_without_artifacts(tmp_path: Path) -> None:
-    repository_root = repository(tmp_path)
-    destination_parent = repository_root / "outputs/deprecated"
-    destination_parent.symlink_to(repository_root / "outside", target_is_directory=True)
-    with pytest.raises(OrganizerError):
-        apply(repository_root, receipt_path(repository_root))
-    assert not receipt_path(repository_root).exists()
-    second = repository(tmp_path / "receipt-parent")
-    external = tmp_path / "external-receipt"
-    external.mkdir()
-    (second / "outputs/deprecated").symlink_to(external, target_is_directory=True)
-    with pytest.raises(OrganizerError):
-        apply(second, receipt_path(second))
-    assert not (external / "phase3/output_reorganization_20260726.json").exists()
+    assert complete_path.read_bytes() == before

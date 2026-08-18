@@ -11,8 +11,6 @@ from scripts.phase3 import (
     output_layout_receipt_transaction,
     output_layout_receipt_values,
     output_layout_snapshot,
-    output_layout_view_content,
-    output_layout_view_stage,
 )
 from scripts.phase3.output_layout_inventory import (
     OutputLayoutInventoryError,
@@ -33,19 +31,6 @@ def test_snapshot_rejects_intermediate_symlink_component(tmp_path: Path) -> None
 
     with pytest.raises(OutputLayoutInventoryError):
         snapshot_tree(linked_parent / root.name)
-
-
-def test_protected_token_rejects_intermediate_symlink_component(tmp_path: Path) -> None:
-    real_parent = tmp_path / "real"
-    nested = real_parent / "nested"
-    nested.mkdir(parents=True)
-    target = nested / "payload.txt"
-    target.write_text("protected\n", encoding="utf-8")
-    linked_parent = tmp_path / "linked"
-    linked_parent.symlink_to(real_parent, target_is_directory=True)
-
-    with pytest.raises((OSError, OutputLayoutInventoryError)):
-        output_layout_view_content.protected_content_token(linked_parent / nested.name / target.name)
 
 
 def test_snapshot_rejects_directory_entry_count_over_limit(
@@ -72,32 +57,6 @@ def test_snapshot_rejects_directory_depth_over_limit(
 
     with pytest.raises(OutputLayoutInventoryError, match="too deep"):
         snapshot_tree(root)
-
-
-def test_protected_token_rejects_directory_entry_count_over_limit(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    root = tmp_path / "protected"
-    root.mkdir()
-    (root / "one").write_text("1", encoding="utf-8")
-    (root / "two").write_text("2", encoding="utf-8")
-    monkeypatch.setattr(output_layout_view_content, "_MAX_DIRECTORY_ENTRIES", 1, raising=False)
-
-    with pytest.raises(OSError, match="too many entries"):
-        output_layout_view_content.protected_content_token(root)
-
-
-def test_protected_token_rejects_directory_depth_over_limit(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    root = tmp_path / "protected"
-    (root / "one" / "two").mkdir(parents=True)
-    monkeypatch.setattr(output_layout_view_content, "_MAX_DIRECTORY_DEPTH", 1, raising=False)
-
-    with pytest.raises(OSError, match="too deep"):
-        output_layout_view_content.protected_content_token(root)
 
 
 def test_same_receipt_contents_require_private_mode(tmp_path: Path) -> None:
@@ -260,42 +219,3 @@ def test_receipt_sidecar_racer_is_restored_after_quarantine_mismatch(
     retained = tuple(tmp_path.glob(".receipt.json.txn.retained-*"))
     assert len(retained) == 1
     assert retained[0].read_bytes() != racer_bytes
-
-
-def test_private_stage_cleanup_does_not_remove_replacement_at_original_name(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    parent_descriptor = os.open(tmp_path, os.O_RDONLY | os.O_DIRECTORY)
-    stage = output_layout_view_stage.create_private_stage(parent_descriptor, Path("datasets/view"))
-    original_rmdir = output_layout_view_stage.os.rmdir
-    replacement_created = False
-
-    def replace_before_rmdir(name: str, *, dir_fd: int | None = None) -> None:
-        nonlocal replacement_created
-        if name == stage.name and not replacement_created:
-            replacement_created = True
-            os.rename(name, f"{name}.owned", src_dir_fd=dir_fd, dst_dir_fd=dir_fd)
-            os.mkdir(name, dir_fd=dir_fd)
-        original_rmdir(name, dir_fd=dir_fd)
-
-    monkeypatch.setattr(output_layout_view_stage.os, "rmdir", replace_before_rmdir)
-    try:
-        output_layout_view_stage.cleanup(stage)
-        assert not replacement_created
-    finally:
-        os.close(stage.descriptor)
-        os.close(parent_descriptor)
-
-
-def test_private_stage_cleanup_preserves_unowned_child(tmp_path: Path) -> None:
-    parent_descriptor = os.open(tmp_path, os.O_RDONLY | os.O_DIRECTORY)
-    stage = output_layout_view_stage.create_private_stage(parent_descriptor, Path("datasets/view"))
-    racer = tmp_path / stage.name / "racer-owned"
-    racer.write_text("keep\n", encoding="utf-8")
-    try:
-        output_layout_view_stage.cleanup(stage)
-        assert racer.read_text(encoding="utf-8") == "keep\n"
-    finally:
-        os.close(stage.descriptor)
-        os.close(parent_descriptor)

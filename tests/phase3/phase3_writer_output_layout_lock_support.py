@@ -17,7 +17,7 @@ import pytest
 
 from scripts.phase3 import generate_planimation_vlm, pipeline
 from scripts.phase3.organize_outputs import apply
-from scripts.phase3.output_layout_contracts import DEFAULT_OUTPUT_LAYOUT
+from scripts.phase3.output_layout_contracts import DEFAULT_OUTPUT_LAYOUT, PILOT_SOURCE_ROOT
 from scripts.phase3.output_layout_lock import exclusive_output_layout_lock, shared_output_layout_lock
 
 
@@ -112,21 +112,15 @@ def _generate_pipeline(output_root: Path) -> None:
 
 def prepare_organizer_repository(repository: Path) -> Path:
     repository.mkdir(parents=True)
-    for index, root in enumerate(DEFAULT_OUTPUT_LAYOUT.protected_roots):
-        protected = repository / root.path.value
-        protected.mkdir(parents=True)
-        _ = (protected / f"protected-{index}.txt").write_text("protected\n", encoding="utf-8")
+    (repository / "outputs/deprecated/phase3").mkdir(parents=True)
     for index, relocation in enumerate(DEFAULT_OUTPUT_LAYOUT.relocations):
         source = repository / relocation.source.value
         source.mkdir(parents=True)
         _ = (source / f"payload-{index}.txt").write_text("payload\n", encoding="utf-8")
-    for link in DEFAULT_OUTPUT_LAYOUT.view_links:
-        target = repository / link.target.value
-        target.parent.mkdir(parents=True, exist_ok=True)
-        if link.target_kind == "directory":
-            target.mkdir(exist_ok=True)
-        else:
-            _ = target.write_text("approved\n", encoding="utf-8")
+    pilot = repository / PILOT_SOURCE_ROOT
+    for copy in DEFAULT_OUTPUT_LAYOUT.physical_record_copies:
+        source_name = Path(copy.source.value).name
+        _ = (pilot / source_name).write_text('{"approved":true}\n', encoding="utf-8")
     return repository
 
 
@@ -193,7 +187,7 @@ def apply_organizer(repository: Path, completed_sender: Connection, lock_sender:
     original_lock = organize_outputs.exclusive_output_layout_lock
     organize_outputs.exclusive_output_layout_lock = signaling_exclusive_lock
     try:
-        apply(repository, repository / "outputs/deprecated/phase3/output_reorganization_20260726.json")
+        apply(repository)
         completed_sender.send("complete")
     finally:
         organize_outputs.exclusive_output_layout_lock = original_lock

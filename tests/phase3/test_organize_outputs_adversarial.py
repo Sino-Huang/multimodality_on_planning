@@ -17,9 +17,9 @@ from scripts.phase3.output_layout_rename import OutputLayoutRenameError
 from organize_outputs_support import repository
 
 
-def _apply_in_process(repository_root: Path, path: Path, completed: Connection) -> None:
+def _apply_in_process(repository_root: Path, completed: Connection) -> None:
     try:
-        apply(repository_root, path)
+        apply(repository_root)
         completed.send("complete")
     finally:
         completed.close()
@@ -35,7 +35,7 @@ def test_recognized_proc_writer_blocks_and_incidental_text_does_not(tmp_path: Pa
     process = subprocess.Popen([sys.executable, str(script), "--output-root", str(source)])
     try:
         with pytest.raises(OrganizerError):
-            apply(repository_root, path)
+            apply(repository_root)
     finally:
         process.terminate()
         process.wait(timeout=3)
@@ -51,14 +51,14 @@ def test_moved_verified_entry_with_physical_source_stops_resume_before_next_move
     repository_root = repository(tmp_path)
     path = journal_path(repository_root)
     with pytest.raises(OrganizerCheckpoint, match="move_verified"):
-        apply(repository_root, path, checkpoint="move_verified")
+        apply(repository_root, checkpoint="move_verified")
     first = DEFAULT_OUTPUT_LAYOUT.relocations[0]
     first_source = repository_root / first.source.value
     first_source.mkdir(parents=True)
     (first_source / "payload-0.txt").write_text("payload-0\n", encoding="utf-8")
     second_source = repository_root / DEFAULT_OUTPUT_LAYOUT.relocations[1].source.value
     with pytest.raises(OrganizerError):
-        apply(repository_root, path)
+        apply(repository_root)
     assert first_source.is_dir()
     assert second_source.is_dir()
 
@@ -76,7 +76,7 @@ def test_rename_failures_preserve_source_and_racing_destination(tmp_path: Path, 
 
     monkeypatch.setattr("scripts.phase3.organize_outputs.rename_noreplace", fail_rename)
     with pytest.raises(OrganizerError):
-        apply(repository_root, path)
+        apply(repository_root)
     assert source.is_dir()
     assert not destination.exists()
 
@@ -85,7 +85,7 @@ def test_exclusive_organizer_lock_blocks_second_preflight(tmp_path: Path) -> Non
     repository_root = repository(tmp_path)
     path = journal_path(repository_root)
     receiver, sender = mp.get_context("spawn").Pipe(duplex=False)
-    process = mp.get_context("spawn").Process(target=_apply_in_process, args=(repository_root, path, sender))
+    process = mp.get_context("spawn").Process(target=_apply_in_process, args=(repository_root, sender))
     try:
         with exclusive_output_layout_lock(repository_root):
             process.start()

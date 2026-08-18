@@ -40,8 +40,7 @@ def catalog(repository: Path) -> str:
     return serialize_catalog(DEFAULT_OUTPUT_LAYOUT)
 
 
-def apply(repository: Path, receipt_path: Path | None = None, checkpoint: Checkpoint | CheckpointName | None = None) -> None:
-    _ = receipt_path
+def apply(repository: Path, *, checkpoint: Checkpoint | CheckpointName | None = None) -> None:
     repository = repository.resolve(strict=True)
     with exclusive_output_layout_lock(repository):
         _validate_inventory(repository)
@@ -59,8 +58,7 @@ def apply(repository: Path, receipt_path: Path | None = None, checkpoint: Checkp
         _write_once(journal, "complete.json", {"schema_version": 1, "state": "complete"})
 
 
-def verify(repository: Path, receipt_path: Path | None = None) -> None:
-    _ = receipt_path
+def verify(repository: Path) -> None:
     repository = repository.resolve(strict=True)
     with exclusive_output_layout_lock(repository):
         _verify_locked(repository)
