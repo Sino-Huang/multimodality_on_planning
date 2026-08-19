@@ -70,7 +70,6 @@ def run_search_episode(
     signing_key: bytes | str,
     ancestor_receipt_digest: str | None = None,
     random_seed: int | None = None,
-    **_options: object,
 ) -> dict[str, Any]:
     """Run one governed search episode through the public harness seam."""
 
@@ -148,9 +147,7 @@ def replay_search_episode(evidence: Mapping[str, Any], *, signing_key: bytes | s
     authorization = _authorization_from_payload(
         _load_canonical_json(artifacts["authorization-receipt.json"], "authorization receipt")
     )
-    completed = _run_receipt_from_payload(
-        _load_canonical_json(artifacts["run-receipt.json"], "run receipt")
-    )
+    completed = _run_receipt_from_payload(_load_canonical_json(artifacts["run-receipt.json"], "run receipt"))
     if not isinstance(evidence["expansions"], list) or evidence["expansions"] != bundled_expansions:
         raise SearchEpisodeError("public expansion evidence differs from its bundle")
 
@@ -247,11 +244,7 @@ def _execute_authorized_episode(
                 trace,
                 memory_before=before,
                 observation=_text_observation(state, before),
-                rationale=(
-                    "exact_bfs_canonical_successor"
-                    if policy == "exact"
-                    else "random_bfs_seeded_successor"
-                ),
+                rationale="exact_bfs_canonical_successor" if policy == "exact" else "random_bfs_seeded_successor",
                 operation=request,
                 result=result,
                 limits=limits,

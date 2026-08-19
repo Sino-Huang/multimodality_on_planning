@@ -15,13 +15,16 @@ from examples.planning_benchmark_slice.pddl_state import (
     TransitionProvenance,
 )
 from examples.planning_benchmark_slice.search_memory import (
+    AcceptedRetirement,
     AcceptedTransition,
     FrontierIntent,
     HeuristicValue,
     RejectedTransition,
     SearchMemory,
+    SearchRetireRequest,
     SearchTransitionRequest,
     StateEvaluation,
+    apply_search_retirement,
     apply_search_transition,
 )
 from examples.planning_benchmark_slice.search_trace import (
@@ -181,9 +184,9 @@ def test_materializes_every_checkpoint_and_one_record_atomic_segment() -> None:
     )
 
     assert len(materialized.checkpoints) == 4
-    assert [
-        checkpoint.restore(authority).to_bytes() for checkpoint in materialized.checkpoints
-    ] == [memory.to_bytes() for memory in boundary_memories]
+    assert [checkpoint.restore(authority).to_bytes() for checkpoint in materialized.checkpoints] == [
+        memory.to_bytes() for memory in boundary_memories
+    ]
     assert len(materialized.atomic_segments) == 3
 
     original_records = json.loads(trace_bytes)["records"]
@@ -211,11 +214,9 @@ def test_materializes_every_checkpoint_and_one_record_atomic_segment() -> None:
         assert snapshot_payload["frontier"] == list(boundary_memories[record_index].frontier)
         assert snapshot_payload["visited"] == sorted(boundary_memories[record_index].visited)
         assert {
-            field: atomic_payload["records"][0][field]
-            for field in ("observation", "rationale", "operation", "result")
+            field: atomic_payload["records"][0][field] for field in ("observation", "rationale", "operation", "result")
         } == {
-            field: original_records[record_index][field]
-            for field in ("observation", "rationale", "operation", "result")
+            field: original_records[record_index][field] for field in ("observation", "rationale", "operation", "result")
         }
 
         rematerialized = search_context.materialize_search_trace(
@@ -224,12 +225,38 @@ def test_materializes_every_checkpoint_and_one_record_atomic_segment() -> None:
             limits=LIMITS,
         )
         assert len(rematerialized.atomic_segments) == 1
-        assert rematerialized.checkpoints[0].restore(authority).to_bytes() == boundary_memories[
-            record_index
-        ].to_bytes()
-        assert rematerialized.checkpoints[-1].restore(authority).to_bytes() == boundary_memories[
-            record_index + 1
-        ].to_bytes()
+        assert rematerialized.checkpoints[0].restore(authority).to_bytes() == boundary_memories[record_index].to_bytes()
+        assert (
+            rematerialized.checkpoints[-1].restore(authority).to_bytes()
+            == boundary_memories[record_index + 1].to_bytes()
+        )
+
+
+def test_materializes_retirement_and_restores_its_checkpoint_memory() -> None:
+    authority = PDDLStateAuthority.from_pddl(DOMAIN, PROBLEM)
+    memory = SearchMemory.initial(authority)
+    request = SearchRetireRequest(memory.frontier[0])
+    result = apply_search_retirement(memory, request)
+    assert isinstance(result, AcceptedRetirement)
+
+    trace = append_search_trace_record(
+        start_search_trace(memory, limits=LIMITS),
+        memory_before=memory,
+        observation={"state_id": authority.initial_state.state_id},
+        rationale="Retire the exhausted frontier head.",
+        operation=request,
+        result=result,
+        limits=LIMITS,
+    )
+
+    materialized = search_context.materialize_search_trace(
+        trace.to_bytes(),
+        authority=authority,
+        limits=LIMITS,
+    )
+
+    restored = materialized.checkpoints[-1].restore(authority)
+    assert restored.to_bytes() == result.memory.to_bytes()
 
 
 def test_checkpoints_expose_typed_markov_sufficient_search_memory_snapshots() -> None:
@@ -314,9 +341,9 @@ def test_rolling_context_keeps_only_accepted_deltas_in_record_order() -> None:
         assert delta.operation == request
         assert isinstance(delta.transition, PDDLTransition)
         assert delta.transition.source_state.state_id == request.source_state_id
-        assert delta.transition.target_state.state_id == source_record["result"]["transition"][
-            "target_state"
-        ]["state_id"]
+        assert (
+            delta.transition.target_state.state_id == source_record["result"]["transition"]["target_state"]["state_id"]
+        )
         assert delta.evaluation is None
         assert delta.resulting_memory_sha256 == source_record["result"]["memory_sha256"]
 

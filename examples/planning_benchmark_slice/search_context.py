@@ -6,12 +6,15 @@ from typing import Any, Mapping
 
 from .pddl_state import CanonicalState, PDDLStateAuthority, PDDLTransition, TransitionProvenance
 from .search_memory import (
+    AcceptedRetirement,
     AcceptedTransition,
     HeuristicValue,
     SearchMemory,
+    SearchRetireRequest,
     SearchTransitionRequest,
     SearchTransitionResult,
     StateEvaluation,
+    apply_search_retirement,
     apply_search_transition,
 )
 from .search_trace import (
@@ -98,9 +101,7 @@ class SearchMemoryCheckpoint:
             "authority_id": self.authority_id,
             "memory_sha256": self.memory_sha256,
             "snapshot": _serialize_snapshot(self.snapshot),
-            "accepted_transitions": [
-                _load_canonical_json(payload) for payload in self._accepted_transition_payloads
-            ],
+            "accepted_transitions": [_load_canonical_json(payload) for payload in self._accepted_transition_payloads],
         }
 
 
@@ -165,9 +166,7 @@ class MaterializedSearchTrace:
             raise TraceMaterializationError("accepted_delta_limit must be positive")
 
         prior_accepted = tuple(
-            record.accepted_delta
-            for record in self._records[:record_index]
-            if record.accepted_delta is not None
+            record.accepted_delta for record in self._records[:record_index] if record.accepted_delta is not None
         )
         deltas = prior_accepted[-accepted_delta_limit:]
         checkpoint = self.checkpoints[record_index]
@@ -206,15 +205,11 @@ def materialize_search_trace(
             standard_payload = payload
         elif fields == _STANDARD_ENVELOPE_FIELDS | {_CHECKPOINT_FIELD}:
             checkpoint_payload = encoded[_CHECKPOINT_FIELD]
-            standard_payload = _canonical_bytes(
-                {field: encoded[field] for field in _STANDARD_ENVELOPE_FIELDS}
-            )
+            standard_payload = _canonical_bytes({field: encoded[field] for field in _STANDARD_ENVELOPE_FIELDS})
         else:
             missing = sorted(_STANDARD_ENVELOPE_FIELDS - fields)
             unknown = sorted(fields - (_STANDARD_ENVELOPE_FIELDS | {_CHECKPOINT_FIELD}))
-            raise SearchTraceError(
-                f"invalid fields in envelope: missing={missing}, unknown={unknown}"
-            )
+            raise SearchTraceError(f"invalid fields in envelope: missing={missing}, unknown={unknown}")
 
         envelope = _validated_envelope(standard_payload, limits=limits)
         if authority.authority_id != envelope["authority_id"]:
@@ -231,11 +226,7 @@ def materialize_search_trace(
                 authority=authority,
                 limits=limits,
             )
-            if (
-                len(initial_checkpoint._accepted_transition_payloads)
-                + envelope["record_count"]
-                > limits.max_records
-            ):
+            if len(initial_checkpoint._accepted_transition_payloads) + envelope["record_count"] > limits.max_records:
                 raise SearchTraceError("checkpoint and trace exceed max_records")
             if initial_checkpoint.memory_sha256 != envelope["initial_memory_sha256"]:
                 raise SearchTraceError("checkpoint does not match trace initial memory")
@@ -273,16 +264,19 @@ def _materialize_validated_envelope(
             persisted_record["operation"],
             persisted_record["result"],
         )
-        is_accepted = isinstance(actual, AcceptedTransition)
-        if is_accepted != (status == "accepted"):
+        is_successful = isinstance(actual, (AcceptedTransition, AcceptedRetirement))
+        if is_successful != (status in {"accepted", "retired"}):
             raise SearchTraceError(f"replayed status differs at record {index}")
 
         accepted_delta = None
         if isinstance(actual, AcceptedTransition):
+            operation = _decode_operation(persisted_record["operation"])
+            if not isinstance(operation, SearchTransitionRequest):
+                raise SearchTraceError("accepted transition has invalid operation type")
             accepted_delta = AcceptedSearchDelta(
                 record_index=index,
                 record_hash=persisted_record["record_hash"],
-                operation=_decode_operation(persisted_record["operation"]),
+                operation=operation,
                 transition=actual.transition,
                 evaluation=actual.evaluation,
                 resulting_memory_sha256=persisted_record["result"]["memory_sha256"],
@@ -304,12 +298,10 @@ def _materialize_validated_envelope(
         records.append(record)
 
         memory = actual.memory
-        if is_accepted:
+        if is_successful:
             accepted_transition_payloads = (
                 *accepted_transition_payloads,
-                _checkpoint_transition_bytes(
-                    persisted_record["operation"], persisted_record["result"]
-                ),
+                _checkpoint_transition_bytes(persisted_record["operation"], persisted_record["result"]),
             )
         checkpoints.append(_checkpoint_from_memory(memory, accepted_transition_payloads))
 
@@ -358,14 +350,10 @@ def _serialize_snapshot(snapshot: SearchMemorySnapshot) -> dict[str, Any]:
         "visited": sorted(snapshot.visited),
         "novelty": dict(snapshot.novelty),
         "heuristics": {
-            state_id: {"name": value.name, "value": value.value}
-            for state_id, value in snapshot.heuristics.items()
+            state_id: {"name": value.name, "value": value.value} for state_id, value in snapshot.heuristics.items()
         },
         "provenance": [item.to_dict() for item in snapshot.provenance],
-        "known_states": {
-            state_id: _serialize_state(state)
-            for state_id, state in snapshot.known_states.items()
-        },
+        "known_states": {state_id: _serialize_state(state) for state_id, state in snapshot.known_states.items()},
     }
 
 
@@ -434,9 +422,7 @@ def _decode_checkpoint(
     if _sha256(restored.to_bytes()) != payload["memory_sha256"]:
         raise SearchTraceError("restored checkpoint memory does not match its digest")
     restored_snapshot = _snapshot_from_memory(restored)
-    if _canonical_bytes(payload["snapshot"]) != _canonical_bytes(
-        _serialize_snapshot(restored_snapshot)
-    ):
+    if _canonical_bytes(payload["snapshot"]) != _canonical_bytes(_serialize_snapshot(restored_snapshot)):
         raise SearchTraceError("persisted checkpoint snapshot does not match semantic restoration")
     checkpoint = SearchMemoryCheckpoint(
         authority_id=payload["authority_id"],
@@ -482,8 +468,8 @@ def _restore_checkpoint_memory(
         result_payload = transition["result"]
         _validate_checkpoint_transition(operation_payload, result_payload)
         actual = _apply_persisted_transition(memory, operation_payload, result_payload)
-        if not isinstance(actual, AcceptedTransition):
-            raise SearchTraceError("checkpoint transition did not replay as accepted")
+        if not isinstance(actual, (AcceptedTransition, AcceptedRetirement)):
+            raise SearchTraceError("checkpoint operation did not replay successfully")
         memory = actual.memory
     return memory
 
@@ -503,8 +489,8 @@ def _validate_checkpoint_transition(
     _validate_operation(operation_payload, path="checkpoint.operation")
     _validate_result(result_payload, path="checkpoint.result")
     _validate_operation_result(operation_payload, result_payload)
-    if result_payload["status"] != "accepted":
-        raise SearchTraceError("checkpoint may contain only accepted transitions")
+    if result_payload["status"] not in {"accepted", "retired"}:
+        raise SearchTraceError("checkpoint may contain only successful operations")
 
 
 def _apply_persisted_transition(
@@ -513,11 +499,14 @@ def _apply_persisted_transition(
     result_payload: Mapping[str, Any],
 ) -> SearchTransitionResult:
     operation = _decode_operation(operation_payload)
-    actual = apply_search_transition(
-        memory,
-        operation,
-        evaluator=_persisted_evaluator(result_payload),
-    )
+    if isinstance(operation, SearchRetireRequest):
+        actual = apply_search_retirement(memory, operation)
+    else:
+        actual = apply_search_transition(
+            memory,
+            operation,
+            evaluator=_persisted_evaluator(result_payload),
+        )
     if _serialize_result(actual) != result_payload:
         raise SearchTraceError("persisted result does not match semantic replay")
     if _sha256(actual.memory.to_bytes()) != result_payload["memory_sha256"]:
