@@ -101,18 +101,10 @@ class SearchMemory:
     def _with_transition(
         self,
         transition: PDDLTransition,
-        request: SearchTransitionRequest,
+        frontier: tuple[str, ...],
         evaluation: StateEvaluation | None,
     ) -> SearchMemory:
         target_id = transition.target_state.state_id
-        frontier = list(self.frontier)
-        if request.frontier_intent.retire_source:
-            frontier = [item for item in frontier if item != request.source_state_id]
-        if target_id in frontier:
-            frontier.remove(target_id)
-        frontier.insert(request.frontier_intent.target_position, target_id)
-
-        visited = self.visited | {target_id} if request.visit_target else self.visited
         novelty = dict(self.novelty)
         heuristics = dict(self.heuristics)
         if evaluation is not None:
@@ -121,8 +113,8 @@ class SearchMemory:
 
         updated = SearchMemory(
             authority=self.authority,
-            frontier=tuple(frontier),
-            visited=visited,
+            frontier=frontier,
+            visited=self.visited | {target_id},
             novelty=novelty,
             heuristics=heuristics,
             provenance=(*self.provenance, transition.provenance),
@@ -155,15 +147,28 @@ def apply_search_transition(
     *,
     evaluator: StateEvaluator,
 ) -> SearchTransitionResult:
+    if not request.visit_target:
+        return RejectedTransition(memory, 1, "target must be visited")
+
     source = memory._known_states.get(request.source_state_id)
     if source is None:
         return RejectedTransition(memory, 1, f"unknown source state: {request.source_state_id}")
 
     try:
         transition = memory.authority.apply(source, request.action)
-    except InvalidActionError as error:
+    except (InvalidActionError, ValueError) as error:
         return RejectedTransition(memory, 1, str(error))
 
+    target_id = transition.target_state.state_id
+    frontier = list(memory.frontier)
+    if request.frontier_intent.retire_source:
+        frontier = [item for item in frontier if item != request.source_state_id]
+    frontier = [item for item in frontier if item != target_id]
+    position = request.frontier_intent.target_position
+    if position > len(frontier):
+        return RejectedTransition(memory, 1, f"invalid target position: {position}")
+    frontier.insert(position, target_id)
+
     evaluation = evaluator(transition.target_state) if request.evaluate_target else None
-    updated = memory._with_transition(transition, request, evaluation)
+    updated = memory._with_transition(transition, tuple(frontier), evaluation)
     return AcceptedTransition(updated)

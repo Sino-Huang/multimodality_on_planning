@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from unittest.mock import patch
+
 from examples.planning_benchmark_slice.pddl_state import (
     CanonicalState,
     GroundedAction,
@@ -84,6 +86,103 @@ def test_valid_transition_updates_only_memory_for_the_reproduced_target() -> Non
     assert unchosen_successor.state_id not in result.memory.visited
     assert unchosen_successor.state_id not in result.memory.novelty
     assert unchosen_successor.state_id not in result.memory.heuristics
+
+
+def test_unvisited_target_is_rejected_without_evaluation_or_memory_changes() -> None:
+    authority = _authority()
+    memory = SearchMemory.initial(authority)
+    original_bytes = memory.to_bytes()
+    request = SearchTransitionRequest(
+        source_state_id=authority.initial_state.state_id,
+        action=GroundedAction("advance", ("a",)),
+        frontier_intent=FrontierIntent(retire_source=True, target_position=0),
+        visit_target=False,
+        evaluate_target=True,
+    )
+
+    def evaluator(_state: CanonicalState) -> StateEvaluation:
+        raise AssertionError("an unvisited target must not be evaluated")
+
+    result = apply_search_transition(memory, request, evaluator=evaluator)
+
+    assert isinstance(result, RejectedTransition)
+    assert result.budget_charge == 1
+    assert result.memory is memory
+    assert memory.to_bytes() == original_bytes
+
+
+def test_visited_target_may_skip_evaluation() -> None:
+    authority = _authority()
+    source = authority.initial_state
+    action = GroundedAction("advance", ("a",))
+    expected = _authority().apply(source, action)
+    request = SearchTransitionRequest(
+        source_state_id=source.state_id,
+        action=action,
+        frontier_intent=FrontierIntent(retire_source=True, target_position=0),
+        visit_target=True,
+        evaluate_target=False,
+    )
+
+    def evaluator(_state: CanonicalState) -> StateEvaluation:
+        raise AssertionError("evaluation was not requested")
+
+    result = apply_search_transition(
+        SearchMemory.initial(authority),
+        request,
+        evaluator=evaluator,
+    )
+
+    assert isinstance(result, AcceptedTransition)
+    assert result.memory.frontier == (expected.target_state.state_id,)
+    assert result.memory.visited == frozenset((source.state_id, expected.target_state.state_id))
+    assert result.memory.novelty == {}
+    assert result.memory.heuristics == {}
+    assert result.memory.provenance == (expected.provenance,)
+
+
+def test_invalid_target_position_is_rejected_before_evaluation() -> None:
+    authority = _authority()
+    memory = SearchMemory.initial(authority)
+    original_bytes = memory.to_bytes()
+    request = SearchTransitionRequest(
+        source_state_id=authority.initial_state.state_id,
+        action=GroundedAction("advance", ("a",)),
+        frontier_intent=FrontierIntent(retire_source=True, target_position=1),
+        visit_target=True,
+        evaluate_target=True,
+    )
+
+    def evaluator(_state: CanonicalState) -> StateEvaluation:
+        raise AssertionError("an invalid frontier update must not be evaluated")
+
+    result = apply_search_transition(memory, request, evaluator=evaluator)
+
+    assert isinstance(result, RejectedTransition)
+    assert result.budget_charge == 1
+    assert result.memory is memory
+    assert memory.to_bytes() == original_bytes
+
+
+def test_authority_value_error_is_a_charged_unchanged_rejection() -> None:
+    authority = _authority()
+    memory = SearchMemory.initial(authority)
+    original_bytes = memory.to_bytes()
+
+    def evaluator(_state: CanonicalState) -> StateEvaluation:
+        raise AssertionError("a rejected authority transition must not be evaluated")
+
+    with patch.object(authority, "apply", side_effect=ValueError("invalid successor")):
+        result = apply_search_transition(
+            memory,
+            _request(authority.initial_state.state_id, GroundedAction("advance", ("a",))),
+            evaluator=evaluator,
+        )
+
+    assert isinstance(result, RejectedTransition)
+    assert result.budget_charge == 1
+    assert result.memory is memory
+    assert memory.to_bytes() == original_bytes
 
 
 def test_invalid_transition_charges_once_without_changing_the_original_memory() -> None:
