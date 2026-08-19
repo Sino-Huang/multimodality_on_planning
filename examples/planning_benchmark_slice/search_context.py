@@ -1,11 +1,21 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from types import MappingProxyType
 from typing import Any, Mapping
 
-from .pddl_state import PDDLStateAuthority
-from .search_memory import AcceptedTransition, SearchMemory, SearchTransitionResult, apply_search_transition
+from .pddl_state import CanonicalState, PDDLStateAuthority, PDDLTransition, TransitionProvenance
+from .search_memory import (
+    AcceptedTransition,
+    HeuristicValue,
+    SearchMemory,
+    SearchTransitionRequest,
+    SearchTransitionResult,
+    StateEvaluation,
+    apply_search_transition,
+)
 from .search_trace import (
+    SCHEMA_VERSION,
     SearchTraceError,
     TraceSegmentLimits,
     _canonical_bytes,
@@ -13,7 +23,11 @@ from .search_trace import (
     _load_canonical_json,
     _persisted_evaluator,
     _require_hash,
+    _serialize_evaluation,
+    _serialize_operation,
     _serialize_result,
+    _serialize_state,
+    _serialize_transition,
     _sha256,
     _validate_operation,
     _validate_operation_result,
@@ -24,7 +38,7 @@ from .search_trace import (
 )
 
 _CHECKPOINT_FIELD = "checkpoint"
-_CHECKPOINT_FIELDS = {"authority_id", "memory_sha256", "accepted_transitions"}
+_CHECKPOINT_FIELDS = {"authority_id", "memory_sha256", "snapshot", "accepted_transitions"}
 _CHECKPOINT_TRANSITION_FIELDS = {"operation", "result"}
 _STANDARD_ENVELOPE_FIELDS = {
     "schema_version",
@@ -41,11 +55,24 @@ class TraceMaterializationError(SearchTraceError):
 
 
 @dataclass(frozen=True, slots=True)
+class SearchMemorySnapshot:
+    """Typed immutable state sufficient to inspect and validate search memory."""
+
+    frontier: tuple[str, ...]
+    visited: frozenset[str]
+    novelty: Mapping[str, int]
+    heuristics: Mapping[str, HeuristicValue]
+    provenance: tuple[TransitionProvenance, ...]
+    known_states: Mapping[str, CanonicalState]
+
+
+@dataclass(frozen=True, slots=True)
 class SearchMemoryCheckpoint:
     """An immutable, authority-bound, replayable search-memory snapshot."""
 
     authority_id: str
     memory_sha256: str
+    snapshot: SearchMemorySnapshot
     _accepted_transition_payloads: tuple[bytes, ...]
 
     def restore(self, authority: PDDLStateAuthority) -> SearchMemory:
@@ -55,16 +82,9 @@ class SearchMemoryCheckpoint:
             raise TraceMaterializationError("checkpoint belongs to a different authority")
 
         try:
-            memory = SearchMemory.initial(authority)
-            for payload in self._accepted_transition_payloads:
-                transition = _load_canonical_json(payload)
-                operation_payload = transition["operation"]
-                result_payload = transition["result"]
-                _validate_checkpoint_transition(operation_payload, result_payload)
-                actual = _apply_persisted_transition(memory, operation_payload, result_payload)
-                if not isinstance(actual, AcceptedTransition):
-                    raise SearchTraceError("checkpoint transition did not replay as accepted")
-                memory = actual.memory
+            memory = _restore_checkpoint_memory(authority, self._accepted_transition_payloads)
+            if _snapshot_from_memory(memory) != self.snapshot:
+                raise SearchTraceError("restored checkpoint memory does not match its typed snapshot")
             if _sha256(memory.to_bytes()) != self.memory_sha256:
                 raise SearchTraceError("restored checkpoint memory does not match its digest")
             return memory
@@ -77,6 +97,7 @@ class SearchMemoryCheckpoint:
         return {
             "authority_id": self.authority_id,
             "memory_sha256": self.memory_sha256,
+            "snapshot": _serialize_snapshot(self.snapshot),
             "accepted_transitions": [
                 _load_canonical_json(payload) for payload in self._accepted_transition_payloads
             ],
@@ -86,7 +107,11 @@ class SearchMemoryCheckpoint:
 @dataclass(frozen=True, slots=True)
 class AcceptedSearchDelta:
     record_index: int
-    _record_payload: bytes
+    record_hash: str
+    operation: SearchTransitionRequest
+    transition: PDDLTransition
+    evaluation: StateEvaluation | None
+    resulting_memory_sha256: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -113,7 +138,7 @@ class RollingSearchContext:
 class _MaterializedRecord:
     record_index: int
     payload: bytes
-    accepted: bool
+    accepted_delta: AcceptedSearchDelta | None
 
 
 @dataclass(frozen=True, slots=True)
@@ -139,22 +164,17 @@ class MaterializedSearchTrace:
         if accepted_delta_limit <= 0:
             raise TraceMaterializationError("accepted_delta_limit must be positive")
 
-        prior_accepted = [record for record in self._records[:record_index] if record.accepted]
-        selected = prior_accepted[-accepted_delta_limit:]
-        if selected:
-            checkpoint = self.checkpoints[selected[0].record_index]
-        else:
-            checkpoint = self.checkpoints[record_index]
-
-        payload = _build_context_payload(
-            checkpoint,
-            selected,
-            authority=self._authority,
-            limits=self._limits,
+        prior_accepted = tuple(
+            record.accepted_delta
+            for record in self._records[:record_index]
+            if record.accepted_delta is not None
         )
-        deltas = tuple(
-            AcceptedSearchDelta(record_index=record.record_index, _record_payload=record.payload)
-            for record in selected
+        deltas = prior_accepted[-accepted_delta_limit:]
+        checkpoint = self.checkpoints[record_index]
+        payload = _build_rolling_context_payload(
+            checkpoint,
+            deltas,
+            limits=self._limits,
         )
         return RollingSearchContext(checkpoint=checkpoint, accepted_deltas=deltas, _payload=payload)
 
@@ -257,7 +277,17 @@ def _materialize_validated_envelope(
         if is_accepted != (status == "accepted"):
             raise SearchTraceError(f"replayed status differs at record {index}")
 
-        record = _MaterializedRecord(index, record_payload, is_accepted)
+        accepted_delta = None
+        if isinstance(actual, AcceptedTransition):
+            accepted_delta = AcceptedSearchDelta(
+                record_index=index,
+                record_hash=persisted_record["record_hash"],
+                operation=_decode_operation(persisted_record["operation"]),
+                transition=actual.transition,
+                evaluation=actual.evaluation,
+                resulting_memory_sha256=persisted_record["result"]["memory_sha256"],
+            )
+        record = _MaterializedRecord(index, record_payload, accepted_delta)
         atomic_payload = _build_context_payload(
             checkpoints[-1],
             [record],
@@ -292,6 +322,53 @@ def _materialize_validated_envelope(
     )
 
 
+def _build_rolling_context_payload(
+    checkpoint: SearchMemoryCheckpoint,
+    accepted_deltas: tuple[AcceptedSearchDelta, ...],
+    *,
+    limits: TraceSegmentLimits,
+) -> bytes:
+    payload = _canonical_bytes(
+        {
+            "schema_version": SCHEMA_VERSION,
+            "context_type": "rolling_search_context",
+            "authority_id": checkpoint.authority_id,
+            "snapshot": _serialize_snapshot(checkpoint.snapshot),
+            "accepted_deltas": [
+                {
+                    "record_index": delta.record_index,
+                    "record_hash": delta.record_hash,
+                    "operation": _serialize_operation(delta.operation),
+                    "transition": _serialize_transition(delta.transition),
+                    "evaluation": _serialize_evaluation(delta.evaluation),
+                    "resulting_memory_sha256": delta.resulting_memory_sha256,
+                }
+                for delta in accepted_deltas
+            ],
+        }
+    )
+    if len(payload) > limits.max_bytes:
+        raise TraceMaterializationError("rolling context exceeds max_bytes")
+    return payload
+
+
+def _serialize_snapshot(snapshot: SearchMemorySnapshot) -> dict[str, Any]:
+    return {
+        "frontier": list(snapshot.frontier),
+        "visited": sorted(snapshot.visited),
+        "novelty": dict(snapshot.novelty),
+        "heuristics": {
+            state_id: {"name": value.name, "value": value.value}
+            for state_id, value in snapshot.heuristics.items()
+        },
+        "provenance": [item.to_dict() for item in snapshot.provenance],
+        "known_states": {
+            state_id: _serialize_state(state)
+            for state_id, state in snapshot.known_states.items()
+        },
+    }
+
+
 def _build_context_payload(
     checkpoint: SearchMemoryCheckpoint,
     records: list[_MaterializedRecord],
@@ -320,12 +397,7 @@ def _build_context_payload(
         )
         memory = actual.memory
 
-    standard_payload = segment.to_bytes()
-    initial_memory = SearchMemory.initial(authority)
-    if checkpoint.memory_sha256 == _sha256(initial_memory.to_bytes()):
-        return standard_payload
-
-    encoded = _load_canonical_json(standard_payload)
+    encoded = _load_canonical_json(segment.to_bytes())
     encoded[_CHECKPOINT_FIELD] = checkpoint._to_payload()
     context_payload = _canonical_bytes(encoded)
     if len(context_payload) > limits.max_bytes:
@@ -357,10 +429,20 @@ def _decode_checkpoint(
         _validate_checkpoint_transition(transition["operation"], transition["result"])
         transition_payloads.append(_canonical_bytes(transition))
 
+    accepted_transition_payloads = tuple(transition_payloads)
+    restored = _restore_checkpoint_memory(authority, accepted_transition_payloads)
+    if _sha256(restored.to_bytes()) != payload["memory_sha256"]:
+        raise SearchTraceError("restored checkpoint memory does not match its digest")
+    restored_snapshot = _snapshot_from_memory(restored)
+    if _canonical_bytes(payload["snapshot"]) != _canonical_bytes(
+        _serialize_snapshot(restored_snapshot)
+    ):
+        raise SearchTraceError("persisted checkpoint snapshot does not match semantic restoration")
     checkpoint = SearchMemoryCheckpoint(
         authority_id=payload["authority_id"],
         memory_sha256=payload["memory_sha256"],
-        _accepted_transition_payloads=tuple(transition_payloads),
+        snapshot=restored_snapshot,
+        _accepted_transition_payloads=accepted_transition_payloads,
     )
     checkpoint.restore(authority)
     return checkpoint
@@ -373,8 +455,37 @@ def _checkpoint_from_memory(
     return SearchMemoryCheckpoint(
         authority_id=memory.authority.authority_id,
         memory_sha256=_sha256(memory.to_bytes()),
+        snapshot=_snapshot_from_memory(memory),
         _accepted_transition_payloads=accepted_transition_payloads,
     )
+
+
+def _snapshot_from_memory(memory: SearchMemory) -> SearchMemorySnapshot:
+    return SearchMemorySnapshot(
+        frontier=tuple(memory.frontier),
+        visited=frozenset(memory.visited),
+        novelty=MappingProxyType(dict(memory.novelty)),
+        heuristics=MappingProxyType(dict(memory.heuristics)),
+        provenance=tuple(memory.provenance),
+        known_states=MappingProxyType(dict(memory._known_states)),
+    )
+
+
+def _restore_checkpoint_memory(
+    authority: PDDLStateAuthority,
+    accepted_transition_payloads: tuple[bytes, ...],
+) -> SearchMemory:
+    memory = SearchMemory.initial(authority)
+    for payload in accepted_transition_payloads:
+        transition = _load_canonical_json(payload)
+        operation_payload = transition["operation"]
+        result_payload = transition["result"]
+        _validate_checkpoint_transition(operation_payload, result_payload)
+        actual = _apply_persisted_transition(memory, operation_payload, result_payload)
+        if not isinstance(actual, AcceptedTransition):
+            raise SearchTraceError("checkpoint transition did not replay as accepted")
+        memory = actual.memory
+    return memory
 
 
 def _checkpoint_transition_bytes(
@@ -420,6 +531,7 @@ __all__ = [
     "MaterializedSearchTrace",
     "RollingSearchContext",
     "SearchMemoryCheckpoint",
+    "SearchMemorySnapshot",
     "TraceMaterializationError",
     "materialize_search_trace",
 ]

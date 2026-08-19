@@ -1,12 +1,19 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
 from typing import cast
 
 import pytest
 
 from examples.planning_benchmark_slice import search_context
-from examples.planning_benchmark_slice.pddl_state import GroundedAction, PDDLStateAuthority
+from examples.planning_benchmark_slice.pddl_state import (
+    CanonicalState,
+    GroundedAction,
+    PDDLStateAuthority,
+    PDDLTransition,
+    TransitionProvenance,
+)
 from examples.planning_benchmark_slice.search_memory import (
     AcceptedTransition,
     FrontierIntent,
@@ -53,7 +60,12 @@ def _materialization_error() -> type[Exception]:
 
 def _three_record_trace(
     sentinel: str,
-) -> tuple[bytes, PDDLStateAuthority, tuple[SearchMemory, ...]]:
+) -> tuple[
+    bytes,
+    PDDLStateAuthority,
+    tuple[SearchMemory, ...],
+    tuple[SearchTransitionRequest, ...],
+]:
     authority = PDDLStateAuthority.from_pddl(DOMAIN, PROBLEM)
     initial_memory = SearchMemory.initial(authority)
 
@@ -155,11 +167,12 @@ def _three_record_trace(
         trace.to_bytes(),
         authority,
         (initial_memory, first_result.memory, rejected_result.memory, final_result.memory),
+        (first_request, rejected_request, final_request),
     )
 
 
 def test_materializes_every_checkpoint_and_one_record_atomic_segment() -> None:
-    trace_bytes, authority, boundary_memories = _three_record_trace("left-future")
+    trace_bytes, authority, boundary_memories, _ = _three_record_trace("left-future")
 
     materialized = search_context.materialize_search_trace(
         trace_bytes,
@@ -179,6 +192,24 @@ def test_materializes_every_checkpoint_and_one_record_atomic_segment() -> None:
         atomic_payload = json.loads(atomic_bytes)
         assert atomic_payload["record_count"] == 1
         assert len(atomic_payload["records"]) == 1
+        checkpoint_payload = atomic_payload["checkpoint"]
+        assert set(checkpoint_payload) == {
+            "accepted_transitions",
+            "authority_id",
+            "memory_sha256",
+            "snapshot",
+        }
+        snapshot_payload = checkpoint_payload["snapshot"]
+        assert {
+            "frontier",
+            "visited",
+            "novelty",
+            "heuristics",
+            "provenance",
+            "known_states",
+        } <= set(snapshot_payload)
+        assert snapshot_payload["frontier"] == list(boundary_memories[record_index].frontier)
+        assert snapshot_payload["visited"] == sorted(boundary_memories[record_index].visited)
         assert {
             field: atomic_payload["records"][0][field]
             for field in ("observation", "rationale", "operation", "result")
@@ -201,8 +232,60 @@ def test_materializes_every_checkpoint_and_one_record_atomic_segment() -> None:
         ].to_bytes()
 
 
+def test_checkpoints_expose_typed_markov_sufficient_search_memory_snapshots() -> None:
+    trace_bytes, authority, boundary_memories, requests = _three_record_trace("left-future")
+    materialized = search_context.materialize_search_trace(
+        trace_bytes,
+        authority=authority,
+        limits=LIMITS,
+    )
+
+    for checkpoint, expected_memory in zip(
+        materialized.checkpoints,
+        boundary_memories,
+        strict=True,
+    ):
+        snapshot = checkpoint.snapshot
+        restored = checkpoint.restore(authority)
+
+        assert not isinstance(snapshot, (bytes, str, Mapping))
+        assert isinstance(snapshot.frontier, tuple)
+        assert snapshot.frontier == expected_memory.frontier
+        assert isinstance(snapshot.visited, frozenset)
+        assert snapshot.visited == expected_memory.visited
+        assert isinstance(snapshot.novelty, Mapping)
+        assert dict(snapshot.novelty) == dict(expected_memory.novelty)
+        assert all(isinstance(value, int) for value in snapshot.novelty.values())
+        assert isinstance(snapshot.heuristics, Mapping)
+        assert dict(snapshot.heuristics) == dict(expected_memory.heuristics)
+        assert all(isinstance(value, HeuristicValue) for value in snapshot.heuristics.values())
+        assert isinstance(snapshot.provenance, tuple)
+        assert snapshot.provenance == expected_memory.provenance
+        assert all(isinstance(value, TransitionProvenance) for value in snapshot.provenance)
+        assert isinstance(snapshot.known_states, Mapping)
+        assert frozenset(snapshot.known_states) == expected_memory.visited
+        assert all(
+            isinstance(state, CanonicalState)
+            and state_id == state.state_id
+            and state.authority_id == authority.authority_id
+            for state_id, state in snapshot.known_states.items()
+        )
+        assert restored.to_bytes() == expected_memory.to_bytes()
+
+    def unexpected_evaluator(_state: object) -> StateEvaluation:
+        raise AssertionError("the continued transition did not request evaluation")
+
+    continued = apply_search_transition(
+        materialized.checkpoints[2].restore(authority),
+        requests[2],
+        evaluator=unexpected_evaluator,
+    )
+    assert isinstance(continued, AcceptedTransition)
+    assert continued.memory.to_bytes() == boundary_memories[3].to_bytes()
+
+
 def test_rolling_context_keeps_only_accepted_deltas_in_record_order() -> None:
-    trace_bytes, authority, _ = _three_record_trace("left-future")
+    trace_bytes, authority, boundary_memories, requests = _three_record_trace("left-future")
     materialized = search_context.materialize_search_trace(
         trace_bytes,
         authority=authority,
@@ -210,14 +293,95 @@ def test_rolling_context_keeps_only_accepted_deltas_in_record_order() -> None:
     )
 
     rolling = materialized.rolling_context_before(3, accepted_delta_limit=2)
+    rolling_bytes = rolling.to_bytes()
+    rolling_payload = json.loads(rolling_bytes)
+    source_records = json.loads(trace_bytes)["records"]
 
     assert [delta.record_index for delta in rolling.accepted_deltas] == [0, 2]
-    assert isinstance(rolling.to_bytes(), bytes)
+    assert rolling.checkpoint is materialized.checkpoints[3]
+    assert rolling.checkpoint.restore(authority).to_bytes() == boundary_memories[3].to_bytes()
+
+    for delta, record_index, request in zip(
+        rolling.accepted_deltas,
+        (0, 2),
+        (requests[0], requests[2]),
+        strict=True,
+    ):
+        source_record = source_records[record_index]
+        assert delta.record_index == record_index
+        assert delta.record_hash == source_record["record_hash"]
+        assert isinstance(delta.operation, SearchTransitionRequest)
+        assert delta.operation == request
+        assert isinstance(delta.transition, PDDLTransition)
+        assert delta.transition.source_state.state_id == request.source_state_id
+        assert delta.transition.target_state.state_id == source_record["result"]["transition"][
+            "target_state"
+        ]["state_id"]
+        assert delta.evaluation is None
+        assert delta.resulting_memory_sha256 == source_record["result"]["memory_sha256"]
+
+    assert rolling_bytes == json.dumps(
+        rolling_payload,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=True,
+        allow_nan=False,
+    ).encode("utf-8")
+    assert rolling_payload["context_type"] == "rolling_search_context"
+    assert set(rolling_payload) - {"snapshot", "accepted_deltas"} <= {
+        "schema_version",
+        "context_type",
+        "authority_id",
+    }
+    assert {
+        "frontier",
+        "visited",
+        "novelty",
+        "heuristics",
+        "provenance",
+        "known_states",
+    } <= set(rolling_payload["snapshot"])
+    assert [item["record_index"] for item in rolling_payload["accepted_deltas"]] == [0, 2]
+    assert all(
+        set(item)
+        == {
+            "record_index",
+            "record_hash",
+            "operation",
+            "transition",
+            "evaluation",
+            "resulting_memory_sha256",
+        }
+        for item in rolling_payload["accepted_deltas"]
+    )
+    assert [item["operation"] for item in rolling_payload["accepted_deltas"]] == [
+        source_records[0]["operation"],
+        source_records[2]["operation"],
+    ]
+    assert [item["transition"] for item in rolling_payload["accepted_deltas"]] == [
+        source_records[0]["result"]["transition"],
+        source_records[2]["result"]["transition"],
+    ]
+    assert [item["evaluation"] for item in rolling_payload["accepted_deltas"]] == [None, None]
+    assert [item["resulting_memory_sha256"] for item in rolling_payload["accepted_deltas"]] == [
+        source_records[0]["result"]["memory_sha256"],
+        source_records[2]["result"]["memory_sha256"],
+    ]
+
+    for forbidden in (
+        '"observation"',
+        '"rationale"',
+        '"status"',
+        '"reason"',
+        "target must be visited",
+        "left-future",
+    ):
+        assert forbidden not in rolling_bytes.decode("utf-8")
 
 
 def test_prefix_context_and_first_atomic_segment_have_no_future_leakage() -> None:
-    left_bytes, left_authority, _ = _three_record_trace("left-future")
-    right_bytes, right_authority, _ = _three_record_trace("right-future")
+    left_bytes, left_authority, _, _ = _three_record_trace("left-future")
+    right_bytes, right_authority, _, _ = _three_record_trace("right-future")
     left_payload = json.loads(left_bytes)
     right_payload = json.loads(right_bytes)
     assert left_payload["records"][0] == right_payload["records"][0]
@@ -234,16 +398,30 @@ def test_prefix_context_and_first_atomic_segment_have_no_future_leakage() -> Non
         limits=LIMITS,
     )
 
-    left_prefix = left.rolling_context_before(1, accepted_delta_limit=2).to_bytes()
-    right_prefix = right.rolling_context_before(1, accepted_delta_limit=2).to_bytes()
+    left_context = left.rolling_context_before(1, accepted_delta_limit=2)
+    right_context = right.rolling_context_before(1, accepted_delta_limit=2)
+    left_prefix = left_context.to_bytes()
+    right_prefix = right_context.to_bytes()
+    left_atomic = left.atomic_segments[0].to_bytes()
+    right_atomic = right.atomic_segments[0].to_bytes()
+
+    assert left_context.checkpoint is left.checkpoints[1]
+    assert right_context.checkpoint is right.checkpoints[1]
     assert left_prefix == right_prefix
-    assert left_prefix == left.atomic_segments[0].to_bytes()
-    assert right_prefix == right.atomic_segments[0].to_bytes()
+    assert left_atomic == right_atomic
+    assert left_prefix != left_atomic
+    assert "snapshot" in json.loads(left_prefix)
+    assert "record_count" in json.loads(left_atomic)
+    for sentinel in (b"left-future", b"right-future"):
+        assert sentinel not in left_prefix
+        assert sentinel not in right_prefix
+        assert sentinel not in left_atomic
+        assert sentinel not in right_atomic
 
 
 @pytest.mark.parametrize("record_index", [-1, 4, True, "1"])
 def test_rolling_context_rejects_invalid_cutoff(record_index: object) -> None:
-    trace_bytes, authority, _ = _three_record_trace("left-future")
+    trace_bytes, authority, _, _ = _three_record_trace("left-future")
     materialized = search_context.materialize_search_trace(
         trace_bytes,
         authority=authority,
@@ -256,7 +434,7 @@ def test_rolling_context_rejects_invalid_cutoff(record_index: object) -> None:
 
 @pytest.mark.parametrize("accepted_delta_limit", [-1, True, "2"])
 def test_rolling_context_rejects_invalid_delta_limit(accepted_delta_limit: object) -> None:
-    trace_bytes, authority, _ = _three_record_trace("left-future")
+    trace_bytes, authority, _, _ = _three_record_trace("left-future")
     materialized = search_context.materialize_search_trace(
         trace_bytes,
         authority=authority,
@@ -268,7 +446,7 @@ def test_rolling_context_rejects_invalid_delta_limit(accepted_delta_limit: objec
 
 
 def test_materialization_rejects_hash_tampered_persisted_payload() -> None:
-    trace_bytes, authority, _ = _three_record_trace("left-future")
+    trace_bytes, authority, _, _ = _three_record_trace("left-future")
     tampered_payload = json.loads(trace_bytes)
     tampered_payload["records"][1]["record_hash"] = "0" * 64
     tampered_bytes = json.dumps(
