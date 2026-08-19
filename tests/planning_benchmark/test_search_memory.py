@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
+import pytest
+
 from examples.planning_benchmark_slice.pddl_state import (
     CanonicalState,
     GroundedAction,
@@ -145,6 +147,7 @@ def test_invalid_target_position_is_rejected_before_evaluation() -> None:
     authority = _authority()
     memory = SearchMemory.initial(authority)
     original_bytes = memory.to_bytes()
+    prospective_target = _authority().apply(authority.initial_state, GroundedAction("advance", ("a",))).target_state
     request = SearchTransitionRequest(
         source_state_id=authority.initial_state.state_id,
         action=GroundedAction("advance", ("a",)),
@@ -162,6 +165,8 @@ def test_invalid_target_position_is_rejected_before_evaluation() -> None:
     assert result.budget_charge == 1
     assert result.memory is memory
     assert memory.to_bytes() == original_bytes
+    with pytest.raises(ValueError, match="not known"):
+        authority.is_goal(prospective_target)
 
 
 def test_authority_value_error_is_a_charged_unchanged_rejection() -> None:

@@ -138,11 +138,20 @@ class PDDLStateAuthority:
         return tuple(sorted(actions, key=GroundedAction.serialize))
 
     def apply(self, state: CanonicalState, action: GroundedAction) -> PDDLTransition:
+        return self._apply(state, action, register_target=True)
+
+    def preview_apply(self, state: CanonicalState, action: GroundedAction) -> PDDLTransition:
+        return self._apply(state, action, register_target=False)
+
+    def _apply(
+        self,
+        state: CanonicalState,
+        action: GroundedAction,
+        *,
+        register_target: bool,
+    ) -> PDDLTransition:
         plado_state = self._resolve_state(state)
-        applicable = {
-            self._grounded_action(ref): ref
-            for ref in self._applicable(plado_state)
-        }
+        applicable = {self._grounded_action(ref): ref for ref in self._applicable(plado_state)}
         action_ref = applicable.get(action)
         if action_ref is None:
             raise InvalidActionError(f"action is not applicable in state {state.state_id}: {action.serialize()}")
@@ -152,7 +161,8 @@ class PDDLStateAuthority:
             raise ValueError(f"grounded action does not have one deterministic successor: {action.serialize()}")
         successor = successors[0][0]
         target = self._canonicalize(successor)
-        self._states[target.state_id] = (target, successor.duplicate())
+        if register_target:
+            self._states[target.state_id] = (target, successor.duplicate())
         provenance = TransitionProvenance(self.authority_id, state.state_id, action, target.state_id)
         return PDDLTransition(state, action, target, provenance)
 

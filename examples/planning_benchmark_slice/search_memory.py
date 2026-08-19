@@ -54,7 +54,7 @@ class SearchTransitionRequest:
     evaluate_target: bool
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, init=False)
 class SearchMemory:
     authority: PDDLStateAuthority
     frontier: tuple[str, ...]
@@ -64,25 +64,66 @@ class SearchMemory:
     provenance: tuple[TransitionProvenance, ...]
     _known_states: Mapping[str, CanonicalState] = field(init=False, repr=False, compare=False)
 
-    def __post_init__(self) -> None:
-        object.__setattr__(self, "frontier", tuple(self.frontier))
-        object.__setattr__(self, "visited", frozenset(self.visited))
-        object.__setattr__(self, "novelty", MappingProxyType(dict(self.novelty)))
-        object.__setattr__(self, "heuristics", MappingProxyType(dict(self.heuristics)))
-        object.__setattr__(self, "provenance", tuple(self.provenance))
-        initial = self.authority.initial_state
-        object.__setattr__(self, "_known_states", MappingProxyType({initial.state_id: initial}))
+    def __init__(self) -> None:
+        raise TypeError("SearchMemory construction is internal; use SearchMemory.initial")
+
+    @classmethod
+    def _create(
+        cls,
+        *,
+        authority: PDDLStateAuthority,
+        frontier: tuple[str, ...],
+        visited: frozenset[str],
+        novelty: Mapping[str, int],
+        heuristics: Mapping[str, HeuristicValue],
+        provenance: tuple[TransitionProvenance, ...],
+        known_states: Mapping[str, CanonicalState],
+    ) -> SearchMemory:
+        immutable_frontier = tuple(frontier)
+        immutable_visited = frozenset(visited)
+        immutable_novelty = MappingProxyType(dict(novelty))
+        immutable_heuristics = MappingProxyType(dict(heuristics))
+        immutable_provenance = tuple(provenance)
+        immutable_known_states = MappingProxyType(dict(known_states))
+
+        initial = authority.initial_state
+        if immutable_known_states.get(initial.state_id) != initial:
+            raise ValueError("search memory must contain the authority's initial state")
+        known_state_ids = frozenset(immutable_known_states)
+        if known_state_ids != immutable_visited:
+            raise ValueError("known state IDs must equal visited state IDs")
+        if not set(immutable_frontier).issubset(immutable_visited):
+            raise ValueError("frontier state IDs must be visited")
+        if not immutable_novelty.keys() <= immutable_visited:
+            raise ValueError("novelty state IDs must be visited")
+        if not immutable_heuristics.keys() <= immutable_visited:
+            raise ValueError("heuristic state IDs must be visited")
+        for state_id, state in immutable_known_states.items():
+            if state_id != state.state_id:
+                raise ValueError(f"known state key does not match state ID: {state_id}")
+            authority.is_goal(state)
+
+        memory: SearchMemory = object.__new__(cls)
+        object.__setattr__(memory, "authority", authority)
+        object.__setattr__(memory, "frontier", immutable_frontier)
+        object.__setattr__(memory, "visited", immutable_visited)
+        object.__setattr__(memory, "novelty", immutable_novelty)
+        object.__setattr__(memory, "heuristics", immutable_heuristics)
+        object.__setattr__(memory, "provenance", immutable_provenance)
+        object.__setattr__(memory, "_known_states", immutable_known_states)
+        return memory
 
     @classmethod
     def initial(cls, authority: PDDLStateAuthority) -> SearchMemory:
-        state_id = authority.initial_state.state_id
-        return cls(
+        initial = authority.initial_state
+        return cls._create(
             authority=authority,
-            frontier=(state_id,),
-            visited=frozenset((state_id,)),
+            frontier=(initial.state_id,),
+            visited=frozenset((initial.state_id,)),
             novelty={},
             heuristics={},
             provenance=(),
+            known_states={initial.state_id: initial},
         )
 
     def to_bytes(self) -> bytes:
@@ -111,18 +152,17 @@ class SearchMemory:
             novelty[target_id] = evaluation.novelty
             heuristics[target_id] = evaluation.heuristic
 
-        updated = SearchMemory(
+        known_states = dict(self._known_states)
+        known_states[target_id] = transition.target_state
+        return self._create(
             authority=self.authority,
             frontier=frontier,
             visited=self.visited | {target_id},
             novelty=novelty,
             heuristics=heuristics,
             provenance=(*self.provenance, transition.provenance),
+            known_states=known_states,
         )
-        known_states = dict(self._known_states)
-        known_states[target_id] = transition.target_state
-        object.__setattr__(updated, "_known_states", MappingProxyType(known_states))
-        return updated
 
 
 @dataclass(frozen=True, slots=True)
@@ -155,11 +195,11 @@ def apply_search_transition(
         return RejectedTransition(memory, 1, f"unknown source state: {request.source_state_id}")
 
     try:
-        transition = memory.authority.apply(source, request.action)
+        preview = memory.authority.preview_apply(source, request.action)
     except (InvalidActionError, ValueError) as error:
         return RejectedTransition(memory, 1, str(error))
 
-    target_id = transition.target_state.state_id
+    target_id = preview.target_state.state_id
     frontier = list(memory.frontier)
     if request.frontier_intent.retire_source:
         frontier = [item for item in frontier if item != request.source_state_id]
@@ -168,6 +208,11 @@ def apply_search_transition(
     if position > len(frontier):
         return RejectedTransition(memory, 1, f"invalid target position: {position}")
     frontier.insert(position, target_id)
+
+    try:
+        transition = memory.authority.apply(source, request.action)
+    except (InvalidActionError, ValueError) as error:
+        return RejectedTransition(memory, 1, str(error))
 
     evaluation = evaluator(transition.target_state) if request.evaluate_target else None
     updated = memory._with_transition(transition, tuple(frontier), evaluation)
