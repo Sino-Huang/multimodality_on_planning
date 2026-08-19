@@ -33,6 +33,7 @@ _RECORD_SCHEMA = "bfs_text_corpus_record_v1"
 _CURRICULUM_SCHEMA = "bfs_text_corpus_curriculum_v1"
 _AUDIT_SCHEMA = "bfs_text_corpus_leakage_audit_v1"
 _DIFFICULTY_ORDER = {"easy": 0, "medium": 1, "hard": 2}
+_REPO_ROOT = Path(__file__).resolve().parents[2]
 _PROCESS_ONLY_FIELDS = {
     "accepted_deltas",
     "canonical_rationale",
@@ -114,6 +115,8 @@ def _build_release(
     trace_manifest_bytes = trace_manifest_path.read_bytes()
     trace_manifest = _json_object(trace_manifest_bytes, "BFS trace manifest")
     traces = _validated_trace_items(trace_manifest, phase_gate)
+    split_authority = _load_split_authority(traces, phase_gate)
+    accepted_delta_limit = _rolling_delta_limit(phase_gate)
     trace_root = trace_manifest_path.parent.parent
 
     operational_rows: list[dict[str, Any]] = []
@@ -125,6 +128,7 @@ def _build_release(
 
     for item in sorted(traces, key=_trace_sort_key):
         split = _text(item, "source", "split")
+        _validate_authoritative_split(item, split_authority)
         if split == phase_gate.freeze["data"]["held_out_split"]:
             held_out_instances += 1
         evidence_bytes = _artifact_bytes(trace_root, cast(Mapping[str, Any], item["evidence"]))
@@ -170,7 +174,7 @@ def _build_release(
             if any(atomic_record[field] != record[field] for field in supervised_fields):
                 future_leaks += 1
             rolling = _json_object(
-                materialized.rolling_context_before(index, accepted_delta_limit=max(1, index)).to_bytes(),
+                materialized.rolling_context_before(index, accepted_delta_limit=accepted_delta_limit).to_bytes(),
                 "rolling search context",
             )
             if any(delta["record_index"] >= index for delta in rolling["accepted_deltas"]):
@@ -273,6 +277,11 @@ def _build_release(
             "split_assignments": len(split_rows),
         },
         "phase_receipt": phase_gate.receipt(stage="corpus_release"),
+        "rolling_context": {
+            "accepted_delta_limit": accepted_delta_limit,
+            "max_context_tokens": phase_gate.freeze["budgets"]["max_context_tokens"],
+            "max_output_tokens_per_operation": phase_gate.freeze["budgets"]["max_output_tokens_per_operation"],
+        },
         "schema_version": _RELEASE_SCHEMA,
         "source_trace_manifest": {"sha256": _sha256(trace_manifest_bytes)},
         "split_unit": "whole_problem_instance",
@@ -402,12 +411,92 @@ def _source_instance_identity(item: Mapping[str, Any]) -> str:
     return whole_instance_identity(domain_bytes, problem_bytes)
 
 
+def _load_split_authority(
+    traces: list[dict[str, Any]],
+    phase_gate: BFSPhaseGate,
+) -> dict[str, dict[str, Any]]:
+    sources = {
+        (
+            _text(item, "source", "accepted_manifest_path"),
+            _text(item, "source", "accepted_manifest_sha256"),
+        )
+        for item in traces
+    }
+    if len(sources) != 1:
+        raise ValueError("BFS traces do not share one frozen accepted manifest")
+    path_text, expected_digest = sources.pop()
+    manifest_path = Path(path_text).resolve()
+    payload = manifest_path.read_bytes()
+    frozen_artifacts = {
+        (_REPO_ROOT / artifact["path"]).resolve() if not Path(artifact["path"]).is_absolute() else Path(artifact["path"])
+        for artifact in phase_gate.freeze["data"]["artifacts"]
+        if artifact["sha256"] == expected_digest
+    }
+    if _sha256(payload) != expected_digest or manifest_path not in frozen_artifacts:
+        raise ValueError("BFS trace accepted manifest differs from the frozen split authority")
+
+    assignments: dict[str, dict[str, Any]] = {}
+    for line_number, line in enumerate(payload.decode("utf-8").splitlines(), start=1):
+        if not line:
+            continue
+        try:
+            row = json.loads(line)
+        except json.JSONDecodeError as error:
+            raise ValueError(f"frozen accepted manifest has invalid JSON at line {line_number}") from error
+        if not isinstance(row, dict) or row.get("status") != "accepted":
+            raise ValueError(f"frozen accepted manifest row is invalid at line {line_number}")
+        instance_id = _required_text(row, "instance_id", "accepted manifest row")
+        if instance_id in assignments:
+            raise ValueError(f"frozen accepted manifest repeats instance_id: {instance_id}")
+        assignments[instance_id] = row
+    return assignments
+
+
+def _validate_authoritative_split(
+    item: Mapping[str, Any],
+    authority: Mapping[str, Mapping[str, Any]],
+) -> None:
+    instance_id = _required_text(item, "instance_id", "trace item")
+    row = authority.get(instance_id)
+    if row is None:
+        raise ValueError(f"trace instance is absent from the frozen accepted manifest: {instance_id}")
+    source = item.get("source")
+    if not isinstance(source, Mapping):
+        raise ValueError("BFS trace item source must be an object")
+    if source.get("split") != row.get("split"):
+        raise ValueError("trace split differs from the frozen accepted manifest")
+    expected = {
+        "bucket": item.get("difficulty"),
+        "domain_hash": source.get("manifest_domain_sha256"),
+        "domain_id": item.get("domain_id"),
+        "problem_hash": source.get("manifest_problem_sha256"),
+    }
+    if any(row.get(field) != value for field, value in expected.items()):
+        raise ValueError("trace stratum or PDDL digest differs from the frozen accepted manifest")
+
+
 def _record_count(trace: bytes) -> int:
     payload = _json_object(trace, "search trace")
     value = payload.get("record_count")
     if isinstance(value, bool) or not isinstance(value, int) or value < 0:
         raise ValueError("search trace record_count must be a non-negative integer")
     return value
+
+
+def _rolling_delta_limit(phase_gate: BFSPhaseGate) -> int:
+    budgets = phase_gate.freeze["budgets"]
+    context_tokens = budgets["max_context_tokens"]
+    operation_tokens = budgets["max_output_tokens_per_operation"]
+    if (
+        isinstance(context_tokens, bool)
+        or not isinstance(context_tokens, int)
+        or context_tokens <= 0
+        or isinstance(operation_tokens, bool)
+        or not isinstance(operation_tokens, int)
+        or operation_tokens <= 0
+    ):
+        raise ValueError("frozen BFS context and operation token budgets must be positive integers")
+    return max(1, context_tokens // operation_tokens)
 
 
 def _text(item: Mapping[str, Any], object_field: str, text_field: str) -> str:

@@ -290,6 +290,10 @@ def test_releases_separate_regenerable_views_with_immutable_splits_and_clean_lea
     assert trace_receipt.outcome is StopOutcome.PASS
     assert trace_receipt.execution_result is not None
     trace_manifest_path = Path(trace_receipt.execution_result["trace_manifest_path"])
+    release_freeze = json.loads(json.dumps(phase_gate.freeze))
+    release_freeze["budgets"]["max_context_tokens"] = 256
+    release_freeze["budgets"]["max_output_tokens_per_operation"] = 256
+    phase_gate = replace(phase_gate, freeze=release_freeze)
 
     release_root = (tmp_path / "bfs-text-corpus").resolve()
     release_binding = ReceiptBinding(
@@ -358,6 +362,7 @@ def test_releases_separate_regenerable_views_with_immutable_splits_and_clean_lea
     assert all(set(row["target"]) == {"action", "target_state", "validity"} for row in operational_rows)
     assert all(row["view"] == "process" for row in process_rows)
     assert all(set(row["input"]) == {"goal_atoms", "observation", "search_memory"} for row in process_rows)
+    assert max(len(row["input"]["search_memory"]["accepted_deltas"]) for row in process_rows) == 1
     assert all(
         set(row["target"]) == {"canonical_rationale", "runtime_result", "typed_operation"} for row in process_rows
     )
@@ -385,14 +390,15 @@ def test_releases_separate_regenerable_views_with_immutable_splits_and_clean_lea
         assert {entry["difficulty"] for entry in curriculum} == {"easy", "medium", "hard"}
 
     conflicting_manifest = json.loads(trace_manifest_path.read_text(encoding="utf-8"))
-    conflicting_manifest["traces"][1]["source"]["split"] = "dev"
+    for trace in conflicting_manifest["traces"]:
+        trace["source"]["split"] = "dev"
     conflicting_manifest_path = trace_manifest_path.with_name("split-conflict.json")
     conflicting_manifest_path.write_text(
         json.dumps(conflicting_manifest, allow_nan=False, ensure_ascii=True, separators=(",", ":"), sort_keys=True)
         + "\n",
         encoding="utf-8",
     )
-    with pytest.raises(ValueError, match="leakage audit failed"):
+    with pytest.raises(ValueError, match="split differs from the frozen accepted manifest"):
         regenerate_bfs_text_corpus(
             trace_manifest_path=conflicting_manifest_path,
             signing_key=SIGNING_KEY,
