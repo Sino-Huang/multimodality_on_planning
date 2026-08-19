@@ -12,6 +12,11 @@ from examples.planning_benchmark_slice.benchmark_loop import (
     load_validated_loop,
     shortest_action_plan,
 )
+from examples.planning_benchmark_slice.search_trace import (
+    TraceSegmentLimits,
+    replay_search_trace_segment,
+    verify_search_trace_segment,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FIXTURE_DIR = REPO_ROOT / "tests" / "fixtures" / "planning"
@@ -43,6 +48,40 @@ def test_oracle_bfs_plan_solves_nontrivial_fixture() -> None:
     assert payload["selected_actions"] == ["pickup(a)", "stack(a,b)"]
     assert payload["illegal_action_count"] == 0
     assert payload["terminal_status"]["reason"] == "goal"
+
+
+def test_oracle_persists_verifiable_replayable_search_trace_segment() -> None:
+    loop = load_validated_loop(NONTRIVIAL_FIXTURE, max_steps=20, max_trace_bytes=20_000)
+
+    payload = loop.run_oracle()
+    segment = payload["search_trace_segment"]
+    records = segment["records"]
+
+    assert segment["record_count"] == payload["steps"] == 2
+    for index, record in enumerate(records):
+        for field in ("observation", "rationale", "operation", "result"):
+            assert record[field]
+        assert record["previous_hash"]
+        assert record["record_hash"]
+        if index:
+            assert record["previous_hash"] == records[index - 1]["record_hash"]
+
+    serialized_segment = json.dumps(
+        segment,
+        allow_nan=False,
+        ensure_ascii=True,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode("utf-8")
+    limits = TraceSegmentLimits(max_records=20, max_bytes=20_000)
+    assert verify_search_trace_segment(serialized_segment, limits=limits) is True
+
+    replayed = replay_search_trace_segment(
+        serialized_segment,
+        authority=loop.problem.authority,
+        limits=limits,
+    )
+    assert replayed.to_bytes() == loop.search_memory.to_bytes()
 
 
 def test_step_log_contains_observation_state_ids_legality_and_terminal_status() -> None:
@@ -156,3 +195,49 @@ def test_invalid_scripted_action_cli_returns_json_error_without_traceback() -> N
     assert payload["error"]["details"]["legal_actions"] == ["pickup(a)", "pickup(b)", "pickup(c)"]
     assert "illegal_action" in result.stderr
     assert "Traceback" not in combined_output
+
+
+def test_invalid_scripted_action_cli_persists_rejected_search_trace_segment() -> None:
+    result = _run_loop(
+        "run-scripted",
+        "--fixture",
+        str(NONTRIVIAL_FIXTURE),
+        "--actions",
+        str(INVALID_ACTIONS),
+        "--max-steps",
+        "20",
+        "--max-trace-bytes",
+        "20000",
+        "--json",
+    )
+
+    payload = json.loads(result.stdout)
+    combined_output = result.stdout + result.stderr
+    assert result.returncode != 0
+    assert payload["valid"] is False
+    assert payload["error"]["code"] == "illegal_action"
+    assert "illegal_action" in result.stderr
+    assert "Traceback" not in combined_output
+
+    segment = payload["error"]["details"]["search_trace_segment"]
+    assert segment["record_count"] == len(segment["records"]) == 1
+    assert segment["records"][0]["result"]["status"] == "rejected"
+    assert segment["records"][0]["result"]["budget_charge"] == 1
+
+    serialized_segment = json.dumps(
+        segment,
+        allow_nan=False,
+        ensure_ascii=True,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode("utf-8")
+    limits = TraceSegmentLimits(max_records=20, max_bytes=20_000)
+    assert verify_search_trace_segment(serialized_segment, limits=limits) is True
+
+    fresh_loop = load_validated_loop(NONTRIVIAL_FIXTURE, max_steps=20, max_trace_bytes=20_000)
+    replayed = replay_search_trace_segment(
+        serialized_segment,
+        authority=fresh_loop.problem.authority,
+        limits=limits,
+    )
+    assert replayed.to_bytes() == fresh_loop.search_memory.to_bytes()

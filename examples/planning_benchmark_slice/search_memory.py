@@ -168,6 +168,8 @@ class SearchMemory:
 @dataclass(frozen=True, slots=True)
 class AcceptedTransition:
     memory: SearchMemory
+    transition: PDDLTransition
+    evaluation: StateEvaluation | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -216,4 +218,4 @@ def apply_search_transition(
 
     evaluation = evaluator(transition.target_state) if request.evaluate_target else None
     updated = memory._with_transition(transition, tuple(frontier), evaluation)
-    return AcceptedTransition(updated)
+    return AcceptedTransition(updated, transition, evaluation)
