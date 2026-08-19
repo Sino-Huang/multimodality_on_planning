@@ -4,7 +4,12 @@ from pathlib import Path
 
 import pytest
 
-from src.data_collect.replay import CanonicalReplayMismatch, build_canonical_bundle, verify_canonical_replay
+from src.data_collect.replay import (
+    CanonicalReplayMismatch,
+    build_canonical_bundle,
+    parse_canonical_bundle,
+    verify_canonical_replay,
+)
 
 
 def _write_artifacts(root: Path, *, problem: bytes = b"(define (problem p))\n") -> dict[str, Path]:
@@ -33,6 +38,23 @@ def test_fresh_canonical_bundles_are_byte_identical_across_roots_and_input_order
     assert first == second
     assert str(tmp_path).encode() not in first
     assert verify_canonical_replay(first_artifacts, second_artifacts) == first
+
+
+def test_parse_canonical_bundle_returns_exact_bytes_in_canonical_path_order(tmp_path: Path) -> None:
+    artifacts = _write_artifacts(tmp_path / "run")
+
+    parsed = parse_canonical_bundle(build_canonical_bundle(artifacts))
+
+    assert list(parsed.items()) == [
+        (relative_path, artifacts[relative_path].read_bytes()) for relative_path in sorted(artifacts)
+    ]
+
+
+def test_parse_canonical_bundle_rejects_trailing_data(tmp_path: Path) -> None:
+    bundle = build_canonical_bundle(_write_artifacts(tmp_path / "run"))
+
+    with pytest.raises(ValueError, match="trailing data"):
+        parse_canonical_bundle(bundle + b"trailing")
 
 
 def test_canonical_replay_detects_one_changed_pddl_byte(tmp_path: Path) -> None:

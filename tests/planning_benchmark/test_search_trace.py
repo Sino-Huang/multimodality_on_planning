@@ -6,12 +6,15 @@ import pytest
 
 from examples.planning_benchmark_slice.pddl_state import GroundedAction, PDDLStateAuthority
 from examples.planning_benchmark_slice.search_memory import (
+    AcceptedRetirement,
     AcceptedTransition,
     FrontierIntent,
     HeuristicValue,
     SearchMemory,
+    SearchRetireRequest,
     SearchTransitionRequest,
     StateEvaluation,
+    apply_search_retirement,
     apply_search_transition,
 )
 from examples.planning_benchmark_slice.search_trace import (
@@ -83,6 +86,30 @@ def test_accepted_transition_round_trips_as_one_atomic_trace_record() -> None:
     assert payload["tail_hash"]
     assert verify_search_trace_segment(trace_bytes, limits=limits) is True
 
+    replayed = replay_search_trace_segment(trace_bytes, authority=authority, limits=limits)
+    assert replayed.to_bytes() == result.memory.to_bytes()
+
+
+def test_frontier_retirement_round_trips_through_public_trace_seam() -> None:
+    authority = PDDLStateAuthority.from_pddl(DOMAIN, PROBLEM)
+    memory = SearchMemory.initial(authority)
+    request = SearchRetireRequest(memory.frontier[0])
+    result = apply_search_retirement(memory, request)
+    assert isinstance(result, AcceptedRetirement)
+
+    limits = TraceSegmentLimits(max_records=1, max_bytes=10_000)
+    trace = append_search_trace_record(
+        start_search_trace(memory, limits=limits),
+        memory_before=memory,
+        observation={"state_id": authority.initial_state.state_id},
+        rationale="Retire the exhausted frontier head.",
+        operation=request,
+        result=result,
+        limits=limits,
+    )
+    trace_bytes = trace.to_bytes()
+
+    assert verify_search_trace_segment(trace_bytes, limits=limits) is True
     replayed = replay_search_trace_segment(trace_bytes, authority=authority, limits=limits)
     assert replayed.to_bytes() == result.memory.to_bytes()
 

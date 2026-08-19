@@ -9,14 +9,18 @@ from typing import Any, Mapping, NoReturn
 
 from .pddl_state import CanonicalState, GroundedAction, PDDLStateAuthority, PDDLTransition
 from .search_memory import (
+    AcceptedRetirement,
     AcceptedTransition,
     FrontierIntent,
     HeuristicValue,
     RejectedTransition,
     SearchMemory,
+    SearchOperation,
+    SearchRetireRequest,
     SearchTransitionRequest,
     SearchTransitionResult,
     StateEvaluation,
+    apply_search_retirement,
     apply_search_transition,
 )
 
@@ -45,6 +49,7 @@ _OPERATION_FIELDS = {
     "visit_target",
     "evaluate_target",
 }
+_RETIRE_OPERATION_FIELDS = {"operation_type", "state_id"}
 _HASH_PATTERN = re.compile(r"[0-9a-f]{64}\Z")
 
 
@@ -111,7 +116,7 @@ def append_search_trace_record(
     memory_before: SearchMemory,
     observation: Mapping[str, Any],
     rationale: str,
-    operation: SearchTransitionRequest,
+    operation: SearchOperation,
     result: SearchTransitionResult,
     limits: TraceSegmentLimits,
 ) -> SearchTraceSegment:
@@ -139,7 +144,7 @@ def append_search_trace_record(
     _validate_operation_result(operation_payload, result_payload)
 
     # Make the operation and supplied result one atomic, reproducible fact.
-    actual = apply_search_transition(
+    actual = _apply_operation(
         memory_before,
         operation,
         evaluator=_persisted_evaluator(result_payload),
@@ -190,7 +195,7 @@ def replay_search_trace_segment(
         raise SearchTraceError("initial replay memory does not match trace")
     for record in envelope["records"]:
         operation = _decode_operation(record["operation"])
-        actual = apply_search_transition(
+        actual = _apply_operation(
             memory,
             operation,
             evaluator=_persisted_evaluator(record["result"]),
@@ -255,9 +260,11 @@ def _validate_record(record: Any, *, index: int, previous_hash: str) -> None:
         raise SearchTraceError(f"invalid record_hash at record {index}")
 
 
-def _serialize_operation(operation: SearchTransitionRequest) -> dict[str, Any]:
+def _serialize_operation(operation: SearchOperation) -> dict[str, Any]:
+    if isinstance(operation, SearchRetireRequest):
+        return {"operation_type": "retire_frontier", "state_id": operation.state_id}
     if not isinstance(operation, SearchTransitionRequest):
-        raise SearchTraceError("operation must be a SearchTransitionRequest")
+        raise SearchTraceError("operation must be a typed search operation")
     return {
         "source_state_id": operation.source_state_id,
         "action": _serialize_action(operation.action),
@@ -270,8 +277,10 @@ def _serialize_operation(operation: SearchTransitionRequest) -> dict[str, Any]:
     }
 
 
-def _decode_operation(payload: Any) -> SearchTransitionRequest:
+def _decode_operation(payload: Any) -> SearchOperation:
     _validate_operation(payload, path="operation")
+    if "operation_type" in payload:
+        return SearchRetireRequest(state_id=payload["state_id"])
     return SearchTransitionRequest(
         source_state_id=payload["source_state_id"],
         action=GroundedAction(payload["action"]["name"], tuple(payload["action"]["args"])),
@@ -285,6 +294,12 @@ def _decode_operation(payload: Any) -> SearchTransitionRequest:
 
 
 def _validate_operation(payload: Any, *, path: str) -> None:
+    if isinstance(payload, dict) and "operation_type" in payload:
+        _require_object(payload, _RETIRE_OPERATION_FIELDS, path)
+        if payload["operation_type"] != "retire_frontier":
+            raise SearchTraceError(f"{path}.operation_type is invalid")
+        _require_nonempty_string(payload["state_id"], f"{path}.state_id")
+        return
     _require_object(payload, _OPERATION_FIELDS, path)
     _require_nonempty_string(payload["source_state_id"], f"{path}.source_state_id")
     _validate_action(payload["action"], path=f"{path}.action")
@@ -301,6 +316,10 @@ def _validate_operation(payload: Any, *, path: str) -> None:
 
 
 def _validate_operation_result(operation: Mapping[str, Any], result: Mapping[str, Any]) -> None:
+    if "operation_type" in operation:
+        if result["status"] != "retired" or result["state_id"] != operation["state_id"]:
+            raise SearchTraceError("retirement result does not match operation")
+        return
     if result["status"] != "accepted":
         return
     has_evaluation = result["evaluation"] is not None
@@ -314,6 +333,12 @@ def _serialize_result(result: SearchTransitionResult) -> dict[str, Any]:
             "status": "accepted",
             "transition": _serialize_transition(result.transition),
             "evaluation": _serialize_evaluation(result.evaluation),
+            "memory_sha256": _sha256(result.memory.to_bytes()),
+        }
+    if isinstance(result, AcceptedRetirement):
+        return {
+            "status": "retired",
+            "state_id": result.state_id,
             "memory_sha256": _sha256(result.memory.to_bytes()),
         }
     if isinstance(result, RejectedTransition):
@@ -336,6 +361,9 @@ def _validate_result(payload: Any, *, path: str) -> None:
         evaluation = payload["evaluation"]
         if evaluation is not None:
             _validate_evaluation(evaluation, path=f"{path}.evaluation")
+    elif status == "retired":
+        _require_object(payload, {"status", "state_id", "memory_sha256"}, path)
+        _require_nonempty_string(payload["state_id"], f"{path}.state_id")
     elif status == "rejected":
         _require_object(payload, {"status", "budget_charge", "reason", "memory_sha256"}, path)
         charge = payload["budget_charge"]
@@ -436,6 +464,17 @@ def _persisted_evaluator(result: Mapping[str, Any]):
         return _decode_evaluation(result["evaluation"])
 
     return evaluator
+
+
+def _apply_operation(
+    memory: SearchMemory,
+    operation: SearchOperation,
+    *,
+    evaluator,
+) -> SearchTransitionResult:
+    if isinstance(operation, SearchRetireRequest):
+        return apply_search_retirement(memory, operation)
+    return apply_search_transition(memory, operation, evaluator=evaluator)
 
 
 def _validate_evaluation(payload: Any, *, path: str) -> None:

@@ -54,6 +54,11 @@ class SearchTransitionRequest:
     evaluate_target: bool
 
 
+@dataclass(frozen=True, slots=True)
+class SearchRetireRequest:
+    state_id: str
+
+
 @dataclass(frozen=True, slots=True, init=False)
 class SearchMemory:
     authority: PDDLStateAuthority
@@ -139,6 +144,14 @@ class SearchMemory:
         }
         return json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
 
+    def state(self, state_id: str) -> CanonicalState:
+        """Return a visited canonical state through the public memory boundary."""
+
+        try:
+            return self._known_states[state_id]
+        except KeyError as error:
+            raise KeyError(f"unknown search-memory state: {state_id}") from error
+
     def _with_transition(
         self,
         transition: PDDLTransition,
@@ -164,6 +177,19 @@ class SearchMemory:
             known_states=known_states,
         )
 
+    def _retire_frontier_head(self, state_id: str) -> SearchMemory:
+        if not self.frontier or self.frontier[0] != state_id:
+            raise ValueError("only the frontier head may be retired")
+        return self._create(
+            authority=self.authority,
+            frontier=self.frontier[1:],
+            visited=self.visited,
+            novelty=self.novelty,
+            heuristics=self.heuristics,
+            provenance=self.provenance,
+            known_states=self._known_states,
+        )
+
 
 @dataclass(frozen=True, slots=True)
 class AcceptedTransition:
@@ -179,7 +205,14 @@ class RejectedTransition:
     reason: str
 
 
-SearchTransitionResult: TypeAlias = AcceptedTransition | RejectedTransition
+@dataclass(frozen=True, slots=True)
+class AcceptedRetirement:
+    memory: SearchMemory
+    state_id: str
+
+
+SearchOperation: TypeAlias = SearchTransitionRequest | SearchRetireRequest
+SearchTransitionResult: TypeAlias = AcceptedTransition | AcceptedRetirement | RejectedTransition
 StateEvaluator: TypeAlias = Callable[[CanonicalState], StateEvaluation]
 
 
@@ -219,3 +252,15 @@ def apply_search_transition(
     evaluation = evaluator(transition.target_state) if request.evaluate_target else None
     updated = memory._with_transition(transition, tuple(frontier), evaluation)
     return AcceptedTransition(updated, transition, evaluation)
+
+
+def apply_search_retirement(memory: SearchMemory, request: SearchRetireRequest) -> SearchTransitionResult:
+    """Apply a typed FIFO-head retirement that does not invent a transition."""
+
+    if not isinstance(request, SearchRetireRequest):
+        raise TypeError("request must be a SearchRetireRequest")
+    try:
+        updated = memory._retire_frontier_head(request.state_id)
+    except ValueError as error:
+        return RejectedTransition(memory, 1, str(error))
+    return AcceptedRetirement(updated, request.state_id)

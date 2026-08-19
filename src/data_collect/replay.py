@@ -19,6 +19,56 @@ class CanonicalReplayMismatch(AssertionError):
     """Raised when replayed canonical artifacts differ from the reference."""
 
 
+def parse_canonical_bundle(bundle: bytes) -> dict[str, bytes]:
+    """Strictly parse a canonical bundle without accepting alternate encodings."""
+
+    if not isinstance(bundle, bytes):
+        raise ValueError("Canonical bundle must be bytes")
+    if not bundle.startswith(_BUNDLE_MAGIC):
+        raise ValueError("Canonical bundle has invalid magic")
+    cursor = len(_BUNDLE_MAGIC)
+
+    def take_length(label: str) -> int:
+        nonlocal cursor
+        end = cursor + 8
+        if end > len(bundle):
+            raise ValueError(f"Canonical bundle is truncated before {label}")
+        value = int.from_bytes(bundle[cursor:end], "big")
+        cursor = end
+        return value
+
+    entry_count = take_length("entry count")
+    entries: dict[str, bytes] = {}
+    previous_path: str | None = None
+    for index in range(entry_count):
+        path_length = take_length(f"entry {index} path length")
+        path_end = cursor + path_length
+        if path_end > len(bundle):
+            raise ValueError(f"Canonical bundle is truncated in entry {index} path")
+        try:
+            relative_path = bundle[cursor:path_end].decode("utf-8")
+        except UnicodeDecodeError as error:
+            raise ValueError(f"Canonical bundle entry {index} path is not UTF-8") from error
+        cursor = path_end
+        relative_path = _canonical_relative_path(relative_path)
+        if previous_path is not None and relative_path <= previous_path:
+            raise ValueError("Canonical bundle paths must be unique and strictly sorted")
+        previous_path = relative_path
+
+        content_length = take_length(f"entry {index} content length")
+        content_end = cursor + content_length
+        if content_end > len(bundle):
+            raise ValueError(f"Canonical bundle is truncated in entry {index} content")
+        entries[relative_path] = bundle[cursor:content_end]
+        cursor = content_end
+
+    if cursor != len(bundle):
+        raise ValueError("Canonical bundle has trailing data")
+    if build_canonical_bundle(entries) != bundle:
+        raise ValueError("Canonical bundle is not canonical")
+    return entries
+
+
 def build_canonical_bundle(artifacts: ArtifactSet) -> bytes:
     """Serialize relative artifact names and exact contents deterministically.
 
@@ -143,5 +193,6 @@ __all__ = [
     "REPLAY_CONTRACT_SCHEMA_VERSION",
     "build_canonical_bundle",
     "build_replay_contract",
+    "parse_canonical_bundle",
     "verify_canonical_replay",
 ]

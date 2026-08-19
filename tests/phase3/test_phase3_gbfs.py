@@ -131,6 +131,44 @@ def test_gbfs_goal_successors_use_generation_order_tie_break() -> None:
     assert trace["frontier_events"][0]["selected_goal_successor"]["action"] == "(first)"
 
 
+def test_active_gbfs_prefers_improving_heuristic_branch_over_shorter_fifo_plan() -> None:
+    task = _synthetic_task(init=("s",), goal=(("g1",), ("g2",), ("g3",)))
+    grounded = [
+        _action("short1", pre=("s",), add=(("short",),), delete=(("s",),)),
+        _action(
+            "short2",
+            pre=("short",),
+            add=(("g1",), ("g2",), ("g3",)),
+            delete=(("short",),),
+        ),
+        _action("improve1", pre=("s",), add=(("g1",), ("branch1",)), delete=(("s",),)),
+        _action(
+            "improve2",
+            pre=("branch1",),
+            add=(("g2",), ("branch2",)),
+            delete=(("branch1",),),
+        ),
+        _action("improve3", pre=("branch2",), add=(("g3",),), delete=(("branch2",),)),
+    ]
+    shorter_fifo_plan = ["(short1)", "(short2)"]
+
+    plan, trace, status = run_gbfs(
+        task,
+        grounded,
+        limits={
+            "gbfs_max_depth": 10,
+            "gbfs_max_expansions": 20,
+            "max_plan_length": 10,
+            "max_trace_steps": 20,
+        },
+    )
+
+    assert status == "success_full_trace"
+    assert trace["algorithm"] == "greedy_best_first"
+    assert plan == ["(improve1)", "(improve2)", "(improve3)"]
+    assert plan != shorter_fifo_plan
+
+
 def _write_pddl(root: Path) -> tuple[Path, Path]:
     domain = root / "domain.pddl"
     problem = root / "problem.pddl"
