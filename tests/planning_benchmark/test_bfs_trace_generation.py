@@ -6,12 +6,19 @@ from dataclasses import replace
 from pathlib import Path
 from typing import Any, cast
 
+import pytest
+
+from examples.planning_benchmark_slice.bfs_corpus import (
+    regenerate_bfs_text_corpus,
+    run_frozen_bfs_text_corpus_release,
+)
 from examples.planning_benchmark_slice.bfs_generation import run_frozen_bfs_trace_generation
 from examples.planning_benchmark_slice.bfs_phase import BFSPhaseGate, load_bfs_phase_gate
 from examples.planning_benchmark_slice.search_episode import replay_search_episode
 from examples.planning_benchmark_slice.validate_instance import load_fixture
 from src.data_collect.generate import GenerationRequest
 from src.data_collect.governance import AuthorizationReceipt, GateReceipt, ReceiptBinding, StopOutcome
+from src.data_collect.splits import split_assignment_id, whole_instance_identity
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FREEZE_MANIFEST = REPO_ROOT / "configs" / "experiments" / "bfs_phase_freeze_v1.json"
@@ -257,6 +264,205 @@ def test_phase_contract_mismatch_emits_invalid_receipt_without_scientific_comple
 
     receipt = run_frozen_bfs_trace_generation(
         accepted_manifest_path=accepted_manifest,
+        request=request,
+        phase_gate=phase_gate,
+    )
+
+    assert receipt.outcome is StopOutcome.INVALID
+    assert receipt.status == "execution_failed"
+    assert receipt.scientific_completion is False
+    assert receipt.execution_result is None
+    assert receipt.reason == "execute_raised:BFSPhaseGateError"
+    assert receipt.receipt_path.is_file()
+    assert not Path(request.binding.output_root).exists()
+
+
+def test_releases_separate_regenerable_views_with_immutable_splits_and_clean_leakage_audit(
+    tmp_path: Path,
+) -> None:
+    phase_gate, accepted_manifest = _frozen_curriculum(tmp_path)
+    trace_request = _request(tmp_path / "trace-run", phase_gate=phase_gate)
+    trace_receipt = run_frozen_bfs_trace_generation(
+        accepted_manifest_path=accepted_manifest,
+        request=trace_request,
+        phase_gate=phase_gate,
+    )
+    assert trace_receipt.outcome is StopOutcome.PASS
+    assert trace_receipt.execution_result is not None
+    trace_manifest_path = Path(trace_receipt.execution_result["trace_manifest_path"])
+
+    release_root = (tmp_path / "bfs-text-corpus").resolve()
+    release_binding = ReceiptBinding(
+        contract_id=phase_gate.phase_id,
+        attempt_id="issue-51-corpus-release",
+        output_root=release_root,
+    )
+    release_gate = GateReceipt(binding=release_binding, outcome=StopOutcome.PASS).signed(SIGNING_KEY)
+    release_request = GenerationRequest(
+        binding=release_binding,
+        gate_receipt=release_gate,
+        authorization_receipt=AuthorizationReceipt(
+            binding=release_binding,
+            gate_receipt_digest=release_gate.digest,
+        ).signed(SIGNING_KEY),
+        signing_key=SIGNING_KEY,
+        receipt_root=(tmp_path / "release-receipts").resolve(),
+    )
+
+    release_receipt = run_frozen_bfs_text_corpus_release(
+        trace_manifest_path=trace_manifest_path,
+        request=release_request,
+        phase_gate=phase_gate,
+    )
+
+    assert release_receipt.outcome is StopOutcome.PASS
+    assert release_receipt.status == "completed"
+    assert release_receipt.scientific_completion is True
+    assert release_receipt.execution_result is not None
+    release_manifest_path = Path(release_receipt.execution_result["corpus_manifest_path"])
+    release_manifest = json.loads(release_manifest_path.read_text(encoding="utf-8"))
+    assert release_manifest["schema_version"] == "bfs_text_corpus_release_v1"
+    assert release_manifest["phase_receipt"] == phase_gate.receipt(stage="corpus_release")
+    assert release_manifest["source_trace_manifest"]["sha256"] == _sha256(trace_manifest_path.read_bytes())
+
+    released = {
+        artifact["path"]: (release_root / artifact["path"]).read_bytes() for artifact in release_manifest["artifacts"]
+    }
+    regenerated = regenerate_bfs_text_corpus(
+        trace_manifest_path=trace_manifest_path,
+        signing_key=SIGNING_KEY,
+        phase_gate=phase_gate,
+    )
+    assert regenerated == {
+        **released,
+        release_manifest_path.relative_to(release_root).as_posix(): release_manifest_path.read_bytes(),
+    }
+
+    audit = json.loads(released["audits/leakage.json"])
+    assert audit == {
+        "future_step_leakage_count": 0,
+        "held_out_instance_count": 0,
+        "operational_process_record_contamination": 0.0,
+        "operational_process_record_contamination_count": 0,
+        "schema_version": "bfs_text_corpus_leakage_audit_v1",
+        "split_conflict_count": 0,
+        "status": "passed",
+    }
+
+    operational_rows = [json.loads(line) for line in released["corpus/operational.jsonl"].splitlines()]
+    process_rows = [json.loads(line) for line in released["corpus/process.jsonl"].splitlines()]
+    assert operational_rows
+    assert process_rows
+    assert all(row["view"] == "operational" for row in operational_rows)
+    assert all(set(row["input"]) == {"goal_atoms", "source_state"} for row in operational_rows)
+    assert all(set(row["target"]) == {"action", "target_state", "validity"} for row in operational_rows)
+    assert all(row["view"] == "process" for row in process_rows)
+    assert all(set(row["input"]) == {"goal_atoms", "observation", "search_memory"} for row in process_rows)
+    assert all(
+        set(row["target"]) == {"canonical_rationale", "runtime_result", "typed_operation"} for row in process_rows
+    )
+
+    task = load_fixture(TASK_FIXTURE)
+    instance_identity = whole_instance_identity(task.domain_pddl, task.problem_pddl)
+    expected_assignment_id = split_assignment_id(instance_identity, "train")
+    split_rows = [json.loads(line) for line in released["splits/assignments.jsonl"].splitlines()]
+    assert split_rows == [
+        {
+            "assignment_id": expected_assignment_id,
+            "identity": instance_identity,
+            "split": "train",
+        }
+    ]
+    for row in (*operational_rows, *process_rows):
+        assert row["split"] == "train"
+        assert row["split_assignment_id"] == expected_assignment_id
+        assert row["whole_instance_id"] == instance_identity
+
+    for view, rows in (("operational", operational_rows), ("process", process_rows)):
+        curriculum = [json.loads(line) for line in released[f"curricula/{view}.jsonl"].splitlines()]
+        assert [entry["record_id"] for entry in curriculum] == [row["record_id"] for row in rows]
+        assert [entry["curriculum_index"] for entry in curriculum] == list(range(len(rows)))
+        assert {entry["difficulty"] for entry in curriculum} == {"easy", "medium", "hard"}
+
+    conflicting_manifest = json.loads(trace_manifest_path.read_text(encoding="utf-8"))
+    conflicting_manifest["traces"][1]["source"]["split"] = "dev"
+    conflicting_manifest_path = trace_manifest_path.with_name("split-conflict.json")
+    conflicting_manifest_path.write_text(
+        json.dumps(conflicting_manifest, allow_nan=False, ensure_ascii=True, separators=(",", ":"), sort_keys=True)
+        + "\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="leakage audit failed"):
+        regenerate_bfs_text_corpus(
+            trace_manifest_path=conflicting_manifest_path,
+            signing_key=SIGNING_KEY,
+            phase_gate=phase_gate,
+        )
+
+
+def test_corpus_release_stop_outcomes_never_read_traces_or_create_release_bytes(tmp_path: Path) -> None:
+    phase_gate, _ = _frozen_curriculum(tmp_path)
+    cases = (
+        (StopOutcome.PASS, StopOutcome.INVALID, "invalid_not_run", None),
+        (StopOutcome.VALID_STOP, StopOutcome.VALID_STOP, "gated_not_run", None),
+        (StopOutcome.INVALID, StopOutcome.INVALID, "invalid_not_run", None),
+        (StopOutcome.ANCESTOR_STOP, StopOutcome.ANCESTOR_STOP, "gated_not_run", "b" * 64),
+    )
+    for gate_outcome, expected_outcome, expected_status, ancestor_digest in cases:
+        binding = ReceiptBinding(
+            contract_id="intentionally-not-the-phase-contract",
+            attempt_id=f"issue-51-{gate_outcome.value.lower()}",
+            output_root=(tmp_path / gate_outcome.value.lower() / "corpus").resolve(),
+        )
+        gate = GateReceipt(
+            binding=binding,
+            outcome=gate_outcome,
+            ancestor_receipt_digest=ancestor_digest,
+        ).signed(SIGNING_KEY)
+        request = GenerationRequest(
+            binding=binding,
+            gate_receipt=gate,
+            authorization_receipt=None,
+            signing_key=SIGNING_KEY,
+            receipt_root=(tmp_path / gate_outcome.value.lower() / "receipts").resolve(),
+            ancestor_receipt_digest=ancestor_digest,
+        )
+
+        receipt = run_frozen_bfs_text_corpus_release(
+            trace_manifest_path=tmp_path / "must-not-be-read.json",
+            request=request,
+            phase_gate=phase_gate,
+        )
+
+        assert receipt.outcome is expected_outcome
+        assert receipt.status == expected_status
+        assert receipt.scientific_completion is False
+        assert receipt.execution_result is None
+        assert receipt.receipt_path.is_file()
+        assert not Path(request.binding.output_root).exists()
+
+
+def test_corpus_release_phase_mismatch_is_invalid_and_publishes_no_corpus(tmp_path: Path) -> None:
+    phase_gate, _ = _frozen_curriculum(tmp_path)
+    binding = ReceiptBinding(
+        contract_id="not-the-frozen-phase",
+        attempt_id="issue-51-phase-mismatch",
+        output_root=(tmp_path / "phase-mismatch-corpus").resolve(),
+    )
+    gate = GateReceipt(binding=binding, outcome=StopOutcome.PASS).signed(SIGNING_KEY)
+    request = GenerationRequest(
+        binding=binding,
+        gate_receipt=gate,
+        authorization_receipt=AuthorizationReceipt(
+            binding=binding,
+            gate_receipt_digest=gate.digest,
+        ).signed(SIGNING_KEY),
+        signing_key=SIGNING_KEY,
+        receipt_root=(tmp_path / "phase-mismatch-receipts").resolve(),
+    )
+
+    receipt = run_frozen_bfs_text_corpus_release(
+        trace_manifest_path=tmp_path / "must-not-be-read.json",
         request=request,
         phase_gate=phase_gate,
     )
