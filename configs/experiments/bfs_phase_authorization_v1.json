@@ -1,0 +1,26 @@
+{
+  "authorization_id": "issue-49-bfs-development-authorization-v1",
+  "authorized_stages": [
+    "trace_generation",
+    "corpus_release",
+    "base_and_references",
+    "operational_sft",
+    "process_sft_and_sanity_gate"
+  ],
+  "contract_id": "issue-49-bfs-development-v1",
+  "downstream_issues": [
+    50,
+    51,
+    52,
+    53,
+    54
+  ],
+  "freeze_manifest_path": "configs/experiments/bfs_phase_freeze_v1.json",
+  "freeze_manifest_sha256": "5d00eb28c348c1d8a85472e834b52762683b0ddbbf9904c912bfaafdce6f23fd",
+  "outcome": "PASS",
+  "parent_issue": 38,
+  "phase_id": "issue-49-bfs-development-v1",
+  "schema_version": "bfs_phase_authorization_v1",
+  "scientific_completion": false,
+  "source_issue": 49
+}
