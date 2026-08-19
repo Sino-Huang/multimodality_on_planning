@@ -86,13 +86,19 @@ def _request(
     *,
     phase_gate: BFSPhaseGate,
     gate_outcome: StopOutcome = StopOutcome.PASS,
+    contract_id: str | None = None,
 ) -> GenerationRequest:
     binding = ReceiptBinding(
-        contract_id=phase_gate.phase_id,
+        contract_id=contract_id or phase_gate.phase_id,
         attempt_id=f"issue-50-{gate_outcome.value.lower()}",
         output_root=(tmp_path / "bfs-traces").resolve(),
     )
-    gate = GateReceipt(binding=binding, outcome=gate_outcome).signed(SIGNING_KEY)
+    ancestor_digest = "a" * 64 if gate_outcome is StopOutcome.ANCESTOR_STOP else None
+    gate = GateReceipt(
+        binding=binding,
+        outcome=gate_outcome,
+        ancestor_receipt_digest=ancestor_digest,
+    ).signed(SIGNING_KEY)
     authorization = None
     if gate_outcome is StopOutcome.PASS:
         authorization = AuthorizationReceipt(
@@ -105,6 +111,7 @@ def _request(
         authorization_receipt=authorization,
         signing_key=SIGNING_KEY,
         receipt_root=(tmp_path / "receipts").resolve(),
+        ancestor_receipt_digest=ancestor_digest,
     )
 
 
@@ -168,6 +175,7 @@ def test_generates_replayable_canonical_fifo_traces_for_every_frozen_stratum(tmp
     for item in trace_manifest["traces"]:
         assert item["algorithm"] == "bfs"
         assert item["canonical_tie_break"] == "grounded_actions_sorted_by_canonical_serialization"
+        assert item["trace_scope"] == "bounded_search_trace_segment"
         assert item["phase_receipt"] == phase_receipt
         assert item["source"]["accepted_manifest_sha256"] == _sha256(accepted_manifest.read_bytes())
         assert item["source"]["domain_sha256"] == item["source"]["manifest_domain_sha256"]
@@ -215,19 +223,48 @@ def test_normalizes_frozen_legacy_pddl_without_losing_source_provenance(tmp_path
         assert item["source"]["authority_problem_sha256"]
 
 
-def test_valid_stop_gate_emits_gated_not_run_without_reading_curriculum(tmp_path: Path) -> None:
+def test_stopped_gates_emit_gated_not_run_before_phase_or_curriculum_validation(tmp_path: Path) -> None:
     phase_gate, _ = _frozen_curriculum(tmp_path)
-    request = _request(tmp_path, phase_gate=phase_gate, gate_outcome=StopOutcome.VALID_STOP)
+    for outcome in (StopOutcome.VALID_STOP, StopOutcome.ANCESTOR_STOP):
+        request = _request(
+            tmp_path / outcome.value.lower(),
+            phase_gate=phase_gate,
+            gate_outcome=outcome,
+            contract_id="intentionally-not-the-phase-contract",
+        )
+
+        receipt = run_frozen_bfs_trace_generation(
+            accepted_manifest_path=tmp_path / "intentionally-missing.jsonl",
+            request=request,
+            phase_gate=phase_gate,
+        )
+
+        assert receipt.outcome is outcome
+        assert receipt.status == "gated_not_run"
+        assert receipt.scientific_completion is False
+        assert receipt.execution_result is None
+        assert receipt.receipt_path.is_file()
+        assert not Path(request.binding.output_root).exists()
+
+
+def test_phase_contract_mismatch_emits_invalid_receipt_without_scientific_completion(tmp_path: Path) -> None:
+    phase_gate, accepted_manifest = _frozen_curriculum(tmp_path)
+    request = _request(
+        tmp_path,
+        phase_gate=phase_gate,
+        contract_id="intentionally-not-the-phase-contract",
+    )
 
     receipt = run_frozen_bfs_trace_generation(
-        accepted_manifest_path=tmp_path / "intentionally-missing.jsonl",
+        accepted_manifest_path=accepted_manifest,
         request=request,
         phase_gate=phase_gate,
     )
 
-    assert receipt.outcome is StopOutcome.VALID_STOP
-    assert receipt.status == "gated_not_run"
+    assert receipt.outcome is StopOutcome.INVALID
+    assert receipt.status == "execution_failed"
     assert receipt.scientific_completion is False
     assert receipt.execution_result is None
+    assert receipt.reason == "execute_raised:BFSPhaseGateError"
     assert receipt.receipt_path.is_file()
     assert not Path(request.binding.output_root).exists()

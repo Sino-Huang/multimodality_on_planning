@@ -55,12 +55,11 @@ def run_frozen_bfs_trace_generation(
 ) -> GenerationRunReceipt:
     """Generate replay-verified FIFO BFS traces for every frozen stratum."""
 
-    phase_gate.require_run(
-        stage="trace_generation",
-        contract_id=request.binding.contract_id,
-    )
-
     def execute() -> dict[str, object]:
+        phase_gate.require_run(
+            stage="trace_generation",
+            contract_id=request.binding.contract_id,
+        )
         output_root = Path(request.binding.output_root).resolve()
         if output_root.exists():
             raise FileExistsError(f"BFS trace output root already exists: {output_root}")
@@ -214,6 +213,7 @@ def _generate_trace(
             "scientific_completion": result["scientific_completion"],
         },
         "search_trace": _artifact(search_trace_path, staging_root),
+        "trace_scope": "bounded_search_trace_segment",
         "source": {
             "accepted_manifest_path": str(manifest_path),
             "accepted_manifest_sha256": manifest_sha256,
