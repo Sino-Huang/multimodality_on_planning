@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import copy
 import json
 from pathlib import Path
 
 import examples.planning_benchmark_slice.bfs_references as references
 from examples.planning_benchmark_slice.bfs_phase import load_bfs_phase_gate
 from examples.planning_benchmark_slice.bfs_references import frozen_bfs_development_tasks, run_frozen_bfs_references
+from examples.planning_benchmark_slice.episode_evidence import read_episode_evidence, write_episode_evidence
 from scripts.adjudicate_bfs_base_and_references import _verify_evidence
 from src.data_collect.generate import GenerationRequest
 from src.data_collect.governance import AuthorizationReceipt, GateReceipt, ReceiptBinding, StopOutcome
@@ -132,13 +134,14 @@ def test_reference_resume_verifies_and_skips_only_complete_v2_episodes(tmp_path:
         _verify_evidence(output_root, row, signing_key=REFERENCE_SIGNING_KEY)
 
     manifest_path.unlink()
-    corrupt_path = output_root / completed["references"][0]["evidence"]["path"]
-    corrupt = bytearray(corrupt_path.read_bytes())
-    corrupt[len(corrupt) // 2] ^= 1
-    corrupt_path.write_bytes(corrupt)
+    mismatch_path = output_root / completed["references"][0]["evidence"]["path"]
+    mismatched = copy.deepcopy(read_episode_evidence(mismatch_path))
+    mismatched["evidence"]["header"]["frozen_binding"]["freeze_manifest_sha256"] = "0" * 64
+    mismatch_path.unlink()
+    write_episode_evidence(mismatch_path, mismatched)
     refused = run_frozen_bfs_references(
         accepted_manifest_path=REPO_ROOT / "data" / "curriculum_pddl" / "accepted_manifest.jsonl",
-        request=_request(output_root, "issue-110-corrupt-resume"),
+        request=_request(output_root, "issue-110-mismatched-resume"),
         phase_gate=phase_gate,
     )
 

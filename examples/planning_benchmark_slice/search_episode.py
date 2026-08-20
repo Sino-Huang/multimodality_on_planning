@@ -73,6 +73,7 @@ def run_search_episode(
     signing_key: bytes | str,
     ancestor_receipt_digest: str | None = None,
     random_seed: int | None = None,
+    frozen_binding: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Run one governed search episode through the public harness seam."""
 
@@ -110,6 +111,7 @@ def run_search_episode(
         gate_receipt=gate_receipt,
         authorization_receipt=authorization_receipt,
         signing_key=signing_key,
+        frozen_binding=frozen_binding,
     )
 
 
@@ -195,6 +197,7 @@ def replay_search_episode(evidence: Mapping[str, Any], *, signing_key: bytes | s
         gate_receipt=gate,
         authorization_receipt=authorization,
         signing_key=signing_key,
+        frozen_binding=None,
     )
     _verify_v1_regeneration(regenerated, artifacts, bundled_expansions, bundled_result)
     return {"evidence": dict(evidence), "result": bundled_result}
@@ -261,6 +264,7 @@ def _execute_authorized_episode(
     gate_receipt: GateReceipt,
     authorization_receipt: AuthorizationReceipt,
     signing_key: bytes | str,
+    frozen_binding: Mapping[str, Any] | None,
 ) -> dict[str, Any]:
     _validate_request(algorithm, modality, policy, max_expansions, random_seed)
     authority = _authority_from_task(task)
@@ -374,6 +378,7 @@ def _execute_authorized_episode(
         "header": {
             "authorization_receipt": authorization_receipt.to_dict(),
             "authority_id": authority.authority_id,
+            "frozen_binding": None if frozen_binding is None else dict(frozen_binding),
             "gate_receipt": gate_receipt.to_dict(),
             "initial_memory_sha256": initial_memory_sha256,
             "request": request_payload,

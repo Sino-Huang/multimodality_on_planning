@@ -13,12 +13,7 @@ from typing import Any
 
 from examples.planning_benchmark_slice.bfs_phase import load_bfs_phase_gate
 from examples.planning_benchmark_slice.bfs_references import frozen_bfs_development_tasks
-from examples.planning_benchmark_slice.episode_evidence import (
-    EVIDENCE_SCHEMA_VERSION,
-    episode_evidence_manifest,
-    read_episode_evidence,
-    replay_episode,
-)
+from examples.planning_benchmark_slice.episode_evidence import verify_manifested_episode
 from src.data_collect.governance import (
     GateReceipt,
     ReceiptBinding,
@@ -150,14 +145,8 @@ def _verify_evidence(
     if relative.is_absolute() or ".." in relative.parts:
         raise ValueError("evidence path escapes its run root")
     path = root / relative
-    if evidence.get("schema_version") == EVIDENCE_SCHEMA_VERSION:
-        if signing_key is None:
-            raise ValueError("v2 evidence verification requires its governed signing key")
-        episode = read_episode_evidence(path)
-        replay_episode(episode["evidence"], signing_key=signing_key)
-        actual_manifest = {"path": relative.as_posix(), **episode_evidence_manifest(path, episode=episode)}
-        if actual_manifest != evidence or _result_summary(episode["result"]) != row.get("result"):
-            raise ValueError(f"evidence artifact differs from its manifest: {path}")
+    if signing_key is not None:
+        verify_manifested_episode(path, evidence, _mapping(row.get("result"), "result"), signing_key=signing_key)
         return
 
     payload = path.read_bytes()
@@ -166,13 +155,6 @@ def _verify_evidence(
     episode = json.loads(payload)
     if episode.get("result") != row.get("result"):
         raise ValueError(f"evidence result differs from its manifest: {path}")
-
-
-def _result_summary(result: dict[str, Any]) -> dict[str, Any]:
-    return {
-        field: result[field]
-        for field in ("completion", "expansion_count", "goal_reached", "outcome", "scientific_completion")
-    }
 
 
 def _base_metrics(

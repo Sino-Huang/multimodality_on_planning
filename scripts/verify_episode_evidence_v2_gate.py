@@ -88,8 +88,9 @@ def main() -> int:
                     "random_seed": seed,
                 }
                 legacy_episode = legacy.run_search_episode(**request)
-                first = run_search_episode(**request)
-                second = run_search_episode(**request)
+                frozen_binding = phase_gate.receipt(stage="base_and_references", difficulty=row["bucket"])
+                first = run_search_episode(**request, frozen_binding=frozen_binding)
+                second = run_search_episode(**request, frozen_binding=frozen_binding)
                 if first != second or first["result"] != legacy_episode["result"]:
                     raise ValueError(f"v1/v2 scientific result differs: {instance_id} {arm} {seed}")
 

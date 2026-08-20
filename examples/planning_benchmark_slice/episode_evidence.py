@@ -9,7 +9,7 @@ import json
 import os
 import tempfile
 import zlib
-from collections.abc import Iterator, Mapping
+from collections.abc import Iterable, Iterator, Mapping
 from pathlib import Path
 from typing import Any, NoReturn
 
@@ -51,6 +51,7 @@ _EVIDENCE_FIELDS = {"events", "header", "result", "schema_version", "states"}
 _HEADER_FIELDS = {
     "authorization_receipt",
     "authority_id",
+    "frozen_binding",
     "gate_receipt",
     "initial_memory_sha256",
     "request",
@@ -70,6 +71,47 @@ _STATE_FIELDS = {"atoms", "authority_id", "fluents"}
 
 class EpisodeEvidenceError(ValueError):
     """Raised when persisted episode evidence is malformed or inconsistent."""
+
+
+def episode_result_summary(result: Mapping[str, Any]) -> dict[str, Any]:
+    """Return the compact scientific result retained in episode manifests."""
+
+    return {
+        field: result[field]
+        for field in ("completion", "expansion_count", "goal_reached", "outcome", "scientific_completion")
+    }
+
+
+def verify_manifested_episode(
+    path: str | Path,
+    manifest: Mapping[str, Any],
+    expected_result: Mapping[str, Any],
+    *,
+    signing_key: bytes | str,
+) -> dict[str, Any]:
+    """Verify a manifested v1/v2 search episode without exposing format dispatch."""
+
+    source = Path(path)
+    with source.open("rb") as handle:
+        is_gzip = handle.read(2) == b"\x1f\x8b"
+    if is_gzip:
+        verified = verify_episode_evidence(source, signing_key=signing_key)
+        actual_manifest = {"path": manifest.get("path"), **verified["manifest"]}
+        actual_result = episode_result_summary(verified["result"])
+        result = verified
+    else:
+        episode = read_versioned_episode_evidence(source, signing_key=signing_key)
+        payload = source.read_bytes()
+        actual_manifest = {
+            "path": manifest.get("path"),
+            "sha256": _sha256(payload),
+            "size_bytes": len(payload),
+        }
+        actual_result = episode["result"]
+        result = episode
+    if dict(manifest) != actual_manifest or dict(expected_result) != actual_result:
+        raise EpisodeEvidenceError(f"episode artifact differs from its manifest: {source}")
+    return result
 
 
 def serialize_state(state: CanonicalState) -> dict[str, Any]:
@@ -114,10 +156,6 @@ def write_episode_evidence(path: str | Path, episode: Mapping[str, Any]) -> dict
     evidence = _episode_evidence(episode)
     _validate_evidence(evidence)
     logical_digest = hashlib.sha256()
-    for line in _logical_lines(evidence):
-        logical_digest.update(line)
-    logical_sha256 = logical_digest.hexdigest()
-    digest_line = _canonical_line({"logical_sha256": logical_sha256, "record_type": "digest"})
 
     target.parent.mkdir(parents=True, exist_ok=True)
     descriptor, temporary_name = tempfile.mkstemp(prefix=f".{target.name}.", dir=target.parent)
@@ -127,8 +165,10 @@ def write_episode_evidence(path: str | Path, episode: Mapping[str, Any]) -> dict
         with temporary.open("wb") as raw:
             with gzip.GzipFile(filename="", mode="wb", compresslevel=9, fileobj=raw, mtime=0) as compressed:
                 for line in _logical_lines(evidence):
+                    logical_digest.update(line)
                     compressed.write(line)
-                compressed.write(digest_line)
+                logical_sha256 = logical_digest.hexdigest()
+                compressed.write(_canonical_line({"logical_sha256": logical_sha256, "record_type": "digest"}))
         temporary.replace(target)
     except Exception:
         temporary.unlink(missing_ok=True)
@@ -244,6 +284,133 @@ def episode_evidence_manifest(
         "logical_sha256": logical_digest.hexdigest(),
         "schema_version": EVIDENCE_SCHEMA_VERSION,
         "stored_size_bytes": source.stat().st_size,
+    }
+
+
+def verify_episode_evidence(path: str | Path, *, signing_key: bytes | str) -> dict[str, Any]:
+    """Stream, authenticate, and replay v2 evidence without retaining its events."""
+
+    source = Path(path)
+    digest = hashlib.sha256()
+    states: dict[str, Any] = {}
+    result_holder: dict[str, Any] = {}
+    digest_holder: dict[str, str] = {}
+    try:
+        with gzip.open(source, "rb") as compressed:
+            numbered = enumerate(compressed)
+            try:
+                line_index, line = next(numbered)
+            except StopIteration as error:
+                raise EpisodeEvidenceError("episode evidence is incomplete") from error
+            header_record = _load_canonical_line(line, index=line_index)
+            if (
+                not isinstance(header_record, dict)
+                or set(header_record) != {"header", "record_type", "schema_version"}
+                or header_record["record_type"] != "header"
+                or header_record["schema_version"] != EVIDENCE_SCHEMA_VERSION
+            ):
+                raise EpisodeEvidenceError("header record is misplaced or malformed")
+            header = header_record["header"]
+            _validate_header(header)
+            digest.update(line)
+
+            first_non_state: tuple[int, bytes, Any] | None = None
+            for line_index, line in numbered:
+                record = _load_canonical_line(line, index=line_index)
+                if isinstance(record, dict) and record.get("record_type") == "state":
+                    if set(record) != {"record_type", "state", "state_id"}:
+                        raise EpisodeEvidenceError("state record is malformed")
+                    state_id = record["state_id"]
+                    if state_id in states:
+                        raise EpisodeEvidenceError(f"duplicate state table entry: {state_id}")
+                    states[state_id] = record["state"]
+                    digest.update(line)
+                    continue
+                first_non_state = (line_index, line, record)
+                break
+            if first_non_state is None:
+                raise EpisodeEvidenceError("episode evidence is incomplete")
+            _validate_states(states)
+
+            def streamed_events() -> Iterator[Mapping[str, Any]]:
+                pending = first_non_state
+                result_seen = False
+                items = iter(numbered)
+                while pending is not None:
+                    current_index, current_line, record = pending
+                    pending = None
+                    record_type = record.get("record_type") if isinstance(record, dict) else None
+                    if record_type == "event":
+                        if result_seen or set(record) != {"event", "record_type"}:
+                            raise EpisodeEvidenceError("event record is misplaced or malformed")
+                        event = record["event"]
+                        _validate_event(event, index=event["index"] if isinstance(event, dict) else -1)
+                        digest.update(current_line)
+                        yield event
+                    elif record_type == "result":
+                        if (
+                            result_seen
+                            or set(record) != {"record_type", "result"}
+                            or not isinstance(record["result"], dict)
+                        ):
+                            raise EpisodeEvidenceError("result record is misplaced or malformed")
+                        result_holder.update(record["result"])
+                        result_seen = True
+                        digest.update(current_line)
+                    elif record_type == "digest":
+                        if (
+                            not result_seen
+                            or set(record) != {"logical_sha256", "record_type"}
+                            or record["logical_sha256"] != digest.hexdigest()
+                        ):
+                            raise EpisodeEvidenceError("logical evidence digest does not match its records")
+                        digest_holder["logical_sha256"] = record["logical_sha256"]
+                        try:
+                            next(items)
+                        except StopIteration:
+                            return
+                        raise EpisodeEvidenceError("artifact contains records after its logical digest")
+                    else:
+                        raise EpisodeEvidenceError(f"unknown record type at line {current_index + 1}")
+                    try:
+                        next_index, next_line = next(items)
+                    except StopIteration:
+                        break
+                    pending = (next_index, next_line, _load_canonical_line(next_line, index=next_index))
+                raise EpisodeEvidenceError("episode evidence is incomplete")
+
+            memory, expansion_count, authority, gate, request = _replay_event_sequence(
+                header,
+                states,
+                streamed_events(),
+                signing_key=signing_key,
+            )
+    except EpisodeEvidenceError:
+        raise
+    except (EOFError, gzip.BadGzipFile, OSError, zlib.error) as error:
+        raise EpisodeEvidenceError("episode evidence is not a complete valid gzip stream") from error
+
+    if not result_holder or "logical_sha256" not in digest_holder:
+        raise EpisodeEvidenceError("episode evidence is incomplete")
+    _validate_replayed_result(
+        result_holder,
+        memory=memory,
+        expansion_count=expansion_count,
+        authority=authority,
+        gate=gate,
+        request=request,
+        states=states,
+        signing_key=signing_key,
+    )
+    return {
+        "header": header,
+        "manifest": {
+            "codec_version": CODEC_VERSION,
+            "logical_sha256": digest_holder["logical_sha256"],
+            "schema_version": EVIDENCE_SCHEMA_VERSION,
+            "stored_size_bytes": source.stat().st_size,
+        },
+        "result": result_holder,
     }
 
 
@@ -374,6 +541,7 @@ def migrate_v1_episode(
         gate_receipt=gate,
         authorization_receipt=authorization,
         signing_key=signing_key,
+        frozen_binding=None,
     )
     if migrated["result"] != legacy_episode["result"]:
         raise EpisodeEvidenceError("v1 and v2 scientific results differ")
@@ -396,7 +564,32 @@ def replay_episode(evidence: Mapping[str, Any], *, signing_key: bytes | str) -> 
 
     normalized = dict(evidence)
     _validate_evidence(normalized)
-    header = normalized["header"]
+    memory, expansion_count, authority, gate, request = _replay_event_sequence(
+        normalized["header"],
+        normalized["states"],
+        iter(normalized["events"]),
+        signing_key=signing_key,
+    )
+    _validate_replayed_result(
+        normalized["result"],
+        memory=memory,
+        expansion_count=expansion_count,
+        authority=authority,
+        gate=gate,
+        request=request,
+        states=normalized["states"],
+        signing_key=signing_key,
+    )
+    return memory
+
+
+def _replay_event_sequence(
+    header: Mapping[str, Any],
+    states: Mapping[str, Any],
+    events: Iterable[Mapping[str, Any]],
+    *,
+    signing_key: bytes | str,
+) -> tuple[SearchMemory, int, PDDLStateAuthority, GateReceipt, dict[str, Any]]:
     gate = _gate_from_payload(header["gate_receipt"])
     authorization = _authorization_from_payload(header["authorization_receipt"])
     permission = evaluate_execution_permission(
@@ -409,17 +602,15 @@ def replay_episode(evidence: Mapping[str, Any], *, signing_key: bytes | str) -> 
         raise EpisodeEvidenceError("evidence receipts do not authorize replay")
 
     request = _parse_request(header["request"])
-    task = header["task"]
-    authority = _authority_from_task(task)
+    authority = _authority_from_task(header["task"])
     if header["authority_id"] != authority.authority_id:
         raise EpisodeEvidenceError("evidence authority differs from its task")
     memory = SearchMemory.initial(authority)
     if header["initial_memory_sha256"] != memory_sha256(memory):
         raise EpisodeEvidenceError("initial replay memory differs from evidence")
-
-    states = normalized["states"]
     if states.get(authority.initial_state.state_id) != serialize_state(authority.initial_state):
         raise EpisodeEvidenceError("state table does not contain the canonical initial state")
+
     current_expansion = -1
     expanded_state_id = ""
     frontier_tail: tuple[str, ...] = ()
@@ -433,7 +624,7 @@ def replay_episode(evidence: Mapping[str, Any], *, signing_key: bytes | str) -> 
         if memory.frontier != expected:
             raise EpisodeEvidenceError(f"BFS FIFO invariant failed after expansion {current_expansion}")
 
-    for index, event in enumerate(normalized["events"]):
+    for index, event in enumerate(events):
         if event["index"] != index:
             raise EpisodeEvidenceError(f"event index differs at event {index}")
         event_expansion = event["expansion_index"]
@@ -484,8 +675,20 @@ def replay_episode(evidence: Mapping[str, Any], *, signing_key: bytes | str) -> 
             raise EpisodeEvidenceError(f"memory digest differs at event {index}")
         operation_in_expansion += 1
     finish_expansion()
+    return memory, current_expansion + 1, authority, gate, request
 
-    result_payload = normalized["result"]
+
+def _validate_replayed_result(
+    result_payload: Mapping[str, Any],
+    *,
+    memory: SearchMemory,
+    expansion_count: int,
+    authority: PDDLStateAuthority,
+    gate: GateReceipt,
+    request: Mapping[str, Any],
+    states: Mapping[str, Any],
+    signing_key: bytes | str,
+) -> None:
     completed = _run_receipt_from_payload(result_payload.get("run_receipt"))
     if (
         completed.binding != gate.binding
@@ -498,7 +701,7 @@ def replay_episode(evidence: Mapping[str, Any], *, signing_key: bytes | str) -> 
     goal_reached = bool(memory.frontier and authority.is_goal(memory.state(memory.frontier[0])))
     if (
         result_payload.get("completion") != "completed"
-        or result_payload.get("expansion_count") != current_expansion + 1
+        or result_payload.get("expansion_count") != expansion_count
         or result_payload.get("goal_reached") is not goal_reached
         or result_payload.get("outcome") != StopOutcome.PASS.value
         or result_payload.get("scientific_completion") is not True
@@ -506,9 +709,8 @@ def replay_episode(evidence: Mapping[str, Any], *, signing_key: bytes | str) -> 
         raise EpisodeEvidenceError("result summary differs from replay")
     if set(states) != memory.visited:
         raise EpisodeEvidenceError("state table does not equal the replayed visited set")
-    if current_expansion + 1 > request["max_expansions"]:
+    if expansion_count > request["max_expansions"]:
         raise EpisodeEvidenceError("replayed episode exceeds its expansion budget")
-    return memory
 
 
 def _logical_lines(evidence: Mapping[str, Any]) -> Iterator[bytes]:
@@ -539,12 +741,33 @@ def _validate_evidence(evidence: Mapping[str, Any]) -> None:
     _require_object(evidence, _EVIDENCE_FIELDS, "evidence")
     if evidence["schema_version"] != EVIDENCE_SCHEMA_VERSION:
         raise EpisodeEvidenceError("unsupported evidence schema")
-    _require_object(evidence["header"], _HEADER_FIELDS, "header")
-    _require_digest(evidence["header"]["authority_id"], "header.authority_id")
-    _require_digest(evidence["header"]["initial_memory_sha256"], "header.initial_memory_sha256")
-    if not isinstance(evidence["states"], dict) or not evidence["states"]:
+    _validate_header(evidence["header"])
+    _validate_states(evidence["states"])
+    if not isinstance(evidence["events"], list):
+        raise EpisodeEvidenceError("events must be an array")
+    for index, event in enumerate(evidence["events"]):
+        _validate_event(event, index=index)
+    if not isinstance(evidence["result"], dict):
+        raise EpisodeEvidenceError("result must be an object")
+    try:
+        _canonical_bytes(evidence)
+    except (TypeError, ValueError) as error:
+        raise EpisodeEvidenceError("evidence is not canonical JSON-compatible") from error
+
+
+def _validate_header(header: Any) -> None:
+    _require_object(header, _HEADER_FIELDS, "header")
+    _require_digest(header["authority_id"], "header.authority_id")
+    _require_digest(header["initial_memory_sha256"], "header.initial_memory_sha256")
+    frozen_binding = header["frozen_binding"]
+    if frozen_binding is not None and not isinstance(frozen_binding, dict):
+        raise EpisodeEvidenceError("header.frozen_binding must be an object or null")
+
+
+def _validate_states(states: Any) -> None:
+    if not isinstance(states, dict) or not states:
         raise EpisodeEvidenceError("states must be a non-empty state table")
-    for state_id, state in evidence["states"].items():
+    for state_id, state in states.items():
         _require_digest(state_id, "state_id")
         _require_object(state, _STATE_FIELDS, f"state {state_id}")
         _require_digest(state["authority_id"], f"state {state_id}.authority_id")
@@ -554,28 +777,22 @@ def _validate_evidence(evidence: Mapping[str, Any]) -> None:
         canonical = CanonicalState(tuple(state["atoms"]), state["authority_id"], tuple(state["fluents"]))
         if canonical.state_id != state_id or serialize_state(canonical) != state:
             raise EpisodeEvidenceError(f"state table entry is not canonical: {state_id}")
-    if not isinstance(evidence["events"], list):
-        raise EpisodeEvidenceError("events must be an array")
-    for index, event in enumerate(evidence["events"]):
-        _require_object(event, _EVENT_FIELDS, f"event {index}")
-        for field in ("index", "expansion_index"):
-            if isinstance(event[field], bool) or not isinstance(event[field], int) or event[field] < 0:
-                raise EpisodeEvidenceError(f"event {index}.{field} must be a non-negative integer")
-        _require_digest(event["expanded_state_id"], f"event {index}.expanded_state_id")
-        _require_digest(event["memory_sha256"], f"event {index}.memory_sha256")
-        if not isinstance(event["newly_enqueued_state_ids"], list):
-            raise EpisodeEvidenceError(f"event {index}.newly_enqueued_state_ids must be an array")
-        for state_id in event["newly_enqueued_state_ids"]:
-            _require_digest(state_id, f"event {index}.newly_enqueued_state_ids")
-        if not isinstance(event["rationale"], str):
-            raise EpisodeEvidenceError(f"event {index}.rationale must be text")
-        _decode_operation(event["operation"])
-    if not isinstance(evidence["result"], dict):
-        raise EpisodeEvidenceError("result must be an object")
-    try:
-        _canonical_bytes(evidence)
-    except (TypeError, ValueError) as error:
-        raise EpisodeEvidenceError("evidence is not canonical JSON-compatible") from error
+
+
+def _validate_event(event: Any, *, index: int) -> None:
+    _require_object(event, _EVENT_FIELDS, f"event {index}")
+    for field in ("index", "expansion_index"):
+        if isinstance(event[field], bool) or not isinstance(event[field], int) or event[field] < 0:
+            raise EpisodeEvidenceError(f"event {index}.{field} must be a non-negative integer")
+    _require_digest(event["expanded_state_id"], f"event {index}.expanded_state_id")
+    _require_digest(event["memory_sha256"], f"event {index}.memory_sha256")
+    if not isinstance(event["newly_enqueued_state_ids"], list):
+        raise EpisodeEvidenceError(f"event {index}.newly_enqueued_state_ids must be an array")
+    for state_id in event["newly_enqueued_state_ids"]:
+        _require_digest(state_id, f"event {index}.newly_enqueued_state_ids")
+    if not isinstance(event["rationale"], str):
+        raise EpisodeEvidenceError(f"event {index}.rationale must be text")
+    _decode_operation(event["operation"])
 
 
 def _decode_operation(payload: Any) -> SearchTransitionRequest | SearchRetireRequest:
@@ -824,6 +1041,7 @@ __all__ = [
     "EVIDENCE_SCHEMA_VERSION",
     "EpisodeEvidenceError",
     "episode_evidence_manifest",
+    "episode_result_summary",
     "materialize_episode_artifacts",
     "memory_sha256",
     "migrate_v1_episode",
@@ -834,5 +1052,7 @@ __all__ = [
     "replay_episode_evidence",
     "serialize_operation",
     "serialize_state",
+    "verify_episode_evidence",
+    "verify_manifested_episode",
     "write_episode_evidence",
 ]

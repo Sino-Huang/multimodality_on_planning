@@ -16,9 +16,8 @@ from src.data_collect.governance import AuthorizationReceipt, GateReceipt, StopO
 from .bfs_generation import _load_candidates, _normalize_authority_input, _require_frozen_manifest
 from .bfs_phase import BFSPhaseGate
 from .episode_evidence import (
-    episode_evidence_manifest,
-    read_episode_evidence,
-    replay_episode,
+    episode_result_summary,
+    verify_episode_evidence,
     write_episode_evidence,
 )
 from .search_episode import replay_search_episode, run_search_episode
@@ -89,6 +88,10 @@ def run_frozen_bfs_references(
                         "request": request,
                         "output_root": output_root,
                         "seeds": tuple(phase_gate.freeze["seeds"]),
+                        "frozen_binding": phase_gate.receipt(
+                            stage="base_and_references",
+                            difficulty=row["bucket"],
+                        ),
                     }
                 )
             if workers == 1:
@@ -144,6 +147,7 @@ def _run_reference_task(arguments: dict[str, Any]) -> list[dict[str, Any]]:
         "max_expansions": arguments["max_expansions"],
         "request": arguments["request"],
         "output_root": arguments["output_root"],
+        "frozen_binding": arguments["frozen_binding"],
     }
     rows = [_run_reference_episode(arm="exact_classical", policy="exact", seed=None, **common)]
     rows.extend(
@@ -187,15 +191,15 @@ def _run_reference_episode(
     max_expansions: int,
     request: GenerationRequest,
     output_root: Path,
+    frozen_binding: Mapping[str, Any],
 ) -> dict[str, Any]:
     suffix = "exact" if seed is None else f"seed-{seed}"
     relative_path = Path("episodes") / arm / str(row["instance_id"]) / f"{suffix}.jsonl.gz"
     evidence_path = output_root / relative_path
     if evidence_path.exists():
-        episode = read_episode_evidence(evidence_path)
-        replay_episode(episode["evidence"], signing_key=request.signing_key)
+        verified = verify_episode_evidence(evidence_path, signing_key=request.signing_key)
         _verify_resumed_episode(
-            episode,
+            verified,
             arm=arm,
             policy=policy,
             seed=seed,
@@ -203,8 +207,10 @@ def _run_reference_episode(
             fixture_path=fixture_path,
             max_expansions=max_expansions,
             request=request,
+            frozen_binding=frozen_binding,
         )
-        evidence_manifest = episode_evidence_manifest(evidence_path, episode=episode)
+        evidence_manifest = verified["manifest"]
+        result = verified["result"]
     else:
         episode = run_search_episode(
             task_path=fixture_path,
@@ -216,23 +222,25 @@ def _run_reference_episode(
             authorization_receipt=cast(AuthorizationReceipt | None, request.authorization_receipt),
             signing_key=request.signing_key,
             random_seed=seed,
+            frozen_binding=frozen_binding,
         )
         if replay_search_episode(episode["evidence"], signing_key=request.signing_key) != episode:
             raise ValueError(f"BFS reference replay differs: {row['instance_id']} {arm} {seed}")
         evidence_manifest = write_episode_evidence(evidence_path, episode)
+        result = episode["result"]
     return {
         "arm": arm,
         "difficulty": row["bucket"],
         "domain_id": row["domain_id"],
         "evidence": {"path": relative_path.as_posix(), **evidence_manifest},
         "instance_id": row["instance_id"],
-        "result": _result_summary(episode["result"]),
+        "result": episode_result_summary(result),
         "seed": seed,
     }
 
 
 def _verify_resumed_episode(
-    episode: Mapping[str, Any],
+    verified: Mapping[str, Any],
     *,
     arm: str,
     policy: str,
@@ -241,9 +249,9 @@ def _verify_resumed_episode(
     fixture_path: Path,
     max_expansions: int,
     request: GenerationRequest,
+    frozen_binding: Mapping[str, Any],
 ) -> None:
-    evidence = episode["evidence"]
-    header = evidence["header"]
+    header = verified["header"]
     fixture = json.loads(fixture_path.read_bytes())
     expected_task = {**fixture, "schema_version": _TASK_SCHEMA}
     expected_request = {
@@ -260,20 +268,15 @@ def _verify_resumed_episode(
     if (
         header["task"] != expected_task
         or header["request"] != expected_request
+        or header["frozen_binding"] != frozen_binding
+        or binding["attempt_id"] == current_binding["attempt_id"]
         or binding["contract_id"] != current_binding["contract_id"]
         or binding["output_root"] != current_binding["output_root"]
-        or episode["result"] != evidence["result"]
+        or not isinstance(verified["result"], Mapping)
         or arm not in {"exact_classical", "random_valid"}
         or row["instance_id"] != expected_task["instance_id"]
     ):
         raise ValueError(f"existing reference episode does not match frozen inputs: {row['instance_id']} {arm} {seed}")
-
-
-def _result_summary(result: Mapping[str, Any]) -> dict[str, Any]:
-    return {
-        field: result[field]
-        for field in ("completion", "expansion_count", "goal_reached", "outcome", "scientific_completion")
-    }
 
 
 def _canonical_bytes(value: object) -> bytes:

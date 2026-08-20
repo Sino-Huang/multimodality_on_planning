@@ -21,6 +21,7 @@ from examples.planning_benchmark_slice.episode_evidence import (
     read_episode_evidence,
     replay_episode,
     replay_episode_evidence,
+    verify_episode_evidence,
     write_episode_evidence,
 )
 from examples.planning_benchmark_slice.search_episode import run_search_episode
@@ -63,6 +64,10 @@ def test_v2_codec_is_deterministic_compact_and_replayable(tmp_path: Path) -> Non
     second_manifest = write_episode_evidence(second_path, episode)
 
     first_bytes = first_path.read_bytes()
+    streamed = verify_episode_evidence(first_path, signing_key=SIGNING_KEY)
+    assert streamed["result"] == episode["result"]
+    assert streamed["manifest"] == first_manifest
+    assert "events" not in streamed
     assert first_bytes == second_path.read_bytes()
     assert first_manifest == second_manifest
     assert int.from_bytes(first_bytes[4:8], "little") == 0
@@ -160,6 +165,8 @@ def test_v2_rejects_compressed_and_logical_tampering(tmp_path: Path, tamper: str
 
     with pytest.raises(EpisodeEvidenceError):
         read_episode_evidence(target)
+    with pytest.raises(EpisodeEvidenceError):
+        verify_episode_evidence(target, signing_key=SIGNING_KEY)
 
 
 def test_v2_interrupted_commit_leaves_no_final_or_staging_artifact(tmp_path: Path, monkeypatch) -> None:
@@ -253,6 +260,48 @@ def _frozen_medium_fixture(tmp_path: Path) -> Path:
     return _write_task_fixture(task, tmp_path / "fixture")
 
 
+def _synthetic_growing_frontier_fixture(tmp_path: Path) -> Path:
+    node_count = 256
+    objects = " ".join([*(f"n{index}" for index in range(node_count)), "unreachable"])
+    edges = "\n".join(
+        f"    (edge n{parent} n{child})"
+        for parent in range(node_count // 2)
+        for child in (parent * 2 + 1, parent * 2 + 2)
+        if child < node_count
+    )
+    domain = """(define (domain synthetic-growing-frontier)
+  (:requirements :strips)
+  (:predicates (at ?node) (edge ?from ?to))
+  (:action move
+    :parameters (?from ?to)
+    :precondition (and (at ?from) (edge ?from ?to))
+    :effect (and (not (at ?from)) (at ?to)))
+)
+"""
+    problem = f"""(define (problem synthetic-growing-frontier-256)
+  (:domain synthetic-growing-frontier)
+  (:objects {objects})
+  (:init
+    (at n0)
+{edges})
+  (:goal (and (at unreachable)))
+)
+"""
+    fixture = tmp_path / "synthetic-growing-frontier.json"
+    fixture.write_text(
+        json.dumps(
+            {
+                "domain_pddl": domain,
+                "instance_id": "synthetic-growing-frontier-256",
+                "problem_pddl": problem,
+            },
+            sort_keys=True,
+        ),
+        encoding="utf-8",
+    )
+    return fixture
+
+
 def _run_exact(tmp_path: Path, fixture: Path, budget: int) -> dict:
     gate, authorization = _receipts(tmp_path)
     return run_search_episode(
@@ -277,8 +326,8 @@ def test_frozen_medium_v2_is_at_most_one_quarter_of_v1(tmp_path: Path) -> None:
     assert manifest["stored_size_bytes"] <= 17_557_492 // 4
 
 
-def test_growing_frontier_v2_size_scales_linearly(tmp_path: Path) -> None:
-    fixture = _frozen_medium_fixture(tmp_path)
+def test_synthetic_growing_frontier_v2_size_scales_linearly(tmp_path: Path) -> None:
+    fixture = _synthetic_growing_frontier_fixture(tmp_path)
     sizes = []
     for budget in (64, 128):
         episode = _run_exact(tmp_path, fixture, budget)
