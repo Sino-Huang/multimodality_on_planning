@@ -18,12 +18,14 @@ from examples.planning_benchmark_slice.bfs_references import (
     frozen_bfs_development_tasks,
 )
 from examples.planning_benchmark_slice.episode_evidence import (
+    episode_result_summary,
     memory_sha256,
     replay_episode,
     replay_episode_evidence,
     write_episode_evidence,
 )
 from examples.planning_benchmark_slice.search_episode import run_search_episode
+from scripts.adjudicate_bfs_base_and_references import _verify_evidence
 from src.data_collect.governance import AuthorizationReceipt, GateReceipt, ReceiptBinding, StopOutcome
 from src.data_collect.replay import parse_canonical_bundle
 
@@ -105,6 +107,14 @@ def main() -> int:
                     raise ValueError(f"v2 generation is not byte-identical: {instance_id} {arm} {seed}")
                 if replay_episode_evidence(first_path, signing_key=_SIGNING_KEY) != first:
                     raise ValueError(f"v2 persisted replay differs: {instance_id} {arm} {seed}")
+                _verify_evidence(
+                    output_root,
+                    {
+                        "evidence": {"path": relative.as_posix(), **first_manifest},
+                        "result": episode_result_summary(first["result"]),
+                    },
+                    signing_key=_SIGNING_KEY,
+                )
 
                 legacy_payload = _canonical_bytes(legacy_episode)
                 legacy_bundle = base64.b64decode(legacy_episode["evidence"]["bundle"], validate=True)
@@ -118,6 +128,7 @@ def main() -> int:
                     raise ValueError(f"v1/v2 final memory differs: {instance_id} {arm} {seed}")
                 records.append(
                     {
+                        "adjudication_verified": True,
                         "arm": arm,
                         "difficulty": row["bucket"],
                         "instance_id": instance_id,

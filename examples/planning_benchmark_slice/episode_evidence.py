@@ -749,10 +749,6 @@ def _validate_evidence(evidence: Mapping[str, Any]) -> None:
         _validate_event(event, index=index)
     if not isinstance(evidence["result"], dict):
         raise EpisodeEvidenceError("result must be an object")
-    try:
-        _canonical_bytes(evidence)
-    except (TypeError, ValueError) as error:
-        raise EpisodeEvidenceError("evidence is not canonical JSON-compatible") from error
 
 
 def _validate_header(header: Any) -> None:
