@@ -1,10 +1,10 @@
-# Research note: training-framework selection for issues #52–#54 and downstream experiments
+# Research note: training-framework selection for process SFT and downstream experiments
 
-**Issues:** [#52 — BFS base and references](https://github.com/Sino-Huang/multimodality_on_planning/issues/52), [#53 — operational-only SFT](https://github.com/Sino-Huang/multimodality_on_planning/issues/53), and [#54 — process SFT and BFS sanity gate](https://github.com/Sino-Huang/multimodality_on_planning/issues/54), under [parent spec #38](https://github.com/Sino-Huang/multimodality_on_planning/issues/38)
+**Issues:** [#52 — BFS base and references](https://github.com/Sino-Huang/multimodality_on_planning/issues/52) and [#54 — process SFT and BFS sanity gate](https://github.com/Sino-Huang/multimodality_on_planning/issues/54), under [parent spec #38](https://github.com/Sino-Huang/multimodality_on_planning/issues/38). [#53 — operational-only SFT](https://github.com/Sino-Huang/multimodality_on_planning/issues/53) is retained only as the stopped historical branch.
 
 **Scope:** Select an existing training framework for the governed BFS experiments and the later algorithm-by-modality, DAgger, end-to-end, and second-backbone experiments. This is a framework decision, not a training result.
 
-**Status:** Research note only. No framework has been installed and no GPU training result is claimed here. Sources were checked on 2026-08-20.
+**Status:** Framework research plus execution record. The operational-only arm was removed from current scope on 2026-08-21; no SFT result is claimed here.
 
 ---
 
@@ -29,7 +29,6 @@ This recommendation is contingent on the smoke gates in §7. A declared dependen
 | Requirement | Authoritative project evidence | Framework consequence |
 |---|---|---|
 | Run base, random-valid, and exact-classical references before SFT | [#52](https://github.com/Sino-Huang/multimodality_on_planning/issues/52) | These are harness/evaluation jobs, not framework training jobs. |
-| Train an operational-only LoRA SFT arm without process leakage | [#53](https://github.com/Sino-Huang/multimodality_on_planning/issues/53), [BFS corpus builder](../examples/planning_benchmark_slice/bfs_corpus.py) | Convert only `corpus/operational.jsonl`; preserve the corpus audit and immutable whole-instance split IDs. |
 | Train process SFT and adjudicate full-episode BFS invariants | [#54](https://github.com/Sino-Huang/multimodality_on_planning/issues/54), [parent spec](https://github.com/Sino-Huang/multimodality_on_planning/issues/38) | Train a typed text output, but perform FIFO/invariant adjudication in the project harness, not with trainer loss/accuracy. |
 | Use the frozen Qwen3-VL-8B backbone, five seeds, LoRA rank 64, deterministic optimization, fixed budgets, and no retuning | [BFS freeze](../configs/experiments/bfs_phase_freeze_v1.json) | The framework must accept the exact frozen core library and optimizer settings; convenience defaults cannot override them. |
 | Extend the same design to matched text, visual, and text-image corpora | [#70](https://github.com/Sino-Huang/multimodality_on_planning/issues/70), [#73](https://github.com/Sino-Huang/multimodality_on_planning/issues/73), [#74](https://github.com/Sino-Huang/multimodality_on_planning/issues/74), [#76](https://github.com/Sino-Huang/multimodality_on_planning/issues/76) | Need text-only and image/multi-image records under one supervised objective. |
@@ -37,11 +36,11 @@ This recommendation is contingent on the smoke gates in §7. A declared dependen
 | Train a separately reported model-generated-successor arm | [#89](https://github.com/Sino-Huang/multimodality_on_planning/issues/89) | Need ordinary generative SFT with potentially longer structured targets; scientific separation remains a project concern. |
 | Run targeted second-backbone replication | [#102](https://github.com/Sino-Huang/multimodality_on_planning/issues/102) | A Qwen-only framework would force a framework migration at the replication stage. |
 
-The released BFS corpus is framework-neutral JSONL. Operational rows contain `input.{goal_atoms,source_state}` and `target.{action,target_state,validity}`; process rows contain `input.{goal_atoms,observation,search_memory}` and `target.{canonical_rationale,runtime_result,typed_operation}` ([builder](../examples/planning_benchmark_slice/bfs_corpus.py)). A small deterministic converter is required for every candidate; no candidate should read the governed corpus and silently decide how these objects are serialized.
+The released v1 BFS corpus is framework-neutral JSONL and retains both historical views for replay. Current training consumes only process rows with `input.{goal_atoms,observation,search_memory}` and `target.{canonical_rationale,runtime_result,typed_operation}` ([builder](../examples/planning_benchmark_slice/bfs_corpus.py)). A small deterministic converter is required for every candidate; no candidate should read the governed corpus and silently decide how these objects are serialized.
 
 ## 2. Candidate comparison
 
-| Candidate | Immediate #53/#54 fit | Later-program fit | Frozen-environment fit | Decision |
+| Candidate | Immediate #54 fit | Later-program fit | Frozen-environment fit | Decision |
 |---|---|---|---|---|
 | **ms-swift** | Local/custom SFT datasets, LoRA, DeepSpeed, gradient checkpointing, explicit validation data, Python and CLI entry points ([training docs](https://github.com/modelscope/ms-swift/blob/main/docs/source_en/Instruction/Pre-training-and-Fine-tuning.md)). | Text and multi-image records, Qwen3-VL plus non-Qwen VLMs, adapter continuation, and multimodal inference APIs ([custom data](https://github.com/modelscope/ms-swift/blob/main/docs/source_en/Customization/Custom-dataset.md), [inference](https://github.com/modelscope/ms-swift/blob/main/docs/source_en/Instruction/Inference-and-deployment.md)). DAgger collection remains external. | Its published ranges include the frozen PyTorch, Transformers, and PEFT versions ([installation matrix](https://github.com/modelscope/ms-swift/blob/main/docs/source_en/GetStarted/SWIFT-installation.md)). Missing packages still have to be installed and tested. | **Select.** Best program-wide coverage without requiring known core-version drift. |
 | **Qwen-VL-Series-Finetune (2U1)** | Strong Qwen-specific path: Qwen3-VL SFT, LoRA/QLoRA/full tuning, DeepSpeed, multi-image input, and mixed-modality data ([README](https://github.com/2U1/Qwen-VL-Series-Finetune)). | DPO/GRPO are present, but there is no project-specific DAgger loop, and the repository is explicitly Qwen-VL-series-only ([README](https://github.com/2U1/Qwen-VL-Series-Finetune)). A second non-Qwen backbone would require another framework. | Its current requirements pin PyTorch 2.8.0, Transformers 5.3.0, Accelerate 1.10.1, PEFT 0.15.2, and DeepSpeed 0.17.5, conflicting with the governed BFS freeze ([requirements](https://github.com/2U1/Qwen-VL-Series-Finetune/blob/master/requirements.txt)). | Reject as the project-wide framework. Useful only as a Qwen implementation reference. |
@@ -90,11 +89,11 @@ Use ms-swift's standard `messages` JSONL format ([schema](https://github.com/mod
 - **Targets:** serialize the complete target as canonical JSON. Do not rely on free-form rationale parsing for authoritative fields.
 - **Metadata:** retain record ID, split assignment, source hashes, modality, algorithm, arm, seed, and receipt in a sidecar/run manifest. Do not put non-input provenance into the prompt.
 
-The converter should emit one dataset per frozen arm/modality/algorithm/seed cell, plus a manifest binding every emitted example back to its governed source row. This preserves the existing contamination audit: the operational converter must never read process-only fields.
+The converter should emit one dataset per frozen process-SFT modality/algorithm/seed cell, plus a manifest binding every emitted example back to its governed source row.
 
-## 5. Configuration rules for #53 and #54
+## 5. Configuration rules for the process-SFT successor phase
 
-The [frozen BFS configuration](../configs/experiments/bfs_phase_freeze_v1.json) is authoritative. The ms-swift config must explicitly carry, rather than infer from defaults:
+The [frozen BFS v1 configuration](../configs/experiments/bfs_phase_freeze_v1.json) remains authoritative for the stopped v1 Attempts and must not be edited or reused to authorize a new run. A successor process-SFT freeze should explicitly carry, rather than infer from defaults:
 
 - `Qwen/Qwen3-VL-8B-Instruct` at the frozen model revision;
 - LoRA rank 64, alpha 128, dropout 0.05, no bias, all-linear targets;
@@ -119,12 +118,12 @@ Framework-reported evaluation loss is diagnostic only. Checkpoint selection rema
 ## 7. Required adoption gates before a scientific run
 
 1. Pin an ms-swift release/commit in an isolated workspace and resolve dependencies while constraining every frozen core version. Abort on any forced core-version change.
-2. Convert a tiny authorized operational/process fixture to `messages` JSONL and prove exact source-ID and target round-trip.
-3. Use ms-swift's template encoder to prove that prompt/input tokens are masked and every canonical assistant target token is labeled; verify operational rows contain no process-only keys.
+2. Convert a tiny authorized process fixture to `messages` JSONL and prove exact source-ID and target round-trip.
+3. Use ms-swift's template encoder to prove that prompt/input tokens are masked and every canonical assistant target token is labeled.
 4. Run a one-step Qwen3-VL-8B LoRA smoke on the actual GPU with the frozen attention, precision, context, and LoRA settings. Record peak allocated/reserved VRAM and wall time.
 5. Save and reload the adapter, then run one project-harness episode to prove parser and processor compatibility.
 6. Repeat a tiny fixed-seed run twice and compare example order, logged loss sequence, adapter tensors, and decoded output. Any nondeterminism must be recorded and governed before the five-seed runs.
-7. Only after these gates pass, add the exact ms-swift pin and complete resolved environment to the authorization manifest used by issues #53/#54.
+7. Only after these gates pass, add the exact ms-swift pin and complete resolved environment to the successor authorization manifest used by #54.
 
 ## 8. Bottom line
 
@@ -136,3 +135,9 @@ Framework-reported evaluation loss is diagnostic only. Checkpoint selection rema
 The mandated environment accepted ms-swift 4.2.2 while preserving the frozen core versions: PyTorch 2.7.1, Transformers 4.57.0, Accelerate 1.5.2, and PEFT 0.17.1. The exact frozen Qwen revision also completed a governed greedy inference smoke on an A100 80 GB, peaking at 17,822,138,880 allocated bytes in 45.95 seconds; its evidence replayed independently.
 
 This is not the one-step LoRA adoption smoke required above. The issue-52 exact-classical reference missed the frozen 1.0 success threshold, so issues #53 and #54 are ancestor-stopped before training. Consequently, no scientific SFT was started and no ms-swift pin was added to the frozen authorization or project requirements. The framework recommendation remains conditional for a future newly authorized phase.
+
+## 10. Scope update (2026-08-21)
+
+The operational-only SFT arm is not planned for the successor phase. The project will prioritize process SFT, whose targets directly supervise model-owned search operations. This is a time-and-priority decision, not empirical evidence that operational SFT cannot affect search. Future claims compare process SFT with the pretrained base, random-valid policy, and exact classical reference; they do not claim a matched operational-SFT causal contrast.
+
+The successor BFS positive-control corpus must be selected by exact-BFS expansion demand rather than the v1 plan-length difficulty label. The v1 evidence showed that all 374 exact-reference failures exhausted their frozen budgets, including 114 tasks labeled easy. New training remains blocked until a separately frozen and authorized simple BFS pilot is complete.
