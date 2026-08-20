@@ -14,6 +14,7 @@ from examples.planning_benchmark_slice.bfs_phase import load_bfs_phase_gate
 from examples.planning_benchmark_slice.bfs_references import _write_task_fixture, frozen_bfs_development_tasks
 from examples.planning_benchmark_slice.episode_evidence import (
     EVIDENCE_SCHEMA_VERSION,
+    V2_EVIDENCE_SCHEMA_VERSION,
     EpisodeEvidenceError,
     materialize_episode_artifacts,
     memory_sha256,
@@ -24,7 +25,8 @@ from examples.planning_benchmark_slice.episode_evidence import (
     verify_episode_evidence,
     write_episode_evidence,
 )
-from examples.planning_benchmark_slice.search_episode import run_search_episode
+from examples.planning_benchmark_slice.search_episode import _execute_authorized_episode, run_search_episode
+from examples.planning_benchmark_slice.search_memory import SearchMemory
 from src.data_collect.governance import AuthorizationReceipt, GateReceipt, ReceiptBinding, StopOutcome
 from src.data_collect.replay import parse_canonical_bundle
 
@@ -45,7 +47,7 @@ def _receipts(tmp_path: Path) -> tuple[GateReceipt, AuthorizationReceipt]:
     return gate, authorization
 
 
-def test_v2_codec_is_deterministic_compact_and_replayable(tmp_path: Path) -> None:
+def test_v3_codec_is_deterministic_compact_and_replayable(tmp_path: Path) -> None:
     gate, authorization = _receipts(tmp_path)
     episode = run_search_episode(
         task_path=NONTRIVIAL_FIXTURE,
@@ -80,6 +82,78 @@ def test_v2_codec_is_deterministic_compact_and_replayable(tmp_path: Path) -> Non
     assert b'"expansions"' not in logical_bytes
     assert b'"frontier_before"' not in logical_bytes
     assert b'"frontier_after"' not in logical_bytes
+    assert b'"initial_memory_sha256"' not in logical_bytes
+    assert b'"memory_sha256"' not in logical_bytes
+
+
+def test_v3_replay_freezes_immutable_search_memory_once(tmp_path: Path, monkeypatch) -> None:
+    gate, authorization = _receipts(tmp_path)
+    episode = run_search_episode(
+        task_path=NONTRIVIAL_FIXTURE,
+        algorithm="bfs",
+        modality="text-state",
+        policy="exact",
+        max_expansions=64,
+        gate_receipt=gate,
+        authorization_receipt=authorization,
+        signing_key=SIGNING_KEY,
+    )
+    original_create = SearchMemory._create.__func__
+    create_count = 0
+
+    def counted_create(cls, **kwargs):
+        nonlocal create_count
+        create_count += 1
+        return original_create(cls, **kwargs)
+
+    monkeypatch.setattr(SearchMemory, "_create", classmethod(counted_create))
+
+    memory = replay_episode(episode["evidence"], signing_key=SIGNING_KEY)
+
+    assert memory.visited == set(episode["evidence"]["states"])
+    assert create_count == 1
+
+
+def test_retained_v2_gzip_evidence_keeps_legacy_digest_verification(tmp_path: Path) -> None:
+    gate, authorization = _receipts(tmp_path)
+    current = run_search_episode(
+        task_path=NONTRIVIAL_FIXTURE,
+        algorithm="bfs",
+        modality="text-state",
+        policy="exact",
+        max_expansions=4,
+        gate_receipt=gate,
+        authorization_receipt=authorization,
+        signing_key=SIGNING_KEY,
+    )
+    legacy = _execute_authorized_episode(
+        task=current["evidence"]["header"]["task"],
+        algorithm="bfs",
+        modality="text-state",
+        policy="exact",
+        random_seed=None,
+        max_expansions=4,
+        gate_receipt=gate,
+        authorization_receipt=authorization,
+        signing_key=SIGNING_KEY,
+        frozen_binding=None,
+        evidence_schema=V2_EVIDENCE_SCHEMA_VERSION,
+    )
+    path = tmp_path / "retained-v2.jsonl.gz"
+
+    manifest = write_episode_evidence(path, legacy)
+    loaded = read_episode_evidence(path)
+    streamed = verify_episode_evidence(path, signing_key=SIGNING_KEY)
+
+    assert manifest["schema_version"] == V2_EVIDENCE_SCHEMA_VERSION
+    assert loaded == legacy
+    assert streamed["result"] == legacy["result"]
+    assert "initial_memory_sha256" in loaded["evidence"]["header"]
+    assert all("memory_sha256" in event for event in loaded["evidence"]["events"])
+    assert (
+        replay_episode(loaded["evidence"], signing_key=SIGNING_KEY).to_bytes()
+        == replay_episode(current["evidence"], signing_key=SIGNING_KEY).to_bytes()
+    )
 
 
 @pytest.mark.parametrize(
@@ -89,7 +163,7 @@ def test_v2_codec_is_deterministic_compact_and_replayable(tmp_path: Path) -> Non
         (NONTRIVIAL_FIXTURE, 1, 1, False),
     ),
 )
-def test_v2_round_trips_empty_and_budget_exhausted_traces(
+def test_current_codec_round_trips_empty_and_budget_exhausted_traces(
     tmp_path: Path,
     fixture: Path,
     budget: int,
@@ -126,7 +200,7 @@ def test_v2_round_trips_empty_and_budget_exhausted_traces(
         ("digest", True),
     ),
 )
-def test_v2_rejects_compressed_and_logical_tampering(tmp_path: Path, tamper: str, logical: bool) -> None:
+def test_current_codec_rejects_compressed_and_logical_tampering(tmp_path: Path, tamper: str, logical: bool) -> None:
     gate, authorization = _receipts(tmp_path)
     episode = run_search_episode(
         NONTRIVIAL_FIXTURE,
@@ -169,7 +243,7 @@ def test_v2_rejects_compressed_and_logical_tampering(tmp_path: Path, tamper: str
         verify_episode_evidence(target, signing_key=SIGNING_KEY)
 
 
-def test_v2_interrupted_commit_leaves_no_final_or_staging_artifact(tmp_path: Path, monkeypatch) -> None:
+def test_current_codec_interrupted_commit_leaves_no_final_or_staging_artifact(tmp_path: Path, monkeypatch) -> None:
     gate, authorization = _receipts(tmp_path)
     episode = run_search_episode(
         NONTRIVIAL_FIXTURE,
@@ -216,7 +290,7 @@ def test_verified_v1_migration_preserves_semantics_and_source_bytes(tmp_path: Pa
         SIGNING_KEY,
     )
     source = tmp_path / "legacy-v1.json"
-    target = tmp_path / "migrated-v2.jsonl.gz"
+    target = tmp_path / "migrated-current.jsonl.gz"
     source.write_bytes(
         (
             json.dumps(v1_episode, allow_nan=False, ensure_ascii=True, separators=(",", ":"), sort_keys=True) + "\n"
@@ -316,7 +390,7 @@ def _run_exact(tmp_path: Path, fixture: Path, budget: int) -> dict:
     )
 
 
-def test_frozen_medium_v2_is_at_most_one_quarter_of_v1(tmp_path: Path) -> None:
+def test_frozen_medium_current_codec_is_at_most_one_quarter_of_v1(tmp_path: Path) -> None:
     episode = _run_exact(tmp_path, _frozen_medium_fixture(tmp_path), 256)
     path = tmp_path / "medium-256.jsonl.gz"
 
@@ -326,7 +400,7 @@ def test_frozen_medium_v2_is_at_most_one_quarter_of_v1(tmp_path: Path) -> None:
     assert manifest["stored_size_bytes"] <= 17_557_492 // 4
 
 
-def test_synthetic_growing_frontier_v2_size_scales_linearly(tmp_path: Path) -> None:
+def test_synthetic_growing_frontier_current_codec_size_scales_linearly(tmp_path: Path) -> None:
     fixture = _synthetic_growing_frontier_fixture(tmp_path)
     sizes = []
     for budget in (64, 128):

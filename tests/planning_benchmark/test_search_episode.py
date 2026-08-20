@@ -2,10 +2,14 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from examples.planning_benchmark_slice.pddl_state import PDDLStateAuthority
 from examples.planning_benchmark_slice.search_episode import (
+    SearchEpisodeVariant,
     replay_search_episode,
     run_search_episode,
+    run_search_episode_batch,
 )
+from examples.planning_benchmark_slice.search_memory import SearchMemory
 from src.data_collect.governance import (
     AuthorizationReceipt,
     GateReceipt,
@@ -45,12 +49,15 @@ def test_exact_text_bfs_completes_with_fifo_evidence_that_replays(tmp_path: Path
     assert episode["result"]["outcome"] == StopOutcome.PASS.value
     assert episode["result"]["scientific_completion"] is True
     assert episode["result"]["goal_reached"] is True
+    assert episode["evidence"]["schema_version"] == "search_episode_evidence_v3"
+    assert "initial_memory_sha256" not in episode["evidence"]["header"]
 
     events = episode["evidence"]["events"]
     assert events
     assert {event["expansion_index"] for event in events} == set(range(episode["result"]["expansion_count"]))
     for event in events:
         assert event["expanded_state_id"]
+        assert "memory_sha256" not in event
         assert "frontier_before" not in event
         assert "frontier_after" not in event
         assert len(event["newly_enqueued_state_ids"]) <= 1
@@ -92,6 +99,82 @@ def test_seeded_random_text_bfs_is_reproducible_and_replayable(tmp_path: Path) -
 
     assert first == second
     assert first["evidence"] != exact["evidence"]
+
+
+def test_bfs_variant_batch_parses_one_authority_and_preserves_variant_order(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    binding = ReceiptBinding(
+        contract_id="issue-47-text-bfs",
+        attempt_id="slice-batched-policies",
+        output_root=tmp_path / "episode-evidence",
+    )
+    gate = GateReceipt(binding=binding, outcome=StopOutcome.PASS).signed(SIGNING_KEY)
+    authorization = AuthorizationReceipt(binding=binding, gate_receipt_digest=gate.digest).signed(SIGNING_KEY)
+    original = PDDLStateAuthority.from_pddl
+    parse_count = 0
+
+    def counted(domain_pddl: str, problem_pddl: str) -> PDDLStateAuthority:
+        nonlocal parse_count
+        parse_count += 1
+        return original(domain_pddl, problem_pddl)
+
+    monkeypatch.setattr(PDDLStateAuthority, "from_pddl", counted)
+    variants = (
+        SearchEpisodeVariant("exact", None),
+        *(SearchEpisodeVariant("random", seed) for seed in (17, 29, 43, 71, 101)),
+    )
+
+    episodes = run_search_episode_batch(
+        task_path=NONTRIVIAL_FIXTURE,
+        algorithm="bfs",
+        modality="text-state",
+        variants=variants,
+        max_expansions=64,
+        gate_receipt=gate,
+        authorization_receipt=authorization,
+        signing_key=SIGNING_KEY,
+    )
+
+    requests = [episode["evidence"]["header"]["request"] for episode in episodes]
+    assert parse_count == 1
+    assert [request["policy"] for request in requests] == ["exact", *("random" for _ in range(5))]
+    assert [request.get("random_seed") for request in requests] == [None, 17, 29, 43, 71, 101]
+
+
+def test_v3_execution_freezes_immutable_search_memory_once(tmp_path: Path, monkeypatch) -> None:
+    binding = ReceiptBinding(
+        contract_id="issue-47-text-bfs",
+        attempt_id="slice-mutable-runtime",
+        output_root=tmp_path / "episode-evidence",
+    )
+    gate = GateReceipt(binding=binding, outcome=StopOutcome.PASS).signed(SIGNING_KEY)
+    authorization = AuthorizationReceipt(binding=binding, gate_receipt_digest=gate.digest).signed(SIGNING_KEY)
+    original_create = SearchMemory._create.__func__
+    create_count = 0
+
+    def counted_create(cls, **kwargs):
+        nonlocal create_count
+        create_count += 1
+        return original_create(cls, **kwargs)
+
+    monkeypatch.setattr(SearchMemory, "_create", classmethod(counted_create))
+
+    episode = run_search_episode(
+        task_path=NONTRIVIAL_FIXTURE,
+        algorithm="bfs",
+        modality="text-state",
+        policy="exact",
+        max_expansions=64,
+        gate_receipt=gate,
+        authorization_receipt=authorization,
+        signing_key=SIGNING_KEY,
+    )
+
+    assert episode["result"]["goal_reached"] is True
+    assert len(episode["evidence"]["events"]) > 1
+    assert create_count == 1
 
 
 def test_governed_stops_do_not_read_or_execute_a_missing_task(tmp_path: Path) -> None:

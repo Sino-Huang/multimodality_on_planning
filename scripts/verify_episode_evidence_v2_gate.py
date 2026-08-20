@@ -1,4 +1,4 @@
-"""Run issue #110's frozen 18-episode v1/v2 integration gate."""
+"""Run issue #110's frozen 18-episode legacy/current integration gate."""
 
 from __future__ import annotations
 
@@ -94,7 +94,7 @@ def main() -> int:
                 first = run_search_episode(**request, frozen_binding=frozen_binding)
                 second = run_search_episode(**request, frozen_binding=frozen_binding)
                 if first != second or first["result"] != legacy_episode["result"]:
-                    raise ValueError(f"v1/v2 scientific result differs: {instance_id} {arm} {seed}")
+                    raise ValueError(f"legacy/current scientific result differs: {instance_id} {arm} {seed}")
 
                 suffix = "exact" if seed is None else f"seed-{seed}"
                 relative = Path(row["bucket"]) / instance_id / f"{suffix}.jsonl.gz"
@@ -104,9 +104,9 @@ def main() -> int:
                 first_manifest = write_episode_evidence(first_path, first)
                 second_manifest = write_episode_evidence(second_path, second)
                 if first_path.read_bytes() != second_path.read_bytes() or first_manifest != second_manifest:
-                    raise ValueError(f"v2 generation is not byte-identical: {instance_id} {arm} {seed}")
+                    raise ValueError(f"current generation is not byte-identical: {instance_id} {arm} {seed}")
                 if replay_episode_evidence(first_path, signing_key=_SIGNING_KEY) != first:
-                    raise ValueError(f"v2 persisted replay differs: {instance_id} {arm} {seed}")
+                    raise ValueError(f"current persisted replay differs: {instance_id} {arm} {seed}")
                 _verify_evidence(
                     output_root,
                     {
@@ -122,10 +122,10 @@ def main() -> int:
                 if [event["operation"] for event in first["evidence"]["events"]] != [
                     record["operation"] for record in legacy_records
                 ]:
-                    raise ValueError(f"v1/v2 operation order differs: {instance_id} {arm} {seed}")
+                    raise ValueError(f"legacy/current operation order differs: {instance_id} {arm} {seed}")
                 final_memory = replay_episode(first["evidence"], signing_key=_SIGNING_KEY)
                 if memory_sha256(final_memory) != legacy_records[-1]["result"]["memory_sha256"]:
-                    raise ValueError(f"v1/v2 final memory differs: {instance_id} {arm} {seed}")
+                    raise ValueError(f"legacy/current final memory differs: {instance_id} {arm} {seed}")
                 records.append(
                     {
                         "adjudication_verified": True,
@@ -136,8 +136,8 @@ def main() -> int:
                         "result": first["result"],
                         "seed": seed,
                         "v1_size_bytes": len(legacy_payload),
-                        "v2_path": relative.as_posix(),
-                        "v2_size_bytes": first_manifest["stored_size_bytes"],
+                        "current_path": relative.as_posix(),
+                        "current_size_bytes": first_manifest["stored_size_bytes"],
                     }
                 )
                 print(
@@ -146,8 +146,8 @@ def main() -> int:
                 )
 
     v1_size = sum(record["v1_size_bytes"] for record in records)
-    v2_size = sum(record["v2_size_bytes"] for record in records)
-    if len(records) != 18 or v2_size * 4 > v1_size:
+    current_size = sum(record["current_size_bytes"] for record in records)
+    if len(records) != 18 or current_size * 4 > v1_size:
         raise ValueError("18-episode integration size gate failed")
     report = {
         "attempt_id": args.attempt_id,
@@ -156,10 +156,10 @@ def main() -> int:
         "authorization_manifest_sha256": hashlib.sha256(phase_gate.authorization_manifest_bytes).hexdigest(),
         "legacy_commit": _LEGACY_COMMIT,
         "records": records,
-        "schema_version": "issue110_episode_evidence_integration_v1",
+        "schema_version": "issue110_episode_evidence_integration_v2",
         "v1_size_bytes": v1_size,
-        "v2_fraction_of_v1": v2_size / v1_size,
-        "v2_size_bytes": v2_size,
+        "current_fraction_of_v1": current_size / v1_size,
+        "current_size_bytes": current_size,
     }
     (output_root / "report.json").write_bytes(_canonical_bytes(report))
     print(_canonical_text({"episode_count": len(records), "report": str(output_root / "report.json")}))

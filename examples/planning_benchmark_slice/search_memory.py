@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from collections import deque
 from dataclasses import dataclass, field
 from types import MappingProxyType
 from typing import Callable, Mapping, TypeAlias
@@ -188,6 +189,81 @@ class SearchMemory:
             heuristics=self.heuristics,
             provenance=self.provenance,
             known_states=self._known_states,
+        )
+
+
+class MutableBFSMemory:
+    """Mutable trusted-runtime implementation hidden behind the episode seam."""
+
+    __slots__ = ("authority", "frontier", "known_states", "provenance", "visited")
+
+    def __init__(self, authority: PDDLStateAuthority) -> None:
+        initial = authority.initial_state
+        self.authority = authority
+        self.frontier: deque[str] = deque((initial.state_id,))
+        self.visited = {initial.state_id}
+        self.provenance: list[TransitionProvenance] = []
+        self.known_states = {initial.state_id: initial}
+
+    def state(self, state_id: str) -> CanonicalState:
+        try:
+            return self.known_states[state_id]
+        except KeyError as error:
+            raise KeyError(f"unknown search-memory state: {state_id}") from error
+
+    def apply_generated_action(
+        self,
+        source_state_id: str,
+        action: GroundedAction,
+        *,
+        retire_source: bool,
+    ) -> tuple[SearchTransitionRequest, PDDLTransition] | None:
+        if retire_source and (not self.frontier or self.frontier[0] != source_state_id):
+            raise ValueError("the first generated BFS successor must retire the frontier head")
+        source = self.state(source_state_id)
+        transition = self.authority.apply(source, action)
+        target = transition.target_state
+        if target.state_id in self.visited:
+            return None
+
+        target_position = len(self.frontier) - (1 if retire_source else 0)
+        if retire_source:
+            retired = self.frontier.popleft()
+            if retired != source_state_id:
+                raise ValueError("generated BFS retired a non-head source")
+        self.frontier.append(target.state_id)
+        self.visited.add(target.state_id)
+        self.known_states[target.state_id] = target
+        self.provenance.append(transition.provenance)
+        return (
+            SearchTransitionRequest(
+                source_state_id=source_state_id,
+                action=action,
+                frontier_intent=FrontierIntent(
+                    retire_source=retire_source,
+                    target_position=target_position,
+                ),
+                visit_target=True,
+                evaluate_target=False,
+            ),
+            transition,
+        )
+
+    def retire_frontier_head(self, state_id: str) -> SearchRetireRequest:
+        if not self.frontier or self.frontier[0] != state_id:
+            raise ValueError("only the frontier head may be retired")
+        self.frontier.popleft()
+        return SearchRetireRequest(state_id)
+
+    def freeze(self) -> SearchMemory:
+        return SearchMemory._create(
+            authority=self.authority,
+            frontier=tuple(self.frontier),
+            visited=frozenset(self.visited),
+            novelty={},
+            heuristics={},
+            provenance=tuple(self.provenance),
+            known_states=self.known_states,
         )
 
 

@@ -118,7 +118,11 @@ def _reference_records(manifest_paths: list[Path]) -> list[tuple[Path, dict[str,
     for path in manifest_paths:
         manifest_path = path.expanduser().resolve()
         manifest = _json_object(manifest_path)
-        if manifest.get("schema_version") not in {"bfs_base_and_references_v1", "bfs_base_and_references_v2"}:
+        if manifest.get("schema_version") not in {
+            "bfs_base_and_references_v1",
+            "bfs_base_and_references_v2",
+            "bfs_base_and_references_v3",
+        }:
             raise ValueError(f"unexpected reference manifest schema: {manifest_path}")
         current_count = int(manifest["shard_count"])
         shard_count = current_count if shard_count is None else shard_count

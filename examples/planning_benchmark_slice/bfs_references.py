@@ -20,9 +20,9 @@ from .episode_evidence import (
     verify_episode_evidence,
     write_episode_evidence,
 )
-from .search_episode import replay_search_episode, run_search_episode
+from .search_episode import SearchEpisodeVariant, run_search_episode_batch
 
-_REFERENCE_SCHEMA = "bfs_base_and_references_v2"
+_REFERENCE_SCHEMA = "bfs_base_and_references_v3"
 _TASK_SCHEMA = "search_episode_task_v1"
 
 
@@ -141,19 +141,70 @@ def run_frozen_bfs_references(
 
 
 def _run_reference_task(arguments: dict[str, Any]) -> list[dict[str, Any]]:
-    common = {
-        "row": arguments["row"],
-        "fixture_path": arguments["fixture_path"],
-        "max_expansions": arguments["max_expansions"],
-        "request": arguments["request"],
-        "output_root": arguments["output_root"],
-        "frozen_binding": arguments["frozen_binding"],
-    }
-    rows = [_run_reference_episode(arm="exact_classical", policy="exact", seed=None, **common)]
-    rows.extend(
-        _run_reference_episode(arm="random_valid", policy="random", seed=seed, **common) for seed in arguments["seeds"]
+    row = arguments["row"]
+    fixture_path = arguments["fixture_path"]
+    max_expansions = arguments["max_expansions"]
+    request = arguments["request"]
+    output_root = arguments["output_root"]
+    frozen_binding = arguments["frozen_binding"]
+    variants = (
+        ("exact_classical", "exact", None),
+        *(("random_valid", "random", seed) for seed in arguments["seeds"]),
     )
-    return rows
+    records: dict[tuple[str, int | None], dict[str, Any]] = {}
+    missing: list[tuple[str, str, int | None, Path, Path]] = []
+
+    for arm, policy, seed in variants:
+        suffix = "exact" if seed is None else f"seed-{seed}"
+        relative_path = Path("episodes") / arm / str(row["instance_id"]) / f"{suffix}.jsonl.gz"
+        evidence_path = output_root / relative_path
+        if not evidence_path.exists():
+            missing.append((arm, policy, seed, relative_path, evidence_path))
+            continue
+        verified = verify_episode_evidence(evidence_path, signing_key=request.signing_key)
+        _verify_resumed_episode(
+            verified,
+            arm=arm,
+            policy=policy,
+            seed=seed,
+            row=row,
+            fixture_path=fixture_path,
+            max_expansions=max_expansions,
+            request=request,
+            frozen_binding=frozen_binding,
+        )
+        records[(arm, seed)] = _reference_record(
+            arm=arm,
+            seed=seed,
+            row=row,
+            relative_path=relative_path,
+            evidence_manifest=verified["manifest"],
+            result=verified["result"],
+        )
+
+    if missing:
+        episodes = run_search_episode_batch(
+            task_path=fixture_path,
+            algorithm="bfs",
+            modality="text-state",
+            variants=tuple(SearchEpisodeVariant(policy, seed) for _arm, policy, seed, _relative, _path in missing),
+            max_expansions=max_expansions,
+            gate_receipt=cast(GateReceipt, request.gate_receipt),
+            authorization_receipt=cast(AuthorizationReceipt | None, request.authorization_receipt),
+            signing_key=request.signing_key,
+            frozen_binding=frozen_binding,
+        )
+        for (arm, _policy, seed, relative_path, evidence_path), episode in zip(missing, episodes, strict=True):
+            records[(arm, seed)] = _reference_record(
+                arm=arm,
+                seed=seed,
+                row=row,
+                relative_path=relative_path,
+                evidence_manifest=write_episode_evidence(evidence_path, episode),
+                result=episode["result"],
+            )
+
+    return [records[(arm, seed)] for arm, _policy, seed in variants]
 
 
 def _write_task_fixture(row: dict[str, Any], fixture_root: Path) -> Path:
@@ -181,58 +232,20 @@ def _write_task_fixture(row: dict[str, Any], fixture_root: Path) -> Path:
     return fixture_path
 
 
-def _run_reference_episode(
+def _reference_record(
     *,
     arm: str,
-    policy: str,
     seed: int | None,
-    row: dict[str, Any],
-    fixture_path: Path,
-    max_expansions: int,
-    request: GenerationRequest,
-    output_root: Path,
-    frozen_binding: Mapping[str, Any],
+    row: Mapping[str, Any],
+    relative_path: Path,
+    evidence_manifest: Mapping[str, Any],
+    result: Mapping[str, Any],
 ) -> dict[str, Any]:
-    suffix = "exact" if seed is None else f"seed-{seed}"
-    relative_path = Path("episodes") / arm / str(row["instance_id"]) / f"{suffix}.jsonl.gz"
-    evidence_path = output_root / relative_path
-    if evidence_path.exists():
-        verified = verify_episode_evidence(evidence_path, signing_key=request.signing_key)
-        _verify_resumed_episode(
-            verified,
-            arm=arm,
-            policy=policy,
-            seed=seed,
-            row=row,
-            fixture_path=fixture_path,
-            max_expansions=max_expansions,
-            request=request,
-            frozen_binding=frozen_binding,
-        )
-        evidence_manifest = verified["manifest"]
-        result = verified["result"]
-    else:
-        episode = run_search_episode(
-            task_path=fixture_path,
-            algorithm="bfs",
-            modality="text-state",
-            policy=policy,
-            max_expansions=max_expansions,
-            gate_receipt=cast(GateReceipt, request.gate_receipt),
-            authorization_receipt=cast(AuthorizationReceipt | None, request.authorization_receipt),
-            signing_key=request.signing_key,
-            random_seed=seed,
-            frozen_binding=frozen_binding,
-        )
-        if replay_search_episode(episode["evidence"], signing_key=request.signing_key) != episode:
-            raise ValueError(f"BFS reference replay differs: {row['instance_id']} {arm} {seed}")
-        evidence_manifest = write_episode_evidence(evidence_path, episode)
-        result = episode["result"]
     return {
         "arm": arm,
         "difficulty": row["bucket"],
         "domain_id": row["domain_id"],
-        "evidence": {"path": relative_path.as_posix(), **evidence_manifest},
+        "evidence": {"path": relative_path.as_posix(), **dict(evidence_manifest)},
         "instance_id": row["instance_id"],
         "result": episode_result_summary(result),
         "seed": seed,

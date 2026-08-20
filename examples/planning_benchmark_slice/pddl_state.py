@@ -5,7 +5,7 @@ import json
 import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TypeAlias
+from typing import Any, TypeAlias, cast
 
 from plado import pddl
 from plado.parser import parse_and_normalize
@@ -117,6 +117,7 @@ class PDDLStateAuthority:
         self._states: dict[str, tuple[CanonicalState, State]] = {
             self.initial_state.state_id: (self.initial_state, self._task.initial_state.duplicate())
         }
+        self._applicable_by_state: dict[str, dict[GroundedAction, GroundActionRef]] = {}
 
     @classmethod
     def from_pddl(cls, domain_pddl: str, problem_pddl: str) -> "PDDLStateAuthority":
@@ -133,9 +134,15 @@ class PDDLStateAuthority:
         return CanonicalState(atoms, self.authority_id, fluents)
 
     def applicable_actions(self, state: CanonicalState) -> tuple[GroundedAction, ...]:
+        return tuple(sorted(self._applicable_action_refs(state), key=GroundedAction.serialize))
+
+    def _applicable_action_refs(self, state: CanonicalState) -> dict[GroundedAction, GroundActionRef]:
         plado_state = self._resolve_state(state)
-        actions = (self._grounded_action(ref) for ref in self._applicable(plado_state))
-        return tuple(sorted(actions, key=GroundedAction.serialize))
+        applicable = self._applicable_by_state.get(state.state_id)
+        if applicable is None:
+            applicable = {self._grounded_action(ref): ref for ref in self._applicable(plado_state)}
+            self._applicable_by_state[state.state_id] = applicable
+        return applicable
 
     def apply(self, state: CanonicalState, action: GroundedAction) -> PDDLTransition:
         return self._apply(state, action, register_target=True)
@@ -151,12 +158,11 @@ class PDDLStateAuthority:
         register_target: bool,
     ) -> PDDLTransition:
         plado_state = self._resolve_state(state)
-        applicable = {self._grounded_action(ref): ref for ref in self._applicable(plado_state)}
-        action_ref = applicable.get(action)
+        action_ref = self._applicable_action_refs(state).get(action)
         if action_ref is None:
             raise InvalidActionError(f"action is not applicable in state {state.state_id}: {action.serialize()}")
 
-        successors = self._successors(plado_state, action_ref)
+        successors = self._successors(plado_state, cast(Any, action_ref))
         if len(successors) != 1 or successors[0][1] != 1:
             raise ValueError(f"grounded action does not have one deterministic successor: {action.serialize()}")
         successor = successors[0][0]

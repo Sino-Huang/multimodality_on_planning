@@ -3,7 +3,8 @@ from __future__ import annotations
 import base64
 import json
 import random
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, NoReturn
 
@@ -19,6 +20,7 @@ from src.data_collect.replay import parse_canonical_bundle
 
 from .episode_evidence import (
     EVIDENCE_SCHEMA_VERSION,
+    V2_EVIDENCE_SCHEMA_VERSION,
     EpisodeEvidenceError,
     memory_sha256,
     replay_episode,
@@ -30,6 +32,7 @@ from .search_memory import (
     AcceptedRetirement,
     AcceptedTransition,
     FrontierIntent,
+    MutableBFSMemory,
     SearchMemory,
     SearchRetireRequest,
     SearchTransitionRequest,
@@ -62,6 +65,12 @@ class SearchEpisodeError(ValueError):
     """Raised when an episode request or evidence bundle is invalid."""
 
 
+@dataclass(frozen=True, slots=True)
+class SearchEpisodeVariant:
+    policy: str
+    random_seed: int | None = None
+
+
 def run_search_episode(
     task_path: str | Path,
     algorithm: str,
@@ -77,6 +86,37 @@ def run_search_episode(
 ) -> dict[str, Any]:
     """Run one governed search episode through the public harness seam."""
 
+    return run_search_episode_batch(
+        task_path=task_path,
+        algorithm=algorithm,
+        modality=modality,
+        variants=(SearchEpisodeVariant(policy, random_seed),),
+        max_expansions=max_expansions,
+        gate_receipt=gate_receipt,
+        authorization_receipt=authorization_receipt,
+        signing_key=signing_key,
+        ancestor_receipt_digest=ancestor_receipt_digest,
+        frozen_binding=frozen_binding,
+    )[0]
+
+
+def run_search_episode_batch(
+    task_path: str | Path,
+    algorithm: str,
+    modality: str,
+    variants: Sequence[SearchEpisodeVariant],
+    max_expansions: int,
+    gate_receipt: GateReceipt,
+    authorization_receipt: AuthorizationReceipt | None,
+    signing_key: bytes | str,
+    ancestor_receipt_digest: str | None = None,
+    frozen_binding: Mapping[str, Any] | None = None,
+) -> tuple[dict[str, Any], ...]:
+    """Run ordered BFS policy variants after one authorized task parse."""
+
+    variant_list = tuple(variants)
+    if not variant_list or any(not isinstance(variant, SearchEpisodeVariant) for variant in variant_list):
+        raise SearchEpisodeError("episode variants must be a non-empty sequence")
     if not isinstance(gate_receipt, GateReceipt):
         raise SearchEpisodeError("gate_receipt must expose a governed binding")
 
@@ -90,9 +130,10 @@ def run_search_episode(
         ancestor_receipt_digest=ancestor_receipt_digest,
     )
     if not permission.start_permitted:
-        return _stopped_episode(permission)
+        return tuple(_stopped_episode(permission) for _variant in variant_list)
 
-    _validate_request(algorithm, modality, policy, max_expansions, random_seed)
+    for variant in variant_list:
+        _validate_request(algorithm, modality, variant.policy, max_expansions, variant.random_seed)
     fixture = load_fixture(Path(task_path))
     task = {
         "domain_pddl": fixture.domain_pddl,
@@ -100,25 +141,33 @@ def run_search_episode(
         "problem_pddl": fixture.problem_pddl,
         "schema_version": TASK_SCHEMA_VERSION,
     }
+    authority = _authority_from_task(task)
     assert authorization_receipt is not None
-    return _execute_authorized_episode(
-        task=task,
-        algorithm=algorithm,
-        modality=modality,
-        policy=policy,
-        random_seed=random_seed,
-        max_expansions=max_expansions,
-        gate_receipt=gate_receipt,
-        authorization_receipt=authorization_receipt,
-        signing_key=signing_key,
-        frozen_binding=frozen_binding,
+    return tuple(
+        _execute_authorized_episode(
+            task=task,
+            algorithm=algorithm,
+            modality=modality,
+            policy=variant.policy,
+            random_seed=variant.random_seed,
+            max_expansions=max_expansions,
+            gate_receipt=gate_receipt,
+            authorization_receipt=authorization_receipt,
+            signing_key=signing_key,
+            frozen_binding=frozen_binding,
+            authority=authority,
+        )
+        for variant in variant_list
     )
 
 
 def replay_search_episode(evidence: Mapping[str, Any], *, signing_key: bytes | str) -> dict[str, Any]:
     """Verify and deterministically reconstruct a complete public episode."""
 
-    if isinstance(evidence, Mapping) and evidence.get("schema_version") == EVIDENCE_SCHEMA_VERSION:
+    if isinstance(evidence, Mapping) and evidence.get("schema_version") in {
+        V2_EVIDENCE_SCHEMA_VERSION,
+        EVIDENCE_SCHEMA_VERSION,
+    }:
         if set(evidence) != {"events", "header", "result", "schema_version", "states"}:
             raise SearchEpisodeError("evidence has invalid fields")
         try:
@@ -198,6 +247,7 @@ def replay_search_episode(evidence: Mapping[str, Any], *, signing_key: bytes | s
         authorization_receipt=authorization,
         signing_key=signing_key,
         frozen_binding=None,
+        evidence_schema=V2_EVIDENCE_SCHEMA_VERSION,
     )
     _verify_v1_regeneration(regenerated, artifacts, bundled_expansions, bundled_result)
     return {"evidence": dict(evidence), "result": bundled_result}
@@ -265,12 +315,30 @@ def _execute_authorized_episode(
     authorization_receipt: AuthorizationReceipt,
     signing_key: bytes | str,
     frozen_binding: Mapping[str, Any] | None,
+    evidence_schema: str = EVIDENCE_SCHEMA_VERSION,
+    authority: PDDLStateAuthority | None = None,
 ) -> dict[str, Any]:
     _validate_request(algorithm, modality, policy, max_expansions, random_seed)
-    authority = _authority_from_task(task)
+    if evidence_schema not in {V2_EVIDENCE_SCHEMA_VERSION, EVIDENCE_SCHEMA_VERSION}:
+        raise SearchEpisodeError("unsupported generated evidence schema")
+    include_memory_digests = evidence_schema == V2_EVIDENCE_SCHEMA_VERSION
+    authority = _authority_from_task(task) if authority is None else authority
+    if not include_memory_digests:
+        return _execute_mutable_authorized_episode(
+            task=task,
+            algorithm=algorithm,
+            modality=modality,
+            policy=policy,
+            random_seed=random_seed,
+            max_expansions=max_expansions,
+            gate_receipt=gate_receipt,
+            authorization_receipt=authorization_receipt,
+            signing_key=signing_key,
+            frozen_binding=frozen_binding,
+            authority=authority,
+        )
     rng = random.Random(random_seed) if policy == "random" else None
     memory = SearchMemory.initial(authority)
-    initial_memory_sha256 = memory_sha256(memory)
     states = {authority.initial_state.state_id: serialize_state(authority.initial_state)}
     events: list[dict[str, Any]] = []
     expansion_count = 0
@@ -313,7 +381,7 @@ def _execute_authorized_episode(
                     "expanded_state_id": expanded_state_id,
                     "expansion_index": expansion_count,
                     "index": len(events),
-                    "memory_sha256": memory_sha256(memory),
+                    **({"memory_sha256": memory_sha256(memory)} if include_memory_digests else {}),
                     "newly_enqueued_state_ids": [target.state_id],
                     "operation": serialize_operation(request),
                     "rationale": (
@@ -334,7 +402,7 @@ def _execute_authorized_episode(
                     "expanded_state_id": expanded_state_id,
                     "expansion_index": expansion_count,
                     "index": len(events),
-                    "memory_sha256": memory_sha256(memory),
+                    **({"memory_sha256": memory_sha256(memory)} if include_memory_digests else {}),
                     "newly_enqueued_state_ids": [],
                     "operation": serialize_operation(request),
                     "rationale": f"{policy}_bfs_retire_exhausted_frontier_head",
@@ -373,6 +441,123 @@ def _execute_authorized_episode(
     }
     if policy == "random":
         request_payload["random_seed"] = random_seed
+    header = {
+        "authorization_receipt": authorization_receipt.to_dict(),
+        "authority_id": authority.authority_id,
+        "frozen_binding": None if frozen_binding is None else dict(frozen_binding),
+        "gate_receipt": gate_receipt.to_dict(),
+        "request": request_payload,
+        "task": dict(task),
+    }
+    if include_memory_digests:
+        header["initial_memory_sha256"] = memory_sha256(SearchMemory.initial(authority))
+    evidence = {
+        "events": events,
+        "header": header,
+        "result": result_payload,
+        "schema_version": evidence_schema,
+        "states": states,
+    }
+    return {"result": result_payload, "evidence": evidence}
+
+
+def _execute_mutable_authorized_episode(
+    *,
+    task: Mapping[str, Any],
+    algorithm: str,
+    modality: str,
+    policy: str,
+    random_seed: int | None,
+    max_expansions: int,
+    gate_receipt: GateReceipt,
+    authorization_receipt: AuthorizationReceipt,
+    signing_key: bytes | str,
+    frozen_binding: Mapping[str, Any] | None,
+    authority: PDDLStateAuthority,
+) -> dict[str, Any]:
+    rng = random.Random(random_seed) if policy == "random" else None
+    memory = MutableBFSMemory(authority)
+    states = {authority.initial_state.state_id: serialize_state(authority.initial_state)}
+    events: list[dict[str, Any]] = []
+    expansion_count = 0
+
+    while memory.frontier and expansion_count < max_expansions:
+        expanded_state_id = memory.frontier[0]
+        state = memory.state(expanded_state_id)
+        if authority.is_goal(state):
+            break
+
+        retire_source = True
+        applicable_actions = list(authority.applicable_actions(state))
+        if rng is not None:
+            rng.shuffle(applicable_actions)
+        for action in applicable_actions:
+            applied = memory.apply_generated_action(
+                expanded_state_id,
+                action,
+                retire_source=retire_source,
+            )
+            if applied is None:
+                continue
+            request, transition = applied
+            target = transition.target_state
+            states[target.state_id] = serialize_state(target)
+            events.append(
+                {
+                    "expanded_state_id": expanded_state_id,
+                    "expansion_index": expansion_count,
+                    "index": len(events),
+                    "newly_enqueued_state_ids": [target.state_id],
+                    "operation": serialize_operation(request),
+                    "rationale": (
+                        "exact_bfs_canonical_successor" if policy == "exact" else "random_bfs_seeded_successor"
+                    ),
+                }
+            )
+            retire_source = False
+
+        if retire_source:
+            request = memory.retire_frontier_head(expanded_state_id)
+            events.append(
+                {
+                    "expanded_state_id": expanded_state_id,
+                    "expansion_index": expansion_count,
+                    "index": len(events),
+                    "newly_enqueued_state_ids": [],
+                    "operation": serialize_operation(request),
+                    "rationale": f"{policy}_bfs_retire_exhausted_frontier_head",
+                }
+            )
+        expansion_count += 1
+
+    frozen_memory = memory.freeze()
+    goal_reached = bool(frozen_memory.frontier and authority.is_goal(frozen_memory.state(frozen_memory.frontier[0])))
+    completed = RunReceipt(
+        binding=gate_receipt.binding,
+        outcome=StopOutcome.PASS,
+        run_state="completed",
+        start_permitted=False,
+        scientific_completion=True,
+        gate_receipt_digest=gate_receipt.digest,
+        authorization_receipt_digest=authorization_receipt.digest,
+    ).signed(signing_key)
+    result_payload = {
+        "completion": "completed",
+        "expansion_count": expansion_count,
+        "goal_reached": goal_reached,
+        "outcome": StopOutcome.PASS.value,
+        "run_receipt": completed.to_dict(),
+        "scientific_completion": True,
+    }
+    request_payload = {
+        "algorithm": algorithm,
+        "max_expansions": max_expansions,
+        "modality": modality,
+        "policy": policy,
+        "schema_version": REQUEST_SCHEMA_VERSION,
+    }
+    if policy == "random":
+        request_payload["random_seed"] = random_seed
     evidence = {
         "events": events,
         "header": {
@@ -380,7 +565,6 @@ def _execute_authorized_episode(
             "authority_id": authority.authority_id,
             "frozen_binding": None if frozen_binding is None else dict(frozen_binding),
             "gate_receipt": gate_receipt.to_dict(),
-            "initial_memory_sha256": initial_memory_sha256,
             "request": request_payload,
             "task": dict(task),
         },

@@ -8,7 +8,7 @@ import examples.planning_benchmark_slice.bfs_references as references
 from examples.planning_benchmark_slice.bfs_phase import load_bfs_phase_gate
 from examples.planning_benchmark_slice.bfs_references import frozen_bfs_development_tasks, run_frozen_bfs_references
 from examples.planning_benchmark_slice.episode_evidence import read_episode_evidence, write_episode_evidence
-from scripts.adjudicate_bfs_base_and_references import _verify_evidence
+from scripts.adjudicate_bfs_base_and_references import _reference_records, _verify_evidence
 from src.data_collect.generate import GenerationRequest
 from src.data_collect.governance import AuthorizationReceipt, GateReceipt, ReceiptBinding, StopOutcome
 
@@ -64,7 +64,7 @@ def _request(output_root: Path, attempt_id: str) -> GenerationRequest:
     )
 
 
-def test_reference_resume_verifies_and_skips_only_complete_v2_episodes(tmp_path: Path, monkeypatch) -> None:
+def test_reference_resume_batches_only_missing_v3_episodes(tmp_path: Path, monkeypatch) -> None:
     phase_gate = load_bfs_phase_gate(
         REPO_ROOT / "configs" / "experiments" / "bfs_phase_freeze_v1.json",
         REPO_ROOT / "configs" / "experiments" / "bfs_phase_authorization_v1.json",
@@ -89,14 +89,14 @@ def test_reference_resume_verifies_and_skips_only_complete_v2_episodes(tmp_path:
     missing_path.unlink()
 
     calls = 0
-    original = references.run_search_episode
+    original = references.run_search_episode_batch
 
     def counted_run(*args, **kwargs):
         nonlocal calls
         calls += 1
         return original(*args, **kwargs)
 
-    monkeypatch.setattr(references, "run_search_episode", counted_run)
+    monkeypatch.setattr(references, "run_search_episode_batch", counted_run)
     resumed = run_frozen_bfs_references(
         accepted_manifest_path=REPO_ROOT / "data" / "curriculum_pddl" / "accepted_manifest.jsonl",
         request=_request(output_root, "issue-110-resumed"),
@@ -106,8 +106,9 @@ def test_reference_resume_verifies_and_skips_only_complete_v2_episodes(tmp_path:
     assert resumed.outcome is StopOutcome.PASS
     assert calls == 1
     completed = json.loads(manifest_path.read_text(encoding="utf-8"))
-    assert completed["schema_version"] == "bfs_base_and_references_v2"
+    assert completed["schema_version"] == "bfs_base_and_references_v3"
     assert len(completed["references"]) == 6
+    assert len(_reference_records([manifest_path])) == 6
     assert all(
         set(row["evidence"])
         == {

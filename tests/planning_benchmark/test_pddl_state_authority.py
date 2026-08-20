@@ -130,6 +130,24 @@ def test_validates_and_applies_grounded_action_with_provenance() -> None:
         authority.apply(transition.target_state, pickup_a)
 
 
+def test_reuses_one_grounded_applicable_action_map_per_canonical_state(monkeypatch) -> None:
+    authority = _authority()
+    original = authority._applicable
+    applicable_calls = 0
+
+    def counted(state):
+        nonlocal applicable_calls
+        applicable_calls += 1
+        return original(state)
+
+    monkeypatch.setattr(authority, "_applicable", counted)
+    actions = authority.applicable_actions(authority.initial_state)
+    transitions = tuple(authority.preview_apply(authority.initial_state, action) for action in actions)
+
+    assert len(transitions) == len(actions)
+    assert applicable_calls == 1
+
+
 def test_replay_exactly_reproduces_trajectory_and_rejects_tampering() -> None:
     recorder = _authority()
     pickup = recorder.apply(recorder.initial_state, GroundedAction("pickup", ("a",)))
