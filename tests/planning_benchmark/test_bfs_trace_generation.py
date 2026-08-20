@@ -12,7 +12,10 @@ from examples.planning_benchmark_slice.bfs_corpus import (
     regenerate_bfs_text_corpus,
     run_frozen_bfs_text_corpus_release,
 )
-from examples.planning_benchmark_slice.bfs_generation import run_frozen_bfs_trace_generation
+from examples.planning_benchmark_slice.bfs_generation import (
+    _select_split_candidates,
+    run_frozen_bfs_trace_generation,
+)
 from examples.planning_benchmark_slice.bfs_phase import BFSPhaseGate, load_bfs_phase_gate
 from examples.planning_benchmark_slice.search_episode import replay_search_episode
 from examples.planning_benchmark_slice.validate_instance import load_fixture
@@ -79,12 +82,8 @@ def _frozen_curriculum(tmp_path: Path) -> tuple[BFSPhaseGate, Path]:
     committed = load_bfs_phase_gate(FREEZE_MANIFEST, AUTHORIZATION_MANIFEST)
     freeze = json.loads(json.dumps(committed.freeze))
     freeze["data"]["domains"] = ["blocksworld"]
-    freeze["data"]["artifacts"] = [
-        {"path": str(accepted_manifest), "sha256": _sha256(accepted_manifest.read_bytes())}
-    ]
-    freeze["data"]["development_counts_by_split_and_difficulty"] = {
-        "train": {"easy": 1, "medium": 1, "hard": 1}
-    }
+    freeze["data"]["artifacts"] = [{"path": str(accepted_manifest), "sha256": _sha256(accepted_manifest.read_bytes())}]
+    freeze["data"]["development_counts_by_split_and_difficulty"] = {"train": {"easy": 1, "medium": 1, "hard": 1}}
     return replace(committed, freeze=freeze), accepted_manifest
 
 
@@ -122,12 +121,28 @@ def _request(
     )
 
 
+def test_trace_selection_keeps_the_frozen_minimum_from_each_available_split() -> None:
+    rows = [
+        {"instance_id": "dev-1", "split": "dev"},
+        {"instance_id": "dev-2", "split": "dev"},
+        {"instance_id": "train-1", "split": "train"},
+        {"instance_id": "train-2", "split": "train"},
+    ]
+
+    selected = _select_split_candidates(rows, allowed_splits=["train", "dev"], minimum=1)
+
+    assert [(row["split"], row["instance_id"]) for row in selected] == [
+        ("train", "train-1"),
+        ("dev", "dev-1"),
+    ]
+
+
 def _legacy_pddl_phase(tmp_path: Path) -> tuple[BFSPhaseGate, Path]:
     wanted = {("driverlog", "easy"), ("storage", "easy")}
     selected: dict[tuple[str, str], dict[str, object]] = {}
-    for line in (REPO_ROOT / "data" / "curriculum_pddl" / "accepted_manifest.jsonl").read_text(
-        encoding="utf-8"
-    ).splitlines():
+    for line in (
+        (REPO_ROOT / "data" / "curriculum_pddl" / "accepted_manifest.jsonl").read_text(encoding="utf-8").splitlines()
+    ):
         row = json.loads(line)
         stratum = (row["domain_id"], row["bucket"])
         if row["split"] in {"train", "dev"} and stratum in wanted and stratum not in selected:
@@ -144,9 +159,7 @@ def _legacy_pddl_phase(tmp_path: Path) -> tuple[BFSPhaseGate, Path]:
     freeze["budgets"]["episode_max_expansions_by_difficulty"] = {"easy": 1}
     freeze["data"]["domains"] = ["driverlog", "storage"]
     freeze["data"]["strata"] = ["easy"]
-    freeze["data"]["artifacts"] = [
-        {"path": str(accepted_manifest), "sha256": _sha256(accepted_manifest.read_bytes())}
-    ]
+    freeze["data"]["artifacts"] = [{"path": str(accepted_manifest), "sha256": _sha256(accepted_manifest.read_bytes())}]
     return replace(committed, freeze=freeze), accepted_manifest
 
 
@@ -158,6 +171,7 @@ def test_generates_replayable_canonical_fifo_traces_for_every_frozen_stratum(tmp
         accepted_manifest_path=accepted_manifest,
         request=request,
         phase_gate=phase_gate,
+        workers=2,
     )
 
     assert receipt.outcome is StopOutcome.PASS

@@ -34,9 +34,10 @@ from .search_memory import (
 )
 from .search_trace import (
     TraceSegmentLimits,
-    append_search_trace_record,
+    append_trusted_search_trace_record,
     replay_search_trace_segment,
     start_search_trace,
+    verify_search_trace_segment,
 )
 from .validate_instance import load_fixture
 
@@ -240,7 +241,7 @@ def _execute_authorized_episode(
             result = apply_search_transition(before, request, evaluator=_unexpected_evaluator)
             if not isinstance(result, AcceptedTransition):
                 raise SearchEpisodeError("trusted BFS transition was rejected")
-            trace = append_search_trace_record(
+            trace = append_trusted_search_trace_record(
                 trace,
                 memory_before=before,
                 observation=_text_observation(state, before),
@@ -259,7 +260,7 @@ def _execute_authorized_episode(
             result = apply_search_retirement(before, request)
             if not isinstance(result, AcceptedRetirement):
                 raise SearchEpisodeError("trusted BFS retirement was rejected")
-            trace = append_search_trace_record(
+            trace = append_trusted_search_trace_record(
                 trace,
                 memory_before=before,
                 observation=_text_observation(state, before),
@@ -283,6 +284,8 @@ def _execute_authorized_episode(
             }
         )
 
+    trace_bytes = trace.to_bytes()
+    verify_search_trace_segment(trace_bytes, limits=limits)
     goal_reached = bool(memory.frontier and authority.is_goal(memory.state(memory.frontier[0])))
     completed = RunReceipt(
         binding=gate_receipt.binding,
@@ -317,7 +320,7 @@ def _execute_authorized_episode(
         "request.json": _canonical_bytes(request_payload),
         "result.json": _canonical_bytes(result_payload),
         "run-receipt.json": _canonical_bytes(completed.to_dict()),
-        "search-trace.json": trace.to_bytes(),
+        "search-trace.json": trace_bytes,
         "task.json": _canonical_bytes(dict(task)),
     }
     bundle = build_canonical_bundle(artifacts)

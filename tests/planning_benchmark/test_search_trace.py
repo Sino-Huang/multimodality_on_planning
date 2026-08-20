@@ -22,6 +22,7 @@ from examples.planning_benchmark_slice.search_trace import (
     SearchTraceValidationError,
     TraceSegmentLimits,
     append_search_trace_record,
+    append_trusted_search_trace_record,
     replay_search_trace_segment,
     start_search_trace,
     verify_search_trace_segment,
@@ -88,6 +89,39 @@ def test_accepted_transition_round_trips_as_one_atomic_trace_record() -> None:
 
     replayed = replay_search_trace_segment(trace_bytes, authority=authority, limits=limits)
     assert replayed.to_bytes() == result.memory.to_bytes()
+
+
+def test_trusted_runtime_append_is_byte_identical_after_final_validation() -> None:
+    authority = PDDLStateAuthority.from_pddl(DOMAIN, PROBLEM)
+    memory = SearchMemory.initial(authority)
+    request = SearchTransitionRequest(
+        source_state_id=authority.initial_state.state_id,
+        action=GroundedAction("advance", ("a",)),
+        frontier_intent=FrontierIntent(retire_source=True, target_position=0),
+        visit_target=True,
+        evaluate_target=False,
+    )
+
+    def unexpected_evaluator(_state: object) -> StateEvaluation:
+        raise AssertionError("the transition did not request evaluation")
+
+    result = apply_search_transition(memory, request, evaluator=unexpected_evaluator)
+    assert isinstance(result, AcceptedTransition)
+    limits = TraceSegmentLimits(max_records=1, max_bytes=10_000)
+    arguments = {
+        "memory_before": memory,
+        "observation": {"state_id": authority.initial_state.state_id},
+        "rationale": "Advance ready item a toward the goal.",
+        "operation": request,
+        "result": result,
+        "limits": limits,
+    }
+
+    public = append_search_trace_record(start_search_trace(memory, limits=limits), **arguments)
+    trusted = append_trusted_search_trace_record(start_search_trace(memory, limits=limits), **arguments)
+
+    assert trusted.to_bytes() == public.to_bytes()
+    assert verify_search_trace_segment(trusted.to_bytes(), limits=limits) is True
 
 
 def test_frontier_retirement_round_trips_through_public_trace_seam() -> None:

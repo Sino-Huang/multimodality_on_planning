@@ -8,6 +8,7 @@ import json
 import re
 import shutil
 import tempfile
+from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 from typing import Any, cast
 
@@ -52,6 +53,7 @@ def run_frozen_bfs_trace_generation(
     accepted_manifest_path: str | Path,
     request: GenerationRequest,
     phase_gate: BFSPhaseGate,
+    workers: int = 1,
 ) -> GenerationRunReceipt:
     """Generate replay-verified FIFO BFS traces for every frozen stratum."""
 
@@ -60,6 +62,8 @@ def run_frozen_bfs_trace_generation(
             stage="trace_generation",
             contract_id=request.binding.contract_id,
         )
+        if isinstance(workers, bool) or not isinstance(workers, int) or workers <= 0:
+            raise ValueError("BFS trace workers must be a positive integer")
         output_root = Path(request.binding.output_root).resolve()
         if output_root.exists():
             raise FileExistsError(f"BFS trace output root already exists: {output_root}")
@@ -75,7 +79,7 @@ def run_frozen_bfs_trace_generation(
 
         output_root.parent.mkdir(parents=True, exist_ok=True)
         staging_root = Path(tempfile.mkdtemp(prefix=f".{output_root.name}-", dir=output_root.parent))
-        trace_items: list[dict[str, object]] = []
+        jobs: list[dict[str, Any]] = []
         try:
             with tempfile.TemporaryDirectory(prefix="bfs-trace-input-") as fixture_directory:
                 fixture_root = Path(fixture_directory)
@@ -86,20 +90,30 @@ def run_frozen_bfs_trace_generation(
                         difficulty=difficulty,
                     )
                     assert max_expansions is not None
-                    for row in candidates[(domain_id, difficulty)][:minimum]:
-                        trace_items.append(
-                            _generate_trace(
-                                row=row,
-                                difficulty=difficulty,
-                                manifest_path=manifest_path,
-                                manifest_sha256=manifest_sha256,
-                                max_expansions=max_expansions,
-                                request=request,
-                                phase_gate=phase_gate,
-                                fixture_root=fixture_root,
-                                staging_root=staging_root,
-                            )
+                    for row in _select_split_candidates(
+                        candidates[(domain_id, difficulty)],
+                        allowed_splits=phase_gate.freeze["data"]["allowed_splits"],
+                        minimum=minimum,
+                    ):
+                        jobs.append(
+                            {
+                                "row": row,
+                                "difficulty": difficulty,
+                                "manifest_path": manifest_path,
+                                "manifest_sha256": manifest_sha256,
+                                "max_expansions": max_expansions,
+                                "request": request,
+                                "phase_gate": phase_gate,
+                                "fixture_root": fixture_root,
+                                "staging_root": staging_root,
+                            }
                         )
+
+                if workers == 1:
+                    trace_items = [_generate_trace_job(job) for job in jobs]
+                else:
+                    with ProcessPoolExecutor(max_workers=workers) as executor:
+                        trace_items = list(executor.map(_generate_trace_job, jobs))
 
             trace_manifest = {
                 "algorithm": "bfs",
@@ -128,6 +142,10 @@ def run_frozen_bfs_trace_generation(
         }
 
     return run_authorized_generation(request, execute)
+
+
+def _generate_trace_job(arguments: dict[str, Any]) -> dict[str, object]:
+    return _generate_trace(**arguments)
 
 
 def _generate_trace(
@@ -325,6 +343,20 @@ def _minimum_per_stratum(phase_gate: BFSPhaseGate) -> int:
     return value
 
 
+def _select_split_candidates(
+    rows: list[dict[str, Any]],
+    *,
+    allowed_splits: list[str],
+    minimum: int,
+) -> list[dict[str, Any]]:
+    selected: list[dict[str, Any]] = []
+    for split in allowed_splits:
+        split_rows = [row for row in rows if row["split"] == split]
+        if split_rows:
+            selected.extend(split_rows[:minimum])
+    return selected
+
+
 def _artifact(path: Path, output_root: Path) -> dict[str, object]:
     payload = path.read_bytes()
     return {
@@ -335,9 +367,9 @@ def _artifact(path: Path, output_root: Path) -> dict[str, object]:
 
 
 def _canonical_json_bytes(value: object) -> bytes:
-    return (
-        json.dumps(value, allow_nan=False, ensure_ascii=True, separators=(",", ":"), sort_keys=True) + "\n"
-    ).encode("utf-8")
+    return (json.dumps(value, allow_nan=False, ensure_ascii=True, separators=(",", ":"), sort_keys=True) + "\n").encode(
+        "utf-8"
+    )
 
 
 def _write_bytes(path: Path, payload: bytes) -> None:

@@ -110,7 +110,7 @@ def start_search_trace(memory: SearchMemory, *, limits: TraceSegmentLimits) -> S
     return segment
 
 
-def append_search_trace_record(
+def _append_search_trace_record(
     segment: SearchTraceSegment,
     *,
     memory_before: SearchMemory,
@@ -119,12 +119,15 @@ def append_search_trace_record(
     operation: SearchOperation,
     result: SearchTransitionResult,
     limits: TraceSegmentLimits,
+    validate_existing: bool,
+    enforce_size: bool,
 ) -> SearchTraceSegment:
     if not isinstance(segment, SearchTraceSegment):
         raise SearchTraceError("segment must be a SearchTraceSegment")
-    # Validate even internally-constructed input so a forged dataclass cannot
-    # bypass the chain and schema checks.
-    _validated_envelope(segment.to_bytes(), limits=None)
+    if validate_existing:
+        # The public append validates even an internally-constructed input so a
+        # forged dataclass cannot bypass the chain and schema checks.
+        _validated_envelope(segment.to_bytes(), limits=None)
     if len(segment._record_payloads) >= limits.max_records:
         raise SearchTraceError("trace exceeds max_records")
     if memory_before.authority.authority_id != segment.authority_id:
@@ -169,10 +172,57 @@ def append_search_trace_record(
         _record_payloads=(*segment._record_payloads, _canonical_bytes(record)),
         tail_hash=record["record_hash"],
     )
-    candidate_bytes = candidate.to_bytes()
-    if len(candidate_bytes) > limits.max_bytes:
+    if enforce_size and len(candidate.to_bytes()) > limits.max_bytes:
         raise SearchTraceError("trace exceeds max_bytes")
     return candidate
+
+
+def append_search_trace_record(
+    segment: SearchTraceSegment,
+    *,
+    memory_before: SearchMemory,
+    observation: Mapping[str, Any],
+    rationale: str,
+    operation: SearchOperation,
+    result: SearchTransitionResult,
+    limits: TraceSegmentLimits,
+) -> SearchTraceSegment:
+    return _append_search_trace_record(
+        segment,
+        memory_before=memory_before,
+        observation=observation,
+        rationale=rationale,
+        operation=operation,
+        result=result,
+        limits=limits,
+        validate_existing=True,
+        enforce_size=True,
+    )
+
+
+def append_trusted_search_trace_record(
+    segment: SearchTraceSegment,
+    *,
+    memory_before: SearchMemory,
+    observation: Mapping[str, Any],
+    rationale: str,
+    operation: SearchOperation,
+    result: SearchTransitionResult,
+    limits: TraceSegmentLimits,
+) -> SearchTraceSegment:
+    """Append runtime-produced operations; validate the complete trace once at the end."""
+
+    return _append_search_trace_record(
+        segment,
+        memory_before=memory_before,
+        observation=observation,
+        rationale=rationale,
+        operation=operation,
+        result=result,
+        limits=limits,
+        validate_existing=False,
+        enforce_size=False,
+    )
 
 
 def verify_search_trace_segment(payload: bytes, *, limits: TraceSegmentLimits) -> bool:
