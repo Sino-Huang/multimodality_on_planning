@@ -46,14 +46,14 @@ def test_exact_text_bfs_completes_with_fifo_evidence_that_replays(tmp_path: Path
     assert episode["result"]["scientific_completion"] is True
     assert episode["result"]["goal_reached"] is True
 
-    expansions = episode["evidence"]["expansions"]
-    assert expansions
-    for expansion in expansions:
-        assert expansion["expanded_state_id"] == expansion["frontier_before"][0]
-        assert expansion["frontier_after"] == [
-            *expansion["frontier_before"][1:],
-            *expansion["enqueued_state_ids"],
-        ]
+    events = episode["evidence"]["events"]
+    assert events
+    assert {event["expansion_index"] for event in events} == set(range(episode["result"]["expansion_count"]))
+    for event in events:
+        assert event["expanded_state_id"]
+        assert "frontier_before" not in event
+        assert "frontier_after" not in event
+        assert len(event["newly_enqueued_state_ids"]) <= 1
 
     assert replay_search_episode(episode["evidence"], signing_key=SIGNING_KEY) == episode
 

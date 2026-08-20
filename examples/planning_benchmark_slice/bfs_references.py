@@ -4,20 +4,27 @@ from __future__ import annotations
 
 import hashlib
 import json
-import shutil
+import os
 import tempfile
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
-from typing import Any, cast
+from typing import Any, Mapping, cast
 
 from src.data_collect.generate import GenerationRequest, GenerationRunReceipt, run_authorized_generation
 from src.data_collect.governance import AuthorizationReceipt, GateReceipt, StopOutcome
 
 from .bfs_generation import _load_candidates, _normalize_authority_input, _require_frozen_manifest
 from .bfs_phase import BFSPhaseGate
+from .episode_evidence import (
+    episode_evidence_manifest,
+    read_episode_evidence,
+    replay_episode,
+    write_episode_evidence,
+)
 from .search_episode import replay_search_episode, run_search_episode
 
-_REFERENCE_SCHEMA = "bfs_base_and_references_v1"
+_REFERENCE_SCHEMA = "bfs_base_and_references_v2"
+_TASK_SCHEMA = "search_episode_task_v1"
 
 
 def frozen_bfs_development_tasks(
@@ -45,13 +52,14 @@ def run_frozen_bfs_references(
     shard_count: int = 1,
     workers: int = 1,
 ) -> GenerationRunReceipt:
-    """Run complete exact and five-seed random reference episodes on frozen dev."""
+    """Run or resume complete exact and five-seed random episodes on frozen dev."""
 
     def execute() -> dict[str, object]:
         phase_gate.require_run(stage="base_and_references", contract_id=request.binding.contract_id)
         output_root = Path(request.binding.output_root).resolve()
-        if output_root.exists():
-            raise FileExistsError(f"BFS reference output root already exists: {output_root}")
+        manifest_path = output_root / "manifests" / "bfs-references.json"
+        if manifest_path.exists():
+            raise FileExistsError(f"BFS reference shard is already complete: {manifest_path}")
         all_tasks = frozen_bfs_development_tasks(accepted_manifest_path, phase_gate)
         if shard_count <= 0 or shard_index < 0 or shard_index >= shard_count:
             raise ValueError("shard index must be inside a positive shard count")
@@ -60,68 +68,67 @@ def run_frozen_bfs_references(
         if isinstance(workers, bool) or not isinstance(workers, int) or workers <= 0:
             raise ValueError("BFS reference workers must be a positive integer")
         tasks = [row for index, row in enumerate(all_tasks) if index % shard_count == shard_index]
-        output_root.parent.mkdir(parents=True, exist_ok=True)
-        staging = Path(tempfile.mkdtemp(prefix=f".{output_root.name}-", dir=output_root.parent))
-        rows: list[dict[str, Any]] = []
-        try:
-            with tempfile.TemporaryDirectory(prefix="bfs-reference-tasks-") as task_directory:
-                fixture_root = Path(task_directory)
-                jobs: list[dict[str, Any]] = []
-                for row in tasks:
-                    fixture_path = _write_task_fixture(row, fixture_root)
-                    max_expansions = phase_gate.require_run(
-                        stage="base_and_references",
-                        contract_id=request.binding.contract_id,
-                        difficulty=row["bucket"],
-                    )
-                    assert max_expansions is not None
-                    jobs.append(
-                        {
-                            "row": row,
-                            "fixture_path": fixture_path,
-                            "max_expansions": max_expansions,
-                            "request": request,
-                            "staging": staging,
-                            "seeds": tuple(phase_gate.freeze["seeds"]),
-                        }
-                    )
-                if workers == 1:
-                    task_rows = [_run_reference_task(job) for job in jobs]
-                else:
-                    with ProcessPoolExecutor(max_workers=workers) as executor:
-                        task_rows = list(executor.map(_run_reference_task, jobs))
-                rows = [row for task_row in task_rows for row in task_row]
+        output_root.mkdir(parents=True, exist_ok=True)
 
-            exact_rows = [row for row in rows if row["arm"] == "exact_classical"]
-            exact_success_rate = sum(bool(row["result"]["goal_reached"]) for row in exact_rows) / len(exact_rows)
-            threshold = phase_gate.freeze["thresholds"]["exact_reference_invariant_valid_success"]
-            gate_outcome = StopOutcome.PASS if exact_success_rate >= threshold else StopOutcome.VALID_STOP
-            manifest = {
-                "counts": {
-                    "exact_classical": len(exact_rows),
-                    "random_valid": len(rows) - len(exact_rows),
-                    "tasks": len(tasks),
-                },
-                "exact_reference_invariant_valid_success": exact_success_rate,
-                "gate_outcome": gate_outcome.value,
-                "phase_receipt": phase_gate.receipt(stage="base_and_references"),
-                "references": rows,
-                "schema_version": _REFERENCE_SCHEMA,
-                "shard_count": shard_count,
-                "shard_index": shard_index,
-                "threshold": threshold,
-            }
-            manifest_path = staging / "manifests" / "bfs-references.json"
-            _write_bytes(manifest_path, _canonical_bytes(manifest))
-            manifest_sha256 = _sha256(manifest_path.read_bytes())
-            staging.replace(output_root)
-        except Exception:
-            shutil.rmtree(staging, ignore_errors=True)
-            raise
+        with tempfile.TemporaryDirectory(prefix="bfs-reference-tasks-") as task_directory:
+            fixture_root = Path(task_directory)
+            jobs: list[dict[str, Any]] = []
+            for row in tasks:
+                fixture_path = _write_task_fixture(row, fixture_root)
+                max_expansions = phase_gate.require_run(
+                    stage="base_and_references",
+                    contract_id=request.binding.contract_id,
+                    difficulty=row["bucket"],
+                )
+                assert max_expansions is not None
+                jobs.append(
+                    {
+                        "row": row,
+                        "fixture_path": fixture_path,
+                        "max_expansions": max_expansions,
+                        "request": request,
+                        "output_root": output_root,
+                        "seeds": tuple(phase_gate.freeze["seeds"]),
+                    }
+                )
+            if workers == 1:
+                task_rows = [_run_reference_task(job) for job in jobs]
+            else:
+                with ProcessPoolExecutor(max_workers=workers) as executor:
+                    task_rows = list(executor.map(_run_reference_task, jobs))
+        rows = [row for task_row in task_rows for row in task_row]
+
+        expected_paths = {output_root / row["evidence"]["path"] for row in rows}
+        episode_root = output_root / "episodes"
+        actual_paths = set(episode_root.rglob("*.jsonl.gz")) if episode_root.exists() else set()
+        if actual_paths != expected_paths:
+            raise ValueError("reference episode artifacts do not form the exact frozen product")
+
+        exact_rows = [row for row in rows if row["arm"] == "exact_classical"]
+        exact_success_rate = sum(bool(row["result"]["goal_reached"]) for row in exact_rows) / len(exact_rows)
+        threshold = phase_gate.freeze["thresholds"]["exact_reference_invariant_valid_success"]
+        gate_outcome = StopOutcome.PASS if exact_success_rate >= threshold else StopOutcome.VALID_STOP
+        manifest = {
+            "counts": {
+                "exact_classical": len(exact_rows),
+                "random_valid": len(rows) - len(exact_rows),
+                "tasks": len(tasks),
+            },
+            "exact_reference_invariant_valid_success": exact_success_rate,
+            "gate_outcome": gate_outcome.value,
+            "phase_receipt": phase_gate.receipt(stage="base_and_references"),
+            "references": rows,
+            "schema_version": _REFERENCE_SCHEMA,
+            "shard_count": shard_count,
+            "shard_index": shard_index,
+            "threshold": threshold,
+        }
+        _atomic_write_bytes(manifest_path, _canonical_bytes(manifest))
+        manifest_sha256 = _sha256(manifest_path.read_bytes())
         return {
             "exact_reference_invariant_valid_success": exact_success_rate,
             "gate_outcome": gate_outcome.value,
-            "manifest_path": str(output_root / "manifests" / "bfs-references.json"),
+            "manifest_path": str(manifest_path),
             "manifest_sha256": manifest_sha256,
             "reference_count": len(rows),
             "task_count": len(tasks),
@@ -136,24 +143,11 @@ def _run_reference_task(arguments: dict[str, Any]) -> list[dict[str, Any]]:
         "fixture_path": arguments["fixture_path"],
         "max_expansions": arguments["max_expansions"],
         "request": arguments["request"],
-        "staging": arguments["staging"],
+        "output_root": arguments["output_root"],
     }
-    rows = [
-        _run_reference_episode(
-            arm="exact_classical",
-            policy="exact",
-            seed=None,
-            **common,
-        )
-    ]
+    rows = [_run_reference_episode(arm="exact_classical", policy="exact", seed=None, **common)]
     rows.extend(
-        _run_reference_episode(
-            arm="random_valid",
-            policy="random",
-            seed=seed,
-            **common,
-        )
-        for seed in arguments["seeds"]
+        _run_reference_episode(arm="random_valid", policy="random", seed=seed, **common) for seed in arguments["seeds"]
     )
     return rows
 
@@ -192,34 +186,93 @@ def _run_reference_episode(
     fixture_path: Path,
     max_expansions: int,
     request: GenerationRequest,
-    staging: Path,
+    output_root: Path,
 ) -> dict[str, Any]:
-    episode = run_search_episode(
-        task_path=fixture_path,
-        algorithm="bfs",
-        modality="text-state",
-        policy=policy,
-        max_expansions=max_expansions,
-        gate_receipt=cast(GateReceipt, request.gate_receipt),
-        authorization_receipt=cast(AuthorizationReceipt | None, request.authorization_receipt),
-        signing_key=request.signing_key,
-        random_seed=seed,
-    )
-    if replay_search_episode(episode["evidence"], signing_key=request.signing_key) != episode:
-        raise ValueError(f"BFS reference replay differs: {row['instance_id']} {arm} {seed}")
     suffix = "exact" if seed is None else f"seed-{seed}"
-    relative_path = Path("episodes") / arm / str(row["instance_id"]) / f"{suffix}.json"
-    evidence_path = staging / relative_path
-    payload = _canonical_bytes(episode)
-    _write_bytes(evidence_path, payload)
+    relative_path = Path("episodes") / arm / str(row["instance_id"]) / f"{suffix}.jsonl.gz"
+    evidence_path = output_root / relative_path
+    if evidence_path.exists():
+        episode = read_episode_evidence(evidence_path)
+        replay_episode(episode["evidence"], signing_key=request.signing_key)
+        _verify_resumed_episode(
+            episode,
+            arm=arm,
+            policy=policy,
+            seed=seed,
+            row=row,
+            fixture_path=fixture_path,
+            max_expansions=max_expansions,
+            request=request,
+        )
+        evidence_manifest = episode_evidence_manifest(evidence_path, episode=episode)
+    else:
+        episode = run_search_episode(
+            task_path=fixture_path,
+            algorithm="bfs",
+            modality="text-state",
+            policy=policy,
+            max_expansions=max_expansions,
+            gate_receipt=cast(GateReceipt, request.gate_receipt),
+            authorization_receipt=cast(AuthorizationReceipt | None, request.authorization_receipt),
+            signing_key=request.signing_key,
+            random_seed=seed,
+        )
+        if replay_search_episode(episode["evidence"], signing_key=request.signing_key) != episode:
+            raise ValueError(f"BFS reference replay differs: {row['instance_id']} {arm} {seed}")
+        evidence_manifest = write_episode_evidence(evidence_path, episode)
     return {
         "arm": arm,
         "difficulty": row["bucket"],
         "domain_id": row["domain_id"],
-        "evidence": {"path": relative_path.as_posix(), "sha256": _sha256(payload), "size_bytes": len(payload)},
+        "evidence": {"path": relative_path.as_posix(), **evidence_manifest},
         "instance_id": row["instance_id"],
-        "result": episode["result"],
+        "result": _result_summary(episode["result"]),
         "seed": seed,
+    }
+
+
+def _verify_resumed_episode(
+    episode: Mapping[str, Any],
+    *,
+    arm: str,
+    policy: str,
+    seed: int | None,
+    row: Mapping[str, Any],
+    fixture_path: Path,
+    max_expansions: int,
+    request: GenerationRequest,
+) -> None:
+    evidence = episode["evidence"]
+    header = evidence["header"]
+    fixture = json.loads(fixture_path.read_bytes())
+    expected_task = {**fixture, "schema_version": _TASK_SCHEMA}
+    expected_request = {
+        "algorithm": "bfs",
+        "max_expansions": max_expansions,
+        "modality": "text-state",
+        "policy": policy,
+        "schema_version": "search_episode_request_v1",
+    }
+    if seed is not None:
+        expected_request["random_seed"] = seed
+    binding = header["gate_receipt"]["binding"]
+    current_binding = request.binding.to_dict()
+    if (
+        header["task"] != expected_task
+        or header["request"] != expected_request
+        or binding["contract_id"] != current_binding["contract_id"]
+        or binding["output_root"] != current_binding["output_root"]
+        or episode["result"] != evidence["result"]
+        or arm not in {"exact_classical", "random_valid"}
+        or row["instance_id"] != expected_task["instance_id"]
+    ):
+        raise ValueError(f"existing reference episode does not match frozen inputs: {row['instance_id']} {arm} {seed}")
+
+
+def _result_summary(result: Mapping[str, Any]) -> dict[str, Any]:
+    return {
+        field: result[field]
+        for field in ("completion", "expansion_count", "goal_reached", "outcome", "scientific_completion")
     }
 
 
@@ -232,6 +285,21 @@ def _canonical_bytes(value: object) -> bytes:
 def _write_bytes(path: Path, payload: bytes) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_bytes(payload)
+
+
+def _atomic_write_bytes(path: Path, payload: bytes) -> None:
+    if path.exists():
+        raise FileExistsError(f"artifact already exists: {path}")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, temporary_name = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
+    os.close(descriptor)
+    temporary = Path(temporary_name)
+    try:
+        temporary.write_bytes(payload)
+        temporary.replace(path)
+    except Exception:
+        temporary.unlink(missing_ok=True)
+        raise
 
 
 def _sha256(payload: bytes) -> str:

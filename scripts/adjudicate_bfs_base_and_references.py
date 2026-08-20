@@ -13,6 +13,12 @@ from typing import Any
 
 from examples.planning_benchmark_slice.bfs_phase import load_bfs_phase_gate
 from examples.planning_benchmark_slice.bfs_references import frozen_bfs_development_tasks
+from examples.planning_benchmark_slice.episode_evidence import (
+    EVIDENCE_SCHEMA_VERSION,
+    episode_evidence_manifest,
+    read_episode_evidence,
+    replay_episode,
+)
 from src.data_collect.governance import (
     GateReceipt,
     ReceiptBinding,
@@ -25,6 +31,7 @@ _FREEZE = _REPO_ROOT / "configs" / "experiments" / "bfs_phase_freeze_v1.json"
 _AUTHORIZATION = _REPO_ROOT / "configs" / "experiments" / "bfs_phase_authorization_v1.json"
 _MANIFEST = _REPO_ROOT / "data" / "curriculum_pddl" / "accepted_manifest.jsonl"
 _SIGNING_KEY = b"issue-52-54-bfs-adjudication-v1"
+_REFERENCE_SIGNING_KEY = b"issue-52-bfs-reference-arms-v1"
 
 
 def main() -> int:
@@ -56,8 +63,10 @@ def main() -> int:
     if actual_references != expected_references or len(reference_records) != len(expected_references):
         raise ValueError("reference manifests do not form the complete frozen arm-by-task-by-seed product")
 
-    for root, row in [*base_records, *reference_records]:
+    for root, row in base_records:
         _verify_evidence(root, row)
+    for root, row in reference_records:
+        _verify_evidence(root, row, signing_key=_REFERENCE_SIGNING_KEY)
 
     exact_rows = [row for _root, row in reference_records if row["arm"] == "exact_classical"]
     exact_success = sum(bool(row["result"]["goal_reached"]) for row in exact_rows) / len(exact_rows)
@@ -114,7 +123,7 @@ def _reference_records(manifest_paths: list[Path]) -> list[tuple[Path, dict[str,
     for path in manifest_paths:
         manifest_path = path.expanduser().resolve()
         manifest = _json_object(manifest_path)
-        if manifest.get("schema_version") != "bfs_base_and_references_v1":
+        if manifest.get("schema_version") not in {"bfs_base_and_references_v1", "bfs_base_and_references_v2"}:
             raise ValueError(f"unexpected reference manifest schema: {manifest_path}")
         current_count = int(manifest["shard_count"])
         shard_count = current_count if shard_count is None else shard_count
@@ -130,17 +139,40 @@ def _reference_records(manifest_paths: list[Path]) -> list[tuple[Path, dict[str,
     return records
 
 
-def _verify_evidence(root: Path, row: dict[str, Any]) -> None:
+def _verify_evidence(
+    root: Path,
+    row: dict[str, Any],
+    *,
+    signing_key: bytes | str | None = None,
+) -> None:
     evidence = _mapping(row.get("evidence"), "evidence artifact")
     relative = Path(str(evidence.get("path")))
     if relative.is_absolute() or ".." in relative.parts:
         raise ValueError("evidence path escapes its run root")
-    payload = (root / relative).read_bytes()
+    path = root / relative
+    if evidence.get("schema_version") == EVIDENCE_SCHEMA_VERSION:
+        if signing_key is None:
+            raise ValueError("v2 evidence verification requires its governed signing key")
+        episode = read_episode_evidence(path)
+        replay_episode(episode["evidence"], signing_key=signing_key)
+        actual_manifest = {"path": relative.as_posix(), **episode_evidence_manifest(path, episode=episode)}
+        if actual_manifest != evidence or _result_summary(episode["result"]) != row.get("result"):
+            raise ValueError(f"evidence artifact differs from its manifest: {path}")
+        return
+
+    payload = path.read_bytes()
     if len(payload) != evidence.get("size_bytes") or hashlib.sha256(payload).hexdigest() != evidence.get("sha256"):
-        raise ValueError(f"evidence artifact differs from its manifest: {root / relative}")
+        raise ValueError(f"evidence artifact differs from its manifest: {path}")
     episode = json.loads(payload)
     if episode.get("result") != row.get("result"):
-        raise ValueError(f"evidence result differs from its manifest: {root / relative}")
+        raise ValueError(f"evidence result differs from its manifest: {path}")
+
+
+def _result_summary(result: dict[str, Any]) -> dict[str, Any]:
+    return {
+        field: result[field]
+        for field in ("completion", "expansion_count", "goal_reached", "outcome", "scientific_completion")
+    }
 
 
 def _base_metrics(

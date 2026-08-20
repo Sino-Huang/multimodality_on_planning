@@ -15,11 +15,16 @@ from src.data_collect.governance import (
     StopOutcome,
     evaluate_execution_permission,
 )
-from src.data_collect.replay import (
-    build_canonical_bundle,
-    parse_canonical_bundle,
-)
+from src.data_collect.replay import parse_canonical_bundle
 
+from .episode_evidence import (
+    EVIDENCE_SCHEMA_VERSION,
+    EpisodeEvidenceError,
+    memory_sha256,
+    replay_episode,
+    serialize_operation,
+    serialize_state,
+)
 from .pddl_state import CanonicalState, PDDLStateAuthority
 from .search_memory import (
     AcceptedRetirement,
@@ -34,14 +39,11 @@ from .search_memory import (
 )
 from .search_trace import (
     TraceSegmentLimits,
-    append_trusted_search_trace_record,
     replay_search_trace_segment,
-    start_search_trace,
-    verify_search_trace_segment,
 )
 from .validate_instance import load_fixture
 
-EVIDENCE_SCHEMA_VERSION = "search_episode_evidence_v1"
+V1_EVIDENCE_SCHEMA_VERSION = "search_episode_evidence_v1"
 TASK_SCHEMA_VERSION = "search_episode_task_v1"
 REQUEST_SCHEMA_VERSION = "search_episode_request_v1"
 _BUNDLE_ARTIFACTS = {
@@ -114,6 +116,15 @@ def run_search_episode(
 def replay_search_episode(evidence: Mapping[str, Any], *, signing_key: bytes | str) -> dict[str, Any]:
     """Verify and deterministically reconstruct a complete public episode."""
 
+    if isinstance(evidence, Mapping) and evidence.get("schema_version") == EVIDENCE_SCHEMA_VERSION:
+        if set(evidence) != {"events", "header", "result", "schema_version", "states"}:
+            raise SearchEpisodeError("evidence has invalid fields")
+        try:
+            replay_episode(evidence, signing_key=signing_key)
+        except EpisodeEvidenceError as error:
+            raise SearchEpisodeError(str(error)) from error
+        return {"evidence": dict(evidence), "result": evidence["result"]}
+
     if not isinstance(evidence, Mapping) or set(evidence) != {
         "bundle",
         "bundle_encoding",
@@ -121,7 +132,7 @@ def replay_search_episode(evidence: Mapping[str, Any], *, signing_key: bytes | s
         "schema_version",
     }:
         raise SearchEpisodeError("evidence has invalid fields")
-    if evidence["schema_version"] != EVIDENCE_SCHEMA_VERSION or evidence["bundle_encoding"] != "base64":
+    if evidence["schema_version"] != V1_EVIDENCE_SCHEMA_VERSION or evidence["bundle_encoding"] != "base64":
         raise SearchEpisodeError("evidence schema or encoding is invalid")
     encoded_bundle = evidence["bundle"]
     if not isinstance(encoded_bundle, str):
@@ -185,10 +196,58 @@ def replay_search_episode(evidence: Mapping[str, Any], *, signing_key: bytes | s
         authorization_receipt=authorization,
         signing_key=signing_key,
     )
-    regenerated_bundle = base64.b64decode(regenerated["evidence"]["bundle"], validate=True)
-    if regenerated_bundle != bundle or regenerated["result"] != bundled_result:
+    _verify_v1_regeneration(regenerated, artifacts, bundled_expansions, bundled_result)
+    return {"evidence": dict(evidence), "result": bundled_result}
+
+
+def _verify_v1_regeneration(
+    regenerated: Mapping[str, Any],
+    artifacts: Mapping[str, bytes],
+    bundled_expansions: Any,
+    bundled_result: Any,
+) -> None:
+    if regenerated["result"] != bundled_result or not isinstance(bundled_expansions, list):
         raise SearchEpisodeError("deterministic episode replay differs from bundled evidence")
-    return regenerated
+    trace = _load_canonical_json(artifacts["search-trace.json"], "search trace")
+    trace_records = trace.get("records") if isinstance(trace, dict) else None
+    if not isinstance(trace_records, list):
+        raise SearchEpisodeError("bundled search trace is malformed")
+    regenerated_events = regenerated["evidence"]["events"]
+    if len(regenerated_events) != len(trace_records):
+        raise SearchEpisodeError("deterministic episode replay differs from bundled evidence")
+    for regenerated_event, trace_record in zip(regenerated_events, trace_records, strict=True):
+        if (
+            regenerated_event["operation"] != trace_record["operation"]
+            or regenerated_event["rationale"] != trace_record["rationale"]
+            or regenerated_event["memory_sha256"] != trace_record["result"]["memory_sha256"]
+        ):
+            raise SearchEpisodeError("deterministic operation replay differs from bundled evidence")
+
+    task = _load_canonical_json(artifacts["task.json"], "task")
+    frontier = [_authority_from_task(task).initial_state.state_id]
+    for expansion_index, expansion in enumerate(bundled_expansions):
+        if not isinstance(expansion, dict) or set(expansion) != {
+            "expanded_state_id",
+            "enqueued_state_ids",
+            "frontier_after",
+            "frontier_before",
+        }:
+            raise SearchEpisodeError("bundled expansion evidence is malformed")
+        regenerated_expansion = [event for event in regenerated_events if event["expansion_index"] == expansion_index]
+        enqueued = [state_id for event in regenerated_expansion for state_id in event["newly_enqueued_state_ids"]]
+        expected_after = [*frontier[1:], *enqueued]
+        if (
+            not regenerated_expansion
+            or expansion["frontier_before"] != frontier
+            or expansion["expanded_state_id"] != frontier[0]
+            or regenerated_expansion[0]["expanded_state_id"] != expansion["expanded_state_id"]
+            or expansion["enqueued_state_ids"] != enqueued
+            or expansion["frontier_after"] != expected_after
+        ):
+            raise SearchEpisodeError("deterministic expansion replay differs from bundled evidence")
+        frontier = expected_after
+    if len(bundled_expansions) != bundled_result.get("expansion_count"):
+        raise SearchEpisodeError("bundled expansion count differs from result")
 
 
 def _execute_authorized_episode(
@@ -207,11 +266,12 @@ def _execute_authorized_episode(
     authority = _authority_from_task(task)
     rng = random.Random(random_seed) if policy == "random" else None
     memory = SearchMemory.initial(authority)
-    limits = _trace_limits(authority, max_expansions)
-    trace = start_search_trace(memory, limits=limits)
-    expansions: list[dict[str, Any]] = []
+    initial_memory_sha256 = memory_sha256(memory)
+    states = {authority.initial_state.state_id: serialize_state(authority.initial_state)}
+    events: list[dict[str, Any]] = []
+    expansion_count = 0
 
-    while memory.frontier and len(expansions) < max_expansions:
+    while memory.frontier and expansion_count < max_expansions:
         frontier_before = list(memory.frontier)
         expanded_state_id = frontier_before[0]
         state = memory.state(expanded_state_id)
@@ -237,55 +297,51 @@ def _execute_authorized_episode(
                 visit_target=True,
                 evaluate_target=False,
             )
-            before = memory
-            result = apply_search_transition(before, request, evaluator=_unexpected_evaluator)
+            result = apply_search_transition(memory, request, evaluator=_unexpected_evaluator)
             if not isinstance(result, AcceptedTransition):
                 raise SearchEpisodeError("trusted BFS transition was rejected")
-            trace = append_trusted_search_trace_record(
-                trace,
-                memory_before=before,
-                observation=_text_observation(state, before),
-                rationale="exact_bfs_canonical_successor" if policy == "exact" else "random_bfs_seeded_successor",
-                operation=request,
-                result=result,
-                limits=limits,
-            )
             memory = result.memory
-            enqueued_state_ids.append(result.transition.target_state.state_id)
+            target = result.transition.target_state
+            states[target.state_id] = serialize_state(target)
+            enqueued_state_ids.append(target.state_id)
+            events.append(
+                {
+                    "expanded_state_id": expanded_state_id,
+                    "expansion_index": expansion_count,
+                    "index": len(events),
+                    "memory_sha256": memory_sha256(memory),
+                    "newly_enqueued_state_ids": [target.state_id],
+                    "operation": serialize_operation(request),
+                    "rationale": (
+                        "exact_bfs_canonical_successor" if policy == "exact" else "random_bfs_seeded_successor"
+                    ),
+                }
+            )
             retire_source = False
 
         if retire_source:
             request = SearchRetireRequest(expanded_state_id)
-            before = memory
-            result = apply_search_retirement(before, request)
+            result = apply_search_retirement(memory, request)
             if not isinstance(result, AcceptedRetirement):
                 raise SearchEpisodeError("trusted BFS retirement was rejected")
-            trace = append_trusted_search_trace_record(
-                trace,
-                memory_before=before,
-                observation=_text_observation(state, before),
-                rationale=f"{policy}_bfs_retire_exhausted_frontier_head",
-                operation=request,
-                result=result,
-                limits=limits,
-            )
             memory = result.memory
+            events.append(
+                {
+                    "expanded_state_id": expanded_state_id,
+                    "expansion_index": expansion_count,
+                    "index": len(events),
+                    "memory_sha256": memory_sha256(memory),
+                    "newly_enqueued_state_ids": [],
+                    "operation": serialize_operation(request),
+                    "rationale": f"{policy}_bfs_retire_exhausted_frontier_head",
+                }
+            )
 
-        frontier_after = list(memory.frontier)
         expected_frontier = [*frontier_before[1:], *enqueued_state_ids]
-        if frontier_after != expected_frontier:
+        if list(memory.frontier) != expected_frontier:
             raise SearchEpisodeError("trusted BFS violated FIFO frontier discipline")
-        expansions.append(
-            {
-                "expanded_state_id": expanded_state_id,
-                "frontier_before": frontier_before,
-                "enqueued_state_ids": enqueued_state_ids,
-                "frontier_after": frontier_after,
-            }
-        )
+        expansion_count += 1
 
-    trace_bytes = trace.to_bytes()
-    verify_search_trace_segment(trace_bytes, limits=limits)
     goal_reached = bool(memory.frontier and authority.is_goal(memory.state(memory.frontier[0])))
     completed = RunReceipt(
         binding=gate_receipt.binding,
@@ -298,7 +354,7 @@ def _execute_authorized_episode(
     ).signed(signing_key)
     result_payload = {
         "completion": "completed",
-        "expansion_count": len(expansions),
+        "expansion_count": expansion_count,
         "goal_reached": goal_reached,
         "outcome": StopOutcome.PASS.value,
         "run_receipt": completed.to_dict(),
@@ -313,22 +369,19 @@ def _execute_authorized_episode(
     }
     if policy == "random":
         request_payload["random_seed"] = random_seed
-    artifacts = {
-        "authorization-receipt.json": _canonical_bytes(authorization_receipt.to_dict()),
-        "expansions.json": _canonical_bytes(expansions),
-        "gate-receipt.json": _canonical_bytes(gate_receipt.to_dict()),
-        "request.json": _canonical_bytes(request_payload),
-        "result.json": _canonical_bytes(result_payload),
-        "run-receipt.json": _canonical_bytes(completed.to_dict()),
-        "search-trace.json": trace_bytes,
-        "task.json": _canonical_bytes(dict(task)),
-    }
-    bundle = build_canonical_bundle(artifacts)
     evidence = {
-        "bundle": base64.b64encode(bundle).decode("ascii"),
-        "bundle_encoding": "base64",
-        "expansions": expansions,
+        "events": events,
+        "header": {
+            "authorization_receipt": authorization_receipt.to_dict(),
+            "authority_id": authority.authority_id,
+            "gate_receipt": gate_receipt.to_dict(),
+            "initial_memory_sha256": initial_memory_sha256,
+            "request": request_payload,
+            "task": dict(task),
+        },
+        "result": result_payload,
         "schema_version": EVIDENCE_SCHEMA_VERSION,
+        "states": states,
     }
     return {"result": result_payload, "evidence": evidence}
 

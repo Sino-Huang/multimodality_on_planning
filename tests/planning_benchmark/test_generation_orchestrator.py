@@ -7,6 +7,7 @@ from typing import Protocol, TypedDict, cast
 
 import pytest
 
+from examples.planning_benchmark_slice.episode_evidence import read_episode_evidence
 from examples.planning_benchmark_slice.generation_orchestrator import (
     regenerate_corpus_fragment,
     run_bfs_generation_smoke,
@@ -85,7 +86,7 @@ def test_bfs_generation_smoke_persists_a_regenerable_corpus_fragment(tmp_path: P
     assert artifact_manifest_path.is_file()
     assert corpus_manifest_path.is_file()
     assert episode_evidence_path.is_file()
-    assert isinstance(json.loads(episode_evidence_path.read_text(encoding="utf-8")), dict)
+    assert isinstance(read_episode_evidence(episode_evidence_path), dict)
 
     corpus_fragment = corpus_fragment_path.read_bytes()
     assert corpus_fragment
@@ -99,13 +100,16 @@ def test_bfs_generation_smoke_persists_a_regenerable_corpus_fragment(tmp_path: P
     assert len(corpus_rows) == len(atomic_segment_paths)
     assert all(corpus_rows)
     for row in corpus_rows:
-        assert json.dumps(
-            json.loads(row),
-            allow_nan=False,
-            ensure_ascii=True,
-            separators=(",", ":"),
-            sort_keys=True,
-        ).encode("utf-8") == row
+        assert (
+            json.dumps(
+                json.loads(row),
+                allow_nan=False,
+                ensure_ascii=True,
+                separators=(",", ":"),
+                sort_keys=True,
+            ).encode("utf-8")
+            == row
+        )
 
     artifact_manifest = artifact_manifest_path.read_bytes()
     assert execution_result["artifact_manifest_sha256"] == hashlib.sha256(artifact_manifest).hexdigest()

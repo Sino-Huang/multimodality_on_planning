@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import base64
 import hashlib
 import json
 import shutil
@@ -12,13 +11,12 @@ from pathlib import Path
 from typing import Any, Mapping, cast
 
 from src.data_collect.generate import GenerationRequest, GenerationRunReceipt, run_authorized_generation
-from src.data_collect.replay import parse_canonical_bundle
 from src.data_collect.splits import split_assignment_id, whole_instance_identity
 
 from .bfs_phase import BFSPhaseGate
+from .episode_evidence import read_episode_artifacts
 from .pddl_state import PDDLStateAuthority
 from .search_context import materialize_search_trace
-from .search_episode import replay_search_episode
 from .search_trace import TraceSegmentLimits
 
 _RELEASE_MANIFEST_PATH = Path("manifests/bfs-text-corpus.json")
@@ -131,15 +129,12 @@ def _build_release(
         _validate_authoritative_split(item, split_authority)
         if split == phase_gate.freeze["data"]["held_out_split"]:
             held_out_instances += 1
-        evidence_bytes = _artifact_bytes(trace_root, cast(Mapping[str, Any], item["evidence"]))
+        evidence_path = _artifact_path(trace_root, cast(Mapping[str, Any], item["evidence"]))
         persisted_trace = _artifact_bytes(trace_root, cast(Mapping[str, Any], item["search_trace"]))
-        evidence = _json_object(evidence_bytes, "trace evidence")
-        episode = replay_search_episode(evidence, signing_key=signing_key)
-        bundle = base64.b64decode(episode["evidence"]["bundle"].encode("ascii"), validate=True)
-        bundle_artifacts = parse_canonical_bundle(bundle)
-        if bundle_artifacts["search-trace.json"] != persisted_trace:
-            raise ValueError("released search trace differs from its replayed Evidence Bundle")
-        task = _json_object(bundle_artifacts["task.json"], "formal task")
+        _episode, task_bytes, replayed_trace = read_episode_artifacts(evidence_path, signing_key=signing_key)
+        if replayed_trace != persisted_trace:
+            raise ValueError("released search trace differs from replayed episode evidence")
+        task = _json_object(task_bytes, "formal task")
         if task.get("instance_id") != item.get("instance_id"):
             raise ValueError("trace manifest instance differs from its formal task")
 
@@ -381,7 +376,7 @@ def _record_sort_key(row: Mapping[str, Any]) -> tuple[int, str, str, int]:
     )
 
 
-def _artifact_bytes(root: Path, artifact: Mapping[str, Any]) -> bytes:
+def _artifact_path(root: Path, artifact: Mapping[str, Any]) -> Path:
     relative_path = Path(_required_text(artifact, "path", "trace artifact"))
     if relative_path.is_absolute() or ".." in relative_path.parts:
         raise ValueError("trace artifact path must stay inside the trace root")
@@ -392,7 +387,11 @@ def _artifact_bytes(root: Path, artifact: Mapping[str, Any]) -> bytes:
     size = artifact.get("size_bytes")
     if isinstance(size, bool) or not isinstance(size, int) or size != len(payload):
         raise ValueError(f"trace artifact size mismatch: {relative_path}")
-    return payload
+    return path
+
+
+def _artifact_bytes(root: Path, artifact: Mapping[str, Any]) -> bytes:
+    return _artifact_path(root, artifact).read_bytes()
 
 
 def _source_instance_identity(item: Mapping[str, Any]) -> str:
@@ -403,10 +402,9 @@ def _source_instance_identity(item: Mapping[str, Any]) -> str:
     problem_path = Path(_required_text(source, "problem_path", "trace source"))
     domain_bytes = domain_path.read_bytes()
     problem_bytes = problem_path.read_bytes()
-    if (
-        _sha256(domain_bytes) != _required_text(source, "domain_sha256", "trace source")
-        or _sha256(problem_bytes) != _required_text(source, "problem_sha256", "trace source")
-    ):
+    if _sha256(domain_bytes) != _required_text(source, "domain_sha256", "trace source") or _sha256(
+        problem_bytes
+    ) != _required_text(source, "problem_sha256", "trace source"):
         raise ValueError("trace source PDDL differs from its retained provenance")
     return whole_instance_identity(domain_bytes, problem_bytes)
 

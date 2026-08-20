@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import base64
 import hashlib
 import json
 import shutil
@@ -12,11 +11,16 @@ from typing import Any, cast
 
 from src.data_collect.generate import GenerationRequest, GenerationRunReceipt, run_authorized_generation
 from src.data_collect.governance import AuthorizationReceipt, GateReceipt, StopOutcome
-from src.data_collect.replay import parse_canonical_bundle
 
+from .episode_evidence import (
+    EpisodeEvidenceError,
+    materialize_episode_artifacts,
+    replay_episode_evidence,
+    write_episode_evidence,
+)
 from .pddl_state import PDDLStateAuthority
 from .search_context import materialize_search_trace
-from .search_episode import replay_search_episode, run_search_episode
+from .search_episode import SearchEpisodeError, replay_search_episode, run_search_episode
 from .search_trace import TraceSegmentLimits
 
 _FORMAL_TASK_PATH = Path("formal-tasks/task.json")
@@ -25,7 +29,7 @@ _ATOMIC_SEGMENTS_DIRECTORY = Path("atomic-segments")
 _CORPUS_FRAGMENT_PATH = Path("corpus/corpus-fragment.jsonl")
 _CORPUS_MANIFEST_PATH = Path("manifests/corpus-manifest.json")
 _ARTIFACT_MANIFEST_PATH = Path("manifests/artifact-manifest.json")
-_EPISODE_EVIDENCE_PATH = Path("evidence/search-episode.json")
+_EPISODE_EVIDENCE_PATH = Path("evidence/search-episode.jsonl.gz")
 _CORPUS_MANIFEST_SCHEMA_VERSION = "planning_benchmark_corpus_v1"
 _ARTIFACT_MANIFEST_SCHEMA_VERSION = "planning_benchmark_artifact_manifest_v1"
 
@@ -66,19 +70,19 @@ def run_bfs_generation_smoke(
             ):
                 raise ValueError("BFS episode did not complete a goal-reaching PASS")
             evidence = episode["evidence"]
-            if not isinstance(evidence, dict) or not isinstance(evidence.get("bundle"), str):
-                raise ValueError("authorized search episode did not produce an Evidence Bundle")
+            if not isinstance(evidence, dict):
+                raise ValueError("authorized search episode did not produce episode evidence")
             replayed_episode = replay_search_episode(evidence, signing_key=request.signing_key)
             if replayed_episode != episode:
                 raise ValueError("replayed BFS episode differs from its Evidence Bundle")
-            formal_task, expert_trace = _bundle_artifacts(replayed_episode)
+            formal_task, expert_trace = _bundle_artifacts(replayed_episode, signing_key=request.signing_key)
 
             formal_task_path = staging_root / _FORMAL_TASK_PATH
             expert_trace_path = staging_root / _EXPERT_TRACE_PATH
             episode_evidence_path = staging_root / _EPISODE_EVIDENCE_PATH
             _write_bytes(formal_task_path, formal_task)
             _write_bytes(expert_trace_path, expert_trace)
-            _write_bytes(episode_evidence_path, _canonical_json_bytes(evidence))
+            write_episode_evidence(episode_evidence_path, episode)
 
             atomic_segments, corpus_fragment = _build_corpus_fragment(formal_task, expert_trace)
             atomic_segment_paths: list[Path] = []
@@ -92,9 +96,7 @@ def run_bfs_generation_smoke(
 
             corpus_manifest_path = staging_root / _CORPUS_MANIFEST_PATH
             corpus_manifest = {
-                "atomic_segments": [
-                    _path_digest(path, staging_root) for path in atomic_segment_paths
-                ],
+                "atomic_segments": [_path_digest(path, staging_root) for path in atomic_segment_paths],
                 "binding": {
                     "attempt_id": request.binding.attempt_id,
                     "contract_id": request.binding.contract_id,
@@ -145,25 +147,23 @@ def run_bfs_generation_smoke(
 
 
 def regenerate_corpus_fragment(output_root: str | Path, *, signing_key: bytes | str) -> bytes:
-    """Replay persisted Evidence Bundle JSON and rebuild its corpus fragment."""
+    """Replay persisted episode evidence and rebuild its corpus fragment."""
 
     root = Path(output_root)
-    evidence: Any = json.loads((root / _EPISODE_EVIDENCE_PATH).read_bytes())
-    if not isinstance(evidence, dict):
-        raise ValueError("persisted Evidence Bundle JSON must be an object")
-    replayed_episode = replay_search_episode(evidence, signing_key=signing_key)
-    formal_task, expert_trace = _bundle_artifacts(replayed_episode)
+    try:
+        replayed_episode = replay_episode_evidence(root / _EPISODE_EVIDENCE_PATH, signing_key=signing_key)
+        formal_task, expert_trace = _bundle_artifacts(replayed_episode, signing_key=signing_key)
+    except EpisodeEvidenceError as error:
+        raise SearchEpisodeError(str(error)) from error
     _, corpus_fragment = _build_corpus_fragment(formal_task, expert_trace)
     return corpus_fragment
 
 
-def _bundle_artifacts(episode: dict[str, Any]) -> tuple[bytes, bytes]:
+def _bundle_artifacts(episode: dict[str, Any], *, signing_key: bytes | str) -> tuple[bytes, bytes]:
     evidence = episode["evidence"]
-    if not isinstance(evidence, dict) or not isinstance(evidence.get("bundle"), str):
-        raise ValueError("replayed search episode did not produce an Evidence Bundle")
-    bundle = base64.b64decode(evidence["bundle"].encode("ascii"), validate=True)
-    artifacts = parse_canonical_bundle(bundle)
-    return artifacts["task.json"], artifacts["search-trace.json"]
+    if not isinstance(evidence, dict):
+        raise ValueError("replayed search episode did not produce episode evidence")
+    return materialize_episode_artifacts(evidence, signing_key=signing_key)
 
 
 def _build_corpus_fragment(

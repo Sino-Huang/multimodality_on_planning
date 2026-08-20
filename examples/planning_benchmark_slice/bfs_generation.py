@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import base64
 import hashlib
 import json
 import re
@@ -14,9 +13,9 @@ from typing import Any, cast
 
 from src.data_collect.generate import GenerationRequest, GenerationRunReceipt, run_authorized_generation
 from src.data_collect.governance import AuthorizationReceipt, GateReceipt, StopOutcome
-from src.data_collect.replay import parse_canonical_bundle
 
 from .bfs_phase import BFSPhaseGate
+from .episode_evidence import materialize_episode_artifacts, write_episode_evidence
 from .generation_orchestrator import run_bfs_generation_smoke
 from .search_episode import replay_search_episode, run_search_episode
 
@@ -207,12 +206,11 @@ def _generate_trace(
         raise ValueError(f"BFS trace replay differs: {row['instance_id']}")
 
     evidence = cast(dict[str, Any], episode["evidence"])
-    bundle = base64.b64decode(cast(str, evidence["bundle"]).encode("ascii"), validate=True)
-    search_trace = parse_canonical_bundle(bundle)["search-trace.json"]
+    _formal_task, search_trace = materialize_episode_artifacts(evidence, signing_key=request.signing_key)
     relative_root = Path("traces") / str(row["domain_id"]) / difficulty / str(row["instance_id"])
-    evidence_path = staging_root / relative_root / "evidence.json"
+    evidence_path = staging_root / relative_root / "evidence.jsonl.gz"
     search_trace_path = staging_root / relative_root / "search-trace.json"
-    _write_bytes(evidence_path, _canonical_json_bytes(evidence))
+    write_episode_evidence(evidence_path, episode)
     _write_bytes(search_trace_path, search_trace)
 
     return {

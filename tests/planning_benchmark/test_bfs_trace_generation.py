@@ -17,6 +17,7 @@ from examples.planning_benchmark_slice.bfs_generation import (
     run_frozen_bfs_trace_generation,
 )
 from examples.planning_benchmark_slice.bfs_phase import BFSPhaseGate, load_bfs_phase_gate
+from examples.planning_benchmark_slice.episode_evidence import read_episode_evidence
 from examples.planning_benchmark_slice.search_episode import replay_search_episode
 from examples.planning_benchmark_slice.validate_instance import load_fixture
 from src.data_collect.generate import GenerationRequest
@@ -206,15 +207,12 @@ def test_generates_replayable_canonical_fifo_traces_for_every_frozen_stratum(tmp
         trace_path = Path(request.binding.output_root) / item["search_trace"]["path"]
         assert _sha256(evidence_path.read_bytes()) == item["evidence"]["sha256"]
         assert _sha256(trace_path.read_bytes()) == item["search_trace"]["sha256"]
-        evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
-        replayed = replay_search_episode(evidence, signing_key=SIGNING_KEY)
+        episode = read_episode_evidence(evidence_path)
+        replayed = replay_search_episode(episode["evidence"], signing_key=SIGNING_KEY)
         assert replayed["result"]["outcome"] == StopOutcome.PASS.value
-        for expansion in evidence["expansions"]:
-            assert expansion["expanded_state_id"] == expansion["frontier_before"][0]
-            assert expansion["frontier_after"] == [
-                *expansion["frontier_before"][1:],
-                *expansion["enqueued_state_ids"],
-            ]
+        assert episode["evidence"]["events"]
+        assert all("frontier_before" not in event for event in episode["evidence"]["events"])
+        assert all("frontier_after" not in event for event in episode["evidence"]["events"])
 
 
 def test_normalizes_frozen_legacy_pddl_without_losing_source_provenance(tmp_path: Path) -> None:

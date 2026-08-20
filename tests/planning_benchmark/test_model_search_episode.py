@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import base64
 import json
 from pathlib import Path
 
@@ -10,7 +9,6 @@ from examples.planning_benchmark_slice.model_search_episode import (
 )
 from examples.planning_benchmark_slice.search_episode import run_search_episode
 from src.data_collect.governance import AuthorizationReceipt, GateReceipt, ReceiptBinding, StopOutcome
-from src.data_collect.replay import parse_canonical_bundle
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 NONTRIVIAL_FIXTURE = REPO_ROOT / "tests" / "fixtures" / "planning" / "blocksworld_nontrivial.json"
@@ -40,19 +38,17 @@ def test_model_owned_exact_operations_complete_and_replay_without_rerunning_poli
         authorization_receipt=authorization,
         signing_key=SIGNING_KEY,
     )
-    bundle = base64.b64decode(exact["evidence"]["bundle"], validate=True)
-    records = json.loads(parse_canonical_bundle(bundle)["search-trace.json"])["records"]
+    events = exact["evidence"]["events"]
     outputs = iter(
         json.dumps(
             {
-                "canonical_rationale": record["rationale"],
-                "runtime_result": record["result"],
-                "typed_operation": record["operation"],
+                "canonical_rationale": event["rationale"],
+                "typed_operation": event["operation"],
             },
             separators=(",", ":"),
             sort_keys=True,
         )
-        for record in records
+        for event in events
     )
 
     episode = run_model_search_episode(
