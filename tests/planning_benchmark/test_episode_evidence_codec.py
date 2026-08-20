@@ -4,7 +4,9 @@ import base64
 import gzip
 import hashlib
 import json
+import os
 import subprocess
+import sys
 import types
 from pathlib import Path
 
@@ -410,3 +412,62 @@ def test_synthetic_growing_frontier_current_codec_size_scales_linearly(tmp_path:
         assert episode["result"]["expansion_count"] == budget
 
     assert sizes[1] <= sizes[0] * 2.5
+
+
+def test_v3_evidence_replays_across_python_hash_seeds(tmp_path: Path) -> None:
+    phase_gate = load_bfs_phase_gate(
+        REPO_ROOT / "configs" / "experiments" / "bfs_phase_freeze_v1.json",
+        REPO_ROOT / "configs" / "experiments" / "bfs_phase_authorization_v1.json",
+    )
+    task = next(
+        row
+        for row in frozen_bfs_development_tasks(
+            REPO_ROOT / "data" / "curriculum_pddl" / "accepted_manifest.jsonl",
+            phase_gate,
+        )
+        if row["instance_id"] == "15puzzle-dev-easy-0000"
+    )
+    fixture = _write_task_fixture(task, tmp_path / "fixture")
+    evidence_path = tmp_path / "episode.jsonl.gz"
+    generator = """
+import pathlib
+import sys
+
+from examples.planning_benchmark_slice.episode_evidence import write_episode_evidence
+from examples.planning_benchmark_slice.search_episode import run_search_episode
+from src.data_collect.governance import AuthorizationReceipt, GateReceipt, ReceiptBinding, StopOutcome
+
+fixture, evidence_path, output_root = map(pathlib.Path, sys.argv[1:])
+signing_key = b"issue-110-episode-evidence-test-key"
+binding = ReceiptBinding("issue-49-bfs-development-v1", "hash-seed-generation", output_root.resolve())
+gate = GateReceipt(binding, StopOutcome.PASS).signed(signing_key)
+authorization = AuthorizationReceipt(binding, gate.digest).signed(signing_key)
+episode = run_search_episode(
+    fixture, "bfs", "text-state", "exact", 1, gate, authorization, signing_key
+)
+write_episode_evidence(evidence_path, episode)
+"""
+    verifier = """
+import pathlib
+import sys
+
+from examples.planning_benchmark_slice.episode_evidence import verify_episode_evidence
+
+verify_episode_evidence(
+    pathlib.Path(sys.argv[1]), signing_key=b"issue-110-episode-evidence-test-key"
+)
+"""
+    base_environment = {**os.environ, "PYTHONPATH": str(REPO_ROOT)}
+
+    subprocess.run(
+        [sys.executable, "-c", generator, str(fixture), str(evidence_path), str(tmp_path / "output")],
+        cwd=REPO_ROOT,
+        env={**base_environment, "PYTHONHASHSEED": "2"},
+        check=True,
+    )
+    subprocess.run(
+        [sys.executable, "-c", verifier, str(evidence_path)],
+        cwd=REPO_ROOT,
+        env={**base_environment, "PYTHONHASHSEED": "1"},
+        check=True,
+    )

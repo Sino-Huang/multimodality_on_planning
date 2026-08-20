@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any, TypeAlias, cast
 
 from plado import pddl
-from plado.parser import parse_and_normalize
+from plado.parser import parse_and_normalize, tokenize
 from plado.semantics.applicable_actions_generator import ApplicableActionsGenerator
 from plado.semantics.goal_checker import GoalChecker
 from plado.semantics.successor_generator import SuccessorGenerator
@@ -28,6 +28,14 @@ class ReplayError(ValueError):
 def _json_sha256(payload: object) -> str:
     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
     return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+
+
+def _pddl_tokens(source: str) -> tuple[tuple[str, str], ...]:
+    return tuple((token.cat.name, token.tok) for token in tokenize(source))
+
+
+def _authority_id(domain_pddl: str, problem_pddl: str) -> str:
+    return _json_sha256({"domain": _pddl_tokens(domain_pddl), "problem": _pddl_tokens(problem_pddl)})
 
 
 @dataclass(frozen=True)
@@ -99,7 +107,7 @@ class PDDLTransition:
 class PDDLStateAuthority:
     """Plado-backed source of truth for one normalized PDDL task."""
 
-    def __init__(self, domain: pddl.Domain, problem: pddl.Problem) -> None:
+    def __init__(self, domain: pddl.Domain, problem: pddl.Problem, authority_id: str) -> None:
         self._domain = domain
         self._problem = problem
         self._task = Task(domain, problem)
@@ -112,7 +120,7 @@ class PDDLStateAuthority:
         self.objects = tuple(sorted(obj.name for obj in problem.objects))
         self.action_vocabulary = tuple(sorted(action.name for action in domain.actions))
         self.goal_atoms = _positive_goal_atoms(problem.goal)
-        self.authority_id = _json_sha256({"domain": domain.dump(), "problem": problem.dump()})
+        self.authority_id = authority_id
         self.initial_state = self._canonicalize(self._task.initial_state)
         self._states: dict[str, tuple[CanonicalState, State]] = {
             self.initial_state.state_id: (self.initial_state, self._task.initial_state.duplicate())
@@ -122,13 +130,14 @@ class PDDLStateAuthority:
     @classmethod
     def from_pddl(cls, domain_pddl: str, problem_pddl: str) -> "PDDLStateAuthority":
         with tempfile.TemporaryDirectory(prefix="pddl-state-") as directory:
+            authority_id = _authority_id(domain_pddl, problem_pddl)
             root = Path(directory)
             domain_path = root / "domain.pddl"
             problem_path = root / "problem.pddl"
             domain_path.write_text(domain_pddl, encoding="utf-8")
             problem_path.write_text(problem_pddl, encoding="utf-8")
             domain, problem = parse_and_normalize(str(domain_path), str(problem_path))
-        return cls(domain, problem)
+        return cls(domain, problem, authority_id)
 
     def canonical_state(self, atoms: tuple[str, ...], fluents: tuple[str, ...] = ()) -> CanonicalState:
         return CanonicalState(atoms, self.authority_id, fluents)
