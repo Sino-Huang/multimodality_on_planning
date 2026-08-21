@@ -21,7 +21,8 @@ from .search_episode import replay_search_episode, run_search_episode
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _TRACE_MANIFEST_PATH = Path("manifests/bfs-expert-traces.json")
-_TRACE_MANIFEST_SCHEMA = "bfs_expert_trace_generation_v1"
+_TRACE_MANIFEST_SCHEMA_V1 = "bfs_expert_trace_generation_v1"
+_TRACE_MANIFEST_SCHEMA_V3 = "bfs_expert_trace_generation_v3"
 _CANONICAL_TIE_BREAK = "grounded_actions_sorted_by_canonical_serialization"
 
 
@@ -122,7 +123,11 @@ def run_frozen_bfs_trace_generation(
                     "required_strata": len(required),
                 },
                 "phase_receipt": phase_gate.receipt(stage="trace_generation"),
-                "schema_version": _TRACE_MANIFEST_SCHEMA,
+                "schema_version": (
+                    _TRACE_MANIFEST_SCHEMA_V3
+                    if phase_gate.freeze["schema_version"] == "bfs_phase_freeze_v3"
+                    else _TRACE_MANIFEST_SCHEMA_V1
+                ),
                 "traces": trace_items,
             }
             trace_manifest_path = staging_root / _TRACE_MANIFEST_PATH
@@ -159,8 +164,8 @@ def _generate_trace(
     fixture_root: Path,
     staging_root: Path,
 ) -> dict[str, object]:
-    domain_path = Path(row["domain_path"]).resolve()
-    problem_path = Path(row["problem_path"]).resolve()
+    domain_path = _source_path(row["domain_path"])
+    problem_path = _source_path(row["problem_path"])
     domain_bytes = domain_path.read_bytes()
     problem_bytes = problem_path.read_bytes()
     domain_sha256 = _sha256(domain_bytes)
@@ -315,6 +320,8 @@ def _load_candidates(path: Path, phase_gate: BFSPhaseGate) -> dict[tuple[str, st
         if row["status"] != "accepted":
             raise ValueError(f"frozen accepted manifest contains a non-accepted row at line {line_number}")
         if row["split"] not in allowed_splits:
+            if phase_gate.freeze["schema_version"] == "bfs_phase_freeze_v3":
+                raise ValueError(f"BFS v3 selected manifest contains a forbidden split at line {line_number}")
             continue
         if row["domain_id"] not in domains or row["bucket"] not in difficulties:
             raise ValueError(f"curriculum row uses an unfrozen stratum at line {line_number}")
@@ -362,6 +369,11 @@ def _artifact(path: Path, output_root: Path) -> dict[str, object]:
         "sha256": _sha256(payload),
         "size_bytes": len(payload),
     }
+
+
+def _source_path(value: object) -> Path:
+    path = Path(str(value))
+    return path.resolve() if path.is_absolute() else (_REPO_ROOT / path).resolve()
 
 
 def _canonical_json_bytes(value: object) -> bytes:

@@ -1,4 +1,4 @@
-"""Release governed operational and process corpus views from BFS traces."""
+"""Release governed BFS corpus views from replayed traces."""
 
 from __future__ import annotations
 
@@ -30,6 +30,10 @@ _RELEASE_SCHEMA = "bfs_text_corpus_release_v1"
 _RECORD_SCHEMA = "bfs_text_corpus_record_v1"
 _CURRICULUM_SCHEMA = "bfs_text_corpus_curriculum_v1"
 _AUDIT_SCHEMA = "bfs_text_corpus_leakage_audit_v1"
+_RELEASE_SCHEMA_V3 = "bfs_process_corpus_release_v3"
+_RECORD_SCHEMA_V3 = "bfs_process_corpus_record_v3"
+_CURRICULUM_SCHEMA_V3 = "bfs_process_corpus_curriculum_v3"
+_AUDIT_SCHEMA_V3 = "bfs_process_corpus_audit_v3"
 _DIFFICULTY_ORDER = {"easy": 0, "medium": 1, "hard": 2}
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _PROCESS_ONLY_FIELDS = {
@@ -53,7 +57,7 @@ def run_frozen_bfs_text_corpus_release(
     request: GenerationRequest,
     phase_gate: BFSPhaseGate,
 ) -> GenerationRunReceipt:
-    """Build and atomically publish the issue-49-authorized BFS text corpus."""
+    """Build and atomically publish the phase-authorized BFS corpus."""
 
     def execute() -> dict[str, object]:
         phase_gate.require_run(stage="corpus_release", contract_id=request.binding.contract_id)
@@ -81,7 +85,7 @@ def run_frozen_bfs_text_corpus_release(
         return {
             "corpus_manifest_path": str((output_root / _RELEASE_MANIFEST_PATH).resolve()),
             "corpus_manifest_sha256": _sha256(manifest_bytes),
-            "operational_record_count": manifest["counts"]["operational_records"],
+            "operational_record_count": manifest["counts"].get("operational_records", 0),
             "process_record_count": manifest["counts"]["process_records"],
             "split_assignment_count": manifest["counts"]["split_assignments"],
         }
@@ -110,6 +114,7 @@ def _build_release(
     signing_key: bytes | str,
     phase_gate: BFSPhaseGate,
 ) -> dict[str, bytes]:
+    is_v3 = phase_gate.freeze["schema_version"] == "bfs_phase_freeze_v3"
     trace_manifest_bytes = trace_manifest_path.read_bytes()
     trace_manifest = _json_object(trace_manifest_bytes, "BFS trace manifest")
     traces = _validated_trace_items(trace_manifest, phase_gate)
@@ -181,6 +186,8 @@ def _build_release(
                 identity=identity,
                 record=record,
             )
+            if is_v3:
+                common["schema_version"] = _RECORD_SCHEMA_V3
             process_rows.append(
                 {
                     **common,
@@ -191,14 +198,14 @@ def _build_release(
                     },
                     "target": {
                         "canonical_rationale": record["rationale"],
-                        "runtime_result": record["result"],
+                        "runtime_result": None if is_v3 else record["result"],
                         "typed_operation": record["operation"],
                     },
                     "view": "process",
                 }
             )
             result = record["result"]
-            if result["status"] == "accepted":
+            if not is_v3 and result["status"] == "accepted":
                 transition = result["transition"]
                 operational_rows.append(
                     {
@@ -228,18 +235,32 @@ def _build_release(
         or _contains_any_key(row["target"], _PROCESS_ONLY_FIELDS)
     )
     contamination_rate = contamination_count / len(operational_rows) if operational_rows else 0.0
-    audit = {
-        "future_step_leakage_count": future_leaks,
-        "held_out_instance_count": held_out_instances,
-        "operational_process_record_contamination": contamination_rate,
-        "operational_process_record_contamination_count": contamination_count,
-        "schema_version": _AUDIT_SCHEMA,
-        "split_conflict_count": split_conflicts,
-        "status": "passed",
-    }
-    threshold = phase_gate.freeze["thresholds"]["operational_process_record_contamination"]
-    if future_leaks or held_out_instances or split_conflicts or contamination_rate > threshold:
-        raise ValueError("BFS text corpus leakage audit failed")
+    if is_v3:
+        non_null_runtime_results = sum(row["target"]["runtime_result"] is not None for row in process_rows)
+        audit = {
+            "future_step_leakage_count": future_leaks,
+            "held_out_instance_count": held_out_instances,
+            "model_target_runtime_result_non_null_count": non_null_runtime_results,
+            "operational_artifact_count": 0,
+            "schema_version": _AUDIT_SCHEMA_V3,
+            "split_conflict_count": split_conflicts,
+            "status": "passed",
+        }
+        if future_leaks or held_out_instances or split_conflicts or non_null_runtime_results:
+            raise ValueError("BFS v3 process corpus audit failed")
+    else:
+        audit = {
+            "future_step_leakage_count": future_leaks,
+            "held_out_instance_count": held_out_instances,
+            "operational_process_record_contamination": contamination_rate,
+            "operational_process_record_contamination_count": contamination_count,
+            "schema_version": _AUDIT_SCHEMA,
+            "split_conflict_count": split_conflicts,
+            "status": "passed",
+        }
+        threshold = phase_gate.freeze["thresholds"]["operational_process_record_contamination"]
+        if future_leaks or held_out_instances or split_conflicts or contamination_rate > threshold:
+            raise ValueError("BFS text corpus leakage audit failed")
 
     split_rows = [
         {
@@ -250,13 +271,22 @@ def _build_release(
         for identity, split in sorted(assignments.items())
     ]
     payloads = {
-        _OPERATIONAL_PATH.as_posix(): _jsonl_bytes(operational_rows),
         _PROCESS_PATH.as_posix(): _jsonl_bytes(process_rows),
-        _OPERATIONAL_CURRICULUM_PATH.as_posix(): _jsonl_bytes(_curriculum_rows(operational_rows, "operational")),
-        _PROCESS_CURRICULUM_PATH.as_posix(): _jsonl_bytes(_curriculum_rows(process_rows, "process")),
+        _PROCESS_CURRICULUM_PATH.as_posix(): _jsonl_bytes(
+            _curriculum_rows(
+                process_rows,
+                "process",
+                schema_version=_CURRICULUM_SCHEMA_V3 if is_v3 else _CURRICULUM_SCHEMA,
+            )
+        ),
         _SPLIT_LEDGER_PATH.as_posix(): _jsonl_bytes(split_rows),
         _LEAKAGE_AUDIT_PATH.as_posix(): _canonical_json_bytes(audit),
     }
+    if not is_v3:
+        payloads[_OPERATIONAL_PATH.as_posix()] = _jsonl_bytes(operational_rows)
+        payloads[_OPERATIONAL_CURRICULUM_PATH.as_posix()] = _jsonl_bytes(
+            _curriculum_rows(operational_rows, "operational")
+        )
     manifest = {
         "artifacts": [
             {
@@ -267,7 +297,7 @@ def _build_release(
             for path, payload in sorted(payloads.items())
         ],
         "counts": {
-            "operational_records": len(operational_rows),
+            **({} if is_v3 else {"operational_records": len(operational_rows)}),
             "process_records": len(process_rows),
             "split_assignments": len(split_rows),
         },
@@ -277,18 +307,23 @@ def _build_release(
             "max_context_tokens": phase_gate.freeze["budgets"]["max_context_tokens"],
             "max_output_tokens_per_operation": phase_gate.freeze["budgets"]["max_output_tokens_per_operation"],
         },
-        "schema_version": _RELEASE_SCHEMA,
+        "schema_version": _RELEASE_SCHEMA_V3 if is_v3 else _RELEASE_SCHEMA,
         "source_trace_manifest": {"sha256": _sha256(trace_manifest_bytes)},
         "split_unit": "whole_problem_instance",
-        "views": ["operational", "process"],
+        "views": ["process"] if is_v3 else ["operational", "process"],
     }
     payloads[_RELEASE_MANIFEST_PATH.as_posix()] = _canonical_json_bytes(manifest)
     return payloads
 
 
 def _validated_trace_items(trace_manifest: Mapping[str, Any], phase_gate: BFSPhaseGate) -> list[dict[str, Any]]:
+    expected_schema = (
+        "bfs_expert_trace_generation_v3"
+        if phase_gate.freeze["schema_version"] == "bfs_phase_freeze_v3"
+        else "bfs_expert_trace_generation_v1"
+    )
     if (
-        trace_manifest.get("schema_version") != "bfs_expert_trace_generation_v1"
+        trace_manifest.get("schema_version") != expected_schema
         or trace_manifest.get("algorithm") != "bfs"
         or trace_manifest.get("phase_receipt") != phase_gate.receipt(stage="trace_generation")
     ):
@@ -336,13 +371,18 @@ def _record_metadata(
     }
 
 
-def _curriculum_rows(rows: list[dict[str, Any]], view: str) -> list[dict[str, Any]]:
+def _curriculum_rows(
+    rows: list[dict[str, Any]],
+    view: str,
+    *,
+    schema_version: str = _CURRICULUM_SCHEMA,
+) -> list[dict[str, Any]]:
     return [
         {
             "curriculum_index": index,
             "difficulty": row["difficulty"],
             "record_id": row["record_id"],
-            "schema_version": _CURRICULUM_SCHEMA,
+            "schema_version": schema_version,
             "split": row["split"],
             "stage_index": _DIFFICULTY_ORDER[row["difficulty"]],
             "view": view,

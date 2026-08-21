@@ -13,7 +13,7 @@ from typing import Any, Mapping, cast
 from src.data_collect.generate import GenerationRequest, GenerationRunReceipt, run_authorized_generation
 from src.data_collect.governance import AuthorizationReceipt, GateReceipt, StopOutcome
 
-from .bfs_generation import _load_candidates, _normalize_authority_input, _require_frozen_manifest
+from .bfs_generation import _load_candidates, _normalize_authority_input, _require_frozen_manifest, _source_path
 from .bfs_phase import BFSPhaseGate
 from .episode_evidence import (
     episode_result_summary,
@@ -208,8 +208,8 @@ def _run_reference_task(arguments: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def _write_task_fixture(row: dict[str, Any], fixture_root: Path) -> Path:
-    domain_path = Path(row["domain_path"]).resolve()
-    problem_path = Path(row["problem_path"]).resolve()
+    domain_path = _source_path(row["domain_path"])
+    problem_path = _source_path(row["problem_path"])
     domain_bytes = domain_path.read_bytes()
     problem_bytes = problem_path.read_bytes()
     if _sha256(domain_bytes) != row["domain_hash"] or _sha256(problem_bytes) != row["problem_hash"]:

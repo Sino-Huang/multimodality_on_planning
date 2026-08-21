@@ -15,6 +15,9 @@ from .qwen_text_policy import QWEN_TEXT_POLICY_SYSTEM_PROMPT
 
 _RELEASE_SCHEMA = "bfs_text_corpus_release_v1"
 _CONVERSION_SCHEMA = "bfs_ms_swift_conversion_v1"
+_RELEASE_SCHEMA_V3 = "bfs_process_corpus_release_v3"
+_CONVERSION_SCHEMA_V3 = "bfs_process_ms_swift_conversion_v3"
+_REPO_ROOT = Path(__file__).resolve().parents[2]
 _PROCESS_INPUT_FIELDS = {"goal_atoms", "observation", "search_memory"}
 _PROCESS_TARGET_FIELDS = {"canonical_rationale", "runtime_result", "typed_operation"}
 _OPERATIONAL_INPUT_FIELDS = {"goal_atoms", "source_state"}
@@ -165,6 +168,9 @@ def convert_bfs_corpus_to_ms_swift(
 
     if view not in {"operational", "process"}:
         raise ValueError("BFS SFT view must be 'operational' or 'process'")
+    is_v3 = phase_gate.freeze["schema_version"] == "bfs_phase_freeze_v3"
+    if is_v3 and view != "process":
+        raise ValueError("BFS v3 authorizes only the process corpus projection")
     stage = "operational_sft" if view == "operational" else "process_sft_and_sanity_gate"
     phase_gate.require_run(stage=stage, contract_id=phase_gate.phase_id)
     source_root = Path(corpus_root).resolve()
@@ -173,12 +179,14 @@ def convert_bfs_corpus_to_ms_swift(
         raise FileExistsError(f"ms-swift conversion output already exists: {destination}")
 
     release_manifest_path = source_root / "manifests" / "bfs-text-corpus-release.json"
+    if is_v3:
+        release_manifest_path = source_root / "manifests" / "bfs-text-corpus.json"
     release_manifest_bytes = release_manifest_path.read_bytes()
     release_manifest = _json_object(release_manifest_bytes, "BFS corpus release manifest")
     if (
-        release_manifest.get("schema_version") != _RELEASE_SCHEMA
+        release_manifest.get("schema_version") != (_RELEASE_SCHEMA_V3 if is_v3 else _RELEASE_SCHEMA)
         or release_manifest.get("phase_receipt") != phase_gate.receipt(stage="corpus_release")
-        or release_manifest.get("views") != ["operational", "process"]
+        or release_manifest.get("views") != (["process"] if is_v3 else ["operational", "process"])
     ):
         raise ValueError("BFS corpus release does not match the frozen phase")
     artifacts = _verified_artifacts(source_root, release_manifest)
@@ -192,7 +200,7 @@ def convert_bfs_corpus_to_ms_swift(
     metadata: list[dict[str, Any]] = []
     system_prompt = _OPERATIONAL_SYSTEM_PROMPT if view == "operational" else QWEN_TEXT_POLICY_SYSTEM_PROMPT
     for row in rows:
-        _validate_source_row(row, view=view)
+        _validate_source_row(row, view=view, is_v3=is_v3)
         split = row["split"]
         converted[split].append(
             {
@@ -231,9 +239,9 @@ def convert_bfs_corpus_to_ms_swift(
         "counts": {split: len(converted[split]) for split in ("train", "dev")},
         "framework": {"name": "ms-swift", "version": "4.2.2"},
         "phase_receipt": phase_gate.receipt(stage=stage),
-        "schema_version": _CONVERSION_SCHEMA,
+        "schema_version": _CONVERSION_SCHEMA_V3 if is_v3 else _CONVERSION_SCHEMA,
         "source": {
-            "manifest_path": str(release_manifest_path),
+            "manifest_path": _stable_path(release_manifest_path) if is_v3 else str(release_manifest_path),
             "manifest_sha256": _sha256(release_manifest_bytes),
         },
         "view": view,
@@ -272,7 +280,7 @@ def _verified_artifacts(root: Path, manifest: Mapping[str, Any]) -> dict[str, by
     return artifacts
 
 
-def _validate_source_row(row: Mapping[str, Any], *, view: str) -> None:
+def _validate_source_row(row: Mapping[str, Any], *, view: str, is_v3: bool = False) -> None:
     required_metadata = {
         "algorithm",
         "difficulty",
@@ -299,6 +307,17 @@ def _validate_source_row(row: Mapping[str, Any], *, view: str) -> None:
         raise ValueError(f"BFS {view} input fields are invalid")
     if not isinstance(row.get("target"), dict) or set(row["target"]) != target_fields:
         raise ValueError(f"BFS {view} target fields are invalid")
+    if is_v3 and (
+        row.get("schema_version") != "bfs_process_corpus_record_v3" or row["target"]["runtime_result"] is not None
+    ):
+        raise ValueError("BFS v3 process target must keep runtime_result null")
+
+
+def _stable_path(path: Path) -> str:
+    try:
+        return path.resolve().relative_to(_REPO_ROOT).as_posix()
+    except ValueError:
+        return str(path.resolve())
 
 
 def _jsonl_objects(payload: bytes, name: str) -> list[dict[str, Any]]:
