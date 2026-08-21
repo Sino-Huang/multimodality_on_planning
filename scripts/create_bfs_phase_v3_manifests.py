@@ -15,6 +15,7 @@ _V3_FREEZE = _REPO_ROOT / "configs" / "experiments" / "bfs_phase_freeze_v3.json"
 _V3_AUTHORIZATION = _REPO_ROOT / "configs" / "experiments" / "bfs_phase_authorization_v3.json"
 _PHASE_ID = "issue-111-bfs-expansion-qualified-pilot-v3"
 _PREREGISTRATION_REVISION = "4da3ae71531e1131c19ce552f41426241ed4308c"
+_CORPUS_MATERIALIZATION_REVISION = "82422c2269c22ddbb8da76889a222cc7500ea74c"
 
 
 def main() -> int:
@@ -97,7 +98,9 @@ def main() -> int:
                 "strata": ["easy", "medium", "hard"],
             },
             "implementation": {
+                "corpus_materialization_revision": _CORPUS_MATERIALIZATION_REVISION,
                 "preregistration_revision": _PREREGISTRATION_REVISION,
+                "process_memory_projection": "bounded_bfs_search_memory_v3",
                 "search_episode_harness": "examples.planning_benchmark_slice.search_episode.run_search_episode",
             },
             "phase_id": _PHASE_ID,
@@ -113,7 +116,7 @@ def main() -> int:
     )
     freeze_bytes = _canonical_bytes(freeze)
     authorization = {
-        "authorization_id": "issue-111-bfs-expansion-qualified-pilot-authorization-v3",
+        "authorization_id": "issue-111-bfs-expansion-qualified-pilot-authorization-v3-rev2",
         "authorized_stages": [
             "trace_generation",
             "corpus_release",

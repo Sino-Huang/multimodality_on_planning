@@ -33,6 +33,8 @@ _TRAINING_ARMS_V1 = {"base", "exact_classical", "operational_sft", "process_sft"
 _TRAINING_ARMS_V3 = {"base", "exact_classical", "process_sft", "random_valid"}
 _V3_PHASE_ID = "issue-111-bfs-expansion-qualified-pilot-v3"
 _V3_MODEL_REVISION = "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b"
+_V3_PREREGISTRATION_REVISION = "4da3ae71531e1131c19ce552f41426241ed4308c"
+_V3_CORPUS_MATERIALIZATION_REVISION = "82422c2269c22ddbb8da76889a222cc7500ea74c"
 _V3_SEEDS = [17, 29, 43, 71, 101]
 _V3_BANDS = {"easy": (1, 64), "medium": (65, 256), "hard": (257, 1024)}
 _V3_DOMAINS = (
@@ -324,6 +326,14 @@ def _validate_freeze_v3(freeze: dict[str, Any], repo_root: Path) -> None:
     primary_model = _mapping(_mapping(freeze, "models"), "primary")
     if primary_model.get("role") != "primary_open_vlm" or primary_model.get("revision") != _V3_MODEL_REVISION:
         raise BFSPhaseGateError("BFS v3 primary model differs from the governed Qwen revision")
+    implementation = _mapping(freeze, "implementation")
+    if implementation != {
+        "corpus_materialization_revision": _V3_CORPUS_MATERIALIZATION_REVISION,
+        "preregistration_revision": _V3_PREREGISTRATION_REVISION,
+        "process_memory_projection": "bounded_bfs_search_memory_v3",
+        "search_episode_harness": "examples.planning_benchmark_slice.search_episode.run_search_episode",
+    }:
+        raise BFSPhaseGateError("BFS v3 implementation provenance or bounded memory projection has drifted")
     arms = _mapping(_mapping(freeze, "training"), "arms")
     if set(arms) != _TRAINING_ARMS_V3 or arms["process_sft"].get("corpus_view") != "process":
         raise BFSPhaseGateError("BFS v3 training contract must be process-SFT only")

@@ -143,6 +143,10 @@ def test_committed_v3_gate_binds_the_qualification_pass_and_process_only_contrac
     assert gate.freeze["source_issue"] == 111
     assert gate.freeze["data"]["qualification"]["outcome"] == "PASS"
     assert gate.freeze["data"]["qualification"]["selected_task_count"] == 90
+    assert gate.freeze["implementation"]["corpus_materialization_revision"] == (
+        "82422c2269c22ddbb8da76889a222cc7500ea74c"
+    )
+    assert gate.freeze["implementation"]["process_memory_projection"] == "bounded_bfs_search_memory_v3"
     assert gate.freeze["data"]["development_counts_by_split_and_difficulty"] == {
         split: {difficulty: 15 for difficulty in ("easy", "medium", "hard")} for split in ("train", "dev")
     }
