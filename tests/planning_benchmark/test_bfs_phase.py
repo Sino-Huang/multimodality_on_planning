@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -13,6 +14,8 @@ from src.data_collect.governance import AuthorizationReceipt, GateReceipt, Recei
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FREEZE_MANIFEST = REPO_ROOT / "configs" / "experiments" / "bfs_phase_freeze_v1.json"
 AUTHORIZATION_MANIFEST = REPO_ROOT / "configs" / "experiments" / "bfs_phase_authorization_v1.json"
+V3_FREEZE_MANIFEST = REPO_ROOT / "configs" / "experiments" / "bfs_phase_freeze_v3.json"
+V3_AUTHORIZATION_MANIFEST = REPO_ROOT / "configs" / "experiments" / "bfs_phase_authorization_v3.json"
 TASK_FIXTURE = REPO_ROOT / "tests" / "fixtures" / "planning" / "blocksworld_nontrivial.json"
 SIGNING_KEY = b"issue-49-bfs-phase-test-key"
 
@@ -120,3 +123,34 @@ def test_phase_gate_rejects_an_authorization_for_different_freeze_bytes(tmp_path
 
     with pytest.raises(BFSPhaseGateError, match="does not match its authorization"):
         load_bfs_phase_gate(FREEZE_MANIFEST, mismatched_authorization)
+
+
+def test_v1_manifests_remain_byte_identical_and_cannot_authorize_v3() -> None:
+    assert hashlib.sha256(FREEZE_MANIFEST.read_bytes()).hexdigest() == (
+        "5d00eb28c348c1d8a85472e834b52762683b0ddbbf9904c912bfaafdce6f23fd"
+    )
+    assert hashlib.sha256(AUTHORIZATION_MANIFEST.read_bytes()).hexdigest() == (
+        "6ddd28ca0586faadf13971b14af002ea6eefb1aacafb0a671a4eb70f06b7c8b7"
+    )
+    with pytest.raises(BFSPhaseGateError, match="v3 authorization"):
+        load_bfs_phase_gate(V3_FREEZE_MANIFEST, AUTHORIZATION_MANIFEST)
+
+
+def test_committed_v3_gate_binds_the_qualification_pass_and_process_only_contract() -> None:
+    gate = load_bfs_phase_gate(V3_FREEZE_MANIFEST, V3_AUTHORIZATION_MANIFEST)
+
+    assert gate.phase_id == "issue-111-bfs-expansion-qualified-pilot-v3"
+    assert gate.freeze["source_issue"] == 111
+    assert gate.freeze["data"]["qualification"]["outcome"] == "PASS"
+    assert gate.freeze["data"]["qualification"]["selected_task_count"] == 90
+    assert gate.freeze["data"]["development_counts_by_split_and_difficulty"] == {
+        split: {difficulty: 15 for difficulty in ("easy", "medium", "hard")} for split in ("train", "dev")
+    }
+    assert set(gate.freeze["training"]["arms"]) == {
+        "base",
+        "exact_classical",
+        "process_sft",
+        "random_valid",
+    }
+    assert "operational_sft" not in gate.authorization["authorized_stages"]
+    assert gate.authorization["downstream_issues"] == [54]
