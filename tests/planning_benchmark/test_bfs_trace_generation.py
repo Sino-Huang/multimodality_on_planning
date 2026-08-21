@@ -4,11 +4,13 @@ import hashlib
 import json
 from dataclasses import replace
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any, cast
 
 import pytest
 
 from examples.planning_benchmark_slice.bfs_corpus import (
+    _bounded_v3_process_input,
     regenerate_bfs_text_corpus,
     run_frozen_bfs_text_corpus_release,
 )
@@ -416,6 +418,135 @@ def test_releases_separate_regenerable_views_with_immutable_splits_and_clean_lea
             signing_key=SIGNING_KEY,
             phase_gate=phase_gate,
         )
+
+
+def test_v3_releases_only_process_targets_with_runtime_results_runtime_owned(tmp_path: Path) -> None:
+    phase_gate, accepted_manifest = _frozen_curriculum(tmp_path)
+    rows = [
+        json.loads(line)
+        for line in accepted_manifest.read_text(encoding="utf-8").splitlines()
+        if json.loads(line)["split"] != "test"
+    ]
+    accepted_manifest.write_text(
+        "".join(json.dumps(row, sort_keys=True) + "\n" for row in rows),
+        encoding="utf-8",
+    )
+    freeze = json.loads(json.dumps(phase_gate.freeze))
+    freeze["schema_version"] = "bfs_phase_freeze_v3"
+    freeze["data"]["artifacts"] = [{"path": str(accepted_manifest), "sha256": _sha256(accepted_manifest.read_bytes())}]
+    phase_gate = replace(phase_gate, freeze=freeze)
+    trace_request = _request(tmp_path / "v3-traces", phase_gate=phase_gate)
+    trace_receipt = run_frozen_bfs_trace_generation(
+        accepted_manifest_path=accepted_manifest,
+        request=trace_request,
+        phase_gate=phase_gate,
+    )
+    assert trace_receipt.outcome is StopOutcome.PASS
+    assert trace_receipt.execution_result is not None
+    trace_manifest_path = Path(trace_receipt.execution_result["trace_manifest_path"])
+    assert json.loads(trace_manifest_path.read_bytes())["schema_version"] == "bfs_expert_trace_generation_v3"
+
+    release_binding = ReceiptBinding(
+        contract_id=phase_gate.phase_id,
+        attempt_id="issue-111-v3-process-release-test",
+        output_root=(tmp_path / "v3-process-release").resolve(),
+    )
+    release_gate = GateReceipt(binding=release_binding, outcome=StopOutcome.PASS).signed(SIGNING_KEY)
+    release_request = GenerationRequest(
+        binding=release_binding,
+        gate_receipt=release_gate,
+        authorization_receipt=AuthorizationReceipt(
+            binding=release_binding,
+            gate_receipt_digest=release_gate.digest,
+        ).signed(SIGNING_KEY),
+        signing_key=SIGNING_KEY,
+        receipt_root=(tmp_path / "v3-release-receipts").resolve(),
+    )
+    release_receipt = run_frozen_bfs_text_corpus_release(
+        trace_manifest_path=trace_manifest_path,
+        request=release_request,
+        phase_gate=phase_gate,
+    )
+
+    assert release_receipt.outcome is StopOutcome.PASS
+    assert release_receipt.execution_result is not None
+    release_root = Path(release_request.binding.output_root)
+    release_manifest_path = Path(release_receipt.execution_result["corpus_manifest_path"])
+    release_manifest = json.loads(release_manifest_path.read_bytes())
+    assert release_manifest["schema_version"] == "bfs_process_corpus_release_v3"
+    assert release_manifest["views"] == ["process"]
+    assert set(release_manifest["counts"]) == {"process_records", "split_assignments"}
+    assert not (release_root / "corpus" / "operational.jsonl").exists()
+    assert not (release_root / "curricula" / "operational.jsonl").exists()
+    process_rows = [
+        json.loads(line) for line in (release_root / "corpus" / "process.jsonl").read_text(encoding="utf-8").splitlines()
+    ]
+    assert process_rows
+    assert all(row["schema_version"] == "bfs_process_corpus_record_v3" for row in process_rows)
+    assert all(
+        set(row["target"]) == {"canonical_rationale", "runtime_result", "typed_operation"}
+        and row["target"]["runtime_result"] is None
+        for row in process_rows
+    )
+    regenerated = regenerate_bfs_text_corpus(
+        trace_manifest_path=trace_manifest_path,
+        signing_key=SIGNING_KEY,
+        phase_gate=phase_gate,
+    )
+    assert regenerated == {
+        path.relative_to(release_root).as_posix(): path.read_bytes()
+        for path in release_root.rglob("*")
+        if path.is_file()
+    }
+
+
+def test_v3_process_input_summarizes_unbounded_runtime_memory_inside_byte_budget() -> None:
+    state_ids = tuple(f"{index:064x}" for index in range(1_000))
+    checkpoint = SimpleNamespace(
+        authority_id="a" * 64,
+        memory_sha256="b" * 64,
+        snapshot=SimpleNamespace(
+            frontier=state_ids[500:],
+            visited=frozenset(state_ids),
+            novelty={},
+            heuristics={},
+            provenance=tuple(range(900)),
+            known_states={state_id: object() for state_id in state_ids},
+        ),
+    )
+    observation = {
+        "frontier": list(state_ids[500:]),
+        "goal_atoms": ["on(a,b)"],
+        "modality": "text-state",
+        "state_atoms": ["clear(a)"],
+        "state_id": state_ids[500],
+    }
+
+    process_input, dropped = _bounded_v3_process_input(
+        goal_atoms=["on(a,b)"],
+        observation=observation,
+        checkpoint=checkpoint,
+        accepted_deltas=(),
+        max_bytes=3_840,
+    )
+
+    encoded = (json.dumps(process_input, ensure_ascii=True, separators=(",", ":"), sort_keys=True) + "\n").encode()
+    assert len(encoded) <= 3_840
+    assert dropped == 0
+    assert process_input["observation"]["frontier_head"] == state_ids[500]
+    assert process_input["observation"]["frontier_size"] == 500
+    assert process_input["search_memory"] == {
+        "accepted_deltas": [],
+        "authority_id": "a" * 64,
+        "context_type": "bounded_bfs_search_memory",
+        "frontier_head": state_ids[500],
+        "frontier_size": 500,
+        "known_state_count": 1_000,
+        "memory_sha256": "b" * 64,
+        "provenance_count": 900,
+        "schema_version": 3,
+        "visited_count": 1_000,
+    }
 
 
 def test_corpus_release_stop_outcomes_never_read_traces_or_create_release_bytes(tmp_path: Path) -> None:

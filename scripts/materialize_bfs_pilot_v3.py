@@ -7,16 +7,23 @@ import hashlib
 import json
 import tempfile
 from pathlib import Path
+from typing import Any
 
 from examples.planning_benchmark_slice.bfs_corpus import (
     regenerate_bfs_text_corpus,
     run_frozen_bfs_text_corpus_release,
 )
-from examples.planning_benchmark_slice.bfs_generation import run_frozen_bfs_trace_generation
+from examples.planning_benchmark_slice.bfs_generation import (
+    _load_candidates,
+    _require_frozen_manifest,
+    _source_path,
+    run_frozen_bfs_trace_generation,
+)
 from examples.planning_benchmark_slice.bfs_phase import BFSPhaseGate, load_bfs_phase_gate
 from examples.planning_benchmark_slice.bfs_sft import convert_bfs_corpus_to_ms_swift
 from src.data_collect.generate import GenerationRequest
 from src.data_collect.governance import AuthorizationReceipt, GateReceipt, ReceiptBinding, StopOutcome
+from src.data_collect.splits import split_assignment_id, whole_instance_identity
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 _FREEZE = _REPO_ROOT / "configs" / "experiments" / "bfs_phase_freeze_v3.json"
@@ -52,6 +59,11 @@ def _request(
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--workers", type=int, default=1)
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="validate every committed input and planned stage without creating outputs",
+    )
     args = parser.parse_args()
     phase_gate = load_bfs_phase_gate(_FREEZE, _AUTHORIZATION)
     trace_root = _RELEASE_ROOT / "exact-traces"
@@ -59,8 +71,19 @@ def main() -> int:
     projection_root = _RELEASE_ROOT / "ms-swift-process"
     receipt_root = _RELEASE_ROOT / "execution-receipts"
     report_path = _RELEASE_ROOT / "materialization-report.json"
-    if any(path.exists() for path in (trace_root, corpus_root, projection_root, receipt_root, report_path)):
+    output_paths = (trace_root, corpus_root, projection_root, receipt_root, report_path)
+    output_paths_clear = not any(path.exists() for path in output_paths)
+    if not args.dry_run and not output_paths_clear:
         raise FileExistsError("BFS v3 materialization artifacts already exist")
+    preflight = _preflight(
+        phase_gate,
+        workers=args.workers,
+        output_paths=output_paths,
+        output_paths_clear=output_paths_clear,
+    )
+    if args.dry_run:
+        print(json.dumps(preflight, sort_keys=True))
+        return 0
 
     trace_receipt = run_frozen_bfs_trace_generation(
         accepted_manifest_path=_ACCEPTED_MANIFEST,
@@ -142,11 +165,98 @@ def main() -> int:
     return 0
 
 
+def _preflight(
+    phase_gate: BFSPhaseGate,
+    *,
+    workers: int,
+    output_paths: tuple[Path, ...],
+    output_paths_clear: bool,
+) -> dict[str, Any]:
+    if isinstance(workers, bool) or not isinstance(workers, int) or workers <= 0:
+        raise ValueError("BFS v3 workers must be a positive integer")
+    manifest_sha256 = _require_frozen_manifest(_ACCEPTED_MANIFEST, phase_gate)
+    candidates = _load_candidates(_ACCEPTED_MANIFEST, phase_gate)
+    expected_cells = {
+        (domain, difficulty, split)
+        for domain in phase_gate.freeze["data"]["domains"]
+        for difficulty in phase_gate.freeze["data"]["strata"]
+        for split in phase_gate.freeze["data"]["allowed_splits"]
+    }
+    cells: set[tuple[str, str, str]] = set()
+    identities: dict[str, str] = {}
+    for (domain, difficulty), rows in candidates.items():
+        for row in rows:
+            split = str(row["split"])
+            cells.add((domain, difficulty, split))
+            domain_path = _source_path(row["domain_path"])
+            problem_path = _source_path(row["problem_path"])
+            domain_bytes = domain_path.read_bytes()
+            problem_bytes = problem_path.read_bytes()
+            identity = whole_instance_identity(domain_bytes, problem_bytes)
+            prior_split = identities.get(identity)
+            if (
+                hashlib.sha256(domain_bytes).hexdigest() != row["domain_hash"]
+                or hashlib.sha256(problem_bytes).hexdigest() != row["problem_hash"]
+                or identity != row.get("whole_instance_id")
+                or row.get("split_assignment_id") != split_assignment_id(identity, split)
+                or (prior_split is not None and prior_split != split)
+                or not row.get("plan")
+            ):
+                raise ValueError(f"BFS v3 selected task failed preflight: {domain}/{difficulty}/{split}")
+            identities[identity] = split
+    if cells != expected_cells or sum(len(rows) for rows in candidates.values()) != 90:
+        raise ValueError("BFS v3 preflight does not cover the exact 90 selected cells")
+
+    for stage in ("trace_generation", "corpus_release", "process_sft_and_sanity_gate"):
+        phase_gate.require_run(stage=stage, contract_id=phase_gate.phase_id)
+    budgets = {
+        difficulty: phase_gate.require_run(
+            stage="trace_generation",
+            contract_id=phase_gate.phase_id,
+            difficulty=difficulty,
+        )
+        for difficulty in phase_gate.freeze["data"]["strata"]
+    }
+    trace_request = _request(
+        phase_gate=phase_gate,
+        attempt_id="issue-111-v3-exact-traces",
+        output_root=output_paths[0],
+        receipt_root=output_paths[3],
+    )
+    corpus_request = _request(
+        phase_gate=phase_gate,
+        attempt_id="issue-111-v3-process-corpus",
+        output_root=output_paths[1],
+        receipt_root=output_paths[3],
+    )
+    return {
+        "authorization_manifest_sha256": _sha256(_AUTHORIZATION.read_bytes()),
+        "budgets": budgets,
+        "contract_id": phase_gate.phase_id,
+        "corpus_attempt_id": corpus_request.binding.attempt_id,
+        "dry_run": True,
+        "freeze_manifest_sha256": _sha256(_FREEZE.read_bytes()),
+        "output_paths_clear": output_paths_clear,
+        "planned_stages": [
+            "trace_generation",
+            "corpus_release",
+            "corpus_byte_regeneration",
+            "ms_swift_process_projection",
+            "ms_swift_projection_byte_regeneration",
+        ],
+        "schema_version": "bfs_pilot_v3_materialization_preflight_v1",
+        "selected_manifest_sha256": manifest_sha256,
+        "selected_task_count": len(cells),
+        "trace_attempt_id": trace_request.binding.attempt_id,
+        "workers": workers,
+    }
+
+
 def _tree_payloads(root: Path) -> dict[str, bytes]:
     return {path.relative_to(root).as_posix(): path.read_bytes() for path in sorted(root.rglob("*")) if path.is_file()}
 
 
-def _json_object(path: Path) -> dict[str, object]:
+def _json_object(path: Path) -> dict[str, Any]:
     value = json.loads(path.read_bytes())
     if not isinstance(value, dict):
         raise ValueError(f"expected JSON object: {path}")

@@ -76,20 +76,47 @@ def test_selection_rejects_test_data() -> None:
         select_qualified_tasks([_candidate("held-out", "a" * 64, split="test")])
 
 
-def test_joint_selection_skips_cross_split_identity_collisions() -> None:
-    candidates = [
-        _candidate("train-first", "0" * 64, split="train", identity_key="collision"),
-        _candidate("train-alternative", "f" * 64, split="train", identity_key="train-only"),
-        _candidate("dev-first", "1" * 64, split="dev", identity_key="collision"),
-        _candidate("dev-alternative", "e" * 64, split="dev", identity_key="dev-only"),
-    ]
+def test_joint_selection_skips_three_cross_split_identity_collisions() -> None:
+    candidates = []
+    for index, band in enumerate(BANDS):
+        result = ExactBFSResult(BAND_BOUNDS[band][0], True, ("a",), "0" * 64)
+        candidates.extend(
+            replace(candidate, result=result)
+            for candidate in (
+                _candidate(
+                    f"{band}-train-first",
+                    f"{index}0".ljust(64, "0"),
+                    split="train",
+                    identity_key=f"{band}-collision",
+                ),
+                _candidate(
+                    f"{band}-train-alternative",
+                    f"{index}f".ljust(64, "f"),
+                    split="train",
+                    identity_key=f"{band}-train-only",
+                ),
+                _candidate(
+                    f"{band}-dev-first",
+                    f"{index}1".ljust(64, "1"),
+                    split="dev",
+                    identity_key=f"{band}-collision",
+                ),
+                _candidate(
+                    f"{band}-dev-alternative",
+                    f"{index}e".ljust(64, "e"),
+                    split="dev",
+                    identity_key=f"{band}-dev-only",
+                ),
+            )
+        )
 
     selected = select_qualified_tasks(reversed(candidates))
 
-    assert (
-        selected[("blocksworld", "easy", "train")].whole_instance_id
-        != selected[("blocksworld", "easy", "dev")].whole_instance_id
-    )
+    for band in BANDS:
+        assert (
+            selected[("blocksworld", band, "train")].whole_instance_id
+            != selected[("blocksworld", band, "dev")].whole_instance_id
+        )
 
 
 def test_joint_selection_marks_a_cell_missing_without_a_split_isolated_pair() -> None:

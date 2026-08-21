@@ -17,7 +17,7 @@ from .bfs_phase import BFSPhaseGate
 from .episode_evidence import read_episode_artifacts
 from .pddl_state import PDDLStateAuthority
 from .search_context import materialize_search_trace
-from .search_trace import TraceSegmentLimits
+from .search_trace import TraceSegmentLimits, _serialize_evaluation, _serialize_operation, _serialize_transition
 
 _RELEASE_MANIFEST_PATH = Path("manifests/bfs-text-corpus.json")
 _OPERATIONAL_PATH = Path("corpus/operational.jsonl")
@@ -128,6 +128,12 @@ def _build_release(
     split_conflicts = 0
     held_out_instances = 0
     future_leaks = 0
+    dropped_context_deltas = 0
+    max_model_input_bytes = 0
+    model_input_byte_budget = (
+        phase_gate.freeze["budgets"]["max_context_tokens"]
+        - phase_gate.freeze["budgets"]["max_output_tokens_per_operation"]
+    )
 
     for item in sorted(traces, key=_trace_sort_key):
         split = _text(item, "source", "split")
@@ -173,11 +179,8 @@ def _build_release(
             supervised_fields = ("observation", "rationale", "operation", "result")
             if any(atomic_record[field] != record[field] for field in supervised_fields):
                 future_leaks += 1
-            rolling = _json_object(
-                materialized.rolling_context_before(index, accepted_delta_limit=accepted_delta_limit).to_bytes(),
-                "rolling search context",
-            )
-            if any(delta["record_index"] >= index for delta in rolling["accepted_deltas"]):
+            rolling_context = materialized.rolling_context_before(index, accepted_delta_limit=accepted_delta_limit)
+            if any(delta.record_index >= index for delta in rolling_context.accepted_deltas):
                 future_leaks += 1
 
             common = _record_metadata(
@@ -188,14 +191,26 @@ def _build_release(
             )
             if is_v3:
                 common["schema_version"] = _RECORD_SCHEMA_V3
+            if is_v3:
+                process_input, dropped = _bounded_v3_process_input(
+                    goal_atoms=goal_atoms,
+                    observation=record["observation"],
+                    checkpoint=rolling_context.checkpoint,
+                    accepted_deltas=rolling_context.accepted_deltas,
+                    max_bytes=model_input_byte_budget,
+                )
+                dropped_context_deltas += dropped
+                max_model_input_bytes = max(max_model_input_bytes, len(_canonical_json_bytes(process_input)))
+            else:
+                process_input = {
+                    "goal_atoms": goal_atoms,
+                    "observation": record["observation"],
+                    "search_memory": _json_object(rolling_context.to_bytes(), "rolling search context"),
+                }
             process_rows.append(
                 {
                     **common,
-                    "input": {
-                        "goal_atoms": goal_atoms,
-                        "observation": record["observation"],
-                        "search_memory": rolling,
-                    },
+                    "input": process_input,
                     "target": {
                         "canonical_rationale": record["rationale"],
                         "runtime_result": None if is_v3 else record["result"],
@@ -240,8 +255,11 @@ def _build_release(
         audit = {
             "future_step_leakage_count": future_leaks,
             "held_out_instance_count": held_out_instances,
+            "max_model_input_bytes": max_model_input_bytes,
+            "model_input_byte_budget": model_input_byte_budget,
             "model_target_runtime_result_non_null_count": non_null_runtime_results,
             "operational_artifact_count": 0,
+            "rolling_context_deltas_dropped": dropped_context_deltas,
             "schema_version": _AUDIT_SCHEMA_V3,
             "split_conflict_count": split_conflicts,
             "status": "passed",
@@ -287,6 +305,18 @@ def _build_release(
         payloads[_OPERATIONAL_CURRICULUM_PATH.as_posix()] = _jsonl_bytes(
             _curriculum_rows(operational_rows, "operational")
         )
+    rolling_context_manifest = {
+        "accepted_delta_limit": accepted_delta_limit,
+        "max_context_tokens": phase_gate.freeze["budgets"]["max_context_tokens"],
+        "max_output_tokens_per_operation": phase_gate.freeze["budgets"]["max_output_tokens_per_operation"],
+    }
+    if is_v3:
+        rolling_context_manifest.update(
+            {
+                "max_model_input_bytes": model_input_byte_budget,
+                "projection": "bounded_bfs_search_memory_v3",
+            }
+        )
     manifest = {
         "artifacts": [
             {
@@ -302,11 +332,7 @@ def _build_release(
             "split_assignments": len(split_rows),
         },
         "phase_receipt": phase_gate.receipt(stage="corpus_release"),
-        "rolling_context": {
-            "accepted_delta_limit": accepted_delta_limit,
-            "max_context_tokens": phase_gate.freeze["budgets"]["max_context_tokens"],
-            "max_output_tokens_per_operation": phase_gate.freeze["budgets"]["max_output_tokens_per_operation"],
-        },
+        "rolling_context": rolling_context_manifest,
         "schema_version": _RELEASE_SCHEMA_V3 if is_v3 else _RELEASE_SCHEMA,
         "source_trace_manifest": {"sha256": _sha256(trace_manifest_bytes)},
         "split_unit": "whole_problem_instance",
@@ -314,6 +340,72 @@ def _build_release(
     }
     payloads[_RELEASE_MANIFEST_PATH.as_posix()] = _canonical_json_bytes(manifest)
     return payloads
+
+
+def _bounded_v3_process_input(
+    *,
+    goal_atoms: list[str],
+    observation: Mapping[str, Any],
+    checkpoint: Any,
+    accepted_deltas: tuple[Any, ...],
+    max_bytes: int,
+) -> tuple[dict[str, Any], int]:
+    if isinstance(max_bytes, bool) or not isinstance(max_bytes, int) or max_bytes <= 0:
+        raise ValueError("BFS v3 model input byte budget must be a positive integer")
+    frontier = observation.get("frontier")
+    if not isinstance(frontier, list) or not all(isinstance(state_id, str) for state_id in frontier):
+        raise ValueError("BFS v3 observation frontier must be an array of state IDs")
+    snapshot = checkpoint.snapshot
+    if tuple(frontier) != tuple(snapshot.frontier):
+        raise ValueError("BFS v3 observation frontier differs from trusted search memory")
+    bounded_observation = {
+        "frontier_head": frontier[0] if frontier else None,
+        "frontier_size": len(frontier),
+        "modality": observation.get("modality"),
+        "state_atoms": observation.get("state_atoms"),
+        "state_id": observation.get("state_id"),
+    }
+    compact_deltas = [_compact_v3_delta(delta) for delta in accepted_deltas]
+    original_delta_count = len(compact_deltas)
+    while True:
+        search_memory = {
+            "accepted_deltas": compact_deltas,
+            "authority_id": checkpoint.authority_id,
+            "context_type": "bounded_bfs_search_memory",
+            "frontier_head": snapshot.frontier[0] if snapshot.frontier else None,
+            "frontier_size": len(snapshot.frontier),
+            "known_state_count": len(snapshot.known_states),
+            "memory_sha256": checkpoint.memory_sha256,
+            "provenance_count": len(snapshot.provenance),
+            "schema_version": 3,
+            "visited_count": len(snapshot.visited),
+        }
+        process_input = {
+            "goal_atoms": goal_atoms,
+            "observation": bounded_observation,
+            "search_memory": search_memory,
+        }
+        if len(_canonical_json_bytes(process_input)) <= max_bytes:
+            return process_input, original_delta_count - len(compact_deltas)
+        if not compact_deltas:
+            raise ValueError("BFS v3 model input cannot fit the frozen byte budget")
+        compact_deltas.pop(0)
+
+
+def _compact_v3_delta(delta: Any) -> dict[str, Any]:
+    transition = _serialize_transition(delta.transition)
+    return {
+        "evaluation": _serialize_evaluation(delta.evaluation),
+        "operation": _serialize_operation(delta.operation),
+        "record_hash": delta.record_hash,
+        "record_index": delta.record_index,
+        "resulting_memory_sha256": delta.resulting_memory_sha256,
+        "transition": {
+            "action": transition["action"],
+            "source_state_id": transition["source_state"]["state_id"],
+            "target_state_id": transition["target_state"]["state_id"],
+        },
+    }
 
 
 def _validated_trace_items(trace_manifest: Mapping[str, Any], phase_gate: BFSPhaseGate) -> list[dict[str, Any]]:

@@ -15,6 +15,8 @@ from examples.planning_benchmark_slice.bfs_sft import (
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FREEZE = REPO_ROOT / "configs" / "experiments" / "bfs_phase_freeze_v1.json"
 AUTHORIZATION = REPO_ROOT / "configs" / "experiments" / "bfs_phase_authorization_v1.json"
+V3_FREEZE = REPO_ROOT / "configs" / "experiments" / "bfs_phase_freeze_v3.json"
+V3_AUTHORIZATION = REPO_ROOT / "configs" / "experiments" / "bfs_phase_authorization_v3.json"
 
 
 def _canonical_bytes(value: object) -> bytes:
@@ -77,6 +79,59 @@ def _release(tmp_path: Path, splits: tuple[str, ...]) -> tuple[Path, object]:
     }
     manifest_path = root / "manifests" / "bfs-text-corpus-release.json"
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    manifest_path.write_bytes(_canonical_bytes(manifest))
+    return root, phase_gate
+
+
+def _v3_release(tmp_path: Path) -> tuple[Path, object]:
+    phase_gate = load_bfs_phase_gate(V3_FREEZE, V3_AUTHORIZATION)
+    root = tmp_path / "v3-release"
+    rows = []
+    for index, split in enumerate(("train", "dev")):
+        rows.append(
+            {
+                "algorithm": "bfs",
+                "difficulty": "easy",
+                "domain_id": "blocksworld",
+                "input": {
+                    "goal_atoms": ["on(a,b)"],
+                    "observation": {"state_id": f"state-{index}"},
+                    "search_memory": {"accepted_deltas": []},
+                },
+                "instance_id": f"blocksworld-{split}-{index}",
+                "record_id": f"record-{split}-{index}",
+                "schema_version": "bfs_process_corpus_record_v3",
+                "source_record_hash": "a" * 64,
+                "split": split,
+                "split_assignment_id": f"assignment-{split}-{index}",
+                "target": {
+                    "canonical_rationale": {"rule": "fifo_frontier_head"},
+                    "runtime_result": None,
+                    "typed_operation": {"kind": "expand", "state_id": f"state-{index}"},
+                },
+                "trace_record_index": index,
+                "view": "process",
+                "whole_instance_id": f"instance-{split}-{index}",
+            }
+        )
+    process = b"".join(_canonical_bytes(row) for row in rows)
+    process_path = root / "corpus" / "process.jsonl"
+    process_path.parent.mkdir(parents=True)
+    process_path.write_bytes(process)
+    manifest = {
+        "artifacts": [
+            {
+                "path": "corpus/process.jsonl",
+                "sha256": hashlib.sha256(process).hexdigest(),
+                "size_bytes": len(process),
+            }
+        ],
+        "phase_receipt": phase_gate.receipt(stage="corpus_release"),
+        "schema_version": "bfs_process_corpus_release_v3",
+        "views": ["process"],
+    }
+    manifest_path = root / "manifests" / "bfs-text-corpus.json"
+    manifest_path.parent.mkdir(parents=True)
     manifest_path.write_bytes(_canonical_bytes(manifest))
     return root, phase_gate
 
@@ -146,3 +201,44 @@ def test_builds_explicit_frozen_two_gpu_ms_swift_lora_command(tmp_path: Path) ->
     assert arguments["--seed"] == arguments["--data_seed"] == "17"
     assert arguments["--full_determinism"] == "true"
     assert arguments["--train_dataloader_shuffle"] == "false"
+
+
+def test_v3_projects_only_null_result_process_targets_byte_identically(tmp_path: Path) -> None:
+    corpus_root, phase_gate = _v3_release(tmp_path)
+    first_root = tmp_path / "first-projection"
+    second_root = tmp_path / "second-projection"
+
+    first_manifest = convert_bfs_corpus_to_ms_swift(
+        corpus_root=corpus_root,
+        output_root=first_root,
+        phase_gate=phase_gate,
+        view="process",
+    )
+    convert_bfs_corpus_to_ms_swift(
+        corpus_root=corpus_root,
+        output_root=second_root,
+        phase_gate=phase_gate,
+        view="process",
+    )
+
+    assert {
+        path.relative_to(first_root).as_posix(): path.read_bytes() for path in first_root.rglob("*") if path.is_file()
+    } == {
+        path.relative_to(second_root).as_posix(): path.read_bytes() for path in second_root.rglob("*") if path.is_file()
+    }
+    manifest = json.loads(first_manifest.read_bytes())
+    assert manifest["schema_version"] == "bfs_process_ms_swift_conversion_v3"
+    assert manifest["view"] == "process"
+    for split in ("train", "dev"):
+        row = json.loads((first_root / "data" / f"{split}.jsonl").read_text(encoding="utf-8"))
+        target = json.loads(row["messages"][2]["content"])
+        assert set(target) == {"canonical_rationale", "runtime_result", "typed_operation"}
+        assert target["runtime_result"] is None
+
+    with pytest.raises(ValueError, match="only the process corpus"):
+        convert_bfs_corpus_to_ms_swift(
+            corpus_root=corpus_root,
+            output_root=tmp_path / "forbidden-operational",
+            phase_gate=phase_gate,
+            view="operational",
+        )
