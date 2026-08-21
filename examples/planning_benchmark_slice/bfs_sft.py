@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
 import shutil
 import tempfile
@@ -217,7 +216,6 @@ def convert_bfs_corpus_to_ms_swift(
                 "domain_id": row["domain_id"],
                 "instance_id": row["instance_id"],
                 "record_id": row["record_id"],
-                "source_record_hash": row["source_record_hash"],
                 "split": split,
                 "split_assignment_id": row["split_assignment_id"],
                 "whole_instance_id": row["whole_instance_id"],
@@ -233,7 +231,7 @@ def convert_bfs_corpus_to_ms_swift(
     }
     conversion_manifest = {
         "artifacts": [
-            {"path": path, "sha256": _sha256(payload), "size_bytes": len(payload)}
+            {"path": path, "size_bytes": len(payload)}
             for path, payload in sorted(payloads.items())
         ],
         "counts": {split: len(converted[split]) for split in ("train", "dev")},
@@ -242,7 +240,6 @@ def convert_bfs_corpus_to_ms_swift(
         "schema_version": _CONVERSION_SCHEMA_V3 if is_v3 else _CONVERSION_SCHEMA,
         "source": {
             "manifest_path": _stable_path(release_manifest_path) if is_v3 else str(release_manifest_path),
-            "manifest_sha256": _sha256(release_manifest_bytes),
         },
         "view": view,
     }
@@ -268,13 +265,13 @@ def _verified_artifacts(root: Path, manifest: Mapping[str, Any]) -> dict[str, by
         raise ValueError("BFS corpus release artifacts must be a list")
     artifacts: dict[str, bytes] = {}
     for entry in entries:
-        if not isinstance(entry, dict) or set(entry) != {"path", "sha256", "size_bytes"}:
+        if not isinstance(entry, dict) or set(entry) != {"path", "size_bytes"}:
             raise ValueError("BFS corpus artifact entry is malformed")
         relative_path = Path(entry["path"])
         if relative_path.is_absolute() or ".." in relative_path.parts:
             raise ValueError("BFS corpus artifact path escapes its release")
         payload = (root / relative_path).read_bytes()
-        if _sha256(payload) != entry["sha256"] or len(payload) != entry["size_bytes"]:
+        if len(payload) != entry["size_bytes"]:
             raise ValueError(f"BFS corpus artifact differs from its release manifest: {relative_path}")
         artifacts[relative_path.as_posix()] = payload
     return artifacts
@@ -289,7 +286,6 @@ def _validate_source_row(row: Mapping[str, Any], *, view: str, is_v3: bool = Fal
         "instance_id",
         "record_id",
         "schema_version",
-        "source_record_hash",
         "split",
         "split_assignment_id",
         "target",
@@ -353,10 +349,6 @@ def _canonical_bytes(value: object) -> bytes:
 
 def _jsonl_bytes(rows: list[dict[str, Any]]) -> bytes:
     return b"".join(_canonical_bytes(row) for row in rows)
-
-
-def _sha256(payload: bytes) -> str:
-    return hashlib.sha256(payload).hexdigest()
 
 
 __all__ = ["build_ms_swift_sft_command", "convert_bfs_corpus_to_ms_swift"]

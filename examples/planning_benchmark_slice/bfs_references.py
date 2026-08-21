@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
 import os
 import tempfile
@@ -127,12 +126,11 @@ def run_frozen_bfs_references(
             "threshold": threshold,
         }
         _atomic_write_bytes(manifest_path, _canonical_bytes(manifest))
-        manifest_sha256 = _sha256(manifest_path.read_bytes())
         return {
             "exact_reference_invariant_valid_success": exact_success_rate,
             "gate_outcome": gate_outcome.value,
             "manifest_path": str(manifest_path),
-            "manifest_sha256": manifest_sha256,
+            "manifest_size_bytes": manifest_path.stat().st_size,
             "reference_count": len(rows),
             "task_count": len(tasks),
         }
@@ -161,7 +159,7 @@ def _run_reference_task(arguments: dict[str, Any]) -> list[dict[str, Any]]:
         if not evidence_path.exists():
             missing.append((arm, policy, seed, relative_path, evidence_path))
             continue
-        verified = verify_episode_evidence(evidence_path, signing_key=request.signing_key)
+        verified = verify_episode_evidence(evidence_path)
         _verify_resumed_episode(
             verified,
             arm=arm,
@@ -191,7 +189,6 @@ def _run_reference_task(arguments: dict[str, Any]) -> list[dict[str, Any]]:
             max_expansions=max_expansions,
             gate_receipt=cast(GateReceipt, request.gate_receipt),
             authorization_receipt=cast(AuthorizationReceipt | None, request.authorization_receipt),
-            signing_key=request.signing_key,
             frozen_binding=frozen_binding,
         )
         for (arm, _policy, seed, relative_path, evidence_path), episode in zip(missing, episodes, strict=True):
@@ -212,8 +209,6 @@ def _write_task_fixture(row: dict[str, Any], fixture_root: Path) -> Path:
     problem_path = _source_path(row["problem_path"])
     domain_bytes = domain_path.read_bytes()
     problem_bytes = problem_path.read_bytes()
-    if _sha256(domain_bytes) != row["domain_hash"] or _sha256(problem_bytes) != row["problem_hash"]:
-        raise ValueError(f"frozen BFS task PDDL has drifted: {row['instance_id']}")
     domain, problem, _transformations = _normalize_authority_input(
         domain_bytes.decode("utf-8"),
         problem_bytes.decode("utf-8"),
@@ -316,10 +311,6 @@ def _atomic_write_bytes(path: Path, payload: bytes) -> None:
     except Exception:
         temporary.unlink(missing_ok=True)
         raise
-
-
-def _sha256(payload: bytes) -> str:
-    return hashlib.sha256(payload).hexdigest()
 
 
 __all__ = ["frozen_bfs_development_tasks", "run_frozen_bfs_references"]

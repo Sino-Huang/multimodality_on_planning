@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import tempfile
 from pathlib import Path
@@ -25,14 +24,13 @@ from examples.planning_benchmark_slice.bfs_phase import BFSPhaseGate, load_bfs_p
 from examples.planning_benchmark_slice.bfs_sft import convert_bfs_corpus_to_ms_swift
 from src.data_collect.generate import GenerationRequest
 from src.data_collect.governance import AuthorizationReceipt, GateReceipt, ReceiptBinding, StopOutcome
-from src.data_collect.splits import split_assignment_id, whole_instance_identity
+from src.data_collect.splits import whole_instance_identity
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 _FREEZE = _REPO_ROOT / "configs" / "experiments" / "bfs_phase_freeze_v3.json"
 _AUTHORIZATION = _REPO_ROOT / "configs" / "experiments" / "bfs_phase_authorization_v3.json"
 _ACCEPTED_MANIFEST = _REPO_ROOT / "data" / "bfs_pilot_v3" / "selected-manifest.jsonl"
 _RELEASE_ROOT = _REPO_ROOT / "data" / "bfs_pilot_v3"
-_SIGNING_KEY = b"issue-111-bfs-expansion-qualified-pilot-v3"
 
 
 def _request(
@@ -47,13 +45,12 @@ def _request(
         attempt_id=attempt_id,
         output_root=output_root,
     )
-    gate = GateReceipt(binding=binding, outcome=StopOutcome.PASS).signed(_SIGNING_KEY)
-    authorization = AuthorizationReceipt(binding=binding, gate_receipt_digest=gate.digest).signed(_SIGNING_KEY)
+    gate = GateReceipt(binding=binding, outcome=StopOutcome.PASS)
+    authorization = AuthorizationReceipt(binding=binding, gate_receipt_id=gate.receipt_id)
     return GenerationRequest(
         binding=binding,
         gate_receipt=gate,
         authorization_receipt=authorization,
-        signing_key=_SIGNING_KEY,
         receipt_root=receipt_root,
     )
 
@@ -135,7 +132,6 @@ def main() -> int:
     corpus_manifest_path = Path(corpus_receipt.execution_result["corpus_manifest_path"])
     regenerated_corpus = regenerate_bfs_text_corpus(
         trace_manifest_path=trace_manifest_path,
-        signing_key=_SIGNING_KEY,
         phase_gate=phase_gate,
     )
     released_corpus = _tree_payloads(corpus_root)
@@ -165,18 +161,18 @@ def main() -> int:
     if len(trace_manifest["traces"]) != 90 or corpus_manifest["views"] != ["process"]:
         raise ValueError("BFS v3 materialization does not cover the required process-only product")
     report = {
-        "authorization_manifest_sha256": _sha256(_AUTHORIZATION.read_bytes()),
-        "corpus_manifest_sha256": _sha256(corpus_manifest_path.read_bytes()),
+        "authorization_manifest_path": _AUTHORIZATION.relative_to(_REPO_ROOT).as_posix(),
+        "corpus_manifest_path": corpus_manifest_path.relative_to(_REPO_ROOT).as_posix(),
         "corpus_regeneration_byte_identical": True,
-        "freeze_manifest_sha256": _sha256(_FREEZE.read_bytes()),
-        "ms_swift_manifest_sha256": _sha256(projection_manifest.read_bytes()),
+        "freeze_manifest_path": _FREEZE.relative_to(_REPO_ROOT).as_posix(),
+        "ms_swift_manifest_path": projection_manifest.relative_to(_REPO_ROOT).as_posix(),
         "ms_swift_projection_regeneration_byte_identical": True,
         "phase_id": phase_gate.phase_id,
         "process_record_count": corpus_manifest["counts"]["process_records"],
         "resumed_from_traces": args.resume_from_traces,
         "schema_version": "bfs_pilot_v3_materialization_report_v1",
         "trace_count": len(trace_manifest["traces"]),
-        "trace_manifest_sha256": _sha256(trace_manifest_path.read_bytes()),
+        "trace_manifest_path": trace_manifest_path.relative_to(_REPO_ROOT).as_posix(),
         "train_projection_count": projection["counts"]["train"],
         "dev_projection_count": projection["counts"]["dev"],
         "trusted_trace_replay_count": len(trace_manifest["traces"]),
@@ -196,7 +192,7 @@ def _preflight(
 ) -> dict[str, Any]:
     if isinstance(workers, bool) or not isinstance(workers, int) or workers <= 0:
         raise ValueError("BFS v3 workers must be a positive integer")
-    manifest_sha256 = _require_frozen_manifest(_ACCEPTED_MANIFEST, phase_gate)
+    _require_frozen_manifest(_ACCEPTED_MANIFEST, phase_gate)
     candidates = _load_candidates(_ACCEPTED_MANIFEST, phase_gate)
     expected_cells = {
         (domain, difficulty, split)
@@ -217,11 +213,7 @@ def _preflight(
             identity = whole_instance_identity(domain_bytes, problem_bytes)
             prior_split = identities.get(identity)
             if (
-                hashlib.sha256(domain_bytes).hexdigest() != row["domain_hash"]
-                or hashlib.sha256(problem_bytes).hexdigest() != row["problem_hash"]
-                or identity != row.get("whole_instance_id")
-                or row.get("split_assignment_id") != split_assignment_id(identity, split)
-                or (prior_split is not None and prior_split != split)
+                (prior_split is not None and prior_split != split)
                 or not row.get("plan")
             ):
                 raise ValueError(f"BFS v3 selected task failed preflight: {domain}/{difficulty}/{split}")
@@ -258,12 +250,12 @@ def _preflight(
         receipt_root=output_paths[3],
     )
     return {
-        "authorization_manifest_sha256": _sha256(_AUTHORIZATION.read_bytes()),
+        "authorization_manifest_path": _AUTHORIZATION.relative_to(_REPO_ROOT).as_posix(),
         "budgets": budgets,
         "contract_id": phase_gate.phase_id,
         "corpus_attempt_id": corpus_request.binding.attempt_id,
         "dry_run": True,
-        "freeze_manifest_sha256": _sha256(_FREEZE.read_bytes()),
+        "freeze_manifest_path": _FREEZE.relative_to(_REPO_ROOT).as_posix(),
         "output_paths_clear": output_paths_clear,
         "planned_stages": [
             *([] if resume_from_traces else ["trace_generation"]),
@@ -273,7 +265,7 @@ def _preflight(
             "ms_swift_projection_byte_regeneration",
         ],
         "schema_version": "bfs_pilot_v3_materialization_preflight_v1",
-        "selected_manifest_sha256": manifest_sha256,
+        "selected_manifest_path": _ACCEPTED_MANIFEST.relative_to(_REPO_ROOT).as_posix(),
         "selected_task_count": len(cells),
         "trace_attempt_id": trace_attempt_id,
         "reused_trace_count": reused_trace_count,
@@ -309,10 +301,6 @@ def _canonical_bytes(value: object) -> bytes:
     return (json.dumps(value, allow_nan=False, ensure_ascii=True, separators=(",", ":"), sort_keys=True) + "\n").encode(
         "utf-8"
     )
-
-
-def _sha256(payload: bytes) -> str:
-    return hashlib.sha256(payload).hexdigest()
 
 
 if __name__ == "__main__":

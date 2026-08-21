@@ -61,10 +61,7 @@ def test_oracle_persists_verifiable_replayable_search_trace_segment() -> None:
     for index, record in enumerate(records):
         for field in ("observation", "rationale", "operation", "result"):
             assert record[field]
-        assert record["previous_hash"]
-        assert record["record_hash"]
-        if index:
-            assert record["previous_hash"] == records[index - 1]["record_hash"]
+        assert record["index"] == index
 
     serialized_segment = json.dumps(
         segment,

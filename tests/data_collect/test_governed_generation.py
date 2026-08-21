@@ -37,7 +37,6 @@ from src.data_collect.structural import (
 )
 
 
-SIGNING_KEY = b"governed-generation-test-key"
 DOMAIN = b"(define (domain tiny) (:predicates (ready)))\n"
 PROBLEM = b"(define (problem p) (:domain tiny) (:init (ready)) (:goal (ready)))\n"
 
@@ -147,10 +146,10 @@ def _request(
     gate = GateReceipt(
         binding=binding,
         outcome=outcome,
-        ancestor_receipt_digest=ancestor_digest,
-    ).signed(SIGNING_KEY)
+        ancestor_receipt_id=ancestor_digest,
+    )
     authorization = (
-        AuthorizationReceipt(binding=binding, gate_receipt_digest=gate.digest).signed(SIGNING_KEY)
+        AuthorizationReceipt(binding=binding, gate_receipt_id=gate.receipt_id)
         if authorized and outcome is StopOutcome.PASS
         else None
     )
@@ -158,9 +157,8 @@ def _request(
         binding=binding,
         gate_receipt=gate,
         authorization_receipt=authorization,
-        signing_key=SIGNING_KEY,
         receipt_root=receipt_root if receipt_root is not None else output_root.parent / "governance",
-        ancestor_receipt_digest=ancestor_digest,
+        ancestor_receipt_id=ancestor_digest,
     )
 
 

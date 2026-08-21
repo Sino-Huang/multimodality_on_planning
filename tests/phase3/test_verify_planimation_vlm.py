@@ -44,7 +44,7 @@ def test_release_mode_accepts_complete_output_and_rejects_required_failures(tmp_
     stale_root = _copy_root(output_root, tmp_path, "stale")
     pairing_path = stale_root / "diagnostics" / "pairing_manifest.jsonl"
     stale_pair = json.loads(pairing_path.read_text(encoding="utf-8"))
-    stale_pair["source_record_sha256"] = "0" * 64
+    stale_pair["source_record_id"] = "wrong-record"
     pairing_path.write_text(json.dumps(stale_pair) + "\n", encoding="utf-8")
     stale = _verify(stale_root, "release")
     invalid_image_root = _copy_root(output_root, tmp_path, "invalid-image")
@@ -59,7 +59,7 @@ def test_release_mode_accepts_complete_output_and_rejects_required_failures(tmp_
     assert malformed.returncode == 1 and "malformed_jsonl: full_reasoning_train.jsonl" in malformed.stderr
     assert duplicate.returncode == 1 and "duplicate VLM record_id" in duplicate.stderr
     assert partial.returncode == 1 and "release_requires_production_complete" in partial.stderr
-    assert stale.returncode == 1 and "source_record_sha256" in stale.stderr
+    assert stale.returncode == 1 and "source_record_id" in stale.stderr
     assert invalid_image.returncode == 1 and "invalid_render_image" in invalid_image.stderr
     assert split_leak.returncode == 1 and "split leakage in step_vlm_train.jsonl" in split_leak.stderr
 
@@ -117,9 +117,9 @@ def test_manifest_mode_rejects_invalid_frozen_selection_contracts(tmp_path: Path
     malformed_kind = json.loads(json.dumps(selection))
     malformed_kind["artifact_kind"] = "wrong-kind"
     mutated_provenance = json.loads(json.dumps(selection))
-    mutated_provenance["selected_pairs"][0]["source_root_sha256"] = "0" * 64
+    mutated_provenance["selected_pairs"][0]["source_record_id"] = "wrong-record"
     full_source_manifest = json.loads(json.dumps(selection))
-    full_source_manifest["input_pairing_manifest_sha256"] = "f" * 64
+    full_source_manifest["input_pairing_manifest_path"] = "diagnostics/other.jsonl"
 
     missing_result = _verify(output_root, "manifest", _write_selection_fixture(tmp_path, "missing", missing))
     extra_result = _verify(output_root, "manifest", _write_selection_fixture(tmp_path, "extra", extra))
@@ -135,52 +135,25 @@ def test_manifest_mode_rejects_invalid_frozen_selection_contracts(tmp_path: Path
     assert duplicate_result.returncode == 1 and "duplicate selected pair_id" in duplicate_result.stderr
     assert malformed_kind_result.returncode == 1 and "invalid selection artifact kind" in malformed_kind_result.stderr
     assert mutated_provenance_result.returncode == 1 and "selection provenance mismatch" in mutated_provenance_result.stderr
-    assert full_source_manifest_result.returncode == 0, full_source_manifest_result.stderr
+    assert full_source_manifest_result.returncode == 1
+    assert "selection input_pairing_manifest_path" in full_source_manifest_result.stderr
 
 
-@pytest.mark.parametrize(
-    ("label", "manifest_hash"),
-    (
-        ("missing", None),
-        ("empty", ""),
-        ("wrong-length", "f" * 63),
-        ("uppercase", "F" * 64),
-        ("nonhex", "g" * 64),
-        ("prefixed", "sha256:" + "f" * 64),
-        ("trailing-newline", "f" * 64 + "\n"),
-    ),
-)
-def test_release_rejects_malformed_selection_source_manifest_hashes(
-    tmp_path: Path, label: str, manifest_hash: str | None
+@pytest.mark.parametrize("manifest_path", (None, "", "diagnostics/other.jsonl", "/tmp/pairing.jsonl"))
+def test_release_rejects_wrong_selection_source_manifest_path(
+    tmp_path: Path, manifest_path: str | None
 ) -> None:
-    # Given: a release-valid root and a matching frozen selection fixture.
-    output_root = _complete_rollout_root(tmp_path, f"selection-hash-{label}")
-    selection = prepare_selection(output_root, "fixture")
-    candidate = json.loads(json.dumps(selection))
-    if manifest_hash is None:
-        del candidate["input_pairing_manifest_sha256"]
+    output_root = _complete_rollout_root(tmp_path, "selection-path")
+    candidate = prepare_selection(output_root, "fixture")
+    if manifest_path is None:
+        del candidate["input_pairing_manifest_path"]
     else:
-        candidate["input_pairing_manifest_sha256"] = manifest_hash
+        candidate["input_pairing_manifest_path"] = manifest_path
 
-    # When: direct selection-bound release verification receives malformed source provenance.
-    result = _verify(output_root, "release", _write_selection_fixture(tmp_path, label, candidate))
+    result = _verify(output_root, "release", _write_selection_fixture(tmp_path, "selection-path", candidate))
 
-    # Then: canonical source-manifest hashing fails closed before release acceptance.
     assert result.returncode == 1
-    assert "selection input_pairing_manifest_sha256" in result.stderr
-
-
-def test_release_accepts_distinct_canonical_selection_source_manifest_hash(tmp_path: Path) -> None:
-    # Given: a release-valid root with a selection sourced from a different canonical manifest.
-    output_root = _complete_rollout_root(tmp_path, "selection-hash-valid")
-    selection = prepare_selection(output_root, "fixture")
-    selection["input_pairing_manifest_sha256"] = "f" * 64
-
-    # When: direct selection-bound release verification receives that valid distinct source hash.
-    result = _verify(output_root, "release", _write_selection_fixture(tmp_path, "valid-source-hash", selection))
-
-    # Then: source provenance is format-validated without being compared to the output manifest hash.
-    assert result.returncode == 0, result.stderr
+    assert "selection input_pairing_manifest_path" in result.stderr
 
 
 def test_manifest_mode_rejects_reordered_selection_pair_ids(tmp_path: Path) -> None:
@@ -360,7 +333,7 @@ def test_fixture_promotion_requires_frozen_selection_and_release_receipt(tmp_pat
 
     # Then: no release-backed artifact can bypass a broken selection freeze.
     assert blocked.approved is False
-    assert "frozen_selection_integrity_failure" in blocked.reasons
+    assert "invalid_frozen_selection" in blocked.reasons
 
 
 def test_promotion_rejects_stale_manifest_forged_prior_receipt_and_missing_artifacts(tmp_path: Path) -> None:
@@ -375,7 +348,7 @@ def test_promotion_rejects_stale_manifest_forged_prior_receipt_and_missing_artif
     prepare_selection(stale_root, "fixture")
     stale_manifest = stale_root / "diagnostics" / "pairing_manifest.jsonl"
     stale_pair = json.loads(stale_manifest.read_text(encoding="utf-8"))
-    stale_pair["source_root_sha256"] = "0" * 64
+    stale_pair["source_record_id"] = "wrong-record"
     stale_manifest.write_text(json.dumps(stale_pair) + "\n", encoding="utf-8")
     stale = assess_promotion(stale_root, "fixture", stale_root / "diagnostics" / "rollout_selection.json")
     forged_receipt = _copy_root(fixture_root, tmp_path, "forged-prior") / "diagnostics" / "rollout_promotion_receipt.json"
@@ -390,9 +363,8 @@ def test_promotion_rejects_stale_manifest_forged_prior_receipt_and_missing_artif
     missing = assess_promotion(missing_root, "fixture", missing_root / "diagnostics" / "rollout_selection.json")
 
     # Then: each condition fails closed and still persists a diagnostic receipt.
-    assert "frozen_pairing_manifest_hash_mismatch" in stale.reasons
     assert "output_pairing_manifest_pair_identity_mismatch" in stale.reasons
-    assert "prior_promotion_receipt_integrity_failure" in forged.reasons
+    assert "prior_stage_not_approved" in forged.reasons
     assert "missing_artifact:diagnostics/state_render_manifest.jsonl" in missing.reasons
     assert json.loads((missing_root / "diagnostics" / "rollout_promotion_receipt.json").read_text(encoding="utf-8"))["approved"] is False
 
@@ -481,7 +453,7 @@ def _source_root(tmp_path: Path) -> Path:
     (frames / "frame_001.png").write_bytes(_png())
     (render / "trace.vfg.json").write_text(json.dumps({"visualStages": [{"stageName": "Initial Stage"}, {"stageName": "(move a b)"}]}), encoding="utf-8")
     (render / "result.json").write_text(json.dumps({"render_profile_path": str(profile)}), encoding="utf-8")
-    example = {"schema_version": "phase3_supervised_planning_v1", "example_id": "example-0000", "domain": "grid", "instance_id": "tiny-train-easy-0000", "split": "train", "planner": "gbfs", "plan_hash": "plan-hash", "trace_fidelity": "success_full_trace", "vision_supervision_available": True, "model_facing": {"domain_source": relpath(domain), "problem_source": relpath(problem), "vision": {"trace_path": relpath(render / "trace.vfg.json"), "frame_paths": [relpath(frames / "frame_000.png"), relpath(frames / "frame_001.png")]}}, "supervised_target": {"plan": ["(move a b)"], "planner_trace": {"trace_contract_version": "phase3_traversal_trace_v1", "algorithm": "greedy_best_first", "heuristic_source": "unsatisfied_goal_count", "expansion_count": 1, "visited_count": 2, "frontier_events": [{"event_kind": "expansion", "selected_state_atoms": ["(at a)", "(connected a b)"], "current_heuristic": {"heuristic_value": 1}, "successor_heuristics": [{"action": "(move a b)", "event_kind": "generation", "heuristic_value": 0, "is_goal": True}], "frontier_size_after": 0, "visited_count_after": 2, "tie_break_rule": "min_unsatisfied_goals_then_plan_length_then_generation_order"}]}, "replay_transitions": [{"step_index": 0, "action": "(move a b)", "state_before": ["(at a)", "(connected a b)"], "state_after": ["(at b)", "(connected a b)"]}]}, "evaluation_metadata": {}}
+    example = {"schema_version": "phase3_supervised_planning_v1", "example_id": "example-0000", "domain": "grid", "instance_id": "tiny-train-easy-0000", "split": "train", "planner": "gbfs", "plan_id": "plan-hash", "trace_fidelity": "success_full_trace", "vision_supervision_available": True, "model_facing": {"domain_source": relpath(domain), "problem_source": relpath(problem), "vision": {"trace_path": relpath(render / "trace.vfg.json"), "frame_paths": [relpath(frames / "frame_000.png"), relpath(frames / "frame_001.png")]}}, "supervised_target": {"plan": ["(move a b)"], "planner_trace": {"trace_contract_version": "phase3_traversal_trace_v1", "algorithm": "greedy_best_first", "heuristic_source": "unsatisfied_goal_count", "expansion_count": 1, "visited_count": 2, "frontier_events": [{"event_kind": "expansion", "selected_state_atoms": ["(at a)", "(connected a b)"], "current_heuristic": {"heuristic_value": 1}, "successor_heuristics": [{"action": "(move a b)", "event_kind": "generation", "heuristic_value": 0, "is_goal": True}], "frontier_size_after": 0, "visited_count_after": 2, "tie_break_rule": "min_unsatisfied_goals_then_plan_length_then_generation_order"}]}, "replay_transitions": [{"step_index": 0, "action": "(move a b)", "state_before": ["(at a)", "(connected a b)"], "state_after": ["(at b)", "(connected a b)"]}]}, "evaluation_metadata": {}}
     (root / "train.jsonl").write_text(json.dumps(example) + "\n", encoding="utf-8")
     for split in ("dev", "test"):
         (root / f"{split}.jsonl").write_text("", encoding="utf-8")

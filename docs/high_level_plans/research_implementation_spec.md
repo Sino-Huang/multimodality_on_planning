@@ -110,7 +110,7 @@ The backend identity is the approved Git commit:
 94d82afb5ee122ce579dd11ca1953b7c85ca5824
 ```
 
-No file-level source hashing, whole-tree digest, vendored snapshot, backend patch, runtime parser monkeypatch, socket guard, `strace`, or network namespace is added.
+No file-level integrity layer, vendored snapshot, backend patch, runtime parser monkeypatch, socket guard, `strace`, or network namespace is added.
 
 ### 1.5 Required claim matrix
 

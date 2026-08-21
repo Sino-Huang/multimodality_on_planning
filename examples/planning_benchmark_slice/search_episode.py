@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import base64
 import json
 import random
 from collections.abc import Mapping, Sequence
@@ -16,53 +15,25 @@ from src.data_collect.governance import (
     StopOutcome,
     evaluate_execution_permission,
 )
-from src.data_collect.replay import parse_canonical_bundle
 
 from .episode_evidence import (
     EVIDENCE_SCHEMA_VERSION,
-    V2_EVIDENCE_SCHEMA_VERSION,
     EpisodeEvidenceError,
-    memory_sha256,
     replay_episode,
     serialize_operation,
     serialize_state,
 )
 from .pddl_state import CanonicalState, PDDLStateAuthority
-from .search_memory import (
-    AcceptedRetirement,
-    AcceptedTransition,
-    FrontierIntent,
-    MutableBFSMemory,
-    SearchMemory,
-    SearchRetireRequest,
-    SearchTransitionRequest,
-    StateEvaluation,
-    apply_search_retirement,
-    apply_search_transition,
-)
-from .search_trace import (
-    TraceSegmentLimits,
-    replay_search_trace_segment,
-)
+from .search_memory import MutableBFSMemory, SearchMemory, StateEvaluation
+from .search_trace import TraceSegmentLimits
 from .validate_instance import load_fixture
 
-V1_EVIDENCE_SCHEMA_VERSION = "search_episode_evidence_v1"
 TASK_SCHEMA_VERSION = "search_episode_task_v1"
 REQUEST_SCHEMA_VERSION = "search_episode_request_v1"
-_BUNDLE_ARTIFACTS = {
-    "authorization-receipt.json",
-    "expansions.json",
-    "gate-receipt.json",
-    "request.json",
-    "result.json",
-    "run-receipt.json",
-    "search-trace.json",
-    "task.json",
-}
 
 
 class SearchEpisodeError(ValueError):
-    """Raised when an episode request or evidence bundle is invalid."""
+    """Raised when an episode request or evidence is invalid."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -79,8 +50,7 @@ def run_search_episode(
     max_expansions: int,
     gate_receipt: GateReceipt,
     authorization_receipt: AuthorizationReceipt | None,
-    signing_key: bytes | str,
-    ancestor_receipt_digest: str | None = None,
+    ancestor_receipt_id: str | None = None,
     random_seed: int | None = None,
     frozen_binding: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
@@ -94,8 +64,7 @@ def run_search_episode(
         max_expansions=max_expansions,
         gate_receipt=gate_receipt,
         authorization_receipt=authorization_receipt,
-        signing_key=signing_key,
-        ancestor_receipt_digest=ancestor_receipt_digest,
+        ancestor_receipt_id=ancestor_receipt_id,
         frozen_binding=frozen_binding,
     )[0]
 
@@ -108,8 +77,7 @@ def run_search_episode_batch(
     max_expansions: int,
     gate_receipt: GateReceipt,
     authorization_receipt: AuthorizationReceipt | None,
-    signing_key: bytes | str,
-    ancestor_receipt_digest: str | None = None,
+    ancestor_receipt_id: str | None = None,
     frozen_binding: Mapping[str, Any] | None = None,
 ) -> tuple[dict[str, Any], ...]:
     """Run ordered BFS policy variants after one authorized task parse."""
@@ -119,15 +87,11 @@ def run_search_episode_batch(
         raise SearchEpisodeError("episode variants must be a non-empty sequence")
     if not isinstance(gate_receipt, GateReceipt):
         raise SearchEpisodeError("gate_receipt must expose a governed binding")
-
-    # This check intentionally precedes Path construction, fixture reads, PDDL
-    # parsing, and all search-memory creation.
     permission = evaluate_execution_permission(
         binding=gate_receipt.binding,
         gate_receipt=gate_receipt,
         authorization_receipt=authorization_receipt,
-        signing_key=signing_key,
-        ancestor_receipt_digest=ancestor_receipt_digest,
+        ancestor_receipt_id=ancestor_receipt_id,
     )
     if not permission.start_permitted:
         return tuple(_stopped_episode(permission) for _variant in variant_list)
@@ -153,7 +117,6 @@ def run_search_episode_batch(
             max_expansions=max_expansions,
             gate_receipt=gate_receipt,
             authorization_receipt=authorization_receipt,
-            signing_key=signing_key,
             frozen_binding=frozen_binding,
             authority=authority,
         )
@@ -161,146 +124,14 @@ def run_search_episode_batch(
     )
 
 
-def replay_search_episode(evidence: Mapping[str, Any], *, signing_key: bytes | str) -> dict[str, Any]:
-    """Verify and deterministically reconstruct a complete public episode."""
-
-    if isinstance(evidence, Mapping) and evidence.get("schema_version") in {
-        V2_EVIDENCE_SCHEMA_VERSION,
-        EVIDENCE_SCHEMA_VERSION,
-    }:
-        if set(evidence) != {"events", "header", "result", "schema_version", "states"}:
-            raise SearchEpisodeError("evidence has invalid fields")
-        try:
-            replay_episode(evidence, signing_key=signing_key)
-        except EpisodeEvidenceError as error:
-            raise SearchEpisodeError(str(error)) from error
-        return {"evidence": dict(evidence), "result": evidence["result"]}
-
-    if not isinstance(evidence, Mapping) or set(evidence) != {
-        "bundle",
-        "bundle_encoding",
-        "expansions",
-        "schema_version",
-    }:
-        raise SearchEpisodeError("evidence has invalid fields")
-    if evidence["schema_version"] != V1_EVIDENCE_SCHEMA_VERSION or evidence["bundle_encoding"] != "base64":
-        raise SearchEpisodeError("evidence schema or encoding is invalid")
-    encoded_bundle = evidence["bundle"]
-    if not isinstance(encoded_bundle, str):
-        raise SearchEpisodeError("evidence bundle must be base64 text")
+def replay_search_episode(evidence: Mapping[str, Any]) -> dict[str, Any]:
+    if not isinstance(evidence, Mapping) or evidence.get("schema_version") != EVIDENCE_SCHEMA_VERSION:
+        raise SearchEpisodeError("evidence schema is invalid")
     try:
-        bundle = base64.b64decode(encoded_bundle.encode("ascii"), validate=True)
-    except (UnicodeEncodeError, ValueError) as error:
-        raise SearchEpisodeError("evidence bundle is not canonical base64") from error
-    if base64.b64encode(bundle).decode("ascii") != encoded_bundle:
-        raise SearchEpisodeError("evidence bundle is not canonical base64")
-
-    try:
-        artifacts = parse_canonical_bundle(bundle)
-    except ValueError as error:
+        replay_episode(evidence)
+    except EpisodeEvidenceError as error:
         raise SearchEpisodeError(str(error)) from error
-    if set(artifacts) != _BUNDLE_ARTIFACTS:
-        raise SearchEpisodeError("evidence bundle has missing or unexpected artifacts")
-
-    task = _load_canonical_json(artifacts["task.json"], "task")
-    request = _load_canonical_json(artifacts["request.json"], "request")
-    bundled_expansions = _load_canonical_json(artifacts["expansions.json"], "expansions")
-    bundled_result = _load_canonical_json(artifacts["result.json"], "result")
-    gate = _gate_from_payload(_load_canonical_json(artifacts["gate-receipt.json"], "gate receipt"))
-    authorization = _authorization_from_payload(
-        _load_canonical_json(artifacts["authorization-receipt.json"], "authorization receipt")
-    )
-    completed = _run_receipt_from_payload(_load_canonical_json(artifacts["run-receipt.json"], "run receipt"))
-    if not isinstance(evidence["expansions"], list) or evidence["expansions"] != bundled_expansions:
-        raise SearchEpisodeError("public expansion evidence differs from its bundle")
-
-    algorithm, modality, policy, max_expansions, random_seed = _parse_request(request)
-    permission = evaluate_execution_permission(
-        binding=gate.binding,
-        gate_receipt=gate,
-        authorization_receipt=authorization,
-        signing_key=signing_key,
-    )
-    if not permission.start_permitted:
-        raise SearchEpisodeError("bundled receipts do not authorize replay")
-    if (
-        completed.binding != gate.binding
-        or completed.outcome is not StopOutcome.PASS
-        or completed.run_state != "completed"
-        or not completed.scientific_completion
-        or not completed.verify_signature(signing_key)
-    ):
-        raise SearchEpisodeError("completed run receipt is invalid")
-
-    authority = _authority_from_task(task)
-    limits = _trace_limits(authority, max_expansions)
-    replay_search_trace_segment(artifacts["search-trace.json"], authority=authority, limits=limits)
-
-    regenerated = _execute_authorized_episode(
-        task=task,
-        algorithm=algorithm,
-        modality=modality,
-        policy=policy,
-        random_seed=random_seed,
-        max_expansions=max_expansions,
-        gate_receipt=gate,
-        authorization_receipt=authorization,
-        signing_key=signing_key,
-        frozen_binding=None,
-        evidence_schema=V2_EVIDENCE_SCHEMA_VERSION,
-    )
-    _verify_v1_regeneration(regenerated, artifacts, bundled_expansions, bundled_result)
-    return {"evidence": dict(evidence), "result": bundled_result}
-
-
-def _verify_v1_regeneration(
-    regenerated: Mapping[str, Any],
-    artifacts: Mapping[str, bytes],
-    bundled_expansions: Any,
-    bundled_result: Any,
-) -> None:
-    if regenerated["result"] != bundled_result or not isinstance(bundled_expansions, list):
-        raise SearchEpisodeError("deterministic episode replay differs from bundled evidence")
-    trace = _load_canonical_json(artifacts["search-trace.json"], "search trace")
-    trace_records = trace.get("records") if isinstance(trace, dict) else None
-    if not isinstance(trace_records, list):
-        raise SearchEpisodeError("bundled search trace is malformed")
-    regenerated_events = regenerated["evidence"]["events"]
-    if len(regenerated_events) != len(trace_records):
-        raise SearchEpisodeError("deterministic episode replay differs from bundled evidence")
-    for regenerated_event, trace_record in zip(regenerated_events, trace_records, strict=True):
-        if (
-            regenerated_event["operation"] != trace_record["operation"]
-            or regenerated_event["rationale"] != trace_record["rationale"]
-            or regenerated_event["memory_sha256"] != trace_record["result"]["memory_sha256"]
-        ):
-            raise SearchEpisodeError("deterministic operation replay differs from bundled evidence")
-
-    task = _load_canonical_json(artifacts["task.json"], "task")
-    frontier = [_authority_from_task(task).initial_state.state_id]
-    for expansion_index, expansion in enumerate(bundled_expansions):
-        if not isinstance(expansion, dict) or set(expansion) != {
-            "expanded_state_id",
-            "enqueued_state_ids",
-            "frontier_after",
-            "frontier_before",
-        }:
-            raise SearchEpisodeError("bundled expansion evidence is malformed")
-        regenerated_expansion = [event for event in regenerated_events if event["expansion_index"] == expansion_index]
-        enqueued = [state_id for event in regenerated_expansion for state_id in event["newly_enqueued_state_ids"]]
-        expected_after = [*frontier[1:], *enqueued]
-        if (
-            not regenerated_expansion
-            or expansion["frontier_before"] != frontier
-            or expansion["expanded_state_id"] != frontier[0]
-            or regenerated_expansion[0]["expanded_state_id"] != expansion["expanded_state_id"]
-            or expansion["enqueued_state_ids"] != enqueued
-            or expansion["frontier_after"] != expected_after
-        ):
-            raise SearchEpisodeError("deterministic expansion replay differs from bundled evidence")
-        frontier = expected_after
-    if len(bundled_expansions) != bundled_result.get("expansion_count"):
-        raise SearchEpisodeError("bundled expansion count differs from result")
+    return {"evidence": dict(evidence), "result": evidence["result"]}
 
 
 def _execute_authorized_episode(
@@ -313,168 +144,11 @@ def _execute_authorized_episode(
     max_expansions: int,
     gate_receipt: GateReceipt,
     authorization_receipt: AuthorizationReceipt,
-    signing_key: bytes | str,
     frozen_binding: Mapping[str, Any] | None,
-    evidence_schema: str = EVIDENCE_SCHEMA_VERSION,
     authority: PDDLStateAuthority | None = None,
 ) -> dict[str, Any]:
     _validate_request(algorithm, modality, policy, max_expansions, random_seed)
-    if evidence_schema not in {V2_EVIDENCE_SCHEMA_VERSION, EVIDENCE_SCHEMA_VERSION}:
-        raise SearchEpisodeError("unsupported generated evidence schema")
-    include_memory_digests = evidence_schema == V2_EVIDENCE_SCHEMA_VERSION
     authority = _authority_from_task(task) if authority is None else authority
-    if not include_memory_digests:
-        return _execute_mutable_authorized_episode(
-            task=task,
-            algorithm=algorithm,
-            modality=modality,
-            policy=policy,
-            random_seed=random_seed,
-            max_expansions=max_expansions,
-            gate_receipt=gate_receipt,
-            authorization_receipt=authorization_receipt,
-            signing_key=signing_key,
-            frozen_binding=frozen_binding,
-            authority=authority,
-        )
-    rng = random.Random(random_seed) if policy == "random" else None
-    memory = SearchMemory.initial(authority)
-    states = {authority.initial_state.state_id: serialize_state(authority.initial_state)}
-    events: list[dict[str, Any]] = []
-    expansion_count = 0
-
-    while memory.frontier and expansion_count < max_expansions:
-        frontier_before = list(memory.frontier)
-        expanded_state_id = frontier_before[0]
-        state = memory.state(expanded_state_id)
-        if authority.is_goal(state):
-            break
-
-        enqueued_state_ids: list[str] = []
-        retire_source = True
-        applicable_actions = list(authority.applicable_actions(state))
-        if rng is not None:
-            rng.shuffle(applicable_actions)
-        for action in applicable_actions:
-            preview = authority.preview_apply(state, action)
-            if preview.target_state.state_id in memory.visited:
-                continue
-            request = SearchTransitionRequest(
-                source_state_id=expanded_state_id,
-                action=action,
-                frontier_intent=FrontierIntent(
-                    retire_source=retire_source,
-                    target_position=len(memory.frontier) - (1 if retire_source else 0),
-                ),
-                visit_target=True,
-                evaluate_target=False,
-            )
-            result = apply_search_transition(memory, request, evaluator=_unexpected_evaluator)
-            if not isinstance(result, AcceptedTransition):
-                raise SearchEpisodeError("trusted BFS transition was rejected")
-            memory = result.memory
-            target = result.transition.target_state
-            states[target.state_id] = serialize_state(target)
-            enqueued_state_ids.append(target.state_id)
-            events.append(
-                {
-                    "expanded_state_id": expanded_state_id,
-                    "expansion_index": expansion_count,
-                    "index": len(events),
-                    **({"memory_sha256": memory_sha256(memory)} if include_memory_digests else {}),
-                    "newly_enqueued_state_ids": [target.state_id],
-                    "operation": serialize_operation(request),
-                    "rationale": (
-                        "exact_bfs_canonical_successor" if policy == "exact" else "random_bfs_seeded_successor"
-                    ),
-                }
-            )
-            retire_source = False
-
-        if retire_source:
-            request = SearchRetireRequest(expanded_state_id)
-            result = apply_search_retirement(memory, request)
-            if not isinstance(result, AcceptedRetirement):
-                raise SearchEpisodeError("trusted BFS retirement was rejected")
-            memory = result.memory
-            events.append(
-                {
-                    "expanded_state_id": expanded_state_id,
-                    "expansion_index": expansion_count,
-                    "index": len(events),
-                    **({"memory_sha256": memory_sha256(memory)} if include_memory_digests else {}),
-                    "newly_enqueued_state_ids": [],
-                    "operation": serialize_operation(request),
-                    "rationale": f"{policy}_bfs_retire_exhausted_frontier_head",
-                }
-            )
-
-        expected_frontier = [*frontier_before[1:], *enqueued_state_ids]
-        if list(memory.frontier) != expected_frontier:
-            raise SearchEpisodeError("trusted BFS violated FIFO frontier discipline")
-        expansion_count += 1
-
-    goal_reached = bool(memory.frontier and authority.is_goal(memory.state(memory.frontier[0])))
-    completed = RunReceipt(
-        binding=gate_receipt.binding,
-        outcome=StopOutcome.PASS,
-        run_state="completed",
-        start_permitted=False,
-        scientific_completion=True,
-        gate_receipt_digest=gate_receipt.digest,
-        authorization_receipt_digest=authorization_receipt.digest,
-    ).signed(signing_key)
-    result_payload = {
-        "completion": "completed",
-        "expansion_count": expansion_count,
-        "goal_reached": goal_reached,
-        "outcome": StopOutcome.PASS.value,
-        "run_receipt": completed.to_dict(),
-        "scientific_completion": True,
-    }
-    request_payload = {
-        "algorithm": algorithm,
-        "max_expansions": max_expansions,
-        "modality": modality,
-        "policy": policy,
-        "schema_version": REQUEST_SCHEMA_VERSION,
-    }
-    if policy == "random":
-        request_payload["random_seed"] = random_seed
-    header = {
-        "authorization_receipt": authorization_receipt.to_dict(),
-        "authority_id": authority.authority_id,
-        "frozen_binding": None if frozen_binding is None else dict(frozen_binding),
-        "gate_receipt": gate_receipt.to_dict(),
-        "request": request_payload,
-        "task": dict(task),
-    }
-    if include_memory_digests:
-        header["initial_memory_sha256"] = memory_sha256(SearchMemory.initial(authority))
-    evidence = {
-        "events": events,
-        "header": header,
-        "result": result_payload,
-        "schema_version": evidence_schema,
-        "states": states,
-    }
-    return {"result": result_payload, "evidence": evidence}
-
-
-def _execute_mutable_authorized_episode(
-    *,
-    task: Mapping[str, Any],
-    algorithm: str,
-    modality: str,
-    policy: str,
-    random_seed: int | None,
-    max_expansions: int,
-    gate_receipt: GateReceipt,
-    authorization_receipt: AuthorizationReceipt,
-    signing_key: bytes | str,
-    frozen_binding: Mapping[str, Any] | None,
-    authority: PDDLStateAuthority,
-) -> dict[str, Any]:
     rng = random.Random(random_seed) if policy == "random" else None
     memory = MutableBFSMemory(authority)
     states = {authority.initial_state.state_id: serialize_state(authority.initial_state)}
@@ -486,7 +160,6 @@ def _execute_mutable_authorized_episode(
         state = memory.state(expanded_state_id)
         if authority.is_goal(state):
             break
-
         retire_source = True
         applicable_actions = list(authority.applicable_actions(state))
         if rng is not None:
@@ -538,10 +211,10 @@ def _execute_mutable_authorized_episode(
         run_state="completed",
         start_permitted=False,
         scientific_completion=True,
-        gate_receipt_digest=gate_receipt.digest,
-        authorization_receipt_digest=authorization_receipt.digest,
-    ).signed(signing_key)
-    result_payload = {
+        gate_receipt_id=gate_receipt.receipt_id,
+        authorization_receipt_id=authorization_receipt.receipt_id,
+    )
+    result = {
         "completion": "completed",
         "expansion_count": expansion_count,
         "goal_reached": goal_reached,
@@ -549,7 +222,7 @@ def _execute_mutable_authorized_episode(
         "run_receipt": completed.to_dict(),
         "scientific_completion": True,
     }
-    request_payload = {
+    request = {
         "algorithm": algorithm,
         "max_expansions": max_expansions,
         "modality": modality,
@@ -557,7 +230,7 @@ def _execute_mutable_authorized_episode(
         "schema_version": REQUEST_SCHEMA_VERSION,
     }
     if policy == "random":
-        request_payload["random_seed"] = random_seed
+        request["random_seed"] = random_seed
     evidence = {
         "events": events,
         "header": {
@@ -565,14 +238,14 @@ def _execute_mutable_authorized_episode(
             "authority_id": authority.authority_id,
             "frozen_binding": None if frozen_binding is None else dict(frozen_binding),
             "gate_receipt": gate_receipt.to_dict(),
-            "request": request_payload,
+            "request": request,
             "task": dict(task),
         },
-        "result": result_payload,
+        "result": result,
         "schema_version": EVIDENCE_SCHEMA_VERSION,
         "states": states,
     }
-    return {"result": result_payload, "evidence": evidence}
+    return {"result": result, "evidence": evidence}
 
 
 def _stopped_episode(receipt: RunReceipt) -> dict[str, Any]:
@@ -596,10 +269,8 @@ def _validate_request(
     max_expansions: int,
     random_seed: int | None,
 ) -> None:
-    if algorithm != "bfs":
-        raise SearchEpisodeError("slice 1 supports only algorithm='bfs'")
-    if modality != "text-state":
-        raise SearchEpisodeError("slice 1 supports only modality='text-state'")
+    if algorithm != "bfs" or modality != "text-state":
+        raise SearchEpisodeError("this slice supports only BFS text-state")
     if policy not in {"exact", "random"}:
         raise SearchEpisodeError("supported policies are 'exact' and 'random'")
     if policy == "random":
@@ -624,34 +295,6 @@ def _authority_from_task(task: Mapping[str, Any]) -> PDDLStateAuthority:
     if not all(isinstance(task[field], str) for field in ("domain_pddl", "instance_id", "problem_pddl")):
         raise SearchEpisodeError("task artifact fields must be text")
     return PDDLStateAuthority.from_pddl(task["domain_pddl"], task["problem_pddl"])
-
-
-def _parse_request(request: Mapping[str, Any]) -> tuple[str, str, str, int, int | None]:
-    if not isinstance(request, Mapping):
-        raise SearchEpisodeError("request artifact has invalid fields")
-    policy_value = request.get("policy")
-    expected_fields = {
-        "algorithm",
-        "max_expansions",
-        "modality",
-        "policy",
-        "schema_version",
-    }
-    if policy_value == "random":
-        expected_fields.add("random_seed")
-    if set(request) != expected_fields:
-        raise SearchEpisodeError("request artifact has invalid fields")
-    if request["schema_version"] != REQUEST_SCHEMA_VERSION:
-        raise SearchEpisodeError("request artifact schema is invalid")
-    algorithm = request["algorithm"]
-    modality = request["modality"]
-    policy = request["policy"]
-    if not isinstance(policy, str):
-        raise SearchEpisodeError("request policy must be text")
-    max_expansions = request["max_expansions"]
-    random_seed = request.get("random_seed")
-    _validate_request(algorithm, modality, policy, max_expansions, random_seed)
-    return algorithm, modality, policy, max_expansions, random_seed
 
 
 def _trace_limits(authority: PDDLStateAuthority, max_expansions: int) -> TraceSegmentLimits:
@@ -681,14 +324,11 @@ def _binding_from_payload(payload: Any) -> ReceiptBinding:
 
 
 def _gate_from_payload(payload: Any) -> GateReceipt:
-    if not isinstance(payload, dict):
-        raise SearchEpisodeError("gate receipt is malformed")
     try:
         receipt = GateReceipt(
             binding=_binding_from_payload(payload["binding"]),
             outcome=payload["outcome"],
-            ancestor_receipt_digest=payload["ancestor_receipt_digest"],
-            signature=payload["signature"],
+            ancestor_receipt_id=payload["ancestor_receipt_id"],
         )
     except (KeyError, TypeError, ValueError) as error:
         raise SearchEpisodeError("gate receipt is malformed") from error
@@ -698,13 +338,10 @@ def _gate_from_payload(payload: Any) -> GateReceipt:
 
 
 def _authorization_from_payload(payload: Any) -> AuthorizationReceipt:
-    if not isinstance(payload, dict):
-        raise SearchEpisodeError("authorization receipt is malformed")
     try:
         receipt = AuthorizationReceipt(
             binding=_binding_from_payload(payload["binding"]),
-            gate_receipt_digest=payload["gate_receipt_digest"],
-            signature=payload["signature"],
+            gate_receipt_id=payload["gate_receipt_id"],
         )
     except (KeyError, TypeError, ValueError) as error:
         raise SearchEpisodeError("authorization receipt is malformed") from error
@@ -714,8 +351,6 @@ def _authorization_from_payload(payload: Any) -> AuthorizationReceipt:
 
 
 def _run_receipt_from_payload(payload: Any) -> RunReceipt:
-    if not isinstance(payload, dict):
-        raise SearchEpisodeError("run receipt is malformed")
     try:
         receipt = RunReceipt(
             binding=_binding_from_payload(payload["binding"]),
@@ -723,11 +358,10 @@ def _run_receipt_from_payload(payload: Any) -> RunReceipt:
             run_state=payload["run_state"],
             start_permitted=payload["start_permitted"],
             scientific_completion=payload["scientific_completion"],
-            gate_receipt_digest=payload["gate_receipt_digest"],
-            authorization_receipt_digest=payload["authorization_receipt_digest"],
-            ancestor_receipt_digest=payload["ancestor_receipt_digest"],
+            gate_receipt_id=payload["gate_receipt_id"],
+            authorization_receipt_id=payload["authorization_receipt_id"],
+            ancestor_receipt_id=payload["ancestor_receipt_id"],
             reason=payload["reason"],
-            signature=payload["signature"],
         )
     except (KeyError, TypeError, ValueError) as error:
         raise SearchEpisodeError("run receipt is malformed") from error
@@ -776,6 +410,8 @@ def _load_canonical_json(payload: bytes, label: str) -> Any:
 __all__ = [
     "EVIDENCE_SCHEMA_VERSION",
     "SearchEpisodeError",
+    "SearchEpisodeVariant",
     "replay_search_episode",
     "run_search_episode",
+    "run_search_episode_batch",
 ]

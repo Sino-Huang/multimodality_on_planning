@@ -1,7 +1,7 @@
 from __future__ import annotations
 import json
 from pathlib import Path
-from .io_utils import file_sha256, read_jsonl
+from .io_utils import read_jsonl
 from .planimation_persisted_contracts import validate_pair_record, validate_state_render_record
 from .render_semantics import validate_render_artifacts
 from .traversal_state_types import JSONValue
@@ -15,7 +15,7 @@ from .planimation_pairing_schema import validate_vlm_record
 from .planimation_pairing_source import _load_source_example
 from .planimation_pairing_source import _repo_path
 def _render_receipt_is_valid(row: dict[str, JSONValue]) -> bool:
-    required = ("frame_path", "trace_path", "png_sha256", "vfg_sha256", "semantic_image_metrics")
+    required = ("frame_path", "trace_path", "semantic_image_metrics")
     if any(not row.get(field) for field in required):
         return False
     frame_text = str(row["frame_path"])
@@ -25,7 +25,7 @@ def _render_receipt_is_valid(row: dict[str, JSONValue]) -> bool:
     frame_path = _repo_path(frame_text)
     trace_path = _repo_path(trace_text)
     receipt = validate_render_artifacts(trace_path, frame_path)
-    return receipt.status == "success" and row.get("png_sha256") == file_sha256(frame_path) and row.get("vfg_sha256") == file_sha256(trace_path) and row.get("semantic_image_metrics") == receipt.to_record()
+    return receipt.status == "success" and row.get("semantic_image_metrics") == receipt.to_record()
 
 def validate_pairing_output(output_root: Path) -> dict[str, JSONValue]:
     _assert_repo_output_root(output_root)

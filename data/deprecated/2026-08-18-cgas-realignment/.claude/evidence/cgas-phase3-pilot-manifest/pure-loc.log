@@ -1,5 +1,0 @@
-scripts/phase3/cgas_pilot_manifest.py 211
-scripts/phase3/cgas_pilot_manifest_approval.py 71
-scripts/phase3/cgas_pilot_manifest_models.py 28
-scripts/phase3/cgas_pilot_manifest_selection.py 235
-tests/phase3/test_cgas_pilot_manifest.py 149

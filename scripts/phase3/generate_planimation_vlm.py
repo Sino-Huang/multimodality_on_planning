@@ -7,7 +7,6 @@ from pathlib import Path
 
 from scripts.phase3.planimation_pairing import CORE_BUCKETS, CORE_DOMAINS, CURRENT_TRACE_ROOTS, PairingConfig, RenderConfig, build_pairing_manifest, build_vlm_records, render_replay_states, validate_pairing_output
 from scripts.phase3.planimation_pairing_contracts import JSONRecord
-from scripts.phase3.output_layout_lock import shared_output_layout_lock
 
 
 def main() -> int:
@@ -43,25 +42,24 @@ def main() -> int:
         if not isinstance(pair_ids, list) or not pair_ids or not all(isinstance(pair_id, str) for pair_id in pair_ids):
             parser.error("--selection-file must contain a nonempty selected_pair_ids string list")
         selected_pair_ids = frozenset(pair_ids)
-    with shared_output_layout_lock(Path(__file__).resolve().parents[2]):
-        result = build_pairing_manifest(args.dataset_root or CURRENT_TRACE_ROOTS, args.output_root, config=PairingConfig(max_trace_chars=args.max_trace_chars, max_plan_length=args.max_plan_length, domains=domains, buckets=buckets, selected_pair_ids=selected_pair_ids))
-        if args.manifest_only:
-            print(json.dumps(result["summary"], indent=2, sort_keys=True))
-            return 0
-        render_replay_states(
-            args.output_root,
-            config=RenderConfig(base_url=args.base_url, timeout_seconds=args.timeout_seconds, request_delay_seconds=args.request_delay_seconds),
-            max_states=args.render_limit,
-            output_mode=args.mode,
-            progress_callback=None if args.quiet else _log_progress,
-            progress_every=args.progress_every,
-        )
-        if args.render_only:
-            print(json.dumps(validate_pairing_output(args.output_root), indent=2, sort_keys=True))
-            return 0
-        records = build_vlm_records(args.output_root, reasoning_budget_chars=args.reasoning_budget_chars)
-        print(json.dumps({"records": records, "validation": validate_pairing_output(args.output_root)}, indent=2, sort_keys=True))
+    result = build_pairing_manifest(args.dataset_root or CURRENT_TRACE_ROOTS, args.output_root, config=PairingConfig(max_trace_chars=args.max_trace_chars, max_plan_length=args.max_plan_length, domains=domains, buckets=buckets, selected_pair_ids=selected_pair_ids))
+    if args.manifest_only:
+        print(json.dumps(result["summary"], indent=2, sort_keys=True))
         return 0
+    render_replay_states(
+        args.output_root,
+        config=RenderConfig(base_url=args.base_url, timeout_seconds=args.timeout_seconds, request_delay_seconds=args.request_delay_seconds),
+        max_states=args.render_limit,
+        output_mode=args.mode,
+        progress_callback=None if args.quiet else _log_progress,
+        progress_every=args.progress_every,
+    )
+    if args.render_only:
+        print(json.dumps(validate_pairing_output(args.output_root), indent=2, sort_keys=True))
+        return 0
+    records = build_vlm_records(args.output_root, reasoning_budget_chars=args.reasoning_budget_chars)
+    print(json.dumps({"records": records, "validation": validate_pairing_output(args.output_root)}, indent=2, sort_keys=True))
+    return 0
 
 
 def _log_progress(event: JSONRecord) -> None:

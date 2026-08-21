@@ -25,13 +25,11 @@ from .search_trace import (
     _decode_operation,
     _load_canonical_json,
     _persisted_evaluator,
-    _require_hash,
     _serialize_evaluation,
     _serialize_operation,
     _serialize_result,
     _serialize_state,
     _serialize_transition,
-    _sha256,
     _validate_operation,
     _validate_operation_result,
     _validate_result,
@@ -41,15 +39,13 @@ from .search_trace import (
 )
 
 _CHECKPOINT_FIELD = "checkpoint"
-_CHECKPOINT_FIELDS = {"authority_id", "memory_sha256", "snapshot", "accepted_transitions"}
+_CHECKPOINT_FIELDS = {"authority_id", "snapshot", "accepted_transitions"}
 _CHECKPOINT_TRANSITION_FIELDS = {"operation", "result"}
 _STANDARD_ENVELOPE_FIELDS = {
     "schema_version",
     "authority_id",
-    "initial_memory_sha256",
     "record_count",
     "records",
-    "tail_hash",
 }
 
 
@@ -74,7 +70,6 @@ class SearchMemoryCheckpoint:
     """An immutable, authority-bound, replayable search-memory snapshot."""
 
     authority_id: str
-    memory_sha256: str
     snapshot: SearchMemorySnapshot
     _accepted_transition_payloads: tuple[bytes, ...]
 
@@ -88,8 +83,6 @@ class SearchMemoryCheckpoint:
             memory = _restore_checkpoint_memory(authority, self._accepted_transition_payloads)
             if _snapshot_from_memory(memory) != self.snapshot:
                 raise SearchTraceError("restored checkpoint memory does not match its typed snapshot")
-            if _sha256(memory.to_bytes()) != self.memory_sha256:
-                raise SearchTraceError("restored checkpoint memory does not match its digest")
             return memory
         except TraceMaterializationError:
             raise
@@ -99,7 +92,6 @@ class SearchMemoryCheckpoint:
     def _to_payload(self) -> dict[str, Any]:
         return {
             "authority_id": self.authority_id,
-            "memory_sha256": self.memory_sha256,
             "snapshot": _serialize_snapshot(self.snapshot),
             "accepted_transitions": [_load_canonical_json(payload) for payload in self._accepted_transition_payloads],
         }
@@ -108,11 +100,9 @@ class SearchMemoryCheckpoint:
 @dataclass(frozen=True, slots=True)
 class AcceptedSearchDelta:
     record_index: int
-    record_hash: str
     operation: SearchTransitionRequest
     transition: PDDLTransition
     evaluation: StateEvaluation | None
-    resulting_memory_sha256: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -220,8 +210,6 @@ def materialize_search_trace(
 
         if checkpoint_payload is None:
             initial_memory = SearchMemory.initial(authority)
-            if _sha256(initial_memory.to_bytes()) != envelope["initial_memory_sha256"]:
-                raise SearchTraceError("initial materialization memory does not match trace")
             initial_checkpoint = _checkpoint_from_memory(initial_memory, ())
         else:
             initial_checkpoint = _decode_checkpoint(
@@ -231,8 +219,6 @@ def materialize_search_trace(
             )
             if len(initial_checkpoint._accepted_transition_payloads) + envelope["record_count"] > limits.max_records:
                 raise SearchTraceError("checkpoint and trace exceed max_records")
-            if initial_checkpoint.memory_sha256 != envelope["initial_memory_sha256"]:
-                raise SearchTraceError("checkpoint does not match trace initial memory")
 
         return _materialize_validated_envelope(
             envelope,
@@ -280,11 +266,9 @@ def _materialize_validated_envelope(
                 raise SearchTraceError("accepted transition has invalid operation type")
             accepted_delta = AcceptedSearchDelta(
                 record_index=index,
-                record_hash=persisted_record["record_hash"],
                 operation=operation,
                 transition=actual.transition,
                 evaluation=actual.evaluation,
-                resulting_memory_sha256=persisted_record["result"]["memory_sha256"],
             )
         record = _MaterializedRecord(index, record_payload, accepted_delta)
         if include_atomic_segments:
@@ -335,11 +319,9 @@ def _build_rolling_context_payload(
             "accepted_deltas": [
                 {
                     "record_index": delta.record_index,
-                    "record_hash": delta.record_hash,
                     "operation": _serialize_operation(delta.operation),
                     "transition": _serialize_transition(delta.transition),
                     "evaluation": _serialize_evaluation(delta.evaluation),
-                    "resulting_memory_sha256": delta.resulting_memory_sha256,
                 }
                 for delta in accepted_deltas
             ],
@@ -409,7 +391,6 @@ def _decode_checkpoint(
         raise SearchTraceError("checkpoint has invalid fields")
     if payload["authority_id"] != authority.authority_id:
         raise SearchTraceError("checkpoint authority does not match materialization authority")
-    _require_hash(payload["memory_sha256"], "checkpoint.memory_sha256")
     transitions = payload["accepted_transitions"]
     if not isinstance(transitions, list):
         raise SearchTraceError("checkpoint.accepted_transitions must be an array")
@@ -425,14 +406,11 @@ def _decode_checkpoint(
 
     accepted_transition_payloads = tuple(transition_payloads)
     restored = _restore_checkpoint_memory(authority, accepted_transition_payloads)
-    if _sha256(restored.to_bytes()) != payload["memory_sha256"]:
-        raise SearchTraceError("restored checkpoint memory does not match its digest")
     restored_snapshot = _snapshot_from_memory(restored)
     if _canonical_bytes(payload["snapshot"]) != _canonical_bytes(_serialize_snapshot(restored_snapshot)):
         raise SearchTraceError("persisted checkpoint snapshot does not match semantic restoration")
     checkpoint = SearchMemoryCheckpoint(
         authority_id=payload["authority_id"],
-        memory_sha256=payload["memory_sha256"],
         snapshot=restored_snapshot,
         _accepted_transition_payloads=accepted_transition_payloads,
     )
@@ -446,7 +424,6 @@ def _checkpoint_from_memory(
 ) -> SearchMemoryCheckpoint:
     return SearchMemoryCheckpoint(
         authority_id=memory.authority.authority_id,
-        memory_sha256=_sha256(memory.to_bytes()),
         snapshot=_snapshot_from_memory(memory),
         _accepted_transition_payloads=accepted_transition_payloads,
     )
@@ -515,8 +492,6 @@ def _apply_persisted_transition(
         )
     if _serialize_result(actual) != result_payload:
         raise SearchTraceError("persisted result does not match semantic replay")
-    if _sha256(actual.memory.to_bytes()) != result_payload["memory_sha256"]:
-        raise SearchTraceError("persisted memory does not match semantic replay")
     return actual
 
 

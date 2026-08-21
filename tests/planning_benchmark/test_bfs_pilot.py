@@ -41,7 +41,7 @@ def test_rejects_trivial_and_over_budget_counts(count: int) -> None:
 
 def _candidate(
     candidate_id: str,
-    problem_hash: str,
+    normalized_problem: str,
     *,
     split: str = "train",
     identity_key: str | None = None,
@@ -54,13 +54,13 @@ def _candidate(
         split=split,
         size_tier="easy",
         seed=1,
-        normalized_problem_hash=problem_hash,
+        normalized_problem=normalized_problem,
         domain_pddl=fixture.domain_pddl,
         problem_pddl=problem_pddl,
         authority_domain_pddl=fixture.domain_pddl,
         authority_problem_pddl=problem_pddl,
         authority_transformations=(),
-        result=ExactBFSResult(1, True, ("a",), "0" * 64),
+        result=ExactBFSResult(1, True, ("a",), ()),
     )
 
 
@@ -79,7 +79,7 @@ def test_selection_rejects_test_data() -> None:
 def test_joint_selection_skips_three_cross_split_identity_collisions() -> None:
     candidates = []
     for index, band in enumerate(BANDS):
-        result = ExactBFSResult(BAND_BOUNDS[band][0], True, ("a",), "0" * 64)
+        result = ExactBFSResult(BAND_BOUNDS[band][0], True, ("a",), ())
         candidates.extend(
             replace(candidate, result=result)
             for candidate in (
@@ -141,7 +141,7 @@ def test_selection_covers_all_15_domain_band_split_cells() -> None:
                         split=split,
                     ),
                     domain_id=domain_id,
-                    result=ExactBFSResult(count, True, ("a",), "0" * 64),
+                    result=ExactBFSResult(count, True, ("a",), ()),
                 )
                 candidates.append(candidate)
 
@@ -158,7 +158,7 @@ def test_exact_fifo_result_replays_byte_for_byte() -> None:
     assert result.goal_reached is True
     assert result.expansion_count > 0
     assert replay_exact_fifo_bfs(candidate)
-    assert not replay_exact_fifo_bfs(replace(candidate, result=replace(result, trace_sha256="f" * 64)))
+    assert not replay_exact_fifo_bfs(replace(candidate, result=replace(result, expanded_state_ids=("wrong",))))
 
 
 def test_corrected_npuzzle_constructions_fill_their_intended_bands() -> None:

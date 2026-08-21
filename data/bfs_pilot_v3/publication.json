@@ -1,1 +1,7 @@
-{"attempt_id":"qualification-attempt-002","candidate_report_sha256":"3f8eaebe8e64dc7dbb9cb38a1cf48448cf01487c0276c04a83bf67b997c0cf70","gate_receipt_sha256":"aa1b904caeda417d2e1dff7a6ce4b182afdc44da2cb9e01bdaf5522004c16532","qualification_report_sha256":"cff3ba44a2d05445574df27a9d3665197cf19341e85e44a6e01eb6ef5e3399d1","schema_version":"bfs_pilot_publication_v3","second_run_byte_identical":true,"selected_manifest_sha256":"847bf4f53cf8da807b8044120106fd3c475bacfcf607d9788e0d6b68d7ce3a22","selected_task_count":90,"selected_task_file_count":180}
+{
+  "attempt_id": "qualification-attempt-002",
+  "schema_version": "bfs_pilot_publication_v3",
+  "second_run_byte_identical": true,
+  "selected_task_count": 90,
+  "selected_task_file_count": 180
+}

@@ -83,8 +83,7 @@ def run_model_search_episode(
     seed: int,
     gate_receipt: GateReceipt,
     authorization_receipt: AuthorizationReceipt | None,
-    signing_key: bytes | str,
-    ancestor_receipt_digest: str | None = None,
+    ancestor_receipt_id: str | None = None,
 ) -> dict[str, Any]:
     """Run model-emitted typed BFS operations without repairing model output."""
 
@@ -94,8 +93,7 @@ def run_model_search_episode(
         binding=gate_receipt.binding,
         gate_receipt=gate_receipt,
         authorization_receipt=authorization_receipt,
-        signing_key=signing_key,
-        ancestor_receipt_digest=ancestor_receipt_digest,
+        ancestor_receipt_id=ancestor_receipt_id,
     )
     if not permission.start_permitted:
         return _stopped_episode(permission)
@@ -132,11 +130,10 @@ def run_model_search_episode(
         seed=seed,
         gate_receipt=gate_receipt,
         authorization_receipt=authorization_receipt,
-        signing_key=signing_key,
     )
 
 
-def replay_model_search_episode(evidence: Mapping[str, Any], *, signing_key: bytes | str) -> dict[str, Any]:
+def replay_model_search_episode(evidence: Mapping[str, Any]) -> dict[str, Any]:
     """Verify receipts, events, and trusted state effects without rerunning the model."""
 
     expected_fields = {"bundle", "bundle_encoding", "expansions", "policy_events", "schema_version"}
@@ -175,7 +172,6 @@ def replay_model_search_episode(evidence: Mapping[str, Any], *, signing_key: byt
         binding=gate.binding,
         gate_receipt=gate,
         authorization_receipt=authorization,
-        signing_key=signing_key,
     )
     if not permission.start_permitted:
         raise SearchEpisodeError("bundled model receipts do not authorize replay")
@@ -184,7 +180,6 @@ def replay_model_search_episode(evidence: Mapping[str, Any], *, signing_key: byt
         or completed.outcome is not StopOutcome.PASS
         or completed.run_state != "completed"
         or not completed.scientific_completion
-        or not completed.verify_signature(signing_key)
         or result.get("run_receipt") != completed.to_dict()
     ):
         raise SearchEpisodeError("completed model run receipt is invalid")
@@ -220,7 +215,6 @@ def _execute_authorized_model_episode(
     seed: int,
     gate_receipt: GateReceipt,
     authorization_receipt: AuthorizationReceipt,
-    signing_key: bytes | str,
 ) -> dict[str, Any]:
     authority = _authority_from_task(task)
     memory = SearchMemory.initial(authority)
@@ -332,9 +326,9 @@ def _execute_authorized_model_episode(
         run_state="completed",
         start_permitted=False,
         scientific_completion=True,
-        gate_receipt_digest=gate_receipt.digest,
-        authorization_receipt_digest=authorization_receipt.digest,
-    ).signed(signing_key)
+        gate_receipt_id=gate_receipt.receipt_id,
+        authorization_receipt_id=authorization_receipt.receipt_id,
+    )
     result_payload = {
         "algorithm_invariants_hold": True,
         "budget_used": budget_used,

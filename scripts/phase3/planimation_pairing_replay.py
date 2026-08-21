@@ -1,6 +1,6 @@
 from __future__ import annotations
 from pathlib import Path
-from .io_utils import read_jsonl, stable_hash, write_json, write_jsonl
+from .io_utils import read_jsonl, write_json, write_jsonl
 from .graphplan_render_transitions import graphplan_render_transitions
 from .pddl import canonical_atom, parse_task
 from .trace_contracts import FrozenSourceIdentity
@@ -100,7 +100,7 @@ def _render_transitions(pair: dict[str, JSONValue], source: dict[str, JSONValue]
             str(pair["source_root_id"]),
             str(pair["source_jsonl"]),
             int(pair["source_line_index"]),
-            str(pair["source_record_sha256"]),
+            str(pair["source_record_id"]),
             str(pair["example_id"]),
             "graphplan",
         )
@@ -115,12 +115,12 @@ def _render_transitions(pair: dict[str, JSONValue], source: dict[str, JSONValue]
         raise ValueError("render_cardinality_invalid: action and pre-action state counts differ")
     if not transitions:
         initial = sorted(canonical_atom(atom) for atom in parse_task(_repo_path(str(pair["domain_path"])), _repo_path(str(pair["problem_path"]))).init)
-        return [{"record_family": "plan_replay", "event_id": stable_hash([pair["pair_id"], "plan_replay", 0])[:32], "step_index": 0, "action": None, "state_before": initial, "state_after": initial, "frame_role": "initial_terminal_full", "state_source": "plan_replay"}]
+        return [{"record_family": "plan_replay", "event_id": f"{pair['pair_id']}:plan_replay:0", "step_index": 0, "action": None, "state_before": initial, "state_after": initial, "frame_role": "initial_terminal_full", "state_source": "plan_replay"}]
     normalized: list[dict[str, JSONValue]] = []
     for index, transition in enumerate(transitions):
         if not isinstance(transition, dict) or transition.get("step_index") != index or transition.get("action") != plan[index]:
             raise ValueError("render_cardinality_invalid: replay transition does not match plan")
-        normalized.append({**transition, "record_family": "plan_replay", "event_id": stable_hash([pair["pair_id"], "plan_replay", index])[:32], "frame_role": "pre_action", "state_source": transition.get("state_source", "plan_replay")})
+        normalized.append({**transition, "record_family": "plan_replay", "event_id": f"{pair['pair_id']}:plan_replay:{index}", "frame_role": "pre_action", "state_source": transition.get("state_source", "plan_replay")})
     terminal = normalized[-1]
     normalized.append({**terminal, "step_index": len(plan), "action": None, "state_before": terminal["state_after"], "state_after": terminal["state_after"], "frame_role": "terminal_traversal_diagnostic"})
     return normalized
@@ -144,7 +144,7 @@ def _search_traversal_transitions(pair: dict[str, JSONValue], source: dict[str, 
             "event_kind": candidate.event_kind,
             "state_role": candidate.state_role,
             "state_source": candidate.state_source,
-            "state_asset_hash": candidate.state_asset_hash,
+            "state_asset_id": candidate.state_asset_id,
             "normalized_action": candidate.normalized_action,
             "step_index": candidate.extraction_step_index if candidate.extraction_step_index is not None else -1,
             "action": candidate.normalized_action,

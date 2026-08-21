@@ -78,11 +78,9 @@ class QwenTextPolicy:
             self.model.eval()
             self.adapter_path = resolved_adapter
 
-        commit_hash = getattr(self.model.config, "_commit_hash", None)
         self.identity = {
             "adapter_path": self.adapter_path,
             "attention_implementation": getattr(self.model.config, "_attn_implementation", None),
-            "commit_hash": commit_hash,
             "decoding": "greedy",
             "dtype": "bfloat16",
             "memoize_identical_inputs": True,

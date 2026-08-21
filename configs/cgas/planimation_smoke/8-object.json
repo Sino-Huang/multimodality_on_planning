@@ -1,0 +1,18 @@
+{
+  "expected_actions": ["(pickup b1)"],
+  "fixture_id": "8-object",
+  "problem_identity": {"candidate_id": "candidate-08-000000000093", "object_count": 8, "raw_rank": 93},
+  "resource_expectations": {
+    "adapter_request_timeout_seconds": 90,
+    "backend_startup_timeout_seconds": 180,
+    "max_attempts": 1,
+    "request_delay_seconds": 0
+  },
+  "schema_version": "cgas_phase3_planimation_smoke_fixture_v1",
+  "semantic_expectations": {
+    "expected_action_count": 1,
+    "expected_visual_stage_count": 2,
+    "minimum_covered_object_count": 8
+  },
+  "supplied_plan": "(pickup b1)"
+}

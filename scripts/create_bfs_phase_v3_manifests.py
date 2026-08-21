@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
 from copy import deepcopy
 from pathlib import Path
@@ -27,13 +26,11 @@ def main() -> int:
     report = _json_object(report_path)
     receipt = _json_object(receipt_path)
     selected_rows = _jsonl_objects(manifest_path)
-    selected_manifest_sha256 = _sha256(manifest_path.read_bytes())
     if (
         report.get("outcome") != "PASS"
         or report.get("selected_count") != 90
         or report.get("test_data_accessed") is not False
         or receipt.get("outcome") != "PASS"
-        or receipt.get("selected_manifest_sha256") != selected_manifest_sha256
         or len(selected_rows) != 90
     ):
         raise ValueError("published BFS v3 qualification is not a complete PASS")
@@ -84,12 +81,9 @@ def main() -> int:
                     "candidate_ceiling_per_domain_split": 500,
                     "expansion_bands": report["bands"],
                     "gate_receipt_path": _relative(receipt_path),
-                    "gate_receipt_sha256": _sha256(receipt_path.read_bytes()),
                     "outcome": "PASS",
                     "qualification_report_path": _relative(report_path),
-                    "qualification_report_sha256": _sha256(report_path.read_bytes()),
                     "selected_manifest_path": _relative(manifest_path),
-                    "selected_manifest_sha256": selected_manifest_sha256,
                     "selected_task_count": 90,
                     "selection_seed": 111,
                     "test_data_accessed": False,
@@ -114,7 +108,6 @@ def main() -> int:
         "PASS requires qualification coverage, exact FIFO replay for all 90 tasks, split isolation, "
         "process-only corpus regeneration, and every applicable frozen threshold to pass."
     )
-    freeze_bytes = _canonical_bytes(freeze)
     authorization = {
         "authorization_id": "issue-111-bfs-expansion-qualified-pilot-authorization-v3-rev2",
         "authorized_stages": [
@@ -126,7 +119,6 @@ def main() -> int:
         "contract_id": _PHASE_ID,
         "downstream_issues": [54],
         "freeze_manifest_path": "configs/experiments/bfs_phase_freeze_v3.json",
-        "freeze_manifest_sha256": _sha256(freeze_bytes),
         "outcome": "PASS",
         "parent_issue": 38,
         "phase_id": _PHASE_ID,
@@ -134,14 +126,13 @@ def main() -> int:
         "scientific_completion": False,
         "source_issue": 111,
     }
-    _V3_FREEZE.write_bytes(freeze_bytes)
+    _V3_FREEZE.write_bytes(_canonical_bytes(freeze))
     _V3_AUTHORIZATION.write_bytes(_canonical_bytes(authorization))
     print(
         json.dumps(
             {
                 "authorization_manifest": _relative(_V3_AUTHORIZATION),
                 "freeze_manifest": _relative(_V3_FREEZE),
-                "freeze_manifest_sha256": authorization["freeze_manifest_sha256"],
             },
             sort_keys=True,
         )
@@ -150,7 +141,7 @@ def main() -> int:
 
 
 def _artifact(path: Path) -> dict[str, str]:
-    return {"path": _relative(path), "sha256": _sha256(path.read_bytes())}
+    return {"path": _relative(path)}
 
 
 def _relative(path: Path) -> str:
@@ -175,10 +166,6 @@ def _canonical_bytes(value: object) -> bytes:
     return (json.dumps(value, allow_nan=False, ensure_ascii=True, separators=(",", ":"), sort_keys=True) + "\n").encode(
         "utf-8"
     )
-
-
-def _sha256(payload: bytes) -> str:
-    return hashlib.sha256(payload).hexdigest()
 
 
 if __name__ == "__main__":

@@ -92,8 +92,7 @@ def _load_gate(path: str) -> tuple[GateReceipt, ReceiptBinding]:
         GateReceipt(
             binding=binding,
             outcome=payload["outcome"],
-            ancestor_receipt_digest=payload.get("ancestor_receipt_digest"),
-            signature=str(payload.get("signature", "")),
+            ancestor_receipt_id=payload.get("ancestor_receipt_id"),
         ),
         binding,
     )
@@ -105,8 +104,7 @@ def _load_authorization(path: str | None, binding: ReceiptBinding) -> Authorizat
     payload = _load_json(path)
     return AuthorizationReceipt(
         binding=ReceiptBinding(**payload["binding"]),
-        gate_receipt_digest=str(payload["gate_receipt_digest"]),
-        signature=str(payload.get("signature", "")),
+        gate_receipt_id=str(payload["gate_receipt_id"]),
     )
 
 
@@ -239,7 +237,6 @@ def build_parser() -> argparse.ArgumentParser:
     )
     generate_parser.add_argument("--gate-receipt", required=True, help="Signed gate receipt JSON.")
     generate_parser.add_argument("--authorization-receipt", default=None, help="Signed authorization receipt JSON.")
-    generate_parser.add_argument("--signing-key", required=True, help="Signing key used to verify receipts.")
     generate_parser.add_argument("--receipt-root", required=True, help="Absolute root for durable run receipts.")
     generate_parser.add_argument("--split-ledger", required=True, help="Append-only split ledger path.")
     generate_parser.add_argument("--structural-policy", required=True, help="Structural strata policy JSON.")
@@ -359,9 +356,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                 binding=binding,
                 gate_receipt=gate,
                 authorization_receipt=authorization,
-                signing_key=args.signing_key,
                 receipt_root=Path(args.receipt_root),
-                ancestor_receipt_digest=gate.ancestor_receipt_digest,
+                ancestor_receipt_id=gate.ancestor_receipt_id,
             )
             receipt = run_governed_generation(
                 request,

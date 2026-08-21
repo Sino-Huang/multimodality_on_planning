@@ -16,9 +16,6 @@ _REPO_ROOT = Path(__file__).resolve().parents[1]
 _FREEZE = _REPO_ROOT / "configs" / "experiments" / "bfs_phase_freeze_v1.json"
 _AUTHORIZATION = _REPO_ROOT / "configs" / "experiments" / "bfs_phase_authorization_v1.json"
 _ACCEPTED_MANIFEST = _REPO_ROOT / "data" / "curriculum_pddl" / "accepted_manifest.jsonl"
-_SIGNING_KEY = b"issue-49-bfs-development-v1-corpus-materialization"
-
-
 def _request(
     *,
     phase_gate: BFSPhaseGate,
@@ -31,13 +28,12 @@ def _request(
         attempt_id=attempt_id,
         output_root=output_root,
     )
-    gate = GateReceipt(binding=binding, outcome=StopOutcome.PASS).signed(_SIGNING_KEY)
-    authorization = AuthorizationReceipt(binding=binding, gate_receipt_digest=gate.digest).signed(_SIGNING_KEY)
+    gate = GateReceipt(binding=binding, outcome=StopOutcome.PASS)
+    authorization = AuthorizationReceipt(binding=binding, gate_receipt_id=gate.receipt_id)
     return GenerationRequest(
         binding=binding,
         gate_receipt=gate,
         authorization_receipt=authorization,
-        signing_key=_SIGNING_KEY,
         receipt_root=receipt_root,
     )
 

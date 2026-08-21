@@ -17,16 +17,13 @@
     ],
     "artifacts": [
       {
-        "path": "data/curriculum_pddl/accepted_manifest.jsonl",
-        "sha256": "9a9817058e36f72468682c8b43a46c04591995bcb8fe28ee37819313f9376217"
+        "path": "data/curriculum_pddl/accepted_manifest.jsonl"
       },
       {
-        "path": "data/curriculum_pddl/summary.json",
-        "sha256": "8a5f823548520a62692fddcf673342c44dcfb145c437f1ed2166105b9ea5277b"
+        "path": "data/curriculum_pddl/summary.json"
       },
       {
-        "path": "src/data_collect/configs/curriculum_15_domains.yaml",
-        "sha256": "f6bfdf2da4907ad91a391b90158d73db6275a20e7cae7f9976c37c890305d843"
+        "path": "src/data_collect/configs/curriculum_15_domains.yaml"
       }
     ],
     "dataset_root": "data/curriculum_pddl",

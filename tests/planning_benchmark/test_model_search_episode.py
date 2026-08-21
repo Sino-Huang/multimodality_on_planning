@@ -12,7 +12,6 @@ from src.data_collect.governance import AuthorizationReceipt, GateReceipt, Recei
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 NONTRIVIAL_FIXTURE = REPO_ROOT / "tests" / "fixtures" / "planning" / "blocksworld_nontrivial.json"
-SIGNING_KEY = b"issue-52-model-search-episode-test-key"
 
 
 def _receipts(tmp_path: Path) -> tuple[GateReceipt, AuthorizationReceipt]:
@@ -21,8 +20,8 @@ def _receipts(tmp_path: Path) -> tuple[GateReceipt, AuthorizationReceipt]:
         attempt_id="issue-52-model-episode",
         output_root=(tmp_path / "episode-evidence").resolve(),
     )
-    gate = GateReceipt(binding=binding, outcome=StopOutcome.PASS).signed(SIGNING_KEY)
-    authorization = AuthorizationReceipt(binding=binding, gate_receipt_digest=gate.digest).signed(SIGNING_KEY)
+    gate = GateReceipt(binding=binding, outcome=StopOutcome.PASS)
+    authorization = AuthorizationReceipt(binding=binding, gate_receipt_id=gate.receipt_id)
     return gate, authorization
 
 
@@ -36,7 +35,6 @@ def test_model_owned_exact_operations_complete_and_replay_without_rerunning_poli
         max_expansions=64,
         gate_receipt=gate,
         authorization_receipt=authorization,
-        signing_key=SIGNING_KEY,
     )
     events = exact["evidence"]["events"]
     outputs = iter(
@@ -64,13 +62,12 @@ def test_model_owned_exact_operations_complete_and_replay_without_rerunning_poli
         seed=17,
         gate_receipt=gate,
         authorization_receipt=authorization,
-        signing_key=SIGNING_KEY,
     )
 
     assert episode["result"]["goal_reached"] is True
     assert episode["result"]["invalid_operation_count"] == 0
     assert episode["result"]["algorithm_invariants_hold"] is True
-    assert replay_model_search_episode(episode["evidence"], signing_key=SIGNING_KEY) == episode
+    assert replay_model_search_episode(episode["evidence"]) == episode
 
 
 def test_invalid_model_output_is_charged_without_repair(tmp_path: Path) -> None:
@@ -89,7 +86,6 @@ def test_invalid_model_output_is_charged_without_repair(tmp_path: Path) -> None:
         seed=17,
         gate_receipt=gate,
         authorization_receipt=authorization,
-        signing_key=SIGNING_KEY,
     )
 
     assert episode["result"]["goal_reached"] is False
@@ -97,7 +93,7 @@ def test_invalid_model_output_is_charged_without_repair(tmp_path: Path) -> None:
     assert episode["result"]["invalid_operation_count"] == 2
     assert episode["result"]["invalid_operation_rate"] == 1.0
     assert all(event["status"] == "rejected" for event in episode["evidence"]["policy_events"])
-    assert replay_model_search_episode(episode["evidence"], signing_key=SIGNING_KEY) == episode
+    assert replay_model_search_episode(episode["evidence"]) == episode
 
 
 def test_model_episode_stops_before_loading_task_or_calling_policy(tmp_path: Path) -> None:
@@ -110,8 +106,8 @@ def test_model_episode_stops_before_loading_task_or_calling_policy(tmp_path: Pat
     gate = GateReceipt(
         binding=binding,
         outcome=StopOutcome.ANCESTOR_STOP,
-        ancestor_receipt_digest=ancestor_digest,
-    ).signed(SIGNING_KEY)
+        ancestor_receipt_id=ancestor_digest,
+    )
 
     episode = run_model_search_episode(
         tmp_path / "must-not-be-read.json",
@@ -126,8 +122,7 @@ def test_model_episode_stops_before_loading_task_or_calling_policy(tmp_path: Pat
         seed=17,
         gate_receipt=gate,
         authorization_receipt=None,
-        signing_key=SIGNING_KEY,
-        ancestor_receipt_digest=ancestor_digest,
+        ancestor_receipt_id=ancestor_digest,
     )
 
     assert episode["result"]["outcome"] == StopOutcome.ANCESTOR_STOP.value

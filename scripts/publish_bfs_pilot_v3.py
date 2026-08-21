@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import shutil
 import tempfile
@@ -71,9 +70,6 @@ def publish(first: Path, second: Path, destination: Path) -> dict[str, Any]:
             not isinstance(count, int)
             or isinstance(count, bool)
             or not lower <= count <= upper
-            or row.get("domain_hash") != _sha256(domain_bytes)
-            or row.get("problem_hash") != _sha256(problem_bytes)
-            or row.get("whole_instance_id") != identity
             or identities.get(identity, split) != split
         ):
             raise ValueError(f"BFS v3 selected row failed publication checks: {domain}/{split}/{band}")
@@ -90,12 +86,8 @@ def publish(first: Path, second: Path, destination: Path) -> dict[str, Any]:
             shutil.copy2(first / relative, attempt / relative)
         publication = {
             "attempt_id": _ATTEMPT_ID,
-            "candidate_report_sha256": _sha256((first / "candidates.jsonl").read_bytes()),
-            "gate_receipt_sha256": _sha256((first / "gate-receipt.json").read_bytes()),
-            "qualification_report_sha256": _sha256((first / "qualification-report.json").read_bytes()),
             "schema_version": "bfs_pilot_publication_v3",
             "second_run_byte_identical": True,
-            "selected_manifest_sha256": _sha256((first / "selected-manifest.jsonl").read_bytes()),
             "selected_task_count": len(rows),
             "selected_task_file_count": len(first_tasks),
         }
@@ -134,10 +126,6 @@ def _canonical_bytes(value: object) -> bytes:
     return (json.dumps(value, allow_nan=False, ensure_ascii=True, separators=(",", ":"), sort_keys=True) + "\n").encode(
         "utf-8"
     )
-
-
-def _sha256(payload: bytes) -> str:
-    return hashlib.sha256(payload).hexdigest()
 
 
 if __name__ == "__main__":

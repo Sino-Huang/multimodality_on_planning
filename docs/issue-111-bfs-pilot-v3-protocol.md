@@ -28,7 +28,7 @@ Qualification runs twice into fresh roots. `candidates.jsonl`, `selected-manifes
 
 - exactly 90 selected tasks and all 15×3×2 cells;
 - no missing cell, trivial goal, test access, candidate-ceiling breach, cross-split whole-instance identity, or expansion outside the row's declared band;
-- exact FIFO replay equality for every selected result, including plan, expansion count, goal status, and trace digest;
+- exact FIFO replay equality for every selected result, including plan, expansion count, goal status, and ordered trace records;
 - repository-relative selected task paths and byte hashes that match the published files.
 
 Any unfilled cell within the fixed ceiling produces `VALID_STOP`. Checks are never forced to pass.

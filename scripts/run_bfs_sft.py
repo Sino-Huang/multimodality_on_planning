@@ -23,9 +23,6 @@ from src.data_collect.governance import (
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 _FREEZE = _REPO_ROOT / "configs" / "experiments" / "bfs_phase_freeze_v1.json"
 _AUTHORIZATION = _REPO_ROOT / "configs" / "experiments" / "bfs_phase_authorization_v1.json"
-_SIGNING_KEY = b"issue-49-bfs-development-v1-ms-swift-training"
-
-
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dataset-root", type=Path, required=True)
@@ -52,13 +49,12 @@ def main() -> int:
         attempt_id=args.attempt_id,
         output_root=output_root,
     )
-    gate = GateReceipt(binding=binding, outcome=StopOutcome.PASS).signed(_SIGNING_KEY)
-    authorization = AuthorizationReceipt(binding=binding, gate_receipt_digest=gate.digest).signed(_SIGNING_KEY)
+    gate = GateReceipt(binding=binding, outcome=StopOutcome.PASS)
+    authorization = AuthorizationReceipt(binding=binding, gate_receipt_id=gate.receipt_id)
     permission = evaluate_execution_permission(
         binding=binding,
         gate_receipt=gate,
         authorization_receipt=authorization,
-        signing_key=_SIGNING_KEY,
     )
     if not permission.start_permitted:
         raise RuntimeError("frozen BFS authorization did not permit SFT")

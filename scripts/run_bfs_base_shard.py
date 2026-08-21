@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import importlib.metadata
 import json
 import os
@@ -33,7 +32,6 @@ _REPO_ROOT = Path(__file__).resolve().parents[1]
 _FREEZE = _REPO_ROOT / "configs" / "experiments" / "bfs_phase_freeze_v1.json"
 _AUTHORIZATION = _REPO_ROOT / "configs" / "experiments" / "bfs_phase_authorization_v1.json"
 _MANIFEST = _REPO_ROOT / "data" / "curriculum_pddl" / "accepted_manifest.jsonl"
-_SIGNING_KEY = b"issue-52-bfs-base-arm-v1"
 
 
 def main() -> int:
@@ -54,13 +52,12 @@ def main() -> int:
     phase_gate = load_bfs_phase_gate(_FREEZE, _AUTHORIZATION)
     phase_gate.require_run(stage="base_and_references", contract_id=phase_gate.phase_id)
     binding = ReceiptBinding(phase_gate.phase_id, args.attempt_id, output_root)
-    gate = GateReceipt(binding=binding, outcome=StopOutcome.PASS).signed(_SIGNING_KEY)
-    authorization = AuthorizationReceipt(binding, gate.digest).signed(_SIGNING_KEY)
+    gate = GateReceipt(binding=binding, outcome=StopOutcome.PASS)
+    authorization = AuthorizationReceipt(binding, gate.receipt_id)
     permission = evaluate_execution_permission(
         binding=binding,
         gate_receipt=gate,
         authorization_receipt=authorization,
-        signing_key=_SIGNING_KEY,
     )
     if not permission.start_permitted:
         raise RuntimeError("frozen BFS authorization did not permit the base shard")
@@ -111,9 +108,8 @@ def main() -> int:
                 seed=seed,
                 gate_receipt=gate,
                 authorization_receipt=authorization,
-                signing_key=_SIGNING_KEY,
             )
-            if replay_model_search_episode(episode["evidence"], signing_key=_SIGNING_KEY) != episode:
+            if replay_model_search_episode(episode["evidence"]) != episode:
                 raise ValueError(f"BFS base episode replay differs: {row['instance_id']}")
             relative_path = Path("episodes") / f"{row['instance_id']}.json"
             payload = _canonical_bytes(episode)
@@ -124,7 +120,6 @@ def main() -> int:
                     "domain_id": row["domain_id"],
                     "evidence": {
                         "path": relative_path.as_posix(),
-                        "sha256": hashlib.sha256(payload).hexdigest(),
                         "size_bytes": len(payload),
                     },
                     "instance_id": row["instance_id"],

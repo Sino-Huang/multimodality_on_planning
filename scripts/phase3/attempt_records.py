@@ -45,7 +45,7 @@ def attempt_record(job: PlannerJob, status: str, *, resource_gate: str) -> JSONR
         "planner_version": None,
         "trace_fidelity": "none",
         "replay_validation_id": None,
-        "plan_hash": None,
+        "plan_id": None,
         "status": status,
         "resource_gate": resource_gate,
     }

@@ -110,7 +110,7 @@ def test_frozen_policy_at_max_width_one_keeps_the_existing_trace_shape() -> None
     result = run_iterated_width(request)
 
     # Then: the trace carries no escalation field at all, so the 558 existing
-    # streams and every recorded trace digest keep their meaning.
+    # streams and every recorded trace field keep their meaning.
     assert result.status == "success_full_trace"
     assert "width_sequence" not in result.trace
     assert set(result.trace) == {

@@ -61,9 +61,9 @@ class BlocksworldProblem:
     serialization: zero-arity predicates use the bare predicate name
     (``arm-empty``), unary predicates use ``predicate(object)``
     (``clear(b1)``), and binary predicates use ``predicate(left,right)``
-    (``on(b1,b2)``). State IDs are SHA-256 hashes over JSON-encoded sorted atom
-    strings, so repeated runs and different PDDL atom orderings produce the same
-    identifier for the same symbolic state.
+    (``on(b1,b2)``). State IDs are canonical JSON-encoded sorted atom strings,
+    so repeated runs and different PDDL atom orderings produce the same identity
+    for the same symbolic state without an extra integrity field.
     """
 
     domain_name: str

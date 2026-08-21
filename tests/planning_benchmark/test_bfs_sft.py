@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import hashlib
 import json
 from pathlib import Path
 
@@ -37,7 +36,6 @@ def _row(split: str, index: int) -> dict[str, object]:
         "instance_id": f"blocksworld-{split}-{index}",
         "record_id": f"record-{split}-{index}",
         "schema_version": "bfs_text_corpus_record_v1",
-        "source_record_hash": "a" * 64,
         "split": split,
         "split_assignment_id": f"assignment-{split}-{index}",
         "target": {
@@ -68,7 +66,6 @@ def _release(tmp_path: Path, splits: tuple[str, ...]) -> tuple[Path, object]:
         "artifacts": [
             {
                 "path": path,
-                "sha256": hashlib.sha256(payload).hexdigest(),
                 "size_bytes": len(payload),
             }
             for path, payload in sorted(payloads.items())
@@ -101,7 +98,6 @@ def _v3_release(tmp_path: Path) -> tuple[Path, object]:
                 "instance_id": f"blocksworld-{split}-{index}",
                 "record_id": f"record-{split}-{index}",
                 "schema_version": "bfs_process_corpus_record_v3",
-                "source_record_hash": "a" * 64,
                 "split": split,
                 "split_assignment_id": f"assignment-{split}-{index}",
                 "target": {
@@ -122,7 +118,6 @@ def _v3_release(tmp_path: Path) -> tuple[Path, object]:
         "artifacts": [
             {
                 "path": "corpus/process.jsonl",
-                "sha256": hashlib.sha256(process).hexdigest(),
                 "size_bytes": len(process),
             }
         ],

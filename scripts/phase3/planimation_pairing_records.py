@@ -2,7 +2,7 @@ from __future__ import annotations
 import json
 from collections import Counter
 from pathlib import Path
-from .io_utils import read_jsonl, stable_hash, write_json, write_jsonl
+from .io_utils import read_jsonl, write_json, write_jsonl
 from .pddl import parse_task
 from .trace_contracts import TraceContractError, project_traversal_events
 from .traversal_state_types import JSONValue
@@ -110,7 +110,10 @@ def _recordable_render_rows(source: dict[str, JSONValue], rows: list[dict[str, J
 
 def _write_hybrid_output_manifest(output_root: Path, output_mode: str, render_limit: int | None, state_rows: list[dict[str, JSONValue]]) -> None:
     selected_pair_ids = sorted({str(row["pair_id"]) for row in state_rows})
-    selected_state_ids = [stable_hash([row["pair_id"], row.get("transition", {}).get("event_id", row["step_index"]), row.get("state_hash", "")])[:32] for row in state_rows]
+    selected_state_ids = [
+        f"{row['pair_id']}:{row.get('transition', {}).get('event_id', row['step_index'])}"
+        for row in state_rows
+    ]
     write_json(output_root / "diagnostics" / "hybrid_output_manifest.json", {
         "schema_version": SCHEMA_VERSION,
         "artifact_kind": "hybrid_output_manifest",

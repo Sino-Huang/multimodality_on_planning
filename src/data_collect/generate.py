@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
 import os
 import shutil
@@ -48,8 +47,7 @@ def _canonical_json(value: object) -> str:
 
 
 def _governed_receipt_path(receipt_root: Path, binding: Mapping[str, object]) -> Path:
-    identity = hashlib.sha256(_canonical_json(binding).encode("utf-8")).hexdigest()[:24]
-    return receipt_root / f"generation-run-{identity}.json"
+    return receipt_root / f"generation-run-{binding['contract_id']}-{binding['attempt_id']}.json"
 
 
 def _validated_receipt_root(receipt_root: Path | str, binding: ReceiptBinding) -> Path:
@@ -71,14 +69,13 @@ def _validated_receipt_root(receipt_root: Path | str, binding: ReceiptBinding) -
 
 @dataclass(frozen=True, slots=True)
 class GenerationRequest:
-    """Signed authorization inputs for one governed generation attempt."""
+    """Authorization inputs for one governed generation attempt."""
 
     binding: ReceiptBinding
     gate_receipt: GateReceipt | object
     authorization_receipt: AuthorizationReceipt | object | None
-    signing_key: bytes | str
     receipt_root: Path | str
-    ancestor_receipt_digest: str | None = None
+    ancestor_receipt_id: str | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.binding, ReceiptBinding):
@@ -170,8 +167,7 @@ def run_authorized_generation(
         binding=request.binding,
         gate_receipt=request.gate_receipt,
         authorization_receipt=request.authorization_receipt,
-        signing_key=request.signing_key,
-        ancestor_receipt_digest=request.ancestor_receipt_digest,
+        ancestor_receipt_id=request.ancestor_receipt_id,
     )
     if not authorization.start_permitted:
         return _persist_governed_receipt(
@@ -416,12 +412,11 @@ def _bind_governed_outputs(
         "artifacts": [
             {
                 "path": path,
-                "sha256": hashlib.sha256(_artifact_bytes(source)).hexdigest(),
                 "size_bytes": len(_artifact_bytes(source)),
             }
             for path, source in sorted(artifacts.items())
         ],
-        "bundle_sha256": hashlib.sha256(bundle).hexdigest(),
+        "bundle_size_bytes": len(bundle),
         "format": "canonical-generation-replay-v1",
     }
     _atomic_write(bundle_path, bundle)
@@ -568,8 +563,8 @@ def orchestrate_generation(
 
     domain_registry = dict(registry or build_domain_registry(replace(curriculum_config, domains=selected_domains)))
     _require_adapter_readiness(domain_registry, selected_domains)
-    resume_hash_splits = tuple(curriculum_config.splits)
-    existing_accepted = [] if force else _load_existing_accepted(resolved_output_root, selected_domains, resume_hash_splits)
+    resume_splits = tuple(curriculum_config.splits)
+    existing_accepted = [] if force else _load_existing_accepted(resolved_output_root, selected_domains, resume_splits)
     existing_rejections = [] if force else _load_rejections(resolved_output_root / REJECTIONS_FILENAME)
 
     accepted_instances: list[AcceptedInstanceMetadata] = list(existing_accepted)

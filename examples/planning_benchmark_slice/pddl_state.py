@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import hashlib
 import json
 import tempfile
 from dataclasses import dataclass, field
@@ -8,7 +7,7 @@ from pathlib import Path
 from typing import Any, TypeAlias, cast
 
 from plado import pddl
-from plado.parser import parse_and_normalize, tokenize
+from plado.parser import parse_and_normalize
 from plado.semantics.applicable_actions_generator import ApplicableActionsGenerator
 from plado.semantics.goal_checker import GoalChecker
 from plado.semantics.successor_generator import SuccessorGenerator
@@ -25,17 +24,8 @@ class ReplayError(ValueError):
     """Raised when recorded transition provenance does not replay exactly."""
 
 
-def _json_sha256(payload: object) -> str:
-    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
-    return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
-
-
-def _pddl_tokens(source: str) -> tuple[tuple[str, str], ...]:
-    return tuple((token.cat.name, token.tok) for token in tokenize(source))
-
-
-def _authority_id(domain_pddl: str, problem_pddl: str) -> str:
-    return _json_sha256({"domain": _pddl_tokens(domain_pddl), "problem": _pddl_tokens(problem_pddl)})
+def _canonical_identity(payload: object) -> str:
+    return json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
 
 
 @dataclass(frozen=True)
@@ -53,7 +43,7 @@ class CanonicalState:
         object.__setattr__(self, "atoms", atoms)
         object.__setattr__(self, "fluents", fluents)
         payload: object = list(atoms) if not fluents else {"atoms": atoms, "fluents": fluents}
-        object.__setattr__(self, "state_id", _json_sha256(payload))
+        object.__setattr__(self, "state_id", _canonical_identity(payload))
 
 
 @dataclass(frozen=True, order=True)
@@ -80,7 +70,7 @@ class TransitionProvenance:
             "source_state_id": self.source_state_id,
             "target_state_id": self.target_state_id,
         }
-        object.__setattr__(self, "provenance_id", _json_sha256(payload))
+        object.__setattr__(self, "provenance_id", _canonical_identity(payload))
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -130,14 +120,13 @@ class PDDLStateAuthority:
     @classmethod
     def from_pddl(cls, domain_pddl: str, problem_pddl: str) -> "PDDLStateAuthority":
         with tempfile.TemporaryDirectory(prefix="pddl-state-") as directory:
-            authority_id = _authority_id(domain_pddl, problem_pddl)
             root = Path(directory)
             domain_path = root / "domain.pddl"
             problem_path = root / "problem.pddl"
             domain_path.write_text(domain_pddl, encoding="utf-8")
             problem_path.write_text(problem_pddl, encoding="utf-8")
             domain, problem = parse_and_normalize(str(domain_path), str(problem_path))
-        return cls(domain, problem, authority_id)
+        return cls(domain, problem, f"{domain.name}/{problem.name}")
 
     def canonical_state(self, atoms: tuple[str, ...], fluents: tuple[str, ...] = ()) -> CanonicalState:
         return CanonicalState(atoms, self.authority_id, fluents)

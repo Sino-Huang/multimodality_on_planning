@@ -15,9 +15,6 @@ _REPO_ROOT = Path(__file__).resolve().parents[1]
 _FREEZE = _REPO_ROOT / "configs" / "experiments" / "bfs_phase_freeze_v1.json"
 _AUTHORIZATION = _REPO_ROOT / "configs" / "experiments" / "bfs_phase_authorization_v1.json"
 _MANIFEST = _REPO_ROOT / "data" / "curriculum_pddl" / "accepted_manifest.jsonl"
-_SIGNING_KEY = b"issue-52-bfs-reference-arms-v1"
-
-
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-root", type=Path, required=True)
@@ -29,12 +26,11 @@ def main() -> int:
     output_root = args.output_root.expanduser().resolve()
     phase_gate = load_bfs_phase_gate(_FREEZE, _AUTHORIZATION)
     binding = ReceiptBinding(phase_gate.phase_id, args.attempt_id, output_root)
-    gate = GateReceipt(binding=binding, outcome=StopOutcome.PASS).signed(_SIGNING_KEY)
+    gate = GateReceipt(binding=binding, outcome=StopOutcome.PASS)
     request = GenerationRequest(
         binding=binding,
         gate_receipt=gate,
-        authorization_receipt=AuthorizationReceipt(binding, gate.digest).signed(_SIGNING_KEY),
-        signing_key=_SIGNING_KEY,
+        authorization_receipt=AuthorizationReceipt(binding, gate.receipt_id),
         receipt_root=(output_root.parent / f"{output_root.name}-receipts").resolve(),
     )
     receipt = run_frozen_bfs_references(

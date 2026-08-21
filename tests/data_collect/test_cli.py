@@ -22,7 +22,6 @@ from src.data_collect.governance import (
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-SIGNING_KEY = "cli-governance-key"
 
 
 def run_module(*args: str) -> subprocess.CompletedProcess[str]:
@@ -42,8 +41,8 @@ def _write_governance_inputs(
     include_structural_profiles: bool = True,
 ) -> list[str]:
     binding = ReceiptBinding("contract-v1", "attempt-cli-001", str(output_root.resolve()))
-    gate = GateReceipt(binding=binding, outcome=StopOutcome.PASS).signed(SIGNING_KEY)
-    authorization = AuthorizationReceipt(binding, gate.digest).signed(SIGNING_KEY)
+    gate = GateReceipt(binding=binding, outcome=StopOutcome.PASS)
+    authorization = AuthorizationReceipt(binding, gate.receipt_id)
     gate_path = tmp_path / "gate.json"
     authorization_path = tmp_path / "authorization.json"
     policy_path = tmp_path / "policy.json"
@@ -85,7 +84,6 @@ def _write_governance_inputs(
     inputs = [
         "--gate-receipt", str(gate_path),
         "--authorization-receipt", str(authorization_path),
-        "--signing-key", SIGNING_KEY,
         "--receipt-root", str((tmp_path / "receipts").resolve()),
         "--split-ledger", str(tmp_path / "split-ledger.jsonl"),
         "--structural-policy", str(policy_path),
@@ -123,7 +121,6 @@ def test_generate_help_lists_expected_options_and_rendering_contract() -> None:
         "--json",
         "--gate-receipt",
         "--authorization-receipt",
-        "--signing-key",
         "--receipt-root",
         "--split-ledger",
         "--structural-policy",
@@ -314,8 +311,8 @@ def test_generate_parses_smoke_override_and_emits_json(
             run_state="authorized-to-start",
             start_permitted=True,
             scientific_completion=False,
-            gate_receipt_digest="a" * 64,
-            authorization_receipt_digest="b" * 64,
+            gate_receipt_id="a" * 64,
+            authorization_receipt_id="b" * 64,
         )
         return GenerationRunReceipt(
             outcome=StopOutcome.PASS,
@@ -405,8 +402,8 @@ def test_require_rendering_flag_reaches_governed_curriculum_config(
             run_state="authorized-to-start",
             start_permitted=True,
             scientific_completion=False,
-            gate_receipt_digest="a" * 64,
-            authorization_receipt_digest="b" * 64,
+            gate_receipt_id="a" * 64,
+            authorization_receipt_id="b" * 64,
         )
         return GenerationRunReceipt(
             outcome=StopOutcome.PASS,

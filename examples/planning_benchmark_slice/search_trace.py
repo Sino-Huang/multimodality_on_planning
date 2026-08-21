@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-import hashlib
 import json
 import math
-import re
 from dataclasses import dataclass
 from typing import Any, Mapping, NoReturn
 
@@ -28,10 +26,8 @@ SCHEMA_VERSION = 1
 _ENVELOPE_FIELDS = {
     "schema_version",
     "authority_id",
-    "initial_memory_sha256",
     "record_count",
     "records",
-    "tail_hash",
 }
 _RECORD_FIELDS = {
     "index",
@@ -39,8 +35,6 @@ _RECORD_FIELDS = {
     "rationale",
     "operation",
     "result",
-    "previous_hash",
-    "record_hash",
 }
 _OPERATION_FIELDS = {
     "source_state_id",
@@ -50,7 +44,6 @@ _OPERATION_FIELDS = {
     "evaluate_target",
 }
 _RETIRE_OPERATION_FIELDS = {"operation_type", "state_id"}
-_HASH_PATTERN = re.compile(r"[0-9a-f]{64}\Z")
 
 
 class SearchTraceError(ValueError):
@@ -78,9 +71,8 @@ class TraceSegmentLimits:
 class SearchTraceSegment:
     schema_version: int
     authority_id: str
-    initial_memory_sha256: str
     _record_payloads: tuple[bytes, ...]
-    tail_hash: str
+    _tail_memory: bytes
 
     def to_bytes(self) -> bytes:
         records = [_load_canonical_json(item) for item in self._record_payloads]
@@ -88,23 +80,18 @@ class SearchTraceSegment:
             {
                 "schema_version": self.schema_version,
                 "authority_id": self.authority_id,
-                "initial_memory_sha256": self.initial_memory_sha256,
                 "record_count": len(records),
                 "records": records,
-                "tail_hash": self.tail_hash,
             }
         )
 
 
 def start_search_trace(memory: SearchMemory, *, limits: TraceSegmentLimits) -> SearchTraceSegment:
-    initial_memory_sha256 = _sha256(memory.to_bytes())
-    tail_hash = _genesis_hash(memory.authority.authority_id, initial_memory_sha256)
     segment = SearchTraceSegment(
         schema_version=SCHEMA_VERSION,
         authority_id=memory.authority.authority_id,
-        initial_memory_sha256=initial_memory_sha256,
         _record_payloads=(),
-        tail_hash=tail_hash,
+        _tail_memory=memory.to_bytes(),
     )
     _validated_envelope(segment.to_bytes(), limits=limits)
     return segment
@@ -125,17 +112,12 @@ def _append_search_trace_record(
     if not isinstance(segment, SearchTraceSegment):
         raise SearchTraceError("segment must be a SearchTraceSegment")
     if validate_existing:
-        # The public append validates even an internally-constructed input so a
-        # forged dataclass cannot bypass the chain and schema checks.
         _validated_envelope(segment.to_bytes(), limits=None)
     if len(segment._record_payloads) >= limits.max_records:
         raise SearchTraceError("trace exceeds max_records")
     if memory_before.authority.authority_id != segment.authority_id:
         raise SearchTraceError("memory authority does not match trace authority")
-    expected_memory_hash = segment.initial_memory_sha256
-    if segment._record_payloads:
-        expected_memory_hash = _load_canonical_json(segment._record_payloads[-1])["result"]["memory_sha256"]
-    if _sha256(memory_before.to_bytes()) != expected_memory_hash:
+    if memory_before.to_bytes() != segment._tail_memory:
         raise SearchTraceError("memory_before does not match the trace tail")
     if not isinstance(observation, Mapping):
         raise SearchTraceError("observation must be a mapping")
@@ -155,22 +137,18 @@ def _append_search_trace_record(
     if _serialize_result(actual) != result_payload:
         raise SearchTraceError("result does not match operation applied to memory_before")
 
-    record_without_hash = {
+    record = {
         "index": len(segment._record_payloads),
         "observation": normalized_observation,
         "rationale": rationale,
         "operation": operation_payload,
         "result": result_payload,
-        "previous_hash": segment.tail_hash,
     }
-    record = dict(record_without_hash)
-    record["record_hash"] = _record_hash(record_without_hash)
     candidate = SearchTraceSegment(
         schema_version=segment.schema_version,
         authority_id=segment.authority_id,
-        initial_memory_sha256=segment.initial_memory_sha256,
         _record_payloads=(*segment._record_payloads, _canonical_bytes(record)),
-        tail_hash=record["record_hash"],
+        _tail_memory=result.memory.to_bytes(),
     )
     if enforce_size and len(candidate.to_bytes()) > limits.max_bytes:
         raise SearchTraceError("trace exceeds max_bytes")
@@ -241,8 +219,6 @@ def replay_search_trace_segment(
         raise SearchTraceError("trace authority does not match replay authority")
 
     memory = SearchMemory.initial(authority)
-    if _sha256(memory.to_bytes()) != envelope["initial_memory_sha256"]:
-        raise SearchTraceError("initial replay memory does not match trace")
     for record in envelope["records"]:
         operation = _decode_operation(record["operation"])
         actual = _apply_operation(
@@ -253,8 +229,6 @@ def replay_search_trace_segment(
         actual_payload = _serialize_result(actual)
         if actual_payload != record["result"]:
             raise SearchTraceError(f"replayed result differs at record {record['index']}")
-        if _sha256(actual.memory.to_bytes()) != record["result"]["memory_sha256"]:
-            raise SearchTraceError(f"replayed memory differs at record {record['index']}")
         memory = actual.memory
     return memory
 
@@ -269,8 +243,6 @@ def _validated_envelope(payload: bytes, *, limits: TraceSegmentLimits | None) ->
     if envelope["schema_version"] != SCHEMA_VERSION or isinstance(envelope["schema_version"], bool):
         raise SearchTraceError("unsupported schema_version")
     _require_nonempty_string(envelope["authority_id"], "authority_id")
-    _require_hash(envelope["initial_memory_sha256"], "initial_memory_sha256")
-    _require_hash(envelope["tail_hash"], "tail_hash")
     records = envelope["records"]
     if not isinstance(records, list):
         raise SearchTraceError("records must be an array")
@@ -282,16 +254,12 @@ def _validated_envelope(payload: bytes, *, limits: TraceSegmentLimits | None) ->
     if limits is not None and record_count > limits.max_records:
         raise SearchTraceError("trace exceeds max_records")
 
-    previous_hash = _genesis_hash(envelope["authority_id"], envelope["initial_memory_sha256"])
     for index, record in enumerate(records):
-        _validate_record(record, index=index, previous_hash=previous_hash)
-        previous_hash = record["record_hash"]
-    if envelope["tail_hash"] != previous_hash:
-        raise SearchTraceError("tail_hash does not match the hash chain")
+        _validate_record(record, index=index)
     return envelope
 
 
-def _validate_record(record: Any, *, index: int, previous_hash: str) -> None:
+def _validate_record(record: Any, *, index: int) -> None:
     _require_object(record, _RECORD_FIELDS, f"record {index}")
     if isinstance(record["index"], bool) or not isinstance(record["index"], int) or record["index"] != index:
         raise SearchTraceError(f"invalid index at record {index}")
@@ -299,15 +267,9 @@ def _validate_record(record: Any, *, index: int, previous_hash: str) -> None:
         raise SearchTraceError(f"observation must be an object at record {index}")
     if not isinstance(record["rationale"], str):
         raise SearchTraceError(f"rationale must be a string at record {index}")
-    if record["previous_hash"] != previous_hash:
-        raise SearchTraceError(f"broken previous_hash at record {index}")
-    _require_hash(record["record_hash"], f"record {index} record_hash")
     _validate_operation(record["operation"], path=f"record {index} operation")
     _validate_result(record["result"], path=f"record {index} result")
     _validate_operation_result(record["operation"], record["result"])
-    without_hash = {key: value for key, value in record.items() if key != "record_hash"}
-    if record["record_hash"] != _record_hash(without_hash):
-        raise SearchTraceError(f"invalid record_hash at record {index}")
 
 
 def _serialize_operation(operation: SearchOperation) -> dict[str, Any]:
@@ -383,20 +345,17 @@ def _serialize_result(result: SearchTransitionResult) -> dict[str, Any]:
             "status": "accepted",
             "transition": _serialize_transition(result.transition),
             "evaluation": _serialize_evaluation(result.evaluation),
-            "memory_sha256": _sha256(result.memory.to_bytes()),
         }
     if isinstance(result, AcceptedRetirement):
         return {
             "status": "retired",
             "state_id": result.state_id,
-            "memory_sha256": _sha256(result.memory.to_bytes()),
         }
     if isinstance(result, RejectedTransition):
         return {
             "status": "rejected",
             "budget_charge": result.budget_charge,
             "reason": result.reason,
-            "memory_sha256": _sha256(result.memory.to_bytes()),
         }
     raise SearchTraceError("result must be a SearchTransitionResult")
 
@@ -406,16 +365,16 @@ def _validate_result(payload: Any, *, path: str) -> None:
         raise SearchTraceError(f"{path} must be an object")
     status = payload.get("status")
     if status == "accepted":
-        _require_object(payload, {"status", "transition", "evaluation", "memory_sha256"}, path)
+        _require_object(payload, {"status", "transition", "evaluation"}, path)
         _validate_transition(payload["transition"], path=f"{path}.transition")
         evaluation = payload["evaluation"]
         if evaluation is not None:
             _validate_evaluation(evaluation, path=f"{path}.evaluation")
     elif status == "retired":
-        _require_object(payload, {"status", "state_id", "memory_sha256"}, path)
+        _require_object(payload, {"status", "state_id"}, path)
         _require_nonempty_string(payload["state_id"], f"{path}.state_id")
     elif status == "rejected":
-        _require_object(payload, {"status", "budget_charge", "reason", "memory_sha256"}, path)
+        _require_object(payload, {"status", "budget_charge", "reason"}, path)
         charge = payload["budget_charge"]
         if isinstance(charge, bool) or not isinstance(charge, int) or charge < 0:
             raise SearchTraceError(f"{path}.budget_charge must be a non-negative integer")
@@ -423,7 +382,6 @@ def _validate_result(payload: Any, *, path: str) -> None:
             raise SearchTraceError(f"{path}.reason must be a string")
     else:
         raise SearchTraceError(f"{path}.status is invalid")
-    _require_hash(payload["memory_sha256"], f"{path}.memory_sha256")
 
 
 def _serialize_transition(transition: PDDLTransition) -> dict[str, Any]:
@@ -451,7 +409,7 @@ def _validate_transition(payload: Any, *, path: str) -> None:
     _validate_action(provenance["action"], path=f"{path}.provenance.action")
     for field in ("authority_id", "source_state_id", "target_state_id"):
         _require_nonempty_string(provenance[field], f"{path}.provenance.{field}")
-    _require_hash(provenance["provenance_id"], f"{path}.provenance.provenance_id")
+    _require_nonempty_string(provenance["provenance_id"], f"{path}.provenance.provenance_id")
 
 
 def _serialize_state(state: CanonicalState) -> dict[str, Any]:
@@ -470,7 +428,7 @@ def _validate_state(payload: Any, *, path: str) -> None:
         if not isinstance(values, list) or any(not isinstance(item, str) for item in values):
             raise SearchTraceError(f"{path}.{field} must be an array of strings")
     _require_nonempty_string(payload["authority_id"], f"{path}.authority_id")
-    _require_hash(payload["state_id"], f"{path}.state_id")
+    _require_nonempty_string(payload["state_id"], f"{path}.state_id")
 
 
 def _serialize_action(action: GroundedAction) -> dict[str, Any]:
@@ -611,29 +569,3 @@ def _require_object(value: Any, fields: set[str], path: str) -> None:
 def _require_nonempty_string(value: Any, path: str) -> None:
     if not isinstance(value, str) or not value:
         raise SearchTraceError(f"{path} must be a non-empty string")
-
-
-def _require_hash(value: Any, path: str) -> None:
-    if not isinstance(value, str) or _HASH_PATTERN.fullmatch(value) is None:
-        raise SearchTraceError(f"{path} must be a lowercase SHA-256 digest")
-
-
-def _sha256(payload: bytes) -> str:
-    return hashlib.sha256(payload).hexdigest()
-
-
-def _genesis_hash(authority_id: str, initial_memory_sha256: str) -> str:
-    return _sha256(
-        b"search-trace-genesis-v1:"
-        + _canonical_bytes(
-            {
-                "schema_version": SCHEMA_VERSION,
-                "authority_id": authority_id,
-                "initial_memory_sha256": initial_memory_sha256,
-            }
-        )
-    )
-
-
-def _record_hash(record_without_hash: Mapping[str, Any]) -> str:
-    return _sha256(b"search-trace-record-v1:" + _canonical_bytes(record_without_hash))

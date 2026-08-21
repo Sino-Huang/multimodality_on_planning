@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import hashlib
 import json
 import subprocess
 import sys
@@ -57,7 +56,6 @@ def test_resume_validation_requires_and_accepts_the_exact_90_trace_product(tmp_p
     artifact_path.write_bytes(b"verified-trace-artifact")
     artifact = {
         "path": "artifact.bin",
-        "sha256": hashlib.sha256(artifact_path.read_bytes()).hexdigest(),
         "size_bytes": artifact_path.stat().st_size,
     }
     receipt = gate.receipt(stage="trace_generation")

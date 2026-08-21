@@ -151,11 +151,6 @@ dmypy.json
 # Caches and Datasets
 cache/
 data/*
-!data/planning_cgas_v1/
-data/planning_cgas_v1/*
-!data/planning_cgas_v1/schema/
-data/planning_cgas_v1/schema/*
-!data/planning_cgas_v1/schema/planning_cgas_v1.schema.json
 playground/Models
 =4.43.2
 

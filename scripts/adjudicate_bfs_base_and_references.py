@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import shutil
 import tempfile
@@ -25,8 +24,6 @@ _REPO_ROOT = Path(__file__).resolve().parents[1]
 _FREEZE = _REPO_ROOT / "configs" / "experiments" / "bfs_phase_freeze_v1.json"
 _AUTHORIZATION = _REPO_ROOT / "configs" / "experiments" / "bfs_phase_authorization_v1.json"
 _MANIFEST = _REPO_ROOT / "data" / "curriculum_pddl" / "accepted_manifest.jsonl"
-_SIGNING_KEY = b"issue-52-54-bfs-adjudication-v1"
-_REFERENCE_SIGNING_KEY = b"issue-52-bfs-reference-arms-v1"
 
 
 def main() -> int:
@@ -61,7 +58,7 @@ def main() -> int:
     for root, row in base_records:
         _verify_evidence(root, row)
     for root, row in reference_records:
-        _verify_evidence(root, row, signing_key=_REFERENCE_SIGNING_KEY)
+        _verify_evidence(root, row)
 
     exact_rows = [row for _root, row in reference_records if row["arm"] == "exact_classical"]
     exact_success = sum(bool(row["result"]["goal_reached"]) for row in exact_rows) / len(exact_rows)
@@ -73,7 +70,7 @@ def main() -> int:
         "issue-52-base-and-references-v1",
         output_root / "issue52",
     )
-    issue52_gate = GateReceipt(issue52_binding, issue52_outcome).signed(_SIGNING_KEY)
+    issue52_gate = GateReceipt(issue52_binding, issue52_outcome)
     downstream = _downstream_receipts(output_root, phase_gate.phase_id, issue52_gate)
     report = {
         "base": _base_metrics(base_records, seeds),
@@ -141,21 +138,18 @@ def _reference_records(manifest_paths: list[Path]) -> list[tuple[Path, dict[str,
 def _verify_evidence(
     root: Path,
     row: dict[str, Any],
-    *,
-    signing_key: bytes | str | None = None,
 ) -> None:
     evidence = _mapping(row.get("evidence"), "evidence artifact")
     relative = Path(str(evidence.get("path")))
     if relative.is_absolute() or ".." in relative.parts:
         raise ValueError("evidence path escapes its run root")
     path = root / relative
-    if signing_key is not None:
-        verify_manifested_episode(path, evidence, _mapping(row.get("result"), "result"), signing_key=signing_key)
+    if "codec_version" in evidence:
+        verify_manifested_episode(path, evidence, _mapping(row.get("result"), "result"))
         return
-
     payload = path.read_bytes()
-    if len(payload) != evidence.get("size_bytes") or hashlib.sha256(payload).hexdigest() != evidence.get("sha256"):
-        raise ValueError(f"evidence artifact differs from its manifest: {path}")
+    if len(payload) != evidence.get("size_bytes"):
+        raise ValueError(f"evidence artifact size differs from its manifest: {path}")
     episode = json.loads(payload)
     if episode.get("result") != row.get("result"):
         raise ValueError(f"evidence result differs from its manifest: {path}")
@@ -207,27 +201,25 @@ def _downstream_receipts(output_root: Path, contract_id: str, issue52_gate: Gate
     issue53_gate = GateReceipt(
         issue53_binding,
         StopOutcome.ANCESTOR_STOP,
-        ancestor_receipt_digest=issue52_gate.digest,
-    ).signed(_SIGNING_KEY)
+        ancestor_receipt_id=issue52_gate.receipt_id,
+    )
     issue53_run = evaluate_execution_permission(
         binding=issue53_binding,
         gate_receipt=issue53_gate,
         authorization_receipt=None,
-        signing_key=_SIGNING_KEY,
-        ancestor_receipt_digest=issue52_gate.digest,
+        ancestor_receipt_id=issue52_gate.receipt_id,
     )
     issue54_binding = ReceiptBinding(contract_id, "issue-54-process-sft-v1", output_root / "issue54")
     issue54_gate = GateReceipt(
         issue54_binding,
         StopOutcome.ANCESTOR_STOP,
-        ancestor_receipt_digest=issue53_run.digest,
-    ).signed(_SIGNING_KEY)
+        ancestor_receipt_id=issue53_run.receipt_id,
+    )
     issue54_run = evaluate_execution_permission(
         binding=issue54_binding,
         gate_receipt=issue54_gate,
         authorization_receipt=None,
-        signing_key=_SIGNING_KEY,
-        ancestor_receipt_digest=issue53_run.digest,
+        ancestor_receipt_id=issue53_run.receipt_id,
     )
     return {
         "issue53": {"gate_receipt": issue53_gate.to_dict(), "run_receipt": issue53_run.to_dict()},

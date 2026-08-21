@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
 import re
 import shutil
@@ -69,7 +68,7 @@ def run_frozen_bfs_trace_generation(
             raise FileExistsError(f"BFS trace output root already exists: {output_root}")
 
         manifest_path = Path(accepted_manifest_path).resolve()
-        manifest_sha256 = _require_frozen_manifest(manifest_path, phase_gate)
+        _require_frozen_manifest(manifest_path, phase_gate)
         candidates = _load_candidates(manifest_path, phase_gate)
         required = _required_strata(phase_gate)
         minimum = _minimum_per_stratum(phase_gate)
@@ -100,7 +99,6 @@ def run_frozen_bfs_trace_generation(
                                 "row": row,
                                 "difficulty": difficulty,
                                 "manifest_path": manifest_path,
-                                "manifest_sha256": manifest_sha256,
                                 "max_expansions": max_expansions,
                                 "request": request,
                                 "phase_gate": phase_gate,
@@ -132,7 +130,6 @@ def run_frozen_bfs_trace_generation(
             }
             trace_manifest_path = staging_root / _TRACE_MANIFEST_PATH
             _write_bytes(trace_manifest_path, _canonical_json_bytes(trace_manifest))
-            trace_manifest_bytes = trace_manifest_path.read_bytes()
             staging_root.replace(output_root)
         except Exception:
             shutil.rmtree(staging_root, ignore_errors=True)
@@ -142,7 +139,7 @@ def run_frozen_bfs_trace_generation(
             "covered_strata": len(required),
             "trace_count": len(trace_items),
             "trace_manifest_path": str((output_root / _TRACE_MANIFEST_PATH).resolve()),
-            "trace_manifest_sha256": _sha256(trace_manifest_bytes),
+            "trace_manifest_size_bytes": (output_root / _TRACE_MANIFEST_PATH).stat().st_size,
         }
 
     return run_authorized_generation(request, execute)
@@ -157,7 +154,6 @@ def _generate_trace(
     row: dict[str, Any],
     difficulty: str,
     manifest_path: Path,
-    manifest_sha256: str,
     max_expansions: int,
     request: GenerationRequest,
     phase_gate: BFSPhaseGate,
@@ -168,11 +164,6 @@ def _generate_trace(
     problem_path = _source_path(row["problem_path"])
     domain_bytes = domain_path.read_bytes()
     problem_bytes = problem_path.read_bytes()
-    domain_sha256 = _sha256(domain_bytes)
-    problem_sha256 = _sha256(problem_bytes)
-    if domain_sha256 != row["domain_hash"] or problem_sha256 != row["problem_hash"]:
-        raise ValueError(f"curriculum PDDL bytes have drifted: {row['instance_id']}")
-
     authority_domain, authority_problem, transformations = _normalize_authority_input(
         domain_bytes.decode("utf-8"),
         problem_bytes.decode("utf-8"),
@@ -196,8 +187,7 @@ def _generate_trace(
         max_expansions=max_expansions,
         gate_receipt=cast(GateReceipt, request.gate_receipt),
         authorization_receipt=cast(AuthorizationReceipt | None, request.authorization_receipt),
-        signing_key=request.signing_key,
-        ancestor_receipt_digest=request.ancestor_receipt_digest,
+        ancestor_receipt_id=request.ancestor_receipt_id,
     )
     result = episode["result"]
     if (
@@ -207,11 +197,11 @@ def _generate_trace(
         or result.get("scientific_completion") is not True
     ):
         raise ValueError(f"BFS trace generation did not complete: {row['instance_id']}")
-    if replay_search_episode(episode["evidence"], signing_key=request.signing_key) != episode:
+    if replay_search_episode(episode["evidence"]) != episode:
         raise ValueError(f"BFS trace replay differs: {row['instance_id']}")
 
     evidence = cast(dict[str, Any], episode["evidence"])
-    _formal_task, search_trace = materialize_episode_artifacts(evidence, signing_key=request.signing_key)
+    _formal_task, search_trace = materialize_episode_artifacts(evidence)
     relative_root = Path("traces") / str(row["domain_id"]) / difficulty / str(row["instance_id"])
     evidence_path = staging_root / relative_root / "evidence.jsonl.gz"
     search_trace_path = staging_root / relative_root / "search-trace.json"
@@ -237,16 +227,9 @@ def _generate_trace(
         "trace_scope": "bounded_search_trace_segment",
         "source": {
             "accepted_manifest_path": str(manifest_path),
-            "accepted_manifest_sha256": manifest_sha256,
-            "authority_domain_sha256": _sha256(authority_domain.encode("utf-8")),
-            "authority_problem_sha256": _sha256(authority_problem.encode("utf-8")),
             "authority_transformations": list(transformations),
             "domain_path": str(domain_path),
-            "domain_sha256": domain_sha256,
-            "manifest_domain_sha256": row["domain_hash"],
-            "manifest_problem_sha256": row["problem_hash"],
             "problem_path": str(problem_path),
-            "problem_sha256": problem_sha256,
             "split": row["split"],
         },
     }
@@ -283,16 +266,14 @@ def _normalize_authority_input(domain_pddl: str, problem_pddl: str) -> tuple[str
     return authority_domain, authority_problem, tuple(transformations)
 
 
-def _require_frozen_manifest(path: Path, phase_gate: BFSPhaseGate) -> str:
-    payload = path.read_bytes()
-    digest = _sha256(payload)
+def _require_frozen_manifest(path: Path, phase_gate: BFSPhaseGate) -> None:
     for artifact in phase_gate.freeze["data"]["artifacts"]:
         artifact_path = Path(artifact["path"])
         if not artifact_path.is_absolute():
             artifact_path = _REPO_ROOT / artifact_path
-        if artifact_path.resolve() == path and artifact["sha256"] == digest:
-            return digest
-    raise ValueError("accepted curriculum manifest does not match the frozen phase artifact")
+        if artifact_path.resolve() == path:
+            return
+    raise ValueError("accepted curriculum manifest is not declared by the phase")
 
 
 def _load_candidates(path: Path, phase_gate: BFSPhaseGate) -> dict[tuple[str, str], list[dict[str, Any]]]:
@@ -306,11 +287,9 @@ def _load_candidates(path: Path, phase_gate: BFSPhaseGate) -> dict[tuple[str, st
         row = json.loads(line)
         required_fields = {
             "bucket",
-            "domain_hash",
             "domain_id",
             "domain_path",
             "instance_id",
-            "problem_hash",
             "problem_path",
             "split",
             "status",
@@ -366,7 +345,6 @@ def _artifact(path: Path, output_root: Path) -> dict[str, object]:
     payload = path.read_bytes()
     return {
         "path": path.relative_to(output_root).as_posix(),
-        "sha256": _sha256(payload),
         "size_bytes": len(payload),
     }
 
@@ -385,10 +363,6 @@ def _canonical_json_bytes(value: object) -> bytes:
 def _write_bytes(path: Path, payload: bytes) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_bytes(payload)
-
-
-def _sha256(payload: bytes) -> str:
-    return hashlib.sha256(payload).hexdigest()
 
 
 __all__ = ["run_frozen_bfs_generation_smoke", "run_frozen_bfs_trace_generation"]

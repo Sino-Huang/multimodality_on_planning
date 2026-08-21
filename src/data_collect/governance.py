@@ -1,19 +1,16 @@
-"""Minimal signed receipt contract for governed data-generation starts."""
+"""Minimal receipt contract for governed data-generation starts."""
 
 from __future__ import annotations
 
-import hashlib
-import hmac
 import json
 import os
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 from typing import Final
 
 
-_SCHEMA_VERSION: Final = "generation_governance_v1"
-_HEX_DIGITS: Final = frozenset("0123456789abcdef")
+_SCHEMA_VERSION: Final = "generation_governance_v2"
 
 
 class StopOutcome(str, Enum):
@@ -35,32 +32,9 @@ def _canonical_json(value: object) -> str:
     )
 
 
-def _key_bytes(signing_key: bytes | str) -> bytes:
-    if isinstance(signing_key, str):
-        signing_key = signing_key.encode("utf-8")
-    if not isinstance(signing_key, bytes) or not signing_key:
-        raise ValueError("signing_key must be non-empty bytes or text")
-    return signing_key
-
-
-def _signature(payload: object, signing_key: bytes | str) -> str:
-    return hmac.new(
-        _key_bytes(signing_key),
-        _canonical_json(payload).encode("utf-8"),
-        hashlib.sha256,
-    ).hexdigest()
-
-
-def _digest(payload: object) -> str:
-    return hashlib.sha256(_canonical_json(payload).encode("utf-8")).hexdigest()
-
-
-def _valid_digest(value: object) -> bool:
-    return (
-        isinstance(value, str)
-        and len(value) == 64
-        and all(character in _HEX_DIGITS for character in value)
-    )
+def _require_receipt_id(name: str, value: object) -> None:
+    if not isinstance(value, str) or not value or value != value.strip():
+        raise ValueError(f"{name} must be non-empty canonical text")
 
 
 @dataclass(frozen=True, slots=True)
@@ -72,15 +46,10 @@ class ReceiptBinding:
     output_root: str | os.PathLike[str]
 
     def __post_init__(self) -> None:
-        for name, value in (
-            ("contract_id", self.contract_id),
-            ("attempt_id", self.attempt_id),
-        ):
-            if not isinstance(value, str) or not value or value != value.strip():
-                raise ValueError(f"{name} must be non-empty canonical text")
+        for name, value in (("contract_id", self.contract_id), ("attempt_id", self.attempt_id)):
+            _require_receipt_id(name, value)
         output_root = os.fspath(self.output_root)
-        if not isinstance(output_root, str) or not output_root or output_root != output_root.strip():
-            raise ValueError("output_root must be non-empty canonical text")
+        _require_receipt_id("output_root", output_root)
         output_path = Path(output_root)
         if not output_path.is_absolute():
             raise ValueError("output_root must be absolute")
@@ -96,114 +65,79 @@ class ReceiptBinding:
 
 @dataclass(frozen=True, slots=True)
 class GateReceipt:
-    """A signed gate outcome bound to one generation attempt."""
+    """A gate outcome bound directly to one generation attempt."""
 
     binding: ReceiptBinding
     outcome: StopOutcome
-    ancestor_receipt_digest: str | None = None
-    signature: str = ""
+    ancestor_receipt_id: str | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.binding, ReceiptBinding):
             raise TypeError("binding must be a ReceiptBinding")
         object.__setattr__(self, "outcome", StopOutcome(self.outcome))
-        self._validate_semantics()
-
-    def _validate_semantics(self) -> None:
         if self.outcome is StopOutcome.ANCESTOR_STOP:
-            if not _valid_digest(self.ancestor_receipt_digest):
-                raise ValueError(
-                    "GateReceipt semantics: ANCESTOR_STOP requires a valid ancestor receipt digest"
-                )
-        elif self.ancestor_receipt_digest is not None:
-            raise ValueError(
-                "GateReceipt semantics: only ANCESTOR_STOP may bind an ancestor receipt digest"
-            )
+            _require_receipt_id("ancestor_receipt_id", self.ancestor_receipt_id)
+        elif self.ancestor_receipt_id is not None:
+            raise ValueError("only ANCESTOR_STOP may reference an ancestor receipt")
 
-    def _unsigned_dict(self) -> dict[str, object]:
+    @property
+    def receipt_id(self) -> str:
+        return f"gate:{self.binding.contract_id}:{self.binding.attempt_id}:{self.outcome.value}"
+
+    def to_dict(self) -> dict[str, object]:
         return {
-            "ancestor_receipt_digest": self.ancestor_receipt_digest,
+            "ancestor_receipt_id": self.ancestor_receipt_id,
             "binding": self.binding.to_dict(),
             "outcome": self.outcome.value,
             "receipt_type": "gate",
             "schema_version": _SCHEMA_VERSION,
         }
 
-    def signed(self, signing_key: bytes | str) -> GateReceipt:
-        self._validate_semantics()
-        return replace(self, signature=_signature(self._unsigned_dict(), signing_key))
-
-    def verify_signature(self, signing_key: bytes | str) -> bool:
-        return _valid_digest(self.signature) and hmac.compare_digest(
-            self.signature,
-            _signature(self._unsigned_dict(), signing_key),
-        )
-
-    def to_dict(self) -> dict[str, object]:
-        return {**self._unsigned_dict(), "signature": self.signature}
-
     def canonical_json(self) -> str:
         return _canonical_json(self.to_dict())
-
-    @property
-    def digest(self) -> str:
-        return _digest(self.to_dict())
 
 
 @dataclass(frozen=True, slots=True)
 class AuthorizationReceipt:
-    """A signed authorization for one exact signed PASS gate receipt."""
+    """Authorization bound directly to one PASS gate receipt."""
 
     binding: ReceiptBinding
-    gate_receipt_digest: str
-    signature: str = ""
+    gate_receipt_id: str
 
     def __post_init__(self) -> None:
         if not isinstance(self.binding, ReceiptBinding):
             raise TypeError("binding must be a ReceiptBinding")
+        _require_receipt_id("gate_receipt_id", self.gate_receipt_id)
 
-    def _unsigned_dict(self) -> dict[str, object]:
+    @property
+    def receipt_id(self) -> str:
+        return f"authorization:{self.binding.contract_id}:{self.binding.attempt_id}"
+
+    def to_dict(self) -> dict[str, object]:
         return {
             "binding": self.binding.to_dict(),
-            "gate_receipt_digest": self.gate_receipt_digest,
+            "gate_receipt_id": self.gate_receipt_id,
             "receipt_type": "authorization",
             "schema_version": _SCHEMA_VERSION,
         }
 
-    def signed(self, signing_key: bytes | str) -> AuthorizationReceipt:
-        return replace(self, signature=_signature(self._unsigned_dict(), signing_key))
-
-    def verify_signature(self, signing_key: bytes | str) -> bool:
-        return _valid_digest(self.signature) and hmac.compare_digest(
-            self.signature,
-            _signature(self._unsigned_dict(), signing_key),
-        )
-
-    def to_dict(self) -> dict[str, object]:
-        return {**self._unsigned_dict(), "signature": self.signature}
-
     def canonical_json(self) -> str:
         return _canonical_json(self.to_dict())
-
-    @property
-    def digest(self) -> str:
-        return _digest(self.to_dict())
 
 
 @dataclass(frozen=True, slots=True)
 class RunReceipt:
-    """Signed, deterministic result of evaluating permission to start a run."""
+    """Deterministic result of evaluating permission to start or finish a run."""
 
     binding: ReceiptBinding
     outcome: StopOutcome
     run_state: str
     start_permitted: bool
     scientific_completion: bool
-    gate_receipt_digest: str | None
-    authorization_receipt_digest: str | None = None
-    ancestor_receipt_digest: str | None = None
+    gate_receipt_id: str | None
+    authorization_receipt_id: str | None = None
+    ancestor_receipt_id: str | None = None
     reason: str | None = None
-    signature: str = ""
 
     def __post_init__(self) -> None:
         if not isinstance(self.binding, ReceiptBinding):
@@ -223,72 +157,33 @@ class RunReceipt:
                 and self.scientific_completion
             )
             if not valid_pass_state:
-                raise ValueError(
-                    "RunReceipt semantics: PASS must be authorized-to-start or a completed scientific completion"
-                )
-            if not _valid_digest(self.gate_receipt_digest) or not _valid_digest(
-                self.authorization_receipt_digest
-            ):
-                raise ValueError(
-                    "RunReceipt semantics: PASS requires valid gate and authorization receipt digests"
-                )
-            if self.ancestor_receipt_digest is not None:
-                raise ValueError(
-                    "RunReceipt semantics: PASS cannot bind an ancestor receipt digest"
-                )
+                raise ValueError("PASS must authorize a start or record a completed run")
+            _require_receipt_id("gate_receipt_id", self.gate_receipt_id)
+            _require_receipt_id("authorization_receipt_id", self.authorization_receipt_id)
+            if self.ancestor_receipt_id is not None:
+                raise ValueError("PASS cannot reference an ancestor receipt")
             return
 
-        if self.outcome is StopOutcome.VALID_STOP:
-            if (
-                self.run_state != "gated-not-run"
-                or self.start_permitted
-                or self.scientific_completion
-            ):
-                raise ValueError(
-                    "RunReceipt semantics: VALID_STOP must be gated-not-run and never scientific completion"
-                )
-            if not _valid_digest(self.gate_receipt_digest):
-                raise ValueError("RunReceipt semantics: VALID_STOP requires a valid gate receipt digest")
-            if self.ancestor_receipt_digest is not None:
-                raise ValueError(
-                    "RunReceipt semantics: VALID_STOP cannot bind an ancestor receipt digest"
-                )
-            return
-
+        expected_state = "invalid-not-run" if self.outcome is StopOutcome.INVALID else "gated-not-run"
+        if self.run_state != expected_state or self.start_permitted or self.scientific_completion:
+            raise ValueError(f"{self.outcome.value} has invalid run state")
+        if self.outcome in {StopOutcome.VALID_STOP, StopOutcome.ANCESTOR_STOP}:
+            _require_receipt_id("gate_receipt_id", self.gate_receipt_id)
         if self.outcome is StopOutcome.ANCESTOR_STOP:
-            if (
-                self.run_state != "gated-not-run"
-                or self.start_permitted
-                or self.scientific_completion
-            ):
-                raise ValueError(
-                    "RunReceipt semantics: ANCESTOR_STOP must be gated-not-run and never scientific completion"
-                )
-            if not _valid_digest(self.gate_receipt_digest) or not _valid_digest(
-                self.ancestor_receipt_digest
-            ):
-                raise ValueError(
-                    "RunReceipt semantics: ANCESTOR_STOP requires valid gate and ancestor receipt digests"
-                )
-            return
+            _require_receipt_id("ancestor_receipt_id", self.ancestor_receipt_id)
+        elif self.ancestor_receipt_id is not None:
+            raise ValueError(f"{self.outcome.value} cannot reference an ancestor receipt")
 
-        if (
-            self.run_state != "invalid-not-run"
-            or self.start_permitted
-            or self.scientific_completion
-        ):
-            raise ValueError(
-                "RunReceipt semantics: INVALID must never start or claim scientific completion"
-            )
-        if self.ancestor_receipt_digest is not None:
-            raise ValueError("RunReceipt semantics: INVALID cannot bind an ancestor receipt digest")
+    @property
+    def receipt_id(self) -> str:
+        return f"run:{self.binding.contract_id}:{self.binding.attempt_id}:{self.run_state}"
 
-    def _unsigned_dict(self) -> dict[str, object]:
+    def to_dict(self) -> dict[str, object]:
         return {
-            "ancestor_receipt_digest": self.ancestor_receipt_digest,
-            "authorization_receipt_digest": self.authorization_receipt_digest,
+            "ancestor_receipt_id": self.ancestor_receipt_id,
+            "authorization_receipt_id": self.authorization_receipt_id,
             "binding": self.binding.to_dict(),
-            "gate_receipt_digest": self.gate_receipt_digest,
+            "gate_receipt_id": self.gate_receipt_id,
             "outcome": self.outcome.value,
             "reason": self.reason,
             "receipt_type": "run",
@@ -298,25 +193,8 @@ class RunReceipt:
             "start_permitted": self.start_permitted,
         }
 
-    def signed(self, signing_key: bytes | str) -> RunReceipt:
-        self._validate_semantics()
-        return replace(self, signature=_signature(self._unsigned_dict(), signing_key))
-
-    def verify_signature(self, signing_key: bytes | str) -> bool:
-        return _valid_digest(self.signature) and hmac.compare_digest(
-            self.signature,
-            _signature(self._unsigned_dict(), signing_key),
-        )
-
-    def to_dict(self) -> dict[str, object]:
-        return {**self._unsigned_dict(), "signature": self.signature}
-
     def canonical_json(self) -> str:
         return _canonical_json(self.to_dict())
-
-    @property
-    def digest(self) -> str:
-        return _digest(self.to_dict())
 
 
 def evaluate_execution_permission(
@@ -324,58 +202,32 @@ def evaluate_execution_permission(
     binding: ReceiptBinding,
     gate_receipt: GateReceipt | object,
     authorization_receipt: AuthorizationReceipt | object | None,
-    signing_key: bytes | str,
-    ancestor_receipt_digest: str | None = None,
+    ancestor_receipt_id: str | None = None,
 ) -> RunReceipt:
-    """Purely evaluate signed receipts and return a signed run receipt.
+    """Evaluate receipt contents and bindings without cryptographic ceremony."""
 
-    The function performs no execution or persistence. Only a signed ``PASS``
-    gate plus a signed authorization bound to that exact gate and the requested
-    contract/attempt/output identity permits a start.
-    """
-
-    _key_bytes(signing_key)
-    gate_digest = _safe_digest(gate_receipt)
-
+    gate_id = gate_receipt.receipt_id if isinstance(gate_receipt, GateReceipt) else None
     if not isinstance(gate_receipt, GateReceipt):
-        return _invalid_receipt(binding, signing_key, gate_digest, None, "gate-receipt-malformed")
+        return _invalid_receipt(binding, gate_id, None, "gate-receipt-malformed")
     if gate_receipt.binding != binding:
-        return _invalid_receipt(binding, signing_key, gate_digest, None, "gate-binding-mismatch")
-    if not gate_receipt.verify_signature(signing_key):
-        return _invalid_receipt(binding, signing_key, gate_digest, None, "gate-signature-invalid")
+        return _invalid_receipt(binding, gate_id, None, "gate-binding-mismatch")
 
     if gate_receipt.outcome is StopOutcome.ANCESTOR_STOP:
-        if (
-            not _valid_digest(gate_receipt.ancestor_receipt_digest)
-            or gate_receipt.ancestor_receipt_digest != ancestor_receipt_digest
-        ):
-            return _invalid_receipt(
-                binding,
-                signing_key,
-                gate_digest,
-                None,
-                "ancestor-receipt-digest-mismatch",
-            )
+        if gate_receipt.ancestor_receipt_id != ancestor_receipt_id:
+            return _invalid_receipt(binding, gate_id, None, "ancestor-receipt-mismatch")
         return RunReceipt(
             binding=binding,
             outcome=StopOutcome.ANCESTOR_STOP,
             run_state="gated-not-run",
             start_permitted=False,
             scientific_completion=False,
-            gate_receipt_digest=gate_digest,
-            ancestor_receipt_digest=ancestor_receipt_digest,
+            gate_receipt_id=gate_id,
+            ancestor_receipt_id=ancestor_receipt_id,
             reason="ancestor-stop",
-        ).signed(signing_key)
-
-    if ancestor_receipt_digest is not None or gate_receipt.ancestor_receipt_digest is not None:
-        return _invalid_receipt(
-            binding,
-            signing_key,
-            gate_digest,
-            None,
-            "unexpected-ancestor-receipt-digest",
         )
 
+    if ancestor_receipt_id is not None or gate_receipt.ancestor_receipt_id is not None:
+        return _invalid_receipt(binding, gate_id, None, "unexpected-ancestor-receipt")
     if gate_receipt.outcome is StopOutcome.VALID_STOP:
         return RunReceipt(
             binding=binding,
@@ -383,46 +235,28 @@ def evaluate_execution_permission(
             run_state="gated-not-run",
             start_permitted=False,
             scientific_completion=False,
-            gate_receipt_digest=gate_digest,
+            gate_receipt_id=gate_id,
             reason="valid-stop",
-        ).signed(signing_key)
-
+        )
     if gate_receipt.outcome is StopOutcome.INVALID:
-        return _invalid_receipt(binding, signing_key, gate_digest, None, "gate-invalid")
+        return _invalid_receipt(binding, gate_id, None, "gate-invalid")
 
-    authorization_digest = _safe_digest(authorization_receipt)
+    authorization_id = (
+        authorization_receipt.receipt_id
+        if isinstance(authorization_receipt, AuthorizationReceipt)
+        else None
+    )
     if not isinstance(authorization_receipt, AuthorizationReceipt):
         return _invalid_receipt(
             binding,
-            signing_key,
-            gate_digest,
-            authorization_digest,
+            gate_id,
+            authorization_id,
             "authorization-receipt-missing-or-malformed",
         )
     if authorization_receipt.binding != binding:
-        return _invalid_receipt(
-            binding,
-            signing_key,
-            gate_digest,
-            authorization_digest,
-            "authorization-binding-mismatch",
-        )
-    if not authorization_receipt.verify_signature(signing_key):
-        return _invalid_receipt(
-            binding,
-            signing_key,
-            gate_digest,
-            authorization_digest,
-            "authorization-signature-invalid",
-        )
-    if authorization_receipt.gate_receipt_digest != gate_receipt.digest:
-        return _invalid_receipt(
-            binding,
-            signing_key,
-            gate_digest,
-            authorization_digest,
-            "authorization-gate-mismatch",
-        )
+        return _invalid_receipt(binding, gate_id, authorization_id, "authorization-binding-mismatch")
+    if authorization_receipt.gate_receipt_id != gate_receipt.receipt_id:
+        return _invalid_receipt(binding, gate_id, authorization_id, "authorization-gate-mismatch")
 
     return RunReceipt(
         binding=binding,
@@ -430,22 +264,15 @@ def evaluate_execution_permission(
         run_state="authorized-to-start",
         start_permitted=True,
         scientific_completion=False,
-        gate_receipt_digest=gate_digest,
-        authorization_receipt_digest=authorization_digest,
-    ).signed(signing_key)
-
-
-def _safe_digest(receipt: object) -> str | None:
-    if isinstance(receipt, (GateReceipt, AuthorizationReceipt)):
-        return receipt.digest
-    return None
+        gate_receipt_id=gate_id,
+        authorization_receipt_id=authorization_id,
+    )
 
 
 def _invalid_receipt(
     binding: ReceiptBinding,
-    signing_key: bytes | str,
-    gate_receipt_digest: str | None,
-    authorization_receipt_digest: str | None,
+    gate_receipt_id: str | None,
+    authorization_receipt_id: str | None,
     reason: str,
 ) -> RunReceipt:
     return RunReceipt(
@@ -454,10 +281,10 @@ def _invalid_receipt(
         run_state="invalid-not-run",
         start_permitted=False,
         scientific_completion=False,
-        gate_receipt_digest=gate_receipt_digest,
-        authorization_receipt_digest=authorization_receipt_digest,
+        gate_receipt_id=gate_receipt_id,
+        authorization_receipt_id=authorization_receipt_id,
         reason=reason,
-    ).signed(signing_key)
+    )
 
 
 __all__ = [

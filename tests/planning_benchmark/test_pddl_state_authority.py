@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import hashlib
 import json
 from dataclasses import replace
 from pathlib import Path
@@ -55,9 +54,7 @@ def test_loads_canonical_initial_state_with_deterministic_identity() -> None:
         "on-table(b)",
         "on-table(c)",
     )
-    expected_id = hashlib.sha256(
-        json.dumps(list(expected_atoms), separators=(",", ":"), ensure_ascii=True).encode("utf-8")
-    ).hexdigest()
+    expected_id = json.dumps(list(expected_atoms), separators=(",", ":"), ensure_ascii=True)
 
     assert authority.domain_name == "blocksworld-4ops"
     assert authority.problem_name == "bw-nontrivial-3"
@@ -71,7 +68,9 @@ def test_rejects_same_content_state_owned_by_different_authority() -> None:
     payload = json.loads(FIXTURE.read_text(encoding="utf-8"))
     foreign = PDDLStateAuthority.from_pddl(
         payload["domain_pddl"],
-        payload["problem_pddl"].replace("(on a b)", "(on b a)"),
+        payload["problem_pddl"]
+        .replace("bw-nontrivial-3", "bw-nontrivial-3-foreign")
+        .replace("(on a b)", "(on b a)"),
     )
 
     assert foreign.initial_state.state_id == authority.initial_state.state_id

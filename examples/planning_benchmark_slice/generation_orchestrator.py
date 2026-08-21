@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
 import shutil
 import tempfile
@@ -57,8 +56,7 @@ def run_bfs_generation_smoke(
                 max_expansions=max_expansions,
                 gate_receipt=cast(GateReceipt, request.gate_receipt),
                 authorization_receipt=cast(AuthorizationReceipt | None, request.authorization_receipt),
-                signing_key=request.signing_key,
-                ancestor_receipt_digest=request.ancestor_receipt_digest,
+                ancestor_receipt_id=request.ancestor_receipt_id,
             )
             result = episode["result"]
             if (
@@ -72,10 +70,10 @@ def run_bfs_generation_smoke(
             evidence = episode["evidence"]
             if not isinstance(evidence, dict):
                 raise ValueError("authorized search episode did not produce episode evidence")
-            replayed_episode = replay_search_episode(evidence, signing_key=request.signing_key)
+            replayed_episode = replay_search_episode(evidence)
             if replayed_episode != episode:
                 raise ValueError("replayed BFS episode differs from its Evidence Bundle")
-            formal_task, expert_trace = _bundle_artifacts(replayed_episode, signing_key=request.signing_key)
+            formal_task, expert_trace = _bundle_artifacts(replayed_episode)
 
             formal_task_path = staging_root / _FORMAL_TASK_PATH
             expert_trace_path = staging_root / _EXPERT_TRACE_PATH
@@ -96,15 +94,15 @@ def run_bfs_generation_smoke(
 
             corpus_manifest_path = staging_root / _CORPUS_MANIFEST_PATH
             corpus_manifest = {
-                "atomic_segments": [_path_digest(path, staging_root) for path in atomic_segment_paths],
+                "atomic_segments": [_path_record(path, staging_root) for path in atomic_segment_paths],
                 "binding": {
                     "attempt_id": request.binding.attempt_id,
                     "contract_id": request.binding.contract_id,
                 },
-                "corpus_fragment": _path_digest(corpus_fragment_path, staging_root),
-                "episode_evidence": _path_digest(episode_evidence_path, staging_root),
-                "expert_trace": _path_digest(expert_trace_path, staging_root),
-                "formal_task": _path_digest(formal_task_path, staging_root),
+                "corpus_fragment": _path_record(corpus_fragment_path, staging_root),
+                "episode_evidence": _path_record(episode_evidence_path, staging_root),
+                "expert_trace": _path_record(expert_trace_path, staging_root),
+                "formal_task": _path_record(formal_task_path, staging_root),
                 "schema_version": _CORPUS_MANIFEST_SCHEMA_VERSION,
                 "segment_count": len(atomic_segment_paths),
             }
@@ -120,7 +118,7 @@ def run_bfs_generation_smoke(
                 corpus_manifest_path,
             ]
             artifact_manifest = {
-                "artifacts": [_path_digest(path, staging_root, include_size=True) for path in artifact_paths],
+                "artifacts": [_path_record(path, staging_root) for path in artifact_paths],
                 "schema_version": _ARTIFACT_MANIFEST_SCHEMA_VERSION,
             }
             artifact_manifest_bytes = _canonical_json_bytes(artifact_manifest)
@@ -132,7 +130,7 @@ def run_bfs_generation_smoke(
 
         return {
             "artifact_manifest_path": str((output_root / _ARTIFACT_MANIFEST_PATH).resolve()),
-            "artifact_manifest_sha256": hashlib.sha256(artifact_manifest_bytes).hexdigest(),
+            "artifact_manifest_size_bytes": len(artifact_manifest_bytes),
             "atomic_segment_paths": [
                 str((output_root / path.relative_to(staging_root)).resolve()) for path in atomic_segment_paths
             ],
@@ -146,24 +144,24 @@ def run_bfs_generation_smoke(
     return run_authorized_generation(request, execute)
 
 
-def regenerate_corpus_fragment(output_root: str | Path, *, signing_key: bytes | str) -> bytes:
+def regenerate_corpus_fragment(output_root: str | Path) -> bytes:
     """Replay persisted episode evidence and rebuild its corpus fragment."""
 
     root = Path(output_root)
     try:
-        replayed_episode = replay_episode_evidence(root / _EPISODE_EVIDENCE_PATH, signing_key=signing_key)
-        formal_task, expert_trace = _bundle_artifacts(replayed_episode, signing_key=signing_key)
+        replayed_episode = replay_episode_evidence(root / _EPISODE_EVIDENCE_PATH)
+        formal_task, expert_trace = _bundle_artifacts(replayed_episode)
     except EpisodeEvidenceError as error:
         raise SearchEpisodeError(str(error)) from error
     _, corpus_fragment = _build_corpus_fragment(formal_task, expert_trace)
     return corpus_fragment
 
 
-def _bundle_artifacts(episode: dict[str, Any], *, signing_key: bytes | str) -> tuple[bytes, bytes]:
+def _bundle_artifacts(episode: dict[str, Any]) -> tuple[bytes, bytes]:
     evidence = episode["evidence"]
     if not isinstance(evidence, dict):
         raise ValueError("replayed search episode did not produce episode evidence")
-    return materialize_episode_artifacts(evidence, signing_key=signing_key)
+    return materialize_episode_artifacts(evidence)
 
 
 def _build_corpus_fragment(
@@ -195,15 +193,12 @@ def _materialize_atomic_segments(formal_task: bytes, expert_trace: bytes) -> tup
     )
 
 
-def _path_digest(path: Path, output_root: Path, *, include_size: bool = False) -> dict[str, object]:
+def _path_record(path: Path, output_root: Path) -> dict[str, object]:
     payload = path.read_bytes()
-    result: dict[str, object] = {
+    return {
         "path": path.relative_to(output_root).as_posix(),
-        "sha256": hashlib.sha256(payload).hexdigest(),
+        "size_bytes": len(payload),
     }
-    if include_size:
-        result["size_bytes"] = len(payload)
-    return result
 
 
 def _canonical_json_bytes(payload: object) -> bytes:

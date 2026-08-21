@@ -4,6 +4,7 @@ from pathlib import Path
 
 from examples.planning_benchmark_slice.pddl_state import PDDLStateAuthority
 from examples.planning_benchmark_slice.search_episode import (
+    EVIDENCE_SCHEMA_VERSION,
     SearchEpisodeVariant,
     replay_search_episode,
     run_search_episode,
@@ -19,7 +20,6 @@ from src.data_collect.governance import (
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 NONTRIVIAL_FIXTURE = REPO_ROOT / "tests" / "fixtures" / "planning" / "blocksworld_nontrivial.json"
-SIGNING_KEY = b"issue-47-search-episode-test-key"
 
 
 def test_exact_text_bfs_completes_with_fifo_evidence_that_replays(tmp_path: Path) -> None:
@@ -28,11 +28,11 @@ def test_exact_text_bfs_completes_with_fifo_evidence_that_replays(tmp_path: Path
         attempt_id="slice-1-exact-policy",
         output_root=tmp_path / "episode-evidence",
     )
-    gate = GateReceipt(binding=binding, outcome=StopOutcome.PASS).signed(SIGNING_KEY)
+    gate = GateReceipt(binding=binding, outcome=StopOutcome.PASS)
     authorization = AuthorizationReceipt(
         binding=binding,
-        gate_receipt_digest=gate.digest,
-    ).signed(SIGNING_KEY)
+        gate_receipt_id=gate.receipt_id,
+    )
 
     episode = run_search_episode(
         task_path=NONTRIVIAL_FIXTURE,
@@ -42,27 +42,24 @@ def test_exact_text_bfs_completes_with_fifo_evidence_that_replays(tmp_path: Path
         max_expansions=64,
         gate_receipt=gate,
         authorization_receipt=authorization,
-        signing_key=SIGNING_KEY,
     )
 
     assert episode["result"]["completion"] == "completed"
     assert episode["result"]["outcome"] == StopOutcome.PASS.value
     assert episode["result"]["scientific_completion"] is True
     assert episode["result"]["goal_reached"] is True
-    assert episode["evidence"]["schema_version"] == "search_episode_evidence_v3"
-    assert "initial_memory_sha256" not in episode["evidence"]["header"]
+    assert episode["evidence"]["schema_version"] == EVIDENCE_SCHEMA_VERSION
 
     events = episode["evidence"]["events"]
     assert events
     assert {event["expansion_index"] for event in events} == set(range(episode["result"]["expansion_count"]))
     for event in events:
         assert event["expanded_state_id"]
-        assert "memory_sha256" not in event
         assert "frontier_before" not in event
         assert "frontier_after" not in event
         assert len(event["newly_enqueued_state_ids"]) <= 1
 
-    assert replay_search_episode(episode["evidence"], signing_key=SIGNING_KEY) == episode
+    assert replay_search_episode(episode["evidence"]) == episode
 
 
 def test_seeded_random_text_bfs_is_reproducible_and_replayable(tmp_path: Path) -> None:
@@ -71,11 +68,11 @@ def test_seeded_random_text_bfs_is_reproducible_and_replayable(tmp_path: Path) -
         attempt_id="slice-2-seeded-random-policy",
         output_root=tmp_path / "episode-evidence",
     )
-    gate = GateReceipt(binding=binding, outcome=StopOutcome.PASS).signed(SIGNING_KEY)
+    gate = GateReceipt(binding=binding, outcome=StopOutcome.PASS)
     authorization = AuthorizationReceipt(
         binding=binding,
-        gate_receipt_digest=gate.digest,
-    ).signed(SIGNING_KEY)
+        gate_receipt_id=gate.receipt_id,
+    )
     common_request = {
         "task_path": NONTRIVIAL_FIXTURE,
         "algorithm": "bfs",
@@ -83,7 +80,6 @@ def test_seeded_random_text_bfs_is_reproducible_and_replayable(tmp_path: Path) -
         "max_expansions": 64,
         "gate_receipt": gate,
         "authorization_receipt": authorization,
-        "signing_key": SIGNING_KEY,
     }
 
     first = run_search_episode(policy="random", random_seed=47, **common_request)
@@ -95,7 +91,7 @@ def test_seeded_random_text_bfs_is_reproducible_and_replayable(tmp_path: Path) -
         assert episode["result"]["outcome"] == StopOutcome.PASS.value
         assert episode["result"]["scientific_completion"] is True
         assert episode["result"]["goal_reached"] is True
-        assert replay_search_episode(episode["evidence"], signing_key=SIGNING_KEY) == episode
+        assert replay_search_episode(episode["evidence"]) == episode
 
     assert first == second
     assert first["evidence"] != exact["evidence"]
@@ -110,8 +106,8 @@ def test_bfs_variant_batch_parses_one_authority_and_preserves_variant_order(
         attempt_id="slice-batched-policies",
         output_root=tmp_path / "episode-evidence",
     )
-    gate = GateReceipt(binding=binding, outcome=StopOutcome.PASS).signed(SIGNING_KEY)
-    authorization = AuthorizationReceipt(binding=binding, gate_receipt_digest=gate.digest).signed(SIGNING_KEY)
+    gate = GateReceipt(binding=binding, outcome=StopOutcome.PASS)
+    authorization = AuthorizationReceipt(binding=binding, gate_receipt_id=gate.receipt_id)
     original = PDDLStateAuthority.from_pddl
     parse_count = 0
 
@@ -134,7 +130,6 @@ def test_bfs_variant_batch_parses_one_authority_and_preserves_variant_order(
         max_expansions=64,
         gate_receipt=gate,
         authorization_receipt=authorization,
-        signing_key=SIGNING_KEY,
     )
 
     requests = [episode["evidence"]["header"]["request"] for episode in episodes]
@@ -149,8 +144,8 @@ def test_v3_execution_freezes_immutable_search_memory_once(tmp_path: Path, monke
         attempt_id="slice-mutable-runtime",
         output_root=tmp_path / "episode-evidence",
     )
-    gate = GateReceipt(binding=binding, outcome=StopOutcome.PASS).signed(SIGNING_KEY)
-    authorization = AuthorizationReceipt(binding=binding, gate_receipt_digest=gate.digest).signed(SIGNING_KEY)
+    gate = GateReceipt(binding=binding, outcome=StopOutcome.PASS)
+    authorization = AuthorizationReceipt(binding=binding, gate_receipt_id=gate.receipt_id)
     original_create = SearchMemory._create.__func__
     create_count = 0
 
@@ -169,7 +164,6 @@ def test_v3_execution_freezes_immutable_search_memory_once(tmp_path: Path, monke
         max_expansions=64,
         gate_receipt=gate,
         authorization_receipt=authorization,
-        signing_key=SIGNING_KEY,
     )
 
     assert episode["result"]["goal_reached"] is True
@@ -183,15 +177,15 @@ def test_governed_stops_do_not_read_or_execute_a_missing_task(tmp_path: Path) ->
         attempt_id="slice-3-governed-stops",
         output_root=tmp_path / "episode-evidence",
     )
-    pass_gate = GateReceipt(binding=binding, outcome=StopOutcome.PASS).signed(SIGNING_KEY)
-    valid_stop_gate = GateReceipt(binding=binding, outcome=StopOutcome.VALID_STOP).signed(SIGNING_KEY)
-    invalid_gate = GateReceipt(binding=binding, outcome=StopOutcome.INVALID).signed(SIGNING_KEY)
+    pass_gate = GateReceipt(binding=binding, outcome=StopOutcome.PASS)
+    valid_stop_gate = GateReceipt(binding=binding, outcome=StopOutcome.VALID_STOP)
+    invalid_gate = GateReceipt(binding=binding, outcome=StopOutcome.INVALID)
     ancestor_digest = "a" * 64
     ancestor_stop_gate = GateReceipt(
         binding=binding,
         outcome=StopOutcome.ANCESTOR_STOP,
-        ancestor_receipt_digest=ancestor_digest,
-    ).signed(SIGNING_KEY)
+        ancestor_receipt_id=ancestor_digest,
+    )
     cases = (
         (pass_gate, None, None, StopOutcome.INVALID, "invalid-not-run"),
         (valid_stop_gate, None, None, StopOutcome.VALID_STOP, "gated-not-run"),
@@ -214,8 +208,7 @@ def test_governed_stops_do_not_read_or_execute_a_missing_task(tmp_path: Path) ->
             max_expansions=64,
             gate_receipt=gate,
             authorization_receipt=authorization,
-            signing_key=SIGNING_KEY,
-            ancestor_receipt_digest=supplied_ancestor_digest,
+            ancestor_receipt_id=supplied_ancestor_digest,
         )
 
         run_receipt = episode["result"]["run_receipt"]

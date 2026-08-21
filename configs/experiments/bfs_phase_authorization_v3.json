@@ -1,1 +1,20 @@
-{"authorization_id":"issue-111-bfs-expansion-qualified-pilot-authorization-v3-rev2","authorized_stages":["trace_generation","corpus_release","base_and_references","process_sft_and_sanity_gate"],"contract_id":"issue-111-bfs-expansion-qualified-pilot-v3","downstream_issues":[54],"freeze_manifest_path":"configs/experiments/bfs_phase_freeze_v3.json","freeze_manifest_sha256":"9229a32c6c8f4e5587e2f1f77c362da530e8834ff13987e0a8a2c6cb0f875a3c","outcome":"PASS","parent_issue":38,"phase_id":"issue-111-bfs-expansion-qualified-pilot-v3","schema_version":"bfs_phase_authorization_v3","scientific_completion":false,"source_issue":111}
+{
+  "authorization_id": "issue-111-bfs-expansion-qualified-pilot-authorization-v3-rev2",
+  "authorized_stages": [
+    "trace_generation",
+    "corpus_release",
+    "base_and_references",
+    "process_sft_and_sanity_gate"
+  ],
+  "contract_id": "issue-111-bfs-expansion-qualified-pilot-v3",
+  "downstream_issues": [
+    54
+  ],
+  "freeze_manifest_path": "configs/experiments/bfs_phase_freeze_v3.json",
+  "outcome": "PASS",
+  "parent_issue": 38,
+  "phase_id": "issue-111-bfs-expansion-qualified-pilot-v3",
+  "schema_version": "bfs_phase_authorization_v3",
+  "scientific_completion": false,
+  "source_issue": 111
+}

@@ -25,9 +25,6 @@ _REPO_ROOT = Path(__file__).resolve().parents[1]
 _FREEZE = _REPO_ROOT / "configs" / "experiments" / "bfs_phase_freeze_v1.json"
 _AUTHORIZATION = _REPO_ROOT / "configs" / "experiments" / "bfs_phase_authorization_v1.json"
 _TASK = _REPO_ROOT / "tests" / "fixtures" / "planning" / "blocksworld_nontrivial.json"
-_SIGNING_KEY = b"issue-49-bfs-development-v1-qwen-smoke"
-
-
 def _initialize_cuda_memory_stats(torch_module: Any, *, device: str, device_index: int) -> None:
     allocation = torch_module.empty(1, device=device)
     del allocation
@@ -51,13 +48,12 @@ def main() -> int:
         attempt_id=args.attempt_id,
         output_root=output.parent,
     )
-    gate = GateReceipt(binding=binding, outcome=StopOutcome.PASS).signed(_SIGNING_KEY)
-    authorization = AuthorizationReceipt(binding=binding, gate_receipt_digest=gate.digest).signed(_SIGNING_KEY)
+    gate = GateReceipt(binding=binding, outcome=StopOutcome.PASS)
+    authorization = AuthorizationReceipt(binding=binding, gate_receipt_id=gate.receipt_id)
     permission = evaluate_execution_permission(
         binding=binding,
         gate_receipt=gate,
         authorization_receipt=authorization,
-        signing_key=_SIGNING_KEY,
     )
     if not permission.start_permitted:
         raise RuntimeError("frozen BFS authorization did not permit the GPU smoke")
@@ -95,7 +91,6 @@ def main() -> int:
         seed=phase_gate.freeze["seeds"][0],
         gate_receipt=gate,
         authorization_receipt=authorization,
-        signing_key=_SIGNING_KEY,
     )
     elapsed = time.monotonic() - started
     report = {

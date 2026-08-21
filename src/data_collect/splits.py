@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
 import os
 import fcntl
@@ -24,29 +23,27 @@ class SplitLedgerFormatError(ValueError):
 
 
 def whole_instance_identity(domain_pddl: PddlSource, problem_pddl: PddlSource) -> str:
-    """Return a content identity for a complete domain/problem pair.
+    """Return the canonical content for a complete domain/problem pair.
 
     String arguments are interpreted as PDDL text. Bytes are decoded as UTF-8,
-    and ``PathLike`` arguments are read as UTF-8. Only the normalized domain and
-    problem texts enter the digest; locations and dataset metadata do not.
+    and ``PathLike`` arguments are read as UTF-8. Locations and dataset metadata
+    are excluded, so normalized equivalent instances have the same identity.
     """
 
-    payload = _canonical_json(
+    return _canonical_json(
         {
             "domain": normalize_pddl(_read_pddl(domain_pddl)),
             "problem": normalize_pddl(_read_pddl(problem_pddl)),
         }
-    ).encode("utf-8")
-    return f"sha256:{hashlib.sha256(payload).hexdigest()}"
+    )
 
 
 def split_assignment_id(identity: str, split: str) -> str:
-    """Return the stable content ID for one whole-instance split assignment."""
+    """Return the canonical ID for one whole-instance split assignment."""
 
     _require_nonempty("identity", identity)
     _require_nonempty("split", split)
-    payload = _canonical_json({"identity": identity, "split": split}).encode("utf-8")
-    return f"sha256:{hashlib.sha256(payload).hexdigest()}"
+    return _canonical_json({"identity": identity, "split": split})
 
 
 class SplitLedger:

@@ -34,23 +34,10 @@ RXR: DatasetConfig = {
     "data_path": f"{vlnce_root}/RxR/train/",
 }
 
-PLANNING_CGAS_V1_TRAIN: DatasetConfig = {
-    "annotation_path": "./data/planning_cgas_v1/qwenvl/train.jsonl",
-    "data_path": "./data/planning_cgas_v1/qwenvl/images",
-}
-
-PLANNING_CGAS_V1_DEV: DatasetConfig = {
-    "annotation_path": "./data/planning_cgas_v1/qwenvl/dev.jsonl",
-    "data_path": "./data/planning_cgas_v1/qwenvl/images",
-}
-
-
 data_dict: dict[str, DatasetConfig] = {
     "sharegpt4v_coco": SHAREGPT4V_COCO,
     "r2r": R2R,
     "rxr": RXR,
-    "planning_cgas_v1_train": PLANNING_CGAS_V1_TRAIN,
-    "planning_cgas_v1_dev": PLANNING_CGAS_V1_DEV,
 }
 
 def parse_sampling_rate(dataset_name: str) -> float:

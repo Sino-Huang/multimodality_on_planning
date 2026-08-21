@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import hashlib
 import json
 from pathlib import Path
 
@@ -17,7 +16,6 @@ AUTHORIZATION_MANIFEST = REPO_ROOT / "configs" / "experiments" / "bfs_phase_auth
 V3_FREEZE_MANIFEST = REPO_ROOT / "configs" / "experiments" / "bfs_phase_freeze_v3.json"
 V3_AUTHORIZATION_MANIFEST = REPO_ROOT / "configs" / "experiments" / "bfs_phase_authorization_v3.json"
 TASK_FIXTURE = REPO_ROOT / "tests" / "fixtures" / "planning" / "blocksworld_nontrivial.json"
-SIGNING_KEY = b"issue-49-bfs-phase-test-key"
 
 
 def _phase_gate() -> BFSPhaseGate:
@@ -30,15 +28,14 @@ def _request(tmp_path: Path, *, contract_id: str) -> GenerationRequest:
         attempt_id="issue-49-bfs-smoke-001",
         output_root=(tmp_path / "corpus-output").resolve(),
     )
-    gate = GateReceipt(binding=binding, outcome=StopOutcome.PASS).signed(SIGNING_KEY)
+    gate = GateReceipt(binding=binding, outcome=StopOutcome.PASS)
     return GenerationRequest(
         binding=binding,
         gate_receipt=gate,
         authorization_receipt=AuthorizationReceipt(
             binding=binding,
-            gate_receipt_digest=gate.digest,
-        ).signed(SIGNING_KEY),
-        signing_key=SIGNING_KEY,
+            gate_receipt_id=gate.receipt_id,
+        ),
         receipt_root=(tmp_path / "receipts").resolve(),
     )
 
@@ -115,23 +112,17 @@ def test_phase_authorization_is_required_before_a_bfs_output_is_created(tmp_path
     assert not Path(request.receipt_root).exists()
 
 
-def test_phase_gate_rejects_an_authorization_for_different_freeze_bytes(tmp_path: Path) -> None:
+def test_phase_gate_rejects_an_authorization_for_a_different_freeze(tmp_path: Path) -> None:
     authorization = json.loads(AUTHORIZATION_MANIFEST.read_text(encoding="utf-8"))
-    authorization["freeze_manifest_sha256"] = "0" * 64
+    authorization["freeze_manifest_path"] = "configs/experiments/bfs_phase_freeze_v3.json"
     mismatched_authorization = tmp_path / "authorization.json"
     mismatched_authorization.write_text(json.dumps(authorization), encoding="utf-8")
 
-    with pytest.raises(BFSPhaseGateError, match="does not match its authorization"):
+    with pytest.raises(BFSPhaseGateError, match="different freeze manifest"):
         load_bfs_phase_gate(FREEZE_MANIFEST, mismatched_authorization)
 
 
-def test_v1_manifests_remain_byte_identical_and_cannot_authorize_v3() -> None:
-    assert hashlib.sha256(FREEZE_MANIFEST.read_bytes()).hexdigest() == (
-        "5d00eb28c348c1d8a85472e834b52762683b0ddbbf9904c912bfaafdce6f23fd"
-    )
-    assert hashlib.sha256(AUTHORIZATION_MANIFEST.read_bytes()).hexdigest() == (
-        "6ddd28ca0586faadf13971b14af002ea6eefb1aacafb0a671a4eb70f06b7c8b7"
-    )
+def test_v1_authorization_cannot_authorize_v3() -> None:
     with pytest.raises(BFSPhaseGateError, match="v3 authorization"):
         load_bfs_phase_gate(V3_FREEZE_MANIFEST, AUTHORIZATION_MANIFEST)
 

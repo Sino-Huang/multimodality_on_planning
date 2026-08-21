@@ -351,7 +351,7 @@ def test_generate_supervised_data_rejects_old_bfs_planner_label(tmp_path: Path) 
     shutil.rmtree(fixture_root)
 
 
-def test_duplicate_plan_hashes_are_preserved_as_distinct_planner_examples(tmp_path: Path) -> None:
+def test_duplicate_plan_ids_are_preserved_as_distinct_planner_examples(tmp_path: Path) -> None:
     fixture_root = Path("tmp") / f"phase3_duplicate_{tmp_path.name}"
     if fixture_root.exists():
         shutil.rmtree(fixture_root)
@@ -361,7 +361,7 @@ def test_duplicate_plan_hashes_are_preserved_as_distinct_planner_examples(tmp_pa
 
     rows = [json.loads(line) for line in (output_root / "train.jsonl").read_text(encoding="utf-8").splitlines() if line]
     assert summary["emitted_examples"] == len(rows) == 1
-    assert len({(row["planner"], row["plan_hash"]) for row in rows}) == 1
+    assert len({(row["planner"], row["plan_id"]) for row in rows}) == 1
     shutil.rmtree(fixture_root)
 
 
@@ -535,7 +535,7 @@ def test_verify_replay_validated_examples_detects_failed_replay(tmp_path: Path) 
                 "instance_id": "tiny-1",
                 "split": "train",
                 "planner": "gbfs",
-                "plan_hash": "h",
+                "plan_id": "h",
                 "trace_fidelity": "success_full_trace",
                 "vision_supervision_available": False,
                 "model_facing": {},
@@ -605,16 +605,16 @@ def _attempt_account(domain: str, instance_id: str) -> dict[str, object]:
 
 def _slow_attempt(_account: dict[str, object], _preflight: dict[str, object], _vision: dict[str, object], planner: str, _limits: dict[str, int]) -> tuple[dict[str, object], None, None]:
     time.sleep(5)
-    return {"schema_version": "phase3_supervised_planning_v1", "domain": "tiny", "instance_id": "tiny-1", "split": "train", "planner": planner, "status": "success_full_trace", "trace_fidelity": "success_full_trace", "replay_validation_id": "r", "plan_hash": "h"}, None, None
+    return {"schema_version": "phase3_supervised_planning_v1", "domain": "tiny", "instance_id": "tiny-1", "split": "train", "planner": planner, "status": "success_full_trace", "trace_fidelity": "success_full_trace", "replay_validation_id": "r", "plan_id": "h"}, None, None
 
 
 def _fast_attempt(_account: dict[str, object], _preflight: dict[str, object], _vision: dict[str, object], planner: str, _limits: dict[str, int]) -> tuple[dict[str, object], None, None]:
-    return {"schema_version": "phase3_supervised_planning_v1", "domain": "tiny", "instance_id": "tiny-1", "split": "train", "planner": planner, "domain_path": "domain.pddl", "problem_path": "problem.pddl", "planner_command": None, "planner_version": None, "status": "success_full_trace", "trace_fidelity": "none", "replay_validation_id": None, "plan_hash": None}, None, None
+    return {"schema_version": "phase3_supervised_planning_v1", "domain": "tiny", "instance_id": "tiny-1", "split": "train", "planner": planner, "domain_path": "domain.pddl", "problem_path": "problem.pddl", "planner_command": None, "planner_version": None, "status": "success_full_trace", "trace_fidelity": "none", "replay_validation_id": None, "plan_id": None}, None, None
 
 
 def _external_plan_attempt(account: dict[str, object], _preflight: dict[str, object], _vision: dict[str, object], planner: str, limits: dict[str, int]) -> tuple[dict[str, object], None, None]:
     _plan, _command, status = _external_plan(planner, account, limits)
-    return {"schema_version": "phase3_supervised_planning_v1", "domain": account["domain"], "instance_id": account["instance_id"], "split": account["split"], "planner": planner, "domain_path": account["domain_path"], "problem_path": account["problem_path"], "planner_command": _command, "planner_version": None, "trace_fidelity": "none", "replay_validation_id": None, "plan_hash": None, "status": status}, None, None
+    return {"schema_version": "phase3_supervised_planning_v1", "domain": account["domain"], "instance_id": account["instance_id"], "split": account["split"], "planner": planner, "domain_path": account["domain_path"], "problem_path": account["problem_path"], "planner_command": _command, "planner_version": None, "trace_fidelity": "none", "replay_validation_id": None, "plan_id": None, "status": status}, None, None
 
 
 def _attempt_with_child_process(account: dict[str, object], _preflight: dict[str, object], _vision: dict[str, object], planner: str, _limits: dict[str, int]) -> tuple[dict[str, object], None, None]:
@@ -622,7 +622,7 @@ def _attempt_with_child_process(account: dict[str, object], _preflight: dict[str
     script = "import signal, sys, time\nmarker = sys.argv[1]\ndef handle(_signum, _frame):\n    open(marker, 'w', encoding='utf-8').write('terminated')\n    raise SystemExit(0)\nsignal.signal(signal.SIGTERM, handle)\ntime.sleep(30)\n"
     subprocess.Popen([sys.executable, "-c", script, marker_path])
     time.sleep(30)
-    return {"schema_version": "phase3_supervised_planning_v1", "domain": "tiny", "instance_id": "tiny-1", "split": "train", "planner": planner, "status": "success_full_trace", "trace_fidelity": "success_full_trace", "replay_validation_id": "r", "plan_hash": "h"}, None, None
+    return {"schema_version": "phase3_supervised_planning_v1", "domain": "tiny", "instance_id": "tiny-1", "split": "train", "planner": planner, "status": "success_full_trace", "trace_fidelity": "success_full_trace", "replay_validation_id": "r", "plan_id": "h"}, None, None
 
 
 def _external_sigterm_resistant_script(root: Path, pid_path: Path) -> Path:

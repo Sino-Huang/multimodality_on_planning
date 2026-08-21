@@ -3,9 +3,9 @@ from __future__ import annotations
 from pathlib import Path
 
 
-DOC = Path("doc/detailed_implementation_summary/phase3_complete_supervised_planning_data_summary.md")
+DOC = Path("docs/detailed_implementation_summary/phase3_complete_supervised_planning_data_summary.md")
 CURRICULUM_EXTENSION_DOC = Path(
-    "doc/detailed_implementation_summary/phase3_curriculum_extension_and_fd_plan_saving_summary.md"
+    "docs/detailed_implementation_summary/phase3_curriculum_extension_and_fd_plan_saving_summary.md"
 )
 
 

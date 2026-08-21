@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
 import shutil
 import tempfile
@@ -26,7 +25,7 @@ from src.data_collect.adapters.registry import (
 )
 from src.data_collect.config import load_curriculum_config
 from src.data_collect.normalization import normalize_pddl
-from src.data_collect.splits import split_assignment_id, whole_instance_identity
+from src.data_collect.splits import whole_instance_identity
 
 from .bfs_generation import _normalize_authority_input
 from .pddl_state import PDDLStateAuthority
@@ -67,7 +66,7 @@ class ExactBFSResult:
     expansion_count: int
     goal_reached: bool
     plan: tuple[str, ...]
-    trace_sha256: str
+    expanded_state_ids: tuple[str, ...]
 
 
 @dataclass(frozen=True, slots=True)
@@ -77,7 +76,7 @@ class QualifiedCandidate:
     split: str
     size_tier: str
     seed: int | None
-    normalized_problem_hash: str
+    normalized_problem: str
     domain_pddl: str
     problem_pddl: str
     authority_domain_pddl: str
@@ -91,10 +90,6 @@ class QualifiedCandidate:
         if band is None:
             raise ValueError("candidate is not inside a qualified expansion band")
         return band
-
-    @property
-    def selection_key(self) -> str:
-        return selection_key(self.normalized_problem_hash)
 
     @property
     def whole_instance_id(self) -> str:
@@ -198,10 +193,6 @@ def expansion_band(expansion_count: int) -> str | None:
     return None
 
 
-def selection_key(normalized_problem_hash: str, *, seed: int = SELECTION_SEED) -> str:
-    return hashlib.sha256(f"{seed}:{normalized_problem_hash}".encode("ascii")).hexdigest()
-
-
 def select_qualified_tasks(candidates: Iterable[QualifiedCandidate]) -> dict[tuple[str, str, str], QualifiedCandidate]:
     grouped: dict[tuple[str, str], dict[str, list[QualifiedCandidate]]] = {}
     for candidate in candidates:
@@ -235,17 +226,22 @@ def exact_fifo_bfs(domain_pddl: str, problem_pddl: str, *, max_expansions: int =
     authority = PDDLStateAuthority.from_pddl(domain_pddl, problem_pddl)
     start = authority.initial_state
     if authority.is_goal(start):
-        return ExactBFSResult(0, True, (), _sha256(b""))
+        return ExactBFSResult(0, True, (), ())
 
     frontier = deque([start])
     visited = {start.state_id}
     parents: dict[str, tuple[str, str]] = {}
-    trace = hashlib.sha256()
+    expanded_state_ids: list[str] = []
     expansion_count = 0
     while frontier and expansion_count < max_expansions:
         state = frontier.popleft()
         if authority.is_goal(state):
-            return ExactBFSResult(expansion_count, True, _reconstruct_plan(state.state_id, parents), trace.hexdigest())
+            return ExactBFSResult(
+                expansion_count,
+                True,
+                _reconstruct_plan(state.state_id, parents),
+                tuple(expanded_state_ids),
+            )
         enqueued: list[str] = []
         for action in authority.applicable_actions(state):
             target = authority.apply(state, action).target_state
@@ -255,12 +251,17 @@ def exact_fifo_bfs(domain_pddl: str, problem_pddl: str, *, max_expansions: int =
             parents[target.state_id] = (state.state_id, action.serialize())
             frontier.append(target)
             enqueued.append(target.state_id)
-        trace.update(_canonical_bytes({"expanded_state_id": state.state_id, "enqueued_state_ids": enqueued}))
+        expanded_state_ids.append(state.state_id)
         expansion_count += 1
     if frontier and authority.is_goal(frontier[0]):
         state = frontier[0]
-        return ExactBFSResult(expansion_count, True, _reconstruct_plan(state.state_id, parents), trace.hexdigest())
-    return ExactBFSResult(expansion_count, False, (), trace.hexdigest())
+        return ExactBFSResult(
+            expansion_count,
+            True,
+            _reconstruct_plan(state.state_id, parents),
+            tuple(expanded_state_ids),
+        )
+    return ExactBFSResult(expansion_count, False, (), tuple(expanded_state_ids))
 
 
 def replay_exact_fifo_bfs(candidate: QualifiedCandidate) -> bool:
@@ -348,9 +349,7 @@ def run_qualification(output_root: str | Path, *, repo_root: str | Path | None =
             "outcome": outcome,
             "attempt_id": ATTEMPT_ID,
             "phase_id": PHASE_ID,
-            "qualification_report_sha256": _sha256(report_bytes),
             "schema_version": GATE_RECEIPT_SCHEMA_VERSION,
-            "selected_manifest_sha256": _sha256(_jsonl(selected_rows)),
             "scientific_completion": False,
         }
         _write(staging / "gate-receipt.json", _canonical_bytes(receipt))
@@ -393,7 +392,7 @@ def _generate_and_qualify(
     domain_pddl = normalized.domain_path.read_text(encoding="utf-8")
     problem_pddl = normalized.problem_path.read_text(encoding="utf-8")
     authority_domain, authority_problem, transformations = _normalize_authority_input(domain_pddl, problem_pddl)
-    normalized_hash = _sha256(normalize_pddl(problem_pddl).encode("utf-8"))
+    normalized_problem = normalize_pddl(problem_pddl)
     try:
         result = exact_fifo_bfs(authority_domain, authority_problem)
     except Exception as error:
@@ -409,7 +408,7 @@ def _generate_and_qualify(
         split=split,
         size_tier=tier,
         seed=seed,
-        normalized_problem_hash=normalized_hash,
+        normalized_problem=normalized_problem,
         domain_pddl=domain_pddl,
         problem_pddl=problem_pddl,
         authority_domain_pddl=authority_domain,
@@ -623,8 +622,8 @@ def _easy_sokoban_problem(split: str, attempt: int) -> str:
     )
 
 
-def _candidate_order(candidate: QualifiedCandidate) -> tuple[str, str, str]:
-    return candidate.selection_key, candidate.normalized_problem_hash, candidate.candidate_id
+def _candidate_order(candidate: QualifiedCandidate) -> tuple[str, str]:
+    return candidate.normalized_problem, candidate.candidate_id
 
 
 def _publish_selected(
@@ -652,22 +651,15 @@ def _publish_selected(
                 "band": band,
                 "bucket": band,
                 "candidate_id": candidate.candidate_id,
-                "domain_hash": _sha256(candidate.domain_pddl.encode("utf-8")),
                 "domain_id": domain_id,
                 "domain_path": (_PUBLISHED_ROOT / relative_root / "domain.pddl").as_posix(),
                 "expansion_count": candidate.result.expansion_count,
-                "fifo_trace_sha256": candidate.result.trace_sha256,
                 "instance_id": instance_id,
-                "normalized_problem_hash": candidate.normalized_problem_hash,
                 "plan": list(candidate.result.plan),
-                "problem_hash": _sha256(candidate.problem_pddl.encode("utf-8")),
                 "problem_path": (_PUBLISHED_ROOT / relative_root / "problem.pddl").as_posix(),
                 "seed": candidate.seed,
-                "selection_key": candidate.selection_key,
                 "split": split,
-                "split_assignment_id": split_assignment_id(identity, split),
                 "status": "accepted",
-                "whole_instance_id": identity,
             }
         )
     return rows
@@ -679,7 +671,6 @@ def _candidate_row(candidate: QualifiedCandidate, status: str) -> dict[str, Any]
         "candidate_id": candidate.candidate_id,
         "domain_id": candidate.domain_id,
         "expansion_count": candidate.result.expansion_count,
-        "normalized_problem_hash": candidate.normalized_problem_hash,
         "seed": candidate.seed,
         "size_tier": candidate.size_tier,
         "split": candidate.split,
@@ -702,8 +693,12 @@ def _rejection_row(
 
 
 def _candidate_seed(domain_id: str, split: str, candidate_index: int) -> int:
-    payload = f"{SELECTION_SEED}:{domain_id}:{split}:{candidate_index}".encode("ascii")
-    return int.from_bytes(hashlib.sha256(payload).digest()[:4], "big") & 0x7FFFFFFF
+    return (
+        SELECTION_SEED
+        + DOMAINS.index(domain_id) * len(SPLITS) * CANDIDATE_CEILING
+        + SPLITS.index(split) * CANDIDATE_CEILING
+        + candidate_index
+    )
 
 
 def _reconstruct_plan(goal_state_id: str, parents: Mapping[str, tuple[str, str]]) -> tuple[str, ...]:
@@ -724,10 +719,6 @@ def _jsonl(rows: Iterable[Mapping[str, Any]]) -> bytes:
     return b"".join(_canonical_bytes(row) + b"\n" for row in rows)
 
 
-def _sha256(payload: bytes) -> str:
-    return hashlib.sha256(payload).hexdigest()
-
-
 def _write(path: Path, payload: bytes) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_bytes(payload)
@@ -746,5 +737,4 @@ __all__ = [
     "replay_exact_fifo_bfs",
     "run_qualification",
     "select_qualified_tasks",
-    "selection_key",
 ]

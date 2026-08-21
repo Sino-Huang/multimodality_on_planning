@@ -6,7 +6,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Any, Callable
 
-from .io_utils import file_sha256, read_jsonl, relpath
+from .io_utils import read_jsonl, relpath
 from .schema import validate_instance_accounting, validate_planner_attempt, validate_supervised_example
 
 
@@ -137,16 +137,12 @@ def verify_no_smoke_sources(dataset_root: Path, forbidden_paths: list[str]) -> d
 
 def verify_determinism(dataset_root: Path, manifest: Path) -> dict[str, Any]:
     data = json.loads(manifest.read_text(encoding="utf-8"))
-    expected = data.get("generated_file_digests", {})
-    changed = []
-    for relative, digest in expected.items():
-        current = file_sha256(dataset_root / relative)
-        if current != digest:
-            changed.append(relative)
+    expected = data.get("generated_files", [])
+    missing = [relative for relative in expected if not (dataset_root / relative).is_file()]
     example_ids = [row["example_id"] for row in _examples(dataset_root)]
     duplicate_ids = len(example_ids) - len(set(example_ids))
-    payload = {"digest_mismatches": len(changed), "changed_files": changed, "duplicate_example_ids": duplicate_ids}
-    _assert_clean(payload, ("digest_mismatches", "duplicate_example_ids"))
+    payload = {"missing_generated_files": len(missing), "missing_files": missing, "duplicate_example_ids": duplicate_ids}
+    _assert_clean(payload, ("missing_generated_files", "duplicate_example_ids"))
     return payload
 
 

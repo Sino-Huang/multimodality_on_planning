@@ -82,9 +82,8 @@ def test_accepted_transition_round_trips_as_one_atomic_trace_record() -> None:
     assert len(payload["records"]) == 1
     record = payload["records"][0]
     assert all(record[field] for field in ("observation", "rationale", "operation", "result"))
-    assert record["previous_hash"]
-    assert record["record_hash"]
-    assert payload["tail_hash"]
+    assert set(record) == {"index", "observation", "rationale", "operation", "result"}
+    assert set(payload) == {"schema_version", "authority_id", "record_count", "records"}
     assert verify_search_trace_segment(trace_bytes, limits=limits) is True
 
     replayed = replay_search_trace_segment(trace_bytes, authority=authority, limits=limits)
@@ -212,7 +211,7 @@ def test_trace_segment_public_bounds_and_tamper_validation() -> None:
     assert first_segment.to_bytes() == first_bytes
 
     tampered_payload = json.loads(first_bytes)
-    tampered_payload["records"][0]["rationale"] = "Use a different rationale."
+    tampered_payload["records"][0]["index"] = 2
     tampered_bytes = json.dumps(
         tampered_payload,
         sort_keys=True,

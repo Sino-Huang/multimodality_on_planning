@@ -15,11 +15,11 @@ STAGES: Final[tuple[Stage, ...]] = (
     "complete-domain",
     "frozen-full",
 )
-RECEIPT_ARTIFACT_PATHS: Final = {
-    "pairing_manifest_sha256": "diagnostics/pairing_manifest.jsonl",
-    "hybrid_output_manifest_sha256": "diagnostics/hybrid_output_manifest.json",
-    "state_render_manifest_sha256": "diagnostics/state_render_manifest.jsonl",
-}
+RECEIPT_ARTIFACT_PATHS: Final = (
+    "diagnostics/pairing_manifest.jsonl",
+    "diagnostics/hybrid_output_manifest.json",
+    "diagnostics/state_render_manifest.jsonl",
+)
 
 
 @dataclass(frozen=True, slots=True)

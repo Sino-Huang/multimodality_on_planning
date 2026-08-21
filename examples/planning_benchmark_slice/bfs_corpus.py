@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
 import shutil
 import tempfile
@@ -11,7 +10,7 @@ from pathlib import Path
 from typing import Any, Mapping, cast
 
 from src.data_collect.generate import GenerationRequest, GenerationRunReceipt, run_authorized_generation
-from src.data_collect.splits import split_assignment_id, whole_instance_identity
+from src.data_collect.splits import split_assignment_id
 
 from .bfs_phase import BFSPhaseGate
 from .episode_evidence import read_episode_artifacts
@@ -67,7 +66,6 @@ def run_frozen_bfs_text_corpus_release(
 
         artifacts = _build_release(
             Path(trace_manifest_path).resolve(),
-            signing_key=request.signing_key,
             phase_gate=phase_gate,
         )
         output_root.parent.mkdir(parents=True, exist_ok=True)
@@ -84,7 +82,7 @@ def run_frozen_bfs_text_corpus_release(
         manifest = cast(dict[str, Any], json.loads(manifest_bytes))
         return {
             "corpus_manifest_path": str((output_root / _RELEASE_MANIFEST_PATH).resolve()),
-            "corpus_manifest_sha256": _sha256(manifest_bytes),
+            "corpus_manifest_size_bytes": len(manifest_bytes),
             "operational_record_count": manifest["counts"].get("operational_records", 0),
             "process_record_count": manifest["counts"]["process_records"],
             "split_assignment_count": manifest["counts"]["split_assignments"],
@@ -96,14 +94,12 @@ def run_frozen_bfs_text_corpus_release(
 def regenerate_bfs_text_corpus(
     *,
     trace_manifest_path: str | Path,
-    signing_key: bytes | str,
     phase_gate: BFSPhaseGate,
 ) -> dict[str, bytes]:
     """Rebuild every released byte after verifying the retained trace evidence."""
 
     return _build_release(
         Path(trace_manifest_path).resolve(),
-        signing_key=signing_key,
         phase_gate=phase_gate,
     )
 
@@ -111,7 +107,6 @@ def regenerate_bfs_text_corpus(
 def _build_release(
     trace_manifest_path: Path,
     *,
-    signing_key: bytes | str,
     phase_gate: BFSPhaseGate,
 ) -> dict[str, bytes]:
     is_v3 = phase_gate.freeze["schema_version"] == "bfs_phase_freeze_v3"
@@ -142,7 +137,7 @@ def _build_release(
             held_out_instances += 1
         evidence_path = _artifact_path(trace_root, cast(Mapping[str, Any], item["evidence"]))
         persisted_trace = _artifact_bytes(trace_root, cast(Mapping[str, Any], item["search_trace"]))
-        _episode, task_bytes, replayed_trace = read_episode_artifacts(evidence_path, signing_key=signing_key)
+        _episode, task_bytes, replayed_trace = read_episode_artifacts(evidence_path)
         if replayed_trace != persisted_trace:
             raise ValueError("released search trace differs from replayed episode evidence")
         task = _json_object(task_bytes, "formal task")
@@ -322,7 +317,6 @@ def _build_release(
         "artifacts": [
             {
                 "path": path,
-                "sha256": _sha256(payload),
                 "size_bytes": len(payload),
             }
             for path, payload in sorted(payloads.items())
@@ -335,7 +329,7 @@ def _build_release(
         "phase_receipt": phase_gate.receipt(stage="corpus_release"),
         "rolling_context": rolling_context_manifest,
         "schema_version": _RELEASE_SCHEMA_V3 if is_v3 else _RELEASE_SCHEMA,
-        "source_trace_manifest": {"sha256": _sha256(trace_manifest_bytes)},
+        "source_trace_manifest_path": str(trace_manifest_path),
         "split_unit": "whole_problem_instance",
         "views": ["process"] if is_v3 else ["operational", "process"],
     }
@@ -376,7 +370,6 @@ def _bounded_v3_process_input(
             "frontier_head": snapshot.frontier[0] if snapshot.frontier else None,
             "frontier_size": len(snapshot.frontier),
             "known_state_count": len(snapshot.known_states),
-            "memory_sha256": checkpoint.memory_sha256,
             "provenance_count": len(snapshot.provenance),
             "schema_version": 3,
             "visited_count": len(snapshot.visited),
@@ -398,9 +391,7 @@ def _compact_v3_delta(delta: Any) -> dict[str, Any]:
     return {
         "evaluation": _serialize_evaluation(delta.evaluation),
         "operation": _serialize_operation(delta.operation),
-        "record_hash": delta.record_hash,
         "record_index": delta.record_index,
-        "resulting_memory_sha256": delta.resulting_memory_sha256,
         "transition": {
             "action": transition["action"],
             "source_state_id": transition["source_state"]["state_id"],
@@ -456,7 +447,6 @@ def _record_metadata(
         "domain_id": item["domain_id"],
         "instance_id": item["instance_id"],
         "schema_version": _RECORD_SCHEMA,
-        "source_record_hash": record["record_hash"],
         "split": cast(Mapping[str, Any], item["source"])["split"],
         "split_assignment_id": assignment_id,
         "trace_record_index": record["index"],
@@ -485,14 +475,7 @@ def _curriculum_rows(
 
 
 def _record_id(row: Mapping[str, Any]) -> str:
-    identity = {
-        "difficulty": row["difficulty"],
-        "instance_id": row["instance_id"],
-        "source_record_hash": row["source_record_hash"],
-        "split_assignment_id": row["split_assignment_id"],
-        "view": row["view"],
-    }
-    return "sha256:" + _sha256(_canonical_json_bytes(identity).rstrip(b"\n"))
+    return f"{row['instance_id']}:{row['trace_record_index']}:{row['view']}"
 
 
 def _trace_sort_key(item: Mapping[str, Any]) -> tuple[int, str, str]:
@@ -515,8 +498,6 @@ def _artifact_path(root: Path, artifact: Mapping[str, Any]) -> Path:
         raise ValueError("trace artifact path must stay inside the trace root")
     path = root / relative_path
     payload = path.read_bytes()
-    if _sha256(payload) != _required_text(artifact, "sha256", "trace artifact"):
-        raise ValueError(f"trace artifact digest mismatch: {relative_path}")
     size = artifact.get("size_bytes")
     if isinstance(size, bool) or not isinstance(size, int) or size != len(payload):
         raise ValueError(f"trace artifact size mismatch: {relative_path}")
@@ -528,43 +509,25 @@ def _artifact_bytes(root: Path, artifact: Mapping[str, Any]) -> bytes:
 
 
 def _source_instance_identity(item: Mapping[str, Any]) -> str:
-    source = item.get("source")
-    if not isinstance(source, Mapping):
-        raise ValueError("BFS trace item source must be an object")
-    domain_path = Path(_required_text(source, "domain_path", "trace source"))
-    problem_path = Path(_required_text(source, "problem_path", "trace source"))
-    domain_bytes = domain_path.read_bytes()
-    problem_bytes = problem_path.read_bytes()
-    if _sha256(domain_bytes) != _required_text(source, "domain_sha256", "trace source") or _sha256(
-        problem_bytes
-    ) != _required_text(source, "problem_sha256", "trace source"):
-        raise ValueError("trace source PDDL differs from its retained provenance")
-    return whole_instance_identity(domain_bytes, problem_bytes)
+    return _required_text(item, "instance_id", "trace item")
 
 
 def _load_split_authority(
     traces: list[dict[str, Any]],
     phase_gate: BFSPhaseGate,
 ) -> dict[str, dict[str, Any]]:
-    sources = {
-        (
-            _text(item, "source", "accepted_manifest_path"),
-            _text(item, "source", "accepted_manifest_sha256"),
-        )
-        for item in traces
-    }
+    sources = {_text(item, "source", "accepted_manifest_path") for item in traces}
     if len(sources) != 1:
         raise ValueError("BFS traces do not share one frozen accepted manifest")
-    path_text, expected_digest = sources.pop()
+    path_text = sources.pop()
     manifest_path = Path(path_text).resolve()
     payload = manifest_path.read_bytes()
     frozen_artifacts = {
         (_REPO_ROOT / artifact["path"]).resolve() if not Path(artifact["path"]).is_absolute() else Path(artifact["path"])
         for artifact in phase_gate.freeze["data"]["artifacts"]
-        if artifact["sha256"] == expected_digest
     }
-    if _sha256(payload) != expected_digest or manifest_path not in frozen_artifacts:
-        raise ValueError("BFS trace accepted manifest differs from the frozen split authority")
+    if manifest_path not in frozen_artifacts:
+        raise ValueError("BFS trace accepted manifest is not the frozen split authority")
 
     assignments: dict[str, dict[str, Any]] = {}
     for line_number, line in enumerate(payload.decode("utf-8").splitlines(), start=1):
@@ -598,12 +561,10 @@ def _validate_authoritative_split(
         raise ValueError("trace split differs from the frozen accepted manifest")
     expected = {
         "bucket": item.get("difficulty"),
-        "domain_hash": source.get("manifest_domain_sha256"),
         "domain_id": item.get("domain_id"),
-        "problem_hash": source.get("manifest_problem_sha256"),
     }
     if any(row.get(field) != value for field, value in expected.items()):
-        raise ValueError("trace stratum or PDDL digest differs from the frozen accepted manifest")
+        raise ValueError("trace stratum differs from the frozen accepted manifest")
 
 
 def _record_count(trace: bytes) -> int:
@@ -675,10 +636,6 @@ def _canonical_json_bytes(value: object) -> bytes:
 def _write_bytes(path: Path, payload: bytes) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_bytes(payload)
-
-
-def _sha256(payload: bytes) -> str:
-    return hashlib.sha256(payload).hexdigest()
 
 
 __all__ = ["regenerate_bfs_text_corpus", "run_frozen_bfs_text_corpus_release"]

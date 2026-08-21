@@ -64,8 +64,8 @@ class WorkflowConfig:
 @dataclass(frozen=True)
 class ShardState:
     accepted_total: int
-    duplicate_hashes: int
-    missing_hashes: int
+    duplicate_problems: int
+    missing_normalized_problems: int
     staging_entries: int
     counts_by_domain_split_bucket: dict[tuple[str, str, str], int]
     attempts_by_domain_split_bucket: dict[tuple[str, str, str], int]
@@ -233,14 +233,14 @@ def run_generation_batches(
                 commands_run += 1
                 state = inspect_shards(shards_root)
                 record["accepted_total_after"] = state.accepted_total
-                record["duplicate_hashes_after"] = state.duplicate_hashes
+                record["duplicate_problems_after"] = state.duplicate_problems
                 records.append(record)
                 _log(
                     config,
                     f"Result {domain} {split}/{bucket}: status={record['status']} "
-                    f"accepted_total={state.accepted_total} duplicate_hashes={state.duplicate_hashes}",
+                    f"accepted_total={state.accepted_total} duplicate_problems={state.duplicate_problems}",
                 )
-                if state.duplicate_hashes or state.missing_hashes:
+                if state.duplicate_problems or state.missing_normalized_problems:
                     raise RuntimeError(f"Shard integrity failed after generation: {_state_summary(state)}")
     return records
 
@@ -251,7 +251,7 @@ def _log(config: WorkflowConfig, message: str) -> None:
 
 
 def inspect_shards(shards_root: Path) -> ShardState:
-    rows_by_hash: list[str | None] = []
+    normalized_problems: list[str | None] = []
     counts: Counter[tuple[str, str, str]] = Counter()
     attempts: Counter[tuple[str, str, str]] = Counter()
     accepted_total = 0
@@ -264,15 +264,15 @@ def inspect_shards(shards_root: Path) -> ShardState:
             split = str(row["split"])
             bucket = str(row["bucket"])
             target_bucket = str(row.get("difficulty_target") or bucket)
-            rows_by_hash.append(row.get("normalized_problem_text"))
+            normalized_problems.append(row.get("normalized_problem_text"))
             counts[(domain, split, bucket)] += 1
             attempts[(domain, split, target_bucket)] += 1
         for row in rejections:
             attempts[(domain, str(row["split"]), str(row["bucket"]))] += 1
     return ShardState(
         accepted_total=accepted_total,
-        duplicate_hashes=len(rows_by_hash) - len(set(rows_by_hash)),
-        missing_hashes=sum(1 for value in rows_by_hash if not value),
+        duplicate_problems=len(normalized_problems) - len(set(normalized_problems)),
+        missing_normalized_problems=sum(1 for value in normalized_problems if not value),
         staging_entries=sum(1 for _ in shards_root.glob("**/.staging/**")),
         counts_by_domain_split_bucket=dict(counts),
         attempts_by_domain_split_bucket=dict(attempts),
@@ -298,7 +298,7 @@ def merge_shards(*, shards_root: Path, candidate_root: Path) -> dict[str, Any]:
     payload = json.loads(completed.stdout)
     summary = dict(payload["summary"])
     if int(summary.get("duplicate_accepted_problems", -1)) != 0:
-        raise RuntimeError(f"Staged merge has duplicate hashes: {summary}")
+        raise RuntimeError(f"Staged merge has duplicate problems: {summary}")
     return summary
 
 
@@ -309,7 +309,7 @@ def update_final_root(
     safety_summary: dict[str, Any],
 ) -> dict[str, Any]:
     if int(safety_summary.get("duplicate_accepted_problems", -1)) != 0:
-        raise RuntimeError("Refusing to update final root because safety merge has duplicate hashes")
+        raise RuntimeError("Refusing to update final root because safety merge has duplicate problems")
     if int(safety_summary.get("accepted_total", 0)) <= 0:
         raise RuntimeError("Refusing to update final root from an empty safety merge")
     if final_root == shards_root or final_root in shards_root.parents:
@@ -334,7 +334,7 @@ def update_final_root(
     if int(summary.get("accepted_total", -1)) != int(safety_summary.get("accepted_total", -2)):
         raise RuntimeError(f"Final root total differs from safety merge: final={summary} safety={safety_summary}")
     if int(summary.get("duplicate_accepted_problems", -1)) != 0:
-        raise RuntimeError(f"Final root update has duplicate hashes: {summary}")
+        raise RuntimeError(f"Final root update has duplicate problems: {summary}")
     return summary
 
 
@@ -383,8 +383,8 @@ def _run_generate_command(
 def _state_summary(state: ShardState) -> dict[str, int]:
     return {
         "accepted_total": state.accepted_total,
-        "duplicate_hashes": state.duplicate_hashes,
-        "missing_hashes": state.missing_hashes,
+        "duplicate_problems": state.duplicate_problems,
+        "missing_normalized_problems": state.missing_normalized_problems,
         "staging_entries": state.staging_entries,
     }
 
@@ -481,7 +481,7 @@ def main(argv: Iterable[str] | None = None) -> int:
         merge = result["merge_summary"]
         print(
             "Workflow complete: "
-            f"shards={after['accepted_total']} duplicate_hashes={after['duplicate_hashes']} "
+            f"shards={after['accepted_total']} duplicate_problems={after['duplicate_problems']} "
             f"candidate={result['candidate_root']} merged={merge['accepted_total']}"
         )
     return 0

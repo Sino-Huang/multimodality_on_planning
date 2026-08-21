@@ -2,19 +2,13 @@
 
 from __future__ import annotations
 
-import json
 from collections import Counter
-from hashlib import sha256
 from pathlib import Path
 
-from .io_utils import JSONRecord, file_sha256, read_jsonl, write_json
+from .io_utils import JSONRecord, read_jsonl, write_json
 from .planimation_persisted_contracts import validate_pair_record
 from .rollout_gate_contracts import Stage
 from .traversal_state_types import JSONValue
-
-
-def is_lowercase_sha256(value: JSONValue) -> bool:
-    return isinstance(value, str) and len(value) == 64 and all(character in "0123456789abcdef" for character in value)
 
 
 def has_valid_selection_pair_contract(selected_pair_ids: JSONValue, selected_pairs: JSONValue) -> bool:
@@ -59,32 +53,28 @@ def prepare_selection(output_root: Path, stage: Stage, domain: str | None = None
             "stage_transition_limits": {"changed-canary": [5, 10], "stratified-pilot": [250, 500]},
         },
         "domain": domain,
-        "input_pairing_manifest_sha256": file_sha256(output_root / "diagnostics" / "pairing_manifest.jsonl"),
+        "input_pairing_manifest_path": "diagnostics/pairing_manifest.jsonl",
         "selected_pair_ids": [_pair_text(pair, "pair_id") for pair in selected],
         "selected_pairs": [_frozen_pair(pair) for pair in selected],
         "stage": stage,
         "transition_count": sum(_pair_integer(pair, "plan_length") for pair in selected),
         "preparation_reasons": reasons,
     }
-    selection["selection_sha256"] = _stable_sha256(selection)
     write_json(output_root / "diagnostics" / "rollout_selection.json", selection)
     return selection
 
 
-def validate_frozen_pairs(selection: JSONRecord, pairs: list[JSONRecord], manifest_hash: str, reasons: list[str]) -> None:
+def validate_frozen_pairs(selection: JSONRecord, pairs: list[JSONRecord], reasons: list[str]) -> None:
     selected_pairs = selection.get("selected_pairs")
     if not isinstance(selected_pairs, list):
         return
     if not all(isinstance(pair, dict) for pair in selected_pairs):
         reasons.append("invalid_frozen_selection")
         return
-    expected = Counter(_stable_sha256(pair) for pair in selected_pairs)
-    actual = Counter(_stable_sha256(_frozen_pair(pair)) for pair in pairs)
-    identity_mismatch = expected != actual
-    if identity_mismatch:
+    expected = Counter(_record_key(pair) for pair in selected_pairs)
+    actual = Counter(_record_key(_frozen_pair(pair)) for pair in pairs)
+    if expected != actual:
         reasons.append("output_pairing_manifest_pair_identity_mismatch")
-    if selection.get("input_pairing_manifest_sha256") != manifest_hash and identity_mismatch:
-        reasons.append("frozen_pairing_manifest_hash_mismatch")
 
 
 def append_pair_validation_errors(pairs: list[JSONRecord], reasons: list[str]) -> None:
@@ -184,5 +174,6 @@ def _pair_integer(pair: JSONRecord, field: str) -> int:
     return value
 
 
-def _stable_sha256(value: JSONRecord) -> str:
-    return sha256(json.dumps(value, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
+def _record_key(value: JSONRecord) -> tuple[tuple[str, str], ...]:
+    """Return a directly comparable canonical record without an integrity token."""
+    return tuple(sorted((key, repr(item)) for key, item in value.items()))

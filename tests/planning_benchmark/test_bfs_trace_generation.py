@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import hashlib
 import json
 from dataclasses import replace
 from pathlib import Path
@@ -24,17 +23,11 @@ from examples.planning_benchmark_slice.search_episode import replay_search_episo
 from examples.planning_benchmark_slice.validate_instance import load_fixture
 from src.data_collect.generate import GenerationRequest
 from src.data_collect.governance import AuthorizationReceipt, GateReceipt, ReceiptBinding, StopOutcome
-from src.data_collect.splits import split_assignment_id, whole_instance_identity
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FREEZE_MANIFEST = REPO_ROOT / "configs" / "experiments" / "bfs_phase_freeze_v1.json"
 AUTHORIZATION_MANIFEST = REPO_ROOT / "configs" / "experiments" / "bfs_phase_authorization_v1.json"
 TASK_FIXTURE = REPO_ROOT / "tests" / "fixtures" / "planning" / "blocksworld_nontrivial.json"
-SIGNING_KEY = b"issue-50-bfs-trace-generation-test-key"
-
-
-def _sha256(payload: bytes) -> str:
-    return hashlib.sha256(payload).hexdigest()
 
 
 def _frozen_curriculum(tmp_path: Path) -> tuple[BFSPhaseGate, Path]:
@@ -52,11 +45,9 @@ def _frozen_curriculum(tmp_path: Path) -> tuple[BFSPhaseGate, Path]:
         rows.append(
             {
                 "bucket": difficulty,
-                "domain_hash": _sha256(domain_path.read_bytes()),
                 "domain_id": "blocksworld",
                 "domain_path": str(domain_path),
                 "instance_id": instance_id,
-                "problem_hash": _sha256(problem_path.read_bytes()),
                 "problem_path": str(problem_path),
                 "split": "train",
                 "status": "accepted",
@@ -65,11 +56,9 @@ def _frozen_curriculum(tmp_path: Path) -> tuple[BFSPhaseGate, Path]:
     rows.append(
         {
             "bucket": "easy",
-            "domain_hash": "0" * 64,
             "domain_id": "blocksworld",
             "domain_path": str(curriculum_root / "held-out-domain-must-not-be-read.pddl"),
             "instance_id": "blocksworld-test-easy-0000",
-            "problem_hash": "0" * 64,
             "problem_path": str(curriculum_root / "held-out-problem-must-not-be-read.pddl"),
             "split": "test",
             "status": "accepted",
@@ -85,7 +74,7 @@ def _frozen_curriculum(tmp_path: Path) -> tuple[BFSPhaseGate, Path]:
     committed = load_bfs_phase_gate(FREEZE_MANIFEST, AUTHORIZATION_MANIFEST)
     freeze = json.loads(json.dumps(committed.freeze))
     freeze["data"]["domains"] = ["blocksworld"]
-    freeze["data"]["artifacts"] = [{"path": str(accepted_manifest), "sha256": _sha256(accepted_manifest.read_bytes())}]
+    freeze["data"]["artifacts"] = [{"path": str(accepted_manifest)}]
     freeze["data"]["development_counts_by_split_and_difficulty"] = {"train": {"easy": 1, "medium": 1, "hard": 1}}
     return replace(committed, freeze=freeze), accepted_manifest
 
@@ -106,21 +95,20 @@ def _request(
     gate = GateReceipt(
         binding=binding,
         outcome=gate_outcome,
-        ancestor_receipt_digest=ancestor_digest,
-    ).signed(SIGNING_KEY)
+        ancestor_receipt_id=ancestor_digest,
+    )
     authorization = None
     if gate_outcome is StopOutcome.PASS:
         authorization = AuthorizationReceipt(
             binding=binding,
-            gate_receipt_digest=gate.digest,
-        ).signed(SIGNING_KEY)
+            gate_receipt_id=gate.receipt_id,
+        )
     return GenerationRequest(
         binding=binding,
         gate_receipt=gate,
         authorization_receipt=authorization,
-        signing_key=SIGNING_KEY,
         receipt_root=(tmp_path / "receipts").resolve(),
-        ancestor_receipt_digest=ancestor_digest,
+        ancestor_receipt_id=ancestor_digest,
     )
 
 
@@ -162,7 +150,7 @@ def _legacy_pddl_phase(tmp_path: Path) -> tuple[BFSPhaseGate, Path]:
     freeze["budgets"]["episode_max_expansions_by_difficulty"] = {"easy": 1}
     freeze["data"]["domains"] = ["driverlog", "storage"]
     freeze["data"]["strata"] = ["easy"]
-    freeze["data"]["artifacts"] = [{"path": str(accepted_manifest), "sha256": _sha256(accepted_manifest.read_bytes())}]
+    freeze["data"]["artifacts"] = [{"path": str(accepted_manifest)}]
     return replace(committed, freeze=freeze), accepted_manifest
 
 
@@ -201,16 +189,14 @@ def test_generates_replayable_canonical_fifo_traces_for_every_frozen_stratum(tmp
         assert item["canonical_tie_break"] == "grounded_actions_sorted_by_canonical_serialization"
         assert item["trace_scope"] == "bounded_search_trace_segment"
         assert item["phase_receipt"] == phase_receipt
-        assert item["source"]["accepted_manifest_sha256"] == _sha256(accepted_manifest.read_bytes())
-        assert item["source"]["domain_sha256"] == item["source"]["manifest_domain_sha256"]
-        assert item["source"]["problem_sha256"] == item["source"]["manifest_problem_sha256"]
+        assert Path(item["source"]["accepted_manifest_path"]) == accepted_manifest
 
         evidence_path = Path(request.binding.output_root) / item["evidence"]["path"]
         trace_path = Path(request.binding.output_root) / item["search_trace"]["path"]
-        assert _sha256(evidence_path.read_bytes()) == item["evidence"]["sha256"]
-        assert _sha256(trace_path.read_bytes()) == item["search_trace"]["sha256"]
+        assert evidence_path.stat().st_size == item["evidence"]["size_bytes"]
+        assert trace_path.stat().st_size == item["search_trace"]["size_bytes"]
         episode = read_episode_evidence(evidence_path)
-        replayed = replay_search_episode(episode["evidence"], signing_key=SIGNING_KEY)
+        replayed = replay_search_episode(episode["evidence"])
         assert replayed["result"]["outcome"] == StopOutcome.PASS.value
         assert episode["evidence"]["events"]
         assert all("frontier_before" not in event for event in episode["evidence"]["events"])
@@ -238,10 +224,8 @@ def test_normalizes_frozen_legacy_pddl_without_losing_source_provenance(tmp_path
         "storage": ["replace_storage_either_with_surface_supertype"],
     }
     for item in trace_manifest["traces"]:
-        assert item["source"]["domain_sha256"] == item["source"]["manifest_domain_sha256"]
-        assert item["source"]["problem_sha256"] == item["source"]["manifest_problem_sha256"]
-        assert item["source"]["authority_domain_sha256"]
-        assert item["source"]["authority_problem_sha256"]
+        assert Path(item["source"]["domain_path"]).is_file()
+        assert Path(item["source"]["problem_path"]).is_file()
 
 
 def test_stopped_gates_emit_gated_not_run_before_phase_or_curriculum_validation(tmp_path: Path) -> None:
@@ -315,15 +299,14 @@ def test_releases_separate_regenerable_views_with_immutable_splits_and_clean_lea
         attempt_id="issue-51-corpus-release",
         output_root=release_root,
     )
-    release_gate = GateReceipt(binding=release_binding, outcome=StopOutcome.PASS).signed(SIGNING_KEY)
+    release_gate = GateReceipt(binding=release_binding, outcome=StopOutcome.PASS)
     release_request = GenerationRequest(
         binding=release_binding,
         gate_receipt=release_gate,
         authorization_receipt=AuthorizationReceipt(
             binding=release_binding,
-            gate_receipt_digest=release_gate.digest,
-        ).signed(SIGNING_KEY),
-        signing_key=SIGNING_KEY,
+            gate_receipt_id=release_gate.receipt_id,
+        ),
         receipt_root=(tmp_path / "release-receipts").resolve(),
     )
 
@@ -341,14 +324,13 @@ def test_releases_separate_regenerable_views_with_immutable_splits_and_clean_lea
     release_manifest = json.loads(release_manifest_path.read_text(encoding="utf-8"))
     assert release_manifest["schema_version"] == "bfs_text_corpus_release_v1"
     assert release_manifest["phase_receipt"] == phase_gate.receipt(stage="corpus_release")
-    assert release_manifest["source_trace_manifest"]["sha256"] == _sha256(trace_manifest_path.read_bytes())
+    assert Path(release_manifest["source_trace_manifest_path"]) == trace_manifest_path
 
     released = {
         artifact["path"]: (release_root / artifact["path"]).read_bytes() for artifact in release_manifest["artifacts"]
     }
     regenerated = regenerate_bfs_text_corpus(
         trace_manifest_path=trace_manifest_path,
-        signing_key=SIGNING_KEY,
         phase_gate=phase_gate,
     )
     assert regenerated == {
@@ -381,21 +363,15 @@ def test_releases_separate_regenerable_views_with_immutable_splits_and_clean_lea
         set(row["target"]) == {"canonical_rationale", "runtime_result", "typed_operation"} for row in process_rows
     )
 
-    task = load_fixture(TASK_FIXTURE)
-    instance_identity = whole_instance_identity(task.domain_pddl, task.problem_pddl)
-    expected_assignment_id = split_assignment_id(instance_identity, "train")
     split_rows = [json.loads(line) for line in released["splits/assignments.jsonl"].splitlines()]
-    assert split_rows == [
-        {
-            "assignment_id": expected_assignment_id,
-            "identity": instance_identity,
-            "split": "train",
-        }
-    ]
+    assignments = {row["identity"]: row["assignment_id"] for row in split_rows}
+    assert set(assignments) == {
+        f"blocksworld-train-{difficulty}-0000" for difficulty in ("easy", "medium", "hard")
+    }
     for row in (*operational_rows, *process_rows):
         assert row["split"] == "train"
-        assert row["split_assignment_id"] == expected_assignment_id
-        assert row["whole_instance_id"] == instance_identity
+        assert row["split_assignment_id"] == assignments[row["instance_id"]]
+        assert row["whole_instance_id"] == row["instance_id"]
 
     for view, rows in (("operational", operational_rows), ("process", process_rows)):
         curriculum = [json.loads(line) for line in released[f"curricula/{view}.jsonl"].splitlines()]
@@ -415,7 +391,6 @@ def test_releases_separate_regenerable_views_with_immutable_splits_and_clean_lea
     with pytest.raises(ValueError, match="split differs from the frozen accepted manifest"):
         regenerate_bfs_text_corpus(
             trace_manifest_path=conflicting_manifest_path,
-            signing_key=SIGNING_KEY,
             phase_gate=phase_gate,
         )
 
@@ -433,7 +408,7 @@ def test_v3_releases_only_process_targets_with_runtime_results_runtime_owned(tmp
     )
     freeze = json.loads(json.dumps(phase_gate.freeze))
     freeze["schema_version"] = "bfs_phase_freeze_v3"
-    freeze["data"]["artifacts"] = [{"path": str(accepted_manifest), "sha256": _sha256(accepted_manifest.read_bytes())}]
+    freeze["data"]["artifacts"] = [{"path": str(accepted_manifest)}]
     phase_gate = replace(phase_gate, freeze=freeze)
     trace_request = _request(tmp_path / "v3-traces", phase_gate=phase_gate)
     trace_receipt = run_frozen_bfs_trace_generation(
@@ -451,15 +426,14 @@ def test_v3_releases_only_process_targets_with_runtime_results_runtime_owned(tmp
         attempt_id="issue-111-v3-process-release-test",
         output_root=(tmp_path / "v3-process-release").resolve(),
     )
-    release_gate = GateReceipt(binding=release_binding, outcome=StopOutcome.PASS).signed(SIGNING_KEY)
+    release_gate = GateReceipt(binding=release_binding, outcome=StopOutcome.PASS)
     release_request = GenerationRequest(
         binding=release_binding,
         gate_receipt=release_gate,
         authorization_receipt=AuthorizationReceipt(
             binding=release_binding,
-            gate_receipt_digest=release_gate.digest,
-        ).signed(SIGNING_KEY),
-        signing_key=SIGNING_KEY,
+            gate_receipt_id=release_gate.receipt_id,
+        ),
         receipt_root=(tmp_path / "v3-release-receipts").resolve(),
     )
     release_receipt = run_frozen_bfs_text_corpus_release(
@@ -490,7 +464,6 @@ def test_v3_releases_only_process_targets_with_runtime_results_runtime_owned(tmp
     )
     regenerated = regenerate_bfs_text_corpus(
         trace_manifest_path=trace_manifest_path,
-        signing_key=SIGNING_KEY,
         phase_gate=phase_gate,
     )
     assert regenerated == {
@@ -504,7 +477,6 @@ def test_v3_process_input_summarizes_unbounded_runtime_memory_inside_byte_budget
     state_ids = tuple(f"{index:064x}" for index in range(1_000))
     checkpoint = SimpleNamespace(
         authority_id="a" * 64,
-        memory_sha256="b" * 64,
         snapshot=SimpleNamespace(
             frontier=state_ids[500:],
             visited=frozenset(state_ids),
@@ -542,7 +514,6 @@ def test_v3_process_input_summarizes_unbounded_runtime_memory_inside_byte_budget
         "frontier_head": state_ids[500],
         "frontier_size": 500,
         "known_state_count": 1_000,
-        "memory_sha256": "b" * 64,
         "provenance_count": 900,
         "schema_version": 3,
         "visited_count": 1_000,
@@ -566,15 +537,14 @@ def test_corpus_release_stop_outcomes_never_read_traces_or_create_release_bytes(
         gate = GateReceipt(
             binding=binding,
             outcome=gate_outcome,
-            ancestor_receipt_digest=ancestor_digest,
-        ).signed(SIGNING_KEY)
+            ancestor_receipt_id=ancestor_digest,
+        )
         request = GenerationRequest(
             binding=binding,
             gate_receipt=gate,
             authorization_receipt=None,
-            signing_key=SIGNING_KEY,
             receipt_root=(tmp_path / gate_outcome.value.lower() / "receipts").resolve(),
-            ancestor_receipt_digest=ancestor_digest,
+            ancestor_receipt_id=ancestor_digest,
         )
 
         receipt = run_frozen_bfs_text_corpus_release(
@@ -598,15 +568,14 @@ def test_corpus_release_phase_mismatch_is_invalid_and_publishes_no_corpus(tmp_pa
         attempt_id="issue-51-phase-mismatch",
         output_root=(tmp_path / "phase-mismatch-corpus").resolve(),
     )
-    gate = GateReceipt(binding=binding, outcome=StopOutcome.PASS).signed(SIGNING_KEY)
+    gate = GateReceipt(binding=binding, outcome=StopOutcome.PASS)
     request = GenerationRequest(
         binding=binding,
         gate_receipt=gate,
         authorization_receipt=AuthorizationReceipt(
             binding=binding,
-            gate_receipt_digest=gate.digest,
-        ).signed(SIGNING_KEY),
-        signing_key=SIGNING_KEY,
+            gate_receipt_id=gate.receipt_id,
+        ),
         receipt_root=(tmp_path / "phase-mismatch-receipts").resolve(),
     )
 

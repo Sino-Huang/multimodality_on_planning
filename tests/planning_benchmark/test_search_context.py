@@ -199,7 +199,6 @@ def test_materializes_every_checkpoint_and_one_record_atomic_segment() -> None:
         assert set(checkpoint_payload) == {
             "accepted_transitions",
             "authority_id",
-            "memory_sha256",
             "snapshot",
         }
         snapshot_payload = checkpoint_payload["snapshot"]
@@ -250,9 +249,7 @@ def test_materializes_single_pass_without_rebuilding_atomic_segments(monkeypatch
     assert materialized.atomic_segments == ()
     assert len(materialized.checkpoints) == 4
     assert materialized.checkpoints[-1].restore(authority).to_bytes() == boundary_memories[-1].to_bytes()
-    assert materialized.rolling_context_before(3, accepted_delta_limit=2).checkpoint.memory_sha256 == (
-        materialized.checkpoints[3].memory_sha256
-    )
+    assert materialized.rolling_context_before(3, accepted_delta_limit=2).checkpoint is materialized.checkpoints[3]
 
 
 def test_materializes_retirement_and_restores_its_checkpoint_memory() -> None:
@@ -359,7 +356,6 @@ def test_rolling_context_keeps_only_accepted_deltas_in_record_order() -> None:
     ):
         source_record = source_records[record_index]
         assert delta.record_index == record_index
-        assert delta.record_hash == source_record["record_hash"]
         assert isinstance(delta.operation, SearchTransitionRequest)
         assert delta.operation == request
         assert isinstance(delta.transition, PDDLTransition)
@@ -368,7 +364,6 @@ def test_rolling_context_keeps_only_accepted_deltas_in_record_order() -> None:
             delta.transition.target_state.state_id == source_record["result"]["transition"]["target_state"]["state_id"]
         )
         assert delta.evaluation is None
-        assert delta.resulting_memory_sha256 == source_record["result"]["memory_sha256"]
 
     assert rolling_bytes == json.dumps(
         rolling_payload,
@@ -396,11 +391,9 @@ def test_rolling_context_keeps_only_accepted_deltas_in_record_order() -> None:
         set(item)
         == {
             "record_index",
-            "record_hash",
             "operation",
             "transition",
             "evaluation",
-            "resulting_memory_sha256",
         }
         for item in rolling_payload["accepted_deltas"]
     )
@@ -413,11 +406,6 @@ def test_rolling_context_keeps_only_accepted_deltas_in_record_order() -> None:
         source_records[2]["result"]["transition"],
     ]
     assert [item["evaluation"] for item in rolling_payload["accepted_deltas"]] == [None, None]
-    assert [item["resulting_memory_sha256"] for item in rolling_payload["accepted_deltas"]] == [
-        source_records[0]["result"]["memory_sha256"],
-        source_records[2]["result"]["memory_sha256"],
-    ]
-
     for forbidden in (
         '"observation"',
         '"rationale"',
@@ -495,10 +483,10 @@ def test_rolling_context_rejects_invalid_delta_limit(accepted_delta_limit: objec
         materialized.rolling_context_before(3, accepted_delta_limit=cast(int, accepted_delta_limit))
 
 
-def test_materialization_rejects_hash_tampered_persisted_payload() -> None:
+def test_materialization_rejects_semantically_tampered_persisted_payload() -> None:
     trace_bytes, authority, _, _ = _three_record_trace("left-future")
     tampered_payload = json.loads(trace_bytes)
-    tampered_payload["records"][1]["record_hash"] = "0" * 64
+    tampered_payload["records"][0]["operation"]["source_state_id"] = "unknown-state"
     tampered_bytes = json.dumps(
         tampered_payload,
         sort_keys=True,

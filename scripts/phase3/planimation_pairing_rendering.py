@@ -8,7 +8,7 @@ from typing import Iterable, cast
 
 from PIL import Image, UnidentifiedImageError
 
-from .io_utils import file_sha256, relpath, repo_root, stable_hash, write_json
+from .io_utils import relpath, repo_root, write_json
 from .pddl import PDDLError, canonical_atom, parse_task
 from .planimation_pairing_contracts import RenderConfig, RendererResult, StateRenderer
 from .planimation_pairing_source import _repo_path
@@ -82,11 +82,12 @@ def _render_one_state(
     if not isinstance(state_before, list) or not all(isinstance(atom, str) for atom in state_before):
         raise ValueError("transition state_before must be a string list")
     state_atoms = sorted(atom for atom in state_before if isinstance(atom, str))
-    state_payload: list[JSONValue] = list(state_atoms)
+    state_id = json.dumps(state_atoms, separators=(",", ":"))
+    cache_parent = output_root / "state_cache" / str(pair["domain"]) / str(pair["instance_id"])
+    cache_key = _state_cache_key(cache_parent, state_id)
     profile_path = _profile_path(pair)
-    identity = _cache_identity(pair, state_atoms, profile_path, renderer, config)
-    state_hash = stable_hash(state_payload)[:32]
-    cache_dir = output_root / "state_cache" / str(pair["domain"]) / str(pair["instance_id"]) / str(identity["cache_key"])
+    identity = _cache_identity(pair, state_atoms, profile_path, renderer, config, cache_key)
+    cache_dir = cache_parent / cache_key
     problem_path = cache_dir / "problem.pddl"
     frame_path = cache_dir / "frames" / "frame_000.png"
     row = {
@@ -97,7 +98,7 @@ def _render_one_state(
         "split": pair["split"],
         "planner": pair["planner"],
         "step_index": transition["step_index"],
-        "state_hash": state_hash,
+        "state_id": state_id,
         "transition": transition,
         "cache_dir": relpath(cache_dir),
         **identity,
@@ -110,10 +111,7 @@ def _render_one_state(
                 "cache_hit": True,
                 "frame_path": relpath(frame_path),
                 "derived_problem_path": relpath(problem_path),
-                "input_hash": cached["derived_problem_sha256"],
                 "trace_path": cached["trace_path"],
-                "vfg_sha256": cached["vfg_sha256"],
-                "png_sha256": cached["png_sha256"],
                 "png_dimensions": cached["png_dimensions"],
                 "semantic_image_qa": cached["semantic_image_qa"],
                 "semantic_image_metrics": cached["semantic_image_metrics"],
@@ -126,7 +124,7 @@ def _render_one_state(
     cache_dir.mkdir(parents=True, exist_ok=True)
     try:
         source_problem = _repo_path(str(pair["problem_path"]))
-        _write_problem_state(source_problem, problem_path, state_atoms, f"{pair['instance_id']}-{state_hash}")
+        _write_problem_state(source_problem, problem_path, state_atoms, f"{pair['instance_id']}-{transition['step_index']}")
         task = parse_task(_repo_path(str(pair["domain_path"])), problem_path)
         if sorted(canonical_atom(atom) for atom in task.init) != state_atoms:
             raise ValueError("derived PDDL init does not equal replay state")
@@ -142,14 +140,11 @@ def _render_one_state(
             receipt = validate_render_artifacts(trace_path, rendered)
             if receipt.status != "success":
                 raise ValueError(f"semantic_image_invalid: {receipt.reason}")
-            vfg_sha256 = _valid_vfg(trace_path)
+            _require_valid_vfg(trace_path)
             row.update(
                 {
                     "cache_hit": False,
                     "derived_problem_path": relpath(problem_path),
-                    "input_hash": file_sha256(problem_path),
-                    "vfg_sha256": vfg_sha256,
-                    "png_sha256": file_sha256(rendered),
                     "png_dimensions": list(receipt.png_dimensions),
                     "semantic_image_qa": receipt.reason,
                     "semantic_image_metrics": receipt.to_record(),
@@ -164,14 +159,11 @@ def _render_one_state(
             {
                 "schema_version": SCHEMA_VERSION,
                 "status": row["status"],
-                "state_hash": state_hash,
+                "state_id": state_id,
                 **identity,
-                "derived_problem_sha256": row.get("input_hash", ""),
                 "derived_problem_path": row.get("derived_problem_path", relpath(problem_path)),
                 "frame_path": row.get("frame_path", ""),
                 "trace_path": row.get("trace_path", ""),
-                "vfg_sha256": row.get("vfg_sha256", ""),
-                "png_sha256": row.get("png_sha256", ""),
                 "png_dimensions": row.get("png_dimensions", []),
                 "semantic_image_qa": row.get("semantic_image_qa", ""),
                 "semantic_image_metrics": row.get("semantic_image_metrics", {}),
@@ -188,7 +180,7 @@ def _render_one_state(
             {
                 "schema_version": SCHEMA_VERSION,
                 "status": "failed",
-                "state_hash": state_hash,
+                "state_id": state_id,
                 "message": str(exc),
                 "derived_problem_path": row["derived_problem_path"],
             },
@@ -266,10 +258,14 @@ def _png_metadata(path: Path) -> tuple[tuple[int, int], str] | None:
 
 
 def _cache_identity(
-    pair: dict[str, JSONValue], state_atoms: list[str], profile_path: Path, renderer: StateRenderer, config: RenderConfig
+    pair: dict[str, JSONValue],
+    state_atoms: list[str],
+    profile_path: Path,
+    renderer: StateRenderer,
+    config: RenderConfig,
+    cache_key: str,
 ) -> dict[str, JSONValue]:
     profile_relative = relpath(profile_path)
-    state_payload: list[JSONValue] = list(state_atoms)
     config_payload: dict[str, JSONValue] = {
         "base_url": config.base_url,
         "timeout_seconds": config.timeout_seconds,
@@ -286,22 +282,36 @@ def _cache_identity(
     identity: dict[str, JSONValue] = {
         "schema_version": SCHEMA_VERSION,
         "domain_path": str(pair["domain_path"]),
-        "domain_sha256": file_sha256(_repo_path(str(pair["domain_path"]))),
-        "problem_sha256": file_sha256(_repo_path(str(pair["problem_path"]))),
+        "problem_path": str(pair["problem_path"]),
         "profile_path": profile_relative,
-        "profile_sha256": file_sha256(profile_path),
-        "state_sha256": stable_hash(state_payload),
+        "state_id": json.dumps(state_atoms, separators=(",", ":")),
         "renderer_id": f"{getattr(renderer, '__module__', '')}.{getattr(renderer, '__qualname__', repr(renderer))}",
-        "renderer_config_sha256": stable_hash(config_payload),
+        "renderer_config": config_payload,
     }
-    return {**identity, "cache_key": stable_hash(identity)[:32]}
+    return {**identity, "cache_key": cache_key}
 
 
-def _valid_vfg(path: Path) -> str:
+def _state_cache_key(cache_parent: Path, state_id: str) -> str:
+    """Assign a readable ordinal to a semantic state within one instance cache."""
+    if cache_parent.is_dir():
+        for result_path in sorted(cache_parent.glob("state-*/result.json")):
+            try:
+                metadata = json.loads(result_path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                continue
+            if isinstance(metadata, dict) and metadata.get("state_id") == state_id:
+                return result_path.parent.name
+    used = {path.name for path in cache_parent.glob("state-*")} if cache_parent.is_dir() else set()
+    ordinal = 0
+    while f"state-{ordinal:06d}" in used:
+        ordinal += 1
+    return f"state-{ordinal:06d}"
+
+
+def _require_valid_vfg(path: Path) -> None:
     payload = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(payload, dict) or not isinstance(payload.get("visualStages"), list):
         raise ValueError("renderer VFG does not contain visualStages")
-    return file_sha256(path)
 
 
 def _json_value(value: object) -> bool:
@@ -325,16 +335,13 @@ def _validated_cache(
         if (
             metadata.get("status") != "success"
             or any(metadata.get(key) != value for key, value in identity.items())
-            or metadata.get("derived_problem_sha256") != file_sha256(problem_path)
             or receipt.status != "success"
-            or metadata.get("png_sha256") != file_sha256(frame_path)
             or metadata.get("png_dimensions") != list(receipt.png_dimensions)
             or metadata.get("semantic_image_qa") != receipt.reason
             or metadata.get("semantic_image_metrics") != receipt.to_record()
         ):
             return None
-        if metadata.get("vfg_sha256") != _valid_vfg(trace_path):
-            return None
+        _require_valid_vfg(trace_path)
         if (
             sorted(
                 canonical_atom(atom) for atom in parse_task(_repo_path(str(metadata["domain_path"])), problem_path).init

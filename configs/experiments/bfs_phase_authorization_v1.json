@@ -16,7 +16,6 @@
     54
   ],
   "freeze_manifest_path": "configs/experiments/bfs_phase_freeze_v1.json",
-  "freeze_manifest_sha256": "5d00eb28c348c1d8a85472e834b52762683b0ddbbf9904c912bfaafdce6f23fd",
   "outcome": "PASS",
   "parent_issue": 38,
   "phase_id": "issue-49-bfs-development-v1",

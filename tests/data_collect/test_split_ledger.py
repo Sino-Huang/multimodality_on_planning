@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
@@ -42,85 +43,92 @@ def test_whole_instance_identity_depends_only_on_normalized_pddl_content(tmp_pat
     second = whole_instance_identity(second_root / "domain.pddl", second_root / "problem.pddl")
 
     assert first == second
-    assert first.startswith("sha256:")
+    assert json.loads(first) == {
+        "domain": "( define ( domain tiny ) ( :predicates ( ready ) ) )",
+        "problem": "( define ( problem old-name ) ( :domain tiny ) ( :init ( ready ) ) ( :goal ( ready ) ) )",
+    }
     assert whole_instance_identity(DOMAIN, PROBLEM.replace(b"(ready)))", b"(missing)))")) != first
 
 
 def test_split_assignment_id_is_stable_for_one_identity_and_split() -> None:
-    first = split_assignment_id("sha256:whole-instance", "train")
+    first = split_assignment_id("whole-instance", "train")
 
-    assert first == split_assignment_id("sha256:whole-instance", "train")
-    assert first.startswith("sha256:")
-    assert first != split_assignment_id("sha256:whole-instance", "test")
-    assert first != split_assignment_id("sha256:other-instance", "train")
+    assert first == split_assignment_id("whole-instance", "train")
+    assert json.loads(first) == {"identity": "whole-instance", "split": "train"}
+    assert first != split_assignment_id("whole-instance", "test")
+    assert first != split_assignment_id("other-instance", "train")
 
 
 def test_split_ledger_adds_unknown_identities_without_rewriting_existing_entries(tmp_path: Path) -> None:
     ledger_path = tmp_path / "split-ledger.jsonl"
     ledger = SplitLedger(ledger_path)
 
-    assert ledger.split_for("sha256:first") is None
-    assert ledger.assign("sha256:first", "train") == "train"
+    assert ledger.split_for("first") is None
+    assert ledger.assign("first", "train") == "train"
     first_bytes = ledger_path.read_bytes()
-    assert first_bytes == (
-        '{"assignment_id":"'
-        + split_assignment_id("sha256:first", "train")
-        + '","identity":"sha256:first","split":"train"}\n'
-    ).encode()
-    assert ledger.assignment_id_for("sha256:first") == split_assignment_id("sha256:first", "train")
+    expected = {
+        "assignment_id": split_assignment_id("first", "train"),
+        "identity": "first",
+        "split": "train",
+    }
+    assert first_bytes == (json.dumps(expected, separators=(",", ":"), sort_keys=True) + "\n").encode()
+    assert ledger.assignment_id_for("first") == split_assignment_id("first", "train")
 
-    assert ledger.assign("sha256:first", "train") == "train"
+    assert ledger.assign("first", "train") == "train"
     assert ledger_path.read_bytes() == first_bytes
-    assert ledger.assign("sha256:second", "dev") == "dev"
+    assert ledger.assign("second", "dev") == "dev"
     assert ledger_path.read_bytes().startswith(first_bytes)
     assert SplitLedger(ledger_path).assignments() == {
-        "sha256:first": "train",
-        "sha256:second": "dev",
+        "first": "train",
+        "second": "dev",
     }
 
 
 def test_split_ledger_rejects_reassignment_and_leaves_ledger_unchanged(tmp_path: Path) -> None:
     ledger_path = tmp_path / "split-ledger.jsonl"
     ledger = SplitLedger(ledger_path)
-    ledger.assign("sha256:fixed", "test")
+    ledger.assign("fixed", "test")
     original = ledger_path.read_bytes()
 
-    with pytest.raises(SplitReassignmentError, match="sha256:fixed.*test.*train"):
-        ledger.assign("sha256:fixed", "train")
+    with pytest.raises(SplitReassignmentError, match="fixed.*test.*train"):
+        ledger.assign("fixed", "train")
 
     assert ledger_path.read_bytes() == original
-    assert ledger.split_for("sha256:fixed") == "test"
+    assert ledger.split_for("fixed") == "test"
 
 
 def test_split_ledger_reloads_before_extension_to_prevent_stale_reassignment(tmp_path: Path) -> None:
     ledger_path = tmp_path / "split-ledger.jsonl"
     first_writer = SplitLedger(ledger_path)
     stale_writer = SplitLedger(ledger_path)
-    first_writer.assign("sha256:shared", "dev")
+    first_writer.assign("shared", "dev")
     original = ledger_path.read_bytes()
 
-    with pytest.raises(SplitReassignmentError, match="sha256:shared.*dev.*test"):
-        stale_writer.assign("sha256:shared", "test")
+    with pytest.raises(SplitReassignmentError, match="shared.*dev.*test"):
+        stale_writer.assign("shared", "test")
 
     assert ledger_path.read_bytes() == original
-    assert stale_writer.split_for("sha256:shared") == "dev"
+    assert stale_writer.split_for("shared") == "dev"
 
 
 def test_split_ledger_rejects_conflicting_records_for_one_identity(tmp_path: Path) -> None:
     ledger_path = tmp_path / "split-ledger.jsonl"
     ledger_path.write_text(
         "".join(
-            (
-                '{"assignment_id":"'
-                + split_assignment_id("sha256:shared", split)
-                + '","identity":"sha256:shared","split":"'
-                + split
-                + '"}\n'
+            json.dumps(
+                {
+                    "assignment_id": split_assignment_id("shared", split),
+                    "identity": "shared",
+                    "split": split,
+                },
+                separators=(",", ":"),
+                sort_keys=True,
             )
+            + "\n"
             for split in ("train", "test")
         ),
         encoding="utf-8",
     )
 
-    with pytest.raises(SplitLedgerFormatError, match="Conflicting assignments.*sha256:shared"):
+    with pytest.raises(SplitLedgerFormatError, match="Conflicting assignments.*shared"):
         SplitLedger(ledger_path)

@@ -13,7 +13,6 @@ from src.data_collect.generate import GenerationRequest
 from src.data_collect.governance import AuthorizationReceipt, GateReceipt, ReceiptBinding, StopOutcome
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-REFERENCE_SIGNING_KEY = b"issue-110-reference-resume-test-key"
 
 
 def test_frozen_reference_task_set_is_the_complete_declared_dev_split() -> None:
@@ -54,12 +53,11 @@ def test_modulo_shards_form_an_exact_partition_of_frozen_reference_tasks() -> No
 
 def _request(output_root: Path, attempt_id: str) -> GenerationRequest:
     binding = ReceiptBinding("issue-49-bfs-development-v1", attempt_id, output_root.resolve())
-    gate = GateReceipt(binding, StopOutcome.PASS).signed(REFERENCE_SIGNING_KEY)
+    gate = GateReceipt(binding, StopOutcome.PASS)
     return GenerationRequest(
         binding=binding,
         gate_receipt=gate,
-        authorization_receipt=AuthorizationReceipt(binding, gate.digest).signed(REFERENCE_SIGNING_KEY),
-        signing_key=REFERENCE_SIGNING_KEY,
+        authorization_receipt=AuthorizationReceipt(binding, gate.receipt_id),
         receipt_root=(output_root.parent / "receipts").resolve(),
     )
 
@@ -113,7 +111,6 @@ def test_reference_resume_batches_only_missing_v3_episodes(tmp_path: Path, monke
         set(row["evidence"])
         == {
             "codec_version",
-            "logical_sha256",
             "path",
             "schema_version",
             "stored_size_bytes",
@@ -132,12 +129,12 @@ def test_reference_resume_batches_only_missing_v3_episodes(tmp_path: Path, monke
         for row in completed["references"]
     )
     for row in completed["references"]:
-        _verify_evidence(output_root, row, signing_key=REFERENCE_SIGNING_KEY)
+        _verify_evidence(output_root, row)
 
     manifest_path.unlink()
     mismatch_path = output_root / completed["references"][0]["evidence"]["path"]
     mismatched = copy.deepcopy(read_episode_evidence(mismatch_path))
-    mismatched["evidence"]["header"]["frozen_binding"]["freeze_manifest_sha256"] = "0" * 64
+    mismatched["evidence"]["header"]["frozen_binding"]["freeze_manifest_path"] = "configs/experiments/wrong.json"
     mismatch_path.unlink()
     write_episode_evidence(mismatch_path, mismatched)
     refused = run_frozen_bfs_references(

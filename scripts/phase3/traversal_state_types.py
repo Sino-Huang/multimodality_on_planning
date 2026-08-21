@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import hashlib
 import json
 from dataclasses import dataclass
 from pathlib import Path
@@ -36,7 +35,7 @@ class TraversalStateCandidate:
     state_source: STATE_SOURCES
     normalized_action: str | None
     state_atoms: tuple[str, ...]
-    state_asset_hash: str
+    state_asset_id: str
     extraction_event_id: str | None = None
     extraction_step_index: int | None = None
 
@@ -52,7 +51,7 @@ class TraversalStateCandidate:
             "state_source": self.state_source,
             "normalized_action": self.normalized_action,
             "state_atoms": list(self.state_atoms),
-            "state_asset_hash": self.state_asset_hash,
+            "state_asset_id": self.state_asset_id,
             "extraction_event_id": self.extraction_event_id,
             "extraction_step_index": self.extraction_step_index,
         }
@@ -82,8 +81,8 @@ class TraversalStateProjection:
     exclusions: tuple[TraversalCandidateExclusion, ...]
 
 
-def state_asset_hash(atoms: tuple[str, ...]) -> str:
-    return hashlib.sha256(json.dumps(atoms, separators=(",", ":")).encode("utf-8")).hexdigest()
+def state_asset_id(atoms: tuple[str, ...]) -> str:
+    return json.dumps(atoms, separators=(",", ":"))
 
 
 def exclusion(identity: FrozenSourceIdentity, planner: str, event_id: str, reason: str) -> TraversalCandidateExclusion:

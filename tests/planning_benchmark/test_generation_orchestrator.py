@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import hashlib
 import json
 from pathlib import Path
 from typing import Protocol, TypedDict, cast
@@ -18,7 +17,6 @@ from src.data_collect.governance import AuthorizationReceipt, GateReceipt, Recei
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 NONTRIVIAL_FIXTURE = REPO_ROOT / "tests" / "fixtures" / "planning" / "blocksworld_nontrivial.json"
-SIGNING_KEY = b"issue-48-generation-orchestrator-test-key"
 
 
 class _GenerationExecutionResult(TypedDict):
@@ -26,14 +24,14 @@ class _GenerationExecutionResult(TypedDict):
     expert_trace_paths: list[str]
     atomic_segment_paths: list[str]
     artifact_manifest_path: str
-    artifact_manifest_sha256: str
+    artifact_manifest_size_bytes: int
     corpus_manifest_path: str
     corpus_fragment_path: str
     episode_evidence_path: str
 
 
 class _CorpusFragmentRegenerator(Protocol):
-    def __call__(self, output_root: str | Path, *, signing_key: bytes | str) -> bytes: ...
+    def __call__(self, output_root: str | Path) -> bytes: ...
 
 
 def test_bfs_generation_smoke_persists_a_regenerable_corpus_fragment(tmp_path: Path) -> None:
@@ -44,15 +42,14 @@ def test_bfs_generation_smoke_persists_a_regenerable_corpus_fragment(tmp_path: P
         attempt_id="bfs-smoke-001",
         output_root=output_root,
     )
-    gate = GateReceipt(binding=binding, outcome=StopOutcome.PASS).signed(SIGNING_KEY)
+    gate = GateReceipt(binding=binding, outcome=StopOutcome.PASS)
     request = GenerationRequest(
         binding=binding,
         gate_receipt=gate,
         authorization_receipt=AuthorizationReceipt(
             binding=binding,
-            gate_receipt_digest=gate.digest,
-        ).signed(SIGNING_KEY),
-        signing_key=SIGNING_KEY,
+            gate_receipt_id=gate.receipt_id,
+        ),
         receipt_root=receipt_root,
     )
 
@@ -91,9 +88,7 @@ def test_bfs_generation_smoke_persists_a_regenerable_corpus_fragment(tmp_path: P
     corpus_fragment = corpus_fragment_path.read_bytes()
     assert corpus_fragment
     regenerate = cast(_CorpusFragmentRegenerator, regenerate_corpus_fragment)
-    assert regenerate(output_root, signing_key=SIGNING_KEY) == corpus_fragment
-    with pytest.raises(SearchEpisodeError):
-        regenerate(output_root, signing_key=b"wrong-signing-key")
+    assert regenerate(output_root) == corpus_fragment
 
     assert corpus_fragment.endswith(b"\n")
     corpus_rows = corpus_fragment.splitlines()
@@ -112,7 +107,7 @@ def test_bfs_generation_smoke_persists_a_regenerable_corpus_fragment(tmp_path: P
         )
 
     artifact_manifest = artifact_manifest_path.read_bytes()
-    assert execution_result["artifact_manifest_sha256"] == hashlib.sha256(artifact_manifest).hexdigest()
+    assert execution_result["artifact_manifest_size_bytes"] == len(artifact_manifest)
     corpus_manifest_payload = json.loads(corpus_manifest_path.read_text(encoding="utf-8"))
     artifact_manifest_payload = json.loads(artifact_manifest)
     assert isinstance(corpus_manifest_payload, dict)
@@ -121,17 +116,13 @@ def test_bfs_generation_smoke_persists_a_regenerable_corpus_fragment(tmp_path: P
 
     def assert_declared_artifacts(value: object) -> None:
         if isinstance(value, dict):
-            if {"path", "sha256"} <= value.keys():
+            if {"path", "size_bytes"} <= value.keys():
                 relative_path = value["path"]
-                declared_sha256 = value["sha256"]
                 assert isinstance(relative_path, str)
-                assert isinstance(declared_sha256, str)
                 artifact_path = output_root / relative_path
                 assert artifact_path.resolve().is_relative_to(output_root)
                 assert artifact_path.is_file()
-                assert hashlib.sha256(artifact_path.read_bytes()).hexdigest() == declared_sha256
-                if "size_bytes" in value:
-                    assert value["size_bytes"] == artifact_path.stat().st_size
+                assert value["size_bytes"] == artifact_path.stat().st_size
             for child in value.values():
                 assert_declared_artifacts(child)
         elif isinstance(value, list):
@@ -150,15 +141,14 @@ def test_bfs_generation_smoke_rejects_a_truncated_episode(tmp_path: Path) -> Non
         attempt_id="bfs-truncated-001",
         output_root=output_root,
     )
-    gate = GateReceipt(binding=binding, outcome=StopOutcome.PASS).signed(SIGNING_KEY)
+    gate = GateReceipt(binding=binding, outcome=StopOutcome.PASS)
     request = GenerationRequest(
         binding=binding,
         gate_receipt=gate,
         authorization_receipt=AuthorizationReceipt(
             binding=binding,
-            gate_receipt_digest=gate.digest,
-        ).signed(SIGNING_KEY),
-        signing_key=SIGNING_KEY,
+            gate_receipt_id=gate.receipt_id,
+        ),
         receipt_root=receipt_root,
     )
 
@@ -187,15 +177,14 @@ def test_bfs_generation_smoke_does_not_overwrite_a_retained_corpus(tmp_path: Pat
             attempt_id=attempt_id,
             output_root=output_root,
         )
-        gate = GateReceipt(binding=binding, outcome=StopOutcome.PASS).signed(SIGNING_KEY)
+        gate = GateReceipt(binding=binding, outcome=StopOutcome.PASS)
         return GenerationRequest(
             binding=binding,
             gate_receipt=gate,
             authorization_receipt=AuthorizationReceipt(
                 binding=binding,
-                gate_receipt_digest=gate.digest,
-            ).signed(SIGNING_KEY),
-            signing_key=SIGNING_KEY,
+                gate_receipt_id=gate.receipt_id,
+            ),
             receipt_root=receipt_root,
         )
 
@@ -280,8 +269,8 @@ def test_unpermitted_bfs_generation_does_not_create_corpus_output(tmp_path: Path
         gate = GateReceipt(
             binding=binding,
             outcome=gate_outcome,
-            ancestor_receipt_digest=ancestor_digest,
-        ).signed(SIGNING_KEY)
+            ancestor_receipt_id=ancestor_digest,
+        )
         authorization: AuthorizationReceipt | None = None
         if mismatched_authorization:
             different_binding = ReceiptBinding(
@@ -291,15 +280,14 @@ def test_unpermitted_bfs_generation_does_not_create_corpus_output(tmp_path: Path
             )
             authorization = AuthorizationReceipt(
                 binding=different_binding,
-                gate_receipt_digest=gate.digest,
-            ).signed(SIGNING_KEY)
+                gate_receipt_id=gate.receipt_id,
+            )
         request = GenerationRequest(
             binding=binding,
             gate_receipt=gate,
             authorization_receipt=authorization,
-            signing_key=SIGNING_KEY,
             receipt_root=receipt_root,
-            ancestor_receipt_digest=ancestor_digest,
+            ancestor_receipt_id=ancestor_digest,
         )
 
         receipt = run_bfs_generation_smoke(

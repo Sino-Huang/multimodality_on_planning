@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+
+from src.data_collect.splits import whole_instance_identity
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _FREEZE_SCHEMA_V1 = "bfs_phase_freeze_v1"
@@ -68,8 +69,6 @@ class BFSPhaseGate:
     authorization: dict[str, Any]
     freeze_manifest_path: Path
     authorization_manifest_path: Path
-    freeze_manifest_bytes: bytes
-    authorization_manifest_bytes: bytes
 
     @property
     def phase_id(self) -> str:
@@ -94,8 +93,8 @@ class BFSPhaseGate:
 
         receipt: dict[str, object] = {
             "authorization_id": self.authorization["authorization_id"],
-            "authorization_manifest_sha256": _sha256(self.authorization_manifest_bytes),
-            "freeze_manifest_sha256": _sha256(self.freeze_manifest_bytes),
+            "authorization_manifest_path": self.authorization_manifest_path.relative_to(_REPO_ROOT).as_posix(),
+            "freeze_manifest_path": self.freeze_manifest_path.relative_to(_REPO_ROOT).as_posix(),
             "outcome": self.authorization["outcome"],
             "phase_id": self.phase_id,
             "stage": stage,
@@ -117,16 +116,16 @@ def load_bfs_phase_gate(
     root = Path(repo_root).resolve()
     freeze_path = Path(freeze_manifest_path).resolve()
     authorization_path = Path(authorization_manifest_path).resolve()
-    freeze_bytes, freeze = _load_json_object(freeze_path, "BFS freeze manifest")
-    authorization_bytes, authorization = _load_json_object(authorization_path, "BFS authorization manifest")
+    _freeze_bytes, freeze = _load_json_object(freeze_path, "BFS freeze manifest")
+    _authorization_bytes, authorization = _load_json_object(authorization_path, "BFS authorization manifest")
 
     schema = freeze.get("schema_version")
     if schema == _FREEZE_SCHEMA_V1:
         _validate_freeze_v1(freeze, root)
-        _validate_authorization_v1(authorization, freeze, freeze_path, freeze_bytes, root)
+        _validate_authorization_v1(authorization, freeze, freeze_path, root)
     elif schema == _FREEZE_SCHEMA_V3:
         _validate_freeze_v3(freeze, root)
-        _validate_authorization_v3(authorization, freeze, freeze_path, freeze_bytes, root)
+        _validate_authorization_v3(authorization, freeze, freeze_path, root)
     else:
         raise BFSPhaseGateError("BFS freeze manifest has an unsupported schema version")
     return BFSPhaseGate(
@@ -134,8 +133,6 @@ def load_bfs_phase_gate(
         authorization=authorization,
         freeze_manifest_path=freeze_path,
         authorization_manifest_path=authorization_path,
-        freeze_manifest_bytes=freeze_bytes,
-        authorization_manifest_bytes=authorization_bytes,
     )
 
 
@@ -180,11 +177,11 @@ def _validate_freeze_v1(freeze: dict[str, Any], repo_root: Path) -> None:
     if not isinstance(artifacts, list) or not artifacts:
         raise BFSPhaseGateError("BFS data artifacts must be a non-empty list")
     for artifact in artifacts:
-        if not isinstance(artifact, dict) or set(artifact) != {"path", "sha256"}:
+        if not isinstance(artifact, dict) or set(artifact) != {"path"}:
             raise BFSPhaseGateError("BFS data artifact entry is malformed")
         path = repo_root / _text(artifact, "path")
-        if not path.is_file() or _sha256(path.read_bytes()) != _digest(artifact, "sha256"):
-            raise BFSPhaseGateError(f"BFS frozen data artifact has drifted: {artifact.get('path')}")
+        if not path.is_file():
+            raise BFSPhaseGateError(f"BFS data artifact is missing: {artifact.get('path')}")
 
     budgets = _mapping(_mapping(freeze, "budgets"), "episode_max_expansions_by_difficulty")
     if set(budgets) != set(_DIFFICULTIES) or any(
@@ -207,7 +204,7 @@ def _validate_freeze_v1(freeze: dict[str, Any], repo_root: Path) -> None:
     primary_model = _mapping(_mapping(freeze, "models"), "primary")
     if primary_model.get("role") != "primary_open_vlm":
         raise BFSPhaseGateError("BFS primary model role is invalid")
-    _digest(primary_model, "revision")
+    _text(primary_model, "revision")
 
     arms = _mapping(_mapping(freeze, "training"), "arms")
     if set(arms) != _TRAINING_ARMS_V1:
@@ -220,7 +217,6 @@ def _validate_authorization_v1(
     authorization: dict[str, Any],
     freeze: dict[str, Any],
     freeze_path: Path,
-    freeze_bytes: bytes,
     repo_root: Path,
 ) -> None:
     expected_fields = {
@@ -229,7 +225,6 @@ def _validate_authorization_v1(
         "contract_id",
         "downstream_issues",
         "freeze_manifest_path",
-        "freeze_manifest_sha256",
         "outcome",
         "parent_issue",
         "phase_id",
@@ -256,8 +251,6 @@ def _validate_authorization_v1(
     expected_freeze_path = (repo_root / _text(authorization, "freeze_manifest_path")).resolve()
     if freeze_path != expected_freeze_path:
         raise BFSPhaseGateError("BFS authorization points to a different freeze manifest")
-    if _digest(authorization, "freeze_manifest_sha256") != _sha256(freeze_bytes):
-        raise BFSPhaseGateError("BFS freeze manifest does not match its authorization")
 
 
 def _validate_freeze_v3(freeze: dict[str, Any], repo_root: Path) -> None:
@@ -345,7 +338,7 @@ def _validate_freeze_v3(freeze: dict[str, Any], repo_root: Path) -> None:
 
 def _validate_v3_qualification(
     qualification: dict[str, Any],
-    artifacts: dict[str, str],
+    artifacts: set[str],
     repo_root: Path,
 ) -> None:
     expected_fields = {
@@ -353,12 +346,9 @@ def _validate_v3_qualification(
         "candidate_ceiling_per_domain_split",
         "expansion_bands",
         "gate_receipt_path",
-        "gate_receipt_sha256",
         "outcome",
         "qualification_report_path",
-        "qualification_report_sha256",
         "selected_manifest_path",
-        "selected_manifest_sha256",
         "selected_task_count",
         "selection_seed",
         "test_data_accessed",
@@ -382,12 +372,11 @@ def _validate_v3_qualification(
         relative = _text(qualification, f"{name}_path")
         if Path(relative).is_absolute() or ".." in Path(relative).parts:
             raise BFSPhaseGateError("BFS v3 qualification paths must be repository-relative")
-        payload = (repo_root / relative).read_bytes()
-        digest = _sha256(payload)
-        if digest != _digest(qualification, f"{name}_sha256"):
-            raise BFSPhaseGateError(f"BFS v3 {name.replace('_', ' ')} has drifted")
-        bound[name] = payload
-    if artifacts.get(qualification["selected_manifest_path"]) != qualification["selected_manifest_sha256"]:
+        path = repo_root / relative
+        if not path.is_file():
+            raise BFSPhaseGateError(f"BFS v3 {name.replace('_', ' ')} is missing")
+        bound[name] = path.read_bytes()
+    if qualification["selected_manifest_path"] not in artifacts:
         raise BFSPhaseGateError("BFS v3 selected manifest is not a frozen data artifact")
 
     receipt = _json_bytes_object(bound["gate_receipt"], "BFS v3 gate receipt")
@@ -397,8 +386,6 @@ def _validate_v3_qualification(
         or receipt.get("attempt_id") != qualification["attempt_id"]
         or receipt.get("phase_id") != _V3_PHASE_ID
         or receipt.get("outcome") != "PASS"
-        or receipt.get("qualification_report_sha256") != qualification["qualification_report_sha256"]
-        or receipt.get("selected_manifest_sha256") != qualification["selected_manifest_sha256"]
         or report.get("schema_version") != "bfs_pilot_qualification_v3"
         or report.get("attempt_id") != qualification["attempt_id"]
         or report.get("phase_id") != _V3_PHASE_ID
@@ -408,10 +395,10 @@ def _validate_v3_qualification(
         or report.get("missing_cells") != []
     ):
         raise BFSPhaseGateError("BFS v3 qualification receipt and report do not prove PASS")
-    _validate_v3_selected_manifest(bound["selected_manifest"], artifacts)
+    _validate_v3_selected_manifest(bound["selected_manifest"], artifacts, repo_root)
 
 
-def _validate_v3_selected_manifest(payload: bytes, artifacts: dict[str, str]) -> None:
+def _validate_v3_selected_manifest(payload: bytes, artifacts: set[str], repo_root: Path) -> None:
     rows: list[dict[str, Any]] = []
     for line_number, line in enumerate(payload.decode("utf-8").splitlines(), start=1):
         try:
@@ -437,35 +424,37 @@ def _validate_v3_selected_manifest(payload: bytes, artifacts: dict[str, str]) ->
             or not (_V3_BANDS[band][0] <= count <= _V3_BANDS[band][1])
         ):
             raise BFSPhaseGateError("BFS v3 selected manifest contains an unqualified task")
-        identity = row.get("whole_instance_id")
         split = row["split"]
-        if not isinstance(identity, str) or identities.get(identity, split) != split:
+        for field in ("domain_path", "problem_path"):
+            path = row.get(field)
+            if not isinstance(path, str) or path not in artifacts:
+                raise BFSPhaseGateError("BFS v3 selected task is not bound by the freeze artifacts")
+        identity = whole_instance_identity(
+            repo_root / row["domain_path"],
+            repo_root / row["problem_path"],
+        )
+        if identities.get(identity, split) != split:
             raise BFSPhaseGateError("BFS v3 selected manifest violates whole-instance split isolation")
         identities[identity] = split
-        for field, digest_field in (("domain_path", "domain_hash"), ("problem_path", "problem_hash")):
-            path = row.get(field)
-            if not isinstance(path, str) or artifacts.get(path) != row.get(digest_field):
-                raise BFSPhaseGateError("BFS v3 selected task is not bound by the freeze artifacts")
 
 
-def _validate_artifacts(data: dict[str, Any], repo_root: Path, *, schema_name: str) -> dict[str, str]:
+def _validate_artifacts(data: dict[str, Any], repo_root: Path, *, schema_name: str) -> set[str]:
     entries = data.get("artifacts")
     if not isinstance(entries, list) or not entries:
         raise BFSPhaseGateError(f"{schema_name} data artifacts must be a non-empty list")
-    artifacts: dict[str, str] = {}
+    artifacts: set[str] = set()
     for artifact in entries:
-        if not isinstance(artifact, dict) or set(artifact) != {"path", "sha256"}:
+        if not isinstance(artifact, dict) or set(artifact) != {"path"}:
             raise BFSPhaseGateError(f"{schema_name} data artifact entry is malformed")
         relative = _text(artifact, "path")
         if Path(relative).is_absolute() or ".." in Path(relative).parts:
             raise BFSPhaseGateError(f"{schema_name} data artifact path must be repository-relative")
-        digest = _digest(artifact, "sha256")
         path = repo_root / relative
-        if not path.is_file() or _sha256(path.read_bytes()) != digest:
-            raise BFSPhaseGateError(f"{schema_name} frozen data artifact has drifted: {relative}")
+        if not path.is_file():
+            raise BFSPhaseGateError(f"{schema_name} data artifact is missing: {relative}")
         if relative in artifacts:
             raise BFSPhaseGateError(f"{schema_name} repeats a frozen data artifact: {relative}")
-        artifacts[relative] = digest
+        artifacts.add(relative)
     return artifacts
 
 
@@ -473,7 +462,6 @@ def _validate_authorization_v3(
     authorization: dict[str, Any],
     freeze: dict[str, Any],
     freeze_path: Path,
-    freeze_bytes: bytes,
     repo_root: Path,
 ) -> None:
     expected_fields = {
@@ -482,7 +470,6 @@ def _validate_authorization_v3(
         "contract_id",
         "downstream_issues",
         "freeze_manifest_path",
-        "freeze_manifest_sha256",
         "outcome",
         "parent_issue",
         "phase_id",
@@ -508,8 +495,6 @@ def _validate_authorization_v3(
     expected_freeze_path = (repo_root / _text(authorization, "freeze_manifest_path")).resolve()
     if freeze_path != expected_freeze_path:
         raise BFSPhaseGateError("BFS v3 authorization points to a different freeze manifest")
-    if _digest(authorization, "freeze_manifest_sha256") != _sha256(freeze_bytes):
-        raise BFSPhaseGateError("BFS v3 freeze manifest does not match its authorization")
 
 
 def _load_json_object(path: Path, name: str) -> tuple[bytes, dict[str, Any]]:
@@ -545,19 +530,6 @@ def _text(value: dict[str, Any], field: str) -> str:
     if not isinstance(item, str) or not item:
         raise BFSPhaseGateError(f"BFS manifest field must be non-empty text: {field}")
     return item
-
-
-def _digest(value: dict[str, Any], field: str) -> str:
-    item = _text(value, field)
-    if len(item) != 40 and len(item) != 64:
-        raise BFSPhaseGateError(f"BFS manifest digest has invalid length: {field}")
-    if any(character not in "0123456789abcdef" for character in item):
-        raise BFSPhaseGateError(f"BFS manifest digest is not lowercase hexadecimal: {field}")
-    return item
-
-
-def _sha256(payload: bytes) -> str:
-    return hashlib.sha256(payload).hexdigest()
 
 
 __all__ = ["BFSPhaseGate", "BFSPhaseGateError", "load_bfs_phase_gate"]

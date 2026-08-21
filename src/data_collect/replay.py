@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import os
-import hashlib
 import json
 from pathlib import Path, PurePosixPath
 from typing import Mapping, Sequence
@@ -105,10 +104,7 @@ def build_replay_contract(
 ) -> bytes:
     """Build the immutable, path-free contract required for generation replay."""
 
-    source_digests = {
-        _canonical_relative_path(name): hashlib.sha256(_read_exact_bytes(source)).hexdigest()
-        for name, source in source_artifacts.items()
-    }
+    source_names = sorted(_canonical_relative_path(name) for name in source_artifacts)
     payload = {
         "candidate_multiplier": candidate_multiplier,
         "contract_id": contract_id,
@@ -122,7 +118,7 @@ def build_replay_contract(
         "seed": seed,
         "selected_domains": list(selected_domains),
         "selected_splits": list(selected_splits),
-        "source_artifact_digests": dict(sorted(source_digests.items())),
+        "source_artifacts": source_names,
     }
     return (
         json.dumps(payload, allow_nan=False, ensure_ascii=True, separators=(",", ":"), sort_keys=True) + "\n"
