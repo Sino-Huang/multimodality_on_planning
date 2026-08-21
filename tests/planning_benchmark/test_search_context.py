@@ -232,6 +232,29 @@ def test_materializes_every_checkpoint_and_one_record_atomic_segment() -> None:
         )
 
 
+def test_materializes_single_pass_without_rebuilding_atomic_segments(monkeypatch: pytest.MonkeyPatch) -> None:
+    trace_bytes, authority, boundary_memories, _ = _three_record_trace("left-future")
+
+    def fail_if_atomic_segment_is_rebuilt(*_args: object, **_kwargs: object) -> bytes:
+        raise AssertionError("single-pass materialization rebuilt an atomic segment")
+
+    monkeypatch.setattr(search_context, "_build_context_payload", fail_if_atomic_segment_is_rebuilt)
+
+    materialized = search_context.materialize_search_trace(
+        trace_bytes,
+        authority=authority,
+        limits=LIMITS,
+        include_atomic_segments=False,
+    )
+
+    assert materialized.atomic_segments == ()
+    assert len(materialized.checkpoints) == 4
+    assert materialized.checkpoints[-1].restore(authority).to_bytes() == boundary_memories[-1].to_bytes()
+    assert materialized.rolling_context_before(3, accepted_delta_limit=2).checkpoint.memory_sha256 == (
+        materialized.checkpoints[3].memory_sha256
+    )
+
+
 def test_materializes_retirement_and_restores_its_checkpoint_memory() -> None:
     authority = PDDLStateAuthority.from_pddl(DOMAIN, PROBLEM)
     memory = SearchMemory.initial(authority)

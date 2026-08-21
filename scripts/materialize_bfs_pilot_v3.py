@@ -10,6 +10,8 @@ from pathlib import Path
 from typing import Any
 
 from examples.planning_benchmark_slice.bfs_corpus import (
+    _artifact_path,
+    _validated_trace_items,
     regenerate_bfs_text_corpus,
     run_frozen_bfs_text_corpus_release,
 )
@@ -64,6 +66,11 @@ def main() -> int:
         action="store_true",
         help="validate every committed input and planned stage without creating outputs",
     )
+    parser.add_argument(
+        "--resume-from-traces",
+        action="store_true",
+        help="reuse the completed authorized 90-trace manifest and start at corpus release",
+    )
     args = parser.parse_args()
     phase_gate = load_bfs_phase_gate(_FREEZE, _AUTHORIZATION)
     trace_root = _RELEASE_ROOT / "exact-traces"
@@ -72,7 +79,14 @@ def main() -> int:
     receipt_root = _RELEASE_ROOT / "execution-receipts"
     report_path = _RELEASE_ROOT / "materialization-report.json"
     output_paths = (trace_root, corpus_root, projection_root, receipt_root, report_path)
-    output_paths_clear = not any(path.exists() for path in output_paths)
+    if args.resume_from_traces:
+        output_paths_clear = (
+            trace_root.is_dir()
+            and receipt_root.is_dir()
+            and not any(path.exists() for path in (corpus_root, projection_root, report_path))
+        )
+    else:
+        output_paths_clear = not any(path.exists() for path in output_paths)
     if not args.dry_run and not output_paths_clear:
         raise FileExistsError("BFS v3 materialization artifacts already exist")
     preflight = _preflight(
@@ -80,31 +94,37 @@ def main() -> int:
         workers=args.workers,
         output_paths=output_paths,
         output_paths_clear=output_paths_clear,
+        resume_from_traces=args.resume_from_traces,
     )
     if args.dry_run:
         print(json.dumps(preflight, sort_keys=True))
         return 0
 
-    trace_receipt = run_frozen_bfs_trace_generation(
-        accepted_manifest_path=_ACCEPTED_MANIFEST,
-        request=_request(
+    if args.resume_from_traces:
+        trace_manifest_path = trace_root / "manifests" / "bfs-expert-traces.json"
+    else:
+        trace_receipt = run_frozen_bfs_trace_generation(
+            accepted_manifest_path=_ACCEPTED_MANIFEST,
+            request=_request(
+                phase_gate=phase_gate,
+                attempt_id="issue-111-v3-exact-traces",
+                output_root=trace_root,
+                receipt_root=receipt_root,
+            ),
             phase_gate=phase_gate,
-            attempt_id="issue-111-v3-exact-traces",
-            output_root=trace_root,
-            receipt_root=receipt_root,
-        ),
-        phase_gate=phase_gate,
-        workers=args.workers,
-    )
-    if trace_receipt.outcome is not StopOutcome.PASS or trace_receipt.execution_result is None:
-        raise RuntimeError("BFS v3 trace generation did not PASS")
-    trace_manifest_path = Path(trace_receipt.execution_result["trace_manifest_path"])
+            workers=args.workers,
+        )
+        if trace_receipt.outcome is not StopOutcome.PASS or trace_receipt.execution_result is None:
+            raise RuntimeError("BFS v3 trace generation did not PASS")
+        trace_manifest_path = Path(trace_receipt.execution_result["trace_manifest_path"])
 
     corpus_receipt = run_frozen_bfs_text_corpus_release(
         trace_manifest_path=trace_manifest_path,
         request=_request(
             phase_gate=phase_gate,
-            attempt_id="issue-111-v3-process-corpus",
+            attempt_id=(
+                "issue-111-v3-process-corpus-resume-001" if args.resume_from_traces else "issue-111-v3-process-corpus"
+            ),
             output_root=corpus_root,
             receipt_root=receipt_root,
         ),
@@ -153,6 +173,7 @@ def main() -> int:
         "ms_swift_projection_regeneration_byte_identical": True,
         "phase_id": phase_gate.phase_id,
         "process_record_count": corpus_manifest["counts"]["process_records"],
+        "resumed_from_traces": args.resume_from_traces,
         "schema_version": "bfs_pilot_v3_materialization_report_v1",
         "trace_count": len(trace_manifest["traces"]),
         "trace_manifest_sha256": _sha256(trace_manifest_path.read_bytes()),
@@ -171,6 +192,7 @@ def _preflight(
     workers: int,
     output_paths: tuple[Path, ...],
     output_paths_clear: bool,
+    resume_from_traces: bool,
 ) -> dict[str, Any]:
     if isinstance(workers, bool) or not isinstance(workers, int) or workers <= 0:
         raise ValueError("BFS v3 workers must be a positive integer")
@@ -217,15 +239,21 @@ def _preflight(
         )
         for difficulty in phase_gate.freeze["data"]["strata"]
     }
-    trace_request = _request(
-        phase_gate=phase_gate,
-        attempt_id="issue-111-v3-exact-traces",
-        output_root=output_paths[0],
-        receipt_root=output_paths[3],
-    )
+    trace_manifest_path = output_paths[0] / "manifests" / "bfs-expert-traces.json"
+    if resume_from_traces:
+        reused_trace_count = _validate_reusable_traces(trace_manifest_path, phase_gate)
+        trace_attempt_id = "issue-111-v3-exact-traces"
+    else:
+        reused_trace_count = 0
+        trace_attempt_id = _request(
+            phase_gate=phase_gate,
+            attempt_id="issue-111-v3-exact-traces",
+            output_root=output_paths[0],
+            receipt_root=output_paths[3],
+        ).binding.attempt_id
     corpus_request = _request(
         phase_gate=phase_gate,
-        attempt_id="issue-111-v3-process-corpus",
+        attempt_id=("issue-111-v3-process-corpus-resume-001" if resume_from_traces else "issue-111-v3-process-corpus"),
         output_root=output_paths[1],
         receipt_root=output_paths[3],
     )
@@ -238,7 +266,7 @@ def _preflight(
         "freeze_manifest_sha256": _sha256(_FREEZE.read_bytes()),
         "output_paths_clear": output_paths_clear,
         "planned_stages": [
-            "trace_generation",
+            *([] if resume_from_traces else ["trace_generation"]),
             "corpus_release",
             "corpus_byte_regeneration",
             "ms_swift_process_projection",
@@ -247,9 +275,23 @@ def _preflight(
         "schema_version": "bfs_pilot_v3_materialization_preflight_v1",
         "selected_manifest_sha256": manifest_sha256,
         "selected_task_count": len(cells),
-        "trace_attempt_id": trace_request.binding.attempt_id,
+        "trace_attempt_id": trace_attempt_id,
+        "reused_trace_count": reused_trace_count,
+        "resume_from_traces": resume_from_traces,
         "workers": workers,
     }
+
+
+def _validate_reusable_traces(path: Path, phase_gate: BFSPhaseGate) -> int:
+    manifest = _json_object(path)
+    traces = _validated_trace_items(manifest, phase_gate)
+    trace_root = path.parent.parent
+    for item in traces:
+        _artifact_path(trace_root, item["evidence"])
+        _artifact_path(trace_root, item["search_trace"])
+    if len(traces) != 90:
+        raise ValueError("BFS v3 resume requires the exact complete 90-trace product")
+    return len(traces)
 
 
 def _tree_payloads(root: Path) -> dict[str, bytes]:

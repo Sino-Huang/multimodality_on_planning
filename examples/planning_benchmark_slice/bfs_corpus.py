@@ -160,6 +160,7 @@ def _build_release(
                 max_records=max(1, record_count),
                 max_bytes=max(1_000_000, len(persisted_trace) * max(1, record_count)),
             ),
+            include_atomic_segments=not is_v3,
         )
         identity = _source_instance_identity(item)
         prior_split = assignments.get(identity)
@@ -171,14 +172,14 @@ def _build_release(
         goal_atoms = list(authority.goal_atoms or ())
 
         source_records = cast(list[dict[str, Any]], json.loads(persisted_trace)["records"])
-        for segment in materialized.atomic_segments:
-            atomic = _json_object(segment.to_bytes(), "atomic Search-Trace Segment")
-            atomic_record = cast(dict[str, Any], atomic["records"][0])
-            index = segment.record_index
-            record = source_records[index]
-            supervised_fields = ("observation", "rationale", "operation", "result")
-            if any(atomic_record[field] != record[field] for field in supervised_fields):
-                future_leaks += 1
+        for index, record in enumerate(source_records):
+            if not is_v3:
+                segment = materialized.atomic_segments[index]
+                atomic = _json_object(segment.to_bytes(), "atomic Search-Trace Segment")
+                atomic_record = cast(dict[str, Any], atomic["records"][0])
+                supervised_fields = ("observation", "rationale", "operation", "result")
+                if any(atomic_record[field] != record[field] for field in supervised_fields):
+                    future_leaks += 1
             rolling_context = materialized.rolling_context_before(index, accepted_delta_limit=accepted_delta_limit)
             if any(delta.record_index >= index for delta in rolling_context.accepted_deltas):
                 future_leaks += 1

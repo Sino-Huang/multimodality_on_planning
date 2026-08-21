@@ -183,6 +183,7 @@ def materialize_search_trace(
     *,
     authority: PDDLStateAuthority,
     limits: TraceSegmentLimits,
+    include_atomic_segments: bool = True,
 ) -> MaterializedSearchTrace:
     """Validate, replay, and split canonical persisted trace bytes into contexts."""
 
@@ -193,6 +194,8 @@ def materialize_search_trace(
             raise SearchTraceError("limits must be TraceSegmentLimits")
         if not isinstance(payload, bytes):
             raise SearchTraceError("trace payload must be bytes")
+        if not isinstance(include_atomic_segments, bool):
+            raise SearchTraceError("include_atomic_segments must be a boolean")
         if len(payload) > limits.max_bytes:
             raise SearchTraceError("trace exceeds max_bytes")
 
@@ -236,6 +239,7 @@ def materialize_search_trace(
             initial_checkpoint=initial_checkpoint,
             authority=authority,
             limits=limits,
+            include_atomic_segments=include_atomic_segments,
         )
     except TraceMaterializationError:
         raise
@@ -249,6 +253,7 @@ def _materialize_validated_envelope(
     initial_checkpoint: SearchMemoryCheckpoint,
     authority: PDDLStateAuthority,
     limits: TraceSegmentLimits,
+    include_atomic_segments: bool,
 ) -> MaterializedSearchTrace:
     memory = initial_checkpoint.restore(authority)
     accepted_transition_payloads = initial_checkpoint._accepted_transition_payloads
@@ -282,19 +287,20 @@ def _materialize_validated_envelope(
                 resulting_memory_sha256=persisted_record["result"]["memory_sha256"],
             )
         record = _MaterializedRecord(index, record_payload, accepted_delta)
-        atomic_payload = _build_context_payload(
-            checkpoints[-1],
-            [record],
-            authority=authority,
-            limits=limits,
-        )
-        atomic_segments.append(
-            AtomicSearchTraceSegment(
-                record_index=index,
-                checkpoint=checkpoints[-1],
-                _payload=atomic_payload,
+        if include_atomic_segments:
+            atomic_payload = _build_context_payload(
+                checkpoints[-1],
+                [record],
+                authority=authority,
+                limits=limits,
             )
-        )
+            atomic_segments.append(
+                AtomicSearchTraceSegment(
+                    record_index=index,
+                    checkpoint=checkpoints[-1],
+                    _payload=atomic_payload,
+                )
+            )
         records.append(record)
 
         memory = actual.memory
