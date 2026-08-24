@@ -127,6 +127,14 @@ def build_ms_swift_sft_command(
         "false",
         "--dataloader_num_workers",
         "0",
+        "--logging_strategy",
+        "steps",
+        "--logging_steps",
+        "1",
+        "--logging_first_step",
+        "true",
+        "--disable_tqdm",
+        "false",
         "--output_dir",
         str(Path(output_root).resolve()),
         "--add_version",
@@ -230,10 +238,7 @@ def convert_bfs_corpus_to_ms_swift(
         "metadata/source-records.jsonl": _jsonl_bytes(metadata),
     }
     conversion_manifest = {
-        "artifacts": [
-            {"path": path, "size_bytes": len(payload)}
-            for path, payload in sorted(payloads.items())
-        ],
+        "artifacts": [{"path": path, "size_bytes": len(payload)} for path, payload in sorted(payloads.items())],
         "counts": {split: len(converted[split]) for split in ("train", "dev")},
         "framework": {"name": "ms-swift", "version": "4.2.2"},
         "phase_receipt": phase_gate.receipt(stage=stage),

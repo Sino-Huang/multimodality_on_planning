@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import tempfile
+from collections.abc import Callable
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 from typing import Any, Mapping, cast
@@ -49,6 +50,7 @@ def run_frozen_bfs_references(
     shard_index: int = 0,
     shard_count: int = 1,
     workers: int = 1,
+    progress: Callable[[int, int, str], None] | None = None,
 ) -> GenerationRunReceipt:
     """Run or resume complete exact and five-seed random episodes on frozen dev."""
 
@@ -94,10 +96,19 @@ def run_frozen_bfs_references(
                     }
                 )
             if workers == 1:
-                task_rows = [_run_reference_task(job) for job in jobs]
+                results = map(_run_reference_task, jobs)
+                task_rows = []
+                for completed, row in enumerate(results, start=1):
+                    task_rows.append(row)
+                    if progress is not None:
+                        progress(completed, len(jobs), str(jobs[completed - 1]["row"]["instance_id"]))
             else:
                 with ProcessPoolExecutor(max_workers=workers) as executor:
-                    task_rows = list(executor.map(_run_reference_task, jobs))
+                    task_rows = []
+                    for completed, row in enumerate(executor.map(_run_reference_task, jobs), start=1):
+                        task_rows.append(row)
+                        if progress is not None:
+                            progress(completed, len(jobs), str(jobs[completed - 1]["row"]["instance_id"]))
         rows = [row for task_row in task_rows for row in task_row]
 
         expected_paths = {output_root / row["evidence"]["path"] for row in rows}

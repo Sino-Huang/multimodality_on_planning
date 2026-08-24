@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import io
 import json
 from pathlib import Path
 
@@ -10,6 +11,7 @@ from examples.planning_benchmark_slice.bfs_sft import (
     build_ms_swift_sft_command,
     convert_bfs_corpus_to_ms_swift,
 )
+from scripts import run_bfs_sft
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FREEZE = REPO_ROOT / "configs" / "experiments" / "bfs_phase_freeze_v1.json"
@@ -196,6 +198,30 @@ def test_builds_explicit_frozen_two_gpu_ms_swift_lora_command(tmp_path: Path) ->
     assert arguments["--seed"] == arguments["--data_seed"] == "17"
     assert arguments["--full_determinism"] == "true"
     assert arguments["--train_dataloader_shuffle"] == "false"
+    assert arguments["--logging_strategy"] == "steps"
+    assert arguments["--logging_steps"] == "1"
+    assert arguments["--disable_tqdm"] == "false"
+
+
+def test_single_gpu_parallel_seed_command_preserves_the_frozen_global_batch(tmp_path: Path) -> None:
+    dataset_root = tmp_path / "converted"
+    for split in ("train", "dev"):
+        path = dataset_root / "data" / f"{split}.jsonl"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("{}\n", encoding="utf-8")
+    phase_gate = load_bfs_phase_gate(V3_FREEZE, V3_AUTHORIZATION)
+
+    command = build_ms_swift_sft_command(
+        dataset_root=dataset_root,
+        output_root=tmp_path / "checkpoint",
+        phase_gate=phase_gate,
+        seed=17,
+        world_size=1,
+    )
+    arguments = dict(zip(command[2::2], command[3::2], strict=True))
+
+    assert arguments["--per_device_train_batch_size"] == "1"
+    assert arguments["--gradient_accumulation_steps"] == "32"
 
 
 def test_v3_projects_only_null_result_process_targets_byte_identically(tmp_path: Path) -> None:
@@ -237,3 +263,68 @@ def test_v3_projects_only_null_result_process_targets_byte_identically(tmp_path:
             phase_gate=phase_gate,
             view="operational",
         )
+
+
+def test_v3_training_dry_run_validates_and_prints_without_starting_training(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    corpus_root, phase_gate = _v3_release(tmp_path)
+    dataset_root = tmp_path / "projection"
+    convert_bfs_corpus_to_ms_swift(
+        corpus_root=corpus_root,
+        output_root=dataset_root,
+        phase_gate=phase_gate,
+        view="process",
+    )
+    output_root = tmp_path / "training"
+    monkeypatch.setattr(run_bfs_sft, "_validate_v3_reference_gate", lambda *_args: None)
+
+    assert (
+        run_bfs_sft.main(
+            [
+                "--phase",
+                "v3",
+                "--dataset-root",
+                str(dataset_root),
+                "--output-root",
+                str(output_root),
+                "--view",
+                "process",
+                "--seed",
+                "17",
+                "--world-size",
+                "2",
+                "--devices",
+                "0,1",
+                "--attempt-id",
+                "issue-54-test-dry-run",
+                "--dry-run",
+            ]
+        )
+        == 0
+    )
+
+    plan = json.loads(capsys.readouterr().out)
+    assert plan["dry_run"] is True
+    assert plan["estimated_optimizer_steps"] == 3
+    assert plan["environment"]["MASTER_PORT"] == "29500"
+    assert plan["phase_receipt"]["phase_id"] == "issue-111-bfs-expansion-qualified-pilot-v3"
+    assert not output_root.exists()
+
+
+def test_training_progress_parser_reads_the_latest_expected_tqdm_step(tmp_path: Path) -> None:
+    log = tmp_path / "training.log"
+    log.write_text("noise 1/2\r 25%|step| 3/12\r 50%|step| 6/12\n", encoding="utf-8")
+
+    assert run_bfs_sft._latest_completed_step(log, 12) == 6
+
+
+def test_training_output_is_teed_byte_for_byte_to_log_and_terminal() -> None:
+    source = io.BytesIO(b"loading model\n1/1260 [00:02<41:58]\n")
+    log = io.BytesIO()
+    terminal = io.BytesIO()
+
+    run_bfs_sft._tee_output(source, log, terminal)
+
+    assert log.getvalue() == source.getvalue()
+    assert terminal.getvalue() == source.getvalue()
