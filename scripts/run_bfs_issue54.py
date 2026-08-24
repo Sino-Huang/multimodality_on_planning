@@ -9,27 +9,38 @@ import sys
 from pathlib import Path
 from typing import Sequence
 
-from examples.planning_benchmark_slice.bfs_phase import load_bfs_phase_gate
+from examples.planning_benchmark_slice.bfs_phase import BFSPhaseGate, load_bfs_phase_gate
 from scripts.run_bfs_base_seeds import SeedLaunch, run_seed_launches
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 _OUTPUT_ROOT = _REPO_ROOT / "outputs" / "bfs_phase"
 _DATASET_ROOT = _REPO_ROOT / "data" / "bfs_pilot_v3" / "ms-swift-process"
-_FREEZE = _REPO_ROOT / "configs" / "experiments" / "bfs_phase_freeze_v3.json"
-_AUTHORIZATION = _REPO_ROOT / "configs" / "experiments" / "bfs_phase_authorization_v3.json"
-_STAGES = ("diagnose", "probe", "references", "base", "train", "evaluate", "adjudicate")
+_PHASES = {
+    phase: (
+        _REPO_ROOT / "configs" / "experiments" / f"bfs_phase_freeze_{phase}.json",
+        _REPO_ROOT / "configs" / "experiments" / f"bfs_phase_authorization_{phase}.json",
+    )
+    for phase in ("v3", "v4")
+}
+_STAGES = ("preflight", "diagnose", "probe", "references", "base", "train", "evaluate", "adjudicate")
 
 
-def reference_command(*, output_root: Path, workers: int, dry_run: bool) -> tuple[str, ...]:
+def reference_command(
+    *,
+    output_root: Path,
+    workers: int,
+    dry_run: bool,
+    phase: str = "v3",
+) -> tuple[str, ...]:
     command = (
         sys.executable,
         "scripts/run_bfs_references.py",
         "--phase",
-        "v3",
+        phase,
         "--output-root",
-        str(output_root / "issue54-v3-references"),
+        str(output_root / f"issue54-{phase}-references"),
         "--attempt-id",
-        "issue-54-v3-references",
+        f"issue-54-{phase}-references",
         "--shard-index",
         "0",
         "--shard-count",
@@ -114,6 +125,7 @@ def checkpoint_launches(
     seeds: Sequence[int],
     devices: Sequence[str],
     output_root: Path,
+    evaluation_phase: str = "v3",
     resume: bool = False,
 ) -> tuple[SeedLaunch, ...]:
     launches = []
@@ -136,27 +148,33 @@ def checkpoint_launches(
             checkpoint_name = checkpoint.name
             device = devices[launch_index % len(devices)]
             launch_index += 1
-            evaluation_root = output_root / f"issue54-v3-process-seed-{seed}-{checkpoint_name}"
-            attempt_id = f"issue-54-v3-process-seed-{seed}-{checkpoint_name}"
-            command = (
+            evaluation_root = output_root / f"issue54-{evaluation_phase}-process-seed-{seed}-{checkpoint_name}"
+            attempt_id = f"issue-54-{evaluation_phase}-process-seed-{seed}-{checkpoint_name}"
+            command = [
                 sys.executable,
                 "scripts/run_bfs_model_shard.py",
-                "--arm",
-                "process_sft",
-                "--adapter-path",
-                str(checkpoint),
-                "--output-root",
-                str(evaluation_root),
-                "--attempt-id",
-                attempt_id,
-                "--device",
-                f"cuda:{device}",
-                "--seed",
-                str(seed),
-                "--shard-index",
-                "0",
-                "--shard-count",
-                "1",
+            ]
+            if evaluation_phase != "v3":
+                command.extend(("--phase", evaluation_phase))
+            command.extend(
+                (
+                    "--arm",
+                    "process_sft",
+                    "--adapter-path",
+                    str(checkpoint),
+                    "--output-root",
+                    str(evaluation_root),
+                    "--attempt-id",
+                    attempt_id,
+                    "--device",
+                    f"cuda:{device}",
+                    "--seed",
+                    str(seed),
+                    "--shard-index",
+                    "0",
+                    "--shard-count",
+                    "1",
+                )
             )
             launches.append(
                 SeedLaunch(
@@ -165,7 +183,7 @@ def checkpoint_launches(
                     attempt_id=attempt_id,
                     output_root=evaluation_root,
                     console_log=evaluation_root.parent / f"{evaluation_root.name}.console.log",
-                    command=(*command, "--resume") if resume else command,
+                    command=(*command, "--resume") if resume else tuple(command),
                 )
             )
     return tuple(launches)
@@ -220,22 +238,29 @@ def adjudication_command(
     checkpoint_runs: Sequence[SeedLaunch],
     output_root: Path,
     dry_run: bool,
+    phase: str = "v3",
 ) -> tuple[str, ...]:
     command = [
         sys.executable,
         "scripts/adjudicate_bfs_sanity_v3.py",
-        "--reference-manifest",
-        str(output_root / "issue54-v3-references" / "manifests" / "bfs-references.json"),
-        "--output-root",
-        str(output_root / "issue54-v3-sanity-adjudication"),
-        "--attempt-id",
-        "issue-54-v3-sanity-adjudication",
     ]
+    if phase != "v3":
+        command.extend(("--phase", phase))
+    command.extend(
+        [
+            "--reference-manifest",
+            str(output_root / f"issue54-{phase}-references" / "manifests" / "bfs-references.json"),
+            "--output-root",
+            str(output_root / f"issue54-{phase}-sanity-adjudication"),
+            "--attempt-id",
+            f"issue-54-{phase}-sanity-adjudication",
+        ]
+    )
     for seed in seeds:
         command.extend(
             (
                 "--base-manifest",
-                str(output_root / f"issue54-v3-base-seed-{seed}" / "manifest.json"),
+                str(output_root / f"issue54-{phase}-base-seed-{seed}" / "manifest.json"),
             )
         )
     for launch in checkpoint_runs:
@@ -265,9 +290,72 @@ def _json_object(path: Path) -> dict[str, object]:
     return value
 
 
+def _v4_preflight(phase_gate: BFSPhaseGate) -> dict[str, object]:
+    freeze = phase_gate.freeze
+    materialization = _json_object(_REPO_ROOT / "data" / "bfs_pilot_v3" / "materialization-report.json")
+    diagnostic = _json_object(
+        _OUTPUT_ROOT / "issue54-v3-diagnostics" / "diagnostic-report.json"
+    )
+    if (
+        materialization.get("trace_count") != 90
+        or materialization.get("trusted_trace_replay_count") != 90
+        or materialization.get("corpus_regeneration_byte_identical") is not True
+        or materialization.get("ms_swift_projection_regeneration_byte_identical") is not True
+    ):
+        raise ValueError("v4 inherited corpus materialization is not replay-verified")
+    corpus_manifest = _json_object(
+        _REPO_ROOT / "data" / "bfs_pilot_v3" / "process-release" / "manifests" / "bfs-text-corpus.json"
+    )
+    rolling_context = corpus_manifest.get("rolling_context")
+    if (
+        not isinstance(rolling_context, dict)
+        or rolling_context.get("accepted_delta_limit") != freeze["budgets"]["accepted_delta_limit"]
+        or rolling_context.get("max_model_input_bytes") != freeze["budgets"]["max_model_input_bytes"]
+    ):
+        raise ValueError("v4 input limits differ from the inherited process-SFT corpus")
+    findings = diagnostic.get("findings")
+    training_contract = diagnostic.get("training_contract")
+    if not isinstance(findings, dict) or not isinstance(training_contract, dict):
+        raise ValueError("v4 diagnostic report is malformed")
+    split_reports = training_contract.get("splits")
+    if (
+        findings.get("adapter_checkpoint_changes_model_output") is not True
+        or findings.get("teacher_targets_derive_from_replayed_traces") is not True
+        or training_contract.get("total_parse_failures") != 0
+        or not isinstance(split_reports, dict)
+        or any(
+            not isinstance(report, dict) or report.get("over_successor_budget") != 0
+            for report in split_reports.values()
+        )
+    ):
+        raise ValueError("v4 diagnostic evidence does not authorize inherited checkpoint evaluation")
+    checkpoints = []
+    for seed in freeze["seeds"]:
+        training_root = _successful_training_root(_OUTPUT_ROOT, int(seed))
+        report = _json_object(training_root / "training-report.json")
+        paths = report.get("checkpoint_paths")
+        if not isinstance(paths, list):
+            raise ValueError(f"seed {seed} training report has no checkpoint paths")
+        steps = sorted(int(Path(str(path)).name.removeprefix("checkpoint-")) for path in paths)
+        if steps != freeze["training"]["inherited_process_sft"]["checkpoint_steps"]:
+            raise ValueError(f"seed {seed} inherited checkpoint steps differ from the v4 freeze")
+        checkpoints.extend(paths)
+    return {
+        "checkpoint_count": len(checkpoints),
+        "accepted_delta_limit": freeze["budgets"]["accepted_delta_limit"],
+        "learning_commands": 0,
+        "max_model_input_bytes": freeze["budgets"]["max_model_input_bytes"],
+        "max_output_tokens_per_operation": freeze["budgets"]["max_output_tokens_per_operation"],
+        "phase_id": phase_gate.phase_id,
+        "status": "ready",
+        "teacher_target_count": freeze["repair"]["teacher_target_count"],
+    }
+
+
 def main(arguments: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("stage", choices=_STAGES)
+    parser.add_argument("--phase", choices=tuple(_PHASES), default="v4")
     parser.add_argument("--devices", nargs="+", default=("0", "1"))
     parser.add_argument("--reference-workers", type=int, default=8)
     parser.add_argument("--inference-processes-per-gpu", type=int, default=3)
@@ -317,17 +405,33 @@ def main(arguments: Sequence[str] | None = None) -> int:
             command.append("--dry-run")
         return _run_command(command, label="probe")
 
-    phase_gate = load_bfs_phase_gate(_FREEZE, _AUTHORIZATION)
+    phase_gate = load_bfs_phase_gate(*_PHASES[args.phase])
+    if args.stage == "preflight":
+        if args.phase != "v4":
+            raise ValueError("preflight is defined only for the v4 contract repair")
+        print(json.dumps(_v4_preflight(phase_gate), sort_keys=True))
+        return 0
     seeds = tuple(phase_gate.freeze["seeds"])
     if args.stage == "references":
         return _run_command(
-            reference_command(output_root=_OUTPUT_ROOT, workers=args.reference_workers, dry_run=args.dry_run),
+            reference_command(
+                output_root=_OUTPUT_ROOT,
+                workers=args.reference_workers,
+                dry_run=args.dry_run,
+                phase=args.phase,
+            ),
             label="references",
         )
     if args.stage == "base":
         command = [
             sys.executable,
             "scripts/run_bfs_base_seeds.py",
+            "--phase",
+            args.phase,
+            "--output-prefix",
+            str(_OUTPUT_ROOT / f"issue54-{args.phase}-base"),
+            "--attempt-id-prefix",
+            f"issue-54-{args.phase}-base",
             "--devices",
             *devices,
             "--processes-per-gpu",
@@ -339,6 +443,19 @@ def main(arguments: Sequence[str] | None = None) -> int:
             command.append("--dry-run")
         return _run_command(command, label="base")
     if args.stage == "train":
+        if args.phase == "v4":
+            print(
+                json.dumps(
+                    {
+                        "dry_run": args.dry_run,
+                        "learning_commands": 0,
+                        "source_phase_id": "issue-111-bfs-expansion-qualified-pilot-v3",
+                        "status": "inherited_process_sft_checkpoints",
+                    },
+                    sort_keys=True,
+                )
+            )
+            return 0
         launches = training_launches(
             seeds=seeds,
             devices=devices,
@@ -349,7 +466,13 @@ def main(arguments: Sequence[str] | None = None) -> int:
             return _run_sequential([(*launch.command, "--dry-run") for launch in launches], label="train")
         return run_seed_launches(launches, processes_per_gpu=args.training_processes_per_gpu)
 
-    launches = checkpoint_launches(seeds=seeds, devices=devices, output_root=_OUTPUT_ROOT, resume=args.resume)
+    launches = checkpoint_launches(
+        seeds=seeds,
+        devices=devices,
+        output_root=_OUTPUT_ROOT,
+        evaluation_phase=args.phase,
+        resume=args.resume,
+    )
     if args.stage == "evaluate":
         if args.dry_run:
             return _run_sequential(
@@ -357,15 +480,34 @@ def main(arguments: Sequence[str] | None = None) -> int:
                 label="evaluate",
             )
         return run_seed_launches(launches, processes_per_gpu=args.inference_processes_per_gpu)
-    return _run_command(
-        adjudication_command(
-            seeds=seeds,
-            checkpoint_runs=launches,
-            output_root=_OUTPUT_ROOT,
-            dry_run=args.dry_run,
-        ),
-        label="adjudicate",
+    command = adjudication_command(
+        seeds=seeds,
+        checkpoint_runs=launches,
+        output_root=_OUTPUT_ROOT,
+        dry_run=args.dry_run,
+        phase=args.phase,
     )
+    if args.dry_run:
+        manifest_paths = [
+            Path(command[index + 1])
+            for index, argument in enumerate(command[:-1])
+            if argument in {"--reference-manifest", "--base-manifest", "--process-manifest"}
+        ]
+        missing = [str(path) for path in manifest_paths if not path.is_file()]
+        if missing:
+            print(
+                json.dumps(
+                    {
+                        "command": command,
+                        "missing_upstream_manifests": missing,
+                        "stage": "adjudicate",
+                        "status": "waiting_for_upstream_products",
+                    },
+                    sort_keys=True,
+                )
+            )
+            return 0
+    return _run_command(command, label="adjudicate")
 
 
 if __name__ == "__main__":

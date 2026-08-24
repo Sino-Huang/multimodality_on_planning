@@ -17,13 +17,19 @@ from examples.planning_benchmark_slice.qwen_text_policy import QwenTextPolicy
 from src.data_collect.governance import AuthorizationReceipt, GateReceipt, ReceiptBinding, StopOutcome
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
-_FREEZE = _REPO_ROOT / "configs" / "experiments" / "bfs_phase_freeze_v3.json"
-_AUTHORIZATION = _REPO_ROOT / "configs" / "experiments" / "bfs_phase_authorization_v3.json"
 _MANIFEST = _REPO_ROOT / "data" / "bfs_pilot_v3" / "selected-manifest.jsonl"
+_PHASES = {
+    phase: (
+        _REPO_ROOT / "configs" / "experiments" / f"bfs_phase_freeze_{phase}.json",
+        _REPO_ROOT / "configs" / "experiments" / f"bfs_phase_authorization_{phase}.json",
+    )
+    for phase in ("v3", "v4")
+}
 
 
 def main(arguments: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--phase", choices=tuple(_PHASES), default="v3")
     parser.add_argument("--arm", choices=("base", "process_sft"), required=True)
     parser.add_argument("--adapter-path", type=Path)
     parser.add_argument("--output-root", type=Path, required=True)
@@ -46,19 +52,32 @@ def main(arguments: list[str] | None = None) -> int:
     if adapter_path is not None and not adapter_path.is_dir():
         raise ValueError(f"BFS process-SFT adapter does not exist: {adapter_path}")
 
-    phase_gate = load_bfs_phase_gate(_FREEZE, _AUTHORIZATION)
+    phase_gate = load_bfs_phase_gate(*_PHASES[args.phase])
     if args.seed not in phase_gate.freeze["seeds"]:
         raise ValueError("model evaluation seed is not in the frozen BFS seed set")
     stage = "base_and_references" if args.arm == "base" else "process_sft_and_sanity_gate"
     phase_gate.require_run(stage=stage, contract_id=phase_gate.phase_id)
     tasks = frozen_bfs_development_tasks(_MANIFEST, phase_gate)
     shard_tasks = [row for index, row in enumerate(tasks) if index % args.shard_count == args.shard_index]
+    budgets = phase_gate.freeze["budgets"]
+    max_input_bytes = budgets.get(
+        "max_model_input_bytes",
+        budgets["max_context_tokens"] - budgets["max_output_tokens_per_operation"],
+    )
+    accepted_delta_limit = budgets.get(
+        "accepted_delta_limit",
+        budgets["max_context_tokens"] // budgets["max_output_tokens_per_operation"],
+    )
     plan = {
         "adapter_path": str(adapter_path) if adapter_path is not None else None,
         "arm": args.arm,
         "attempt_id": args.attempt_id,
         "device": args.device,
         "dry_run": False,
+        "accepted_delta_limit": accepted_delta_limit,
+        "max_input_bytes": max_input_bytes,
+        "max_output_tokens": budgets["max_output_tokens_per_operation"],
+        "model_input_projection": phase_gate.freeze["implementation"]["process_memory_projection"],
         "output_root": str(output_root),
         "phase_receipt": phase_gate.receipt(stage=stage),
         "seed": args.seed,
@@ -85,7 +104,7 @@ def main(arguments: list[str] | None = None) -> int:
     policy = QwenTextPolicy(
         model_id=model["model_id"],
         revision=model["revision"],
-        max_new_tokens=phase_gate.freeze["budgets"]["max_output_tokens_per_operation"],
+        max_new_tokens=budgets["max_output_tokens_per_operation"],
         device=args.device,
         adapter_path=adapter_path,
     )
@@ -124,15 +143,9 @@ def main(arguments: list[str] | None = None) -> int:
                 model_identity=policy.identity,
                 policy=policy,
                 max_expansions=max_expansions,
-                max_input_bytes=(
-                    phase_gate.freeze["budgets"]["max_context_tokens"]
-                    - phase_gate.freeze["budgets"]["max_output_tokens_per_operation"]
-                ),
-                max_output_tokens=phase_gate.freeze["budgets"]["max_output_tokens_per_operation"],
-                accepted_delta_limit=(
-                    phase_gate.freeze["budgets"]["max_context_tokens"]
-                    // phase_gate.freeze["budgets"]["max_output_tokens_per_operation"]
-                ),
+                max_input_bytes=max_input_bytes,
+                max_output_tokens=budgets["max_output_tokens_per_operation"],
+                accepted_delta_limit=accepted_delta_limit,
                 model_input_projection=phase_gate.freeze["implementation"]["process_memory_projection"],
                 seed=args.seed,
                 gate_receipt=gate,

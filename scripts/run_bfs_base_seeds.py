@@ -17,8 +17,13 @@ from typing import Sequence
 from examples.planning_benchmark_slice.bfs_phase import load_bfs_phase_gate
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
-_FREEZE = _REPO_ROOT / "configs" / "experiments" / "bfs_phase_freeze_v3.json"
-_AUTHORIZATION = _REPO_ROOT / "configs" / "experiments" / "bfs_phase_authorization_v3.json"
+_PHASES = {
+    phase: (
+        _REPO_ROOT / "configs" / "experiments" / f"bfs_phase_freeze_{phase}.json",
+        _REPO_ROOT / "configs" / "experiments" / f"bfs_phase_authorization_{phase}.json",
+    )
+    for phase in ("v3", "v4")
+}
 
 
 @dataclass(frozen=True, slots=True)
@@ -37,6 +42,7 @@ def build_seed_launches(
     devices: Sequence[str],
     output_prefix: Path,
     attempt_id_prefix: str,
+    phase: str | None = None,
     resume: bool = False,
 ) -> tuple[SeedLaunch, ...]:
     if not seeds:
@@ -52,23 +58,29 @@ def build_seed_launches(
         device = devices[index % len(devices)]
         output_root = prefix.parent / f"{prefix.name}-seed-{seed}"
         attempt_id = f"{attempt_id_prefix}-seed-{seed}"
-        command = (
+        command = [
             sys.executable,
             "scripts/run_bfs_model_shard.py",
-            "--arm",
-            "base",
-            "--output-root",
-            str(output_root),
-            "--attempt-id",
-            attempt_id,
-            "--device",
-            f"cuda:{device}",
-            "--seed",
-            str(seed),
-            "--shard-index",
-            "0",
-            "--shard-count",
-            "1",
+        ]
+        if phase is not None:
+            command.extend(("--phase", phase))
+        command.extend(
+            (
+                "--arm",
+                "base",
+                "--output-root",
+                str(output_root),
+                "--attempt-id",
+                attempt_id,
+                "--device",
+                f"cuda:{device}",
+                "--seed",
+                str(seed),
+                "--shard-index",
+                "0",
+                "--shard-count",
+                "1",
+            )
         )
         launches.append(
             SeedLaunch(
@@ -77,7 +89,7 @@ def build_seed_launches(
                 attempt_id=attempt_id,
                 output_root=output_root,
                 console_log=output_root.parent / f"{output_root.name}.console.log",
-                command=(*command, "--resume") if resume else command,
+                command=(*command, "--resume") if resume else tuple(command),
             )
         )
     return tuple(launches)
@@ -142,6 +154,7 @@ def _run_device_queue(launches: Sequence[SeedLaunch], terminal_lock: threading.L
 
 def main(arguments: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--phase", choices=tuple(_PHASES), default="v3")
     parser.add_argument("--devices", nargs="+", default=("0", "1"))
     parser.add_argument(
         "--output-prefix",
@@ -154,13 +167,14 @@ def main(arguments: Sequence[str] | None = None) -> int:
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args(arguments)
 
-    phase_gate = load_bfs_phase_gate(_FREEZE, _AUTHORIZATION)
+    phase_gate = load_bfs_phase_gate(*_PHASES[args.phase])
     phase_gate.require_run(stage="base_and_references", contract_id=phase_gate.phase_id)
     launches = build_seed_launches(
         seeds=tuple(phase_gate.freeze["seeds"]),
         devices=tuple(args.devices),
         output_prefix=args.output_prefix,
         attempt_id_prefix=args.attempt_id_prefix,
+        phase=args.phase,
         resume=args.resume,
     )
     if args.dry_run:

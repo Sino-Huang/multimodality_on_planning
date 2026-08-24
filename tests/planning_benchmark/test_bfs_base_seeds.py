@@ -29,6 +29,18 @@ def test_builds_two_dedicated_gpu_queues_for_the_five_frozen_seeds(tmp_path: Pat
     assert all("scripts/run_bfs_model_shard.py" in launch.command for launch in launches)
 
 
+def test_v4_seed_launches_pass_the_successor_phase(tmp_path: Path) -> None:
+    launches = build_seed_launches(
+        seeds=(17,),
+        devices=("0",),
+        output_prefix=tmp_path / "issue54-v4-base",
+        attempt_id_prefix="issue-54-v4-base",
+        phase="v4",
+    )
+
+    assert launches[0].command[launches[0].command.index("--phase") + 1] == "v4"
+
+
 def test_resume_launches_reuse_only_the_matching_partial_attempt(tmp_path: Path) -> None:
     output_root = tmp_path / "partial"
     output_root.mkdir()

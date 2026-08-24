@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -14,6 +15,8 @@ _FREEZE_SCHEMA_V1 = "bfs_phase_freeze_v1"
 _AUTHORIZATION_SCHEMA_V1 = "bfs_phase_authorization_v1"
 _FREEZE_SCHEMA_V3 = "bfs_phase_freeze_v3"
 _AUTHORIZATION_SCHEMA_V3 = "bfs_phase_authorization_v3"
+_FREEZE_SCHEMA_V4 = "bfs_phase_freeze_v4"
+_AUTHORIZATION_SCHEMA_V4 = "bfs_phase_authorization_v4"
 _DIFFICULTIES = ("easy", "medium", "hard")
 _AUTHORIZED_STAGES_V1 = (
     "trace_generation",
@@ -28,11 +31,14 @@ _AUTHORIZED_STAGES_V3 = (
     "base_and_references",
     "process_sft_and_sanity_gate",
 )
+_AUTHORIZED_STAGES_V4 = ("base_and_references", "process_sft_and_sanity_gate")
 _DOWNSTREAM_ISSUES_V1 = (50, 51, 52, 53, 54)
 _DOWNSTREAM_ISSUES_V3 = (54,)
 _TRAINING_ARMS_V1 = {"base", "exact_classical", "operational_sft", "process_sft", "random_valid"}
 _TRAINING_ARMS_V3 = {"base", "exact_classical", "process_sft", "random_valid"}
 _V3_PHASE_ID = "issue-111-bfs-expansion-qualified-pilot-v3"
+_V4_PHASE_ID = "issue-54-bfs-contract-repair-v4"
+_V4_REPAIR_REVISION = "aab79248ee5889ec3d677d0356d3cbd0c7e485a5"
 _V3_MODEL_REVISION = "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b"
 _V3_PREREGISTRATION_REVISION = "4da3ae71531e1131c19ce552f41426241ed4308c"
 _V3_CORPUS_MATERIALIZATION_REVISION = "82422c2269c22ddbb8da76889a222cc7500ea74c"
@@ -126,6 +132,9 @@ def load_bfs_phase_gate(
     elif schema == _FREEZE_SCHEMA_V3:
         _validate_freeze_v3(freeze, root)
         _validate_authorization_v3(authorization, freeze, freeze_path, root)
+    elif schema == _FREEZE_SCHEMA_V4:
+        _validate_freeze_v4(freeze, root)
+        _validate_authorization_v4(authorization, freeze, freeze_path, root)
     else:
         raise BFSPhaseGateError("BFS freeze manifest has an unsupported schema version")
     return BFSPhaseGate(
@@ -495,6 +504,138 @@ def _validate_authorization_v3(
     expected_freeze_path = (repo_root / _text(authorization, "freeze_manifest_path")).resolve()
     if freeze_path != expected_freeze_path:
         raise BFSPhaseGateError("BFS v3 authorization points to a different freeze manifest")
+
+
+def _validate_freeze_v4(freeze: dict[str, Any], repo_root: Path) -> None:
+    expected_fields = {
+        "algorithm",
+        "budgets",
+        "data",
+        "implementation",
+        "modality",
+        "models",
+        "parent_issue",
+        "phase_id",
+        "repair",
+        "schema_version",
+        "seeds",
+        "source_issue",
+        "statistics",
+        "stop_rules",
+        "thresholds",
+        "training",
+    }
+    if set(freeze) != expected_fields:
+        raise BFSPhaseGateError("BFS v4 freeze manifest has noncanonical fields")
+    inherited = _mapping(_mapping(freeze, "training"), "inherited_process_sft")
+    if inherited != {
+        "checkpoint_steps": [420, 840, 1260],
+        "parameter_updates_in_v4": False,
+        "source_attempt_pattern": "issue54-v3-process-sft-seed-{seed}-attempt-002",
+        "source_phase_id": _V3_PHASE_ID,
+    }:
+        raise BFSPhaseGateError("BFS v4 inherited process-SFT checkpoints are not frozen correctly")
+    implementation = _mapping(freeze, "implementation")
+    if implementation != {
+        "contract_repair_revision": _V4_REPAIR_REVISION,
+        "corpus_materialization_revision": _V3_CORPUS_MATERIALIZATION_REVISION,
+        "deterministic_invalid_operation_policy": "charge_once_and_terminate",
+        "evaluation_request_schema": "model_search_episode_request_v2",
+        "process_memory_projection": "bounded_bfs_search_memory_v3",
+        "search_episode_harness": (
+            "examples.planning_benchmark_slice.model_search_episode.run_model_search_episode"
+        ),
+    }:
+        raise BFSPhaseGateError("BFS v4 implementation repair contract has drifted")
+    repair = _mapping(freeze, "repair")
+    if repair != {
+        "adapter_probe_changed_output": True,
+        "inherited_training_phase_id": _V3_PHASE_ID,
+        "previous_gate_outcome": "VALID_STOP",
+        "previous_phase_id": _V3_PHASE_ID,
+        "retained_decision_count": 404_107,
+        "retained_deterministic_replay_count": 402_037,
+        "retained_input_contract": "rolling_search_context",
+        "teacher_model_input_max_bytes": 3_840,
+        "teacher_target_count": 26_492,
+        "teacher_target_max_tokens": 308,
+        "teacher_targets_over_previous_budget": 1_161,
+        "teacher_targets_over_successor_budget": 0,
+    }:
+        raise BFSPhaseGateError("BFS v4 repair evidence differs from the retained issue-54 diagnosis")
+    budgets = _mapping(freeze, "budgets")
+    if (
+        budgets.get("accepted_delta_limit") != 16
+        or budgets.get("max_context_tokens") != 4096
+        or budgets.get("max_model_input_bytes") != 3_840
+        or budgets.get("max_output_tokens_per_operation") != 384
+        or budgets.get("invalid_operation_charge") != 1
+    ):
+        raise BFSPhaseGateError("BFS v4 token or invalid-operation budgets differ from the repair freeze")
+    if (
+        freeze["schema_version"] != _FREEZE_SCHEMA_V4
+        or freeze["phase_id"] != _V4_PHASE_ID
+        or freeze["source_issue"] != 54
+        or freeze["parent_issue"] != 38
+    ):
+        raise BFSPhaseGateError("BFS v4 freeze manifest has the wrong authority or phase identity")
+
+    v3_projection = deepcopy(freeze)
+    v3_projection.pop("repair")
+    v3_projection["schema_version"] = _FREEZE_SCHEMA_V3
+    v3_projection["phase_id"] = _V3_PHASE_ID
+    v3_projection["source_issue"] = 111
+    v3_projection["budgets"].pop("accepted_delta_limit")
+    v3_projection["budgets"].pop("max_model_input_bytes")
+    v3_projection["budgets"]["max_output_tokens_per_operation"] = 256
+    v3_projection["implementation"] = {
+        "corpus_materialization_revision": _V3_CORPUS_MATERIALIZATION_REVISION,
+        "preregistration_revision": _V3_PREREGISTRATION_REVISION,
+        "process_memory_projection": "bounded_bfs_search_memory_v3",
+        "search_episode_harness": "examples.planning_benchmark_slice.search_episode.run_search_episode",
+    }
+    v3_projection["training"].pop("inherited_process_sft")
+    _validate_freeze_v3(v3_projection, repo_root)
+
+
+def _validate_authorization_v4(
+    authorization: dict[str, Any],
+    freeze: dict[str, Any],
+    freeze_path: Path,
+    repo_root: Path,
+) -> None:
+    expected_fields = {
+        "authorization_id",
+        "authorized_stages",
+        "contract_id",
+        "downstream_issues",
+        "freeze_manifest_path",
+        "outcome",
+        "parent_issue",
+        "phase_id",
+        "schema_version",
+        "scientific_completion",
+        "source_issue",
+    }
+    if set(authorization) != expected_fields:
+        raise BFSPhaseGateError("BFS v4 authorization manifest has noncanonical fields")
+    if (
+        authorization["schema_version"] != _AUTHORIZATION_SCHEMA_V4
+        or authorization["authorization_id"] != "issue-54-bfs-contract-repair-authorization-v4"
+        or authorization["outcome"] != "PASS"
+        or authorization["scientific_completion"] is not False
+        or authorization["source_issue"] != 54
+        or authorization["parent_issue"] != 38
+        or authorization["phase_id"] != _V4_PHASE_ID
+        or authorization["phase_id"] != freeze["phase_id"]
+        or authorization["contract_id"] != freeze["phase_id"]
+        or authorization["authorized_stages"] != list(_AUTHORIZED_STAGES_V4)
+        or authorization["downstream_issues"] != [54]
+    ):
+        raise BFSPhaseGateError("BFS v4 authorization manifest does not authorize this phase")
+    expected_freeze_path = (repo_root / _text(authorization, "freeze_manifest_path")).resolve()
+    if freeze_path != expected_freeze_path:
+        raise BFSPhaseGateError("BFS v4 authorization points to a different freeze manifest")
 
 
 def _load_json_object(path: Path, name: str) -> tuple[bytes, dict[str, Any]]:

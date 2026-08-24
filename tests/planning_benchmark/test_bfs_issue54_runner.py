@@ -148,3 +148,34 @@ def test_adjudication_receives_all_base_and_checkpoint_manifests(tmp_path: Path)
     assert command.count("--base-manifest") == 5
     assert command.count("--process-manifest") == 15
     assert command[-1] == "--dry-run"
+
+
+def test_v4_reuses_all_fifteen_v3_checkpoints_under_separate_receipts(tmp_path: Path) -> None:
+    output_root = _training_products(tmp_path)
+
+    launches = checkpoint_launches(
+        seeds=SEEDS,
+        devices=DEVICES,
+        output_root=output_root,
+        evaluation_phase="v4",
+    )
+    command = adjudication_command(
+        seeds=SEEDS,
+        checkpoint_runs=launches,
+        output_root=output_root,
+        dry_run=True,
+        phase="v4",
+    )
+
+    assert len(launches) == 15
+    assert all(launch.command[launch.command.index("--phase") + 1] == "v4" for launch in launches)
+    assert all("issue54-v4-process" in str(launch.output_root) for launch in launches)
+    assert command[command.index("--phase") + 1] == "v4"
+    assert any("issue54-v4-sanity-adjudication" in argument for argument in command)
+
+
+def test_v4_reference_command_uses_a_separate_output_root(tmp_path: Path) -> None:
+    command = reference_command(output_root=tmp_path, workers=8, dry_run=True, phase="v4")
+
+    assert command[command.index("--phase") + 1] == "v4"
+    assert any("issue54-v4-references" in argument for argument in command)

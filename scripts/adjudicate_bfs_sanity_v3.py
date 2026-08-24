@@ -20,13 +20,19 @@ from examples.planning_benchmark_slice.model_search_episode import replay_model_
 from src.data_collect.governance import GateReceipt, ReceiptBinding, StopOutcome, evaluate_execution_permission
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
-_FREEZE = _REPO_ROOT / "configs" / "experiments" / "bfs_phase_freeze_v3.json"
-_AUTHORIZATION = _REPO_ROOT / "configs" / "experiments" / "bfs_phase_authorization_v3.json"
 _MANIFEST = _REPO_ROOT / "data" / "bfs_pilot_v3" / "selected-manifest.jsonl"
+_PHASES = {
+    phase: (
+        _REPO_ROOT / "configs" / "experiments" / f"bfs_phase_freeze_{phase}.json",
+        _REPO_ROOT / "configs" / "experiments" / f"bfs_phase_authorization_{phase}.json",
+    )
+    for phase in ("v3", "v4")
+}
 
 
 def main(arguments: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--phase", choices=tuple(_PHASES), default="v3")
     parser.add_argument("--reference-manifest", type=Path, action="append", required=True)
     parser.add_argument("--base-manifest", type=Path, action="append", default=[])
     parser.add_argument("--process-manifest", type=Path, action="append", default=[])
@@ -38,7 +44,7 @@ def main(arguments: list[str] | None = None) -> int:
     output_root = args.output_root.expanduser().resolve()
     if output_root.exists() and not args.dry_run:
         raise FileExistsError(f"BFS sanity adjudication output already exists: {output_root}")
-    phase_gate = load_bfs_phase_gate(_FREEZE, _AUTHORIZATION)
+    phase_gate = load_bfs_phase_gate(*_PHASES[args.phase])
     phase_gate.require_run(stage="process_sft_and_sanity_gate", contract_id=phase_gate.phase_id)
     binding = ReceiptBinding(phase_gate.phase_id, args.attempt_id, output_root)
 
@@ -89,7 +95,7 @@ def main(arguments: list[str] | None = None) -> int:
             "attempt_id": args.attempt_id,
             "gate_receipt": gate.to_dict(),
             "phase_receipt": phase_gate.receipt(stage="process_sft_and_sanity_gate"),
-            "schema_version": "bfs_process_sft_sanity_adjudication_v3",
+            "schema_version": f"bfs_process_sft_sanity_adjudication_{args.phase}",
         }
     )
     if ancestor_gate is not None:

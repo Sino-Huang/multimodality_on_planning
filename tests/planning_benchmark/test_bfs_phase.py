@@ -15,6 +15,8 @@ FREEZE_MANIFEST = REPO_ROOT / "configs" / "experiments" / "bfs_phase_freeze_v1.j
 AUTHORIZATION_MANIFEST = REPO_ROOT / "configs" / "experiments" / "bfs_phase_authorization_v1.json"
 V3_FREEZE_MANIFEST = REPO_ROOT / "configs" / "experiments" / "bfs_phase_freeze_v3.json"
 V3_AUTHORIZATION_MANIFEST = REPO_ROOT / "configs" / "experiments" / "bfs_phase_authorization_v3.json"
+V4_FREEZE_MANIFEST = REPO_ROOT / "configs" / "experiments" / "bfs_phase_freeze_v4.json"
+V4_AUTHORIZATION_MANIFEST = REPO_ROOT / "configs" / "experiments" / "bfs_phase_authorization_v4.json"
 TASK_FIXTURE = REPO_ROOT / "tests" / "fixtures" / "planning" / "blocksworld_nontrivial.json"
 
 
@@ -149,3 +151,38 @@ def test_committed_v3_gate_binds_the_qualification_pass_and_process_only_contrac
     }
     assert "operational_sft" not in gate.authorization["authorized_stages"]
     assert gate.authorization["downstream_issues"] == [54]
+
+
+def test_committed_v4_gate_binds_only_the_confirmed_contract_repairs() -> None:
+    gate = load_bfs_phase_gate(V4_FREEZE_MANIFEST, V4_AUTHORIZATION_MANIFEST)
+
+    assert gate.phase_id == "issue-54-bfs-contract-repair-v4"
+    assert gate.freeze["source_issue"] == 54
+    assert gate.freeze["budgets"]["accepted_delta_limit"] == 16
+    assert gate.freeze["budgets"]["max_model_input_bytes"] == 3_840
+    assert gate.freeze["budgets"]["max_output_tokens_per_operation"] == 384
+    assert gate.freeze["implementation"] == {
+        "contract_repair_revision": "aab79248ee5889ec3d677d0356d3cbd0c7e485a5",
+        "corpus_materialization_revision": "82422c2269c22ddbb8da76889a222cc7500ea74c",
+        "deterministic_invalid_operation_policy": "charge_once_and_terminate",
+        "evaluation_request_schema": "model_search_episode_request_v2",
+        "process_memory_projection": "bounded_bfs_search_memory_v3",
+        "search_episode_harness": (
+            "examples.planning_benchmark_slice.model_search_episode.run_model_search_episode"
+        ),
+    }
+    assert gate.freeze["training"]["inherited_process_sft"]["parameter_updates_in_v4"] is False
+    assert gate.authorization["authorized_stages"] == [
+        "base_and_references",
+        "process_sft_and_sanity_gate",
+    ]
+
+
+def test_v4_gate_rejects_a_changed_successor_output_budget(tmp_path: Path) -> None:
+    freeze = json.loads(V4_FREEZE_MANIFEST.read_text(encoding="utf-8"))
+    freeze["budgets"]["max_output_tokens_per_operation"] = 385
+    changed = tmp_path / "freeze.json"
+    changed.write_text(json.dumps(freeze), encoding="utf-8")
+
+    with pytest.raises(BFSPhaseGateError, match="token or invalid-operation budgets"):
+        load_bfs_phase_gate(changed, V4_AUTHORIZATION_MANIFEST)
