@@ -17,6 +17,7 @@ from src.data_collect.governance import (
 )
 from src.data_collect.replay import build_canonical_bundle, parse_canonical_bundle
 
+from .bfs_model_input import build_bounded_bfs_model_input
 from .pddl_state import CanonicalState, PDDLStateAuthority
 from .search_context import materialize_search_trace
 from .search_episode import (
@@ -52,7 +53,8 @@ from .search_trace import (
 from .validate_instance import load_fixture
 
 MODEL_EVIDENCE_SCHEMA_VERSION = "model_search_episode_evidence_v1"
-MODEL_REQUEST_SCHEMA_VERSION = "model_search_episode_request_v1"
+MODEL_REQUEST_SCHEMA_VERSION = "model_search_episode_request_v2"
+_LEGACY_MODEL_REQUEST_SCHEMA_VERSION = "model_search_episode_request_v1"
 _MODEL_BUNDLE_ARTIFACTS = {
     "authorization-receipt.json",
     "expansions.json",
@@ -78,8 +80,10 @@ def run_model_search_episode(
     model_identity: Mapping[str, Any],
     policy: ModelPolicy,
     max_expansions: int,
+    max_input_bytes: int,
     max_output_tokens: int,
     accepted_delta_limit: int,
+    model_input_projection: str,
     seed: int,
     gate_receipt: GateReceipt,
     authorization_receipt: AuthorizationReceipt | None,
@@ -105,8 +109,10 @@ def run_model_search_episode(
         model_identity=model_identity,
         policy=policy,
         max_expansions=max_expansions,
+        max_input_bytes=max_input_bytes,
         max_output_tokens=max_output_tokens,
         accepted_delta_limit=accepted_delta_limit,
+        model_input_projection=model_input_projection,
         seed=seed,
     )
     fixture = load_fixture(Path(task_path))
@@ -125,8 +131,10 @@ def run_model_search_episode(
         model_identity=model_identity,
         policy=policy,
         max_expansions=max_expansions,
+        max_input_bytes=max_input_bytes,
         max_output_tokens=max_output_tokens,
         accepted_delta_limit=accepted_delta_limit,
+        model_input_projection=model_input_projection,
         seed=seed,
         gate_receipt=gate_receipt,
         authorization_receipt=authorization_receipt,
@@ -160,8 +168,13 @@ def replay_model_search_episode(evidence: Mapping[str, Any]) -> dict[str, Any]:
     model = _load_canonical_json(artifacts["model.json"], "model identity")
     if evidence["expansions"] != expansions or evidence["policy_events"] != policy_events:
         raise SearchEpisodeError("public model evidence differs from its bundle")
-    if request.get("schema_version") != MODEL_REQUEST_SCHEMA_VERSION or request.get("model") != model:
+    if request.get("schema_version") not in {
+        _LEGACY_MODEL_REQUEST_SCHEMA_VERSION,
+        MODEL_REQUEST_SCHEMA_VERSION,
+    } or request.get("model") != model:
         raise SearchEpisodeError("model request artifact is invalid")
+    if request["schema_version"] == MODEL_REQUEST_SCHEMA_VERSION:
+        _validate_projection_request(request)
 
     gate = _gate_from_payload(_load_canonical_json(artifacts["gate-receipt.json"], "model gate receipt"))
     authorization = _authorization_from_payload(
@@ -210,8 +223,10 @@ def _execute_authorized_model_episode(
     model_identity: Mapping[str, Any],
     policy: ModelPolicy,
     max_expansions: int,
+    max_input_bytes: int,
     max_output_tokens: int,
     accepted_delta_limit: int,
+    model_input_projection: str,
     seed: int,
     gate_receipt: GateReceipt,
     authorization_receipt: AuthorizationReceipt,
@@ -224,6 +239,11 @@ def _execute_authorized_model_episode(
     policy_events: list[dict[str, Any]] = []
     invalid_operation_count = 0
     budget_used = 0
+    termination_reason: str | None = None
+    deterministic_memoized = (
+        model_identity.get("decoding") == "greedy"
+        and model_identity.get("memoize_identical_inputs") is True
+    )
 
     while memory.frontier and budget_used < max_expansions:
         frontier_before = list(memory.frontier)
@@ -242,6 +262,8 @@ def _execute_authorized_model_episode(
                 authority=authority,
                 max_expansions=max_expansions,
                 accepted_delta_limit=accepted_delta_limit,
+                max_input_bytes=max_input_bytes,
+                projection=model_input_projection,
             )
             raw_output = policy(model_input)
             if not isinstance(raw_output, str):
@@ -277,6 +299,9 @@ def _execute_authorized_model_episode(
                     }
                 )
                 policy_events.append(event)
+                if deterministic_memoized:
+                    termination_reason = "deterministic_invalid_operation"
+                    break
                 continue
 
             assert operation is not None
@@ -320,6 +345,15 @@ def _execute_authorized_model_episode(
         budget_used += 1
 
     goal_reached = bool(memory.frontier and authority.is_goal(memory.state(memory.frontier[0])))
+    if termination_reason is None:
+        if goal_reached:
+            termination_reason = "goal_reached"
+        elif budget_used >= max_expansions:
+            termination_reason = "budget_exhausted"
+        elif not memory.frontier:
+            termination_reason = "frontier_exhausted"
+        else:
+            termination_reason = "incomplete_expansion"
     completed = RunReceipt(
         binding=gate_receipt.binding,
         outcome=StopOutcome.PASS,
@@ -341,14 +375,17 @@ def _execute_authorized_model_episode(
         "outcome": StopOutcome.PASS.value,
         "run_receipt": completed.to_dict(),
         "scientific_completion": True,
+        "termination_reason": termination_reason,
     }
     model_payload = _normalized_model_identity(model_identity)
     request_payload = {
         "accepted_delta_limit": accepted_delta_limit,
         "algorithm": algorithm,
         "arm": arm,
+        "max_input_bytes": max_input_bytes,
         "max_expansions": max_expansions,
         "max_output_tokens": max_output_tokens,
+        "model_input_projection": model_input_projection,
         "modality": modality,
         "model": model_payload,
         "schema_version": MODEL_REQUEST_SCHEMA_VERSION,
@@ -385,20 +422,31 @@ def _model_input(
     authority: PDDLStateAuthority,
     max_expansions: int,
     accepted_delta_limit: int,
+    max_input_bytes: int,
+    projection: str,
 ) -> dict[str, Any]:
     limits = _trace_limits(authority, max_expansions)
     materialized = materialize_search_trace(trace_bytes, authority=authority, limits=limits)
     record_count = json.loads(trace_bytes)["record_count"]
-    rolling = json.loads(
-        materialized.rolling_context_before(
-            record_count,
-            accepted_delta_limit=accepted_delta_limit,
-        ).to_bytes()
+    rolling_context = materialized.rolling_context_before(
+        record_count,
+        accepted_delta_limit=accepted_delta_limit,
     )
+    if projection == "bounded_bfs_search_memory_v3":
+        model_input, _dropped = build_bounded_bfs_model_input(
+            goal_atoms=list(authority.goal_atoms or ()),
+            observation=_text_observation(state, memory),
+            checkpoint=rolling_context.checkpoint,
+            accepted_deltas=rolling_context.accepted_deltas,
+            max_bytes=max_input_bytes,
+        )
+        return model_input
+    if projection != "rolling_search_context_v1":
+        raise SearchEpisodeError(f"unsupported model input projection: {projection}")
     return {
         "goal_atoms": list(authority.goal_atoms or ()),
         "observation": _text_observation(state, memory),
-        "search_memory": rolling,
+        "search_memory": json.loads(rolling_context.to_bytes()),
     }
 
 
@@ -496,8 +544,10 @@ def _validate_model_request(
     model_identity: Mapping[str, Any],
     policy: ModelPolicy,
     max_expansions: int,
+    max_input_bytes: int,
     max_output_tokens: int,
     accepted_delta_limit: int,
+    model_input_projection: str,
     seed: int,
 ) -> None:
     if algorithm != "bfs" or modality != "text-state":
@@ -509,11 +559,17 @@ def _validate_model_request(
         raise SearchEpisodeError("model policy must be callable")
     for name, value in (
         ("max_expansions", max_expansions),
+        ("max_input_bytes", max_input_bytes),
         ("max_output_tokens", max_output_tokens),
         ("accepted_delta_limit", accepted_delta_limit),
     ):
         if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
             raise SearchEpisodeError(f"{name} must be a positive integer")
+    if model_input_projection not in {
+        "bounded_bfs_search_memory_v3",
+        "rolling_search_context_v1",
+    }:
+        raise SearchEpisodeError("model_input_projection is unsupported")
     if isinstance(seed, bool) or not isinstance(seed, int):
         raise SearchEpisodeError("seed must be an integer")
 
@@ -539,6 +595,17 @@ def _verify_model_event_summary(
     expected_rate = invalid_count / len(events) if events else 0.0
     if result.get("invalid_operation_rate") != expected_rate:
         raise SearchEpisodeError("model invalid-operation rate differs from its events")
+
+
+def _validate_projection_request(request: Mapping[str, Any]) -> None:
+    max_input_bytes = request.get("max_input_bytes")
+    if isinstance(max_input_bytes, bool) or not isinstance(max_input_bytes, int) or max_input_bytes <= 0:
+        raise SearchEpisodeError("model request input budget is invalid")
+    if request.get("model_input_projection") not in {
+        "bounded_bfs_search_memory_v3",
+        "rolling_search_context_v1",
+    }:
+        raise SearchEpisodeError("model request input projection is invalid")
 
 
 def _load_canonical_json(payload: bytes, label: str) -> Any:

@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from .bfs_phase import BFSPhaseGate
-from .qwen_text_policy import QWEN_TEXT_POLICY_SYSTEM_PROMPT
+from .qwen_text_policy import QWEN_TEXT_POLICY_SYSTEM_PROMPT, qwen_text_policy_training_messages
 
 _RELEASE_SCHEMA = "bfs_text_corpus_release_v1"
 _CONVERSION_SCHEMA = "bfs_ms_swift_conversion_v1"
@@ -209,15 +209,16 @@ def convert_bfs_corpus_to_ms_swift(
     for row in rows:
         _validate_source_row(row, view=view, is_v3=is_v3)
         split = row["split"]
-        converted[split].append(
-            {
-                "messages": [
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": _canonical_text(row["input"])},
-                    {"role": "assistant", "content": _canonical_text(row["target"])},
-                ]
-            }
+        messages = (
+            qwen_text_policy_training_messages(row["input"], row["target"])
+            if is_v3
+            else [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": _canonical_text(row["input"])},
+                {"role": "assistant", "content": _canonical_text(row["target"])},
+            ]
         )
+        converted[split].append({"messages": messages})
         metadata.append(
             {
                 "difficulty": row["difficulty"],

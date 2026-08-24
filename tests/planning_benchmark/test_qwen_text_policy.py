@@ -5,7 +5,11 @@ from contextlib import nullcontext
 
 import torch
 
-from examples.planning_benchmark_slice.qwen_text_policy import QwenTextPolicy, qwen_text_policy_messages
+from examples.planning_benchmark_slice.qwen_text_policy import (
+    QwenTextPolicy,
+    qwen_text_policy_messages,
+    qwen_text_policy_training_messages,
+)
 
 
 def test_qwen_policy_prompt_preserves_canonical_model_input_and_runtime_boundary() -> None:
@@ -27,6 +31,12 @@ def test_qwen_policy_prompt_preserves_canonical_model_input_and_runtime_boundary
     user = messages[1]["content"][0]["text"]
     assert json.loads(user) == model_input
     assert user == json.dumps(model_input, ensure_ascii=True, separators=(",", ":"), sort_keys=True)
+    training_messages = qwen_text_policy_training_messages(model_input, {"typed_operation": {}})
+    assert [message["content"] for message in messages] == [
+        [{"type": "text", "text": training_messages[0]["content"]}],
+        [{"type": "text", "text": training_messages[1]["content"]}],
+    ]
+    assert json.loads(training_messages[2]["content"]) == {"typed_operation": {}}
 
 
 def test_greedy_policy_memoizes_identical_unchanged_inputs() -> None:

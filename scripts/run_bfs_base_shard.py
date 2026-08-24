@@ -100,11 +100,16 @@ def main() -> int:
                 model_identity=policy.identity,
                 policy=policy,
                 max_expansions=max_expansions,
+                max_input_bytes=(
+                    phase_gate.freeze["budgets"]["max_context_tokens"]
+                    - phase_gate.freeze["budgets"]["max_output_tokens_per_operation"]
+                ),
                 max_output_tokens=phase_gate.freeze["budgets"]["max_output_tokens_per_operation"],
                 accepted_delta_limit=(
                     phase_gate.freeze["budgets"]["max_context_tokens"]
                     // phase_gate.freeze["budgets"]["max_output_tokens_per_operation"]
                 ),
+                model_input_projection="rolling_search_context_v1",
                 seed=seed,
                 gate_receipt=gate,
                 authorization_receipt=authorization,

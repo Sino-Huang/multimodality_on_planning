@@ -124,11 +124,16 @@ def main(arguments: list[str] | None = None) -> int:
                 model_identity=policy.identity,
                 policy=policy,
                 max_expansions=max_expansions,
+                max_input_bytes=(
+                    phase_gate.freeze["budgets"]["max_context_tokens"]
+                    - phase_gate.freeze["budgets"]["max_output_tokens_per_operation"]
+                ),
                 max_output_tokens=phase_gate.freeze["budgets"]["max_output_tokens_per_operation"],
                 accepted_delta_limit=(
                     phase_gate.freeze["budgets"]["max_context_tokens"]
                     // phase_gate.freeze["budgets"]["max_output_tokens_per_operation"]
                 ),
+                model_input_projection=phase_gate.freeze["implementation"]["process_memory_projection"],
                 seed=args.seed,
                 gate_receipt=gate,
                 authorization_receipt=authorization,

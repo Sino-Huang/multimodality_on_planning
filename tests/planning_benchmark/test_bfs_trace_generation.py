@@ -9,7 +9,6 @@ from typing import Any, cast
 import pytest
 
 from examples.planning_benchmark_slice.bfs_corpus import (
-    _bounded_v3_process_input,
     regenerate_bfs_text_corpus,
     run_frozen_bfs_text_corpus_release,
 )
@@ -17,6 +16,7 @@ from examples.planning_benchmark_slice.bfs_generation import (
     _select_split_candidates,
     run_frozen_bfs_trace_generation,
 )
+from examples.planning_benchmark_slice.bfs_model_input import build_bounded_bfs_model_input
 from examples.planning_benchmark_slice.bfs_phase import BFSPhaseGate, load_bfs_phase_gate
 from examples.planning_benchmark_slice.episode_evidence import read_episode_evidence
 from examples.planning_benchmark_slice.search_episode import replay_search_episode
@@ -494,7 +494,7 @@ def test_v3_process_input_summarizes_unbounded_runtime_memory_inside_byte_budget
         "state_id": state_ids[500],
     }
 
-    process_input, dropped = _bounded_v3_process_input(
+    process_input, dropped = build_bounded_bfs_model_input(
         goal_atoms=["on(a,b)"],
         observation=observation,
         checkpoint=checkpoint,

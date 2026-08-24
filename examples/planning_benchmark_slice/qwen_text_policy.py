@@ -21,9 +21,11 @@ Copy state IDs from the input. Append successors at the BFS frontier tail. Retir
 Do not use Markdown fences or add text outside the JSON object. Invalid operations consume the episode budget."""
 
 
-def qwen_text_policy_messages(model_input: Mapping[str, Any]) -> list[dict[str, Any]]:
-    """Build the text-only chat presented to both base and adapted policies."""
-
+def qwen_text_policy_training_messages(
+    model_input: Mapping[str, Any],
+    target: Mapping[str, Any] | None = None,
+) -> list[dict[str, str]]:
+    """Build the canonical text messages consumed by process-SFT conversion."""
     canonical_input = json.dumps(
         dict(model_input),
         allow_nan=False,
@@ -31,9 +33,35 @@ def qwen_text_policy_messages(model_input: Mapping[str, Any]) -> list[dict[str, 
         separators=(",", ":"),
         sort_keys=True,
     )
+    messages = [
+        {"role": "system", "content": QWEN_TEXT_POLICY_SYSTEM_PROMPT},
+        {"role": "user", "content": canonical_input},
+    ]
+    if target is not None:
+        messages.append(
+            {
+                "role": "assistant",
+                "content": json.dumps(
+                    dict(target),
+                    allow_nan=False,
+                    ensure_ascii=True,
+                    separators=(",", ":"),
+                    sort_keys=True,
+                ),
+            }
+        )
+    return messages
+
+
+def qwen_text_policy_messages(model_input: Mapping[str, Any]) -> list[dict[str, Any]]:
+    """Build the text-only chat presented to both base and adapted policies."""
+
     return [
-        {"role": "system", "content": [{"type": "text", "text": QWEN_TEXT_POLICY_SYSTEM_PROMPT}]},
-        {"role": "user", "content": [{"type": "text", "text": canonical_input}]},
+        {
+            "role": message["role"],
+            "content": [{"type": "text", "text": message["content"]}],
+        }
+        for message in qwen_text_policy_training_messages(model_input)
     ]
 
 
@@ -130,4 +158,9 @@ class QwenTextPolicy:
         return output
 
 
-__all__ = ["QWEN_TEXT_POLICY_SYSTEM_PROMPT", "QwenTextPolicy", "qwen_text_policy_messages"]
+__all__ = [
+    "QWEN_TEXT_POLICY_SYSTEM_PROMPT",
+    "QwenTextPolicy",
+    "qwen_text_policy_messages",
+    "qwen_text_policy_training_messages",
+]

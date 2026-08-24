@@ -12,11 +12,12 @@ from typing import Any, Mapping, cast
 from src.data_collect.generate import GenerationRequest, GenerationRunReceipt, run_authorized_generation
 from src.data_collect.splits import split_assignment_id
 
+from .bfs_model_input import build_bounded_bfs_model_input
 from .bfs_phase import BFSPhaseGate
 from .episode_evidence import read_episode_artifacts
 from .pddl_state import PDDLStateAuthority
 from .search_context import materialize_search_trace
-from .search_trace import TraceSegmentLimits, _serialize_evaluation, _serialize_operation, _serialize_transition
+from .search_trace import TraceSegmentLimits
 
 _RELEASE_MANIFEST_PATH = Path("manifests/bfs-text-corpus.json")
 _OPERATIONAL_PATH = Path("corpus/operational.jsonl")
@@ -188,7 +189,7 @@ def _build_release(
             if is_v3:
                 common["schema_version"] = _RECORD_SCHEMA_V3
             if is_v3:
-                process_input, dropped = _bounded_v3_process_input(
+                process_input, dropped = build_bounded_bfs_model_input(
                     goal_atoms=goal_atoms,
                     observation=record["observation"],
                     checkpoint=rolling_context.checkpoint,
@@ -335,69 +336,6 @@ def _build_release(
     }
     payloads[_RELEASE_MANIFEST_PATH.as_posix()] = _canonical_json_bytes(manifest)
     return payloads
-
-
-def _bounded_v3_process_input(
-    *,
-    goal_atoms: list[str],
-    observation: Mapping[str, Any],
-    checkpoint: Any,
-    accepted_deltas: tuple[Any, ...],
-    max_bytes: int,
-) -> tuple[dict[str, Any], int]:
-    if isinstance(max_bytes, bool) or not isinstance(max_bytes, int) or max_bytes <= 0:
-        raise ValueError("BFS v3 model input byte budget must be a positive integer")
-    frontier = observation.get("frontier")
-    if not isinstance(frontier, list) or not all(isinstance(state_id, str) for state_id in frontier):
-        raise ValueError("BFS v3 observation frontier must be an array of state IDs")
-    snapshot = checkpoint.snapshot
-    if tuple(frontier) != tuple(snapshot.frontier):
-        raise ValueError("BFS v3 observation frontier differs from trusted search memory")
-    bounded_observation = {
-        "frontier_head": frontier[0] if frontier else None,
-        "frontier_size": len(frontier),
-        "modality": observation.get("modality"),
-        "state_atoms": observation.get("state_atoms"),
-        "state_id": observation.get("state_id"),
-    }
-    compact_deltas = [_compact_v3_delta(delta) for delta in accepted_deltas]
-    original_delta_count = len(compact_deltas)
-    while True:
-        search_memory = {
-            "accepted_deltas": compact_deltas,
-            "authority_id": checkpoint.authority_id,
-            "context_type": "bounded_bfs_search_memory",
-            "frontier_head": snapshot.frontier[0] if snapshot.frontier else None,
-            "frontier_size": len(snapshot.frontier),
-            "known_state_count": len(snapshot.known_states),
-            "provenance_count": len(snapshot.provenance),
-            "schema_version": 3,
-            "visited_count": len(snapshot.visited),
-        }
-        process_input = {
-            "goal_atoms": goal_atoms,
-            "observation": bounded_observation,
-            "search_memory": search_memory,
-        }
-        if len(_canonical_json_bytes(process_input)) <= max_bytes:
-            return process_input, original_delta_count - len(compact_deltas)
-        if not compact_deltas:
-            raise ValueError("BFS v3 model input cannot fit the frozen byte budget")
-        compact_deltas.pop(0)
-
-
-def _compact_v3_delta(delta: Any) -> dict[str, Any]:
-    transition = _serialize_transition(delta.transition)
-    return {
-        "evaluation": _serialize_evaluation(delta.evaluation),
-        "operation": _serialize_operation(delta.operation),
-        "record_index": delta.record_index,
-        "transition": {
-            "action": transition["action"],
-            "source_state_id": transition["source_state"]["state_id"],
-            "target_state_id": transition["target_state"]["state_id"],
-        },
-    }
 
 
 def _validated_trace_items(trace_manifest: Mapping[str, Any], phase_gate: BFSPhaseGate) -> list[dict[str, Any]]:

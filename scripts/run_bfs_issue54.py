@@ -17,7 +17,7 @@ _OUTPUT_ROOT = _REPO_ROOT / "outputs" / "bfs_phase"
 _DATASET_ROOT = _REPO_ROOT / "data" / "bfs_pilot_v3" / "ms-swift-process"
 _FREEZE = _REPO_ROOT / "configs" / "experiments" / "bfs_phase_freeze_v3.json"
 _AUTHORIZATION = _REPO_ROOT / "configs" / "experiments" / "bfs_phase_authorization_v3.json"
-_STAGES = ("references", "base", "train", "evaluate", "adjudicate")
+_STAGES = ("diagnose", "probe", "references", "base", "train", "evaluate", "adjudicate")
 
 
 def reference_command(*, output_root: Path, workers: int, dry_run: bool) -> tuple[str, ...]:
@@ -273,6 +273,10 @@ def main(arguments: Sequence[str] | None = None) -> int:
     parser.add_argument("--inference-processes-per-gpu", type=int, default=3)
     parser.add_argument("--training-processes-per-gpu", type=int, default=2)
     parser.add_argument("--resume", action="store_true")
+    parser.add_argument("--skip-tokenizer", action="store_true")
+    parser.add_argument("--probe-seed", type=int, default=17)
+    parser.add_argument("--probe-checkpoint-step", type=int, default=1260)
+    parser.add_argument("--probe-device", default="cuda:0")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args(arguments)
     devices = tuple(args.devices)
@@ -282,6 +286,36 @@ def main(arguments: Sequence[str] | None = None) -> int:
         raise ValueError("per-GPU process counts must be positive")
     if args.resume and args.stage not in {"base", "evaluate"}:
         raise ValueError("--resume is supported only for base and checkpoint evaluation")
+
+    if args.stage == "diagnose":
+        command = [sys.executable, "scripts/diagnose_bfs_issue54.py"]
+        if args.skip_tokenizer:
+            command.append("--skip-tokenizer")
+        if args.dry_run:
+            command.append("--dry-run")
+        return _run_command(command, label="diagnose")
+    if args.stage == "probe":
+        training_root = _successful_training_root(_OUTPUT_ROOT, args.probe_seed)
+        checkpoint = training_root / "checkpoints" / f"checkpoint-{args.probe_checkpoint_step}"
+        command = [
+            sys.executable,
+            "scripts/probe_bfs_issue54_adapter.py",
+            "--adapter-path",
+            str(checkpoint),
+            "--device",
+            args.probe_device,
+            "--seed",
+            str(args.probe_seed),
+            "--output",
+            str(
+                _OUTPUT_ROOT
+                / "issue54-v3-diagnostics"
+                / f"adapter-probe-seed-{args.probe_seed}-checkpoint-{args.probe_checkpoint_step}.json"
+            ),
+        ]
+        if args.dry_run:
+            command.append("--dry-run")
+        return _run_command(command, label="probe")
 
     phase_gate = load_bfs_phase_gate(_FREEZE, _AUTHORIZATION)
     seeds = tuple(phase_gate.freeze["seeds"])
