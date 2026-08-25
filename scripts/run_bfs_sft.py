@@ -213,11 +213,10 @@ def main(arguments: list[str] | None = None) -> int:
 def _validate_conversion(dataset_root: Path, expected_phase_receipt: dict[str, object], view: str) -> dict[str, object]:
     manifest_path = dataset_root / "manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    expected_schema = (
-        "bfs_process_ms_swift_conversion_v3"
-        if expected_phase_receipt.get("phase_id") == "issue-111-bfs-expansion-qualified-pilot-v3"
-        else "bfs_ms_swift_conversion_v1"
-    )
+    expected_schema = {
+        "issue-111-bfs-expansion-qualified-pilot-v3": "bfs_process_ms_swift_conversion_v3",
+        "issue-111-bfs-observable-process-pilot-v6": "bfs_process_ms_swift_conversion_v5",
+    }.get(expected_phase_receipt.get("phase_id"), "bfs_ms_swift_conversion_v1")
     if (
         manifest.get("schema_version") != expected_schema
         or manifest.get("framework") != {"name": "ms-swift", "version": "4.2.2"}

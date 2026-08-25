@@ -18,6 +18,8 @@ FREEZE = REPO_ROOT / "configs" / "experiments" / "bfs_phase_freeze_v1.json"
 AUTHORIZATION = REPO_ROOT / "configs" / "experiments" / "bfs_phase_authorization_v1.json"
 V3_FREEZE = REPO_ROOT / "configs" / "experiments" / "bfs_phase_freeze_v3.json"
 V3_AUTHORIZATION = REPO_ROOT / "configs" / "experiments" / "bfs_phase_authorization_v3.json"
+V6_FREEZE = REPO_ROOT / "configs" / "experiments" / "bfs_phase_freeze_v6.json"
+V6_AUTHORIZATION = REPO_ROOT / "configs" / "experiments" / "bfs_phase_authorization_v6.json"
 
 
 def _canonical_bytes(value: object) -> bytes:
@@ -310,6 +312,26 @@ def test_v3_training_dry_run_validates_and_prints_without_starting_training(
     assert plan["environment"]["MASTER_PORT"] == "29500"
     assert plan["phase_receipt"]["phase_id"] == "issue-111-bfs-expansion-qualified-pilot-v3"
     assert not output_root.exists()
+
+
+def test_v6_training_accepts_the_observable_ms_swift_projection(tmp_path: Path) -> None:
+    phase_gate = load_bfs_phase_gate(V6_FREEZE, V6_AUTHORIZATION)
+    dataset_root = tmp_path / "projection"
+    dataset_root.mkdir()
+    manifest = {
+        "counts": {"dev": 12115, "train": 12994},
+        "framework": {"name": "ms-swift", "version": "4.2.2"},
+        "phase_receipt": phase_gate.receipt(stage="process_sft_and_sanity_gate"),
+        "schema_version": "bfs_process_ms_swift_conversion_v5",
+        "view": "process",
+    }
+    (dataset_root / "manifest.json").write_bytes(_canonical_bytes(manifest))
+
+    assert run_bfs_sft._validate_conversion(
+        dataset_root,
+        phase_gate.receipt(stage="process_sft_and_sanity_gate"),
+        "process",
+    ) == manifest
 
 
 def test_training_progress_parser_reads_the_latest_expected_tqdm_step(tmp_path: Path) -> None:
