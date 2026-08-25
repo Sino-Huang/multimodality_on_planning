@@ -22,7 +22,7 @@ _PHASES = {
         _REPO_ROOT / "configs" / "experiments" / f"bfs_phase_freeze_{phase}.json",
         _REPO_ROOT / "configs" / "experiments" / f"bfs_phase_authorization_{phase}.json",
     )
-    for phase in ("v3", "v4")
+    for phase in ("v3", "v4", "v6")
 }
 
 

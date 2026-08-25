@@ -61,6 +61,7 @@ def main(arguments: Sequence[str] | None = None) -> int:
             model_id=model["model_id"],
             revision=model["revision"],
             max_new_tokens=args.max_new_tokens,
+            max_context_tokens=freeze["budgets"]["max_context_tokens"],
             device=args.device,
             adapter_path=path,
         )

@@ -39,10 +39,11 @@ def test_model_owned_exact_operations_complete_and_replay_without_rerunning_poli
     events = exact["evidence"]["events"]
     outputs = iter(
         json.dumps(
-            {
-                "canonical_rationale": event["rationale"],
-                "typed_operation": event["operation"],
-            },
+                {
+                    "canonical_rationale": event["rationale"],
+                    "runtime_result": None,
+                    "typed_operation": event["operation"],
+                },
             separators=(",", ":"),
             sort_keys=True,
         )

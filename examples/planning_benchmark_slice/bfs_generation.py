@@ -22,6 +22,7 @@ _REPO_ROOT = Path(__file__).resolve().parents[2]
 _TRACE_MANIFEST_PATH = Path("manifests/bfs-expert-traces.json")
 _TRACE_MANIFEST_SCHEMA_V1 = "bfs_expert_trace_generation_v1"
 _TRACE_MANIFEST_SCHEMA_V3 = "bfs_expert_trace_generation_v3"
+_TRACE_MANIFEST_SCHEMA_V5 = "bfs_expert_trace_generation_v5"
 _CANONICAL_TIE_BREAK = "grounded_actions_sorted_by_canonical_serialization"
 
 
@@ -121,11 +122,11 @@ def run_frozen_bfs_trace_generation(
                     "required_strata": len(required),
                 },
                 "phase_receipt": phase_gate.receipt(stage="trace_generation"),
-                "schema_version": (
-                    _TRACE_MANIFEST_SCHEMA_V3
-                    if phase_gate.freeze["schema_version"] == "bfs_phase_freeze_v3"
-                    else _TRACE_MANIFEST_SCHEMA_V1
-                ),
+                "schema_version": {
+                    "bfs_phase_freeze_v3": _TRACE_MANIFEST_SCHEMA_V3,
+                    "bfs_phase_freeze_v5": _TRACE_MANIFEST_SCHEMA_V5,
+                    "bfs_phase_freeze_v6": _TRACE_MANIFEST_SCHEMA_V5,
+                }.get(phase_gate.freeze["schema_version"], _TRACE_MANIFEST_SCHEMA_V1),
                 "traces": trace_items,
             }
             trace_manifest_path = staging_root / _TRACE_MANIFEST_PATH
@@ -299,7 +300,11 @@ def _load_candidates(path: Path, phase_gate: BFSPhaseGate) -> dict[tuple[str, st
         if row["status"] != "accepted":
             raise ValueError(f"frozen accepted manifest contains a non-accepted row at line {line_number}")
         if row["split"] not in allowed_splits:
-            if phase_gate.freeze["schema_version"] == "bfs_phase_freeze_v3":
+            if phase_gate.freeze["schema_version"] in {
+                "bfs_phase_freeze_v3",
+                "bfs_phase_freeze_v5",
+                "bfs_phase_freeze_v6",
+            }:
                 raise ValueError(f"BFS v3 selected manifest contains a forbidden split at line {line_number}")
             continue
         if row["domain_id"] not in domains or row["bucket"] not in difficulties:

@@ -35,6 +35,14 @@ _PHASE_MANIFESTS = {
         _REPO_ROOT / "configs" / "experiments" / "bfs_phase_freeze_v3.json",
         _REPO_ROOT / "configs" / "experiments" / "bfs_phase_authorization_v3.json",
     ),
+    "v5": (
+        _REPO_ROOT / "configs" / "experiments" / "bfs_phase_freeze_v5.json",
+        _REPO_ROOT / "configs" / "experiments" / "bfs_phase_authorization_v5.json",
+    ),
+    "v6": (
+        _REPO_ROOT / "configs" / "experiments" / "bfs_phase_freeze_v6.json",
+        _REPO_ROOT / "configs" / "experiments" / "bfs_phase_authorization_v6.json",
+    ),
 }
 
 
@@ -68,7 +76,7 @@ def main(arguments: list[str] | None = None) -> int:
     stage = "operational_sft" if args.view == "operational" else "process_sft_and_sanity_gate"
     phase_gate.require_run(stage=stage, contract_id=phase_gate.phase_id)
     conversion = _validate_conversion(dataset_root, phase_gate.receipt(stage=stage), args.view)
-    if args.phase == "v3":
+    if args.phase in {"v3", "v5", "v6"}:
         _validate_v3_reference_gate(args.reference_manifest, phase_gate.receipt(stage="base_and_references"))
 
     binding = ReceiptBinding(

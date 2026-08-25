@@ -20,13 +20,12 @@ from examples.planning_benchmark_slice.model_search_episode import replay_model_
 from src.data_collect.governance import GateReceipt, ReceiptBinding, StopOutcome, evaluate_execution_permission
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
-_MANIFEST = _REPO_ROOT / "data" / "bfs_pilot_v3" / "selected-manifest.jsonl"
 _PHASES = {
     phase: (
         _REPO_ROOT / "configs" / "experiments" / f"bfs_phase_freeze_{phase}.json",
         _REPO_ROOT / "configs" / "experiments" / f"bfs_phase_authorization_{phase}.json",
     )
-    for phase in ("v3", "v4")
+    for phase in ("v3", "v4", "v6")
 }
 
 
@@ -49,7 +48,11 @@ def main(arguments: list[str] | None = None) -> int:
     binding = ReceiptBinding(phase_gate.phase_id, args.attempt_id, output_root)
 
     try:
-        tasks = frozen_bfs_development_tasks(_MANIFEST, phase_gate)
+        manifest_root = "bfs_pilot_v6" if args.phase == "v6" else "bfs_pilot_v3"
+        tasks = frozen_bfs_development_tasks(
+            _REPO_ROOT / "data" / manifest_root / "selected-manifest.jsonl",
+            phase_gate,
+        )
         expected_ids = {str(task["instance_id"]) for task in tasks}
         references = _reference_records(args.reference_manifest, phase_gate.receipt(stage="base_and_references"))
         base = _model_records(args.base_manifest, "base", phase_gate.receipt(stage="base_and_references"))
@@ -324,6 +327,14 @@ def _require_product(
 
 def _success(row: Mapping[str, Any]) -> float:
     result = _mapping(row.get("result"), "episode result")
+    if "invariant_valid_success" in result:
+        return float(result["invariant_valid_success"] is True)
+    if "termination_reason" in result:
+        return float(
+            result.get("goal_reached") is True
+            and result.get("termination_reason") == "goal_reached"
+            and result.get("algorithm_invariants_hold") is True
+        )
     return float(bool(result.get("goal_reached")) and result.get("algorithm_invariants_hold", True) is True)
 
 

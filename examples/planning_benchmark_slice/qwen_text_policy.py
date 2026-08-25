@@ -65,6 +65,28 @@ def qwen_text_policy_messages(model_input: Mapping[str, Any]) -> list[dict[str, 
     ]
 
 
+class QwenTextTokenCounter:
+    """Pinned chat-template token counter shared by corpus qualification and release."""
+
+    def __init__(self, processor: Any) -> None:
+        self.tokenizer = processor.tokenizer
+
+    def __call__(self, model_input: Mapping[str, Any]) -> int:
+        return len(
+            self.tokenizer.apply_chat_template(
+                qwen_text_policy_training_messages(model_input),
+                tokenize=True,
+                add_generation_prompt=True,
+            )
+        )
+
+
+def load_qwen_text_token_counter(*, model_id: str, revision: str) -> QwenTextTokenCounter:
+    from transformers import AutoProcessor
+
+    return QwenTextTokenCounter(AutoProcessor.from_pretrained(model_id, revision=revision))
+
+
 class QwenTextPolicy:
     """Load one frozen Qwen3-VL checkpoint and emit one model decision per call."""
 
@@ -74,6 +96,7 @@ class QwenTextPolicy:
         model_id: str,
         revision: str,
         max_new_tokens: int,
+        max_context_tokens: int | None = None,
         device: str = "cuda:0",
         adapter_path: str | Path | None = None,
     ) -> None:
@@ -81,6 +104,12 @@ class QwenTextPolicy:
             raise ValueError("model_id and revision must be non-empty")
         if isinstance(max_new_tokens, bool) or not isinstance(max_new_tokens, int) or max_new_tokens <= 0:
             raise ValueError("max_new_tokens must be a positive integer")
+        if max_context_tokens is not None and (
+            isinstance(max_context_tokens, bool)
+            or not isinstance(max_context_tokens, int)
+            or max_context_tokens <= max_new_tokens
+        ):
+            raise ValueError("max_context_tokens must be an integer larger than max_new_tokens")
 
         import torch
         from transformers import AutoProcessor, Qwen3VLForConditionalGeneration
@@ -88,6 +117,7 @@ class QwenTextPolicy:
         self._torch = torch
         self.device = device
         self.max_new_tokens = max_new_tokens
+        self.max_context_tokens = max_context_tokens
         self._output_cache: dict[str, str] = {}
         self.processor = AutoProcessor.from_pretrained(model_id, revision=revision)
         self.model = Qwen3VLForConditionalGeneration.from_pretrained(
@@ -112,6 +142,7 @@ class QwenTextPolicy:
             "decoding": "greedy",
             "dtype": "bfloat16",
             "memoize_identical_inputs": True,
+            "max_context_tokens": self.max_context_tokens,
             "model_id": model_id,
             "revision": revision,
         }
@@ -142,6 +173,12 @@ class QwenTextPolicy:
             return_tensors="pt",
         ).to(self.device)
         input_length = inputs["input_ids"].shape[1]
+        max_context_tokens = getattr(self, "max_context_tokens", None)
+        if max_context_tokens is not None and input_length + self.max_new_tokens > max_context_tokens:
+            raise ValueError(
+                f"model input ({input_length}) plus output allowance ({self.max_new_tokens}) "
+                f"exceeds the {max_context_tokens}-token context"
+            )
         with self._torch.inference_mode():
             output_ids = self.model.generate(
                 **inputs,
@@ -161,6 +198,8 @@ class QwenTextPolicy:
 __all__ = [
     "QWEN_TEXT_POLICY_SYSTEM_PROMPT",
     "QwenTextPolicy",
+    "QwenTextTokenCounter",
+    "load_qwen_text_token_counter",
     "qwen_text_policy_messages",
     "qwen_text_policy_training_messages",
 ]

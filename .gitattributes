@@ -1,0 +1,2 @@
+data/bfs_pilot_v6/**/*.jsonl filter=lfs diff=lfs merge=lfs -text
+data/bfs_pilot_v6/**/search-trace.json filter=lfs diff=lfs merge=lfs -text

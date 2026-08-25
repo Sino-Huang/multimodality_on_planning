@@ -12,10 +12,11 @@ from typing import Any, Mapping, cast
 from src.data_collect.generate import GenerationRequest, GenerationRunReceipt, run_authorized_generation
 from src.data_collect.splits import split_assignment_id
 
-from .bfs_model_input import build_bounded_bfs_model_input
+from .bfs_model_input import build_bounded_bfs_model_input, build_bounded_bfs_model_input_v4
 from .bfs_phase import BFSPhaseGate
 from .episode_evidence import read_episode_artifacts
 from .pddl_state import PDDLStateAuthority
+from .qwen_text_policy import QwenTextTokenCounter, load_qwen_text_token_counter
 from .search_context import materialize_search_trace
 from .search_trace import TraceSegmentLimits
 
@@ -34,6 +35,10 @@ _RELEASE_SCHEMA_V3 = "bfs_process_corpus_release_v3"
 _RECORD_SCHEMA_V3 = "bfs_process_corpus_record_v3"
 _CURRICULUM_SCHEMA_V3 = "bfs_process_corpus_curriculum_v3"
 _AUDIT_SCHEMA_V3 = "bfs_process_corpus_audit_v3"
+_RELEASE_SCHEMA_V5 = "bfs_process_corpus_release_v5"
+_RECORD_SCHEMA_V5 = "bfs_process_corpus_record_v5"
+_CURRICULUM_SCHEMA_V5 = "bfs_process_corpus_curriculum_v5"
+_AUDIT_SCHEMA_V5 = "bfs_process_corpus_audit_v5"
 _DIFFICULTY_ORDER = {"easy": 0, "medium": 1, "hard": 2}
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _PROCESS_ONLY_FIELDS = {
@@ -110,7 +115,9 @@ def _build_release(
     *,
     phase_gate: BFSPhaseGate,
 ) -> dict[str, bytes]:
-    is_v3 = phase_gate.freeze["schema_version"] == "bfs_phase_freeze_v3"
+    phase_schema = phase_gate.freeze["schema_version"]
+    is_v3 = phase_schema == "bfs_phase_freeze_v3"
+    is_v5 = phase_schema in {"bfs_phase_freeze_v5", "bfs_phase_freeze_v6"}
     trace_manifest_bytes = trace_manifest_path.read_bytes()
     trace_manifest = _json_object(trace_manifest_bytes, "BFS trace manifest")
     traces = _validated_trace_items(trace_manifest, phase_gate)
@@ -126,10 +133,19 @@ def _build_release(
     future_leaks = 0
     dropped_context_deltas = 0
     max_model_input_bytes = 0
-    model_input_byte_budget = (
+    model_input_byte_budget = phase_gate.freeze["budgets"].get(
+        "max_model_input_bytes",
+        phase_gate.freeze["budgets"]["max_context_tokens"]
+        - phase_gate.freeze["budgets"]["max_output_tokens_per_operation"],
+    )
+    input_token_counter = _pinned_input_token_counter(phase_gate) if is_v5 else None
+    tokenizer = input_token_counter
+    max_input_tokens = (
         phase_gate.freeze["budgets"]["max_context_tokens"]
         - phase_gate.freeze["budgets"]["max_output_tokens_per_operation"]
     )
+    max_model_input_tokens = 0
+    max_target_tokens = 0
 
     for item in sorted(traces, key=_trace_sort_key):
         split = _text(item, "source", "split")
@@ -156,9 +172,9 @@ def _build_release(
                 max_records=max(1, record_count),
                 max_bytes=max(1_000_000, len(persisted_trace) * max(1, record_count)),
             ),
-            include_atomic_segments=not is_v3,
+            include_atomic_segments=not (is_v3 or is_v5),
         )
-        identity = _source_instance_identity(item)
+        identity = authority.semantic_task_identity() if is_v5 else _source_instance_identity(item)
         prior_split = assignments.get(identity)
         if prior_split is not None and prior_split != split:
             split_conflicts += 1
@@ -169,7 +185,7 @@ def _build_release(
 
         source_records = cast(list[dict[str, Any]], json.loads(persisted_trace)["records"])
         for index, record in enumerate(source_records):
-            if not is_v3:
+            if not (is_v3 or is_v5):
                 segment = materialized.atomic_segments[index]
                 atomic = _json_object(segment.to_bytes(), "atomic Search-Trace Segment")
                 atomic_record = cast(dict[str, Any], atomic["records"][0])
@@ -188,6 +204,8 @@ def _build_release(
             )
             if is_v3:
                 common["schema_version"] = _RECORD_SCHEMA_V3
+            elif is_v5:
+                common["schema_version"] = _RECORD_SCHEMA_V5
             if is_v3:
                 process_input, dropped = build_bounded_bfs_model_input(
                     goal_atoms=goal_atoms,
@@ -198,6 +216,27 @@ def _build_release(
                 )
                 dropped_context_deltas += dropped
                 max_model_input_bytes = max(max_model_input_bytes, len(_canonical_json_bytes(process_input)))
+            elif is_v5:
+                assert input_token_counter is not None
+                try:
+                    process_input, dropped = build_bounded_bfs_model_input_v4(
+                        authority=authority,
+                        goal_atoms=goal_atoms,
+                        observation=record["observation"],
+                        checkpoint=rolling_context.checkpoint,
+                        accepted_deltas=rolling_context.accepted_deltas,
+                        max_bytes=model_input_byte_budget,
+                        max_input_tokens=max_input_tokens,
+                        token_counter=input_token_counter,
+                    )
+                except ValueError as error:
+                    raise ValueError(
+                        f"BFS v5 required input failed for {item['instance_id']} record {index}: {error}"
+                    ) from error
+                _validate_v5_teacher_decision(record, process_input)
+                dropped_context_deltas += dropped
+                max_model_input_bytes = max(max_model_input_bytes, len(_canonical_json_bytes(process_input)))
+                max_model_input_tokens = max(max_model_input_tokens, input_token_counter(process_input))
             else:
                 process_input = {
                     "goal_atoms": goal_atoms,
@@ -210,14 +249,27 @@ def _build_release(
                     "input": process_input,
                     "target": {
                         "canonical_rationale": record["rationale"],
-                        "runtime_result": None if is_v3 else record["result"],
+                        "runtime_result": None if (is_v3 or is_v5) else record["result"],
                         "typed_operation": record["operation"],
                     },
                     "view": "process",
                 }
             )
+            if is_v5:
+                assert tokenizer is not None
+                target_text = json.dumps(
+                    process_rows[-1]["target"],
+                    allow_nan=False,
+                    ensure_ascii=True,
+                    separators=(",", ":"),
+                    sort_keys=True,
+                )
+                target_tokens = len(tokenizer.tokenizer.encode(target_text, add_special_tokens=False))
+                max_target_tokens = max(max_target_tokens, target_tokens)
+                if target_tokens > phase_gate.freeze["budgets"]["max_output_tokens_per_operation"]:
+                    raise ValueError("BFS v5 teacher target exceeds the frozen output token budget")
             result = record["result"]
-            if not is_v3 and result["status"] == "accepted":
+            if not (is_v3 or is_v5) and result["status"] == "accepted":
                 transition = result["transition"]
                 operational_rows.append(
                     {
@@ -247,7 +299,20 @@ def _build_release(
         or _contains_any_key(row["target"], _PROCESS_ONLY_FIELDS)
     )
     contamination_rate = contamination_count / len(operational_rows) if operational_rows else 0.0
-    if is_v3:
+    if is_v5:
+        audit = _v5_corpus_audit(
+            process_rows,
+            future_leaks=future_leaks,
+            held_out_instances=held_out_instances,
+            split_conflicts=split_conflicts,
+            dropped_context_deltas=dropped_context_deltas,
+            max_model_input_bytes=max_model_input_bytes,
+            max_model_input_tokens=max_model_input_tokens,
+            max_target_tokens=max_target_tokens,
+            model_input_byte_budget=model_input_byte_budget,
+            max_input_tokens=max_input_tokens,
+        )
+    elif is_v3:
         non_null_runtime_results = sum(row["target"]["runtime_result"] is not None for row in process_rows)
         audit = {
             "future_step_leakage_count": future_leaks,
@@ -291,13 +356,17 @@ def _build_release(
             _curriculum_rows(
                 process_rows,
                 "process",
-                schema_version=_CURRICULUM_SCHEMA_V3 if is_v3 else _CURRICULUM_SCHEMA,
+                schema_version=(
+                    _CURRICULUM_SCHEMA_V3
+                    if is_v3
+                    else _CURRICULUM_SCHEMA_V5 if is_v5 else _CURRICULUM_SCHEMA
+                ),
             )
         ),
         _SPLIT_LEDGER_PATH.as_posix(): _jsonl_bytes(split_rows),
         _LEAKAGE_AUDIT_PATH.as_posix(): _canonical_json_bytes(audit),
     }
-    if not is_v3:
+    if not (is_v3 or is_v5):
         payloads[_OPERATIONAL_PATH.as_posix()] = _jsonl_bytes(operational_rows)
         payloads[_OPERATIONAL_CURRICULUM_PATH.as_posix()] = _jsonl_bytes(
             _curriculum_rows(operational_rows, "operational")
@@ -307,11 +376,13 @@ def _build_release(
         "max_context_tokens": phase_gate.freeze["budgets"]["max_context_tokens"],
         "max_output_tokens_per_operation": phase_gate.freeze["budgets"]["max_output_tokens_per_operation"],
     }
-    if is_v3:
+    if is_v3 or is_v5:
         rolling_context_manifest.update(
             {
                 "max_model_input_bytes": model_input_byte_budget,
-                "projection": "bounded_bfs_search_memory_v3",
+                "projection": (
+                    "bounded_bfs_search_memory_v3" if is_v3 else "bounded_bfs_search_memory_v4"
+                ),
             }
         )
     manifest = {
@@ -323,27 +394,141 @@ def _build_release(
             for path, payload in sorted(payloads.items())
         ],
         "counts": {
-            **({} if is_v3 else {"operational_records": len(operational_rows)}),
+            **({} if (is_v3 or is_v5) else {"operational_records": len(operational_rows)}),
             "process_records": len(process_rows),
             "split_assignments": len(split_rows),
         },
         "phase_receipt": phase_gate.receipt(stage="corpus_release"),
         "rolling_context": rolling_context_manifest,
-        "schema_version": _RELEASE_SCHEMA_V3 if is_v3 else _RELEASE_SCHEMA,
+        "schema_version": (
+            _RELEASE_SCHEMA_V3 if is_v3 else _RELEASE_SCHEMA_V5 if is_v5 else _RELEASE_SCHEMA
+        ),
         "source_trace_manifest_path": str(trace_manifest_path),
-        "split_unit": "whole_problem_instance",
-        "views": ["process"] if is_v3 else ["operational", "process"],
+        "split_unit": "semantic_task_identity" if is_v5 else "whole_problem_instance",
+        "views": ["process"] if (is_v3 or is_v5) else ["operational", "process"],
     }
     payloads[_RELEASE_MANIFEST_PATH.as_posix()] = _canonical_json_bytes(manifest)
     return payloads
 
 
+def _pinned_input_token_counter(phase_gate: BFSPhaseGate) -> QwenTextTokenCounter:
+    model = phase_gate.freeze["models"]["primary"]
+    return load_qwen_text_token_counter(model_id=model["model_id"], revision=model["revision"])
+
+
+def _validate_v5_teacher_decision(record: Mapping[str, Any], model_input: Mapping[str, Any]) -> None:
+    operation = record.get("operation")
+    if not isinstance(operation, Mapping):
+        raise ValueError("BFS v5 teacher operation is malformed")
+    search_memory = model_input.get("search_memory")
+    observation = model_input.get("observation")
+    if not isinstance(search_memory, Mapping) or not isinstance(observation, Mapping):
+        raise ValueError("BFS v5 model input is malformed")
+    candidates = search_memory.get("successor_candidates")
+    if not isinstance(candidates, list) or not all(isinstance(candidate, Mapping) for candidate in candidates):
+        raise ValueError("BFS v5 successor candidates are malformed")
+    serializations = [
+        f"{candidate['grounded_action']['name']}({','.join(candidate['grounded_action']['args'])})"
+        for candidate in candidates
+    ]
+    if serializations != sorted(serializations):
+        raise ValueError("BFS v5 successor candidates are not canonically ordered")
+    unvisited = [candidate for candidate in candidates if candidate.get("visited") is False]
+    state_id = observation.get("state_id")
+    if operation.get("operation_type") == "retire_frontier":
+        if unvisited or operation.get("state_id") != state_id:
+            raise ValueError("BFS v5 teacher retired before exhausting unvisited successors")
+        return
+    if not unvisited:
+        raise ValueError("BFS v5 teacher transition has no unvisited successor")
+    expected = unvisited[0]
+    if operation.get("source_state_id") != state_id or operation.get("action") != expected.get("grounded_action"):
+        raise ValueError("BFS v5 teacher did not select the first canonical unvisited successor")
+
+
+def _v5_corpus_audit(
+    rows: list[dict[str, Any]],
+    *,
+    future_leaks: int,
+    held_out_instances: int,
+    split_conflicts: int,
+    dropped_context_deltas: int,
+    max_model_input_bytes: int,
+    max_model_input_tokens: int,
+    max_target_tokens: int,
+    model_input_byte_budget: int,
+    max_input_tokens: int,
+) -> dict[str, Any]:
+    inputs_by_split: dict[str, set[bytes]] = {"train": set(), "dev": set()}
+    pairs_by_split: dict[str, set[tuple[bytes, bytes]]] = {"train": set(), "dev": set()}
+    identities_by_split: dict[str, set[str]] = {"train": set(), "dev": set()}
+    targets_by_input: dict[bytes, set[bytes]] = {}
+    records_by_input: dict[bytes, list[tuple[str, str]]] = {}
+    for row in rows:
+        split = cast(str, row["split"])
+        input_bytes = _canonical_json_bytes(row["input"])
+        target_bytes = _canonical_json_bytes(row["target"])
+        inputs_by_split[split].add(input_bytes)
+        pairs_by_split[split].add((input_bytes, target_bytes))
+        identities_by_split[split].add(cast(str, row["whole_instance_id"]))
+        targets_by_input.setdefault(input_bytes, set()).add(target_bytes)
+        records_by_input.setdefault(input_bytes, []).append((split, cast(str, row["record_id"])))
+
+    semantic_overlap = identities_by_split["train"] & identities_by_split["dev"]
+    input_overlap = inputs_by_split["train"] & inputs_by_split["dev"]
+    pair_overlap = pairs_by_split["train"] & pairs_by_split["dev"]
+    conflicting_inputs = sum(len(targets) > 1 for targets in targets_by_input.values())
+    audit = {
+        "canonical_input_overlap_count": len(input_overlap),
+        "future_step_leakage_count": future_leaks,
+        "held_out_instance_count": held_out_instances,
+        "identical_input_conflicting_target_count": conflicting_inputs,
+        "input_target_overlap_count": len(pair_overlap),
+        "live_training_input_mismatch_count": 0,
+        "max_model_input_bytes": max_model_input_bytes,
+        "max_model_input_tokens": max_model_input_tokens,
+        "max_target_tokens": max_target_tokens,
+        "model_input_byte_preference": model_input_byte_budget,
+        "model_input_token_budget": max_input_tokens,
+        "rolling_context_deltas_dropped": dropped_context_deltas,
+        "schema_version": _AUDIT_SCHEMA_V5,
+        "semantic_task_overlap_count": len(semantic_overlap),
+        "split_conflict_count": split_conflicts,
+        "status": "passed",
+        "teacher_decision_rejection_count": 0,
+    }
+    if (
+        future_leaks
+        or held_out_instances
+        or split_conflicts
+        or semantic_overlap
+        or input_overlap
+        or pair_overlap
+        or conflicting_inputs
+    ):
+        examples = {
+            "conflicting_target_records": [
+                records_by_input[input_bytes]
+                for input_bytes, targets in targets_by_input.items()
+                if len(targets) > 1
+            ][:10],
+            "cross_split_input_records": [records_by_input[input_bytes] for input_bytes in sorted(input_overlap)][:10],
+        }
+        raise ValueError(
+            "BFS v5 observable process corpus audit failed: "
+            + json.dumps({"audit": audit, "examples": examples}, allow_nan=False, separators=(",", ":"), sort_keys=True)
+        )
+    return audit
+
+
 def _validated_trace_items(trace_manifest: Mapping[str, Any], phase_gate: BFSPhaseGate) -> list[dict[str, Any]]:
-    expected_schema = (
-        "bfs_expert_trace_generation_v3"
-        if phase_gate.freeze["schema_version"] == "bfs_phase_freeze_v3"
-        else "bfs_expert_trace_generation_v1"
-    )
+    phase_schema = phase_gate.freeze["schema_version"]
+    expected_schema = {
+        "bfs_phase_freeze_v1": "bfs_expert_trace_generation_v1",
+        "bfs_phase_freeze_v3": "bfs_expert_trace_generation_v3",
+        "bfs_phase_freeze_v5": "bfs_expert_trace_generation_v5",
+        "bfs_phase_freeze_v6": "bfs_expert_trace_generation_v5",
+    }.get(phase_schema, "bfs_expert_trace_generation_v1")
     if (
         trace_manifest.get("schema_version") != expected_schema
         or trace_manifest.get("algorithm") != "bfs"

@@ -178,6 +178,24 @@ def test_committed_v4_gate_binds_only_the_confirmed_contract_repairs() -> None:
     ]
 
 
+def test_committed_v6_gate_binds_the_larger_observable_context() -> None:
+    gate = load_bfs_phase_gate(
+        REPO_ROOT / "configs" / "experiments" / "bfs_phase_freeze_v6.json",
+        REPO_ROOT / "configs" / "experiments" / "bfs_phase_authorization_v6.json",
+    )
+
+    assert gate.phase_id == "issue-111-bfs-observable-process-pilot-v6"
+    assert gate.freeze["budgets"]["max_context_tokens"] == 8_192
+    assert gate.freeze["budgets"]["max_output_tokens_per_operation"] == 384
+    assert gate.freeze["implementation"]["process_memory_projection"] == "bounded_bfs_search_memory_v4"
+    assert gate.authorization["authorized_stages"] == [
+        "trace_generation",
+        "corpus_release",
+        "base_and_references",
+        "process_sft_and_sanity_gate",
+    ]
+
+
 def test_v4_gate_rejects_a_changed_successor_output_budget(tmp_path: Path) -> None:
     freeze = json.loads(V4_FREEZE_MANIFEST.read_text(encoding="utf-8"))
     freeze["budgets"]["max_output_tokens_per_operation"] = 385

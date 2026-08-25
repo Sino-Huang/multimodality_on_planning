@@ -7,6 +7,7 @@ import json
 import shutil
 import tempfile
 from collections import defaultdict
+from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
@@ -166,7 +167,7 @@ def _base_metrics(
         "episode_count": len(records),
         "per_seed": {
             str(seed): {
-                "invariant_valid_success": sum(bool(row["result"]["goal_reached"]) for row in by_seed[seed])
+                "invariant_valid_success": sum(_strict_success(row["result"]) for row in by_seed[seed])
                 / len(by_seed[seed]),
                 "mean_invalid_operation_rate": sum(
                     float(row["result"]["invalid_operation_rate"]) for row in by_seed[seed]
@@ -176,6 +177,18 @@ def _base_metrics(
             for seed in seeds
         },
     }
+
+
+def _strict_success(result: Mapping[str, Any]) -> bool:
+    if "invariant_valid_success" in result:
+        return result["invariant_valid_success"] is True
+    if "termination_reason" in result:
+        return (
+            result.get("goal_reached") is True
+            and result.get("termination_reason") == "goal_reached"
+            and result.get("algorithm_invariants_hold") is True
+        )
+    return result.get("goal_reached") is True
 
 
 def _reference_metrics(

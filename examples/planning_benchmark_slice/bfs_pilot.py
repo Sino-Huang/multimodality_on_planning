@@ -9,7 +9,8 @@ from collections import deque
 from dataclasses import dataclass, replace
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Iterable, Mapping
+from types import SimpleNamespace
+from typing import Any, Callable, Iterable, Mapping
 
 from src.data_collect.adapters.base import GenerationSpec, GeneratorRejection
 from src.data_collect.adapters.registry import (
@@ -28,7 +29,10 @@ from src.data_collect.normalization import normalize_pddl
 from src.data_collect.splits import whole_instance_identity
 
 from .bfs_generation import _normalize_authority_input
+from .bfs_model_input import build_bounded_bfs_model_input_v4
 from .pddl_state import PDDLStateAuthority
+from .qwen_text_policy import load_qwen_text_token_counter
+from .search_memory import MutableBFSMemory
 
 DOMAINS = (
     "15puzzle",
@@ -59,6 +63,19 @@ ATTEMPT_ID = "qualification-attempt-002"
 _TIER_QUOTAS = (32, 64, 404)
 _CURRICULUM_CONFIG = Path("src/data_collect/configs/curriculum_15_domains.yaml")
 _PUBLISHED_ROOT = Path("data/bfs_pilot_v3")
+V5_SCHEMA_VERSION = "bfs_pilot_qualification_v5"
+V5_GATE_RECEIPT_SCHEMA_VERSION = "bfs_pilot_gate_receipt_v5"
+V5_PHASE_ID = "issue-111-bfs-observable-process-pilot-v5"
+V5_ATTEMPT_ID = "qualification-attempt-003"
+_V5_PUBLISHED_ROOT = Path("data/bfs_pilot_v5")
+V6_SCHEMA_VERSION = "bfs_pilot_qualification_v6"
+V6_GATE_RECEIPT_SCHEMA_VERSION = "bfs_pilot_gate_receipt_v6"
+V6_PHASE_ID = "issue-111-bfs-observable-process-pilot-v6"
+V6_ATTEMPT_ID = "qualification-attempt-004"
+_V6_PUBLISHED_ROOT = Path("data/bfs_pilot_v6")
+_PINNED_MODEL_ID = "Qwen/Qwen3-VL-8B-Instruct"
+_PINNED_MODEL_REVISION = "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b"
+_OUTPUT_TOKEN_ALLOWANCE = 384
 
 
 @dataclass(frozen=True, slots=True)
@@ -83,6 +100,7 @@ class QualifiedCandidate:
     authority_problem_pddl: str
     authority_transformations: tuple[str, ...]
     result: ExactBFSResult
+    semantic_task_id: str = ""
 
     @property
     def band(self) -> str:
@@ -94,6 +112,15 @@ class QualifiedCandidate:
     @property
     def whole_instance_id(self) -> str:
         return whole_instance_identity(self.domain_pddl, self.problem_pddl)
+
+    @property
+    def semantic_identity(self) -> str:
+        if self.semantic_task_id:
+            return self.semantic_task_id
+        return PDDLStateAuthority.from_pddl(
+            self.authority_domain_pddl,
+            self.authority_problem_pddl,
+        ).semantic_task_identity()
 
 
 @dataclass(frozen=True, slots=True)
@@ -220,6 +247,48 @@ def select_qualified_tasks(candidates: Iterable[QualifiedCandidate]) -> dict[tup
         selected[(domain_id, band, "train")] = train
         selected[(domain_id, band, "dev")] = dev
     return selected
+
+
+def select_semantically_disjoint_tasks(
+    candidates: Iterable[QualifiedCandidate],
+) -> dict[tuple[str, str, str], QualifiedCandidate]:
+    """Select one task per cell with no semantic identity crossing splits."""
+
+    grouped: dict[tuple[str, str, str], list[QualifiedCandidate]] = {}
+    for candidate in candidates:
+        grouped.setdefault((candidate.domain_id, candidate.band, candidate.split), []).append(candidate)
+    cells = sorted(grouped, key=lambda cell: (len(grouped[cell]), cell))
+    choices = {
+        cell: sorted(
+            {candidate.semantic_identity: candidate for candidate in grouped[cell]}.values(),
+            key=_candidate_order,
+        )
+        for cell in cells
+    }
+    selected: dict[tuple[str, str, str], QualifiedCandidate] = {}
+    identities = {split: set() for split in SPLITS}
+
+    def choose(index: int) -> bool:
+        if index == len(cells):
+            return True
+        cell = cells[index]
+        split = cell[2]
+        opposite = "dev" if split == "train" else "train"
+        for candidate in choices[cell]:
+            identity = candidate.semantic_identity
+            if identity in identities[opposite]:
+                continue
+            selected[cell] = candidate
+            added = identity not in identities[split]
+            identities[split].add(identity)
+            if choose(index + 1):
+                return True
+            selected.pop(cell)
+            if added and all(item.semantic_identity != identity for item in selected.values() if item.split == split):
+                identities[split].remove(identity)
+        return False
+
+    return selected if choose(0) else {}
 
 
 def exact_fifo_bfs(domain_pddl: str, problem_pddl: str, *, max_expansions: int = 1024) -> ExactBFSResult:
@@ -360,6 +429,192 @@ def run_qualification(output_root: str | Path, *, repo_root: str | Path | None =
         raise
 
 
+def run_observable_v5_qualification(
+    output_root: str | Path,
+    *,
+    repo_root: str | Path | None = None,
+) -> dict[str, Any]:
+    """Reproduce the retained 4,096-token v5 qualification contract."""
+
+    return _run_observable_qualification(
+        output_root,
+        repo_root=repo_root,
+        phase_id=V5_PHASE_ID,
+        attempt_id=V5_ATTEMPT_ID,
+        schema_version=V5_SCHEMA_VERSION,
+        gate_receipt_schema_version=V5_GATE_RECEIPT_SCHEMA_VERSION,
+        published_root=_V5_PUBLISHED_ROOT,
+        max_context_tokens=4_096,
+    )
+
+
+def run_observable_v6_qualification(
+    output_root: str | Path,
+    *,
+    repo_root: str | Path | None = None,
+) -> dict[str, Any]:
+    """Qualify the 8,192-token observable successor without rewriting v5."""
+
+    return _run_observable_qualification(
+        output_root,
+        repo_root=repo_root,
+        phase_id=V6_PHASE_ID,
+        attempt_id=V6_ATTEMPT_ID,
+        schema_version=V6_SCHEMA_VERSION,
+        gate_receipt_schema_version=V6_GATE_RECEIPT_SCHEMA_VERSION,
+        published_root=_V6_PUBLISHED_ROOT,
+        max_context_tokens=8_192,
+    )
+
+
+def _run_observable_qualification(
+    output_root: str | Path,
+    *,
+    repo_root: str | Path | None,
+    phase_id: str,
+    attempt_id: str,
+    schema_version: str,
+    gate_receipt_schema_version: str,
+    published_root: Path,
+    max_context_tokens: int,
+) -> dict[str, Any]:
+    """Qualify one versioned observable task product under semantic isolation."""
+
+    root = Path(repo_root or Path(__file__).resolve().parents[2]).resolve()
+    destination = Path(output_root).resolve()
+    if destination.exists():
+        raise FileExistsError(f"BFS observable pilot qualification root already exists: {destination}")
+    config = load_curriculum_config(root / _CURRICULUM_CONFIG)
+    registry = build_domain_registry(config)
+    if tuple(registry) != DOMAINS:
+        raise ValueError("BFS pilot domain registry differs from the governed 15-domain order")
+
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    staging = Path(tempfile.mkdtemp(prefix=f".{destination.name}-", dir=destination.parent))
+    candidate_rows: list[dict[str, Any]] = []
+    qualified: list[QualifiedCandidate] = []
+    inspected: dict[str, dict[str, int]] = {domain: {split: 0 for split in SPLITS} for domain in DOMAINS}
+    token_counter = load_qwen_text_token_counter(
+        model_id=_PINNED_MODEL_ID,
+        revision=_PINNED_MODEL_REVISION,
+    )
+    observable_fit_cache: dict[str, bool] = {}
+    try:
+        with tempfile.TemporaryDirectory(prefix="bfs-observable-pilot-candidates-") as temporary:
+            work_root = Path(temporary)
+            for domain_id in DOMAINS:
+                adapter = _pilot_adapter(domain_id, registry[domain_id])
+                candidate_indices = {split: 0 for split in SPLITS}
+                required = {(domain_id, band, split) for band in BANDS for split in SPLITS}
+                selected: dict[tuple[str, str, str], QualifiedCandidate] = {}
+                for tier_index, quota in enumerate(_TIER_QUOTAS):
+                    tier = BANDS[tier_index]
+                    for tier_attempt in range(quota):
+                        for split in SPLITS:
+                            candidate_index = candidate_indices[split]
+                            candidate = _generate_and_qualify(
+                                adapter=adapter,
+                                domain_id=domain_id,
+                                split=split,
+                                tier=tier,
+                                tier_index=tier_index,
+                                tier_attempt=tier_attempt,
+                                candidate_index=candidate_index,
+                                work_root=work_root,
+                            )
+                            candidate_indices[split] += 1
+                            inspected[domain_id][split] = candidate_indices[split]
+                            if isinstance(candidate, QualifiedCandidate):
+                                fits = observable_fit_cache.get(candidate.semantic_identity)
+                                if fits is None:
+                                    fits = observable_candidate_fits(
+                                        candidate,
+                                        token_counter=token_counter,
+                                        max_input_tokens=max_context_tokens - _OUTPUT_TOKEN_ALLOWANCE,
+                                    )
+                                    observable_fit_cache[candidate.semantic_identity] = fits
+                                if fits:
+                                    qualified.append(candidate)
+                                    candidate_rows.append(_candidate_row(candidate, "qualified"))
+                                else:
+                                    candidate_rows.append(
+                                        _rejection_row(
+                                            candidate.candidate_id,
+                                            domain_id,
+                                            split,
+                                            tier,
+                                            candidate.seed,
+                                            "observable_input_token_limit",
+                                        )
+                                    )
+                            else:
+                                candidate_rows.append(candidate)
+                        selected = select_semantically_disjoint_tasks(
+                            item for item in qualified if item.domain_id == domain_id
+                        )
+                        if required <= set(selected):
+                            break
+                    if required <= set(selected):
+                        break
+                if any(count > CANDIDATE_CEILING for count in candidate_indices.values()):
+                    raise AssertionError("candidate ceiling exceeded")
+
+        selection: dict[tuple[str, str, str], QualifiedCandidate] = {}
+        for domain_id in DOMAINS:
+            selection.update(
+                select_semantically_disjoint_tasks(item for item in qualified if item.domain_id == domain_id)
+            )
+        required = {(domain, band, split) for domain in DOMAINS for band in BANDS for split in SPLITS}
+        missing = sorted(required - set(selection))
+        outcome = "PASS" if not missing else "VALID_STOP"
+        selected_rows = (
+            _publish_selected_observable(staging, selection, published_root=published_root) if not missing else []
+        )
+        attempt_root = staging / attempt_id
+        _write(attempt_root / "candidates.jsonl", _jsonl(candidate_rows))
+        _write(staging / "selected-manifest.jsonl", _jsonl(selected_rows))
+        report = {
+            "attempt_id": attempt_id,
+            "bands": {band: {"lower": lower, "upper": upper} for band, (lower, upper) in BAND_BOUNDS.items()},
+            "candidate_ceiling_per_domain_split": CANDIDATE_CEILING,
+            "inspected_counts": inspected,
+            "missing_cells": [list(cell) for cell in missing],
+            "outcome": outcome,
+            "phase_id": phase_id,
+            "schema_version": schema_version,
+            "selected_count": len(selected_rows),
+            "selection_seed": SELECTION_SEED,
+            "semantic_split_overlap_count": 0,
+            "test_data_accessed": False,
+        }
+        if max_context_tokens != 4_096:
+            report.update(
+                {
+                    "max_context_tokens": max_context_tokens,
+                    "max_input_tokens": max_context_tokens - _OUTPUT_TOKEN_ALLOWANCE,
+                    "max_output_tokens": _OUTPUT_TOKEN_ALLOWANCE,
+                }
+            )
+        _write(attempt_root / "qualification-report.json", _canonical_bytes(report))
+        _write(
+            attempt_root / "gate-receipt.json",
+            _canonical_bytes(
+                {
+                    "attempt_id": attempt_id,
+                    "outcome": outcome,
+                    "phase_id": phase_id,
+                    "schema_version": gate_receipt_schema_version,
+                    "scientific_completion": False,
+                }
+            ),
+        )
+        staging.replace(destination)
+        return {**report, "output_root": str(destination)}
+    except Exception:
+        shutil.rmtree(staging, ignore_errors=True)
+        raise
+
+
 def _generate_and_qualify(
     *,
     adapter: CurriculumCommandAdapter,
@@ -402,6 +657,7 @@ def _generate_and_qualify(
         return _rejection_row(candidate_id, domain_id, split, tier, seed, "trivial_goal")
     if not result.goal_reached or band is None:
         return _rejection_row(candidate_id, domain_id, split, tier, seed, "over_budget_or_unsolved")
+    authority = PDDLStateAuthority.from_pddl(authority_domain, authority_problem)
     return QualifiedCandidate(
         candidate_id=candidate_id,
         domain_id=domain_id,
@@ -415,7 +671,101 @@ def _generate_and_qualify(
         authority_problem_pddl=authority_problem,
         authority_transformations=transformations,
         result=result,
+        semantic_task_id=authority.semantic_task_identity(),
     )
+
+
+def observable_candidate_fits(
+    candidate: QualifiedCandidate,
+    *,
+    token_counter: Callable[[Mapping[str, Any]], int],
+    max_input_tokens: int = 3_712,
+) -> bool:
+    """Replay one candidate and require every delta-free observable input to fit."""
+
+    authority = PDDLStateAuthority.from_pddl(
+        candidate.authority_domain_pddl,
+        candidate.authority_problem_pddl,
+    )
+    memory = MutableBFSMemory(authority)
+    expansion_count = 0
+    while memory.frontier and expansion_count < candidate.result.expansion_count:
+        state_id = memory.frontier[0]
+        state = memory.state(state_id)
+        if authority.is_goal(state):
+            break
+        retire_source = True
+        emitted = False
+        for action in authority.applicable_actions(state):
+            target_id = authority.preview_apply(state, action).target_state.state_id
+            if target_id in memory.visited:
+                continue
+            if not _observable_memory_fits(
+                authority,
+                memory,
+                state_id=state_id,
+                token_counter=token_counter,
+                max_input_tokens=max_input_tokens,
+            ):
+                return False
+            applied = memory.apply_generated_action(state_id, action, retire_source=retire_source)
+            if applied is None:
+                raise AssertionError("unvisited observable candidate was not generated")
+            retire_source = False
+            emitted = True
+        if not emitted:
+            if not _observable_memory_fits(
+                authority,
+                memory,
+                state_id=state_id,
+                token_counter=token_counter,
+                max_input_tokens=max_input_tokens,
+            ):
+                return False
+            memory.retire_frontier_head(state_id)
+        expansion_count += 1
+    return expansion_count == candidate.result.expansion_count
+
+
+def _observable_memory_fits(
+    authority: PDDLStateAuthority,
+    memory: MutableBFSMemory,
+    *,
+    state_id: str,
+    token_counter: Callable[[Mapping[str, Any]], int],
+    max_input_tokens: int,
+) -> bool:
+    frozen = memory.freeze()
+    snapshot = SimpleNamespace(
+        frontier=frozen.frontier,
+        heuristics=frozen.heuristics,
+        known_states={visited_id: frozen.state(visited_id) for visited_id in frozen.visited},
+        novelty=frozen.novelty,
+        provenance=frozen.provenance,
+        visited=frozen.visited,
+    )
+    state = frozen.state(state_id)
+    try:
+        build_bounded_bfs_model_input_v4(
+            authority=authority,
+            goal_atoms=list(authority.goal_atoms or ()),
+            observation={
+                "frontier": list(frozen.frontier),
+                "modality": "text-state",
+                "state_atoms": list(state.atoms),
+                "state_id": state_id,
+            },
+            checkpoint=SimpleNamespace(authority_id=authority.authority_id, snapshot=snapshot),
+            accepted_deltas=(),
+            max_bytes=3_840,
+            max_input_tokens=max_input_tokens,
+            token_counter=token_counter,
+        )
+    except ValueError as error:
+        if "exceeding the" in str(error):
+            return False
+        raise
+    return True
 
 
 def _pilot_adapter(domain_id: str, base: CurriculumCommandAdapter) -> CurriculumCommandAdapter:
@@ -665,6 +1015,46 @@ def _publish_selected(
     return rows
 
 
+def _publish_selected_observable(
+    staging: Path,
+    selection: Mapping[tuple[str, str, str], QualifiedCandidate],
+    *,
+    published_root: Path,
+) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    identities = {split: set() for split in SPLITS}
+    for (domain_id, band, split), candidate in sorted(selection.items()):
+        if not replay_exact_fifo_bfs(candidate):
+            raise ValueError(f"exact FIFO replay failed: {candidate.candidate_id}")
+        identity = candidate.semantic_identity
+        opposite = "dev" if split == "train" else "train"
+        if identity in identities[opposite]:
+            raise ValueError("semantic task split isolation failed")
+        identities[split].add(identity)
+        relative_root = Path("tasks") / domain_id / split / band
+        _write(staging / relative_root / "domain.pddl", candidate.domain_pddl.encode("utf-8"))
+        _write(staging / relative_root / "problem.pddl", candidate.problem_pddl.encode("utf-8"))
+        rows.append(
+            {
+                "authority_transformations": list(candidate.authority_transformations),
+                "band": band,
+                "bucket": band,
+                "candidate_id": candidate.candidate_id,
+                "domain_id": domain_id,
+                "domain_path": (published_root / relative_root / "domain.pddl").as_posix(),
+                "expansion_count": candidate.result.expansion_count,
+                "instance_id": f"{domain_id}-{split}-{band}-0000",
+                "plan": list(candidate.result.plan),
+                "problem_path": (published_root / relative_root / "problem.pddl").as_posix(),
+                "seed": candidate.seed,
+                "semantic_task_identity": identity,
+                "split": split,
+                "status": "accepted",
+            }
+        )
+    return rows
+
+
 def _candidate_row(candidate: QualifiedCandidate, status: str) -> dict[str, Any]:
     return {
         "assigned_band": candidate.band,
@@ -734,7 +1124,11 @@ __all__ = [
     "QualifiedCandidate",
     "exact_fifo_bfs",
     "expansion_band",
+    "observable_candidate_fits",
     "replay_exact_fifo_bfs",
+    "run_observable_v5_qualification",
+    "run_observable_v6_qualification",
     "run_qualification",
     "select_qualified_tasks",
+    "select_semantically_disjoint_tasks",
 ]

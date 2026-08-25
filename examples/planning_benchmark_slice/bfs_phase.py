@@ -17,6 +17,10 @@ _FREEZE_SCHEMA_V3 = "bfs_phase_freeze_v3"
 _AUTHORIZATION_SCHEMA_V3 = "bfs_phase_authorization_v3"
 _FREEZE_SCHEMA_V4 = "bfs_phase_freeze_v4"
 _AUTHORIZATION_SCHEMA_V4 = "bfs_phase_authorization_v4"
+_FREEZE_SCHEMA_V5 = "bfs_phase_freeze_v5"
+_AUTHORIZATION_SCHEMA_V5 = "bfs_phase_authorization_v5"
+_FREEZE_SCHEMA_V6 = "bfs_phase_freeze_v6"
+_AUTHORIZATION_SCHEMA_V6 = "bfs_phase_authorization_v6"
 _DIFFICULTIES = ("easy", "medium", "hard")
 _AUTHORIZED_STAGES_V1 = (
     "trace_generation",
@@ -38,6 +42,8 @@ _TRAINING_ARMS_V1 = {"base", "exact_classical", "operational_sft", "process_sft"
 _TRAINING_ARMS_V3 = {"base", "exact_classical", "process_sft", "random_valid"}
 _V3_PHASE_ID = "issue-111-bfs-expansion-qualified-pilot-v3"
 _V4_PHASE_ID = "issue-54-bfs-contract-repair-v4"
+_V5_PHASE_ID = "issue-111-bfs-observable-process-pilot-v5"
+_V6_PHASE_ID = "issue-111-bfs-observable-process-pilot-v6"
 _V4_REPAIR_REVISION = "aab79248ee5889ec3d677d0356d3cbd0c7e485a5"
 _V3_MODEL_REVISION = "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b"
 _V3_PREREGISTRATION_REVISION = "4da3ae71531e1131c19ce552f41426241ed4308c"
@@ -135,6 +141,12 @@ def load_bfs_phase_gate(
     elif schema == _FREEZE_SCHEMA_V4:
         _validate_freeze_v4(freeze, root)
         _validate_authorization_v4(authorization, freeze, freeze_path, root)
+    elif schema == _FREEZE_SCHEMA_V5:
+        _validate_freeze_v5(freeze, root)
+        _validate_authorization_v5(authorization, freeze, freeze_path, root)
+    elif schema == _FREEZE_SCHEMA_V6:
+        _validate_freeze_v6(freeze, root)
+        _validate_authorization_v6(authorization, freeze, freeze_path, root)
     else:
         raise BFSPhaseGateError("BFS freeze manifest has an unsupported schema version")
     return BFSPhaseGate(
@@ -636,6 +648,273 @@ def _validate_authorization_v4(
     expected_freeze_path = (repo_root / _text(authorization, "freeze_manifest_path")).resolve()
     if freeze_path != expected_freeze_path:
         raise BFSPhaseGateError("BFS v4 authorization points to a different freeze manifest")
+
+
+def _validate_freeze_v5(freeze: dict[str, Any], repo_root: Path) -> None:
+    _validate_observable_freeze(
+        freeze,
+        repo_root,
+        version="v5",
+        schema_version=_FREEZE_SCHEMA_V5,
+        phase_id=_V5_PHASE_ID,
+        attempt_id="qualification-attempt-003",
+        report_schema="bfs_pilot_qualification_v5",
+        receipt_schema="bfs_pilot_gate_receipt_v5",
+        max_context_tokens=4_096,
+    )
+
+
+def _validate_freeze_v6(freeze: dict[str, Any], repo_root: Path) -> None:
+    _validate_observable_freeze(
+        freeze,
+        repo_root,
+        version="v6",
+        schema_version=_FREEZE_SCHEMA_V6,
+        phase_id=_V6_PHASE_ID,
+        attempt_id="qualification-attempt-004",
+        report_schema="bfs_pilot_qualification_v6",
+        receipt_schema="bfs_pilot_gate_receipt_v6",
+        max_context_tokens=8_192,
+    )
+
+
+def _validate_observable_freeze(
+    freeze: dict[str, Any],
+    repo_root: Path,
+    *,
+    version: str,
+    schema_version: str,
+    phase_id: str,
+    attempt_id: str,
+    report_schema: str,
+    receipt_schema: str,
+    max_context_tokens: int,
+) -> None:
+    expected_fields = {
+        "algorithm",
+        "budgets",
+        "data",
+        "implementation",
+        "modality",
+        "models",
+        "parent_issue",
+        "phase_id",
+        "schema_version",
+        "seeds",
+        "source_issue",
+        "statistics",
+        "stop_rules",
+        "thresholds",
+        "training",
+    }
+    if set(freeze) != expected_fields:
+        raise BFSPhaseGateError(f"BFS {version} freeze manifest has noncanonical fields")
+    if (
+        freeze.get("schema_version") != schema_version
+        or freeze.get("phase_id") != phase_id
+        or freeze.get("algorithm") != "bfs"
+        or freeze.get("modality") != "text-state"
+        or freeze.get("source_issue") != 111
+        or freeze.get("parent_issue") != 38
+        or freeze.get("seeds") != _V3_SEEDS
+    ):
+        raise BFSPhaseGateError(f"BFS {version} freeze manifest has the wrong authority or phase identity")
+
+    data = _mapping(freeze, "data")
+    if (
+        data.get("allowed_splits") != ["train", "dev"]
+        or data.get("held_out_split") != "test"
+        or data.get("split_unit") != "semantic_task_identity"
+        or data.get("strata") != list(_DIFFICULTIES)
+        or data.get("domains") != list(_V3_DOMAINS)
+        or data.get("development_counts_by_split_and_difficulty")
+        != {split: {band: 15 for band in _DIFFICULTIES} for split in ("train", "dev")}
+    ):
+        raise BFSPhaseGateError(f"BFS {version} data coverage is not frozen correctly")
+    artifacts = _validate_artifacts(data, repo_root, schema_name=f"BFS {version}")
+    _validate_observable_qualification(
+        _mapping(data, "qualification"),
+        artifacts,
+        repo_root,
+        version=version,
+        attempt_id=attempt_id,
+        report_schema=report_schema,
+        receipt_schema=receipt_schema,
+        max_context_tokens=max_context_tokens,
+    )
+
+    budgets = _mapping(freeze, "budgets")
+    if (
+        budgets.get("episode_max_expansions_by_difficulty")
+        != {band: upper for band, (_lower, upper) in _V3_BANDS.items()}
+        or budgets.get("accepted_delta_limit") != 16
+        or budgets.get("max_context_tokens") != max_context_tokens
+        or budgets.get("max_model_input_bytes") != 3_840
+        or budgets.get("max_output_tokens_per_operation") != 384
+        or budgets.get("invalid_operation_charge") != 1
+    ):
+        raise BFSPhaseGateError(f"BFS {version} budgets differ from the observable-input contract")
+    implementation = _mapping(freeze, "implementation")
+    if (
+        implementation.get("process_memory_projection") != "bounded_bfs_search_memory_v4"
+        or implementation.get("evaluation_request_schema") != "model_search_episode_request_v3"
+        or implementation.get("deterministic_invalid_operation_policy") != "charge_once_and_terminate"
+        or implementation.get("search_episode_harness")
+        != "examples.planning_benchmark_slice.model_search_episode.run_model_search_episode"
+    ):
+        raise BFSPhaseGateError(f"BFS {version} implementation contract has drifted")
+    primary_model = _mapping(_mapping(freeze, "models"), "primary")
+    if primary_model.get("revision") != _V3_MODEL_REVISION or primary_model.get("role") != "primary_open_vlm":
+        raise BFSPhaseGateError(f"BFS {version} primary model differs from the pinned Qwen processor")
+    arms = _mapping(_mapping(freeze, "training"), "arms")
+    if set(arms) != _TRAINING_ARMS_V3 or arms["process_sft"].get("corpus_view") != "process":
+        raise BFSPhaseGateError(f"BFS {version} training contract must be process-SFT only")
+
+
+def _validate_observable_qualification(
+    qualification: dict[str, Any],
+    artifacts: set[str],
+    repo_root: Path,
+    *,
+    version: str,
+    attempt_id: str,
+    report_schema: str,
+    receipt_schema: str,
+    max_context_tokens: int,
+) -> None:
+    if (
+        qualification.get("attempt_id") != attempt_id
+        or qualification.get("outcome") != "PASS"
+        or qualification.get("selected_task_count") != 90
+        or qualification.get("selection_seed") != 111
+        or qualification.get("candidate_ceiling_per_domain_split") != 500
+        or qualification.get("test_data_accessed") is not False
+        or qualification.get("expansion_bands")
+        != {band: {"lower": lower, "upper": upper} for band, (lower, upper) in _V3_BANDS.items()}
+    ):
+        raise BFSPhaseGateError(f"BFS {version} qualification protocol differs from the observable pilot")
+    paths = {
+        name: _text(qualification, f"{name}_path")
+        for name in ("gate_receipt", "qualification_report", "selected_manifest")
+    }
+    if paths["selected_manifest"] not in artifacts:
+        raise BFSPhaseGateError(f"BFS {version} selected manifest is not frozen")
+    payloads = {name: (repo_root / path).read_bytes() for name, path in paths.items()}
+    receipt = _json_bytes_object(payloads["gate_receipt"], f"BFS {version} gate receipt")
+    report = _json_bytes_object(payloads["qualification_report"], f"BFS {version} qualification report")
+    if (
+        receipt.get("schema_version") != receipt_schema
+        or receipt.get("outcome") != "PASS"
+        or report.get("schema_version") != report_schema
+        or report.get("outcome") != "PASS"
+        or report.get("selected_count") != 90
+        or report.get("missing_cells") != []
+        or (
+            max_context_tokens != 4_096
+            and (
+                report.get("max_context_tokens") != max_context_tokens
+                or report.get("max_input_tokens") != max_context_tokens - 384
+                or report.get("max_output_tokens") != 384
+            )
+        )
+    ):
+        raise BFSPhaseGateError(f"BFS {version} qualification receipt and report do not prove PASS")
+    _validate_observable_selected_manifest(
+        payloads["selected_manifest"], artifacts, repo_root, version=version
+    )
+
+
+def _validate_observable_selected_manifest(
+    payload: bytes,
+    artifacts: set[str],
+    repo_root: Path,
+    *,
+    version: str,
+) -> None:
+    from .bfs_generation import _normalize_authority_input
+    from .pddl_state import PDDLStateAuthority
+
+    rows = [json.loads(line) for line in payload.decode("utf-8").splitlines() if line]
+    required = {(domain, band, split) for domain in _V3_DOMAINS for band in _DIFFICULTIES for split in ("train", "dev")}
+    if len(rows) != 90 or {(row.get("domain_id"), row.get("band"), row.get("split")) for row in rows} != required:
+        raise BFSPhaseGateError(f"BFS {version} selected manifest does not cover all 90 cells")
+    identities: dict[str, set[str]] = {"train": set(), "dev": set()}
+    for row in rows:
+        for field in ("domain_path", "problem_path"):
+            if row.get(field) not in artifacts:
+                raise BFSPhaseGateError(f"BFS {version} selected task is not bound by the freeze")
+        domain_pddl = (repo_root / row["domain_path"]).read_text(encoding="utf-8")
+        problem_pddl = (repo_root / row["problem_path"]).read_text(encoding="utf-8")
+        authority_domain, authority_problem, _transformations = _normalize_authority_input(domain_pddl, problem_pddl)
+        authority = PDDLStateAuthority.from_pddl(authority_domain, authority_problem)
+        identity = authority.semantic_task_identity()
+        if row.get("semantic_task_identity") != identity:
+            raise BFSPhaseGateError(f"BFS {version} selected task semantic identity differs from its PDDL")
+        identities[row["split"]].add(identity)
+    if identities["train"] & identities["dev"]:
+        raise BFSPhaseGateError(f"BFS {version} selected manifest violates semantic split isolation")
+
+
+def _validate_authorization_v5(
+    authorization: dict[str, Any],
+    freeze: dict[str, Any],
+    freeze_path: Path,
+    repo_root: Path,
+) -> None:
+    _validate_observable_authorization(
+        authorization,
+        freeze,
+        freeze_path,
+        repo_root,
+        version="v5",
+        schema_version=_AUTHORIZATION_SCHEMA_V5,
+        phase_id=_V5_PHASE_ID,
+    )
+
+
+def _validate_authorization_v6(
+    authorization: dict[str, Any],
+    freeze: dict[str, Any],
+    freeze_path: Path,
+    repo_root: Path,
+) -> None:
+    _validate_observable_authorization(
+        authorization,
+        freeze,
+        freeze_path,
+        repo_root,
+        version="v6",
+        schema_version=_AUTHORIZATION_SCHEMA_V6,
+        phase_id=_V6_PHASE_ID,
+    )
+
+
+def _validate_observable_authorization(
+    authorization: dict[str, Any],
+    freeze: dict[str, Any],
+    freeze_path: Path,
+    repo_root: Path,
+    *,
+    version: str,
+    schema_version: str,
+    phase_id: str,
+) -> None:
+    if (
+        authorization.get("schema_version") != schema_version
+        or authorization.get("outcome") != "PASS"
+        or authorization.get("scientific_completion") is not False
+        or authorization.get("source_issue") != 111
+        or authorization.get("parent_issue") != 38
+        or authorization.get("phase_id") != phase_id
+        or authorization.get("phase_id") != freeze.get("phase_id")
+        or authorization.get("contract_id") != phase_id
+        or authorization.get("authorized_stages") != list(_AUTHORIZED_STAGES_V3)
+        or authorization.get("downstream_issues") != [54]
+    ):
+        raise BFSPhaseGateError(f"BFS {version} authorization does not authorize the observable phase")
+    expected_freeze_path = (repo_root / _text(authorization, "freeze_manifest_path")).resolve()
+    if freeze_path != expected_freeze_path:
+        raise BFSPhaseGateError(f"BFS {version} authorization points to a different freeze manifest")
 
 
 def _load_json_object(path: Path, name: str) -> tuple[bytes, dict[str, Any]]:

@@ -17,7 +17,7 @@ from src.data_collect.governance import (
 )
 from src.data_collect.replay import build_canonical_bundle, parse_canonical_bundle
 
-from .bfs_model_input import build_bounded_bfs_model_input
+from .bfs_model_input import build_bounded_bfs_model_input, build_bounded_bfs_model_input_v4
 from .pddl_state import CanonicalState, PDDLStateAuthority
 from .search_context import materialize_search_trace
 from .search_episode import (
@@ -53,6 +53,7 @@ from .search_trace import (
 from .validate_instance import load_fixture
 
 MODEL_EVIDENCE_SCHEMA_VERSION = "model_search_episode_evidence_v1"
+MODEL_REQUEST_SCHEMA_VERSION_V3 = "model_search_episode_request_v3"
 MODEL_REQUEST_SCHEMA_VERSION = "model_search_episode_request_v2"
 _LEGACY_MODEL_REQUEST_SCHEMA_VERSION = "model_search_episode_request_v1"
 _MODEL_BUNDLE_ARTIFACTS = {
@@ -171,9 +172,10 @@ def replay_model_search_episode(evidence: Mapping[str, Any]) -> dict[str, Any]:
     if request.get("schema_version") not in {
         _LEGACY_MODEL_REQUEST_SCHEMA_VERSION,
         MODEL_REQUEST_SCHEMA_VERSION,
+        MODEL_REQUEST_SCHEMA_VERSION_V3,
     } or request.get("model") != model:
         raise SearchEpisodeError("model request artifact is invalid")
-    if request["schema_version"] == MODEL_REQUEST_SCHEMA_VERSION:
+    if request["schema_version"] in {MODEL_REQUEST_SCHEMA_VERSION, MODEL_REQUEST_SCHEMA_VERSION_V3}:
         _validate_projection_request(request)
 
     gate = _gate_from_payload(_load_canonical_json(artifacts["gate-receipt.json"], "model gate receipt"))
@@ -203,7 +205,7 @@ def replay_model_search_episode(evidence: Mapping[str, Any]) -> dict[str, Any]:
     authority = _authority_from_task(task)
     limits = _trace_limits(authority, max_expansions)
     replay_search_trace_segment(artifacts["search-trace.json"], authority=authority, limits=limits)
-    _verify_model_event_summary(policy_events, expansions, result, max_expansions)
+    _verify_model_event_summary(policy_events, expansions, result, max_expansions, request=request)
     replayed_evidence = {
         "bundle": encoded_bundle,
         "bundle_encoding": "base64",
@@ -240,6 +242,7 @@ def _execute_authorized_model_episode(
     invalid_operation_count = 0
     budget_used = 0
     termination_reason: str | None = None
+    exited_through_goal_check = False
     deterministic_memoized = (
         model_identity.get("decoding") == "greedy"
         and model_identity.get("memoize_identical_inputs") is True
@@ -250,6 +253,8 @@ def _execute_authorized_model_episode(
         expanded_state_id = frontier_before[0]
         state = memory.state(expanded_state_id)
         if authority.is_goal(state):
+            exited_through_goal_check = True
+            termination_reason = "goal_reached"
             break
         enqueued_state_ids: list[str] = []
         expansion_complete = False
@@ -344,11 +349,9 @@ def _execute_authorized_model_episode(
         )
         budget_used += 1
 
-    goal_reached = bool(memory.frontier and authority.is_goal(memory.state(memory.frontier[0])))
+    goal_reached = exited_through_goal_check
     if termination_reason is None:
-        if goal_reached:
-            termination_reason = "goal_reached"
-        elif budget_used >= max_expansions:
+        if budget_used >= max_expansions:
             termination_reason = "budget_exhausted"
         elif not memory.frontier:
             termination_reason = "frontier_exhausted"
@@ -370,6 +373,7 @@ def _execute_authorized_model_episode(
         "decision_count": len(policy_events),
         "expansion_count": len(expansions),
         "goal_reached": goal_reached,
+        "invariant_valid_success": goal_reached and termination_reason == "goal_reached",
         "invalid_operation_count": invalid_operation_count,
         "invalid_operation_rate": invalid_operation_count / len(policy_events) if policy_events else 0.0,
         "outcome": StopOutcome.PASS.value,
@@ -388,7 +392,11 @@ def _execute_authorized_model_episode(
         "model_input_projection": model_input_projection,
         "modality": modality,
         "model": model_payload,
-        "schema_version": MODEL_REQUEST_SCHEMA_VERSION,
+        "schema_version": (
+            MODEL_REQUEST_SCHEMA_VERSION_V3
+            if model_input_projection == "bounded_bfs_search_memory_v4"
+            else MODEL_REQUEST_SCHEMA_VERSION
+        ),
         "seed": seed,
     }
     artifacts = {
@@ -441,6 +449,16 @@ def _model_input(
             max_bytes=max_input_bytes,
         )
         return model_input
+    if projection == "bounded_bfs_search_memory_v4":
+        model_input, _dropped = build_bounded_bfs_model_input_v4(
+            authority=authority,
+            goal_atoms=list(authority.goal_atoms or ()),
+            observation=_text_observation(state, memory),
+            checkpoint=rolling_context.checkpoint,
+            accepted_deltas=rolling_context.accepted_deltas,
+            max_bytes=max_input_bytes,
+        )
+        return model_input
     if projection != "rolling_search_context_v1":
         raise SearchEpisodeError(f"unsupported model input projection: {projection}")
     return {
@@ -485,6 +503,13 @@ def _apply_bfs_model_operation(
         return None, str(error)
     if preview.target_state.state_id in memory.visited:
         return None, "BFS successor target was already visited"
+    expected_action = next(
+        action
+        for action in authority.applicable_actions(state)
+        if authority.preview_apply(state, action).target_state.state_id not in memory.visited
+    )
+    if operation.action != expected_action:
+        return None, "BFS transition must select the first canonical unvisited successor"
     result = apply_search_transition(memory, operation, evaluator=_unexpected_evaluator)
     return result, None
 
@@ -515,9 +540,14 @@ def _parse_model_output(raw_output: str) -> tuple[dict[str, Any] | None, str | N
 
     try:
         parsed = json.loads(raw_output, object_pairs_hook=reject_duplicates, parse_constant=reject_constant)
-        if not isinstance(parsed, dict) or "typed_operation" not in parsed:
-            raise ValueError("model output must be an object containing typed_operation")
-        rationale = parsed.get("canonical_rationale", "")
+        required_fields = {"canonical_rationale", "runtime_result", "typed_operation"}
+        if not isinstance(parsed, dict) or set(parsed) != required_fields:
+            raise ValueError(
+                "model output must contain exactly canonical_rationale, runtime_result, and typed_operation"
+            )
+        if parsed["runtime_result"] is not None:
+            raise ValueError("runtime_result must be null")
+        rationale = parsed["canonical_rationale"]
         if not isinstance(rationale, str):
             raise ValueError("canonical_rationale must be text")
         operation = _decode_operation(parsed["typed_operation"])
@@ -567,6 +597,7 @@ def _validate_model_request(
             raise SearchEpisodeError(f"{name} must be a positive integer")
     if model_input_projection not in {
         "bounded_bfs_search_memory_v3",
+        "bounded_bfs_search_memory_v4",
         "rolling_search_context_v1",
     }:
         raise SearchEpisodeError("model_input_projection is unsupported")
@@ -579,6 +610,8 @@ def _verify_model_event_summary(
     expansions: Any,
     result: Any,
     max_expansions: int,
+    *,
+    request: Mapping[str, Any],
 ) -> None:
     if not isinstance(events, list) or not isinstance(expansions, list) or not isinstance(result, dict):
         raise SearchEpisodeError("model evidence summary is malformed")
@@ -595,6 +628,15 @@ def _verify_model_event_summary(
     expected_rate = invalid_count / len(events) if events else 0.0
     if result.get("invalid_operation_rate") != expected_rate:
         raise SearchEpisodeError("model invalid-operation rate differs from its events")
+    if request.get("schema_version") == MODEL_REQUEST_SCHEMA_VERSION_V3:
+        goal_reached = result.get("goal_reached") is True
+        strict_success = (
+            goal_reached
+            and result.get("termination_reason") == "goal_reached"
+            and result.get("algorithm_invariants_hold") is True
+        )
+        if result.get("invariant_valid_success") is not strict_success:
+            raise SearchEpisodeError("model invariant-valid success differs from strict v5 adjudication")
 
 
 def _validate_projection_request(request: Mapping[str, Any]) -> None:
@@ -603,6 +645,7 @@ def _validate_projection_request(request: Mapping[str, Any]) -> None:
         raise SearchEpisodeError("model request input budget is invalid")
     if request.get("model_input_projection") not in {
         "bounded_bfs_search_memory_v3",
+        "bounded_bfs_search_memory_v4",
         "rolling_search_context_v1",
     }:
         raise SearchEpisodeError("model request input projection is invalid")

@@ -179,3 +179,21 @@ def test_v4_reference_command_uses_a_separate_output_root(tmp_path: Path) -> Non
 
     assert command[command.index("--phase") + 1] == "v4"
     assert any("issue54-v4-references" in argument for argument in command)
+
+
+def test_v6_training_uses_observable_corpus_and_separate_roots(tmp_path: Path) -> None:
+    launches = training_launches(
+        seeds=SEEDS,
+        devices=DEVICES,
+        output_root=tmp_path,
+        dataset_root=tmp_path / "bfs_pilot_v6" / "ms-swift-process",
+        phase="v6",
+    )
+
+    assert len(launches) == 5
+    assert all(launch.command[launch.command.index("--phase") + 1] == "v6" for launch in launches)
+    assert all("issue54-v6-process-sft" in launch.output_root.name for launch in launches)
+    assert all(
+        "issue54-v6-references" in launch.command[launch.command.index("--reference-manifest") + 1]
+        for launch in launches
+    )

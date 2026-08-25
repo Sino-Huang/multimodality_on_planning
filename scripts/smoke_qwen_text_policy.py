@@ -72,6 +72,7 @@ def main() -> int:
         model_id=frozen_model["model_id"],
         revision=frozen_model["revision"],
         max_new_tokens=phase_gate.freeze["budgets"]["max_output_tokens_per_operation"],
+        max_context_tokens=phase_gate.freeze["budgets"]["max_context_tokens"],
         device=str(device),
     )
     policy.set_seed(phase_gate.freeze["seeds"][0])

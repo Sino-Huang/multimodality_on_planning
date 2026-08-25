@@ -17,13 +17,12 @@ from examples.planning_benchmark_slice.qwen_text_policy import QwenTextPolicy
 from src.data_collect.governance import AuthorizationReceipt, GateReceipt, ReceiptBinding, StopOutcome
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
-_MANIFEST = _REPO_ROOT / "data" / "bfs_pilot_v3" / "selected-manifest.jsonl"
 _PHASES = {
     phase: (
         _REPO_ROOT / "configs" / "experiments" / f"bfs_phase_freeze_{phase}.json",
         _REPO_ROOT / "configs" / "experiments" / f"bfs_phase_authorization_{phase}.json",
     )
-    for phase in ("v3", "v4")
+    for phase in ("v3", "v4", "v5", "v6")
 }
 
 
@@ -57,7 +56,9 @@ def main(arguments: list[str] | None = None) -> int:
         raise ValueError("model evaluation seed is not in the frozen BFS seed set")
     stage = "base_and_references" if args.arm == "base" else "process_sft_and_sanity_gate"
     phase_gate.require_run(stage=stage, contract_id=phase_gate.phase_id)
-    tasks = frozen_bfs_development_tasks(_MANIFEST, phase_gate)
+    data_root = f"bfs_pilot_{args.phase}" if args.phase in {"v5", "v6"} else "bfs_pilot_v3"
+    manifest = _REPO_ROOT / "data" / data_root / "selected-manifest.jsonl"
+    tasks = frozen_bfs_development_tasks(manifest, phase_gate)
     shard_tasks = [row for index, row in enumerate(tasks) if index % args.shard_count == args.shard_index]
     budgets = phase_gate.freeze["budgets"]
     max_input_bytes = budgets.get(
@@ -105,6 +106,7 @@ def main(arguments: list[str] | None = None) -> int:
         model_id=model["model_id"],
         revision=model["revision"],
         max_new_tokens=budgets["max_output_tokens_per_operation"],
+        max_context_tokens=budgets["max_context_tokens"],
         device=args.device,
         adapter_path=adapter_path,
     )

@@ -108,14 +108,25 @@ class PDDLStateAuthority:
         self.problem_name = problem.name
         self.problem_domain_name = problem.domain_name
         self.objects = tuple(sorted(obj.name for obj in problem.objects))
+        self.objects_by_type = _objects_by_declared_type(domain, problem)
         self.action_vocabulary = tuple(sorted(action.name for action in domain.actions))
         self.goal_atoms = _positive_goal_atoms(problem.goal)
+        self.canonical_goal = _canonical_formula(problem.goal)
+        modified_predicates = _modified_predicates(domain)
+        self.static_initial_facts = tuple(
+            sorted(
+                _canonical_term(item.name, tuple(argument.name for argument in item.arguments))
+                for item in problem.initial
+                if isinstance(item, pddl.Atom) and item.name not in modified_predicates
+            )
+        )
         self.authority_id = authority_id
         self.initial_state = self._canonicalize(self._task.initial_state)
         self._states: dict[str, tuple[CanonicalState, State]] = {
             self.initial_state.state_id: (self.initial_state, self._task.initial_state.duplicate())
         }
         self._applicable_by_state: dict[str, dict[GroundedAction, GroundActionRef]] = {}
+        self._previews: dict[tuple[str, GroundedAction], PDDLTransition] = {}
 
     @classmethod
     def from_pddl(cls, domain_pddl: str, problem_pddl: str) -> "PDDLStateAuthority":
@@ -130,6 +141,30 @@ class PDDLStateAuthority:
 
     def canonical_state(self, atoms: tuple[str, ...], fluents: tuple[str, ...] = ()) -> CanonicalState:
         return CanonicalState(atoms, self.authority_id, fluents)
+
+    def task_context(self) -> dict[str, object]:
+        """Return static task facts that are not carried in dynamic states."""
+
+        return {
+            "canonical_goal": self.canonical_goal,
+            "initial_dynamic_atoms": list(self.initial_state.atoms),
+            "initial_dynamic_fluents": list(self.initial_state.fluents),
+            "objects_by_type": {type_name: list(objects) for type_name, objects in self.objects_by_type},
+            "static_initial_facts": list(self.static_initial_facts),
+        }
+
+    def semantic_task_identity(self) -> str:
+        """Canonical task semantics used to isolate train and development tasks."""
+
+        return _canonical_identity(
+            {
+                "goal": self.canonical_goal,
+                "initial_dynamic_atoms": self.initial_state.atoms,
+                "initial_dynamic_fluents": self.initial_state.fluents,
+                "objects_by_type": self.objects_by_type,
+                "static_initial_facts": self.static_initial_facts,
+            }
+        )
 
     def applicable_actions(self, state: CanonicalState) -> tuple[GroundedAction, ...]:
         return tuple(sorted(self._applicable_action_refs(state), key=GroundedAction.serialize))
@@ -146,7 +181,12 @@ class PDDLStateAuthority:
         return self._apply(state, action, register_target=True)
 
     def preview_apply(self, state: CanonicalState, action: GroundedAction) -> PDDLTransition:
-        return self._apply(state, action, register_target=False)
+        key = (state.state_id, action)
+        preview = self._previews.get(key)
+        if preview is None:
+            preview = self._apply(state, action, register_target=False)
+            self._previews[key] = preview
+        return preview
 
     def _apply(
         self,
@@ -234,6 +274,58 @@ class PDDLStateAuthority:
 
 def _canonical_term(name: str, args: tuple[str, ...]) -> str:
     return name if not args else f"{name}({','.join(args)})"
+
+
+def _objects_by_declared_type(
+    domain: pddl.Domain,
+    problem: pddl.Problem,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    grouped: dict[str, set[str]] = {}
+    for item in (*domain.constants, *problem.objects):
+        grouped.setdefault(item.type_name, set()).add(item.name)
+    return tuple((type_name, tuple(sorted(objects))) for type_name, objects in sorted(grouped.items()))
+
+
+def _modified_predicates(domain: pddl.Domain) -> frozenset[str]:
+    names: set[str] = set()
+
+    def collect(effect: pddl.ActionEffect) -> None:
+        if isinstance(effect, pddl.AtomEffect):
+            names.add(effect.name)
+        elif isinstance(effect, pddl.NegativeEffect):
+            names.add(effect.atom.name)
+        elif isinstance(effect, pddl.ConjunctiveEffect):
+            for child in effect.effects:
+                collect(child)
+        elif isinstance(effect, (pddl.ConditionalEffect, pddl.UniversalEffect)):
+            collect(effect.effect)
+        elif isinstance(effect, pddl.ProbabilisticEffect):
+            for outcome in effect.outcomes:
+                collect(outcome.effect)
+
+    for action in domain.actions:
+        collect(action.effect)
+    return frozenset(names)
+
+
+def _canonical_formula(formula: pddl.BooleanExpression) -> object:
+    if isinstance(formula, pddl.Atom):
+        return ["atom", formula.name, [argument.name for argument in formula.arguments]]
+    if isinstance(formula, pddl.Negation):
+        return ["not", _canonical_formula(formula.sub_formula)]
+    if isinstance(formula, (pddl.Conjunction, pddl.Disjunction)):
+        operator = "and" if isinstance(formula, pddl.Conjunction) else "or"
+        children = [_canonical_formula(child) for child in formula.sub_formulas]
+        return [operator, sorted(children, key=_canonical_identity)]
+    if isinstance(formula, (pddl.Forall, pddl.Exists)):
+        operator = "forall" if isinstance(formula, pddl.Forall) else "exists"
+        parameters = sorted((parameter.name, parameter.type_name) for parameter in formula.parameters)
+        return [operator, parameters, _canonical_formula(formula.sub_formula)]
+    if isinstance(formula, pddl.Truth):
+        return ["true"]
+    if isinstance(formula, pddl.Falsity):
+        return ["false"]
+    return ["expression", formula.dump(0)]
 
 
 def _positive_goal_atoms(goal: pddl.BooleanExpression) -> tuple[str, ...] | None:

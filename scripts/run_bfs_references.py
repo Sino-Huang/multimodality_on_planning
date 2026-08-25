@@ -29,6 +29,11 @@ _PHASES = {
         _REPO_ROOT / "configs" / "experiments" / "bfs_phase_authorization_v4.json",
         _REPO_ROOT / "data" / "bfs_pilot_v3" / "selected-manifest.jsonl",
     ),
+    "v6": (
+        _REPO_ROOT / "configs" / "experiments" / "bfs_phase_freeze_v6.json",
+        _REPO_ROOT / "configs" / "experiments" / "bfs_phase_authorization_v6.json",
+        _REPO_ROOT / "data" / "bfs_pilot_v6" / "selected-manifest.jsonl",
+    ),
 }
 
 

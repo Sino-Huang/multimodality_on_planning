@@ -14,13 +14,16 @@ from scripts.run_bfs_base_seeds import SeedLaunch, run_seed_launches
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 _OUTPUT_ROOT = _REPO_ROOT / "outputs" / "bfs_phase"
-_DATASET_ROOT = _REPO_ROOT / "data" / "bfs_pilot_v3" / "ms-swift-process"
+_DATASET_ROOTS = {
+    "v3": _REPO_ROOT / "data" / "bfs_pilot_v3" / "ms-swift-process",
+    "v6": _REPO_ROOT / "data" / "bfs_pilot_v6" / "ms-swift-process",
+}
 _PHASES = {
     phase: (
         _REPO_ROOT / "configs" / "experiments" / f"bfs_phase_freeze_{phase}.json",
         _REPO_ROOT / "configs" / "experiments" / f"bfs_phase_authorization_{phase}.json",
     )
-    for phase in ("v3", "v4")
+    for phase in ("v3", "v4", "v6")
 }
 _STAGES = ("preflight", "diagnose", "probe", "references", "base", "train", "evaluate", "adjudicate")
 
@@ -57,12 +60,13 @@ def training_launches(
     devices: Sequence[str],
     output_root: Path,
     dataset_root: Path,
+    phase: str = "v3",
 ) -> tuple[SeedLaunch, ...]:
-    reference_manifest = output_root / "issue54-v3-references" / "manifests" / "bfs-references.json"
+    reference_manifest = output_root / f"issue54-{phase}-references" / "manifests" / "bfs-references.json"
     launches = []
     for index, seed in enumerate(seeds):
         device = devices[index % len(devices)]
-        attempt = _next_training_attempt(output_root, seed)
+        attempt = _next_training_attempt(output_root, seed, phase=phase)
         if attempt is None:
             continue
         training_root, attempt_id = attempt
@@ -70,7 +74,7 @@ def training_launches(
             sys.executable,
             "scripts/run_bfs_sft.py",
             "--phase",
-            "v3",
+            phase,
             "--dataset-root",
             str(dataset_root),
             "--reference-manifest",
@@ -110,12 +114,14 @@ def training_commands(
     output_root: Path,
     dataset_root: Path,
     dry_run: bool,
+    phase: str = "v3",
 ) -> tuple[tuple[str, ...], ...]:
     launches = training_launches(
         seeds=seeds,
         devices=devices,
         output_root=output_root,
         dataset_root=dataset_root,
+        phase=phase,
     )
     return tuple((*launch.command, "--dry-run") if dry_run else launch.command for launch in launches)
 
@@ -130,8 +136,9 @@ def checkpoint_launches(
 ) -> tuple[SeedLaunch, ...]:
     launches = []
     launch_index = 0
+    training_phase = "v3" if evaluation_phase == "v4" else evaluation_phase
     for seed in seeds:
-        training_root = _successful_training_root(output_root, seed)
+        training_root = _successful_training_root(output_root, seed, phase=training_phase)
         report_path = training_root / "training-report.json"
         report = _json_object(report_path)
         checkpoints = report.get("checkpoint_paths")
@@ -189,13 +196,13 @@ def checkpoint_launches(
     return tuple(launches)
 
 
-def _next_training_attempt(output_root: Path, seed: int) -> tuple[Path, str] | None:
-    roots = _training_attempt_roots(output_root, seed)
+def _next_training_attempt(output_root: Path, seed: int, *, phase: str = "v3") -> tuple[Path, str] | None:
+    roots = _training_attempt_roots(output_root, seed, phase=phase)
     if any(_is_successful_training(root) for root in roots):
         return None
     next_attempt = len(roots) + 1
-    output_name = f"issue54-v3-process-sft-seed-{seed}"
-    attempt_id = f"issue-54-v3-process-sft-seed-{seed}"
+    output_name = f"issue54-{phase}-process-sft-seed-{seed}"
+    attempt_id = f"issue-54-{phase}-process-sft-seed-{seed}"
     if next_attempt > 1:
         suffix = f"-attempt-{next_attempt:03d}"
         output_name += suffix
@@ -203,15 +210,19 @@ def _next_training_attempt(output_root: Path, seed: int) -> tuple[Path, str] | N
     return output_root / output_name, attempt_id
 
 
-def _successful_training_root(output_root: Path, seed: int) -> Path:
-    successful = [root for root in _training_attempt_roots(output_root, seed) if _is_successful_training(root)]
+def _successful_training_root(output_root: Path, seed: int, *, phase: str = "v3") -> Path:
+    successful = [
+        root
+        for root in _training_attempt_roots(output_root, seed, phase=phase)
+        if _is_successful_training(root)
+    ]
     if not successful:
         raise ValueError(f"seed {seed} has no successful process-SFT training attempt")
     return successful[-1]
 
 
-def _training_attempt_roots(output_root: Path, seed: int) -> list[Path]:
-    first = output_root / f"issue54-v3-process-sft-seed-{seed}"
+def _training_attempt_roots(output_root: Path, seed: int, *, phase: str = "v3") -> list[Path]:
+    first = output_root / f"issue54-{phase}-process-sft-seed-{seed}"
     roots = [first] if first.is_dir() else []
     roots.extend(sorted(output_root.glob(f"{first.name}-attempt-*")))
     return roots
@@ -460,7 +471,8 @@ def main(arguments: Sequence[str] | None = None) -> int:
             seeds=seeds,
             devices=devices,
             output_root=_OUTPUT_ROOT,
-            dataset_root=_DATASET_ROOT,
+            dataset_root=_DATASET_ROOTS[args.phase],
+            phase=args.phase,
         )
         if args.dry_run:
             return _run_sequential([(*launch.command, "--dry-run") for launch in launches], label="train")
