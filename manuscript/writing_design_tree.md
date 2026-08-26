@@ -4,7 +4,10 @@
 
 - Issue #38 is the ratified, still-open authority for the current Search Process Policy program. Terminology ratification completed in #39 and bounded pytest discovery completed in #40.
 - The repository contains reusable historical planning, modality-serialization, trace, verifier, and planning-rendering provenance infrastructure. Certified 4-, 8-, and 12-object smoke Attempts support Integration Certification for their declared fixtures only.
-- No current Search Episode Harness, Trusted Search Runtime, Typed Search Operation API, Search Memory contract, A* variants, Search Process Policy training data, trained policy, or model-efficacy result exists. All substantive tickets #41--#108 remain open.
+- Fetched `origin/main` at commit `12031ef` contains a bounded BFS-only, text-state v6 pilot. It includes an observable Search Memory interface, a Search Episode Harness, Typed Search Operations, trusted/replay traces, and a released process-SFT corpus.
+- The v6 release contains 90 trusted/replay traces and 25,109 process rows, split into 12,994 train rows and 12,115 dev rows. Its observations provide decision-sufficient task context, grounded successor candidates, and exact visited status. Release qualification records zero train/dev input overlap, input-target overlap, semantic-task overlap, conflicting identical-input labels, live/training mismatch, and teacher-operation rejection. The allowance is 8,192 context tokens and 384 output tokens. These are corpus and release-qualification evidence, not efficacy evidence.
+- Issue #54 records corpus-release qualification `PASS` with `scientific_completion=false`, while the issue remains open/reopened. No clean governed SFT outcome exists. The current attempt cannot be retained because its release metadata records `accepted_delta_limit` 21 against the frozen limit of 16. The reported corrected 16-delta regeneration is byte-identical in learning payload and changes metadata and audit records only. This governance defect does not indicate changed training examples. See [the issue #54 qualification comment](https://github.com/Sino-Huang/multimodality_on_planning/issues/54#issuecomment-5407836531).
+- No trained Search Process Policy, retained governed SFT outcome, IW or A* corpus, multimodal corpus, comparative efficacy result, or scientific completion exists.
 - The full test suite remains blocked by 13 documented historical phase-3 collection errors. Retained rendering uses locally supplied plans; it is not planning or Search Process Policy evidence.
 
 ## Root Decision
@@ -46,6 +49,12 @@ Before the planned final evaluation is called frozen, define and record:
 
 Until these choices are set, the paper is a result-ready empirical skeleton rather than a preregistered evaluation protocol.
 
+## Algorithm-Specific Corpus Prerequisites
+
+Every algorithm-specific corpus must expose a decision-sufficient Modality Observation and pass no-conflict, no-leakage, live/training-parity, and token-budget checks. These requirements qualify corpus construction and release. They do not establish policy training or efficacy.
+
+The following is design inference, not implemented evidence. A future IW corpus should expose the novelty and pruning information required by its Algorithm Invariant. A future A* corpus should expose the frontier-order quantities required by its declared heuristic, for example `g`, `h`, and `f` under h_max or landmark-count. No IW or A* corpus currently exists, and their schemas need not be identical to the BFS corpus schema.
+
 ## Section Blueprint
 
 - Title: "Can Vision-Language Models Learn to Execute Classical Search Algorithms?"
@@ -70,4 +79,5 @@ Until these choices are set, the paper is a result-ready empirical skeleton rath
 - D7 accepted on 2026-08-18: preserve prespecified stop receipts, null findings, and failures in the main narrative.
 - D8--D14 accepted on 2026-08-18: section scopes are fixed as above; the arm-level protocol parameters required for a frozen final evaluation remain open.
 - D15--D22 accepted on 2026-08-18: the contribution list, related-work axis table, shared policy design, four-arm control, separate primary reporting measures, frozen-policy transfer after preregistration, runtime limitation, and gate-bounded conclusion are fixed in the Section Blueprint.
+- Evidence alignment was updated on 2026-08-26: commit `12031ef` supplies bounded BFS-only, text-state v6 corpus and release-qualification evidence. It does not alter the staged evaluation, paper architecture, or no-efficacy boundary.
 - Author confirmation received on 2026-08-18: the Section Blueprint captures the intended manuscript. The grilling frontier is closed.
