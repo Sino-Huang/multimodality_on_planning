@@ -700,6 +700,15 @@ def _record_count(trace: bytes) -> int:
 
 def _rolling_delta_limit(phase_gate: BFSPhaseGate) -> int:
     budgets = phase_gate.freeze["budgets"]
+    accepted_delta_limit = budgets.get("accepted_delta_limit")
+    if accepted_delta_limit is not None:
+        if (
+            isinstance(accepted_delta_limit, bool)
+            or not isinstance(accepted_delta_limit, int)
+            or accepted_delta_limit <= 0
+        ):
+            raise ValueError("frozen BFS accepted delta limit must be a positive integer")
+        return accepted_delta_limit
     context_tokens = budgets["max_context_tokens"]
     operation_tokens = budgets["max_output_tokens_per_operation"]
     if (

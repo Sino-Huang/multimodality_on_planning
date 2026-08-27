@@ -84,7 +84,7 @@ def main() -> int:
         trace_manifest_path=trace_manifest_path,
         request=_request(
             phase_gate,
-            "issue-111-v6-process-corpus-attempt-002" if args.resume_from_traces else "issue-111-v6-process-corpus",
+            "issue-111-v6-process-corpus-attempt-003" if args.resume_from_traces else "issue-111-v6-process-corpus",
             corpus_root,
             receipt_root,
         ),

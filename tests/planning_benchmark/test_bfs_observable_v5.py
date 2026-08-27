@@ -6,7 +6,9 @@ from types import SimpleNamespace
 
 import pytest
 
+from examples.planning_benchmark_slice.bfs_corpus import _rolling_delta_limit
 from examples.planning_benchmark_slice.bfs_model_input import build_bounded_bfs_model_input_v4
+from examples.planning_benchmark_slice.bfs_phase import load_bfs_phase_gate
 from examples.planning_benchmark_slice.bfs_pilot import (
     ExactBFSResult,
     QualifiedCandidate,
@@ -15,6 +17,8 @@ from examples.planning_benchmark_slice.bfs_pilot import (
 from examples.planning_benchmark_slice.model_search_episode import _parse_model_output, run_model_search_episode
 from examples.planning_benchmark_slice.pddl_state import PDDLStateAuthority
 from src.data_collect.governance import AuthorizationReceipt, GateReceipt, ReceiptBinding, StopOutcome
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
 
 DOMAIN = """
 (define (domain observable)
@@ -198,6 +202,15 @@ def test_required_observable_input_is_never_truncated_to_meet_token_budget() -> 
             max_input_tokens=1,
             token_counter=lambda _model_input: 2,
         )
+
+
+def test_v6_corpus_uses_the_frozen_accepted_delta_limit() -> None:
+    phase_gate = load_bfs_phase_gate(
+        REPO_ROOT / "configs" / "experiments" / "bfs_phase_freeze_v6.json",
+        REPO_ROOT / "configs" / "experiments" / "bfs_phase_authorization_v6.json",
+    )
+
+    assert _rolling_delta_limit(phase_gate) == phase_gate.freeze["budgets"]["accepted_delta_limit"] == 16
 
 
 def test_invalid_exit_with_goal_at_frontier_head_is_not_success(tmp_path: Path) -> None:
