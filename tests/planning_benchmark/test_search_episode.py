@@ -122,11 +122,18 @@ def test_exact_text_iw1_completes_with_typed_novelty_evidence_that_replays(tmp_p
     )
 
     assert episode["result"]["goal_reached"] is True
+    assert episode["result"]["completion"] == "completed"
+    assert episode["result"]["outcome"] == StopOutcome.PASS.value
+    assert episode["result"]["scientific_completion"] is True
+    assert episode["result"]["expansion_count"] <= 64
     assert episode["result"]["algorithm_invariants_hold"] is True
     assert episode["result"]["decision_count"] == 7
     assert episode["result"]["invariant_valid_success"] is True
     assert episode["result"]["fallback_used"] is False
     assert episode["evidence"]["header"]["request"]["recovery_policy"] == "prohibited"
+    run_receipt = episode["result"]["run_receipt"]
+    assert run_receipt["gate_receipt_id"] == gate.receipt_id
+    assert run_receipt["authorization_receipt_id"] == authorization.receipt_id
 
     events = episode["evidence"]["events"]
     novelty_transitions = [event["novelty_transition"] for event in events]
