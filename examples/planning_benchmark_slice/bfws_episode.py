@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from heapq import heappop, heappush
 from typing import Any, Callable, Mapping
 
-from .iw_episode import NoveltyItem, first_novel_item, iw_novelty_items, serialize_novelty_table
+from .iw_episode import NoveltyItem, first_novel_item, iw_novelty_items
 from .pddl_state import CanonicalState, GroundedAction, PDDLStateAuthority
 from .search_memory import (
     AcceptedRetirement,
@@ -85,9 +85,7 @@ def run_best_first_width(
     initial_novel_item = first_novel_item(initial_items, set())
     initial_bucket = len(initial_novel_item) if initial_novel_item is not None else BFWS_NOVELTY_PRECISION + 1
     partition_tables: dict[int, set[NoveltyItem]] = {initial_goals: set(initial_items)}
-    priority_by_state: dict[str, PriorityKey] = {
-        initial.state_id: (initial_bucket, initial_goals, 0, 0)
-    }
+    priority_by_state: dict[str, PriorityKey] = {initial.state_id: (initial_bucket, initial_goals, 0, 0)}
     depth_by_state = {initial.state_id: 0}
     parents: dict[str, tuple[str, GroundedAction]] = {}
     memory = SearchMemory.initial(authority)
@@ -116,6 +114,7 @@ def run_best_first_width(
             partition = _unachieved_goal_count(authority, target)
             table = partition_tables.setdefault(partition, set())
             tables_before = _freeze_tables(partition_tables)
+            priorities_before = dict(priority_by_state)
             target_items = iw_novelty_items(target, BFWS_NOVELTY_PRECISION)
             novel_item = first_novel_item(target_items, table)
             novelty_bucket = len(novel_item) if novel_item is not None else BFWS_NOVELTY_PRECISION + 1
@@ -162,7 +161,7 @@ def run_best_first_width(
                         result=result,
                         partition_tables_before=tables_before,
                         partition_tables_after=tables_after,
-                        priority_by_state=dict(priority_by_state),
+                        priority_by_state=priorities_before,
                         novelty_bucket=novelty_bucket,
                         novel_item=novel_item,
                         priority=priority,
@@ -206,13 +205,7 @@ def run_best_first_width(
             decision_count += 1
         expansion_count += 1
 
-    termination = (
-        "goal_reached"
-        if goal_reached
-        else "frontier_exhausted"
-        if not memory.frontier
-        else "expansion_budget"
-    )
+    termination = "goal_reached" if goal_reached else "frontier_exhausted" if not memory.frontier else "expansion_budget"
     plan = () if goal_state_id is None else _reconstruct_plan(goal_state_id, parents, initial.state_id)
     return BFWSSearchSummary(
         memory=memory,
@@ -241,9 +234,7 @@ def _run_best_first_width_compact(
     initial_novel_item = first_novel_item(initial_items, set())
     initial_bucket = len(initial_novel_item) if initial_novel_item is not None else BFWS_NOVELTY_PRECISION + 1
     partition_tables: dict[int, set[NoveltyItem]] = {initial_goals: set(initial_items)}
-    priority_by_state: dict[str, PriorityKey] = {
-        initial.state_id: (initial_bucket, initial_goals, 0, 0)
-    }
+    priority_by_state: dict[str, PriorityKey] = {initial.state_id: (initial_bucket, initial_goals, 0, 0)}
     depth_by_state = {initial.state_id: 0}
     parents: dict[str, tuple[str, GroundedAction]] = {}
     frontier = [(priority_by_state[initial.state_id], initial.state_id)]
@@ -305,13 +296,7 @@ def _run_best_first_width_compact(
             decision_count += 1
         expansion_count += 1
 
-    termination = (
-        "goal_reached"
-        if goal_reached
-        else "frontier_exhausted"
-        if not frontier
-        else "expansion_budget"
-    )
+    termination = "goal_reached" if goal_reached else "frontier_exhausted" if not frontier else "expansion_budget"
     plan = () if goal_state_id is None else _reconstruct_plan(goal_state_id, parents, initial.state_id)
     memory = SearchMemory._create(
         authority=authority,
@@ -346,26 +331,64 @@ def build_bfws_observation(
     partition_tables: PartitionTables,
     priority_by_state: Mapping[str, PriorityKey],
 ) -> dict[str, Any]:
+    """Build the exact bounded Search Memory observed by teacher and model.
+
+    Candidate outcomes are simulated in canonical action order from the current
+    trusted memory.  This exposes every fact needed for the next BFWS operation
+    without serializing the unbounded OPEN, CLOSED, or novelty tables.
+    """
+
     candidates: list[dict[str, Any]] = []
+    working_frontier = list(memory.frontier)
+    working_priorities = dict(priority_by_state)
+    working_tables = {partition: set(table) for partition, table in partition_tables.items()}
+    working_visited = set(memory.visited)
+    generation_serial = max((priority[3] for priority in working_priorities.values()), default=0)
+    source_priority = priority_by_state[state.state_id]
     for action in authority.applicable_actions(state):
         target = authority.preview_apply(state, action).target_state
-        partition = _unachieved_goal_count(authority, target)
-        table = set(partition_tables.get(partition, frozenset()))
-        novel_item = first_novel_item(iw_novelty_items(target, BFWS_NOVELTY_PRECISION), table)
-        bucket = len(novel_item) if novel_item is not None else BFWS_NOVELTY_PRECISION + 1
-        candidates.append(
-            {
-                "action": action.serialize(),
+        duplicate = target.state_id in working_visited
+        candidate: dict[str, Any] = {
+            "duplicate": duplicate,
+            "enqueued": not duplicate,
+            "grounded_action": {"args": list(action.args), "name": action.name},
+            "target_state_id": target.state_id,
+        }
+        if duplicate:
+            candidate["evaluation"] = None
+        else:
+            partition = _unachieved_goal_count(authority, target)
+            table = working_tables.setdefault(partition, set())
+            target_items = iw_novelty_items(target, BFWS_NOVELTY_PRECISION)
+            novel_item = first_novel_item(target_items, table)
+            bucket = len(novel_item) if novel_item is not None else BFWS_NOVELTY_PRECISION + 1
+            table.update(target_items)
+            generation_serial += 1
+            priority = (bucket, partition, source_priority[2] + 1, generation_serial)
+            retire_source = state.state_id in working_frontier
+            if retire_source:
+                working_frontier.remove(state.state_id)
+            target_position = bisect_right(
+                [working_priorities[state_id] for state_id in working_frontier],
+                priority,
+            )
+            working_frontier.insert(target_position, target.state_id)
+            working_priorities[target.state_id] = priority
+            working_visited.add(target.state_id)
+            candidate["evaluation"] = {
+                "frontier_intent": {
+                    "retire_source": retire_source,
+                    "target_position": target_position,
+                },
                 "novel_item": None if novel_item is None else list(novel_item),
                 "novelty_bucket": bucket,
                 "partition": partition,
+                "priority": list(priority),
                 "residual_novelty": bucket == BFWS_NOVELTY_PRECISION + 1,
                 "target_atoms": list(target.atoms),
                 "target_fluents": list(target.fluents),
-                "target_state_id": target.state_id,
-                "visited": target.state_id in memory.visited,
             }
-        )
+        candidates.append(candidate)
     return {
         "algorithm": "best_first_width",
         "expanded_state": {
@@ -374,13 +397,14 @@ def build_bfws_observation(
             "state_id": state.state_id,
         },
         "search_memory": {
-            "frontier": list(memory.frontier),
-            "frontier_priorities": [list(priority_by_state[state_id]) for state_id in memory.frontier],
-            "partition_novelty_tables": {
-                str(partition): serialize_novelty_table(table)
-                for partition, table in sorted(partition_tables.items())
+            "current_priority": list(source_priority),
+            "frontier_head": memory.frontier[0] if memory.frontier else None,
+            "frontier_size": len(memory.frontier),
+            "known_state_count": len(memory.visited),
+            "partition_novelty_cardinalities": {
+                str(partition): len(table) for partition, table in sorted(partition_tables.items())
             },
-            "visited": sorted(memory.visited),
+            "visited_count": len(memory.visited),
         },
         "successor_candidates": candidates,
         "task_context": authority.task_context(),
