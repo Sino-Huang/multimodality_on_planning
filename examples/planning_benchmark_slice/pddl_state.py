@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -130,6 +131,8 @@ class PDDLStateAuthority:
 
     @classmethod
     def from_pddl(cls, domain_pddl: str, problem_pddl: str) -> "PDDLStateAuthority":
+        domain_pddl = _compile_either_parameter_types(domain_pddl)
+        problem_pddl = _drop_undeclared_initial_fluents(domain_pddl, problem_pddl)
         with tempfile.TemporaryDirectory(prefix="pddl-state-") as directory:
             root = Path(directory)
             domain_path = root / "domain.pddl"
@@ -274,6 +277,100 @@ class PDDLStateAuthority:
 
 def _canonical_term(name: str, args: tuple[str, ...]) -> str:
     return name if not args else f"{name}({','.join(args)})"
+
+
+def _drop_undeclared_initial_fluents(domain_pddl: str, problem_pddl: str) -> str:
+    functions = _declared_functions(domain_pddl)
+    section = _balanced_section(problem_pddl, "(:init")
+    if section is None:
+        return problem_pddl
+    start, end, init_text = section
+    assignment = re.compile(
+        r"\(\s*=\s*\(\s*([^\s()]+)(?:\s+[^()]*)?\)\s*[^()]+\)",
+        flags=re.IGNORECASE,
+    )
+    normalized_init = assignment.sub(
+        lambda match: match.group(0) if match.group(1).lower() in functions else "",
+        init_text,
+    )
+    return problem_pddl[:start] + normalized_init + problem_pddl[end:]
+
+
+def _declared_functions(domain_pddl: str) -> set[str]:
+    section = _balanced_section(domain_pddl, "(:functions")
+    if section is None:
+        return set()
+    return {
+        name.lower()
+        for name in re.findall(r"\(\s*([^\s():]+)", section[2])
+        if name.lower() != ":functions"
+    }
+
+
+def _compile_either_parameter_types(domain_pddl: str) -> str:
+    if "(either" not in domain_pddl.lower():
+        return domain_pddl
+    parents = _declared_type_parents(domain_pddl)
+
+    def replace(match: re.Match[str]) -> str:
+        members = match.group(1).split()
+        ancestor = _nearest_common_ancestor(members, parents)
+        return ancestor if ancestor is not None else match.group(0)
+
+    return re.sub(r"\(\s*either\s+([^()]+)\)", replace, domain_pddl, flags=re.IGNORECASE)
+
+
+def _declared_type_parents(domain_pddl: str) -> dict[str, str]:
+    section = _balanced_section(domain_pddl, "(:types")
+    if section is None:
+        return {}
+    tokens = re.findall(r"[^\s()]+", section[2])[1:]
+    parents: dict[str, str] = {}
+    pending: list[str] = []
+    index = 0
+    while index < len(tokens):
+        token = tokens[index].lower()
+        if token == "-" and index + 1 < len(tokens):
+            parent = tokens[index + 1].lower()
+            for name in pending:
+                parents[name] = parent
+            pending = []
+            index += 2
+            continue
+        pending.append(token)
+        index += 1
+    for name in pending:
+        parents[name] = "object"
+    return parents
+
+
+def _nearest_common_ancestor(members: list[str], parents: dict[str, str]) -> str | None:
+    paths = [_type_path(member.lower(), parents) for member in members]
+    common = set(paths[0]).intersection(*paths[1:]) if paths else set()
+    return min(common, key=lambda item: max(path.index(item) for path in paths)) if common else None
+
+
+def _type_path(name: str, parents: dict[str, str]) -> list[str]:
+    path = [name]
+    while path[-1] != "object":
+        path.append(parents.get(path[-1], "object"))
+    return path
+
+
+def _balanced_section(text: str, token: str) -> tuple[int, int, str] | None:
+    match = re.search(re.escape(token), text, flags=re.IGNORECASE)
+    if match is None:
+        return None
+    depth = 0
+    for index in range(match.start(), len(text)):
+        if text[index] == "(":
+            depth += 1
+        elif text[index] == ")":
+            depth -= 1
+            if depth == 0:
+                end = index + 1
+                return match.start(), end, text[match.start() : end]
+    return None
 
 
 def _objects_by_declared_type(

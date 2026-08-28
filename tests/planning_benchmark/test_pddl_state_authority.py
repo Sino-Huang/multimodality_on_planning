@@ -36,6 +36,33 @@ TYPED_CONDITIONAL_PROBLEM = """
   (:goal (marked a)))
 """
 
+UNDECLARED_UNUSED_FUNCTION_PROBLEM = """
+(define (problem delegated-conditional-unused-function)
+  (:domain delegated-conditional)
+  (:objects a b - item)
+  (:init (ready a) (= (unused-distance a b) 7))
+  (:goal (marked a)))
+"""
+
+EITHER_TYPE_DOMAIN = """
+(define (domain either-type)
+  (:requirements :strips :typing)
+  (:types surface - object area crate - surface storearea - area)
+  (:predicates (in ?x - (either storearea crate) ?s - storearea) (done))
+  (:action finish
+    :parameters (?x - crate ?s - storearea)
+    :precondition (in ?x ?s)
+    :effect (done)))
+"""
+
+EITHER_TYPE_PROBLEM = """
+(define (problem either-type-problem)
+  (:domain either-type)
+  (:objects c - crate s - storearea)
+  (:init (in c s))
+  (:goal (done)))
+"""
+
 
 def _authority() -> PDDLStateAuthority:
     payload = json.loads(FIXTURE.read_text(encoding="utf-8"))
@@ -102,6 +129,21 @@ def test_typed_negative_precondition_and_conditional_effect_delegate_to_plado() 
     transition = authority.apply(authority.initial_state, mark_a)
 
     assert transition.target_state.atoms == ("marked(a)", "ready(b)")
+    assert authority.is_goal(transition.target_state) is True
+
+
+def test_ignores_undeclared_numeric_initial_values_unused_by_the_domain() -> None:
+    authority = PDDLStateAuthority.from_pddl(TYPED_CONDITIONAL_DOMAIN, UNDECLARED_UNUSED_FUNCTION_PROBLEM)
+
+    assert authority.initial_state.fluents == ()
+    assert authority.applicable_actions(authority.initial_state) == (GroundedAction("mark", ("a",)),)
+
+
+def test_compiles_either_parameter_type_to_its_declared_common_ancestor() -> None:
+    authority = PDDLStateAuthority.from_pddl(EITHER_TYPE_DOMAIN, EITHER_TYPE_PROBLEM)
+
+    transition = authority.apply(authority.initial_state, GroundedAction("finish", ("c", "s")))
+
     assert authority.is_goal(transition.target_state) is True
 
 

@@ -1,0 +1,6 @@
+{
+  "instance_id": "iw-width-four-fixture-0000",
+  "domain": "iw-width-four",
+  "domain_pddl": "(define (domain iw-width-four)\n  (:requirements :strips)\n  (:predicates (p) (a) (b) (c) (d) (z) (done))\n  (:action take-abc :parameters () :precondition (p) :effect (and (a) (b) (c) (not (p))))\n  (:action take-abd :parameters () :precondition (p) :effect (and (a) (b) (d) (not (p))))\n  (:action take-acd :parameters () :precondition (p) :effect (and (a) (c) (d) (not (p))))\n  (:action take-bcd :parameters () :precondition (p) :effect (and (b) (c) (d) (not (p))))\n  (:action take-z :parameters () :precondition (p) :effect (and (z) (not (p))))\n  (:action join :parameters () :precondition (z) :effect (and (a) (b) (c) (d) (not (z))))\n  (:action finish :parameters () :precondition (and (a) (b) (c) (d)) :effect (done)))\n",
+  "problem_pddl": "(define (problem iw-width-four-problem)\n  (:domain iw-width-four)\n  (:init (p))\n  (:goal (done)))\n"
+}

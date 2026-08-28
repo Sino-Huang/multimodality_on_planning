@@ -5,6 +5,7 @@ import json
 import os
 import tempfile
 from collections.abc import Mapping
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, NoReturn
 
@@ -17,9 +18,19 @@ from src.data_collect.governance import (
     evaluate_execution_permission,
 )
 
+from .bfws_episode import (
+    BFWS_NOVELTY_PRECISION,
+    BFWSSearchStep,
+    BFWSSearchSummary,
+    build_bfws_evaluator,
+    build_bfws_observation,
+    run_best_first_width,
+)
 from .iw_episode import (
-    IW_WIDTH,
+    IW_MAX_WIDTH,
+    IW_START_WIDTH,
     NoveltyItem,
+    build_iw_evaluator,
     build_iw_observation,
     first_novel_item,
     iw_novelty_items,
@@ -30,7 +41,6 @@ from .search_memory import (
     AcceptedRetirement,
     AcceptedTransition,
     FrontierIntent,
-    HeuristicValue,
     MutableBFSMemory,
     SearchMemory,
     SearchRetireRequest,
@@ -69,7 +79,14 @@ _EVENT_FIELDS = {
     "operation",
     "rationale",
 }
-_IW_EVENT_FIELDS = _EVENT_FIELDS | {"novelty_transition", "observation"}
+_IW_EVENT_FIELDS = _EVENT_FIELDS | {"novelty_transition", "observation", "width_attempt"}
+_BFWS_EVENT_FIELDS = _EVENT_FIELDS | {"bfws_transition", "observation"}
+_BFWS_TRANSITION_FIELDS = {
+    "novel_item",
+    "novelty_bucket",
+    "priority",
+    "residual_novelty_retained",
+}
 _IW_NOVELTY_TRANSITION_FIELDS = {
     "decision",
     "novel_item",
@@ -82,6 +99,18 @@ _IW_NOVELTY_TRANSITION_FIELDS = {
 
 class EpisodeEvidenceError(ValueError):
     """Raised when persisted episode evidence is malformed or inconsistent."""
+
+
+@dataclass(frozen=True, slots=True)
+class _IWReplayResult:
+    memory: SearchMemory
+    visited: frozenset[str]
+    goal_reached: bool
+    width_sequence: tuple[int, ...]
+    solving_width: int | None
+    expansion_count_by_width: tuple[int, ...]
+    decision_count_by_width: tuple[int, ...]
+    termination_by_width: tuple[str, ...]
 
 
 def episode_result_summary(result: Mapping[str, Any]) -> dict[str, Any]:
@@ -219,7 +248,11 @@ def materialize_episode_artifacts(evidence: Mapping[str, Any]) -> tuple[bytes, b
     memory = SearchMemory.initial(authority)
     limits = _trace_limits(authority, request["max_expansions"])
     trace = start_search_trace(memory, limits=limits)
-    for event in normalized["events"]:
+    events = normalized["events"]
+    if request["algorithm"] == "iterated_width" and events:
+        final_attempt = max(event["width_attempt"] for event in events)
+        events = [event for event in events if event["width_attempt"] == final_attempt]
+    for event in events:
         state = memory.state(event["expanded_state_id"])
         operation = _decode_operation(event["operation"])
         if isinstance(operation, SearchRetireRequest):
@@ -227,14 +260,13 @@ def materialize_episode_artifacts(evidence: Mapping[str, Any]) -> tuple[bytes, b
             if not isinstance(applied, AcceptedRetirement):
                 raise EpisodeEvidenceError(f"persisted retirement was rejected at event {event['index']}")
         else:
-            evaluator = (
-                _unexpected_evaluator
-                if request["algorithm"] == "bfs"
-                else lambda _state: StateEvaluation(
-                    novelty=request["width"],
-                    heuristic=HeuristicValue("not_applicable", 0),
-                )
-            )
+            if request["algorithm"] == "bfs":
+                evaluator = _unexpected_evaluator
+            elif request["algorithm"] == "iterated_width":
+                evaluator = build_iw_evaluator(len(event["novelty_transition"]["target_novel_item"]))
+            else:
+                priority = event["bfws_transition"]["priority"]
+                evaluator = build_bfws_evaluator(event["bfws_transition"]["novelty_bucket"], priority[1])
             applied = apply_search_transition(memory, operation, evaluator=evaluator)
             if not isinstance(applied, AcceptedTransition):
                 raise EpisodeEvidenceError(f"persisted transition was rejected at event {event['index']}")
@@ -275,19 +307,32 @@ def replay_episode(evidence: Mapping[str, Any]) -> SearchMemory:
     authority = _authority_from_task(header["task"])
     if header["authority_id"] != authority.authority_id:
         raise EpisodeEvidenceError("evidence authority differs from its task")
+    iw_replay: _IWReplayResult | None = None
+    bfws_replay: BFWSSearchSummary | None = None
     if request["algorithm"] == "bfs":
         memory = _replay_events(
             normalized["states"],
             normalized["events"],
             authority=authority,
         )
-    else:
-        memory = _replay_iw_events(
+    elif request["algorithm"] == "iterated_width":
+        iw_replay = _replay_iw_events(
             normalized["states"],
             normalized["events"],
             authority=authority,
-            width=request["width"],
+            start_width=request["start_width"],
+            max_width=request["max_width"],
+            max_expansions=request["max_expansions"],
         )
+        memory = iw_replay.memory
+    else:
+        bfws_replay = _replay_bfws_events(
+            normalized["states"],
+            normalized["events"],
+            authority=authority,
+            max_expansions=request["max_expansions"],
+        )
+        memory = bfws_replay.memory
     _validate_replayed_result(
         normalized["result"],
         memory=memory,
@@ -297,6 +342,8 @@ def replay_episode(evidence: Mapping[str, Any]) -> SearchMemory:
         gate=gate,
         request=request,
         states=normalized["states"],
+        iw_replay=iw_replay,
+        bfws_replay=bfws_replay,
     )
     return memory
 
@@ -383,66 +430,152 @@ def _replay_iw_events(
     events: list[Mapping[str, Any]],
     *,
     authority: PDDLStateAuthority,
-    width: int,
-) -> SearchMemory:
-    memory = SearchMemory.initial(authority)
+    start_width: int,
+    max_width: int,
+    max_expansions: int,
+) -> _IWReplayResult:
+    initial_memory = SearchMemory.initial(authority)
     if states.get(authority.initial_state.state_id) != serialize_state(authority.initial_state):
         raise EpisodeEvidenceError("state table does not contain the canonical initial state")
 
-    novelty_table: set[NoveltyItem] = set()
+    if authority.is_goal(authority.initial_state):
+        if events:
+            raise EpisodeEvidenceError("IW episode continues after its initial goal")
+        return _IWReplayResult(
+            memory=initial_memory,
+            visited=frozenset((authority.initial_state.state_id,)),
+            goal_reached=True,
+            width_sequence=(start_width,),
+            solving_width=start_width,
+            expansion_count_by_width=(0,),
+            decision_count_by_width=(0,),
+            termination_by_width=("goal_reached",),
+        )
+
+    all_visited = {authority.initial_state.state_id}
     cursor = 0
-    expansion_index = 0
-    goal_reached = authority.is_goal(authority.initial_state)
-    while cursor < len(events):
-        if goal_reached or not memory.frontier:
-            raise EpisodeEvidenceError("IW episode continues after its terminal condition")
-        group_end = cursor + 1
-        while group_end < len(events) and events[group_end]["expansion_index"] == expansion_index:
-            group_end += 1
-        group = events[cursor:group_end]
-        if group[0]["expansion_index"] != expansion_index:
-            raise EpisodeEvidenceError(f"IW expansion index differs at event {cursor}")
-        for event_index, event in enumerate(group, start=cursor):
-            if event["index"] != event_index:
-                raise EpisodeEvidenceError(f"event index differs at event {event_index}")
+    global_expansion = 0
+    width_sequence: list[int] = []
+    expansion_count_by_width: list[int] = []
+    decision_count_by_width: list[int] = []
+    termination_by_width: list[str] = []
+    solving_width: int | None = None
+    memory = initial_memory
 
-        expanded_state_id = memory.frontier[0]
-        if any(event["expanded_state_id"] != expanded_state_id for event in group):
-            raise EpisodeEvidenceError(f"IW frontier-head invariant failed at expansion {expansion_index}")
-        state = memory.state(expanded_state_id)
-        items = iw_novelty_items(state)
-        table_before = set(novelty_table)
-        novel_item = first_novel_item(items, novelty_table)
-        if expansion_index == 0 and novel_item is None:
-            novel_item = ()
-        decision = "expand" if novel_item is not None else "prune"
-        if decision == "expand":
-            novelty_table.update(items)
-        transition_base = {
-            "decision": decision,
-            "novel_item": None if novel_item is None else list(novel_item),
-            "novelty_table_after": serialize_novelty_table(novelty_table),
-            "novelty_table_before": serialize_novelty_table(table_before),
-            "width": width,
-        }
+    for width_attempt, width in enumerate(range(start_width, max_width + 1)):
+        if cursor >= len(events):
+            raise EpisodeEvidenceError(f"IW width-{width} attempt is missing")
+        width_sequence.append(width)
+        memory = SearchMemory.initial(authority)
+        novelty_table: set[NoveltyItem] = set()
+        attempt_expansions = 0
+        attempt_decision_start = cursor
+        goal_reached = False
 
-        accepted_count = 0
-        if decision == "expand":
-            for action in authority.applicable_actions(state):
-                preview = authority.preview_apply(state, action)
-                target = preview.target_state
-                if target.state_id in memory.visited:
-                    continue
-                target_novel_item = first_novel_item(iw_novelty_items(target), novelty_table)
-                if target_novel_item is None:
-                    continue
-                if accepted_count >= len(group):
-                    raise EpisodeEvidenceError(f"IW exact successor is missing at expansion {expansion_index}")
-                event = group[accepted_count]
-                expected_novelty = {
-                    **transition_base,
-                    "target_novel_item": list(target_novel_item),
-                }
+        while cursor < len(events) and events[cursor]["width_attempt"] == width_attempt:
+            if attempt_expansions >= max_expansions or not memory.frontier:
+                raise EpisodeEvidenceError(f"IW width-{width} attempt continues after its terminal condition")
+            group_end = cursor + 1
+            while (
+                group_end < len(events)
+                and events[group_end]["width_attempt"] == width_attempt
+                and events[group_end]["expansion_index"] == global_expansion
+            ):
+                group_end += 1
+            group = events[cursor:group_end]
+            if group[0]["expansion_index"] != global_expansion:
+                raise EpisodeEvidenceError(f"IW expansion index differs at event {cursor}")
+            for event_index, event in enumerate(group, start=cursor):
+                if event["index"] != event_index:
+                    raise EpisodeEvidenceError(f"event index differs at event {event_index}")
+
+            expanded_state_id = memory.frontier[0]
+            if any(event["expanded_state_id"] != expanded_state_id for event in group):
+                raise EpisodeEvidenceError(f"IW frontier-head invariant failed at expansion {global_expansion}")
+            state = memory.state(expanded_state_id)
+            items = iw_novelty_items(state, width)
+            table_before = set(novelty_table)
+            novel_item = first_novel_item(items, novelty_table)
+            if attempt_expansions == 0 and novel_item is None:
+                novel_item = ()
+            decision = "expand" if novel_item is not None else "prune"
+            if decision == "expand":
+                novelty_table.update(items)
+            transition_base = {
+                "decision": decision,
+                "novel_item": None if novel_item is None else list(novel_item),
+                "novelty_table_after": serialize_novelty_table(novelty_table),
+                "novelty_table_before": serialize_novelty_table(table_before),
+                "width": width,
+            }
+
+            accepted_count = 0
+            if decision == "expand":
+                for action in authority.applicable_actions(state):
+                    target = authority.preview_apply(state, action).target_state
+                    if target.state_id in memory.visited:
+                        continue
+                    target_novel_item = first_novel_item(iw_novelty_items(target, width), novelty_table)
+                    if target_novel_item is None:
+                        continue
+                    if accepted_count >= len(group):
+                        raise EpisodeEvidenceError(f"IW exact successor is missing at expansion {global_expansion}")
+                    event = group[accepted_count]
+                    expected_novelty = {
+                        **transition_base,
+                        "target_novel_item": list(target_novel_item),
+                    }
+                    if event["novelty_transition"] != expected_novelty:
+                        raise EpisodeEvidenceError(f"IW novelty invariant failed at event {event['index']}")
+                    expected_observation = build_iw_observation(
+                        authority=authority,
+                        state=state,
+                        memory=memory,
+                        novelty_table=novelty_table,
+                        width=width,
+                    )
+                    if event["observation"] != expected_observation:
+                        raise EpisodeEvidenceError(f"IW observation parity failed at event {event['index']}")
+                    operation = _decode_operation(event["operation"])
+                    retire_source = accepted_count == 0
+                    target_position = len(memory.frontier) - (1 if retire_source else 0)
+                    if (
+                        not isinstance(operation, SearchTransitionRequest)
+                        or operation.source_state_id != expanded_state_id
+                        or operation.action != action
+                        or operation.frontier_intent != FrontierIntent(retire_source, target_position)
+                        or not operation.visit_target
+                        or not operation.evaluate_target
+                    ):
+                        raise EpisodeEvidenceError(f"IW operation invariant failed at event {event['index']}")
+                    applied = apply_search_transition(
+                        memory,
+                        operation,
+                        evaluator=build_iw_evaluator(len(target_novel_item)),
+                    )
+                    if not isinstance(applied, AcceptedTransition):
+                        raise EpisodeEvidenceError(f"IW transition was rejected at event {event['index']}")
+                    target = applied.transition.target_state
+                    if event["newly_enqueued_state_ids"] != [target.state_id]:
+                        raise EpisodeEvidenceError(f"IW target delta differs at event {event['index']}")
+                    if states.get(target.state_id) != serialize_state(target):
+                        raise EpisodeEvidenceError(f"state table differs from replayed target at event {event['index']}")
+                    memory = applied.memory
+                    all_visited.add(target.state_id)
+                    accepted_count += 1
+                    if authority.is_goal(target):
+                        goal_reached = True
+                        solving_width = width
+                        break
+
+            if accepted_count == 0:
+                if len(group) != 1:
+                    raise EpisodeEvidenceError(
+                        f"IW empty expansion has extra operations at expansion {global_expansion}"
+                    )
+                event = group[0]
+                expected_novelty = {**transition_base, "target_novel_item": None}
+                operation = _decode_operation(event["operation"])
                 if event["novelty_transition"] != expected_novelty:
                     raise EpisodeEvidenceError(f"IW novelty invariant failed at event {event['index']}")
                 expected_observation = build_iw_observation(
@@ -450,74 +583,116 @@ def _replay_iw_events(
                     state=state,
                     memory=memory,
                     novelty_table=novelty_table,
+                    width=width,
                 )
                 if event["observation"] != expected_observation:
                     raise EpisodeEvidenceError(f"IW observation parity failed at event {event['index']}")
-                operation = _decode_operation(event["operation"])
-                retire_source = accepted_count == 0
-                target_position = len(memory.frontier) - (1 if retire_source else 0)
                 if (
-                    not isinstance(operation, SearchTransitionRequest)
-                    or operation.source_state_id != expanded_state_id
-                    or operation.action != action
-                    or operation.frontier_intent != FrontierIntent(retire_source, target_position)
-                    or not operation.visit_target
-                    or not operation.evaluate_target
+                    not isinstance(operation, SearchRetireRequest)
+                    or operation.state_id != expanded_state_id
+                    or event["newly_enqueued_state_ids"]
                 ):
-                    raise EpisodeEvidenceError(f"IW operation invariant failed at event {event['index']}")
-                applied = apply_search_transition(
-                    memory,
-                    operation,
-                    evaluator=lambda _state: StateEvaluation(
-                        novelty=width,
-                        heuristic=HeuristicValue("not_applicable", 0),
-                    ),
-                )
-                if not isinstance(applied, AcceptedTransition):
-                    raise EpisodeEvidenceError(f"IW transition was rejected at event {event['index']}")
-                target = applied.transition.target_state
-                if event["newly_enqueued_state_ids"] != [target.state_id]:
-                    raise EpisodeEvidenceError(f"IW target delta differs at event {event['index']}")
-                if states.get(target.state_id) != serialize_state(target):
-                    raise EpisodeEvidenceError(f"state table differs from replayed target at event {event['index']}")
+                    raise EpisodeEvidenceError(f"IW retirement invariant failed at event {event['index']}")
+                applied = apply_search_retirement(memory, operation)
+                if not isinstance(applied, AcceptedRetirement):
+                    raise EpisodeEvidenceError(f"IW retirement was rejected at event {event['index']}")
                 memory = applied.memory
-                accepted_count += 1
-                if authority.is_goal(target):
-                    goal_reached = True
-                    break
+            elif accepted_count != len(group):
+                raise EpisodeEvidenceError(f"IW expansion has extra operations at expansion {global_expansion}")
 
-        if accepted_count == 0:
-            if len(group) != 1:
-                raise EpisodeEvidenceError(f"IW empty expansion has extra operations at expansion {expansion_index}")
-            event = group[0]
-            expected_novelty = {**transition_base, "target_novel_item": None}
-            operation = _decode_operation(event["operation"])
-            if event["novelty_transition"] != expected_novelty:
-                raise EpisodeEvidenceError(f"IW novelty invariant failed at event {event['index']}")
-            expected_observation = build_iw_observation(
-                authority=authority,
-                state=state,
-                memory=memory,
-                novelty_table=novelty_table,
-            )
-            if event["observation"] != expected_observation:
-                raise EpisodeEvidenceError(f"IW observation parity failed at event {event['index']}")
-            if (
-                not isinstance(operation, SearchRetireRequest)
-                or operation.state_id != expanded_state_id
-                or event["newly_enqueued_state_ids"]
-            ):
-                raise EpisodeEvidenceError(f"IW retirement invariant failed at event {event['index']}")
-            applied = apply_search_retirement(memory, operation)
-            if not isinstance(applied, AcceptedRetirement):
-                raise EpisodeEvidenceError(f"IW retirement was rejected at event {event['index']}")
-            memory = applied.memory
-        elif accepted_count != len(group):
-            raise EpisodeEvidenceError(f"IW expansion has extra operations at expansion {expansion_index}")
+            cursor = group_end
+            attempt_expansions += 1
+            global_expansion += 1
+            if goal_reached:
+                break
 
-        cursor = group_end
-        expansion_index += 1
-    return memory
+        expansion_count_by_width.append(attempt_expansions)
+        decision_count_by_width.append(cursor - attempt_decision_start)
+        termination = (
+            "goal_reached"
+            if goal_reached
+            else "frontier_exhausted"
+            if not memory.frontier
+            else "expansion_budget"
+        )
+        termination_by_width.append(termination)
+        if goal_reached:
+            if cursor != len(events):
+                raise EpisodeEvidenceError("IW episode continues after reaching its goal")
+            break
+        if width < max_width and (cursor >= len(events) or events[cursor]["width_attempt"] != width_attempt + 1):
+            raise EpisodeEvidenceError(f"IW width-{width + 1} attempt is missing")
+
+    if cursor != len(events):
+        raise EpisodeEvidenceError("IW evidence contains an out-of-range width attempt")
+    return _IWReplayResult(
+        memory=memory,
+        visited=frozenset(all_visited),
+        goal_reached=solving_width is not None,
+        width_sequence=tuple(width_sequence),
+        solving_width=solving_width,
+        expansion_count_by_width=tuple(expansion_count_by_width),
+        decision_count_by_width=tuple(decision_count_by_width),
+        termination_by_width=tuple(termination_by_width),
+    )
+
+
+def _replay_bfws_events(
+    states: Mapping[str, Any],
+    events: list[Mapping[str, Any]],
+    *,
+    authority: PDDLStateAuthority,
+    max_expansions: int,
+) -> BFWSSearchSummary:
+    cursor = 0
+
+    def verify_step(step: BFWSSearchStep) -> None:
+        nonlocal cursor
+        if cursor >= len(events):
+            raise EpisodeEvidenceError(f"BFWS exact operation is missing at event {cursor}")
+        event = events[cursor]
+        state = step.memory_before.state(step.expanded_state_id)
+        expected_observation = build_bfws_observation(
+            authority=authority,
+            state=state,
+            memory=step.memory_before,
+            partition_tables=step.partition_tables_before,
+            priority_by_state=step.priority_by_state,
+        )
+        expected_enqueued = (
+            [step.result.transition.target_state.state_id]
+            if isinstance(step.result, AcceptedTransition)
+            else []
+        )
+        expected_transition = {
+            "novel_item": None if step.novel_item is None else list(step.novel_item),
+            "novelty_bucket": step.novelty_bucket,
+            "priority": list(step.priority),
+            "residual_novelty_retained": step.residual_novelty_retained,
+        }
+        if (
+            event["index"] != cursor
+            or event["expansion_index"] != step.expansion_index
+            or event["expanded_state_id"] != step.expanded_state_id
+            or event["operation"] != serialize_operation(step.operation)
+            or event["newly_enqueued_state_ids"] != expected_enqueued
+            or event["bfws_transition"] != expected_transition
+            or event["observation"] != expected_observation
+        ):
+            raise EpisodeEvidenceError(f"BFWS invariant failed at event {cursor}")
+        cursor += 1
+
+    summary = run_best_first_width(
+        authority,
+        max_expansions=max_expansions,
+        on_step=verify_step,
+    )
+    if cursor != len(events):
+        raise EpisodeEvidenceError("BFWS evidence contains extra operations")
+    expected_states = {state.state_id: serialize_state(state) for state in summary.states}
+    if dict(states) != expected_states:
+        raise EpisodeEvidenceError("BFWS state table differs from semantic replay")
+    return summary
 
 
 def _validate_replayed_result(
@@ -530,6 +705,8 @@ def _validate_replayed_result(
     gate: GateReceipt,
     request: Mapping[str, Any],
     states: Mapping[str, Any],
+    iw_replay: _IWReplayResult | None,
+    bfws_replay: BFWSSearchSummary | None,
 ) -> None:
     completed = _run_receipt_from_payload(result.get("run_receipt"))
     if (
@@ -539,11 +716,12 @@ def _validate_replayed_result(
         or not completed.scientific_completion
     ):
         raise EpisodeEvidenceError("completed run receipt is invalid")
-    goal_reached = (
-        bool(memory.frontier and authority.is_goal(memory.state(memory.frontier[0])))
-        if request["algorithm"] == "bfs"
-        else any(authority.is_goal(memory.state(state_id)) for state_id in memory.visited)
-    )
+    if iw_replay is not None:
+        goal_reached = iw_replay.goal_reached
+    elif bfws_replay is not None:
+        goal_reached = bfws_replay.goal_reached
+    else:
+        goal_reached = bool(memory.frontier and authority.is_goal(memory.state(memory.frontier[0])))
     if (
         result.get("completion") != "completed"
         or result.get("expansion_count") != expansion_count
@@ -552,17 +730,38 @@ def _validate_replayed_result(
         or result.get("scientific_completion") is not True
     ):
         raise EpisodeEvidenceError("result summary differs from replay")
-    if set(states) != memory.visited:
+    replayed_visited = memory.visited if iw_replay is None else iw_replay.visited
+    if set(states) != replayed_visited:
         raise EpisodeEvidenceError("state table does not equal the replayed visited set")
-    if expansion_count > request["max_expansions"]:
+    if iw_replay is None and expansion_count > request["max_expansions"]:
         raise EpisodeEvidenceError("replayed episode exceeds its expansion budget")
-    if request["algorithm"] == "iterated_width" and (
+    if iw_replay is not None:
+        if any(count > request["max_expansions"] for count in iw_replay.expansion_count_by_width):
+            raise EpisodeEvidenceError("replayed IW attempt exceeds its expansion budget")
+        if (
+            result.get("algorithm_invariants_hold") is not True
+            or result.get("decision_count") != decision_count
+            or result.get("decision_count_by_width") != list(iw_replay.decision_count_by_width)
+            or result.get("expansion_count_by_width") != list(iw_replay.expansion_count_by_width)
+            or result.get("fallback_used") is not False
+            or result.get("invariant_valid_success") is not goal_reached
+            or result.get("solving_width") != iw_replay.solving_width
+            or result.get("termination_by_width") != list(iw_replay.termination_by_width)
+            or result.get("width_sequence") != list(iw_replay.width_sequence)
+        ):
+            raise EpisodeEvidenceError("IW invariant verdict differs from replay")
+    if bfws_replay is not None and (
         result.get("algorithm_invariants_hold") is not True
-        or result.get("decision_count") != decision_count
-        or result.get("fallback_used") is not False
-        or result.get("invariant_valid_success") is not goal_reached
+        or result.get("decision_count") != bfws_replay.decision_count
+        or result.get("duplicate_count") != bfws_replay.duplicate_count
+        or result.get("generated_count") != bfws_replay.generated_count
+        or result.get("invariant_valid_success") is not bfws_replay.goal_reached
+        or result.get("novelty_pruned_count") != 0
+        or result.get("peak_frontier") != bfws_replay.peak_frontier
+        or result.get("residual_novelty_retained_count") != bfws_replay.residual_novelty_retained_count
+        or result.get("termination") != bfws_replay.termination
     ):
-        raise EpisodeEvidenceError("IW invariant verdict differs from replay")
+        raise EpisodeEvidenceError("BFWS invariant verdict differs from replay")
 
 
 def _episode_evidence(episode: Mapping[str, Any]) -> dict[str, Any]:
@@ -609,7 +808,14 @@ def _validate_states(states: Any) -> None:
 
 
 def _validate_event(event: Any, *, index: int, algorithm: str) -> None:
-    _require_object(event, _IW_EVENT_FIELDS if algorithm == "iterated_width" else _EVENT_FIELDS, f"event {index}")
+    fields = (
+        _IW_EVENT_FIELDS
+        if algorithm == "iterated_width"
+        else _BFWS_EVENT_FIELDS
+        if algorithm == "best_first_width"
+        else _EVENT_FIELDS
+    )
+    _require_object(event, fields, f"event {index}")
     for field in ("index", "expansion_index"):
         if isinstance(event[field], bool) or not isinstance(event[field], int) or event[field] < 0:
             raise EpisodeEvidenceError(f"event {index}.{field} must be a non-negative integer")
@@ -622,9 +828,39 @@ def _validate_event(event: Any, *, index: int, algorithm: str) -> None:
         raise EpisodeEvidenceError(f"event {index}.rationale must be text")
     _decode_operation(event["operation"])
     if algorithm == "iterated_width":
+        if (
+            isinstance(event["width_attempt"], bool)
+            or not isinstance(event["width_attempt"], int)
+            or event["width_attempt"] < 0
+        ):
+            raise EpisodeEvidenceError(f"event {index}.width_attempt must be a non-negative integer")
         if not isinstance(event["observation"], Mapping):
             raise EpisodeEvidenceError(f"event {index}.observation must be an object")
         _validate_iw_novelty_transition(event["novelty_transition"], index=index)
+    elif algorithm == "best_first_width":
+        if not isinstance(event["observation"], Mapping):
+            raise EpisodeEvidenceError(f"event {index}.observation must be an object")
+        _validate_bfws_transition(event["bfws_transition"], index=index)
+
+
+def _validate_bfws_transition(value: Any, *, index: int) -> None:
+    _require_object(value, _BFWS_TRANSITION_FIELDS, f"event {index}.bfws_transition")
+    item = value["novel_item"]
+    if item is not None and (not isinstance(item, list) or any(not isinstance(atom, str) for atom in item)):
+        raise EpisodeEvidenceError(f"event {index}.bfws_transition.novel_item is invalid")
+    bucket = value["novelty_bucket"]
+    priority = value["priority"]
+    if (
+        isinstance(bucket, bool)
+        or not isinstance(bucket, int)
+        or not 1 <= bucket <= BFWS_NOVELTY_PRECISION + 1
+        or not isinstance(priority, list)
+        or len(priority) != 4
+        or any(isinstance(part, bool) or not isinstance(part, int) or part < 0 for part in priority)
+        or priority[0] != bucket
+        or not isinstance(value["residual_novelty_retained"], bool)
+    ):
+        raise EpisodeEvidenceError(f"event {index}.bfws_transition is invalid")
 
 
 def _validate_iw_novelty_transition(value: Any, *, index: int) -> None:
@@ -632,7 +868,8 @@ def _validate_iw_novelty_transition(value: Any, *, index: int) -> None:
     if (
         value["decision"] not in {"expand", "prune"}
         or isinstance(value["width"], bool)
-        or value["width"] != IW_WIDTH
+        or not isinstance(value["width"], int)
+        or not IW_START_WIDTH <= value["width"] <= IW_MAX_WIDTH
     ):
         raise EpisodeEvidenceError(f"event {index}.novelty_transition has an invalid IW decision")
     for field in ("novel_item", "target_novel_item"):
@@ -691,23 +928,46 @@ def _parse_request(payload: Any) -> dict[str, Any]:
     algorithm = payload.get("algorithm")
     fields = {"algorithm", "max_expansions", "modality", "policy", "schema_version"}
     if algorithm == "iterated_width":
-        fields.update({"recovery_policy", "width"})
+        fields.update({"max_width", "recovery_policy", "start_width", "width_policy"})
+    elif algorithm == "best_first_width":
+        fields.update(
+            {
+                "high_novelty_policy",
+                "novelty_partition",
+                "novelty_precision",
+                "priority",
+                "recovery_policy",
+                "variant",
+            }
+        )
     elif payload.get("policy") == "random":
         fields.add("random_seed")
     _require_object(payload, fields, "request")
     if payload["schema_version"] != REQUEST_SCHEMA_VERSION:
         raise EpisodeEvidenceError("request schema is invalid")
-    if algorithm not in {"bfs", "iterated_width"} or payload["modality"] != "text-state":
+    if algorithm not in {"best_first_width", "bfs", "iterated_width"} or payload["modality"] != "text-state":
         raise EpisodeEvidenceError("request algorithm or modality is unsupported")
     if algorithm == "bfs" and payload["policy"] not in {"exact", "random"}:
         raise EpisodeEvidenceError("request policy is unsupported")
     if algorithm == "iterated_width" and (
         payload["policy"] != "exact"
-        or isinstance(payload["width"], bool)
-        or payload["width"] != IW_WIDTH
+        or payload["start_width"] != IW_START_WIDTH
+        or payload["max_width"] != IW_MAX_WIDTH
+        or payload["width_policy"] != "iterate_1_to_max_until_solved"
         or payload["recovery_policy"] != "prohibited"
     ):
-        raise EpisodeEvidenceError("IW request must be exact width 1 without recovery")
+        raise EpisodeEvidenceError("IW request must iterate exactly from width 1 through frozen max width 3")
+    if algorithm == "best_first_width" and (
+        payload["policy"] != "exact"
+        or payload["variant"] != "full_bfws_goal_count"
+        or payload["novelty_precision"] != BFWS_NOVELTY_PRECISION
+        or payload["novelty_partition"] != "unachieved_goal_count"
+        or payload["priority"]
+        != ["novelty_bucket", "unachieved_goal_count", "path_depth", "generation_serial"]
+        or payload["high_novelty_policy"] != "enqueue"
+        or payload["recovery_policy"] != "prohibited"
+    ):
+        raise EpisodeEvidenceError("BFWS request does not match the frozen complete variant")
     budget = payload["max_expansions"]
     if isinstance(budget, bool) or not isinstance(budget, int) or budget <= 0:
         raise EpisodeEvidenceError("request expansion budget is invalid")
