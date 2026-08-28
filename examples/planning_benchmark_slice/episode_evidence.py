@@ -17,6 +17,14 @@ from src.data_collect.governance import (
     evaluate_execution_permission,
 )
 
+from .iw_episode import (
+    IW_WIDTH,
+    NoveltyItem,
+    build_iw_observation,
+    first_novel_item,
+    iw_novelty_items,
+    serialize_novelty_table,
+)
 from .pddl_state import CanonicalState, GroundedAction, PDDLStateAuthority
 from .search_memory import (
     AcceptedRetirement,
@@ -61,7 +69,7 @@ _EVENT_FIELDS = {
     "operation",
     "rationale",
 }
-_IW_EVENT_FIELDS = _EVENT_FIELDS | {"novelty_transition"}
+_IW_EVENT_FIELDS = _EVENT_FIELDS | {"novelty_transition", "observation"}
 _IW_NOVELTY_TRANSITION_FIELDS = {
     "decision",
     "novel_item",
@@ -77,10 +85,13 @@ class EpisodeEvidenceError(ValueError):
 
 
 def episode_result_summary(result: Mapping[str, Any]) -> dict[str, Any]:
-    return {
+    summary = {
         field: result[field]
         for field in ("completion", "expansion_count", "goal_reached", "outcome", "scientific_completion")
     }
+    if "decision_count" in result:
+        summary["decision_count"] = result["decision_count"]
+    return summary
 
 
 def serialize_state(state: CanonicalState) -> dict[str, Any]:
@@ -230,7 +241,11 @@ def materialize_episode_artifacts(evidence: Mapping[str, Any]) -> tuple[bytes, b
         trace = append_trusted_search_trace_record(
             trace,
             memory_before=memory,
-            observation=_text_observation(state, memory),
+            observation=(
+                _text_observation(state, memory)
+                if request["algorithm"] == "bfs"
+                else event["observation"]
+            ),
             rationale=event["rationale"],
             operation=operation,
             result=applied,
@@ -276,6 +291,7 @@ def replay_episode(evidence: Mapping[str, Any]) -> SearchMemory:
     _validate_replayed_result(
         normalized["result"],
         memory=memory,
+        decision_count=len(normalized["events"]),
         expansion_count=_expansion_count(normalized["events"]),
         authority=authority,
         gate=gate,
@@ -373,7 +389,7 @@ def _replay_iw_events(
     if states.get(authority.initial_state.state_id) != serialize_state(authority.initial_state):
         raise EpisodeEvidenceError("state table does not contain the canonical initial state")
 
-    novelty_table: set[tuple[str, ...]] = set()
+    novelty_table: set[NoveltyItem] = set()
     cursor = 0
     expansion_index = 0
     goal_reached = authority.is_goal(authority.initial_state)
@@ -394,9 +410,9 @@ def _replay_iw_events(
         if any(event["expanded_state_id"] != expanded_state_id for event in group):
             raise EpisodeEvidenceError(f"IW frontier-head invariant failed at expansion {expansion_index}")
         state = memory.state(expanded_state_id)
-        items = _iw_novelty_items(state)
+        items = iw_novelty_items(state)
         table_before = set(novelty_table)
-        novel_item = _first_novel_item(items, novelty_table)
+        novel_item = first_novel_item(items, novelty_table)
         if expansion_index == 0 and novel_item is None:
             novel_item = ()
         decision = "expand" if novel_item is not None else "prune"
@@ -405,8 +421,8 @@ def _replay_iw_events(
         transition_base = {
             "decision": decision,
             "novel_item": None if novel_item is None else list(novel_item),
-            "novelty_table_after": _serialize_novelty_table(novelty_table),
-            "novelty_table_before": _serialize_novelty_table(table_before),
+            "novelty_table_after": serialize_novelty_table(novelty_table),
+            "novelty_table_before": serialize_novelty_table(table_before),
             "width": width,
         }
 
@@ -417,7 +433,7 @@ def _replay_iw_events(
                 target = preview.target_state
                 if target.state_id in memory.visited:
                     continue
-                target_novel_item = _first_novel_item(_iw_novelty_items(target), novelty_table)
+                target_novel_item = first_novel_item(iw_novelty_items(target), novelty_table)
                 if target_novel_item is None:
                     continue
                 if accepted_count >= len(group):
@@ -429,6 +445,14 @@ def _replay_iw_events(
                 }
                 if event["novelty_transition"] != expected_novelty:
                     raise EpisodeEvidenceError(f"IW novelty invariant failed at event {event['index']}")
+                expected_observation = build_iw_observation(
+                    authority=authority,
+                    state=state,
+                    memory=memory,
+                    novelty_table=novelty_table,
+                )
+                if event["observation"] != expected_observation:
+                    raise EpisodeEvidenceError(f"IW observation parity failed at event {event['index']}")
                 operation = _decode_operation(event["operation"])
                 retire_source = accepted_count == 0
                 target_position = len(memory.frontier) - (1 if retire_source else 0)
@@ -470,6 +494,14 @@ def _replay_iw_events(
             operation = _decode_operation(event["operation"])
             if event["novelty_transition"] != expected_novelty:
                 raise EpisodeEvidenceError(f"IW novelty invariant failed at event {event['index']}")
+            expected_observation = build_iw_observation(
+                authority=authority,
+                state=state,
+                memory=memory,
+                novelty_table=novelty_table,
+            )
+            if event["observation"] != expected_observation:
+                raise EpisodeEvidenceError(f"IW observation parity failed at event {event['index']}")
             if (
                 not isinstance(operation, SearchRetireRequest)
                 or operation.state_id != expanded_state_id
@@ -492,6 +524,7 @@ def _validate_replayed_result(
     result: Mapping[str, Any],
     *,
     memory: SearchMemory,
+    decision_count: int,
     expansion_count: int,
     authority: PDDLStateAuthority,
     gate: GateReceipt,
@@ -525,6 +558,7 @@ def _validate_replayed_result(
         raise EpisodeEvidenceError("replayed episode exceeds its expansion budget")
     if request["algorithm"] == "iterated_width" and (
         result.get("algorithm_invariants_hold") is not True
+        or result.get("decision_count") != decision_count
         or result.get("fallback_used") is not False
         or result.get("invariant_valid_success") is not goal_reached
     ):
@@ -588,6 +622,8 @@ def _validate_event(event: Any, *, index: int, algorithm: str) -> None:
         raise EpisodeEvidenceError(f"event {index}.rationale must be text")
     _decode_operation(event["operation"])
     if algorithm == "iterated_width":
+        if not isinstance(event["observation"], Mapping):
+            raise EpisodeEvidenceError(f"event {index}.observation must be an object")
         _validate_iw_novelty_transition(event["novelty_transition"], index=index)
 
 
@@ -596,7 +632,7 @@ def _validate_iw_novelty_transition(value: Any, *, index: int) -> None:
     if (
         value["decision"] not in {"expand", "prune"}
         or isinstance(value["width"], bool)
-        or value["width"] != 1
+        or value["width"] != IW_WIDTH
     ):
         raise EpisodeEvidenceError(f"event {index}.novelty_transition has an invalid IW decision")
     for field in ("novel_item", "target_novel_item"):
@@ -668,7 +704,7 @@ def _parse_request(payload: Any) -> dict[str, Any]:
     if algorithm == "iterated_width" and (
         payload["policy"] != "exact"
         or isinstance(payload["width"], bool)
-        or payload["width"] != 1
+        or payload["width"] != IW_WIDTH
         or payload["recovery_policy"] != "prohibited"
     ):
         raise EpisodeEvidenceError("IW request must be exact width 1 without recovery")
@@ -680,21 +716,6 @@ def _parse_request(payload: Any) -> dict[str, Any]:
     ):
         raise EpisodeEvidenceError("request random seed is invalid")
     return dict(payload)
-
-
-def _iw_novelty_items(state: CanonicalState) -> tuple[tuple[str, ...], ...]:
-    return tuple((atom,) for atom in state.atoms)
-
-
-def _first_novel_item(
-    items: tuple[tuple[str, ...], ...],
-    novelty_table: set[tuple[str, ...]],
-) -> tuple[str, ...] | None:
-    return next((item for item in items if item not in novelty_table), None)
-
-
-def _serialize_novelty_table(items: set[tuple[str, ...]]) -> list[list[str]]:
-    return [list(item) for item in sorted(items)]
 
 
 def _authority_from_task(task: Any) -> PDDLStateAuthority:

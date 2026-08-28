@@ -24,6 +24,7 @@ from src.data_collect.governance import (
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 NONTRIVIAL_FIXTURE = REPO_ROOT / "tests" / "fixtures" / "planning" / "blocksworld_nontrivial.json"
+IW_PRUNING_FIXTURE = REPO_ROOT / "tests" / "fixtures" / "planning" / "iw_novelty_pruning.json"
 
 
 def test_exact_text_bfs_completes_with_fifo_evidence_that_replays(tmp_path: Path) -> None:
@@ -111,7 +112,7 @@ def test_exact_text_iw1_completes_with_typed_novelty_evidence_that_replays(tmp_p
     authorization = AuthorizationReceipt(binding=binding, gate_receipt_id=gate.receipt_id)
 
     episode = run_search_episode(
-        task_path=NONTRIVIAL_FIXTURE,
+        task_path=IW_PRUNING_FIXTURE,
         algorithm="iterated_width",
         modality="text-state",
         policy="exact",
@@ -122,6 +123,7 @@ def test_exact_text_iw1_completes_with_typed_novelty_evidence_that_replays(tmp_p
 
     assert episode["result"]["goal_reached"] is True
     assert episode["result"]["algorithm_invariants_hold"] is True
+    assert episode["result"]["decision_count"] == 7
     assert episode["result"]["invariant_valid_success"] is True
     assert episode["result"]["fallback_used"] is False
     assert episode["evidence"]["header"]["request"]["recovery_policy"] == "prohibited"
@@ -130,6 +132,7 @@ def test_exact_text_iw1_completes_with_typed_novelty_evidence_that_replays(tmp_p
     novelty_transitions = [event["novelty_transition"] for event in events]
     assert novelty_transitions
     assert all(transition["width"] == 1 for transition in novelty_transitions)
+    assert any(transition["decision"] == "prune" for transition in novelty_transitions)
     assert any(
         len(transition["novelty_table_after"]) > len(transition["novelty_table_before"])
         for transition in novelty_transitions
@@ -138,6 +141,14 @@ def test_exact_text_iw1_completes_with_typed_novelty_evidence_that_replays(tmp_p
         event["operation"].get("operation_type") == "retire_frontier"
         or event["operation"]["evaluate_target"] is True
         for event in events
+    )
+    first_observation = events[0]["observation"]
+    assert first_observation["task_context"]["static_initial_facts"] == []
+    assert first_observation["search_memory"]["visited"]
+    assert first_observation["successor_candidates"]
+    assert all(
+        {"target_state_id", "visited", "novel_item", "pruned", "enqueue_eligible"} <= candidate.keys()
+        for candidate in first_observation["successor_candidates"]
     )
     assert replay_search_episode(episode["evidence"]) == episode
 

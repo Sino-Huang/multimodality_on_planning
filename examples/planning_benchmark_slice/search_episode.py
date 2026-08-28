@@ -23,6 +23,14 @@ from .episode_evidence import (
     serialize_operation,
     serialize_state,
 )
+from .iw_episode import (
+    IW_WIDTH,
+    NoveltyItem,
+    build_iw_observation,
+    first_novel_item,
+    iw_novelty_items,
+    serialize_novelty_table,
+)
 from .pddl_state import CanonicalState, PDDLStateAuthority
 from .search_memory import (
     AcceptedRetirement,
@@ -278,9 +286,8 @@ def _execute_exact_iw_episode(
     frozen_binding: Mapping[str, Any] | None,
     authority: PDDLStateAuthority,
 ) -> dict[str, Any]:
-    width = 1
     memory = SearchMemory.initial(authority)
-    novelty_table: set[tuple[str, ...]] = set()
+    novelty_table: set[NoveltyItem] = set()
     states = {authority.initial_state.state_id: serialize_state(authority.initial_state)}
     events: list[dict[str, Any]] = []
     expansion_count = 0
@@ -290,8 +297,8 @@ def _execute_exact_iw_episode(
         expanded_state_id = memory.frontier[0]
         state = memory.state(expanded_state_id)
         table_before = set(novelty_table)
-        items = _iw_novelty_items(state)
-        novel_item = _first_novel_item(items, novelty_table)
+        items = iw_novelty_items(state)
+        novel_item = first_novel_item(items, novelty_table)
         if expansion_count == 0 and novel_item is None:
             novel_item = ()
         decision = "expand" if novel_item is not None else "prune"
@@ -301,9 +308,9 @@ def _execute_exact_iw_episode(
         transition_base = {
             "decision": decision,
             "novel_item": None if novel_item is None else list(novel_item),
-            "novelty_table_after": _serialize_novelty_table(novelty_table),
-            "novelty_table_before": _serialize_novelty_table(table_before),
-            "width": width,
+            "novelty_table_after": serialize_novelty_table(novelty_table),
+            "novelty_table_before": serialize_novelty_table(table_before),
+            "width": IW_WIDTH,
         }
         accepted_successor = False
         if decision == "expand":
@@ -312,10 +319,16 @@ def _execute_exact_iw_episode(
                 target = preview.target_state
                 if target.state_id in memory.visited:
                     continue
-                target_novel_item = _first_novel_item(_iw_novelty_items(target), novelty_table)
+                target_novel_item = first_novel_item(iw_novelty_items(target), novelty_table)
                 if target_novel_item is None:
                     continue
 
+                observation = build_iw_observation(
+                    authority=authority,
+                    state=state,
+                    memory=memory,
+                    novelty_table=novelty_table,
+                )
                 retire_source = not accepted_successor
                 request = SearchTransitionRequest(
                     source_state_id=expanded_state_id,
@@ -331,7 +344,7 @@ def _execute_exact_iw_episode(
                     memory,
                     request,
                     evaluator=lambda _target: StateEvaluation(
-                        novelty=width,
+                        novelty=IW_WIDTH,
                         heuristic=HeuristicValue("not_applicable", 0),
                     ),
                 )
@@ -350,6 +363,7 @@ def _execute_exact_iw_episode(
                             **transition_base,
                             "target_novel_item": list(target_novel_item),
                         },
+                        "observation": observation,
                         "operation": serialize_operation(request),
                         "rationale": "exact_iw1_canonical_novel_successor",
                     }
@@ -360,6 +374,12 @@ def _execute_exact_iw_episode(
                     break
 
         if not accepted_successor:
+            observation = build_iw_observation(
+                authority=authority,
+                state=state,
+                memory=memory,
+                novelty_table=novelty_table,
+            )
             request = SearchRetireRequest(expanded_state_id)
             result = apply_search_retirement(memory, request)
             if not isinstance(result, AcceptedRetirement):
@@ -372,6 +392,7 @@ def _execute_exact_iw_episode(
                     "index": len(events),
                     "newly_enqueued_state_ids": [],
                     "novelty_transition": {**transition_base, "target_novel_item": None},
+                    "observation": observation,
                     "operation": serialize_operation(request),
                     "rationale": f"exact_iw1_{decision}_frontier_head",
                 }
@@ -390,6 +411,7 @@ def _execute_exact_iw_episode(
     result = {
         "algorithm_invariants_hold": True,
         "completion": "completed",
+        "decision_count": len(events),
         "expansion_count": expansion_count,
         "fallback_used": False,
         "goal_reached": goal_reached,
@@ -405,7 +427,7 @@ def _execute_exact_iw_episode(
         "policy": "exact",
         "recovery_policy": "prohibited",
         "schema_version": REQUEST_SCHEMA_VERSION,
-        "width": width,
+        "width": IW_WIDTH,
     }
     evidence = {
         "events": events,
@@ -421,6 +443,10 @@ def _execute_exact_iw_episode(
         "schema_version": EVIDENCE_SCHEMA_VERSION,
         "states": states,
     }
+    try:
+        replay_episode(evidence)
+    except EpisodeEvidenceError as error:
+        raise SearchEpisodeError("exact IW episode failed semantic replay") from error
     return {"result": result, "evidence": evidence}
 
 
@@ -460,21 +486,6 @@ def _validate_request(
         raise SearchEpisodeError("random_seed is only valid for random policy")
     if isinstance(max_expansions, bool) or not isinstance(max_expansions, int) or max_expansions <= 0:
         raise SearchEpisodeError("max_expansions must be a positive integer")
-
-
-def _iw_novelty_items(state: CanonicalState) -> tuple[tuple[str, ...], ...]:
-    return tuple((atom,) for atom in state.atoms)
-
-
-def _first_novel_item(
-    items: tuple[tuple[str, ...], ...],
-    novelty_table: set[tuple[str, ...]],
-) -> tuple[str, ...] | None:
-    return next((item for item in items if item not in novelty_table), None)
-
-
-def _serialize_novelty_table(items: set[tuple[str, ...]]) -> list[list[str]]:
-    return [list(item) for item in sorted(items)]
 
 
 def _authority_from_task(task: Mapping[str, Any]) -> PDDLStateAuthority:
