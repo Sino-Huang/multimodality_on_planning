@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+from copy import deepcopy
 from pathlib import Path
+
+import pytest
 
 from examples.planning_benchmark_slice.pddl_state import PDDLStateAuthority
 from examples.planning_benchmark_slice.search_episode import (
     EVIDENCE_SCHEMA_VERSION,
+    SearchEpisodeError,
     SearchEpisodeVariant,
     replay_search_episode,
     run_search_episode,
@@ -97,6 +101,52 @@ def test_seeded_random_text_bfs_is_reproducible_and_replayable(tmp_path: Path) -
     assert first["evidence"] != exact["evidence"]
 
 
+def test_exact_text_iw1_completes_with_typed_novelty_evidence_that_replays(tmp_path: Path) -> None:
+    binding = ReceiptBinding(
+        contract_id="issue-55-text-iw1",
+        attempt_id="slice-exact-iw1-policy",
+        output_root=tmp_path / "episode-evidence",
+    )
+    gate = GateReceipt(binding=binding, outcome=StopOutcome.PASS)
+    authorization = AuthorizationReceipt(binding=binding, gate_receipt_id=gate.receipt_id)
+
+    episode = run_search_episode(
+        task_path=NONTRIVIAL_FIXTURE,
+        algorithm="iterated_width",
+        modality="text-state",
+        policy="exact",
+        max_expansions=64,
+        gate_receipt=gate,
+        authorization_receipt=authorization,
+    )
+
+    assert episode["result"]["goal_reached"] is True
+    assert episode["result"]["algorithm_invariants_hold"] is True
+    assert episode["result"]["invariant_valid_success"] is True
+    assert episode["result"]["fallback_used"] is False
+    assert episode["evidence"]["header"]["request"]["recovery_policy"] == "prohibited"
+
+    events = episode["evidence"]["events"]
+    novelty_transitions = [event["novelty_transition"] for event in events]
+    assert novelty_transitions
+    assert all(transition["width"] == 1 for transition in novelty_transitions)
+    assert any(
+        len(transition["novelty_table_after"]) > len(transition["novelty_table_before"])
+        for transition in novelty_transitions
+    )
+    assert all(
+        event["operation"].get("operation_type") == "retire_frontier"
+        or event["operation"]["evaluate_target"] is True
+        for event in events
+    )
+    assert replay_search_episode(episode["evidence"]) == episode
+
+    tampered = deepcopy(episode["evidence"])
+    tampered["events"][0]["novelty_transition"]["novel_item"] = ["invented-feature"]
+    with pytest.raises(SearchEpisodeError, match="IW novelty invariant"):
+        replay_search_episode(tampered)
+
+
 def test_bfs_variant_batch_parses_one_authority_and_preserves_variant_order(
     tmp_path: Path,
     monkeypatch,
@@ -171,7 +221,8 @@ def test_v3_execution_freezes_immutable_search_memory_once(tmp_path: Path, monke
     assert create_count == 1
 
 
-def test_governed_stops_do_not_read_or_execute_a_missing_task(tmp_path: Path) -> None:
+@pytest.mark.parametrize("algorithm", ["bfs", "iterated_width"])
+def test_governed_stops_do_not_read_or_execute_a_missing_task(tmp_path: Path, algorithm: str) -> None:
     binding = ReceiptBinding(
         contract_id="issue-47-text-bfs",
         attempt_id="slice-3-governed-stops",
@@ -202,7 +253,7 @@ def test_governed_stops_do_not_read_or_execute_a_missing_task(tmp_path: Path) ->
     for gate, authorization, supplied_ancestor_digest, expected_outcome, expected_run_state in cases:
         episode = run_search_episode(
             task_path=tmp_path / "intentionally-nonexistent-task.json",
-            algorithm="bfs",
+            algorithm=algorithm,
             modality="text-state",
             policy="exact",
             max_expansions=64,

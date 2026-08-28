@@ -24,7 +24,19 @@ from .episode_evidence import (
     serialize_state,
 )
 from .pddl_state import CanonicalState, PDDLStateAuthority
-from .search_memory import MutableBFSMemory, SearchMemory, StateEvaluation
+from .search_memory import (
+    AcceptedRetirement,
+    AcceptedTransition,
+    FrontierIntent,
+    HeuristicValue,
+    MutableBFSMemory,
+    SearchMemory,
+    SearchRetireRequest,
+    SearchTransitionRequest,
+    StateEvaluation,
+    apply_search_retirement,
+    apply_search_transition,
+)
 from .search_trace import TraceSegmentLimits
 from .validate_instance import load_fixture
 
@@ -80,7 +92,7 @@ def run_search_episode_batch(
     ancestor_receipt_id: str | None = None,
     frozen_binding: Mapping[str, Any] | None = None,
 ) -> tuple[dict[str, Any], ...]:
-    """Run ordered BFS policy variants after one authorized task parse."""
+    """Run ordered policy variants after one authorized task parse."""
 
     variant_list = tuple(variants)
     if not variant_list or any(not isinstance(variant, SearchEpisodeVariant) for variant in variant_list):
@@ -149,6 +161,15 @@ def _execute_authorized_episode(
 ) -> dict[str, Any]:
     _validate_request(algorithm, modality, policy, max_expansions, random_seed)
     authority = _authority_from_task(task) if authority is None else authority
+    if algorithm == "iterated_width":
+        return _execute_exact_iw_episode(
+            task=task,
+            max_expansions=max_expansions,
+            gate_receipt=gate_receipt,
+            authorization_receipt=authorization_receipt,
+            frozen_binding=frozen_binding,
+            authority=authority,
+        )
     rng = random.Random(random_seed) if policy == "random" else None
     memory = MutableBFSMemory(authority)
     states = {authority.initial_state.state_id: serialize_state(authority.initial_state)}
@@ -248,6 +269,161 @@ def _execute_authorized_episode(
     return {"result": result, "evidence": evidence}
 
 
+def _execute_exact_iw_episode(
+    *,
+    task: Mapping[str, Any],
+    max_expansions: int,
+    gate_receipt: GateReceipt,
+    authorization_receipt: AuthorizationReceipt,
+    frozen_binding: Mapping[str, Any] | None,
+    authority: PDDLStateAuthority,
+) -> dict[str, Any]:
+    width = 1
+    memory = SearchMemory.initial(authority)
+    novelty_table: set[tuple[str, ...]] = set()
+    states = {authority.initial_state.state_id: serialize_state(authority.initial_state)}
+    events: list[dict[str, Any]] = []
+    expansion_count = 0
+    goal_reached = authority.is_goal(authority.initial_state)
+
+    while memory.frontier and expansion_count < max_expansions and not goal_reached:
+        expanded_state_id = memory.frontier[0]
+        state = memory.state(expanded_state_id)
+        table_before = set(novelty_table)
+        items = _iw_novelty_items(state)
+        novel_item = _first_novel_item(items, novelty_table)
+        if expansion_count == 0 and novel_item is None:
+            novel_item = ()
+        decision = "expand" if novel_item is not None else "prune"
+        if decision == "expand":
+            novelty_table.update(items)
+
+        transition_base = {
+            "decision": decision,
+            "novel_item": None if novel_item is None else list(novel_item),
+            "novelty_table_after": _serialize_novelty_table(novelty_table),
+            "novelty_table_before": _serialize_novelty_table(table_before),
+            "width": width,
+        }
+        accepted_successor = False
+        if decision == "expand":
+            for action in authority.applicable_actions(state):
+                preview = authority.preview_apply(state, action)
+                target = preview.target_state
+                if target.state_id in memory.visited:
+                    continue
+                target_novel_item = _first_novel_item(_iw_novelty_items(target), novelty_table)
+                if target_novel_item is None:
+                    continue
+
+                retire_source = not accepted_successor
+                request = SearchTransitionRequest(
+                    source_state_id=expanded_state_id,
+                    action=action,
+                    frontier_intent=FrontierIntent(
+                        retire_source=retire_source,
+                        target_position=len(memory.frontier) - (1 if retire_source else 0),
+                    ),
+                    visit_target=True,
+                    evaluate_target=True,
+                )
+                result = apply_search_transition(
+                    memory,
+                    request,
+                    evaluator=lambda _target: StateEvaluation(
+                        novelty=width,
+                        heuristic=HeuristicValue("not_applicable", 0),
+                    ),
+                )
+                if not isinstance(result, AcceptedTransition):
+                    raise SearchEpisodeError("trusted IW transition was rejected")
+                memory = result.memory
+                target = result.transition.target_state
+                states[target.state_id] = serialize_state(target)
+                events.append(
+                    {
+                        "expanded_state_id": expanded_state_id,
+                        "expansion_index": expansion_count,
+                        "index": len(events),
+                        "newly_enqueued_state_ids": [target.state_id],
+                        "novelty_transition": {
+                            **transition_base,
+                            "target_novel_item": list(target_novel_item),
+                        },
+                        "operation": serialize_operation(request),
+                        "rationale": "exact_iw1_canonical_novel_successor",
+                    }
+                )
+                accepted_successor = True
+                if authority.is_goal(target):
+                    goal_reached = True
+                    break
+
+        if not accepted_successor:
+            request = SearchRetireRequest(expanded_state_id)
+            result = apply_search_retirement(memory, request)
+            if not isinstance(result, AcceptedRetirement):
+                raise SearchEpisodeError("trusted IW retirement was rejected")
+            memory = result.memory
+            events.append(
+                {
+                    "expanded_state_id": expanded_state_id,
+                    "expansion_index": expansion_count,
+                    "index": len(events),
+                    "newly_enqueued_state_ids": [],
+                    "novelty_transition": {**transition_base, "target_novel_item": None},
+                    "operation": serialize_operation(request),
+                    "rationale": f"exact_iw1_{decision}_frontier_head",
+                }
+            )
+        expansion_count += 1
+
+    completed = RunReceipt(
+        binding=gate_receipt.binding,
+        outcome=StopOutcome.PASS,
+        run_state="completed",
+        start_permitted=False,
+        scientific_completion=True,
+        gate_receipt_id=gate_receipt.receipt_id,
+        authorization_receipt_id=authorization_receipt.receipt_id,
+    )
+    result = {
+        "algorithm_invariants_hold": True,
+        "completion": "completed",
+        "expansion_count": expansion_count,
+        "fallback_used": False,
+        "goal_reached": goal_reached,
+        "invariant_valid_success": goal_reached,
+        "outcome": StopOutcome.PASS.value,
+        "run_receipt": completed.to_dict(),
+        "scientific_completion": True,
+    }
+    request = {
+        "algorithm": "iterated_width",
+        "max_expansions": max_expansions,
+        "modality": "text-state",
+        "policy": "exact",
+        "recovery_policy": "prohibited",
+        "schema_version": REQUEST_SCHEMA_VERSION,
+        "width": width,
+    }
+    evidence = {
+        "events": events,
+        "header": {
+            "authorization_receipt": authorization_receipt.to_dict(),
+            "authority_id": authority.authority_id,
+            "frozen_binding": None if frozen_binding is None else dict(frozen_binding),
+            "gate_receipt": gate_receipt.to_dict(),
+            "request": request,
+            "task": dict(task),
+        },
+        "result": result,
+        "schema_version": EVIDENCE_SCHEMA_VERSION,
+        "states": states,
+    }
+    return {"result": result, "evidence": evidence}
+
+
 def _stopped_episode(receipt: RunReceipt) -> dict[str, Any]:
     return {
         "result": {
@@ -269,10 +445,14 @@ def _validate_request(
     max_expansions: int,
     random_seed: int | None,
 ) -> None:
-    if algorithm != "bfs" or modality != "text-state":
-        raise SearchEpisodeError("this slice supports only BFS text-state")
-    if policy not in {"exact", "random"}:
-        raise SearchEpisodeError("supported policies are 'exact' and 'random'")
+    if modality != "text-state":
+        raise SearchEpisodeError("this slice supports only text-state episodes")
+    if algorithm == "bfs" and policy not in {"exact", "random"}:
+        raise SearchEpisodeError("supported BFS policies are 'exact' and 'random'")
+    if algorithm == "iterated_width" and policy != "exact":
+        raise SearchEpisodeError("the IW slice supports only the exact policy")
+    if algorithm not in {"bfs", "iterated_width"}:
+        raise SearchEpisodeError("supported algorithms are 'bfs' and 'iterated_width'")
     if policy == "random":
         if isinstance(random_seed, bool) or not isinstance(random_seed, int):
             raise SearchEpisodeError("random policy requires an integer random_seed")
@@ -280,6 +460,21 @@ def _validate_request(
         raise SearchEpisodeError("random_seed is only valid for random policy")
     if isinstance(max_expansions, bool) or not isinstance(max_expansions, int) or max_expansions <= 0:
         raise SearchEpisodeError("max_expansions must be a positive integer")
+
+
+def _iw_novelty_items(state: CanonicalState) -> tuple[tuple[str, ...], ...]:
+    return tuple((atom,) for atom in state.atoms)
+
+
+def _first_novel_item(
+    items: tuple[tuple[str, ...], ...],
+    novelty_table: set[tuple[str, ...]],
+) -> tuple[str, ...] | None:
+    return next((item for item in items if item not in novelty_table), None)
+
+
+def _serialize_novelty_table(items: set[tuple[str, ...]]) -> list[list[str]]:
+    return [list(item) for item in sorted(items)]
 
 
 def _authority_from_task(task: Mapping[str, Any]) -> PDDLStateAuthority:
