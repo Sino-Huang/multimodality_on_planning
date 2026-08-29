@@ -1,0 +1,95 @@
+# Issue 59 BFWS process-SFT and structural gate
+
+Issue 59 consumes the complete issue-57 exact BFWS release and issue-58 process
+projection under phase `issue-56-bfws-development-v1`. It never reads the
+fresh 45-task held-out test manifest. This is a development structural gate,
+not an efficacy-test run.
+
+## Implemented contract
+
+- Process-only LoRA SFT uses all 47,780 train and 21,239 dev records from the
+  105 atomic ms-swift shards released by issue 58. The five frozen seeds are
+  17, 29, 43, 71, and 101; only each seed's numerically final checkpoint enters
+  rollout.
+- Exact BFWS evidence is independently reopened from issue 57. Random-valid,
+  pretrained-base, and process-SFT conditions use the same trusted BFWS session,
+  bounded `bounded_bfws_search_memory_v1` input, 16 accepted deltas, 7,808/384
+  token limits, matching exact expansion limit, and a separate model-call limit
+  of twice the task's exact-reference decision count.
+- GPU inference is deterministic float32 batching with one backbone per GPU,
+  isolated adapter caches, at most one request per active episode per round,
+  batch size 8, and 48,000 padded input tokens.
+- Qualification uses six retained issue-57 input snapshots, observes no model
+  outcomes, and requires scalar/batch byte parity plus repeated-batch parity.
+  It tries all 35 dev tasks first. The preregistered exact-cost fallback is the
+  cheapest exact-decision task in each of the 15 domains, selected by
+  `(exact decisions, difficulty, instance ID)` before any model result. Its
+  maximum unique scheduled-call budget is 27,228; full coverage is 254,868.
+- The gate clock starts when qualification finishes. New model calls stop at
+  18 hours and replay/adjudication must finish by 20 hours. Partial selected
+  coverage cannot pass.
+- Episode inputs, raw outputs, accepted operations, and results are retained as
+  atomic gzip JSON evidence. Adjudication reconstructs every bounded input and
+  trusted transition without model inference before computing metrics.
+
+## Dry-run verified by the agent
+
+The following command validates every retained dependency and prints the exact
+five training launches, qualification plan, two GPU rollout shards, and
+adjudication inputs without running learning or model inference:
+
+```bash
+source ~/cd_vlaplan
+python scripts/run_bfws_issue59.py all --dry-run
+```
+
+The installed ms-swift 4.2.2 launcher also resolved the generated seed-17 smoke
+argument vector and exited successfully through its help path. No training,
+random-reference generation, hardware qualification, or model rollout was run
+by the implementation agent.
+
+## Human execution
+
+Run the full workflow on the two A100 GPUs:
+
+```bash
+source ~/cd_vlaplan
+python scripts/run_bfws_issue59.py all --devices cuda:0 cuda:1
+```
+
+The command runs references, five training seeds, outcome-blind qualification,
+both rollout shards, and adjudication in order. It prints live subprocess output
+and JSON progress records containing completed work, total work, elapsed time,
+and estimated remaining time. A qualification `VALID_STOP` skips rollout and
+goes directly to a gated-not-run adjudication receipt.
+
+For operational control, the same workflow can be run stage by stage:
+
+```bash
+python scripts/run_bfws_issue59.py preflight
+python scripts/run_bfws_issue59.py references --resume
+python scripts/run_bfws_issue59.py train --devices cuda:0 cuda:1
+python scripts/run_bfws_issue59.py qualify --devices cuda:0 cuda:1
+python scripts/run_bfws_issue59.py evaluate --devices cuda:0 cuda:1 --resume
+python scripts/run_bfws_issue59.py adjudicate
+```
+
+Reference and rollout evidence resume within the same immutable launch.
+Interrupted or failed training is preserved and the next invocation creates a
+new numbered attempt. A one-step non-scientific smoke launch is available with
+`train --smoke`; it never satisfies final-checkpoint discovery.
+
+## Frozen adjudication
+
+The selected process-SFT product must satisfy all of these predeclared checks:
+
+- exact-reference invariant-valid success = 1.0;
+- process-SFT invariant-valid success at least 0.8;
+- process-SFT invalid-operation rate at most 0.05;
+- absolute gain over the better of base and random-valid at least 0.1;
+- paired 10,000-resample whole-instance bootstrap gain lower bound at least 0.
+
+`PASS` requires complete replay-valid selected coverage and all thresholds.
+Ordinary model, threshold, qualification, or resource failure is `VALID_STOP`.
+A prerequisite stop is `ANCESTOR_STOP`. Any manifest, provenance, input parity,
+or replay mismatch is `INVALID` and is never scientific completion.
