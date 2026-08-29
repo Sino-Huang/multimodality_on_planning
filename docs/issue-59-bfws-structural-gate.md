@@ -10,7 +10,8 @@ not an efficacy-test run.
 - Process-only LoRA SFT uses all 47,780 train and 21,239 dev records from the
   105 atomic ms-swift shards released by issue 58. The five frozen seeds are
   17, 29, 43, 71, and 101; only each seed's numerically final checkpoint enters
-  rollout.
+  rollout. Concurrent seed launches retain distinct torch rendezvous ports
+  29600 through 29604 as well as their alternating GPU assignments.
 - Exact BFWS evidence is independently reopened from issue 57. Random-valid,
   pretrained-base, and process-SFT conditions use the same trusted BFWS session,
   bounded `bounded_bfws_search_memory_v1` input, 16 accepted deltas, 7,808/384

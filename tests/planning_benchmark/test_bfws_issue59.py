@@ -326,3 +326,35 @@ def test_reference_dry_run_exposes_bounded_parallel_worker_count(capsys: pytest.
     plan = json.loads(capsys.readouterr().out)
     assert plan["workers"] == 4
     assert plan["resume"] is False
+
+
+def test_parallel_training_dry_run_assigns_distinct_rendezvous_ports(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    assert (
+        issue59_main(
+            [
+                "train",
+                "--dry-run",
+                "--devices",
+                "cuda:0",
+                "cuda:1",
+                "--output-root",
+                str(tmp_path / "issue59"),
+            ]
+        )
+        == 0
+    )
+
+    launches = json.loads(capsys.readouterr().out)["launches"]
+    environments = [launch["environment"] for launch in launches]
+    assert [environment["CUDA_VISIBLE_DEVICES"] for environment in environments] == ["0", "1", "0", "1", "0"]
+    assert [environment["MASTER_PORT"] for environment in environments] == [
+        "29600",
+        "29601",
+        "29602",
+        "29603",
+        "29604",
+    ]
+    assert len({environment["MASTER_PORT"] for environment in environments}) == len(environments)

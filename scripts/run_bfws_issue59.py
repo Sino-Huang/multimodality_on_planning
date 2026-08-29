@@ -45,6 +45,7 @@ from src.data_collect.governance import (
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 _OUTPUT_ROOT = _REPO_ROOT / "outputs" / "bfws_phase" / "issue59-v1"
 _SEEDS = (17, 29, 43, 71, 101)
+_TRAINING_MASTER_PORT_BASE = 29_600
 _STAGES = ("preflight", "references", "train", "qualify", "evaluate", "adjudicate", "all", "evaluate-shard")
 _REFERENCE_MODEL: tuple[str, str] | None = None
 _REFERENCE_TOKEN_COUNTER: Callable[[Mapping[str, Any]], int] | None = None
@@ -320,6 +321,13 @@ def _training_plans(experiment, output_root: Path, devices: tuple[str, ...], *, 
         if attempt_root is None:
             continue
         device = devices[index % len(devices)]
+        environment = {
+            "CUBLAS_WORKSPACE_CONFIG": ":4096:8",
+            "CUDA_VISIBLE_DEVICES": device.removeprefix("cuda:"),
+            "MASTER_PORT": str(_TRAINING_MASTER_PORT_BASE + index),
+            "NPROC_PER_NODE": "1",
+            "PYTHONHASHSEED": str(seed),
+        }
         command = build_bfws_sft_command(
             experiment,
             seed=seed,
@@ -332,6 +340,7 @@ def _training_plans(experiment, output_root: Path, devices: tuple[str, ...], *, 
                 "attempt_id": attempt_id,
                 "command": command,
                 "device": device,
+                "environment": environment,
                 "expected_optimizer_steps": 1 if smoke else _expected_steps(experiment),
                 "output_root": str(attempt_root),
                 "phase_id": experiment.phase_gate.phase_id,
@@ -385,20 +394,11 @@ def _run_training_plan(plan: Mapping[str, Any], *, progress_interval: float) -> 
         root,
     )
     environment = os.environ.copy()
-    environment.update(
-        {
-            "CUBLAS_WORKSPACE_CONFIG": ":4096:8",
-            "CUDA_VISIBLE_DEVICES": str(plan["device"]).removeprefix("cuda:"),
-            "NPROC_PER_NODE": "1",
-            "PYTHONHASHSEED": str(plan["seed"]),
-        }
-    )
-    environment_keys = (
-        "CUBLAS_WORKSPACE_CONFIG",
-        "CUDA_VISIBLE_DEVICES",
-        "NPROC_PER_NODE",
-        "PYTHONHASHSEED",
-    )
+    planned_environment = plan["environment"]
+    if not isinstance(planned_environment, Mapping):
+        raise ValueError("BFWS training plan environment is malformed")
+    environment.update({str(key): str(value) for key, value in planned_environment.items()})
+    environment_keys = tuple(sorted(planned_environment))
     launch = {
         **dict(plan),
         "authorization_receipt": authorization_receipt.to_dict(),
