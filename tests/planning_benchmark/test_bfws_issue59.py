@@ -15,11 +15,13 @@ from examples.planning_benchmark_slice.bfws_issue59 import (
     build_bfws_sft_command,
     exact_bfws_model_output,
     load_bfws_issue59,
+    materialize_random_valid_bfws_reference,
     random_valid_bfws_model_output,
     replay_bfws_episode,
     select_bfws_coverage,
 )
 from examples.planning_benchmark_slice.pddl_state import PDDLStateAuthority
+from scripts.run_bfws_issue59 import main as issue59_main
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 TASK = REPO_ROOT / "tests" / "fixtures" / "planning" / "iw_width_four.json"
@@ -280,3 +282,47 @@ def test_live_issue59_session_matches_a_released_exact_dev_trace() -> None:
     assert result["invariant_valid_success"] is True
     assert result["decision_count"] == task.exact_decisions == 3
     assert result["expansion_count"] == task.exact_expansions == 3
+
+
+def test_random_reference_resume_replays_existing_evidence_without_regeneration(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    experiment = load_bfws_issue59(REPO_ROOT)
+    task = next(item for item in experiment.tasks if item.instance_id == "storage-train-easy-0004")
+    evidence_path = tmp_path / "episode.json.gz"
+
+    generated, generated_status = materialize_random_valid_bfws_reference(
+        task=task,
+        seed=17,
+        evidence_path=evidence_path,
+        input_token_counter=lambda _value: 1,
+    )
+    retained_bytes = evidence_path.read_bytes()
+
+    def reject_regeneration(*_args: object, **_kwargs: object) -> str:
+        raise AssertionError("resume regenerated an existing random-valid episode")
+
+    monkeypatch.setattr(
+        "examples.planning_benchmark_slice.bfws_issue59.random_valid_bfws_model_output",
+        reject_regeneration,
+    )
+    resumed, resumed_status = materialize_random_valid_bfws_reference(
+        task=task,
+        seed=17,
+        evidence_path=evidence_path,
+        input_token_counter=lambda _value: 1,
+    )
+
+    assert generated_status == "generated"
+    assert resumed_status == "reused"
+    assert resumed == generated
+    assert evidence_path.read_bytes() == retained_bytes
+
+
+def test_reference_dry_run_exposes_bounded_parallel_worker_count(capsys: pytest.CaptureFixture[str]) -> None:
+    assert issue59_main(["references", "--dry-run", "--reference-workers", "4"]) == 0
+
+    plan = json.loads(capsys.readouterr().out)
+    assert plan["workers"] == 4
+    assert plan["resume"] is False

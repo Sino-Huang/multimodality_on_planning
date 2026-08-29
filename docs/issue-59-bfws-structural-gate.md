@@ -31,6 +31,9 @@ not an efficacy-test run.
 - Episode inputs, raw outputs, accepted operations, and results are retained as
   atomic gzip JSON evidence. Adjudication reconstructs every bounded input and
   trusted transition without model inference before computing metrics.
+- CPU reference episodes run in a bounded process pool (eight workers by
+  default, never more than the available CPU affinity). Completion order may
+  vary, but the final manifest retains the frozen task/seed ordering.
 
 ## Dry-run verified by the agent
 
@@ -78,6 +81,20 @@ Reference and rollout evidence resume within the same immutable launch.
 Interrupted or failed training is preserved and the next invocation creates a
 new numbered attempt. A one-step non-scientific smoke launch is available with
 `train --smoke`; it never satisfies final-checkpoint discovery.
+
+If reference generation was interrupted, resume its retained atomic episodes
+without regenerating them:
+
+```bash
+python scripts/run_bfws_issue59.py all \
+  --devices cuda:0 cuda:1 \
+  --reference-workers 8 \
+  --resume
+```
+
+Every existing random-valid episode is reopened and independently replayed.
+Only missing task/seed episodes are generated. Parallel completion cannot
+change the deterministic final manifest order.
 
 ## Frozen adjudication
 

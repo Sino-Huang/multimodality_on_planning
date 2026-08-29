@@ -13,8 +13,9 @@ import subprocess
 import sys
 import threading
 import time
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, BinaryIO, Mapping, Sequence
+from typing import Any, BinaryIO, Callable, Mapping, Sequence
 
 from examples.planning_benchmark_slice.bfws_issue59 import (
     BFWSBatchedPolicy,
@@ -25,7 +26,7 @@ from examples.planning_benchmark_slice.bfws_issue59 import (
     bfws_episode_payload,
     build_bfws_sft_command,
     load_bfws_issue59,
-    random_valid_bfws_model_output,
+    materialize_random_valid_bfws_reference,
     replay_bfws_episode,
     run_bfws_sessions,
     select_bfws_coverage,
@@ -45,6 +46,19 @@ _REPO_ROOT = Path(__file__).resolve().parents[1]
 _OUTPUT_ROOT = _REPO_ROOT / "outputs" / "bfws_phase" / "issue59-v1"
 _SEEDS = (17, 29, 43, 71, 101)
 _STAGES = ("preflight", "references", "train", "qualify", "evaluate", "adjudicate", "all", "evaluate-shard")
+_REFERENCE_MODEL: tuple[str, str] | None = None
+_REFERENCE_TOKEN_COUNTER: Callable[[Mapping[str, Any]], int] | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class _ReferenceJob:
+    ordinal: int
+    arm: str
+    task: BFWSDevelopmentTask
+    evidence_path: Path
+    relative_path: str
+    seed: int | None
+    exact_result: Mapping[str, Any] | None = None
 
 
 def main(arguments: Sequence[str] | None = None) -> int:
@@ -59,9 +73,14 @@ def main(arguments: Sequence[str] | None = None) -> int:
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--smoke", action="store_true")
     parser.add_argument("--progress-interval-seconds", type=float, default=60.0)
+    parser.add_argument("--reference-workers", type=int, default=min(8, _available_cpus()))
     args = parser.parse_args(arguments)
     if args.progress_interval_seconds <= 0:
         raise ValueError("progress interval must be positive")
+    if args.reference_workers <= 0:
+        raise ValueError("reference workers must be positive")
+    if args.reference_workers > _available_cpus():
+        raise ValueError("reference workers cannot exceed the available CPU affinity")
     experiment = load_bfws_issue59(_REPO_ROOT)
     output_root = args.output_root.resolve()
 
@@ -69,7 +88,13 @@ def main(arguments: Sequence[str] | None = None) -> int:
         print(_canonical_text({**experiment.preflight(), "dry_run": args.dry_run}))
         return 0
     if args.stage == "references":
-        return _references(experiment, output_root, dry_run=args.dry_run, resume=args.resume)
+        return _references(
+            experiment,
+            output_root,
+            dry_run=args.dry_run,
+            resume=args.resume,
+            workers=args.reference_workers,
+        )
     if args.stage == "train":
         return _train(
             experiment,
@@ -106,7 +131,12 @@ def main(arguments: Sequence[str] | None = None) -> int:
     if args.dry_run:
         plans = {
             "preflight": experiment.preflight(),
-            "references": _references_plan(experiment, output_root),
+            "references": _references_plan(
+                experiment,
+                output_root,
+                workers=args.reference_workers,
+                resume=args.resume,
+            ),
             "train": _training_plans(experiment, output_root, tuple(args.devices), smoke=args.smoke),
             "qualify": _qualification_plan(experiment, output_root, tuple(args.devices)),
             "evaluate": _evaluation_commands(output_root, tuple(args.devices), args.attempt_id, resume=args.resume),
@@ -117,6 +147,7 @@ def main(arguments: Sequence[str] | None = None) -> int:
     for stage in ("references", "train", "qualify"):
         forwarded = [stage, "--output-root", str(output_root), "--attempt-id", args.attempt_id]
         forwarded.extend(("--devices", *args.devices))
+        forwarded.extend(("--reference-workers", str(args.reference_workers)))
         if args.resume:
             forwarded.append("--resume")
         returncode = main(forwarded)
@@ -141,16 +172,20 @@ def main(arguments: Sequence[str] | None = None) -> int:
     return main(["adjudicate", "--output-root", str(output_root), "--attempt-id", args.attempt_id])
 
 
-def _references_plan(experiment, output_root: Path) -> dict[str, Any]:
+def _references_plan(experiment, output_root: Path, *, workers: int, resume: bool) -> dict[str, Any]:
+    episode_root = output_root / "references" / "episodes" / "random_valid"
     return {
         "conditions": {"exact_bfws": len(experiment.tasks), "random_valid": len(experiment.tasks) * len(_SEEDS)},
+        "existing_random_valid_episodes": sum(1 for _path in episode_root.glob("seed-*/*.json.gz")),
         "output": str(output_root / "references" / "manifest.json"),
         "progress": "one terminal record per completed episode with elapsed time and ETA",
+        "resume": resume,
+        "workers": workers,
     }
 
 
-def _references(experiment, output_root: Path, *, dry_run: bool, resume: bool) -> int:
-    plan = _references_plan(experiment, output_root)
+def _references(experiment, output_root: Path, *, dry_run: bool, resume: bool, workers: int) -> int:
+    plan = _references_plan(experiment, output_root, workers=workers, resume=resume)
     if dry_run:
         print(_canonical_text({**plan, "dry_run": True}))
         return 0
@@ -167,70 +202,24 @@ def _references(experiment, output_root: Path, *, dry_run: bool, resume: bool) -
         "issue-59-bfws-references-v1",
         root,
     )
-    counter = _token_counter(experiment)
-    trace_rows = {row["instance_id"]: row for row in experiment.trace_manifest["traces"] if row["split"] == "dev"}
-    records: list[dict[str, Any]] = []
-    total = len(experiment.tasks) * (len(_SEEDS) + 1)
+    jobs = _reference_jobs(experiment, root)
+    records: list[dict[str, Any] | None] = [None] * len(jobs)
     completed = 0
     started = time.monotonic()
-    for task in experiment.tasks:
-        exact = trace_rows[task.instance_id]
-        evidence = exact["evidence"]
-        evidence_path = _REPO_ROOT / "data" / "bfws_phase_v1" / "exact-traces" / evidence["path"]
-        replayed = replay_episode_evidence(evidence_path)
-        if replayed["result"]["goal_reached"] is not True:
-            raise ValueError(f"exact BFWS reference replay failed: {task.instance_id}")
-        records.append(
-            {
-                "arm": "exact_bfws",
-                "evidence": {"path": str(evidence_path), "size_bytes": evidence_path.stat().st_size},
-                "instance_id": task.instance_id,
-                "result": {"invariant_valid_success": True, **exact["result"]},
-                "seed": None,
-            }
-        )
-        completed += 1
-        _terminal_progress("references", completed, total, started, task.instance_id)
-        for seed in _SEEDS:
-            relative = Path("episodes") / "random_valid" / f"seed-{seed}" / f"{task.instance_id}.json.gz"
-            path = root / relative
-            if path.is_file():
-                payload = _read_gzip_json(path)
-                authority = _authority(task)
-                replay_bfws_episode(payload, authority=authority, input_token_counter=counter)
-            else:
-                authority = _authority(task)
-                session = BFWSModelSession(
-                    authority=authority,
-                    instance_id=task.instance_id,
-                    arm="random_valid",
-                    seed=seed,
-                    max_model_calls=task.model_call_limit,
-                    max_expansions=task.exact_expansions,
-                    accepted_delta_limit=16,
-                    max_input_bytes=10_000_000,
-                    max_input_tokens=7_808,
-                    input_token_counter=counter,
-                )
-                generator = random_generator(seed, task.instance_id)
-                while (request := session.next_request()) is not None:
-                    session.submit_output(random_valid_bfws_model_output(request.observation, generator))
-                payload = bfws_episode_payload(session)
-                _write_gzip_json(path, payload)
-                replay_bfws_episode(payload, authority=authority, input_token_counter=counter)
-            if payload["result"]["invalid_operation_count"] != 0:
-                raise ValueError(f"random-valid BFWS policy emitted an invalid operation: {task.instance_id}")
-            records.append(
-                {
-                    "arm": "random_valid",
-                    "evidence": {"path": relative.as_posix(), "size_bytes": path.stat().st_size},
-                    "instance_id": task.instance_id,
-                    "result": payload["result"],
-                    "seed": seed,
-                }
-            )
+    model = experiment.phase_gate.components["training"]["model"]
+    with concurrent.futures.ProcessPoolExecutor(
+        max_workers=workers,
+        initializer=_initialize_reference_worker,
+        initargs=(str(model["model_id"]), str(model["revision"])),
+    ) as executor:
+        futures = {executor.submit(_run_reference_job, job): job for job in jobs}
+        for future in concurrent.futures.as_completed(futures):
+            ordinal, item, status, record = future.result()
+            records[ordinal] = record
             completed += 1
-            _terminal_progress("references", completed, total, started, f"{task.instance_id}:seed-{seed}")
+            _terminal_progress("references", completed, len(jobs), started, f"{item}:{status}")
+    if any(record is None for record in records):
+        raise RuntimeError("parallel BFWS references did not return every deterministic record")
     manifest = {
         "counts": {"exact_bfws": len(experiment.tasks), "random_valid": len(experiment.tasks) * len(_SEEDS)},
         "authorization_receipt": authorization_receipt.to_dict(),
@@ -244,11 +233,82 @@ def _references(experiment, output_root: Path, *, dry_run: bool, resume: bool) -
     return 0
 
 
-def random_generator(seed: int, instance_id: str):
-    import random
+def _reference_jobs(experiment, root: Path) -> tuple[_ReferenceJob, ...]:
+    trace_rows = {row["instance_id"]: row for row in experiment.trace_manifest["traces"] if row["split"] == "dev"}
+    jobs = []
+    for task in experiment.tasks:
+        exact = trace_rows[task.instance_id]
+        exact_path = _REPO_ROOT / "data" / "bfws_phase_v1" / "exact-traces" / exact["evidence"]["path"]
+        jobs.append(
+            _ReferenceJob(
+                ordinal=len(jobs),
+                arm="exact_bfws",
+                task=task,
+                evidence_path=exact_path,
+                relative_path=str(exact_path),
+                seed=None,
+                exact_result=exact["result"],
+            )
+        )
+        for seed in _SEEDS:
+            relative = Path("episodes") / "random_valid" / f"seed-{seed}" / f"{task.instance_id}.json.gz"
+            jobs.append(
+                _ReferenceJob(
+                    ordinal=len(jobs),
+                    arm="random_valid",
+                    task=task,
+                    evidence_path=root / relative,
+                    relative_path=relative.as_posix(),
+                    seed=seed,
+                )
+            )
+    return tuple(jobs)
 
-    stable = sum((index + 1) * ord(character) for index, character in enumerate(instance_id))
-    return random.Random(seed * 1_000_003 + stable)
+
+def _initialize_reference_worker(model_id: str, revision: str) -> None:
+    global _REFERENCE_MODEL, _REFERENCE_TOKEN_COUNTER
+    _REFERENCE_MODEL = (model_id, revision)
+    _REFERENCE_TOKEN_COUNTER = None
+
+
+def _run_reference_job(job: _ReferenceJob) -> tuple[int, str, str, dict[str, Any]]:
+    if job.arm == "exact_bfws":
+        replayed = replay_episode_evidence(job.evidence_path)
+        if replayed["result"]["goal_reached"] is not True or job.exact_result is None:
+            raise ValueError(f"exact BFWS reference replay failed: {job.task.instance_id}")
+        record = {
+            "arm": "exact_bfws",
+            "evidence": {"path": job.relative_path, "size_bytes": job.evidence_path.stat().st_size},
+            "instance_id": job.task.instance_id,
+            "result": {"invariant_valid_success": True, **job.exact_result},
+            "seed": None,
+        }
+        return job.ordinal, job.task.instance_id, "replayed", record
+    if job.seed is None:
+        raise ValueError("random-valid BFWS reference job requires a seed")
+    payload, status = materialize_random_valid_bfws_reference(
+        task=job.task,
+        seed=job.seed,
+        evidence_path=job.evidence_path,
+        input_token_counter=_reference_token_counter(),
+    )
+    record = {
+        "arm": "random_valid",
+        "evidence": {"path": job.relative_path, "size_bytes": job.evidence_path.stat().st_size},
+        "instance_id": job.task.instance_id,
+        "result": payload["result"],
+        "seed": job.seed,
+    }
+    return job.ordinal, f"{job.task.instance_id}:seed-{job.seed}", status, record
+
+
+def _reference_token_counter() -> Callable[[Mapping[str, Any]], int]:
+    global _REFERENCE_TOKEN_COUNTER
+    if _REFERENCE_TOKEN_COUNTER is None:
+        if _REFERENCE_MODEL is None:
+            raise RuntimeError("BFWS reference worker was not initialized")
+        _REFERENCE_TOKEN_COUNTER = _token_counter_for_model(*_REFERENCE_MODEL)
+    return _REFERENCE_TOKEN_COUNTER
 
 
 def _training_plans(experiment, output_root: Path, devices: tuple[str, ...], *, smoke: bool) -> list[dict[str, Any]]:
@@ -879,10 +939,14 @@ def _replay_model_record(row, path: Path, task: BFWSDevelopmentTask, counter) ->
 
 
 def _token_counter(experiment):
+    model = experiment.phase_gate.components["training"]["model"]
+    return _token_counter_for_model(str(model["model_id"]), str(model["revision"]))
+
+
+def _token_counter_for_model(model_id: str, revision: str) -> Callable[[Mapping[str, Any]], int]:
     from transformers import AutoProcessor
 
-    model = experiment.phase_gate.components["training"]["model"]
-    tokenizer = AutoProcessor.from_pretrained(model["model_id"], revision=model["revision"]).tokenizer
+    tokenizer = AutoProcessor.from_pretrained(model_id, revision=revision).tokenizer
 
     def count(model_input: Mapping[str, Any]) -> int:
         return len(
@@ -926,6 +990,13 @@ def _cost_shards(tasks: Sequence[BFWSDevelopmentTask]):
         shards[index].append(task)
         loads[index] += task.model_call_limit
     return tuple(tuple(sorted(shard, key=lambda item: item.instance_id)) for shard in shards)
+
+
+def _available_cpus() -> int:
+    affinity = getattr(os, "sched_getaffinity", None)
+    if affinity is not None:
+        return max(1, len(affinity(0)))
+    return max(1, os.cpu_count() or 1)
 
 
 def _episode_relative(arm: str, seed: int, instance_id: str) -> Path:

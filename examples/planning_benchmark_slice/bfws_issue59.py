@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import gzip
 import json
 import math
 import os
@@ -962,6 +963,48 @@ def random_valid_bfws_model_output(observation: Mapping[str, Any], generator: ra
     )
 
 
+def materialize_random_valid_bfws_reference(
+    *,
+    task: BFWSDevelopmentTask,
+    seed: int,
+    evidence_path: str | Path,
+    input_token_counter: Callable[[Mapping[str, Any]], int],
+) -> tuple[dict[str, Any], str]:
+    """Generate one random-valid episode, or replay an existing atomic episode."""
+
+    path = Path(evidence_path).resolve()
+    authority = PDDLStateAuthority.from_pddl(
+        task.domain_path.read_text(encoding="utf-8"),
+        task.problem_path.read_text(encoding="utf-8"),
+    )
+    if path.is_file():
+        payload = _gzip_json_object(path)
+        status = "reused"
+    else:
+        session = BFWSModelSession(
+            authority=authority,
+            instance_id=task.instance_id,
+            arm="random_valid",
+            seed=seed,
+            max_model_calls=task.model_call_limit,
+            max_expansions=task.exact_expansions,
+            accepted_delta_limit=16,
+            max_input_bytes=10_000_000,
+            max_input_tokens=7_808,
+            input_token_counter=input_token_counter,
+        )
+        generator = random.Random(seed * 1_000_003 + _stable_text_seed(task.instance_id))
+        while (request := session.next_request()) is not None:
+            session.submit_output(random_valid_bfws_model_output(request.observation, generator))
+        payload = bfws_episode_payload(session)
+        _write_gzip_json(path, payload)
+        status = "generated"
+    replay_bfws_episode(payload, authority=authority, input_token_counter=input_token_counter)
+    if payload["result"]["invalid_operation_count"] != 0:
+        raise ValueError(f"random-valid BFWS policy emitted an invalid operation: {task.instance_id}")
+    return payload, status
+
+
 def bfws_episode_payload(session: BFWSModelSession) -> dict[str, Any]:
     """Return compact, gzip-ready full decision evidence for one session."""
 
@@ -1219,6 +1262,25 @@ def _repository_path(root: Path, value: object) -> Path:
     return resolved
 
 
+def _stable_text_seed(value: str) -> int:
+    return sum((index + 1) * ord(character) for index, character in enumerate(value))
+
+
+def _gzip_json_object(path: Path) -> dict[str, Any]:
+    value = json.loads(gzip.decompress(path.read_bytes()))
+    if not isinstance(value, dict):
+        raise ValueError(f"expected gzip JSON object: {path}")
+    return value
+
+
+def _write_gzip_json(path: Path, value: object) -> None:
+    payload = gzip.compress((_canonical_text(value) + "\n").encode("utf-8"), compresslevel=6, mtime=0)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_suffix(path.suffix + ".tmp")
+    temporary.write_bytes(payload)
+    temporary.replace(path)
+
+
 def _json_object(path: Path) -> dict[str, Any]:
     value = json.loads(path.read_bytes())
     if not isinstance(value, dict):
@@ -1243,6 +1305,7 @@ __all__ = [
     "build_bfws_sft_command",
     "exact_bfws_model_output",
     "load_bfws_issue59",
+    "materialize_random_valid_bfws_reference",
     "random_valid_bfws_model_output",
     "replay_bfws_episode",
     "run_bfws_sessions",
