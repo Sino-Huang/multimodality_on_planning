@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import gzip
 import json
+from copy import deepcopy
 from pathlib import Path
+
+import pytest
 
 from examples.planning_benchmark_slice.bfws_generation import (
     generate_frozen_bfws_trace,
@@ -10,6 +13,10 @@ from examples.planning_benchmark_slice.bfws_generation import (
     run_frozen_bfws_trace_generation,
 )
 from examples.planning_benchmark_slice.bfws_phase import load_bfws_phase_gate
+from examples.planning_benchmark_slice.bfws_trace_audit import (
+    _validate_audit_result,
+    audit_frozen_bfws_trace,
+)
 from examples.planning_benchmark_slice.episode_evidence import replay_episode_evidence
 from src.data_collect.generate import GenerationRequest
 from src.data_collect.governance import AuthorizationReceipt, GateReceipt, ReceiptBinding, StopOutcome
@@ -39,18 +46,13 @@ def test_bfws_trace_preflight_covers_only_the_frozen_development_panel() -> None
 
     rows = preflight_frozen_bfws_trace_generation(gate)
 
-    heldout = {
-        json.loads(line)["instance_id"]
-        for line in (REPO_ROOT / "data" / "bfws_phase_v1" / "fresh-test-manifest.jsonl")
-        .read_text(encoding="utf-8")
-        .splitlines()
-    }
     assert len(rows) == 105
     assert sum(row["exact_reference_decision_count"] for row in rows) == 69_019
     assert {(row["domain_id"], row["difficulty"]) for row in rows} == {
         (row["domain_id"], row["difficulty"]) for row in rows if row["split"] == "dev"
     }
-    assert not heldout.intersection(row["instance_id"] for row in rows)
+    assert {row["source_split"] for row in rows} == {"train"}
+    assert gate.authorization["efficacy_test_access_authorized"] is False
 
 
 def test_single_frozen_bfws_trace_replays_and_is_reused_on_resume(tmp_path: Path) -> None:
@@ -90,6 +92,28 @@ def test_single_frozen_bfws_trace_replays_and_is_reused_on_resume(tmp_path: Path
     assert resumed == generated
     assert evidence_path.read_bytes() == evidence_bytes
     assert trace_path.read_bytes() == trace_bytes
+
+    audit = audit_frozen_bfws_trace(
+        row=row,
+        evidence_path=evidence_path,
+        search_trace_path=trace_path,
+        phase_gate=gate,
+        input_token_counter=lambda _model_input: 1,
+        target_token_counter=lambda _target: 1,
+    )
+    assert audit["decision_count"] == 3
+    assert audit["live_replay_input_mismatch_count"] == 0
+    assert audit["teacher_decision_rejection_count"] == 0
+    assert audit["target_parse_rejection_count"] == 0
+    assert audit["input_over_budget_count"] == 0
+    assert audit["target_over_budget_count"] == 0
+    assert len(audit["teacher_records"]) == 3
+    _validate_audit_result(audit, row=row, phase_gate=gate)
+
+    stale = deepcopy(audit)
+    stale["teacher_records"][1]["record_index"] = 0
+    with pytest.raises(ValueError, match="audit part"):
+        _validate_audit_result(stale, row=row, phase_gate=gate)
 
 
 def test_bfws_trace_generation_retains_a_gated_not_run_receipt(tmp_path: Path) -> None:

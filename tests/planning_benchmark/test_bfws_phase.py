@@ -27,7 +27,21 @@ AUTHORIZATION = REPO_ROOT / "configs" / "experiments" / "bfws_phase_authorizatio
 TASK = REPO_ROOT / "tests" / "fixtures" / "planning" / "iw_width_four.json"
 
 
-def test_committed_bfws_gate_binds_six_freezes_and_replay_proven_development_data() -> None:
+def test_committed_bfws_gate_binds_six_freezes_and_replay_proven_development_data(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    original_read_text = Path.read_text
+
+    def reject_fresh_test_access(
+        path: Path,
+        encoding: str | None = None,
+        errors: str | None = None,
+    ) -> str:
+        if path.name == "fresh-test-manifest.jsonl":
+            raise AssertionError("development phase loading accessed the fresh held-out test manifest")
+        return original_read_text(path, encoding=encoding, errors=errors)
+
+    monkeypatch.setattr(Path, "read_text", reject_fresh_test_access)
     gate = load_bfws_phase_gate(FREEZE, AUTHORIZATION)
 
     assert gate.phase_id == "issue-56-bfws-development-v1"
@@ -119,6 +133,17 @@ def test_bfws_observation_and_corpus_input_share_bounded_exact_candidate_facts(t
         )
         assert model_input == repeated
         assert dropped == repeated_dropped == 0
-        assert model_input["observation"]["successor_candidates"] == observation["successor_candidates"]
+        for compact, source in zip(
+            model_input["observation"]["candidates"],
+            observation["successor_candidates"],
+            strict=True,
+        ):
+            assert compact["action"]["name"] == source["grounded_action"]["name"]
+            assert compact["target"] == "$"
+            if source["evaluation"] is None:
+                assert compact["eval"] is None
+            assert set(compact["atoms"]) == {"added", "removed"}
+            if source["evaluation"] is not None:
+                assert "target_atoms" not in compact["eval"]
         assert model_input["search_memory"]["context_type"] == "bounded_bfws_search_memory"
         assert model_input["search_memory"]["schema_version"] == 1

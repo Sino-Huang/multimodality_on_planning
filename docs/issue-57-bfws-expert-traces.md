@@ -15,6 +15,17 @@ derived bounded search-trace view. Both trace artifacts use deterministic gzip;
 the derived JSON is compared after decompression with bytes reconstructed from
 semantic evidence replay.
 
+The release audit is
+`data/bfws_phase_v1/exact-traces/manifests/bfws-trace-audit.json`. It rebuilds
+the shared bounded BFWS model input from independent live and replay Search
+Memory paths at all 69,019 positions, strict-parses and applies every teacher
+operation, and measures input and target lengths with the exact pinned Qwen
+tokenizer revision. Its six frozen teacher snapshots cover easy, medium, hard,
+and equal-count low/middle/high input-token bins in
+`data/bfws_phase_v1/exact-traces/manifests/bfws-teacher-snapshots.jsonl`. All
+five audit rejection/mismatch counters are zero; observed maxima are 7,360 of
+7,808 input tokens and 96 of 384 target tokens.
+
 ## Operator commands
 
 Activate the confirmed environment and inspect the authorized run without
@@ -41,10 +52,11 @@ source ~/cd_vlaplan
 python scripts/generate_bfws_expert_traces.py --resume
 ```
 
-Every generation/resume task prints a start line and a completion line with
-`completed/total`, elapsed time, and a decision-weighted ETA. Storage tasks may
-also print Plado's known `Multiple types with name area` parser warning; their
-evidence must still pass exact replay.
+Every generation/resume task and per-trace audit prints `completed/total`,
+elapsed time, and a decision-weighted ETA. Storage tasks may also print Plado's
+known `Multiple types with name area` parser warning; their evidence must still
+pass exact replay. Audit parts are written atomically, so an interrupted audit
+can resume without repeating completed traces.
 
 Replay-check the completed release without changing it:
 
@@ -54,7 +66,7 @@ python scripts/generate_bfws_expert_traces.py --check
 ```
 
 The retained governed completion receipt is
-`data/bfws_phase_v1/execution-receipts/generation-run-issue-56-bfws-development-v1-issue-57-bfws-exact-traces-v1-resume-001.json`.
-It records `PASS`, 105 replay-verified traces, and 69,019 exact decisions. The
-initial interrupted attempt's reservation is intentionally not part of the
-release.
+`data/bfws_phase_v1/execution-receipts/generation-run-issue-56-bfws-development-v1-issue-57-bfws-exact-traces-v1-resume-010.json`.
+It records scientific-completion `PASS`, 105 replay-verified traces, and 69,019
+audited exact decisions. Interrupted attempt reservations and invalid receipts
+are intentionally not part of the release.

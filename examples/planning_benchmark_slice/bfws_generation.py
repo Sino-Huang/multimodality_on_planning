@@ -74,7 +74,7 @@ def generate_frozen_bfws_trace(
         if not resume:
             raise FileExistsError(f"BFWS trace already exists: {evidence_path}")
         episode = read_episode_evidence(evidence_path)
-        _verify_episode(episode, frozen)
+        verify_frozen_bfws_episode(episode, frozen)
         _formal_task, expected_trace = materialize_episode_artifacts(episode["evidence"])
         if search_trace_path.is_file() and gzip.decompress(search_trace_path.read_bytes()) != expected_trace:
             raise ValueError(f"resumed BFWS search trace differs: {frozen['instance_id']}")
@@ -103,7 +103,7 @@ def generate_frozen_bfws_trace(
             ancestor_receipt_id=request.ancestor_receipt_id,
             frozen_binding=phase_gate.receipt(stage="trace_generation"),
         )
-    _verify_episode(episode, frozen)
+    verify_frozen_bfws_episode(episode, frozen)
     _formal_task, search_trace = materialize_episode_artifacts(episode["evidence"])
     write_episode_evidence(evidence_path, episode)
     _atomic_write(search_trace_path, gzip.compress(search_trace, compresslevel=9, mtime=0))
@@ -126,8 +126,13 @@ def run_frozen_bfws_trace_generation(
         if output_root.exists() and not resume:
             raise FileExistsError(f"BFWS trace output already exists: {output_root}; pass resume=True to reuse it")
         if manifest_path.is_file():
-            manifest = verify_frozen_bfws_trace_release(manifest_path, phase_gate=phase_gate)
-            return _execution_result(manifest_path, manifest)
+            manifest = verify_frozen_bfws_trace_release(
+                manifest_path,
+                phase_gate=phase_gate,
+                progress=progress,
+            )
+            audit = _audit_release(manifest_path, phase_gate=phase_gate, progress=progress)
+            return _execution_result(manifest_path, manifest, audit=audit)
         output_root.mkdir(parents=True, exist_ok=True)
 
         rows = preflight_frozen_bfws_trace_generation(phase_gate)
@@ -166,7 +171,8 @@ def run_frozen_bfws_trace_generation(
 
         manifest = _trace_manifest(trace_items, phase_gate)
         _atomic_write(manifest_path, _canonical_bytes(manifest))
-        return _execution_result(manifest_path, manifest)
+        audit = _audit_release(manifest_path, phase_gate=phase_gate, progress=progress)
+        return _execution_result(manifest_path, manifest, audit=audit)
 
     return run_authorized_generation(request, execute)
 
@@ -190,6 +196,9 @@ def verify_frozen_bfws_trace_release(
     if len(items_by_instance) != len(rows):
         raise ValueError("BFWS trace release contains duplicate or missing instances")
 
+    started = monotonic()
+    completed_decisions = 0
+    total_decisions = sum(row["exact_reference_decision_count"] for row in rows)
     for index, row in enumerate(rows, start=1):
         retained = items_by_instance.get(row["instance_id"])
         if not isinstance(retained, dict):
@@ -197,18 +206,28 @@ def verify_frozen_bfws_trace_release(
         evidence_path = output_root / retained["evidence"]["path"]
         search_trace_path = output_root / retained["search_trace"]["path"]
         episode = read_episode_evidence(evidence_path)
-        _verify_episode(episode, row)
+        verify_frozen_bfws_episode(episode, row)
         _formal_task, search_trace = materialize_episode_artifacts(episode["evidence"])
         if not search_trace_path.is_file() or gzip.decompress(search_trace_path.read_bytes()) != search_trace:
             raise ValueError(f"BFWS released search trace differs from replay: {row['instance_id']}")
         expected = _trace_item(row, episode, evidence_path, search_trace_path, output_root, phase_gate)
         if retained != expected:
             raise ValueError(f"BFWS released trace metadata differs: {row['instance_id']}")
-        _report(progress, f"[{index}/{len(rows)}] replayed {row['instance_id']}")
+        completed_decisions += row["exact_reference_decision_count"]
+        elapsed = monotonic() - started
+        eta = (
+            0.0
+            if completed_decisions == total_decisions
+            else elapsed * (total_decisions - completed_decisions) / completed_decisions
+        )
+        _report(
+            progress,
+            f"[{index}/{len(rows)}] replayed {row['instance_id']}; elapsed {_duration(elapsed)}; ETA {_duration(eta)}",
+        )
     return manifest
 
 
-def _verify_episode(episode: Mapping[str, Any], row: Mapping[str, Any]) -> None:
+def verify_frozen_bfws_episode(episode: Mapping[str, Any], row: Mapping[str, Any]) -> None:
     result = episode.get("result")
     expected = {
         "decision_count": row["exact_reference_decision_count"],
@@ -359,15 +378,39 @@ def _manifest_summary_matches(
     )
 
 
-def _execution_result(manifest_path: Path, manifest: Mapping[str, Any]) -> dict[str, object]:
+def _execution_result(
+    manifest_path: Path,
+    manifest: Mapping[str, Any],
+    *,
+    audit: Mapping[str, Any],
+) -> dict[str, object]:
     coverage = manifest["coverage"]
     return {
+        "audit_decision_count": audit["decision_count"],
+        "audit_manifest_path": str((manifest_path.parent / "bfws-trace-audit.json").resolve()),
         "exact_reference_decision_count": coverage["exact_reference_decision_count"],
         "replay_verified_instance_count": coverage["replay_verified_instance_count"],
         "trace_count": coverage["instance_count"],
         "trace_manifest_path": str(manifest_path.resolve()),
         "trace_manifest_size_bytes": manifest_path.stat().st_size,
     }
+
+
+def _audit_release(
+    manifest_path: Path,
+    *,
+    phase_gate: BFWSPhaseGate,
+    progress: Callable[[str], None] | None,
+) -> dict[str, Any]:
+    from .bfws_trace_audit import audit_frozen_bfws_trace_release
+
+    return audit_frozen_bfws_trace_release(
+        manifest_path,
+        phase_gate=phase_gate,
+        audit_path=manifest_path.parent / "bfws-trace-audit.json",
+        snapshot_path=manifest_path.parent / "bfws-teacher-snapshots.jsonl",
+        progress=progress,
+    )
 
 
 def _trace_relative_root(row: Mapping[str, Any]) -> Path:
@@ -398,9 +441,11 @@ def _duration(seconds: float) -> str:
 
 
 def _canonical_bytes(value: object) -> bytes:
-    return (json.dumps(value, allow_nan=False, ensure_ascii=True, separators=(",", ":"), sort_keys=True) + "\n").encode(
-        "utf-8"
-    )
+    return (_canonical_text(value) + "\n").encode("utf-8")
+
+
+def _canonical_text(value: object) -> str:
+    return json.dumps(value, allow_nan=False, ensure_ascii=True, separators=(",", ":"), sort_keys=True)
 
 
 def _atomic_write(path: Path, payload: bytes) -> None:
@@ -420,5 +465,6 @@ __all__ = [
     "generate_frozen_bfws_trace",
     "preflight_frozen_bfws_trace_generation",
     "run_frozen_bfws_trace_generation",
+    "verify_frozen_bfws_episode",
     "verify_frozen_bfws_trace_release",
 ]
