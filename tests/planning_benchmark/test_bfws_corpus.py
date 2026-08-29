@@ -1,9 +1,13 @@
 from __future__ import annotations
 
 import json
+from copy import deepcopy
 from pathlib import Path
 
+import pytest
+
 from examples.planning_benchmark_slice.bfws_corpus import (
+    _validated_trace_manifest,
     materialize_frozen_bfws_corpus_trace,
     run_frozen_bfws_corpus_release,
 )
@@ -81,6 +85,46 @@ def test_single_replay_verified_trace_materializes_both_views_and_training_proje
     assert operational["target"]["validity"] == "accepted"
 
 
+def test_corpus_source_requires_each_frozen_trace_exactly_once(tmp_path: Path) -> None:
+    gate = load_bfws_phase_gate(FREEZE, AUTHORIZATION)
+    manifest = json.loads(TRACE_MANIFEST.read_bytes())
+    malformed = deepcopy(manifest)
+    malformed["traces"][1] = deepcopy(malformed["traces"][0])
+    manifest_root = tmp_path / "exact-traces" / "manifests"
+    manifest_root.mkdir(parents=True)
+    path = manifest_root / "bfws-expert-traces.json"
+    path.write_text(json.dumps(malformed), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="exactly cover"):
+        _validated_trace_manifest(path, gate)
+
+
+def test_corpus_materialization_never_reads_the_forbidden_test_manifest(monkeypatch: pytest.MonkeyPatch) -> None:
+    gate = load_bfws_phase_gate(FREEZE, AUTHORIZATION)
+    rows = preflight_frozen_bfws_trace_generation(gate)
+    row = next(item for item in rows if item["instance_id"] == "storage-train-easy-0004")
+    manifest = json.loads(TRACE_MANIFEST.read_bytes())
+    item = next(item for item in manifest["traces"] if item["instance_id"] == row["instance_id"])
+    forbidden = (REPO_ROOT / "data" / "bfws_phase_v1" / "fresh-test-manifest.jsonl").resolve()
+    original_read_bytes = Path.read_bytes
+
+    def guarded_read_bytes(path: Path) -> bytes:
+        if path.resolve() == forbidden:
+            raise AssertionError("BFWS corpus materialization opened the forbidden fresh-test manifest")
+        return original_read_bytes(path)
+
+    monkeypatch.setattr(Path, "read_bytes", guarded_read_bytes)
+
+    shard = materialize_frozen_bfws_corpus_trace(
+        row=row,
+        trace_item=item,
+        trace_root=TRACE_ROOT,
+        phase_gate=gate,
+    )
+
+    assert len(shard.process_rows) == 3
+
+
 def test_corpus_release_retains_a_gated_not_run_receipt(tmp_path: Path) -> None:
     gate = load_bfws_phase_gate(FREEZE, AUTHORIZATION)
     request = _request(tmp_path, StopOutcome.VALID_STOP)
@@ -117,6 +161,15 @@ def test_released_bfws_corpus_covers_the_frozen_panel_without_heldout_access() -
     assert training["counts"] == {"dev": 21_239, "train": 47_780}
     assert audit["max_input_tokens"] == 7_360
     assert audit["max_target_tokens"] == 96
+    process_strata = set()
+    operational_strata = set()
+    for artifact in manifest["artifacts"]:
+        parts = Path(artifact["path"]).parts
+        if parts[:2] == ("corpus", "process"):
+            process_strata.add((parts[3], parts[4]))
+        elif parts[:2] == ("corpus", "operational"):
+            operational_strata.add((parts[3], parts[4]))
+    assert len(process_strata) == len(operational_strata) == 35
     for name in (
         "canonical_input_overlap_count",
         "future_step_leakage_count",

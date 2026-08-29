@@ -55,4 +55,6 @@ token-budget rejection; and zero held-out instances. The independent full-tree
 regeneration check passed byte-identically.
 
 The final governed PASS receipt is
-`data/bfws_phase_v1/execution-receipts/generation-run-issue-56-bfws-development-v1-issue-58-bfws-text-corpus-v1-resume-003.json`.
+`data/bfws_phase_v1/execution-receipts/generation-run-issue-56-bfws-development-v1-issue-58-bfws-text-corpus-v1-resume-004.json`.
+It records `byte_identical_regeneration: true`; scientific PASS is emitted only
+after that independent full-tree comparison completes.

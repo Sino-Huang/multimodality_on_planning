@@ -278,6 +278,12 @@ def run_frozen_bfws_corpus_release(
             progress=progress,
         )
         _atomic_write(manifest_path, _canonical_bytes(result))
+        verify_frozen_bfws_corpus_release(
+            trace_manifest_path=trace_manifest_path,
+            corpus_root=output_root,
+            phase_gate=phase_gate,
+            progress=progress,
+        )
         return _execution_result(manifest_path, result)
 
     return run_authorized_generation(request, execute)
@@ -315,9 +321,7 @@ def verify_frozen_bfws_corpus_release(
             progress=progress,
         )
         _atomic_write(regenerated_root / _MANIFEST_PATH, _canonical_bytes(regenerated))
-        retained_payloads = _tree_payloads(root)
-        regenerated_payloads = _tree_payloads(regenerated_root)
-        if retained_payloads != regenerated_payloads:
+        if not _trees_equal(root, regenerated_root):
             raise ValueError("BFWS corpus release regeneration is not byte-identical")
     if retained != regenerated:
         raise ValueError("BFWS corpus release manifest regeneration differs")
@@ -334,7 +338,7 @@ def _materialize_release(
     resume: bool,
     progress: Callable[[str], None] | None,
 ) -> dict[str, Any]:
-    artifacts: dict[str, bytes] = {}
+    artifacts: dict[str, int] = {}
     process_curriculum: list[dict[str, Any]] = []
     operational_curriculum: list[dict[str, Any]] = []
     split_rows: list[dict[str, Any]] = []
@@ -356,6 +360,7 @@ def _materialize_release(
     max_input_bytes = 0
     max_input_tokens = 0
     max_target_tokens = 0
+    held_out_instances = sum(str(item.get("split")) not in {"train", "dev"} for item in items)
     started = monotonic()
     completed_decisions = 0
     total_decisions = sum(int(row["exact_reference_decision_count"]) for row in rows_by_id.values())
@@ -384,7 +389,7 @@ def _materialize_release(
         }
         for relative_path, payload in shard_payloads.items():
             _write_or_verify(output_root / relative_path, payload, resume=resume)
-            artifacts[relative_path] = payload
+            artifacts[relative_path] = len(payload)
 
         identity = str(row["semantic_task_identity"])
         identities[split].add(identity)
@@ -431,7 +436,7 @@ def _materialize_release(
         "accepted_delta_limit": corpus["accepted_delta_limit"],
         "canonical_input_overlap_count": len(input_overlap),
         "future_step_leakage_count": totals["future_step_leakage_count"],
-        "held_out_instance_count": sum(split not in {"train", "dev"} for split in identities),
+        "held_out_instance_count": held_out_instances,
         "identical_input_conflicting_target_count": conflicting_inputs,
         "input_over_budget_count": totals["input_over_budget_count"],
         "input_target_overlap_count": len(pair_overlap),
@@ -470,8 +475,8 @@ def _materialize_release(
         _AUDIT_PATH.as_posix(): _canonical_bytes(audit),
     }
     training_artifacts = [
-        {"path": path, "size_bytes": len(payload)}
-        for path, payload in sorted(artifacts.items())
+        {"path": path, "size_bytes": size_bytes}
+        for path, size_bytes in sorted(artifacts.items())
         if path.startswith("training/process/")
     ]
     training_manifest = {
@@ -492,13 +497,13 @@ def _materialize_release(
     aggregate[_TRAINING_MANIFEST_PATH.as_posix()] = _canonical_bytes(training_manifest)
     for relative_path, payload in aggregate.items():
         _write_or_verify(output_root / relative_path, payload, resume=resume)
-        artifacts[relative_path] = payload
+        artifacts[relative_path] = len(payload)
 
     source_manifest = trace_root / "manifests" / "bfws-expert-traces.json"
     source_audit = trace_root / "manifests" / "bfws-trace-audit.json"
     release = {
         "artifacts": [
-            {"path": path, "size_bytes": len(payload)} for path, payload in sorted(artifacts.items())
+            {"path": path, "size_bytes": size_bytes} for path, size_bytes in sorted(artifacts.items())
         ],
         "byte_identical_regeneration_required": corpus["byte_identical_regeneration_required"],
         "counts": {
@@ -538,6 +543,16 @@ def _validated_trace_manifest(path: Path, phase_gate: BFWSPhaseGate) -> dict[str
         or not isinstance(manifest.get("traces"), list)
     ):
         raise ValueError("BFWS corpus source trace manifest differs from issue #57")
+    frozen_ids = {
+        str(row["instance_id"])
+        for row in preflight_frozen_bfws_trace_generation(phase_gate)
+    }
+    trace_ids = [
+        item.get("instance_id") if isinstance(item, Mapping) else None
+        for item in manifest["traces"]
+    ]
+    if len(set(trace_ids)) != len(trace_ids) or set(trace_ids) != frozen_ids:
+        raise ValueError("BFWS corpus source traces do not exactly cover the frozen development panel")
     audit = _json_object((path.parent / "bfws-trace-audit.json").read_bytes(), "BFWS trace audit")
     if (
         audit.get("schema_version") != "bfws_trace_release_audit_v1"
@@ -694,6 +709,7 @@ def _execution_result(path: Path, manifest: Mapping[str, Any]) -> dict[str, obje
     return {
         "corpus_manifest_path": str(path.resolve()),
         "corpus_manifest_size_bytes": path.stat().st_size,
+        "byte_identical_regeneration": True,
         "operational_record_count": counts["operational_records"],
         "process_record_count": counts["process_records"],
         "split_assignment_count": counts["split_assignments"],
@@ -711,12 +727,20 @@ def _write_or_verify(path: Path, payload: bytes, *, resume: bool) -> None:
     _atomic_write(path, payload)
 
 
-def _tree_payloads(root: Path) -> dict[str, bytes]:
-    return {
-        path.relative_to(root).as_posix(): path.read_bytes()
-        for path in sorted(root.rglob("*"))
-        if path.is_file()
-    }
+def _trees_equal(left: Path, right: Path) -> bool:
+    left_paths = [path.relative_to(left) for path in sorted(left.rglob("*")) if path.is_file()]
+    right_paths = [path.relative_to(right) for path in sorted(right.rglob("*")) if path.is_file()]
+    if left_paths != right_paths:
+        return False
+    for relative in left_paths:
+        with (left / relative).open("rb") as left_stream, (right / relative).open("rb") as right_stream:
+            while True:
+                left_chunk = left_stream.read(1024 * 1024)
+                if left_chunk != right_stream.read(1024 * 1024):
+                    return False
+                if not left_chunk:
+                    break
+    return True
 
 
 def _stable_path(path: Path) -> str:
