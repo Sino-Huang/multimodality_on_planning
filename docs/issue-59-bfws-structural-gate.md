@@ -8,10 +8,11 @@ not an efficacy-test run.
 ## Implemented contract
 
 - Process-only LoRA SFT uses all 47,780 train and 21,239 dev records from the
-  105 atomic ms-swift shards released by issue 58. The five frozen seeds are
-  17, 29, 43, 71, and 101; only each seed's numerically final checkpoint enters
-  rollout. Concurrent seed launches retain distinct torch rendezvous ports
-  29600 through 29604 as well as their alternating GPU assignments.
+  105 atomic ms-swift shards released by issue 58. The supervisor's issue-59
+  budget override authorizes one training run only: seed 17 on physical
+  `cuda:1`. Its final checkpoint is the sole learned checkpoint. This does not
+  estimate training-seed variance from the five seeds originally frozen by
+  issue 56.
 - Exact BFWS evidence is independently reopened from issue 57. Random-valid,
   pretrained-base, and process-SFT conditions use the same trusted BFWS session,
   bounded `bounded_bfws_search_memory_v1` input, 16 accepted deltas, 7,808/384
@@ -25,7 +26,7 @@ not an efficacy-test run.
   It tries all 35 dev tasks first. The preregistered exact-cost fallback is the
   cheapest exact-decision task in each of the 15 domains, selected by
   `(exact decisions, difficulty, instance ID)` before any model result. Its
-  maximum unique scheduled-call budget is 27,228; full coverage is 254,868.
+  maximum unique scheduled-call budget is 9,076; full coverage is 84,956.
 - The gate clock starts when qualification finishes. New model calls stop at
   18 hours and replay/adjudication must finish by 20 hours. Partial selected
   coverage cannot pass.
@@ -39,7 +40,7 @@ not an efficacy-test run.
 ## Dry-run verified by the agent
 
 The following command validates every retained dependency and prints the exact
-five training launches, qualification plan, two GPU rollout shards, and
+single training launch, qualification plan, two GPU rollout shards, and
 adjudication inputs without running learning or model inference:
 
 ```bash
@@ -61,7 +62,7 @@ source ~/cd_vlaplan
 python scripts/run_bfws_issue59.py all --devices cuda:0 cuda:1
 ```
 
-The command runs references, five training seeds, outcome-blind qualification,
+The command runs references, one seed-17 training on `cuda:1`, outcome-blind qualification,
 both rollout shards, and adjudication in order. It prints live subprocess output
 and JSON progress records containing completed work, total work, elapsed time,
 and estimated remaining time. A qualification `VALID_STOP` skips rollout and
@@ -106,6 +107,9 @@ The selected process-SFT product must satisfy all of these predeclared checks:
 - process-SFT invalid-operation rate at most 0.05;
 - absolute gain over the better of base and random-valid at least 0.1;
 - paired 10,000-resample whole-instance bootstrap gain lower bound at least 0.
+
+Uncertainty is over whole problem instances. The budget-limited contract makes
+no claim about training-seed variance.
 
 `PASS` requires complete replay-valid selected coverage and all thresholds.
 Ordinary model, threshold, qualification, or resource failure is `VALID_STOP`.

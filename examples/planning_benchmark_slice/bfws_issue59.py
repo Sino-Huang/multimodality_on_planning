@@ -52,6 +52,7 @@ _CORPUS_RECEIPT = Path(
     "data/bfws_phase_v1/execution-receipts/"
     "generation-run-issue-56-bfws-development-v1-issue-58-bfws-text-corpus-v1-resume-004.json"
 )
+_BUDGET_OVERRIDE = Path("configs/experiments/bfws_issue59_budget_override_v1.json")
 
 
 def bfws_text_policy_messages(model_input: Mapping[str, Any]) -> list[dict[str, Any]]:
@@ -90,9 +91,23 @@ class BFWSIssue59Experiment:
     tasks: tuple[BFWSDevelopmentTask, ...]
     train_datasets: tuple[Path, ...]
     dev_datasets: tuple[Path, ...]
+    budget_override: Mapping[str, Any]
+
+    @property
+    def contract_id(self) -> str:
+        return str(self.budget_override["contract_id"])
+
+    @property
+    def training_seeds(self) -> tuple[int, ...]:
+        return (int(self.budget_override["training"]["seed"]),)
+
+    @property
+    def evaluation_seeds(self) -> tuple[int, ...]:
+        return tuple(int(seed) for seed in self.budget_override["evaluation"]["process_sft_seeds"])
 
     def preflight(self) -> dict[str, Any]:
         return {
+            "contract_id": self.contract_id,
             "development_exact_decisions": sum(task.exact_decisions for task in self.tasks),
             "development_tasks": len(self.tasks),
             "fresh_test_accessed": False,
@@ -100,6 +115,8 @@ class BFWSIssue59Experiment:
             "phase_id": self.phase_gate.phase_id,
             "training_examples": dict(self.training_manifest["counts"]),
             "training_task_files": {"dev": len(self.dev_datasets), "train": len(self.train_datasets)},
+            "training_runs": int(self.budget_override["training"]["replicate_count"]),
+            "training_seeds": list(self.training_seeds),
         }
 
 
@@ -146,6 +163,26 @@ def load_bfws_issue59(repo_root: str | Path) -> BFWSIssue59Experiment:
         or corpus_receipt.get("execution_result", {}).get("byte_identical_regeneration") is not True
     ):
         raise ValueError("issue #58 corpus receipt does not authorize process SFT")
+    budget_override = _json_object(root / _BUDGET_OVERRIDE)
+    if budget_override != {
+        "contract_id": "issue-59-bfws-single-training-v1",
+        "evaluation": {
+            "base_seeds": [17],
+            "model_sessions_per_task": 2,
+            "process_sft_seeds": [17],
+            "random_valid_seeds": [17],
+        },
+        "parent_phase_id": gate.phase_id,
+        "reason": "Supervisor limited issue 59 to one model training run for time and compute budget.",
+        "schema_version": "bfws_issue59_budget_override_v1",
+        "scientific_scope": (
+            "Single-checkpoint development comparison with whole-instance bootstrap uncertainty; "
+            "training-seed variance is not estimated."
+        ),
+        "source_issue": 59,
+        "training": {"device": "cuda:1", "replicate_count": 1, "seed": 17, "world_size": 1},
+    }:
+        raise ValueError("issue #59 budget override differs from the supervisor decision")
 
     tasks = []
     for row in trace_rows:
@@ -182,6 +219,7 @@ def load_bfws_issue59(repo_root: str | Path) -> BFWSIssue59Experiment:
         tasks=tuple(tasks),
         train_datasets=train_datasets,
         dev_datasets=dev_datasets,
+        budget_override=budget_override,
     )
 
 
@@ -774,12 +812,15 @@ def select_bfws_coverage(
     model_load_seconds: float,
     throughput_samples: Sequence[float],
     runtime_seconds_per_call: float,
+    model_sessions_per_task: int,
 ) -> BFWSQualification:
     """Select full coverage first, then the preregistered cheapest-per-domain panel."""
 
     task_list = tuple(tasks)
     if len(task_list) != 35:
         raise ValueError("BFWS qualification requires the complete 35-task development panel")
+    if model_sessions_per_task <= 0:
+        raise ValueError("BFWS qualification requires a positive model-session count")
     throughput = _lower_95_bound(throughput_samples)
     by_domain: dict[str, list[BFWSDevelopmentTask]] = defaultdict(list)
     for task in task_list:
@@ -791,7 +832,7 @@ def select_bfws_coverage(
     if len(panel) != 15:
         raise ValueError("BFWS exact-cost panel must contain one task per domain")
     for mode, candidates in (("full_development", task_list), ("preregistered_exact_cost_panel", panel)):
-        calls = 6 * sum(task.model_call_limit for task in candidates)
+        calls = model_sessions_per_task * sum(task.model_call_limit for task in candidates)
         projected = 1.2 * (model_load_seconds + calls / throughput + calls * runtime_seconds_per_call)
         if projected <= 15 * 60 * 60:
             return BFWSQualification(
@@ -804,7 +845,7 @@ def select_bfws_coverage(
                 projected,
                 StopOutcome.PASS,
             )
-    calls = 6 * sum(task.model_call_limit for task in panel)
+    calls = model_sessions_per_task * sum(task.model_call_limit for task in panel)
     projected = 1.2 * (model_load_seconds + calls / throughput + calls * runtime_seconds_per_call)
     return BFWSQualification(
         throughput,

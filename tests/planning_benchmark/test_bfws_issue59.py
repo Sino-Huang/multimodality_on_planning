@@ -60,6 +60,9 @@ def test_issue59_preflight_binds_released_process_corpus_and_dev_references(
     assert report["development_exact_decisions"] == 21_239
     assert report["maximum_model_calls"] == 42_478
     assert report["fresh_test_accessed"] is False
+    assert report["contract_id"] == "issue-59-bfws-single-training-v1"
+    assert report["training_runs"] == 1
+    assert report["training_seeds"] == [17]
 
 
 def test_bfws_generation_messages_preserve_the_training_text() -> None:
@@ -233,25 +236,28 @@ def test_hardware_qualification_tries_full_then_preregistered_exact_cost_panel()
         model_load_seconds=0,
         throughput_samples=(10.0, 10.0),
         runtime_seconds_per_call=0,
+        model_sessions_per_task=2,
     )
     panel = select_bfws_coverage(
         experiment.tasks,
         model_load_seconds=0,
-        throughput_samples=(5.0, 5.0),
+        throughput_samples=(1.5, 1.5),
         runtime_seconds_per_call=0,
+        model_sessions_per_task=2,
     )
     stopped = select_bfws_coverage(
         experiment.tasks,
         model_load_seconds=0,
-        throughput_samples=(0.1, 0.1),
+        throughput_samples=(0.03, 0.03),
         runtime_seconds_per_call=0,
+        model_sessions_per_task=2,
     )
 
     assert full.coverage_mode == "full_development"
     assert len(full.task_ids) == 35
     assert panel.coverage_mode == "preregistered_exact_cost_panel"
     assert len(panel.task_ids) == 15
-    assert panel.maximum_scheduled_calls == 27_228
+    assert panel.maximum_scheduled_calls == 9_076
     assert stopped.outcome.value == "VALID_STOP"
     assert stopped.task_ids == ()
 
@@ -348,13 +354,38 @@ def test_parallel_training_dry_run_assigns_distinct_rendezvous_ports(
     )
 
     launches = json.loads(capsys.readouterr().out)["launches"]
-    environments = [launch["environment"] for launch in launches]
-    assert [environment["CUDA_VISIBLE_DEVICES"] for environment in environments] == ["0", "1", "0", "1", "0"]
-    assert [environment["MASTER_PORT"] for environment in environments] == [
-        "29600",
-        "29601",
-        "29602",
-        "29603",
-        "29604",
-    ]
-    assert len({environment["MASTER_PORT"] for environment in environments}) == len(environments)
+    assert len(launches) == 1
+    assert launches[0]["seed"] == 17
+    assert launches[0]["device"] == "cuda:1"
+    assert launches[0]["environment"]["CUDA_VISIBLE_DEVICES"] == "1"
+    assert launches[0]["environment"]["MASTER_PORT"] == "29600"
+
+
+def test_resumed_all_dry_run_qualifies_the_new_training_attempt(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    output_root = tmp_path / "issue59"
+    (output_root / "training" / "seed-17-attempt-001").mkdir(parents=True)
+    (output_root / "training" / "seed-17-attempt-002").mkdir()
+
+    assert (
+        issue59_main(
+            [
+                "all",
+                "--dry-run",
+                "--resume",
+                "--devices",
+                "cuda:0",
+                "cuda:1",
+                "--output-root",
+                str(output_root),
+            ]
+        )
+        == 0
+    )
+
+    stages = json.loads(capsys.readouterr().out)["stages"]
+    training_root = Path(stages["train"][0]["output_root"])
+    assert training_root.name == "seed-17-attempt-003"
+    assert stages["qualify"]["adapter_paths"]["17"] == str(training_root / "checkpoints" / "checkpoint-4482")

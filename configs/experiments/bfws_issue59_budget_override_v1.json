@@ -1,0 +1,20 @@
+{
+  "contract_id": "issue-59-bfws-single-training-v1",
+  "evaluation": {
+    "base_seeds": [17],
+    "model_sessions_per_task": 2,
+    "process_sft_seeds": [17],
+    "random_valid_seeds": [17]
+  },
+  "parent_phase_id": "issue-56-bfws-development-v1",
+  "reason": "Supervisor limited issue 59 to one model training run for time and compute budget.",
+  "schema_version": "bfws_issue59_budget_override_v1",
+  "scientific_scope": "Single-checkpoint development comparison with whole-instance bootstrap uncertainty; training-seed variance is not estimated.",
+  "source_issue": 59,
+  "training": {
+    "device": "cuda:1",
+    "replicate_count": 1,
+    "seed": 17,
+    "world_size": 1
+  }
+}

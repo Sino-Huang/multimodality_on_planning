@@ -44,7 +44,7 @@ from src.data_collect.governance import (
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 _OUTPUT_ROOT = _REPO_ROOT / "outputs" / "bfws_phase" / "issue59-v1"
-_SEEDS = (17, 29, 43, 71, 101)
+_REFERENCE_SEEDS = (17, 29, 43, 71, 101)
 _TRAINING_MASTER_PORT_BASE = 29_600
 _STAGES = ("preflight", "references", "train", "qualify", "evaluate", "adjudicate", "all", "evaluate-shard")
 _REFERENCE_MODEL: tuple[str, str] | None = None
@@ -176,7 +176,10 @@ def main(arguments: Sequence[str] | None = None) -> int:
 def _references_plan(experiment, output_root: Path, *, workers: int, resume: bool) -> dict[str, Any]:
     episode_root = output_root / "references" / "episodes" / "random_valid"
     return {
-        "conditions": {"exact_bfws": len(experiment.tasks), "random_valid": len(experiment.tasks) * len(_SEEDS)},
+        "conditions": {
+            "exact_bfws": len(experiment.tasks),
+            "random_valid": len(experiment.tasks) * len(_REFERENCE_SEEDS),
+        },
         "existing_random_valid_episodes": sum(1 for _path in episode_root.glob("seed-*/*.json.gz")),
         "output": str(output_root / "references" / "manifest.json"),
         "progress": "one terminal record per completed episode with elapsed time and ETA",
@@ -222,7 +225,10 @@ def _references(experiment, output_root: Path, *, dry_run: bool, resume: bool, w
     if any(record is None for record in records):
         raise RuntimeError("parallel BFWS references did not return every deterministic record")
     manifest = {
-        "counts": {"exact_bfws": len(experiment.tasks), "random_valid": len(experiment.tasks) * len(_SEEDS)},
+        "counts": {
+            "exact_bfws": len(experiment.tasks),
+            "random_valid": len(experiment.tasks) * len(_REFERENCE_SEEDS),
+        },
         "authorization_receipt": authorization_receipt.to_dict(),
         "gate_receipt": gate_receipt.to_dict(),
         "phase_receipt": experiment.phase_gate.receipt(stage="development_references"),
@@ -251,7 +257,7 @@ def _reference_jobs(experiment, root: Path) -> tuple[_ReferenceJob, ...]:
                 exact_result=exact["result"],
             )
         )
-        for seed in _SEEDS:
+        for seed in _REFERENCE_SEEDS:
             relative = Path("episodes") / "random_valid" / f"seed-{seed}" / f"{task.instance_id}.json.gz"
             jobs.append(
                 _ReferenceJob(
@@ -315,12 +321,15 @@ def _reference_token_counter() -> Callable[[Mapping[str, Any]], int]:
 def _training_plans(experiment, output_root: Path, devices: tuple[str, ...], *, smoke: bool) -> list[dict[str, Any]]:
     if not devices:
         raise ValueError("BFWS training requires at least one device")
+    training = experiment.budget_override["training"]
+    device = str(training["device"])
+    if device not in devices:
+        raise ValueError(f"BFWS single training device {device} is absent from --devices")
     plans = []
-    for index, seed in enumerate(_SEEDS):
+    for index, seed in enumerate(experiment.training_seeds):
         attempt_root, attempt_id = _next_training_attempt(output_root, seed)
         if attempt_root is None:
             continue
-        device = devices[index % len(devices)]
         environment = {
             "CUBLAS_WORKSPACE_CONFIG": ":4096:8",
             "CUDA_VISIBLE_DEVICES": device.removeprefix("cuda:"),
@@ -332,13 +341,15 @@ def _training_plans(experiment, output_root: Path, devices: tuple[str, ...], *, 
             experiment,
             seed=seed,
             output_root=attempt_root / "checkpoints",
-            world_size=1,
+            world_size=int(training["world_size"]),
             smoke=smoke,
         )
         plans.append(
             {
                 "attempt_id": attempt_id,
+                "budget_override": dict(experiment.budget_override),
                 "command": command,
+                "contract_id": experiment.contract_id,
                 "device": device,
                 "environment": environment,
                 "expected_optimizer_steps": 1 if smoke else _expected_steps(experiment),
@@ -389,7 +400,7 @@ def _run_training_plan(plan: Mapping[str, Any], *, progress_interval: float) -> 
     root = Path(str(plan["output_root"]))
     root.mkdir(parents=True)
     gate_receipt, authorization_receipt = _execution_receipts(
-        str(plan["phase_id"]),
+        str(plan["contract_id"]),
         str(plan["attempt_id"]),
         root,
     )
@@ -452,7 +463,10 @@ def _run_training_plan(plan: Mapping[str, Any], *, progress_interval: float) -> 
 
 def _qualification_plan(experiment, output_root: Path, devices: tuple[str, ...]) -> dict[str, Any]:
     return {
-        "adapter_paths": {str(seed): str(_expected_final_checkpoint(output_root, seed)) for seed in _SEEDS},
+        "adapter_paths": {
+            str(seed): str(_expected_final_checkpoint(output_root, seed)) for seed in experiment.training_seeds
+        },
+        "budget_override": dict(experiment.budget_override),
         "coverage_order": ["full_development", "preregistered_exact_cost_panel"],
         "devices": devices,
         "development_tasks": len(experiment.tasks),
@@ -471,9 +485,9 @@ def _qualify(experiment, output_root: Path, *, devices: tuple[str, ...], dry_run
     _require_reference_gate(experiment, output_root)
     if len(devices) != 2 or len(set(devices)) != 2:
         raise ValueError("BFWS qualification is frozen to two distinct GPU devices")
-    adapters = {f"seed-{seed}": _final_checkpoint(output_root, seed) for seed in _SEEDS}
+    adapters = {f"seed-{seed}": _final_checkpoint(output_root, seed) for seed in experiment.training_seeds}
     gate_receipt, authorization_receipt = _execution_receipts(
-        experiment.phase_gate.phase_id,
+        experiment.contract_id,
         "issue-59-bfws-hardware-qualification-v1",
         output_root / "qualification",
     )
@@ -516,6 +530,7 @@ def _qualify(experiment, output_root: Path, *, devices: tuple[str, ...], dry_run
         model_load_seconds=max(load_samples),
         throughput_samples=throughput_samples,
         runtime_seconds_per_call=max(runtime_samples),
+        model_sessions_per_task=int(experiment.budget_override["evaluation"]["model_sessions_per_task"]),
     )
     payload = {
         **qualification.to_dict(),
@@ -523,6 +538,7 @@ def _qualify(experiment, output_root: Path, *, devices: tuple[str, ...], dry_run
         "gate_started_at_unix": time.time(),
         "gate_receipt": gate_receipt.to_dict(),
         "phase_id": experiment.phase_gate.phase_id,
+        "contract_id": experiment.contract_id,
         "plan": plan,
     }
     _atomic_write_json(output_root / "qualification.json", payload)
@@ -611,22 +627,28 @@ def _evaluate_shard(
         return 0
     qualification = _json_object(qualification_path)
     coverage = qualification.get("coverage")
-    if not isinstance(coverage, dict) or coverage.get("outcome") != StopOutcome.PASS.value:
+    if (
+        not isinstance(coverage, dict)
+        or coverage.get("outcome") != StopOutcome.PASS.value
+        or qualification.get("contract_id") != experiment.contract_id
+    ):
         raise ValueError("BFWS rollout lacks a PASS hardware qualification")
     selected_ids = set(coverage["task_ids"])
     selected = tuple(task for task in experiment.tasks if task.instance_id in selected_ids)
     shards = _cost_shards(selected)
     assigned = shards[shard_index]
-    adapters = {f"seed-{seed}": _final_checkpoint(output_root, seed) for seed in _SEEDS}
+    adapters = {f"seed-{seed}": _final_checkpoint(output_root, seed) for seed in experiment.training_seeds}
     root = output_root / "rollout" / f"shard-{shard_index}"
     gate_receipt, authorization_receipt = _execution_receipts(
-        experiment.phase_gate.phase_id,
+        experiment.contract_id,
         attempt_id,
         root,
     )
     launch = {
         "authorization_receipt": authorization_receipt.to_dict(),
         "attempt_id": attempt_id,
+        "budget_override": dict(experiment.budget_override),
+        "contract_id": experiment.contract_id,
         "coverage_mode": coverage["mode"],
         "device": device,
         "gate_receipt": gate_receipt.to_dict(),
@@ -652,7 +674,7 @@ def _evaluate_shard(
     completed_records = []
     for task in assigned:
         authority = _authority(task)
-        for arm, seed, adapter_id in _model_variants():
+        for arm, seed, adapter_id in _model_variants(experiment.evaluation_seeds):
             relative = _episode_relative(arm, seed, task.instance_id)
             path = root / relative
             if path.is_file():
@@ -676,7 +698,7 @@ def _evaluate_shard(
                 )
             )
     task_by_id = {task.instance_id: task for task in assigned}
-    assigned_count = len(assigned) * 10
+    assigned_count = len(assigned) * 2 * len(experiment.evaluation_seeds)
     started = time.monotonic()
     last_progress = [0.0]
 
@@ -711,8 +733,10 @@ def _evaluate_shard(
     manifest = {
         "assigned_episode_count": assigned_count,
         "authorization_receipt": authorization_receipt.to_dict(),
+        "budget_override": dict(experiment.budget_override),
         "completed_episode_count": len(completed_records),
         "coverage_mode": coverage["mode"],
+        "contract_id": experiment.contract_id,
         "outcome": (StopOutcome.PASS if len(completed_records) == assigned_count else StopOutcome.VALID_STOP).value,
         "gate_receipt": gate_receipt.to_dict(),
         "phase_receipt": experiment.phase_gate.receipt(stage="development_structural_gate"),
@@ -726,10 +750,10 @@ def _evaluate_shard(
     return 0
 
 
-def _model_variants():
-    for seed in _SEEDS:
+def _model_variants(seeds: Sequence[int]):
+    for seed in seeds:
         yield "pretrained_base", seed, None
-    for seed in _SEEDS:
+    for seed in seeds:
         yield "process_sft", seed, f"seed-{seed}"
 
 
@@ -764,9 +788,9 @@ def _adjudicate(experiment, output_root: Path, *, attempt_id: str, dry_run: bool
     if dry_run:
         print(_canonical_text({**plan, "dry_run": True}))
         return 0
-    binding = ReceiptBinding(experiment.phase_gate.phase_id, attempt_id, output_root / "adjudication")
+    binding = ReceiptBinding(experiment.contract_id, attempt_id, output_root / "adjudication")
     execution_gate, execution_authorization = _execution_receipts(
-        experiment.phase_gate.phase_id,
+        experiment.contract_id,
         f"{attempt_id}-execution",
         output_root / "adjudication-execution",
     )
@@ -789,7 +813,7 @@ def _adjudicate(experiment, output_root: Path, *, attempt_id: str, dry_run: bool
     if outcome is StopOutcome.ANCESTOR_STOP:
         ancestor_gate = GateReceipt(
             ReceiptBinding(
-                experiment.phase_gate.phase_id,
+                experiment.contract_id,
                 f"{attempt_id}-exact-reference",
                 output_root / "adjudication" / "exact-reference",
             ),
@@ -803,6 +827,8 @@ def _adjudicate(experiment, output_root: Path, *, attempt_id: str, dry_run: bool
     report.update(
         {
             "attempt_id": attempt_id,
+            "budget_override": dict(experiment.budget_override),
+            "contract_id": experiment.contract_id,
             "coverage": coverage,
             "execution_authorization_receipt": execution_authorization.to_dict(),
             "execution_gate_receipt": execution_gate.to_dict(),
@@ -831,7 +857,10 @@ def _adjudicate(experiment, output_root: Path, *, attempt_id: str, dry_run: bool
 
 
 def _adjudication_metrics(experiment, output_root: Path, qualification, coverage) -> dict[str, Any]:
-    if qualification.get("phase_id") != experiment.phase_gate.phase_id:
+    if (
+        qualification.get("phase_id") != experiment.phase_gate.phase_id
+        or qualification.get("contract_id") != experiment.contract_id
+    ):
         raise ValueError("BFWS qualification belongs to a different governed phase")
     if coverage.get("outcome") == StopOutcome.VALID_STOP.value:
         return {
@@ -858,9 +887,15 @@ def _adjudication_metrics(experiment, output_root: Path, qualification, coverage
         raise ValueError("BFWS references are not the authorized issue #59 product")
     reference_rows = references["records"]
     exact = [row for row in reference_rows if row["arm"] == "exact_bfws" and row["instance_id"] in selected_ids]
-    random_rows = [row for row in reference_rows if row["arm"] == "random_valid" and row["instance_id"] in selected_ids]
+    random_rows = [
+        row
+        for row in reference_rows
+        if row["arm"] == "random_valid"
+        and row["instance_id"] in selected_ids
+        and row["seed"] in experiment.evaluation_seeds
+    ]
     counter = _token_counter(experiment)
-    total = len(selected_ids) * 16
+    total = len(selected_ids) * (1 + 3 * len(experiment.evaluation_seeds))
     completed = 0
     started = time.monotonic()
     for row in exact:
@@ -894,6 +929,8 @@ def _adjudication_metrics(experiment, output_root: Path, qualification, coverage
             manifest.get("schema_version") != "bfws_issue59_rollout_shard_v1"
             or manifest.get("phase_receipt") != experiment.phase_gate.receipt(stage="development_structural_gate")
             or manifest.get("coverage_mode") != coverage["mode"]
+            or manifest.get("contract_id") != experiment.contract_id
+            or manifest.get("budget_override") != experiment.budget_override
             or not isinstance(manifest.get("records"), list)
         ):
             raise ValueError("BFWS rollout manifest differs from its authorization or qualification")
@@ -911,7 +948,7 @@ def _adjudication_metrics(experiment, output_root: Path, qualification, coverage
     threshold = experiment.phase_gate.components["threshold"]
     report = adjudicate_bfws_structural_gate(
         expected_ids=selected_ids,
-        seeds=_SEEDS,
+        seeds=experiment.evaluation_seeds,
         exact_rows=exact,
         random_rows=random_rows,
         base_rows=base,
@@ -1044,7 +1081,10 @@ def _expected_final_checkpoint(output_root: Path, seed: int) -> Path:
     try:
         return _final_checkpoint(output_root, seed)
     except FileNotFoundError:
-        return output_root / "training" / f"seed-{seed}-attempt-001" / "checkpoints" / "checkpoint-4482"
+        attempt_root, _attempt_id = _next_training_attempt(output_root, seed)
+        if attempt_root is None:
+            raise RuntimeError(f"seed {seed} completed training without a discoverable final checkpoint") from None
+        return attempt_root / "checkpoints" / "checkpoint-4482"
 
 
 def _expected_steps(experiment) -> int:
