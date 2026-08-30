@@ -60,9 +60,10 @@ def test_issue59_preflight_binds_released_process_corpus_and_dev_references(
     assert report["development_exact_decisions"] == 21_239
     assert report["maximum_model_calls"] == 42_478
     assert report["fresh_test_accessed"] is False
-    assert report["contract_id"] == "issue-59-bfws-single-training-v1"
+    assert report["contract_id"] == "issue-59-bfws-single-training-v2"
     assert report["training_runs"] == 1
     assert report["training_seeds"] == [17]
+    assert report["training_epochs"] == 2
 
 
 def test_bfws_generation_messages_preserve_the_training_text() -> None:
@@ -91,10 +92,12 @@ def test_issue59_sft_command_uses_every_atomic_training_shard_and_frozen_optimiz
     dev_paths = command[validation_index + 1 : command.index("--split_dataset_ratio")]
     assert len(train_paths) == 70
     assert len(dev_paths) == 35
-    assert command[command.index("--num_train_epochs") + 1] == "3"
+    assert command[command.index("--num_train_epochs") + 1] == "2"
     assert command[command.index("--max_length") + 1] == "8192"
     assert command[command.index("--lora_rank") + 1] == "64"
     assert command[command.index("--seed") + 1] == "17"
+    assert command[command.index("--save_strategy") + 1] == "steps"
+    assert command[command.index("--save_steps") + 1] == "747"
 
 
 def test_bfws_model_session_executes_exact_outputs_through_the_live_contract() -> None:
@@ -388,4 +391,57 @@ def test_resumed_all_dry_run_qualifies_the_new_training_attempt(
     stages = json.loads(capsys.readouterr().out)["stages"]
     training_root = Path(stages["train"][0]["output_root"])
     assert training_root.name == "seed-17-attempt-003"
-    assert stages["qualify"]["adapter_paths"]["17"] == str(training_root / "checkpoints" / "checkpoint-4482")
+    assert stages["qualify"]["adapter_paths"]["17"] == str(training_root / "checkpoints" / "checkpoint-2988")
+
+
+def test_resumed_training_uses_the_newest_complete_checkpoint(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    output_root = tmp_path / "issue59"
+    first = output_root / "training" / "seed-17-attempt-001" / "checkpoints" / "checkpoint-747"
+    second = output_root / "training" / "seed-17-attempt-002" / "checkpoints" / "checkpoint-1494"
+    incomplete = output_root / "training" / "seed-17-attempt-002" / "checkpoints" / "checkpoint-2241"
+    for checkpoint, step in ((first, 747), (second, 1494)):
+        checkpoint.mkdir(parents=True)
+        (checkpoint / "trainer_state.json").write_text(json.dumps({"global_step": step}))
+        for name in (
+            "adapter_config.json",
+            "adapter_model.safetensors",
+            "optimizer.pt",
+            "rng_state.pth",
+            "scheduler.pt",
+        ):
+            (checkpoint / name).write_bytes(b"checkpoint")
+    incomplete.mkdir()
+    (incomplete / "trainer_state.json").write_text("{")
+    for name in (
+        "adapter_config.json",
+        "adapter_model.safetensors",
+        "optimizer.pt",
+        "rng_state.pth",
+        "scheduler.pt",
+    ):
+        (incomplete / name).write_bytes(b"partial-checkpoint")
+
+    assert (
+        issue59_main(
+            [
+                "train",
+                "--dry-run",
+                "--resume",
+                "--devices",
+                "cuda:0",
+                "cuda:1",
+                "--output-root",
+                str(output_root),
+            ]
+        )
+        == 0
+    )
+
+    launch = json.loads(capsys.readouterr().out)["launches"][0]
+    assert Path(launch["output_root"]).name == "seed-17-attempt-003"
+    assert launch["resume_from_checkpoint"] == str(second.resolve())
+    command = launch["command"]
+    assert command[command.index("--resume_from_checkpoint") + 1] == str(second.resolve())

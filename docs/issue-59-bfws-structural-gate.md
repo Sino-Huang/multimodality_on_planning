@@ -9,7 +9,7 @@ not an efficacy-test run.
 
 - Process-only LoRA SFT uses all 47,780 train and 21,239 dev records from the
   105 atomic ms-swift shards released by issue 58. The supervisor's issue-59
-  budget override authorizes one training run only: seed 17 on physical
+  budget override authorizes one two-epoch training run only: seed 17 on physical
   `cuda:1`. Its final checkpoint is the sole learned checkpoint. This does not
   estimate training-seed variance from the five seeds originally frozen by
   issue 56.
@@ -73,7 +73,7 @@ For operational control, the same workflow can be run stage by stage:
 ```bash
 python scripts/run_bfws_issue59.py preflight
 python scripts/run_bfws_issue59.py references --resume
-python scripts/run_bfws_issue59.py train --devices cuda:0 cuda:1
+python scripts/run_bfws_issue59.py train --devices cuda:1 --resume
 python scripts/run_bfws_issue59.py qualify --devices cuda:0 cuda:1
 python scripts/run_bfws_issue59.py evaluate --devices cuda:0 cuda:1 --resume
 python scripts/run_bfws_issue59.py adjudicate
@@ -81,8 +81,10 @@ python scripts/run_bfws_issue59.py adjudicate
 
 Reference and rollout evidence resume within the same immutable launch.
 Interrupted or failed training is preserved and the next invocation creates a
-new numbered attempt. A one-step non-scientific smoke launch is available with
-`train --smoke`; it never satisfies final-checkpoint discovery.
+new numbered attempt that resumes the newest complete ms-swift checkpoint.
+Training saves every half epoch (747 optimizer steps), so at most half an epoch
+is lost to interruption. A one-step non-scientific smoke launch is available
+with `train --smoke`; it never satisfies final-checkpoint discovery or resume.
 
 If reference generation was interrupted, resume its retained atomic episodes
 without regenerating them:

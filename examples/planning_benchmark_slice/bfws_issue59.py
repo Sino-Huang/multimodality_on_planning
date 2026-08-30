@@ -114,6 +114,7 @@ class BFWSIssue59Experiment:
             "maximum_model_calls": sum(task.model_call_limit for task in self.tasks),
             "phase_id": self.phase_gate.phase_id,
             "training_examples": dict(self.training_manifest["counts"]),
+            "training_epochs": int(self.budget_override["training"]["epochs"]),
             "training_task_files": {"dev": len(self.dev_datasets), "train": len(self.train_datasets)},
             "training_runs": int(self.budget_override["training"]["replicate_count"]),
             "training_seeds": list(self.training_seeds),
@@ -165,7 +166,7 @@ def load_bfws_issue59(repo_root: str | Path) -> BFWSIssue59Experiment:
         raise ValueError("issue #58 corpus receipt does not authorize process SFT")
     budget_override = _json_object(root / _BUDGET_OVERRIDE)
     if budget_override != {
-        "contract_id": "issue-59-bfws-single-training-v1",
+        "contract_id": "issue-59-bfws-single-training-v2",
         "evaluation": {
             "base_seeds": [17],
             "model_sessions_per_task": 2,
@@ -173,14 +174,14 @@ def load_bfws_issue59(repo_root: str | Path) -> BFWSIssue59Experiment:
             "random_valid_seeds": [17],
         },
         "parent_phase_id": gate.phase_id,
-        "reason": "Supervisor limited issue 59 to one model training run for time and compute budget.",
+        "reason": "Supervisor limited issue 59 to one two-epoch model training run for time and compute budget.",
         "schema_version": "bfws_issue59_budget_override_v1",
         "scientific_scope": (
-            "Single-checkpoint development comparison with whole-instance bootstrap uncertainty; "
+            "Single two-epoch checkpoint development comparison with whole-instance bootstrap uncertainty; "
             "training-seed variance is not estimated."
         ),
         "source_issue": 59,
-        "training": {"device": "cuda:1", "replicate_count": 1, "seed": 17, "world_size": 1},
+        "training": {"device": "cuda:1", "epochs": 2, "replicate_count": 1, "seed": 17, "world_size": 1},
     }:
         raise ValueError("issue #59 budget override differs from the supervisor decision")
 
@@ -230,6 +231,7 @@ def build_bfws_sft_command(
     output_root: str | Path,
     world_size: int,
     smoke: bool = False,
+    resume_from_checkpoint: str | Path | None = None,
 ) -> tuple[str, ...]:
     """Translate the immutable issue #56 optimizer into one ms-swift command."""
 
@@ -242,6 +244,8 @@ def build_bfws_sft_command(
     global_batch = int(optimization["global_batch_size"])
     if global_batch % world_size:
         raise ValueError("frozen global batch size must be divisible by world_size")
+    train_examples = int(experiment.training_manifest["counts"]["train"])
+    checkpoint_interval = math.ceil(math.ceil(train_examples / global_batch) / 2)
     lora = training["lora"]
     model = training["model"]
     command = [
@@ -282,7 +286,7 @@ def build_bfws_sft_command(
         "--attn_impl",
         "sdpa",
         "--num_train_epochs",
-        str(optimization["epochs"]),
+        str(experiment.budget_override["training"]["epochs"]),
         "--per_device_train_batch_size",
         "1",
         "--per_device_eval_batch_size",
@@ -334,10 +338,14 @@ def build_bfws_sft_command(
         "--eval_strategy",
         "epoch",
         "--save_strategy",
-        "epoch",
+        "steps",
+        "--save_steps",
+        str(checkpoint_interval),
     ]
     if smoke:
-        command.extend(("--max_steps", "1", "--eval_strategy", "no", "--save_strategy", "steps", "--save_steps", "1"))
+        command.extend(("--max_steps", "1", "--eval_strategy", "no", "--save_steps", "1"))
+    elif resume_from_checkpoint is not None:
+        command.extend(("--resume_from_checkpoint", str(Path(resume_from_checkpoint).resolve())))
     return tuple(command)
 
 

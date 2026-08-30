@@ -102,6 +102,7 @@ def main(arguments: Sequence[str] | None = None) -> int:
             output_root,
             devices=tuple(args.devices),
             dry_run=args.dry_run,
+            resume=args.resume,
             smoke=args.smoke,
             progress_interval=args.progress_interval_seconds,
         )
@@ -138,7 +139,13 @@ def main(arguments: Sequence[str] | None = None) -> int:
                 workers=args.reference_workers,
                 resume=args.resume,
             ),
-            "train": _training_plans(experiment, output_root, tuple(args.devices), smoke=args.smoke),
+            "train": _training_plans(
+                experiment,
+                output_root,
+                tuple(args.devices),
+                resume=args.resume,
+                smoke=args.smoke,
+            ),
             "qualify": _qualification_plan(experiment, output_root, tuple(args.devices)),
             "evaluate": _evaluation_commands(output_root, tuple(args.devices), args.attempt_id, resume=args.resume),
             "adjudicate": _adjudication_plan(output_root, args.attempt_id),
@@ -318,7 +325,14 @@ def _reference_token_counter() -> Callable[[Mapping[str, Any]], int]:
     return _REFERENCE_TOKEN_COUNTER
 
 
-def _training_plans(experiment, output_root: Path, devices: tuple[str, ...], *, smoke: bool) -> list[dict[str, Any]]:
+def _training_plans(
+    experiment,
+    output_root: Path,
+    devices: tuple[str, ...],
+    *,
+    resume: bool,
+    smoke: bool,
+) -> list[dict[str, Any]]:
     if not devices:
         raise ValueError("BFWS training requires at least one device")
     training = experiment.budget_override["training"]
@@ -330,6 +344,7 @@ def _training_plans(experiment, output_root: Path, devices: tuple[str, ...], *, 
         attempt_root, attempt_id = _next_training_attempt(output_root, seed)
         if attempt_root is None:
             continue
+        resume_from_checkpoint = _latest_training_checkpoint(output_root, seed) if resume and not smoke else None
         environment = {
             "CUBLAS_WORKSPACE_CONFIG": ":4096:8",
             "CUDA_VISIBLE_DEVICES": device.removeprefix("cuda:"),
@@ -343,6 +358,7 @@ def _training_plans(experiment, output_root: Path, devices: tuple[str, ...], *, 
             output_root=attempt_root / "checkpoints",
             world_size=int(training["world_size"]),
             smoke=smoke,
+            resume_from_checkpoint=resume_from_checkpoint,
         )
         plans.append(
             {
@@ -356,6 +372,9 @@ def _training_plans(experiment, output_root: Path, devices: tuple[str, ...], *, 
                 "output_root": str(attempt_root),
                 "phase_id": experiment.phase_gate.phase_id,
                 "phase_receipt": experiment.phase_gate.receipt(stage="process_sft_training"),
+                "resume_from_checkpoint": (
+                    str(resume_from_checkpoint.resolve()) if resume_from_checkpoint is not None else None
+                ),
                 "seed": seed,
                 "smoke": smoke,
             }
@@ -369,10 +388,11 @@ def _train(
     *,
     devices: tuple[str, ...],
     dry_run: bool,
+    resume: bool,
     smoke: bool,
     progress_interval: float,
 ) -> int:
-    plans = _training_plans(experiment, output_root, devices, smoke=smoke)
+    plans = _training_plans(experiment, output_root, devices, resume=resume, smoke=smoke)
     if dry_run:
         print(_canonical_text({"dry_run": True, "launches": plans}))
         return 0
@@ -451,6 +471,7 @@ def _run_training_plan(plan: Mapping[str, Any], *, progress_interval: float) -> 
         "elapsed_seconds": time.monotonic() - started,
         "outcome": StopOutcome.PASS.value if returncode == 0 else StopOutcome.INVALID.value,
         "returncode": returncode,
+        "resume_from_checkpoint": plan["resume_from_checkpoint"],
         "schema_version": "bfws_issue59_training_report_v1",
         "seed": plan["seed"],
         "smoke": plan["smoke"],
@@ -464,7 +485,8 @@ def _run_training_plan(plan: Mapping[str, Any], *, progress_interval: float) -> 
 def _qualification_plan(experiment, output_root: Path, devices: tuple[str, ...]) -> dict[str, Any]:
     return {
         "adapter_paths": {
-            str(seed): str(_expected_final_checkpoint(output_root, seed)) for seed in experiment.training_seeds
+            str(seed): str(_expected_final_checkpoint(experiment, output_root, seed))
+            for seed in experiment.training_seeds
         },
         "budget_override": dict(experiment.budget_override),
         "coverage_order": ["full_development", "preregistered_exact_cost_panel"],
@@ -1053,6 +1075,37 @@ def _next_training_attempt(output_root: Path, seed: int):
     return parent / f"seed-{seed}-attempt-{number:03d}", f"issue-59-process-sft-seed-{seed}-attempt-{number:03d}"
 
 
+def _latest_training_checkpoint(output_root: Path, seed: int) -> Path | None:
+    candidates = []
+    for root in sorted((output_root / "training").glob(f"seed-{seed}-attempt-*")):
+        report_path = root / "training-report.json"
+        if report_path.is_file() and _json_object(report_path).get("smoke") is True:
+            continue
+        candidates.extend((root / "checkpoints").glob("checkpoint-*"))
+    valid = [path for path in candidates if _is_resumable_training_checkpoint(path)]
+    return max(valid, key=_checkpoint_step).resolve() if valid else None
+
+
+def _is_resumable_training_checkpoint(path: Path) -> bool:
+    step = _checkpoint_step(path)
+    if step <= 0 or not path.is_dir():
+        return False
+    required = ("adapter_config.json", "optimizer.pt", "rng_state.pth", "scheduler.pt")
+    if any(not (path / name).is_file() or (path / name).stat().st_size == 0 for name in required):
+        return False
+    weights = (path / "adapter_model.safetensors", path / "adapter_model.bin")
+    if not any(weight.is_file() and weight.stat().st_size > 0 for weight in weights):
+        return False
+    state_path = path / "trainer_state.json"
+    if not state_path.is_file():
+        return False
+    try:
+        state = _json_object(state_path)
+    except (OSError, ValueError):
+        return False
+    return state.get("global_step") == step
+
+
 def _final_checkpoint(output_root: Path, seed: int) -> Path:
     roots = sorted((output_root / "training").glob(f"seed-{seed}-attempt-*"))
     completed = []
@@ -1077,20 +1130,21 @@ def _final_checkpoint(output_root: Path, seed: int) -> Path:
     return selected.resolve()
 
 
-def _expected_final_checkpoint(output_root: Path, seed: int) -> Path:
+def _expected_final_checkpoint(experiment, output_root: Path, seed: int) -> Path:
     try:
         return _final_checkpoint(output_root, seed)
     except FileNotFoundError:
         attempt_root, _attempt_id = _next_training_attempt(output_root, seed)
         if attempt_root is None:
             raise RuntimeError(f"seed {seed} completed training without a discoverable final checkpoint") from None
-        return attempt_root / "checkpoints" / "checkpoint-4482"
+        return attempt_root / "checkpoints" / f"checkpoint-{_expected_steps(experiment)}"
 
 
 def _expected_steps(experiment) -> int:
     count = int(experiment.training_manifest["counts"]["train"])
     optimization = experiment.phase_gate.components["training"]["optimization"]
-    return math.ceil(count / int(optimization["global_batch_size"])) * int(optimization["epochs"])
+    epochs = int(experiment.budget_override["training"]["epochs"])
+    return math.ceil(count / int(optimization["global_batch_size"])) * epochs
 
 
 def _checkpoint_step(path: Path) -> int:
