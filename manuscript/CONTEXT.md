@@ -16,7 +16,7 @@ This manuscript-local glossary preserves the #38 canonical planning-research lan
 
 **Search Memory**: The external runtime/data boundary that holds frontier, visited or best-depth, novelty, and landmark state for the runtime; it is not internal unbounded model state.
 
-**Algorithm Invariant**: A deterministic property of the declared algorithm, such as BFS layer order, IW novelty pruning, or A* frontier order under h_max or landmark-count, checked by the Trusted Search Runtime on every operation.
+**Algorithm Invariant**: A deterministic property of the declared algorithm, such as BFS FIFO order, BFWS novelty/goal-count priority and duplicate handling, or A* frontier order under h_max or landmark-count, checked by the Trusted Search Runtime on every operation.
 
 **Modality Observation**: A task state rendered in one declared modality (text, image, or paired) and presented to the policy under a fixed adapter contract.
 
@@ -25,6 +25,12 @@ This manuscript-local glossary preserves the #38 canonical planning-research lan
 **visual-state**: The same state and goal represented as a rendered state plus a partial-goal constraint image.
 
 **multimodal-state**: The same state and goal represented by both text-state and visual-state.
+
+## Model and Runtime Ownership
+
+The policy must emit the operation type and every operand that determines exploration, including the selected source or frontier state and any successor, action, or insertion decision required by the declared operation. The Trusted Search Runtime may validate, apply, persist, and reject that emission, but it may not choose omitted operands, reorder candidates on the policy's behalf, silently repair an invalid emission, or substitute a default search decision. Replaying the raw policy emissions against the same task and prior Search Memory must reproduce the explored trace. This is the manuscript's test for attributing a search decision to the model rather than to runtime bookkeeping.
+
+Stepwise validity and Algorithm Invariant compliance do not establish termination, completeness, optimality, or episode success. Those outcomes are reported separately under the declared task, heuristic, tie-breaking, and budget contract.
 
 ## Retained Infrastructure Terms
 
@@ -56,6 +62,8 @@ Planning Certificate, Joint Action-and-Certificate SFT, Adaptive Scaffolding, Su
 
 **Planned method component**: A specified mechanism without training or evaluation evidence. It must be described as proposed, not as an established result.
 
-**Empirical efficacy finding**: A comparative model result obtained under the preregistered evaluation protocol. None exists in the current evidence base.
+**Bounded empirical finding**: A comparative model result supported within one governed development panel but not licensed as a final or general efficacy conclusion. Issue #54's outcome-blind 15-task BFS v8 panel is the current example: process SFT achieved 1.0 invariant-valid success with zero invalid operations, the base model achieved 0.0, and random-valid also achieved 1.0. The zero gain over the best control produced `VALID_STOP` with `scientific_completion=false`.
+
+**Final empirical efficacy finding**: A comparative result from the authorized final primary evaluation. None exists in the current evidence base.
 
 **Claim boundary**: The narrowest statement directly supported by the available evidence. The manuscript must preserve this boundary.
