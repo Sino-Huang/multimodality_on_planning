@@ -1,0 +1,6 @@
+{
+  "domain": "astar-unsolvable",
+  "domain_pddl": "(define (domain astar-unsolvable) (:requirements :strips) (:predicates (start) (dead) (goal)) (:action enter-dead-end :parameters () :precondition (start) :effect (and (dead) (not (start)))))",
+  "instance_id": "astar-unsolvable-0000",
+  "problem_pddl": "(define (problem astar-unsolvable-p) (:domain astar-unsolvable) (:init (start)) (:goal (goal)))"
+}

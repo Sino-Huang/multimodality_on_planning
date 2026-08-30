@@ -18,6 +18,8 @@ from src.data_collect.governance import (
     evaluate_execution_permission,
 )
 
+from .astar_episode import ASTAR_ACCEPTED_DELTA_LIMIT
+from .astar_replay import AStarReplayError, AStarReplaySummary, replay_astar_events
 from .bfws_episode import (
     BFWS_NOVELTY_PRECISION,
     BFWSSearchStep,
@@ -81,6 +83,17 @@ _EVENT_FIELDS = {
 }
 _IW_EVENT_FIELDS = _EVENT_FIELDS | {"novelty_transition", "observation", "width_attempt"}
 _BFWS_EVENT_FIELDS = _EVENT_FIELDS | {"bfws_transition", "observation"}
+_ASTAR_EVENT_FIELDS = {
+    "decisions",
+    "expanded_state_id",
+    "expansion_index",
+    "frontier_after",
+    "frontier_before",
+    "heuristic",
+    "index",
+    "invariants",
+    "observation",
+}
 _BFWS_TRANSITION_FIELDS = {
     "novel_item",
     "novelty_bucket",
@@ -245,6 +258,19 @@ def materialize_episode_artifacts(evidence: Mapping[str, Any]) -> tuple[bytes, b
     header = normalized["header"]
     request = _parse_request(header["request"])
     authority = _authority_from_task(header["task"])
+    if request["algorithm"] == "astar_hmax":
+        trace_view = {
+            "algorithm": "astar_hmax",
+            "events": normalized["events"],
+            "record_count": len(normalized["events"]),
+            "request": request,
+            "result": normalized["result"],
+            "schema_version": "astar_hmax_trace_view_v1",
+            "states": normalized["states"],
+        }
+        trace_bytes = _canonical_bytes(trace_view)
+        replay_astar_trace_view(_canonical_bytes(header["task"]), trace_bytes)
+        return _canonical_bytes(header["task"]), trace_bytes
     memory = SearchMemory.initial(authority)
     limits = _trace_limits(authority, request["max_expansions"])
     trace = start_search_trace(memory, limits=limits)
@@ -289,6 +315,44 @@ def materialize_episode_artifacts(evidence: Mapping[str, Any]) -> tuple[bytes, b
     return _canonical_bytes(header["task"]), trace_bytes
 
 
+def replay_astar_trace_view(task_bytes: bytes, trace_bytes: bytes) -> dict[str, Any]:
+    """Replay a canonical materialized A* trace without a BFS operation coercion."""
+
+    task = _load_canonical_json(task_bytes, "A* materialized task")
+    trace = _load_canonical_json(trace_bytes, "A* materialized trace")
+    _require_object(
+        trace,
+        {"algorithm", "events", "record_count", "request", "result", "schema_version", "states"},
+        "A* materialized trace",
+    )
+    if trace["algorithm"] != "astar_hmax" or trace["schema_version"] != "astar_hmax_trace_view_v1":
+        raise EpisodeEvidenceError("A* materialized trace schema is invalid")
+    request = _parse_request(trace["request"])
+    authority = _authority_from_task(task)
+    try:
+        replay = replay_astar_events(
+            trace["states"],
+            trace["events"],
+            authority=authority,
+            max_expansions=request["max_expansions"],
+            accepted_delta_limit=request["accepted_delta_limit"],
+        )
+    except AStarReplayError as error:
+        raise EpisodeEvidenceError(str(error)) from error
+    result = trace["result"]
+    if (
+        trace["record_count"] != replay.expansion_count
+        or not isinstance(result, Mapping)
+        or result.get("decision_count") != replay.decision_count
+        or result.get("expansion_count") != replay.expansion_count
+        or result.get("goal_reached") is not replay.goal_reached
+        or result.get("reopen_count") != replay.reopen_count
+        or result.get("termination") != replay.termination
+    ):
+        raise EpisodeEvidenceError("A* materialized trace result differs from replay")
+    return dict(trace)
+
+
 def replay_episode(evidence: Mapping[str, Any]) -> SearchMemory:
     normalized = dict(evidence)
     _validate_evidence(normalized)
@@ -309,12 +373,22 @@ def replay_episode(evidence: Mapping[str, Any]) -> SearchMemory:
         raise EpisodeEvidenceError("evidence authority differs from its task")
     iw_replay: _IWReplayResult | None = None
     bfws_replay: BFWSSearchSummary | None = None
+    astar_replay: AStarReplaySummary | None = None
     if request["algorithm"] == "bfs":
         memory = _replay_events(
             normalized["states"],
             normalized["events"],
             authority=authority,
         )
+    elif request["algorithm"] == "astar_hmax":
+        astar_replay = _replay_astar_events(
+            normalized["states"],
+            normalized["events"],
+            authority=authority,
+            max_expansions=request["max_expansions"],
+            accepted_delta_limit=request["accepted_delta_limit"],
+        )
+        memory = SearchMemory.initial(authority)
     elif request["algorithm"] == "iterated_width":
         iw_replay = _replay_iw_events(
             normalized["states"],
@@ -344,6 +418,7 @@ def replay_episode(evidence: Mapping[str, Any]) -> SearchMemory:
         states=normalized["states"],
         iw_replay=iw_replay,
         bfws_replay=bfws_replay,
+        astar_replay=astar_replay,
     )
     return memory
 
@@ -695,6 +770,28 @@ def _replay_bfws_events(
     return summary
 
 
+def _replay_astar_events(
+    states: Mapping[str, Any],
+    events: list[Mapping[str, Any]],
+    *,
+    authority: PDDLStateAuthority,
+    max_expansions: int,
+    accepted_delta_limit: int,
+) -> AStarReplaySummary:
+    """Independently recompute every heuristic, candidate, priority, and state delta."""
+
+    try:
+        return replay_astar_events(
+            states,
+            events,
+            authority=authority,
+            max_expansions=max_expansions,
+            accepted_delta_limit=accepted_delta_limit,
+        )
+    except AStarReplayError as error:
+        raise EpisodeEvidenceError(str(error)) from error
+
+
 def _validate_replayed_result(
     result: Mapping[str, Any],
     *,
@@ -707,6 +804,7 @@ def _validate_replayed_result(
     states: Mapping[str, Any],
     iw_replay: _IWReplayResult | None,
     bfws_replay: BFWSSearchSummary | None,
+    astar_replay: AStarReplaySummary | None,
 ) -> None:
     completed = _run_receipt_from_payload(result.get("run_receipt"))
     if (
@@ -716,7 +814,9 @@ def _validate_replayed_result(
         or not completed.scientific_completion
     ):
         raise EpisodeEvidenceError("completed run receipt is invalid")
-    if iw_replay is not None:
+    if astar_replay is not None:
+        goal_reached = astar_replay.goal_reached
+    elif iw_replay is not None:
         goal_reached = iw_replay.goal_reached
     elif bfws_replay is not None:
         goal_reached = bfws_replay.goal_reached
@@ -730,11 +830,28 @@ def _validate_replayed_result(
         or result.get("scientific_completion") is not True
     ):
         raise EpisodeEvidenceError("result summary differs from replay")
-    replayed_visited = memory.visited if iw_replay is None else iw_replay.visited
+    replayed_visited = (
+        astar_replay.state_ids
+        if astar_replay is not None
+        else memory.visited
+        if iw_replay is None
+        else iw_replay.visited
+    )
     if set(states) != replayed_visited:
         raise EpisodeEvidenceError("state table does not equal the replayed visited set")
     if iw_replay is None and expansion_count > request["max_expansions"]:
         raise EpisodeEvidenceError("replayed episode exceeds its expansion budget")
+    if astar_replay is not None and (
+        result.get("algorithm_invariants_hold") is not True
+        or result.get("decision_count") != astar_replay.decision_count
+        or result.get("exact_reference_decision_count") != astar_replay.decision_count
+        or result.get("budget_used") != astar_replay.expansion_count
+        or result.get("invalid_operation_count") != 0
+        or result.get("invariant_valid_success") is not astar_replay.goal_reached
+        or result.get("reopen_count") != astar_replay.reopen_count
+        or result.get("termination") != astar_replay.termination
+    ):
+        raise EpisodeEvidenceError("A* invariant verdict differs from mechanical replay")
     if iw_replay is not None:
         if any(count > request["max_expansions"] for count in iw_replay.expansion_count_by_width):
             raise EpisodeEvidenceError("replayed IW attempt exceeds its expansion budget")
@@ -809,7 +926,9 @@ def _validate_states(states: Any) -> None:
 
 def _validate_event(event: Any, *, index: int, algorithm: str) -> None:
     fields = (
-        _IW_EVENT_FIELDS
+        _ASTAR_EVENT_FIELDS
+        if algorithm == "astar_hmax"
+        else _IW_EVENT_FIELDS
         if algorithm == "iterated_width"
         else _BFWS_EVENT_FIELDS
         if algorithm == "best_first_width"
@@ -820,6 +939,9 @@ def _validate_event(event: Any, *, index: int, algorithm: str) -> None:
         if isinstance(event[field], bool) or not isinstance(event[field], int) or event[field] < 0:
             raise EpisodeEvidenceError(f"event {index}.{field} must be a non-negative integer")
     _require_text(event["expanded_state_id"], f"event {index}.expanded_state_id")
+    if algorithm == "astar_hmax":
+        _validate_astar_event(event, index=index)
+        return
     if not isinstance(event["newly_enqueued_state_ids"], list):
         raise EpisodeEvidenceError(f"event {index}.newly_enqueued_state_ids must be an array")
     for state_id in event["newly_enqueued_state_ids"]:
@@ -841,6 +963,39 @@ def _validate_event(event: Any, *, index: int, algorithm: str) -> None:
         if not isinstance(event["observation"], Mapping):
             raise EpisodeEvidenceError(f"event {index}.observation must be an object")
         _validate_bfws_transition(event["bfws_transition"], index=index)
+
+
+def _validate_astar_event(event: Mapping[str, Any], *, index: int) -> None:
+    if not isinstance(event["decisions"], list):
+        raise EpisodeEvidenceError(f"event {index}.decisions must be an array")
+    if not isinstance(event["observation"], Mapping):
+        raise EpisodeEvidenceError(f"event {index}.observation must be an object")
+    if not isinstance(event["frontier_before"], list) or not isinstance(event["frontier_after"], list):
+        raise EpisodeEvidenceError(f"event {index} A* frontier evidence must be arrays")
+    heuristic = event["heuristic"]
+    invariants = event["invariants"]
+    if (
+        not isinstance(heuristic, Mapping)
+        or set(heuristic) != {"f", "g", "name", "value"}
+        or heuristic["name"] != "h_max"
+        or any(
+            isinstance(heuristic[field], bool) or not isinstance(heuristic[field], int)
+            for field in ("f", "g", "value")
+        )
+        or heuristic["f"] != heuristic["g"] + heuristic["value"]
+    ):
+        raise EpisodeEvidenceError(f"event {index}.heuristic is invalid")
+    if not isinstance(invariants, Mapping) or invariants.get("hold") is not True:
+        raise EpisodeEvidenceError(f"event {index}.invariants is invalid")
+    for decision in event["decisions"]:
+        if not isinstance(decision, Mapping) or set(decision) != {
+            "input", "operation", "raw_model_output", "trusted_runtime_result"
+        }:
+            raise EpisodeEvidenceError(f"event {index} A* decision is invalid")
+        if not isinstance(decision["raw_model_output"], str) or not isinstance(
+            decision["trusted_runtime_result"], Mapping
+        ):
+            raise EpisodeEvidenceError(f"event {index} A* raw/runtime evidence is invalid")
 
 
 def _validate_bfws_transition(value: Any, *, index: int) -> None:
@@ -940,12 +1095,17 @@ def _parse_request(payload: Any) -> dict[str, Any]:
                 "variant",
             }
         )
+    elif algorithm == "astar_hmax":
+        fields.update({"accepted_delta_limit", "heuristic", "priority", "recovery_policy"})
     elif payload.get("policy") == "random":
         fields.add("random_seed")
     _require_object(payload, fields, "request")
     if payload["schema_version"] != REQUEST_SCHEMA_VERSION:
         raise EpisodeEvidenceError("request schema is invalid")
-    if algorithm not in {"best_first_width", "bfs", "iterated_width"} or payload["modality"] != "text-state":
+    if (
+        algorithm not in {"astar_hmax", "best_first_width", "bfs", "iterated_width"}
+        or payload["modality"] != "text-state"
+    ):
         raise EpisodeEvidenceError("request algorithm or modality is unsupported")
     if algorithm == "bfs" and payload["policy"] not in {"exact", "random"}:
         raise EpisodeEvidenceError("request policy is unsupported")
@@ -968,6 +1128,14 @@ def _parse_request(payload: Any) -> dict[str, Any]:
         or payload["recovery_policy"] != "prohibited"
     ):
         raise EpisodeEvidenceError("BFWS request does not match the frozen complete variant")
+    if algorithm == "astar_hmax" and (
+        payload["policy"] != "exact"
+        or payload["heuristic"] != "h_max"
+        or payload["priority"] != ["f", "generation_serial"]
+        or payload["recovery_policy"] != "prohibited"
+        or payload["accepted_delta_limit"] != ASTAR_ACCEPTED_DELTA_LIMIT
+    ):
+        raise EpisodeEvidenceError("A* request does not match the trusted h_max variant")
     budget = payload["max_expansions"]
     if isinstance(budget, bool) or not isinstance(budget, int) or budget <= 0:
         raise EpisodeEvidenceError("request expansion budget is invalid")
@@ -1121,6 +1289,7 @@ __all__ = [
     "materialize_episode_artifacts",
     "read_episode_artifacts",
     "read_episode_evidence",
+    "replay_astar_trace_view",
     "replay_episode",
     "replay_episode_evidence",
     "serialize_operation",

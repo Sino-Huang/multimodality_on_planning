@@ -16,6 +16,7 @@ from src.data_collect.governance import (
     evaluate_execution_permission,
 )
 
+from .astar_episode import ASTAR_ACCEPTED_DELTA_LIMIT, run_astar_hmax
 from .bfws_episode import (
     BFWS_NOVELTY_PRECISION,
     BFWSSearchStep,
@@ -168,6 +169,15 @@ def _execute_authorized_episode(
 ) -> dict[str, Any]:
     _validate_request(algorithm, modality, policy, max_expansions, random_seed)
     authority = _authority_from_task(task) if authority is None else authority
+    if algorithm == "astar_hmax":
+        return _execute_exact_astar_hmax_episode(
+            task=task,
+            max_expansions=max_expansions,
+            gate_receipt=gate_receipt,
+            authorization_receipt=authorization_receipt,
+            frozen_binding=frozen_binding,
+            authority=authority,
+        )
     if algorithm == "iterated_width":
         return _execute_exact_iw_episode(
             task=task,
@@ -282,6 +292,77 @@ def _execute_authorized_episode(
         "schema_version": EVIDENCE_SCHEMA_VERSION,
         "states": states,
     }
+    return {"result": result, "evidence": evidence}
+
+
+def _execute_exact_astar_hmax_episode(
+    *,
+    task: Mapping[str, Any],
+    max_expansions: int,
+    gate_receipt: GateReceipt,
+    authorization_receipt: AuthorizationReceipt,
+    frozen_binding: Mapping[str, Any] | None,
+    authority: PDDLStateAuthority,
+) -> dict[str, Any]:
+    search = run_astar_hmax(
+        authority,
+        max_expansions=max_expansions,
+        accepted_delta_limit=ASTAR_ACCEPTED_DELTA_LIMIT,
+    )
+    completed = RunReceipt(
+        binding=gate_receipt.binding,
+        outcome=StopOutcome.PASS,
+        run_state="completed",
+        start_permitted=False,
+        scientific_completion=True,
+        gate_receipt_id=gate_receipt.receipt_id,
+        authorization_receipt_id=authorization_receipt.receipt_id,
+    )
+    result = {
+        "algorithm_invariants_hold": True,
+        "budget_used": search.controller.budget_used,
+        "completion": "completed",
+        "decision_count": search.decision_count,
+        "exact_reference_decision_count": search.decision_count,
+        "expansion_count": search.expansion_count,
+        "goal_reached": search.goal_reached,
+        "invariant_valid_success": search.goal_reached,
+        "invalid_operation_count": 0,
+        "outcome": StopOutcome.PASS.value,
+        "reopen_count": search.controller.reopen_count,
+        "run_receipt": completed.to_dict(),
+        "scientific_completion": True,
+        "termination": search.termination,
+    }
+    request = {
+        "accepted_delta_limit": ASTAR_ACCEPTED_DELTA_LIMIT,
+        "algorithm": "astar_hmax",
+        "heuristic": "h_max",
+        "max_expansions": max_expansions,
+        "modality": "text-state",
+        "policy": "exact",
+        "priority": ["f", "generation_serial"],
+        "recovery_policy": "prohibited",
+        "schema_version": REQUEST_SCHEMA_VERSION,
+    }
+    evidence = {
+        "events": list(search.events),
+        "header": {
+            "authorization_receipt": authorization_receipt.to_dict(),
+            "authority_id": authority.authority_id,
+            "frozen_binding": None if frozen_binding is None else dict(frozen_binding),
+            "gate_receipt": gate_receipt.to_dict(),
+            "request": request,
+            "task": dict(task),
+        },
+        "result": result,
+        "schema_version": EVIDENCE_SCHEMA_VERSION,
+        "states": {state.state_id: serialize_state(state) for state in search.states},
+    }
+    try:
+        replay_episode(evidence)
+    except EpisodeEvidenceError as error:
+        raise SearchEpisodeError("exact A* h_max episode failed semantic replay") from error
     return {"result": result, "evidence": evidence}
 
 
@@ -540,8 +621,12 @@ def _validate_request(
         raise SearchEpisodeError("the IW slice supports only the exact policy")
     if algorithm == "best_first_width" and policy != "exact":
         raise SearchEpisodeError("the BFWS slice supports only the exact policy")
-    if algorithm not in {"best_first_width", "bfs", "iterated_width"}:
-        raise SearchEpisodeError("supported algorithms are 'best_first_width', 'bfs', and 'iterated_width'")
+    if algorithm == "astar_hmax" and policy != "exact":
+        raise SearchEpisodeError("the A* h_max slice supports only the exact policy")
+    if algorithm not in {"astar_hmax", "best_first_width", "bfs", "iterated_width"}:
+        raise SearchEpisodeError(
+            "supported algorithms are 'astar_hmax', 'best_first_width', 'bfs', and 'iterated_width'"
+        )
     if policy == "random":
         if isinstance(random_seed, bool) or not isinstance(random_seed, int):
             raise SearchEpisodeError("random policy requires an integer random_seed")
