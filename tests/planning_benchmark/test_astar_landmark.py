@@ -13,6 +13,8 @@ from examples.planning_benchmark_slice.astar_model_input import (
     build_astar_live_model_input,
     build_astar_teacher_chat_messages,
     build_astar_teacher_model_input,
+    build_bounded_astar_model_input,
+    serialize_astar_message_prefix,
 )
 from examples.planning_benchmark_slice.episode_evidence import (
     EpisodeEvidenceError,
@@ -154,6 +156,33 @@ def test_landmark_teacher_live_input_is_bounded_markov_sufficient() -> None:
     system_contract = build_astar_live_chat_messages(live_input)[0]["content"]
     assert "h_max" not in system_contract
     assert "declared heuristic" in system_contract
+
+
+def test_landmark_bounded_teacher_live_bytes_truncate_only_oldest_deltas() -> None:
+    authority = _authority()
+    controller = AStarController(authority, LandmarkCountHeuristic(authority), accepted_delta_limit=4)
+    controller.start_expansion()
+    for candidate in controller.current_candidates():
+        assert controller.apply_operation(AStarOperation(controller.active_state_id or "", candidate.action)).accepted
+    controller.finish_expansion()
+
+    full = build_bounded_astar_model_input(authority, controller, max_bytes=1_000_000)
+    one_delta = deepcopy(full)
+    one_delta["accepted_deltas"] = full["accepted_deltas"][-1:]
+    limit = len(json.dumps(one_delta, sort_keys=True, separators=(",", ":")).encode())
+    bounded = build_bounded_astar_model_input(authority, controller, max_bytes=limit)
+    assert bounded["accepted_deltas"] == full["accepted_deltas"][-1:]
+    assert {key: value for key, value in bounded.items() if key != "accepted_deltas"} == {
+        key: value for key, value in full.items() if key != "accepted_deltas"
+    }
+    teacher_bytes = json.dumps(
+        build_astar_teacher_chat_messages(bounded, "answer")[:-1], sort_keys=True, separators=(",", ":")
+    ).encode()
+    live_bytes = json.dumps(build_astar_live_chat_messages(bounded), sort_keys=True, separators=(",", ":")).encode()
+    assert teacher_bytes == live_bytes
+    assert serialize_astar_message_prefix(bounded) == build_astar_live_chat_messages(bounded)
+    with pytest.raises(ValueError, match="required facts"):
+        build_bounded_astar_model_input(authority, controller, max_bytes=1)
 
 
 def test_exact_landmark_episode_persists_materializes_and_independently_replays(tmp_path: Path) -> None:

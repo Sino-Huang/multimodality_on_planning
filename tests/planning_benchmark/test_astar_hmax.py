@@ -13,6 +13,8 @@ from examples.planning_benchmark_slice.astar_model_input import (
     build_astar_live_model_input,
     build_astar_teacher_chat_messages,
     build_astar_teacher_model_input,
+    build_bounded_astar_model_input,
+    serialize_astar_message_prefix,
 )
 from examples.planning_benchmark_slice.episode_evidence import (
     EpisodeEvidenceError,
@@ -220,6 +222,31 @@ def test_teacher_and_live_use_one_canonical_input_and_message_prefix() -> None:
     controller.finish_expansion()
     bounded = build_astar_live_model_input(authority, controller)
     assert len(bounded["accepted_deltas"]) == 2
+
+
+def test_hmax_bounded_input_preserves_required_facts_and_drops_oldest_deltas() -> None:
+    payload = json.loads(FIXTURE.read_text())
+    authority = PDDLStateAuthority.from_pddl(payload["domain_pddl"], payload["problem_pddl"])
+    controller = AStarController(authority, HMaxHeuristic(authority), accepted_delta_limit=4)
+    controller.start_expansion()
+    for candidate in controller.current_candidates():
+        assert controller.apply_operation(AStarOperation(controller.active_state_id or "", candidate.action)).accepted
+    controller.finish_expansion()
+
+    full = build_bounded_astar_model_input(authority, controller, max_bytes=1_000_000)
+    one_delta = deepcopy(full)
+    one_delta["accepted_deltas"] = full["accepted_deltas"][-1:]
+    limit = len(json.dumps(one_delta, sort_keys=True, separators=(",", ":")).encode())
+    bounded = build_bounded_astar_model_input(authority, controller, max_bytes=limit)
+    assert bounded["accepted_deltas"] == full["accepted_deltas"][-1:]
+    assert {key: value for key, value in bounded.items() if key != "accepted_deltas"} == {
+        key: value for key, value in full.items() if key != "accepted_deltas"
+    }
+    assert bounded["schema_version"] == "bounded_astar_search_memory_v1"
+    assert serialize_astar_message_prefix(bounded) == build_astar_live_chat_messages(bounded)
+    assert serialize_astar_message_prefix(bounded) == build_astar_teacher_chat_messages(bounded, "x")[:-1]
+    with pytest.raises(ValueError, match="required facts"):
+        build_bounded_astar_model_input(authority, controller, max_bytes=1)
 
 
 def test_submitted_dominated_candidate_disappears_from_next_model_input() -> None:

@@ -61,6 +61,27 @@ def build_astar_model_input(
     return model_input
 
 
+def build_bounded_astar_model_input(
+    authority: PDDLStateAuthority,
+    controller: AStarController,
+    *,
+    max_bytes: int,
+) -> dict[str, Any]:
+    """Build bounded search memory by removing only oldest accepted deltas."""
+
+    if not isinstance(max_bytes, int) or isinstance(max_bytes, bool) or max_bytes <= 0:
+        raise ValueError("max_bytes must be a positive integer")
+    model_input = build_astar_model_input(authority, controller)
+    model_input["schema_version"] = "bounded_astar_search_memory_v1"
+    accepted_deltas = list(model_input["accepted_deltas"])
+    model_input["accepted_deltas"] = accepted_deltas
+    while _canonical_size(model_input) > max_bytes and accepted_deltas:
+        del accepted_deltas[0]
+    if _canonical_size(model_input) > max_bytes:
+        raise ValueError("required facts alone exceed max_bytes")
+    return model_input
+
+
 def build_astar_teacher_model_input(
     authority: PDDLStateAuthority,
     controller: AStarController,
@@ -76,7 +97,7 @@ def build_astar_live_model_input(
 
 
 def build_astar_live_chat_messages(model_input: Mapping[str, Any]) -> list[dict[str, str]]:
-    return _message_prefix(model_input)
+    return serialize_astar_message_prefix(model_input)
 
 
 def build_astar_teacher_chat_messages(
@@ -85,15 +106,21 @@ def build_astar_teacher_chat_messages(
 ) -> list[dict[str, str]]:
     if not isinstance(expected_output, str):
         raise TypeError("expected_output must be text")
-    return [*_message_prefix(model_input), {"content": expected_output, "role": "assistant"}]
+    return [*serialize_astar_message_prefix(model_input), {"content": expected_output, "role": "assistant"}]
 
 
-def _message_prefix(model_input: Mapping[str, Any]) -> list[dict[str, str]]:
+def serialize_astar_message_prefix(model_input: Mapping[str, Any]) -> list[dict[str, str]]:
+    """Serialize the canonical teacher/live message prefix."""
+
     content = json.dumps(dict(model_input), sort_keys=True, separators=(",", ":"), ensure_ascii=True)
     return [
         {"content": _SYSTEM_MESSAGE, "role": "system"},
         {"content": content, "role": "user"},
     ]
+
+
+def _canonical_size(value: Mapping[str, Any]) -> int:
+    return len(json.dumps(dict(value), sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode())
 
 
 __all__ = [
@@ -102,4 +129,6 @@ __all__ = [
     "build_astar_model_input",
     "build_astar_teacher_chat_messages",
     "build_astar_teacher_model_input",
+    "build_bounded_astar_model_input",
+    "serialize_astar_message_prefix",
 ]
