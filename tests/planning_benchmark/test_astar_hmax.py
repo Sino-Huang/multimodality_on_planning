@@ -209,6 +209,7 @@ def test_teacher_and_live_use_one_canonical_input_and_message_prefix() -> None:
     search_memory = teacher_input["search_memory"]
     assert not {"best_g", "best_cost", "closed", "frontier"} & search_memory.keys()
     assert {"best_cost_count", "closed_count", "frontier_count", "frontier_head"} <= search_memory.keys()
+    assert search_memory["visited_count"] == len(controller.states) == controller.visited_count
     live = build_astar_live_chat_messages(live_input)
     teacher = build_astar_teacher_chat_messages(teacher_input, "answer")
     assert teacher[:-1] == live
@@ -219,6 +220,38 @@ def test_teacher_and_live_use_one_canonical_input_and_message_prefix() -> None:
     controller.finish_expansion()
     bounded = build_astar_live_model_input(authority, controller)
     assert len(bounded["accepted_deltas"]) == 2
+
+
+def test_submitted_dominated_candidate_disappears_from_next_model_input() -> None:
+    payload = json.loads(FIXTURE.read_text())
+    authority = PDDLStateAuthority.from_pddl(payload["domain_pddl"], payload["problem_pddl"])
+    controller = AStarController(authority, HMaxHeuristic(authority), accepted_delta_limit=4)
+    root = controller.frontier_head_state_id()
+    assert root is not None
+    controller.start_expansion()
+    for candidate in controller.current_candidates():
+        assert controller.apply_operation(AStarOperation(root, candidate.action)).accepted
+    controller.finish_expansion()
+
+    source = controller.frontier_head_state_id()
+    assert source is not None
+    controller.start_expansion()
+    dominated = next(candidate for candidate in controller.current_candidates() if candidate.dominated)
+    before = build_astar_live_model_input(authority, controller)
+    result = controller.apply_operation(AStarOperation(source, dominated.action))
+    after = build_astar_live_model_input(authority, controller)
+
+    assert result.runtime_result["status"] == "dominated"
+    action_payload = {"args": list(dominated.action.args), "name": dominated.action.name}
+    assert action_payload in [item["action"] for item in before["successor_candidates"]]
+    assert action_payload not in [item["action"] for item in after["successor_candidates"]]
+    before_remaining = {
+        item["target_state_id"]
+        for item in before["successor_candidates"]
+        if item["action"] != action_payload
+    }
+    assert {item["target_state_id"] for item in after["successor_candidates"]} == before_remaining
+    assert build_astar_live_chat_messages(before)[1]["content"] != build_astar_live_chat_messages(after)[1]["content"]
 
 
 def test_exact_astar_episode_persists_and_mechanically_replays(tmp_path: Path) -> None:
@@ -252,6 +285,35 @@ def test_exact_astar_episode_persists_and_mechanically_replays(tmp_path: Path) -
     tampered["evidence"]["events"][0]["heuristic"]["value"] += 1
     with pytest.raises((EpisodeEvidenceError, ValueError), match=r"A\*|heuristic|invariant"):
         replay_search_episode(tampered["evidence"])
+
+
+def test_hmax_replay_accepts_and_retains_semantic_noncanonical_raw_json(tmp_path: Path) -> None:
+    payload = json.loads(FIXTURE.read_text())
+    authority = PDDLStateAuthority.from_pddl(payload["domain_pddl"], payload["problem_pddl"])
+    controller = AStarController(authority, HMaxHeuristic(authority), accepted_delta_limit=2)
+    source = controller.frontier_head_state_id()
+    assert source is not None
+    controller.start_expansion()
+    candidate = controller.current_candidates()[0]
+    submitted_raw = json.dumps(
+        {"source_state_id": source, "action": {"name": candidate.action.name, "args": list(candidate.action.args)}},
+        indent=2,
+    )
+    accepted = controller.apply_raw_output(submitted_raw)
+    assert accepted.accepted and accepted.raw_output == submitted_raw
+
+    gate, authorization = _receipts(tmp_path)
+    episode = run_search_episode(FIXTURE, "astar_hmax", "text-state", "exact", 64, gate, authorization)
+    operation = episode["evidence"]["events"][0]["decisions"][0]["operation"]
+    raw = json.dumps(
+        {"source_state_id": operation["source_state_id"], "action": operation["action"]},
+        indent=2,
+    )
+    episode["evidence"]["events"][0]["decisions"][0]["raw_model_output"] = raw
+
+    replayed = replay_search_episode(episode["evidence"])
+
+    assert replayed["evidence"]["events"][0]["decisions"][0]["raw_model_output"] == raw
 
 
 @pytest.mark.parametrize(

@@ -16,7 +16,8 @@ from src.data_collect.governance import (
     evaluate_execution_permission,
 )
 
-from .astar_episode import ASTAR_ACCEPTED_DELTA_LIMIT, run_astar_hmax
+from .astar_episode import ASTAR_ACCEPTED_DELTA_LIMIT, run_astar_hmax, run_astar_landmark_count
+from .astar_landmarks import LandmarkCountHeuristic
 from .bfws_episode import (
     BFWS_NOVELTY_PRECISION,
     BFWSSearchStep,
@@ -169,9 +170,10 @@ def _execute_authorized_episode(
 ) -> dict[str, Any]:
     _validate_request(algorithm, modality, policy, max_expansions, random_seed)
     authority = _authority_from_task(task) if authority is None else authority
-    if algorithm == "astar_hmax":
-        return _execute_exact_astar_hmax_episode(
+    if algorithm in {"astar_hmax", "astar_landmark_count"}:
+        return _execute_exact_astar_episode(
             task=task,
+            algorithm=algorithm,
             max_expansions=max_expansions,
             gate_receipt=gate_receipt,
             authorization_receipt=authorization_receipt,
@@ -295,16 +297,18 @@ def _execute_authorized_episode(
     return {"result": result, "evidence": evidence}
 
 
-def _execute_exact_astar_hmax_episode(
+def _execute_exact_astar_episode(
     *,
     task: Mapping[str, Any],
+    algorithm: str,
     max_expansions: int,
     gate_receipt: GateReceipt,
     authorization_receipt: AuthorizationReceipt,
     frozen_binding: Mapping[str, Any] | None,
     authority: PDDLStateAuthority,
 ) -> dict[str, Any]:
-    search = run_astar_hmax(
+    runner = run_astar_hmax if algorithm == "astar_hmax" else run_astar_landmark_count
+    search = runner(
         authority,
         max_expansions=max_expansions,
         accepted_delta_limit=ASTAR_ACCEPTED_DELTA_LIMIT,
@@ -336,8 +340,8 @@ def _execute_exact_astar_hmax_episode(
     }
     request = {
         "accepted_delta_limit": ASTAR_ACCEPTED_DELTA_LIMIT,
-        "algorithm": "astar_hmax",
-        "heuristic": "h_max",
+        "algorithm": algorithm,
+        "heuristic": "h_max" if algorithm == "astar_hmax" else "landmark_count",
         "max_expansions": max_expansions,
         "modality": "text-state",
         "policy": "exact",
@@ -345,6 +349,8 @@ def _execute_exact_astar_hmax_episode(
         "recovery_policy": "prohibited",
         "schema_version": REQUEST_SCHEMA_VERSION,
     }
+    if algorithm == "astar_landmark_count":
+        request["landmark_catalog"] = LandmarkCountHeuristic(authority).task_payload()
     evidence = {
         "events": list(search.events),
         "header": {
@@ -362,7 +368,7 @@ def _execute_exact_astar_hmax_episode(
     try:
         replay_episode(evidence)
     except EpisodeEvidenceError as error:
-        raise SearchEpisodeError("exact A* h_max episode failed semantic replay") from error
+        raise SearchEpisodeError(f"exact {algorithm} episode failed semantic replay") from error
     return {"result": result, "evidence": evidence}
 
 
@@ -623,9 +629,12 @@ def _validate_request(
         raise SearchEpisodeError("the BFWS slice supports only the exact policy")
     if algorithm == "astar_hmax" and policy != "exact":
         raise SearchEpisodeError("the A* h_max slice supports only the exact policy")
-    if algorithm not in {"astar_hmax", "best_first_width", "bfs", "iterated_width"}:
+    if algorithm == "astar_landmark_count" and policy != "exact":
+        raise SearchEpisodeError("the A* landmark-count slice supports only the exact policy")
+    if algorithm not in {"astar_hmax", "astar_landmark_count", "best_first_width", "bfs", "iterated_width"}:
         raise SearchEpisodeError(
-            "supported algorithms are 'astar_hmax', 'best_first_width', 'bfs', and 'iterated_width'"
+            "supported algorithms are 'astar_hmax', 'astar_landmark_count', 'best_first_width', "
+            "'bfs', and 'iterated_width'"
         )
     if policy == "random":
         if isinstance(random_seed, bool) or not isinstance(random_seed, int):

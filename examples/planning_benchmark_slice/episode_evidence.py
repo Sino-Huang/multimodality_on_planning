@@ -19,6 +19,7 @@ from src.data_collect.governance import (
 )
 
 from .astar_episode import ASTAR_ACCEPTED_DELTA_LIMIT
+from .astar_landmark_replay import replay_landmark_astar_events
 from .astar_replay import AStarReplayError, AStarReplaySummary, replay_astar_events
 from .bfws_episode import (
     BFWS_NOVELTY_PRECISION,
@@ -258,14 +259,14 @@ def materialize_episode_artifacts(evidence: Mapping[str, Any]) -> tuple[bytes, b
     header = normalized["header"]
     request = _parse_request(header["request"])
     authority = _authority_from_task(header["task"])
-    if request["algorithm"] == "astar_hmax":
+    if request["algorithm"] in {"astar_hmax", "astar_landmark_count"}:
         trace_view = {
-            "algorithm": "astar_hmax",
+            "algorithm": request["algorithm"],
             "events": normalized["events"],
             "record_count": len(normalized["events"]),
             "request": request,
             "result": normalized["result"],
-            "schema_version": "astar_hmax_trace_view_v1",
+            "schema_version": "astar_trace_view_v1",
             "states": normalized["states"],
         }
         trace_bytes = _canonical_bytes(trace_view)
@@ -325,18 +326,15 @@ def replay_astar_trace_view(task_bytes: bytes, trace_bytes: bytes) -> dict[str, 
         {"algorithm", "events", "record_count", "request", "result", "schema_version", "states"},
         "A* materialized trace",
     )
-    if trace["algorithm"] != "astar_hmax" or trace["schema_version"] != "astar_hmax_trace_view_v1":
+    if (
+        trace["algorithm"] not in {"astar_hmax", "astar_landmark_count"}
+        or trace["schema_version"] != "astar_trace_view_v1"
+    ):
         raise EpisodeEvidenceError("A* materialized trace schema is invalid")
     request = _parse_request(trace["request"])
     authority = _authority_from_task(task)
     try:
-        replay = replay_astar_events(
-            trace["states"],
-            trace["events"],
-            authority=authority,
-            max_expansions=request["max_expansions"],
-            accepted_delta_limit=request["accepted_delta_limit"],
-        )
+        replay = _mechanical_astar_replay(trace["states"], trace["events"], authority, request)
     except AStarReplayError as error:
         raise EpisodeEvidenceError(str(error)) from error
     result = trace["result"]
@@ -380,13 +378,15 @@ def replay_episode(evidence: Mapping[str, Any]) -> SearchMemory:
             normalized["events"],
             authority=authority,
         )
-    elif request["algorithm"] == "astar_hmax":
+    elif request["algorithm"] in {"astar_hmax", "astar_landmark_count"}:
         astar_replay = _replay_astar_events(
             normalized["states"],
             normalized["events"],
             authority=authority,
             max_expansions=request["max_expansions"],
             accepted_delta_limit=request["accepted_delta_limit"],
+            algorithm=request["algorithm"],
+            landmark_catalog=request.get("landmark_catalog"),
         )
         memory = SearchMemory.initial(authority)
     elif request["algorithm"] == "iterated_width":
@@ -777,19 +777,42 @@ def _replay_astar_events(
     authority: PDDLStateAuthority,
     max_expansions: int,
     accepted_delta_limit: int,
+    algorithm: str,
+    landmark_catalog: object,
 ) -> AStarReplaySummary:
     """Independently recompute every heuristic, candidate, priority, and state delta."""
 
     try:
-        return replay_astar_events(
-            states,
-            events,
-            authority=authority,
-            max_expansions=max_expansions,
-            accepted_delta_limit=accepted_delta_limit,
-        )
+        request = {
+            "accepted_delta_limit": accepted_delta_limit,
+            "algorithm": algorithm,
+            "landmark_catalog": landmark_catalog,
+            "max_expansions": max_expansions,
+        }
+        return _mechanical_astar_replay(states, events, authority, request)
     except AStarReplayError as error:
         raise EpisodeEvidenceError(str(error)) from error
+
+
+def _mechanical_astar_replay(
+    states: Mapping[str, Any],
+    events: list[Mapping[str, Any]],
+    authority: PDDLStateAuthority,
+    request: Mapping[str, Any],
+) -> AStarReplaySummary:
+    common = {
+        "authority": authority,
+        "max_expansions": request["max_expansions"],
+        "accepted_delta_limit": request["accepted_delta_limit"],
+    }
+    if request["algorithm"] == "astar_landmark_count":
+        return replay_landmark_astar_events(
+            states,
+            events,
+            persisted_catalog=request.get("landmark_catalog"),
+            **common,
+        )
+    return replay_astar_events(states, events, **common)
 
 
 def _validate_replayed_result(
@@ -927,7 +950,7 @@ def _validate_states(states: Any) -> None:
 def _validate_event(event: Any, *, index: int, algorithm: str) -> None:
     fields = (
         _ASTAR_EVENT_FIELDS
-        if algorithm == "astar_hmax"
+        if algorithm in {"astar_hmax", "astar_landmark_count"}
         else _IW_EVENT_FIELDS
         if algorithm == "iterated_width"
         else _BFWS_EVENT_FIELDS
@@ -939,8 +962,8 @@ def _validate_event(event: Any, *, index: int, algorithm: str) -> None:
         if isinstance(event[field], bool) or not isinstance(event[field], int) or event[field] < 0:
             raise EpisodeEvidenceError(f"event {index}.{field} must be a non-negative integer")
     _require_text(event["expanded_state_id"], f"event {index}.expanded_state_id")
-    if algorithm == "astar_hmax":
-        _validate_astar_event(event, index=index)
+    if algorithm in {"astar_hmax", "astar_landmark_count"}:
+        _validate_astar_event(event, index=index, algorithm=algorithm)
         return
     if not isinstance(event["newly_enqueued_state_ids"], list):
         raise EpisodeEvidenceError(f"event {index}.newly_enqueued_state_ids must be an array")
@@ -965,7 +988,7 @@ def _validate_event(event: Any, *, index: int, algorithm: str) -> None:
         _validate_bfws_transition(event["bfws_transition"], index=index)
 
 
-def _validate_astar_event(event: Mapping[str, Any], *, index: int) -> None:
+def _validate_astar_event(event: Mapping[str, Any], *, index: int, algorithm: str) -> None:
     if not isinstance(event["decisions"], list):
         raise EpisodeEvidenceError(f"event {index}.decisions must be an array")
     if not isinstance(event["observation"], Mapping):
@@ -977,7 +1000,7 @@ def _validate_astar_event(event: Mapping[str, Any], *, index: int) -> None:
     if (
         not isinstance(heuristic, Mapping)
         or set(heuristic) != {"f", "g", "name", "value"}
-        or heuristic["name"] != "h_max"
+        or heuristic["name"] != ("h_max" if algorithm == "astar_hmax" else "landmark_count")
         or any(
             isinstance(heuristic[field], bool) or not isinstance(heuristic[field], int)
             for field in ("f", "g", "value")
@@ -1095,15 +1118,17 @@ def _parse_request(payload: Any) -> dict[str, Any]:
                 "variant",
             }
         )
-    elif algorithm == "astar_hmax":
+    elif algorithm in {"astar_hmax", "astar_landmark_count"}:
         fields.update({"accepted_delta_limit", "heuristic", "priority", "recovery_policy"})
+        if algorithm == "astar_landmark_count":
+            fields.add("landmark_catalog")
     elif payload.get("policy") == "random":
         fields.add("random_seed")
     _require_object(payload, fields, "request")
     if payload["schema_version"] != REQUEST_SCHEMA_VERSION:
         raise EpisodeEvidenceError("request schema is invalid")
     if (
-        algorithm not in {"astar_hmax", "best_first_width", "bfs", "iterated_width"}
+        algorithm not in {"astar_hmax", "astar_landmark_count", "best_first_width", "bfs", "iterated_width"}
         or payload["modality"] != "text-state"
     ):
         raise EpisodeEvidenceError("request algorithm or modality is unsupported")
@@ -1136,6 +1161,15 @@ def _parse_request(payload: Any) -> dict[str, Any]:
         or payload["accepted_delta_limit"] != ASTAR_ACCEPTED_DELTA_LIMIT
     ):
         raise EpisodeEvidenceError("A* request does not match the trusted h_max variant")
+    if algorithm == "astar_landmark_count" and (
+        payload["policy"] != "exact"
+        or payload["heuristic"] != "landmark_count"
+        or payload["priority"] != ["f", "generation_serial"]
+        or payload["recovery_policy"] != "prohibited"
+        or payload["accepted_delta_limit"] != ASTAR_ACCEPTED_DELTA_LIMIT
+        or not isinstance(payload["landmark_catalog"], Mapping)
+    ):
+        raise EpisodeEvidenceError("A* request does not match the trusted landmark-count variant")
     budget = payload["max_expansions"]
     if isinstance(budget, bool) or not isinstance(budget, int) or budget <= 0:
         raise EpisodeEvidenceError("request expansion budget is invalid")

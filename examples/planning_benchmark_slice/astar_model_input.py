@@ -10,8 +10,8 @@ from .astar_controller import AStarController
 from .pddl_state import PDDLStateAuthority
 
 _SYSTEM_MESSAGE = (
-    "Emit exactly one canonical A* typed operation. The trusted runtime owns h_max, "
-    "best-g, closed/frontier bookkeeping, and all state transitions."
+    "Emit exactly one A* typed operation. The trusted runtime owns the declared heuristic, "
+    "best-g, closed/frontier bookkeeping, progression, and all state transitions."
 )
 
 
@@ -22,16 +22,18 @@ def build_astar_model_input(
     state_id = controller.active_state_id or controller.frontier_head_state_id()
     if state_id is None:
         raise ValueError("cannot build A* model input after frontier exhaustion")
-    state = controller.states[state_id]
+    state = controller.node_state(state_id)
+    progress = controller.node_progress(state_id)
     g = controller.best_g[state_id]
     candidates = controller.current_candidates()
-    return {
+    h = controller.heuristic.value(state, progress)
+    model_input: dict[str, Any] = {
         "accepted_deltas": controller.accepted_deltas(),
-        "algorithm": "astar_hmax",
+        "algorithm": controller.algorithm,
         "current": {
-            "f": g + controller.heuristic(state),
+            "f": g + h,
             "g": g,
-            "h": controller.heuristic(state),
+            "h": h,
             "state_atoms": list(state.atoms),
             "state_id": state_id,
         },
@@ -40,11 +42,23 @@ def build_astar_model_input(
             "closed_count": len(controller.closed_g),
             "frontier_count": len(controller.frontier_snapshot()),
             "frontier_head": controller.frontier_snapshot()[0] if controller.frontier_snapshot() else None,
-            "visited_count": len(controller.states),
+            "visited_count": controller.visited_count,
         },
         "successor_candidates": [candidate.to_dict() for candidate in candidates],
         "task_context": authority.task_context(),
     }
+    heuristic_context = controller.heuristic.task_payload()
+    progression = controller.heuristic.progress_payload(state, progress)
+    if heuristic_context or progression:
+        model_input["heuristic_context"] = dict(heuristic_context)
+        model_input["current"].update(
+            {
+                "node_id": state_id,
+                "progression": dict(progression),
+                "state_id": state.state_id,
+            }
+        )
+    return model_input
 
 
 def build_astar_teacher_model_input(

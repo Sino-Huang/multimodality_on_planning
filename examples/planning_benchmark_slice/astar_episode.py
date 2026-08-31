@@ -7,6 +7,7 @@ from typing import Any
 
 from .astar_controller import AStarController, AStarOperation
 from .astar_hmax import HMaxHeuristic
+from .astar_landmarks import LandmarkCountHeuristic
 from .astar_model_input import build_astar_live_model_input
 from .pddl_state import CanonicalState, PDDLStateAuthority
 
@@ -38,9 +39,38 @@ def run_astar_hmax(
 ) -> AStarSearchSummary:
     """Run exact A*; generated goals terminate only when they become frontier head."""
 
-    controller = AStarController(
+    return _run_astar_exact(
         authority,
         HMaxHeuristic(authority),
+        max_expansions=max_expansions,
+        accepted_delta_limit=accepted_delta_limit,
+    )
+
+
+def run_astar_landmark_count(
+    authority: PDDLStateAuthority,
+    *,
+    max_expansions: int,
+    accepted_delta_limit: int = ASTAR_ACCEPTED_DELTA_LIMIT,
+) -> AStarSearchSummary:
+    return _run_astar_exact(
+        authority,
+        LandmarkCountHeuristic(authority),
+        max_expansions=max_expansions,
+        accepted_delta_limit=accepted_delta_limit,
+    )
+
+
+def _run_astar_exact(
+    authority: PDDLStateAuthority,
+    heuristic: object,
+    *,
+    max_expansions: int,
+    accepted_delta_limit: int,
+) -> AStarSearchSummary:
+    controller = AStarController(
+        authority,
+        heuristic,
         accepted_delta_limit=accepted_delta_limit,
         max_budget=max_expansions,
     )
@@ -54,7 +84,7 @@ def run_astar_hmax(
         if state_id is None:
             termination = "frontier_exhausted"
             break
-        state = controller.states[state_id]
+        state = controller.node_state(state_id)
         if authority.is_goal(state):
             termination = "goal_reached"
             goal_reached = True
@@ -92,7 +122,7 @@ def run_astar_hmax(
                 "heuristic": {
                     "f": observation["current"]["f"],
                     "g": observation["current"]["g"],
-                    "name": "h_max",
+                    "name": controller.heuristic_name,
                     "value": observation["current"]["h"],
                 },
                 "index": len(events),
@@ -125,4 +155,9 @@ def _canonical_operation(operation: AStarOperation) -> str:
     return json.dumps(operation.to_dict(), sort_keys=True, separators=(",", ":"), ensure_ascii=True)
 
 
-__all__ = ["ASTAR_ACCEPTED_DELTA_LIMIT", "AStarSearchSummary", "run_astar_hmax"]
+__all__ = [
+    "ASTAR_ACCEPTED_DELTA_LIMIT",
+    "AStarSearchSummary",
+    "run_astar_hmax",
+    "run_astar_landmark_count",
+]

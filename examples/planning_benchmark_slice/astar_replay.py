@@ -138,6 +138,7 @@ def replay_astar_events(
             visible_candidates = [
                 _candidate(authority, heuristic, state, action, g + 1, best_g, closed_g, frontier).to_dict()
                 for action in actions
+                if action not in submitted
             ]
             expected_input = _model_input(
                 authority,
@@ -153,8 +154,10 @@ def replay_astar_events(
             if not isinstance(decision, Mapping) or decision.get("input") != expected_input:
                 raise AStarReplayError(f"A* decision input differs at event {expansion_index}")
             operation = _decode_operation(decision.get("operation"))
-            raw = _canonical_text(operation)
-            if decision.get("raw_model_output") != raw or operation["source_state_id"] != state_id:
+            if (
+                not _raw_operation_matches(decision.get("raw_model_output"), operation)
+                or operation["source_state_id"] != state_id
+            ):
                 raise AStarReplayError(f"A* operation provenance differs at event {expansion_index}")
             action_payload = operation["action"]
             action = GroundedAction(str(action_payload["name"]), tuple(action_payload["args"]))
@@ -342,8 +345,13 @@ def _decode_operation(payload: object) -> dict[str, Any]:
     return payload
 
 
-def _canonical_text(value: object) -> str:
-    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+def _raw_operation_matches(raw_output: object, operation: Mapping[str, Any]) -> bool:
+    if not isinstance(raw_output, str):
+        return False
+    try:
+        return json.loads(raw_output) == operation
+    except json.JSONDecodeError:
+        return False
 
 
 __all__ = ["AStarReplayError", "AStarReplaySummary", "replay_astar_events"]
