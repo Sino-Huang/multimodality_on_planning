@@ -151,3 +151,90 @@ Compact tracked copies of the terminal records are retained at:
 
 The 2 GB optimizer-bearing checkpoint and atomic reference evidence remain in
 the ignored execution output tree and are intentionally not committed to Git.
+
+## Distributed four-GPU replacement attempt
+
+After the terminal two-GPU qualification stop, the supervisor provided a
+second server with two A100 GPUs on the same filesystem. Contract
+`issue-59-bfws-distributed-evaluation-v1` authorizes one replacement
+development qualification and rollout. It reuses the unchanged seed-17
+checkpoint, references, task panel, model-call budgets, thresholds, and
+float32 inference contract. It does not retune the learned model.
+
+The shared-filesystem layout is collision-free:
+
+- server 0 writes qualification node 0 and global rollout shards 0 and 1;
+- server 1 writes qualification node 1 and global rollout shards 2 and 3;
+- all new evidence is under `outputs/bfws_phase/issue59-v1/runs/four-gpu-v1`;
+- the original `qualification.json` and `adjudication/` terminal records remain
+  unchanged.
+
+Each server first measures both of its local GPUs. Run these concurrently:
+
+```bash
+# Server 0
+source ~/cd_vlaplan
+python scripts/run_bfws_issue59.py qualify-node \
+  --run-id four-gpu-v1 \
+  --node-index 0 \
+  --devices cuda:0 cuda:1 \
+  --resume
+```
+
+```bash
+# Server 1
+source ~/cd_vlaplan
+python scripts/run_bfws_issue59.py qualify-node \
+  --run-id four-gpu-v1 \
+  --node-index 1 \
+  --devices cuda:0 cuda:1 \
+  --resume
+```
+
+After both node reports exist, merge them once on server 0:
+
+```bash
+source ~/cd_vlaplan
+python scripts/run_bfws_issue59.py qualify-merge \
+  --run-id four-gpu-v1 \
+  --resume
+```
+
+The merge uses all measured throughput samples, the maximum model-load time,
+and the maximum runtime overhead. Coverage certification projects wall time
+from the largest of four deterministic exact-cost-balanced shards, rather than
+serializing the total call count. Do not start rollout unless the merged
+`coverage.outcome` is `PASS`.
+
+When qualification passes, run the two server-local shard pairs concurrently:
+
+```bash
+# Server 0: global shards 0 and 1
+source ~/cd_vlaplan
+python scripts/run_bfws_issue59.py evaluate-node \
+  --run-id four-gpu-v1 \
+  --node-index 0 \
+  --devices cuda:0 cuda:1 \
+  --resume
+```
+
+```bash
+# Server 1: global shards 2 and 3
+source ~/cd_vlaplan
+python scripts/run_bfws_issue59.py evaluate-node \
+  --run-id four-gpu-v1 \
+  --node-index 1 \
+  --devices cuda:0 cuda:1 \
+  --resume
+```
+
+After both evaluation commands finish, adjudicate once on server 0:
+
+```bash
+source ~/cd_vlaplan
+python scripts/run_bfws_issue59.py adjudicate --run-id four-gpu-v1
+```
+
+Adjudication requires all four shard manifests, independently replays every
+selected reference and model episode, and applies the unchanged frozen gate
+deadline and structural thresholds.

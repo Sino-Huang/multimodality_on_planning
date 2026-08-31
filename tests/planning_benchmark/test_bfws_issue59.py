@@ -21,6 +21,7 @@ from examples.planning_benchmark_slice.bfws_issue59 import (
     select_bfws_coverage,
 )
 from examples.planning_benchmark_slice.pddl_state import PDDLStateAuthority
+from scripts import run_bfws_issue59 as issue59_runner
 from scripts.run_bfws_issue59 import main as issue59_main
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -255,6 +256,14 @@ def test_hardware_qualification_tries_full_then_preregistered_exact_cost_panel()
         runtime_seconds_per_call=0,
         model_sessions_per_task=2,
     )
+    distributed = select_bfws_coverage(
+        experiment.tasks,
+        model_load_seconds=68,
+        throughput_samples=(0.180490565,) * 8,
+        runtime_seconds_per_call=0.000078,
+        model_sessions_per_task=2,
+        rollout_shard_count=4,
+    )
 
     assert full.coverage_mode == "full_development"
     assert len(full.task_ids) == 35
@@ -263,6 +272,10 @@ def test_hardware_qualification_tries_full_then_preregistered_exact_cost_panel()
     assert panel.maximum_scheduled_calls == 9_076
     assert stopped.outcome.value == "VALID_STOP"
     assert stopped.task_ids == ()
+    assert distributed.coverage_mode == "preregistered_exact_cost_panel"
+    assert distributed.rollout_shard_count == 4
+    assert distributed.maximum_scheduled_calls == 9_076
+    assert distributed.projected_rollout_seconds < 15 * 60 * 60
 
 
 def test_live_issue59_session_matches_a_released_exact_dev_trace() -> None:
@@ -445,3 +458,130 @@ def test_resumed_training_uses_the_newest_complete_checkpoint(
     assert launch["resume_from_checkpoint"] == str(second.resolve())
     command = launch["command"]
     assert command[command.index("--resume_from_checkpoint") + 1] == str(second.resolve())
+
+
+def test_distributed_dry_run_uses_distinct_node_and_global_shard_paths(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    output_root = tmp_path / "issue59"
+
+    node_plans = []
+    for node_index in (0, 1):
+        assert (
+            issue59_main(
+                [
+                    "qualify-node",
+                    "--dry-run",
+                    "--run-id",
+                    "four-gpu-v1",
+                    "--node-index",
+                    str(node_index),
+                    "--devices",
+                    "cuda:0",
+                    "cuda:1",
+                    "--output-root",
+                    str(output_root),
+                ]
+            )
+            == 0
+        )
+        node_plans.append(json.loads(capsys.readouterr().out))
+
+    assert node_plans[0]["rollout_shard_indices"] == [0, 1]
+    assert node_plans[1]["rollout_shard_indices"] == [2, 3]
+    assert node_plans[0]["output"] != node_plans[1]["output"]
+    assert node_plans[0]["output"].endswith("qualification/nodes/node-0/report.json")
+    assert node_plans[1]["output"].endswith("qualification/nodes/node-1/report.json")
+
+    assert (
+        issue59_main(
+            [
+                "evaluate-node",
+                "--dry-run",
+                "--run-id",
+                "four-gpu-v1",
+                "--node-index",
+                "1",
+                "--devices",
+                "cuda:0",
+                "cuda:1",
+                "--output-root",
+                str(output_root),
+            ]
+        )
+        == 0
+    )
+    commands = json.loads(capsys.readouterr().out)["commands"]
+    assert [command[command.index("--shard-index") + 1] for command in commands] == ["2", "3"]
+    assert all(command[command.index("--run-id") + 1] == "four-gpu-v1" for command in commands)
+
+
+def test_distributed_merge_and_adjudication_plan_cover_all_four_shards(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    output_root = tmp_path / "issue59"
+    common = ["--dry-run", "--run-id", "four-gpu-v1", "--output-root", str(output_root)]
+
+    assert issue59_main(["qualify-merge", *common]) == 0
+    merge = json.loads(capsys.readouterr().out)
+    assert len(merge["inputs"]) == 2
+    assert merge["rollout_shard_count"] == 4
+    assert merge["output"].endswith("runs/four-gpu-v1/qualification.json")
+
+    assert issue59_main(["adjudicate", *common]) == 0
+    adjudication = json.loads(capsys.readouterr().out)
+    rollout_inputs = [path for path in adjudication["inputs"] if "/rollout/shard-" in path]
+    assert len(rollout_inputs) == 4
+    assert rollout_inputs[-1].endswith("rollout/shard-3/manifest.json")
+
+
+def test_distributed_qualification_merges_both_node_measurements(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    output_root = tmp_path / "issue59"
+    experiment = load_bfws_issue59(REPO_ROOT)
+    nodes_root = output_root / "runs" / "four-gpu-v1" / "qualification" / "nodes"
+    for node_index in (0, 1):
+        node_root = nodes_root / f"node-{node_index}"
+        node_root.mkdir(parents=True)
+        (node_root / "report.json").write_text(
+            json.dumps(
+                {
+                    "contract_id": experiment.distributed_contract_id,
+                    "model_load_samples": [67.0 + node_index, 68.0 + node_index],
+                    "node_count": 2,
+                    "node_index": node_index,
+                    "outcomes_observed": False,
+                    "phase_id": experiment.phase_gate.phase_id,
+                    "runtime_samples": [0.000078, 0.000077],
+                    "schema_version": "bfws_issue59_hardware_qualification_node_v1",
+                    "throughput_samples": [0.180490565] * 4,
+                }
+            )
+        )
+    monkeypatch.setattr(issue59_runner, "_require_reference_gate", lambda *_args: None)
+
+    assert (
+        issue59_main(
+            [
+                "qualify-merge",
+                "--run-id",
+                "four-gpu-v1",
+                "--output-root",
+                str(output_root),
+            ]
+        )
+        == 0
+    )
+
+    qualification = json.loads(
+        (output_root / "runs" / "four-gpu-v1" / "qualification.json").read_text()
+    )
+    assert qualification["coverage"]["outcome"] == "PASS"
+    assert qualification["coverage"]["mode"] == "preregistered_exact_cost_panel"
+    assert qualification["coverage"]["rollout_shard_count"] == 4
+    assert qualification["coverage"]["maximum_scheduled_calls"] == 9_076
+    assert qualification["outcomes_observed"] is False

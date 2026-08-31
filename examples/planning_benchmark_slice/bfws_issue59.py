@@ -53,6 +53,7 @@ _CORPUS_RECEIPT = Path(
     "generation-run-issue-56-bfws-development-v1-issue-58-bfws-text-corpus-v1-resume-004.json"
 )
 _BUDGET_OVERRIDE = Path("configs/experiments/bfws_issue59_budget_override_v1.json")
+_DISTRIBUTED_EVALUATION = Path("configs/experiments/bfws_issue59_distributed_evaluation_v1.json")
 
 
 def bfws_text_policy_messages(model_input: Mapping[str, Any]) -> list[dict[str, Any]]:
@@ -92,6 +93,7 @@ class BFWSIssue59Experiment:
     train_datasets: tuple[Path, ...]
     dev_datasets: tuple[Path, ...]
     budget_override: Mapping[str, Any]
+    distributed_evaluation: Mapping[str, Any]
 
     @property
     def contract_id(self) -> str:
@@ -105,11 +107,16 @@ class BFWSIssue59Experiment:
     def evaluation_seeds(self) -> tuple[int, ...]:
         return tuple(int(seed) for seed in self.budget_override["evaluation"]["process_sft_seeds"])
 
+    @property
+    def distributed_contract_id(self) -> str:
+        return str(self.distributed_evaluation["contract_id"])
+
     def preflight(self) -> dict[str, Any]:
         return {
             "contract_id": self.contract_id,
             "development_exact_decisions": sum(task.exact_decisions for task in self.tasks),
             "development_tasks": len(self.tasks),
+            "distributed_evaluation": dict(self.distributed_evaluation),
             "fresh_test_accessed": False,
             "maximum_model_calls": sum(task.model_call_limit for task in self.tasks),
             "phase_id": self.phase_gate.phase_id,
@@ -184,6 +191,29 @@ def load_bfws_issue59(repo_root: str | Path) -> BFWSIssue59Experiment:
         "training": {"device": "cuda:1", "epochs": 2, "replicate_count": 1, "seed": 17, "world_size": 1},
     }:
         raise ValueError("issue #59 budget override differs from the supervisor decision")
+    distributed_evaluation = _json_object(root / _DISTRIBUTED_EVALUATION)
+    if distributed_evaluation != {
+        "contract_id": "issue-59-bfws-distributed-evaluation-v1",
+        "parent_contract_id": "issue-59-bfws-single-training-v2",
+        "reason": (
+            "Supervisor provided a second shared-filesystem server with two A100 GPUs after the original hardware "
+            "qualification VALID_STOP."
+        ),
+        "run_id": "four-gpu-v1",
+        "schema_version": "bfws_issue59_distributed_evaluation_v1",
+        "scientific_scope": (
+            "Replacement development qualification and rollout using the unchanged seed-17 checkpoint, references, "
+            "tasks, budgets, and thresholds."
+        ),
+        "source_issue": 59,
+        "topology": {
+            "devices_per_node": ["cuda:0", "cuda:1"],
+            "node_count": 2,
+            "rollout_shard_count": 4,
+            "shared_filesystem": True,
+        },
+    }:
+        raise ValueError("issue #59 distributed evaluation differs from the supervisor decision")
 
     tasks = []
     for row in trace_rows:
@@ -221,6 +251,7 @@ def load_bfws_issue59(repo_root: str | Path) -> BFWSIssue59Experiment:
         train_datasets=train_datasets,
         dev_datasets=dev_datasets,
         budget_override=budget_override,
+        distributed_evaluation=distributed_evaluation,
     )
 
 
@@ -794,7 +825,9 @@ class BFWSQualification:
     task_ids: tuple[str, ...]
     coverage_mode: str | None
     maximum_scheduled_calls: int
+    maximum_shard_scheduled_calls: int
     projected_rollout_seconds: float
+    rollout_shard_count: int
     outcome: StopOutcome
 
     def to_dict(self) -> dict[str, Any]:
@@ -802,9 +835,11 @@ class BFWSQualification:
             "calls_per_second_lower_95": self.calls_per_second_lower_95,
             "coverage": {
                 "maximum_scheduled_calls": self.maximum_scheduled_calls,
+                "maximum_shard_scheduled_calls": self.maximum_shard_scheduled_calls,
                 "mode": self.coverage_mode,
                 "outcome": self.outcome.value,
                 "projected_rollout_seconds": self.projected_rollout_seconds,
+                "rollout_shard_count": self.rollout_shard_count,
                 "task_ids": list(self.task_ids),
             },
             "model_load_seconds": self.model_load_seconds,
@@ -821,6 +856,7 @@ def select_bfws_coverage(
     throughput_samples: Sequence[float],
     runtime_seconds_per_call: float,
     model_sessions_per_task: int,
+    rollout_shard_count: int = 1,
 ) -> BFWSQualification:
     """Select full coverage first, then the preregistered cheapest-per-domain panel."""
 
@@ -829,6 +865,8 @@ def select_bfws_coverage(
         raise ValueError("BFWS qualification requires the complete 35-task development panel")
     if model_sessions_per_task <= 0:
         raise ValueError("BFWS qualification requires a positive model-session count")
+    if rollout_shard_count <= 0:
+        raise ValueError("BFWS qualification requires a positive rollout-shard count")
     throughput = _lower_95_bound(throughput_samples)
     by_domain: dict[str, list[BFWSDevelopmentTask]] = defaultdict(list)
     for task in task_list:
@@ -841,7 +879,15 @@ def select_bfws_coverage(
         raise ValueError("BFWS exact-cost panel must contain one task per domain")
     for mode, candidates in (("full_development", task_list), ("preregistered_exact_cost_panel", panel)):
         calls = model_sessions_per_task * sum(task.model_call_limit for task in candidates)
-        projected = 1.2 * (model_load_seconds + calls / throughput + calls * runtime_seconds_per_call)
+        shards = cost_balanced_bfws_shards(candidates, shard_count=rollout_shard_count)
+        maximum_shard_calls = model_sessions_per_task * max(
+            sum(task.model_call_limit for task in shard) for shard in shards
+        )
+        projected = 1.2 * (
+            model_load_seconds
+            + maximum_shard_calls / throughput
+            + maximum_shard_calls * runtime_seconds_per_call
+        )
         if projected <= 15 * 60 * 60:
             return BFWSQualification(
                 throughput,
@@ -850,11 +896,17 @@ def select_bfws_coverage(
                 tuple(task.instance_id for task in candidates),
                 mode,
                 calls,
+                maximum_shard_calls,
                 projected,
+                rollout_shard_count,
                 StopOutcome.PASS,
             )
     calls = model_sessions_per_task * sum(task.model_call_limit for task in panel)
-    projected = 1.2 * (model_load_seconds + calls / throughput + calls * runtime_seconds_per_call)
+    shards = cost_balanced_bfws_shards(panel, shard_count=rollout_shard_count)
+    maximum_shard_calls = model_sessions_per_task * max(sum(task.model_call_limit for task in shard) for shard in shards)
+    projected = 1.2 * (
+        model_load_seconds + maximum_shard_calls / throughput + maximum_shard_calls * runtime_seconds_per_call
+    )
     return BFWSQualification(
         throughput,
         model_load_seconds,
@@ -862,9 +914,29 @@ def select_bfws_coverage(
         (),
         None,
         calls,
+        maximum_shard_calls,
         projected,
+        rollout_shard_count,
         StopOutcome.VALID_STOP,
     )
+
+
+def cost_balanced_bfws_shards(
+    tasks: Sequence[BFWSDevelopmentTask],
+    *,
+    shard_count: int,
+) -> tuple[tuple[BFWSDevelopmentTask, ...], ...]:
+    """Assign tasks to rollout shards using only frozen exact-reference cost."""
+
+    if shard_count <= 0:
+        raise ValueError("BFWS rollout shard count must be positive")
+    shards: list[list[BFWSDevelopmentTask]] = [[] for _ in range(shard_count)]
+    loads = [0] * shard_count
+    for task in sorted(tasks, key=lambda item: (-item.model_call_limit, item.instance_id)):
+        index = min(range(shard_count), key=lambda value: (loads[value], value))
+        shards[index].append(task)
+        loads[index] += task.model_call_limit
+    return tuple(tuple(sorted(shard, key=lambda item: item.instance_id)) for shard in shards)
 
 
 def run_bfws_sessions(

@@ -25,6 +25,7 @@ from examples.planning_benchmark_slice.bfws_issue59 import (
     adjudicate_bfws_structural_gate,
     bfws_episode_payload,
     build_bfws_sft_command,
+    cost_balanced_bfws_shards,
     load_bfws_issue59,
     materialize_random_valid_bfws_reference,
     replay_bfws_episode,
@@ -46,7 +47,19 @@ _REPO_ROOT = Path(__file__).resolve().parents[1]
 _OUTPUT_ROOT = _REPO_ROOT / "outputs" / "bfws_phase" / "issue59-v1"
 _REFERENCE_SEEDS = (17, 29, 43, 71, 101)
 _TRAINING_MASTER_PORT_BASE = 29_600
-_STAGES = ("preflight", "references", "train", "qualify", "evaluate", "adjudicate", "all", "evaluate-shard")
+_STAGES = (
+    "preflight",
+    "references",
+    "train",
+    "qualify",
+    "qualify-node",
+    "qualify-merge",
+    "evaluate",
+    "evaluate-node",
+    "adjudicate",
+    "all",
+    "evaluate-shard",
+)
 _REFERENCE_MODEL: tuple[str, str] | None = None
 _REFERENCE_TOKEN_COUNTER: Callable[[Mapping[str, Any]], int] | None = None
 
@@ -69,6 +82,8 @@ def main(arguments: Sequence[str] | None = None) -> int:
     parser.add_argument("--devices", nargs="+", default=("cuda:0", "cuda:1"))
     parser.add_argument("--device")
     parser.add_argument("--shard-index", type=int)
+    parser.add_argument("--node-index", type=int)
+    parser.add_argument("--run-id")
     parser.add_argument("--attempt-id", default="issue-59-bfws-structural-gate-v1")
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
@@ -108,11 +123,45 @@ def main(arguments: Sequence[str] | None = None) -> int:
         )
     if args.stage == "qualify":
         return _qualify(experiment, output_root, devices=tuple(args.devices), dry_run=args.dry_run)
+    if args.stage == "qualify-node":
+        if args.node_index is None or args.run_id is None:
+            raise ValueError("qualify-node requires --node-index and --run-id")
+        return _qualify_node(
+            experiment,
+            output_root,
+            devices=tuple(args.devices),
+            node_index=args.node_index,
+            run_id=args.run_id,
+            resume=args.resume,
+            dry_run=args.dry_run,
+        )
+    if args.stage == "qualify-merge":
+        if args.run_id is None:
+            raise ValueError("qualify-merge requires --run-id")
+        return _qualify_merge(
+            experiment,
+            output_root,
+            run_id=args.run_id,
+            resume=args.resume,
+            dry_run=args.dry_run,
+        )
     if args.stage == "evaluate":
         return _evaluate(
             output_root,
             devices=tuple(args.devices),
             attempt_id=args.attempt_id,
+            resume=args.resume,
+            dry_run=args.dry_run,
+        )
+    if args.stage == "evaluate-node":
+        if args.node_index is None or args.run_id is None:
+            raise ValueError("evaluate-node requires --node-index and --run-id")
+        return _evaluate_node(
+            experiment,
+            output_root,
+            devices=tuple(args.devices),
+            node_index=args.node_index,
+            run_id=args.run_id,
             resume=args.resume,
             dry_run=args.dry_run,
         )
@@ -125,11 +174,19 @@ def main(arguments: Sequence[str] | None = None) -> int:
             device=args.device,
             shard_index=args.shard_index,
             attempt_id=args.attempt_id,
+            run_id=args.run_id,
             resume=args.resume,
             dry_run=args.dry_run,
         )
     if args.stage == "adjudicate":
-        return _adjudicate(experiment, output_root, attempt_id=args.attempt_id, dry_run=args.dry_run)
+        attempt_id = args.attempt_id if args.run_id is None else experiment.distributed_contract_id
+        return _adjudicate(
+            experiment,
+            output_root,
+            attempt_id=attempt_id,
+            run_id=args.run_id,
+            dry_run=args.dry_run,
+        )
     if args.dry_run:
         plans = {
             "preflight": experiment.preflight(),
@@ -148,7 +205,7 @@ def main(arguments: Sequence[str] | None = None) -> int:
             ),
             "qualify": _qualification_plan(experiment, output_root, tuple(args.devices)),
             "evaluate": _evaluation_commands(output_root, tuple(args.devices), args.attempt_id, resume=args.resume),
-            "adjudicate": _adjudication_plan(output_root, args.attempt_id),
+            "adjudicate": _adjudication_plan(output_root, args.attempt_id, run_id=None, rollout_shard_count=2),
         }
         print(_canonical_text({"dry_run": True, "stages": plans}))
         return 0
@@ -495,6 +552,7 @@ def _qualification_plan(experiment, output_root: Path, devices: tuple[str, ...])
         "inference_dtype": "float32",
         "output": str(output_root / "qualification.json"),
         "probes": 6,
+        "rollout_shard_count": len(devices),
         "uses_model_outcomes": False,
     }
 
@@ -507,12 +565,40 @@ def _qualify(experiment, output_root: Path, *, devices: tuple[str, ...], dry_run
     _require_reference_gate(experiment, output_root)
     if len(devices) != 2 or len(set(devices)) != 2:
         raise ValueError("BFWS qualification is frozen to two distinct GPU devices")
-    adapters = {f"seed-{seed}": _final_checkpoint(output_root, seed) for seed in experiment.training_seeds}
+    measurements = _qualification_measurements(experiment, output_root, devices)
     gate_receipt, authorization_receipt = _execution_receipts(
         experiment.contract_id,
         "issue-59-bfws-hardware-qualification-v1",
         output_root / "qualification",
     )
+    qualification = select_bfws_coverage(
+        experiment.tasks,
+        model_load_seconds=max(measurements["model_load_samples"]),
+        throughput_samples=measurements["throughput_samples"],
+        runtime_seconds_per_call=max(measurements["runtime_samples"]),
+        model_sessions_per_task=int(experiment.budget_override["evaluation"]["model_sessions_per_task"]),
+        rollout_shard_count=len(devices),
+    )
+    payload = {
+        **qualification.to_dict(),
+        "authorization_receipt": authorization_receipt.to_dict(),
+        "gate_started_at_unix": time.time(),
+        "gate_receipt": gate_receipt.to_dict(),
+        "phase_id": experiment.phase_gate.phase_id,
+        "contract_id": experiment.contract_id,
+        "plan": plan,
+    }
+    _atomic_write_json(output_root / "qualification.json", payload)
+    print(_canonical_text({"output": str(output_root / "qualification.json"), **payload["coverage"]}))
+    return 0
+
+
+def _qualification_measurements(
+    experiment,
+    output_root: Path,
+    devices: tuple[str, ...],
+) -> dict[str, list[float]]:
+    adapters = {f"seed-{seed}": _final_checkpoint(output_root, seed) for seed in experiment.training_seeds}
     snapshots = _jsonl_objects(
         _REPO_ROOT / "data" / "bfws_phase_v1" / "exact-traces" / "manifests" / "bfws-teacher-snapshots.jsonl"
     )
@@ -547,24 +633,145 @@ def _qualify(experiment, output_root: Path, *, devices: tuple[str, ...], dry_run
         import torch
 
         torch.cuda.empty_cache()
+    return {
+        "model_load_samples": load_samples,
+        "runtime_samples": runtime_samples,
+        "throughput_samples": throughput_samples,
+    }
+
+
+def _qualify_node(
+    experiment,
+    output_root: Path,
+    *,
+    devices: tuple[str, ...],
+    node_index: int,
+    run_id: str,
+    resume: bool,
+    dry_run: bool,
+) -> int:
+    run_root, topology = _distributed_run(experiment, output_root, run_id)
+    node_count = int(topology["node_count"])
+    expected_devices = tuple(str(device) for device in topology["devices_per_node"])
+    if node_index not in range(node_count):
+        raise ValueError("BFWS distributed qualification node index is out of range")
+    if devices != expected_devices:
+        raise ValueError(f"BFWS distributed qualification devices must be {expected_devices}")
+    devices_per_node = len(expected_devices)
+    node_root = run_root / "qualification" / "nodes" / f"node-{node_index}"
+    plan = {
+        "contract_id": experiment.distributed_contract_id,
+        "devices": list(devices),
+        "distributed_evaluation": dict(experiment.distributed_evaluation),
+        "node_count": node_count,
+        "node_index": node_index,
+        "output": str(node_root / "report.json"),
+        "rollout_shard_indices": list(
+            range(node_index * devices_per_node, (node_index + 1) * devices_per_node)
+        ),
+        "uses_model_outcomes": False,
+    }
+    if dry_run:
+        print(_canonical_text({**plan, "dry_run": True}))
+        return 0
+    _require_reference_gate(experiment, output_root)
+    report_path = node_root / "report.json"
+    if report_path.is_file():
+        if not resume:
+            raise FileExistsError(f"BFWS qualification node report exists; pass --resume: {report_path}")
+        print(_canonical_text({"output": str(report_path), "status": "already_complete"}))
+        return 0
+    node_root.mkdir(parents=True, exist_ok=True)
+    gate_receipt, authorization_receipt = _execution_receipts(
+        experiment.distributed_contract_id,
+        f"{experiment.distributed_contract_id}-node-{node_index}",
+        node_root,
+    )
+    measurements = _qualification_measurements(experiment, output_root, devices)
+    payload = {
+        **plan,
+        **measurements,
+        "authorization_receipt": authorization_receipt.to_dict(),
+        "gate_receipt": gate_receipt.to_dict(),
+        "outcomes_observed": False,
+        "phase_id": experiment.phase_gate.phase_id,
+        "schema_version": "bfws_issue59_hardware_qualification_node_v1",
+    }
+    _atomic_write_json(report_path, payload)
+    print(_canonical_text({"output": str(report_path), "status": "completed"}))
+    return 0
+
+
+def _qualify_merge(
+    experiment,
+    output_root: Path,
+    *,
+    run_id: str,
+    resume: bool,
+    dry_run: bool,
+) -> int:
+    run_root, topology = _distributed_run(experiment, output_root, run_id)
+    node_count = int(topology["node_count"])
+    rollout_shard_count = int(topology["rollout_shard_count"])
+    inputs = [str(run_root / "qualification" / "nodes" / f"node-{index}" / "report.json") for index in range(node_count)]
+    output = run_root / "qualification.json"
+    plan = {
+        "contract_id": experiment.distributed_contract_id,
+        "distributed_evaluation": dict(experiment.distributed_evaluation),
+        "inputs": inputs,
+        "output": str(output),
+        "rollout_shard_count": rollout_shard_count,
+        "uses_model_outcomes": False,
+    }
+    if dry_run:
+        print(_canonical_text({**plan, "dry_run": True}))
+        return 0
+    if output.is_file():
+        if not resume:
+            raise FileExistsError(f"BFWS distributed qualification exists; pass --resume: {output}")
+        print(_canonical_text({"output": str(output), "status": "already_complete"}))
+        return 0
+    _require_reference_gate(experiment, output_root)
+    reports = [_json_object(Path(path)) for path in inputs]
+    for index, report in enumerate(reports):
+        if (
+            report.get("schema_version") != "bfws_issue59_hardware_qualification_node_v1"
+            or report.get("contract_id") != experiment.distributed_contract_id
+            or report.get("phase_id") != experiment.phase_gate.phase_id
+            or report.get("node_index") != index
+            or report.get("node_count") != node_count
+            or report.get("outcomes_observed") is not False
+        ):
+            raise ValueError("BFWS distributed qualification node report is malformed or mismatched")
+    load_samples = [float(value) for report in reports for value in report["model_load_samples"]]
+    throughput_samples = [float(value) for report in reports for value in report["throughput_samples"]]
+    runtime_samples = [float(value) for report in reports for value in report["runtime_samples"]]
     qualification = select_bfws_coverage(
         experiment.tasks,
         model_load_seconds=max(load_samples),
         throughput_samples=throughput_samples,
         runtime_seconds_per_call=max(runtime_samples),
         model_sessions_per_task=int(experiment.budget_override["evaluation"]["model_sessions_per_task"]),
+        rollout_shard_count=rollout_shard_count,
+    )
+    gate_receipt, authorization_receipt = _execution_receipts(
+        experiment.distributed_contract_id,
+        f"{experiment.distributed_contract_id}-qualification",
+        run_root / "qualification",
     )
     payload = {
         **qualification.to_dict(),
         "authorization_receipt": authorization_receipt.to_dict(),
+        "budget_override": dict(experiment.budget_override),
+        "contract_id": experiment.distributed_contract_id,
+        "distributed_evaluation": dict(experiment.distributed_evaluation),
         "gate_started_at_unix": time.time(),
         "gate_receipt": gate_receipt.to_dict(),
         "phase_id": experiment.phase_gate.phase_id,
-        "contract_id": experiment.contract_id,
         "plan": plan,
     }
-    _atomic_write_json(output_root / "qualification.json", payload)
-    print(_canonical_text({"output": str(output_root / "qualification.json"), **payload["coverage"]}))
+    _atomic_write_json(output, payload)
+    print(_canonical_text({"output": str(output), **payload["coverage"]}))
     return 0
 
 
@@ -580,11 +787,20 @@ def _probe_request(row: Mapping[str, Any], adapter_id: str | None) -> BFWSModelR
     )
 
 
-def _evaluation_commands(output_root: Path, devices: tuple[str, ...], attempt_id: str, *, resume: bool):
-    if len(devices) != 2:
-        raise ValueError("BFWS evaluation is frozen to two devices")
+def _evaluation_commands(
+    output_root: Path,
+    devices: tuple[str, ...],
+    attempt_id: str,
+    *,
+    resume: bool,
+    run_id: str | None = None,
+    shard_indices: tuple[int, ...] | None = None,
+):
+    indices = tuple(range(len(devices))) if shard_indices is None else shard_indices
+    if not devices or len(devices) != len(indices):
+        raise ValueError("BFWS evaluation requires one distinct shard index per device")
     commands = []
-    for index, device in enumerate(devices):
+    for shard_index, device in zip(indices, devices, strict=True):
         command = [
             sys.executable,
             "scripts/run_bfws_issue59.py",
@@ -594,10 +810,12 @@ def _evaluation_commands(output_root: Path, devices: tuple[str, ...], attempt_id
             "--device",
             device,
             "--shard-index",
-            str(index),
+            str(shard_index),
             "--attempt-id",
-            f"{attempt_id}-shard-{index}",
+            f"{attempt_id}-shard-{shard_index}",
         ]
+        if run_id is not None:
+            command.extend(("--run-id", run_id))
         if resume:
             command.append("--resume")
         commands.append(tuple(command))
@@ -605,6 +823,8 @@ def _evaluation_commands(output_root: Path, devices: tuple[str, ...], attempt_id
 
 
 def _evaluate(output_root: Path, *, devices: tuple[str, ...], attempt_id: str, resume: bool, dry_run: bool) -> int:
+    if len(devices) != 2:
+        raise ValueError("BFWS evaluation is frozen to two devices")
     commands = _evaluation_commands(output_root, devices, attempt_id, resume=resume)
     if dry_run:
         print(
@@ -622,6 +842,50 @@ def _evaluate(output_root: Path, *, devices: tuple[str, ...], attempt_id: str, r
     return max(results)
 
 
+def _evaluate_node(
+    experiment,
+    output_root: Path,
+    *,
+    devices: tuple[str, ...],
+    node_index: int,
+    run_id: str,
+    resume: bool,
+    dry_run: bool,
+) -> int:
+    _run_root, topology = _distributed_run(experiment, output_root, run_id)
+    node_count = int(topology["node_count"])
+    expected_devices = tuple(str(device) for device in topology["devices_per_node"])
+    if node_index not in range(node_count):
+        raise ValueError("BFWS distributed evaluation node index is out of range")
+    if devices != expected_devices:
+        raise ValueError(f"BFWS distributed evaluation devices must be {expected_devices}")
+    devices_per_node = len(devices)
+    shard_indices = tuple(range(node_index * devices_per_node, (node_index + 1) * devices_per_node))
+    commands = _evaluation_commands(
+        output_root,
+        devices,
+        experiment.distributed_contract_id,
+        resume=resume,
+        run_id=run_id,
+        shard_indices=shard_indices,
+    )
+    if dry_run:
+        print(
+            _canonical_text(
+                {
+                    "commands": commands,
+                    "dry_run": True,
+                    "node_index": node_index,
+                    "progress": "per-round calls, completed episodes, elapsed time, and ETA",
+                }
+            )
+        )
+        return 0
+    with concurrent.futures.ThreadPoolExecutor(max_workers=len(devices)) as executor:
+        results = list(executor.map(_run_console_command, commands))
+    return max(results)
+
+
 def _evaluate_shard(
     experiment,
     output_root: Path,
@@ -629,12 +893,23 @@ def _evaluate_shard(
     device: str,
     shard_index: int,
     attempt_id: str,
+    run_id: str | None,
     resume: bool,
     dry_run: bool,
 ) -> int:
-    if shard_index not in (0, 1):
-        raise ValueError("BFWS rollout shard index must be 0 or 1")
-    qualification_path = output_root / "qualification.json"
+    if run_id is None:
+        run_root = output_root
+        rollout_shard_count = 2
+        contract_id = experiment.contract_id
+        distributed_evaluation = None
+    else:
+        run_root, topology = _distributed_run(experiment, output_root, run_id)
+        rollout_shard_count = int(topology["rollout_shard_count"])
+        contract_id = experiment.distributed_contract_id
+        distributed_evaluation = dict(experiment.distributed_evaluation)
+    if shard_index not in range(rollout_shard_count):
+        raise ValueError("BFWS rollout shard index is out of range")
+    qualification_path = run_root / "qualification.json"
     if dry_run:
         print(
             _canonical_text(
@@ -642,6 +917,7 @@ def _evaluate_shard(
                     "device": device,
                     "dry_run": True,
                     "qualification": str(qualification_path),
+                    "rollout_shard_count": rollout_shard_count,
                     "shard_index": shard_index,
                 }
             )
@@ -652,17 +928,18 @@ def _evaluate_shard(
     if (
         not isinstance(coverage, dict)
         or coverage.get("outcome") != StopOutcome.PASS.value
-        or qualification.get("contract_id") != experiment.contract_id
+        or qualification.get("contract_id") != contract_id
+        or coverage.get("rollout_shard_count") != rollout_shard_count
     ):
         raise ValueError("BFWS rollout lacks a PASS hardware qualification")
     selected_ids = set(coverage["task_ids"])
     selected = tuple(task for task in experiment.tasks if task.instance_id in selected_ids)
-    shards = _cost_shards(selected)
+    shards = cost_balanced_bfws_shards(selected, shard_count=rollout_shard_count)
     assigned = shards[shard_index]
     adapters = {f"seed-{seed}": _final_checkpoint(output_root, seed) for seed in experiment.training_seeds}
-    root = output_root / "rollout" / f"shard-{shard_index}"
+    root = run_root / "rollout" / f"shard-{shard_index}"
     gate_receipt, authorization_receipt = _execution_receipts(
-        experiment.contract_id,
+        contract_id,
         attempt_id,
         root,
     )
@@ -670,14 +947,17 @@ def _evaluate_shard(
         "authorization_receipt": authorization_receipt.to_dict(),
         "attempt_id": attempt_id,
         "budget_override": dict(experiment.budget_override),
-        "contract_id": experiment.contract_id,
+        "contract_id": contract_id,
         "coverage_mode": coverage["mode"],
         "device": device,
         "gate_receipt": gate_receipt.to_dict(),
         "phase_id": experiment.phase_gate.phase_id,
+        "rollout_shard_count": rollout_shard_count,
         "shard_index": shard_index,
         "task_ids": [task.instance_id for task in assigned],
     }
+    if distributed_evaluation is not None:
+        launch["distributed_evaluation"] = distributed_evaluation
     if root.exists():
         if not resume or _json_object(root / "launch.json") != launch:
             raise ValueError("existing BFWS rollout requires --resume and an identical launch")
@@ -758,14 +1038,19 @@ def _evaluate_shard(
         "budget_override": dict(experiment.budget_override),
         "completed_episode_count": len(completed_records),
         "coverage_mode": coverage["mode"],
-        "contract_id": experiment.contract_id,
+        "contract_id": contract_id,
         "outcome": (StopOutcome.PASS if len(completed_records) == assigned_count else StopOutcome.VALID_STOP).value,
         "gate_receipt": gate_receipt.to_dict(),
         "phase_receipt": experiment.phase_gate.receipt(stage="development_structural_gate"),
         "records": sorted(completed_records, key=lambda row: (row["arm"], row["seed"], row["instance_id"])),
-        "schema_version": "bfws_issue59_rollout_shard_v1",
+        "rollout_shard_count": rollout_shard_count,
+        "schema_version": (
+            "bfws_issue59_rollout_shard_v1" if run_id is None else "bfws_issue59_rollout_shard_v2"
+        ),
         "shard_index": shard_index,
     }
+    if distributed_evaluation is not None:
+        manifest["distributed_evaluation"] = distributed_evaluation
     _atomic_write_json(root / "manifest.json", manifest)
     summary = {key: manifest[key] for key in ("assigned_episode_count", "completed_episode_count", "outcome")}
     print(_canonical_text({"output": str(root / "manifest.json"), **summary}))
@@ -791,39 +1076,77 @@ def _model_record(task, arm: str, seed: int, relative: Path, path: Path, payload
     }
 
 
-def _adjudication_plan(output_root: Path, attempt_id: str) -> dict[str, Any]:
+def _adjudication_plan(
+    output_root: Path,
+    attempt_id: str,
+    *,
+    run_id: str | None,
+    rollout_shard_count: int,
+) -> dict[str, Any]:
+    run_root = output_root if run_id is None else output_root / "runs" / run_id
     return {
         "attempt_id": attempt_id,
         "inputs": [
             str(output_root / "references" / "manifest.json"),
-            str(output_root / "qualification.json"),
-            str(output_root / "rollout" / "shard-0" / "manifest.json"),
-            str(output_root / "rollout" / "shard-1" / "manifest.json"),
+            str(run_root / "qualification.json"),
+            *(
+                str(run_root / "rollout" / f"shard-{index}" / "manifest.json")
+                for index in range(rollout_shard_count)
+            ),
         ],
-        "output": str(output_root / "adjudication" / "report.json"),
+        "output": str(run_root / "adjudication" / "report.json"),
         "replay_required": True,
     }
 
 
-def _adjudicate(experiment, output_root: Path, *, attempt_id: str, dry_run: bool) -> int:
-    plan = _adjudication_plan(output_root, attempt_id)
+def _adjudicate(
+    experiment,
+    output_root: Path,
+    *,
+    attempt_id: str,
+    run_id: str | None,
+    dry_run: bool,
+) -> int:
+    if run_id is None:
+        run_root = output_root
+        rollout_shard_count = 2
+        contract_id = experiment.contract_id
+    else:
+        run_root, topology = _distributed_run(experiment, output_root, run_id)
+        rollout_shard_count = int(topology["rollout_shard_count"])
+        contract_id = experiment.distributed_contract_id
+    plan = _adjudication_plan(
+        output_root,
+        attempt_id,
+        run_id=run_id,
+        rollout_shard_count=rollout_shard_count,
+    )
     if dry_run:
         print(_canonical_text({**plan, "dry_run": True}))
         return 0
-    binding = ReceiptBinding(experiment.contract_id, attempt_id, output_root / "adjudication")
+    binding = ReceiptBinding(contract_id, attempt_id, run_root / "adjudication")
     execution_gate, execution_authorization = _execution_receipts(
-        experiment.contract_id,
+        contract_id,
         f"{attempt_id}-execution",
-        output_root / "adjudication-execution",
+        run_root / "adjudication-execution",
     )
     coverage: Mapping[str, Any] = {}
     try:
-        qualification = _json_object(output_root / "qualification.json")
+        qualification = _json_object(run_root / "qualification.json")
         raw_coverage = qualification.get("coverage")
         if not isinstance(raw_coverage, dict):
             raise ValueError("BFWS qualification coverage is malformed")
         coverage = raw_coverage
-        report = _adjudication_metrics(experiment, output_root, qualification, coverage)
+        report = _adjudication_metrics(
+            experiment,
+            output_root,
+            run_root,
+            qualification,
+            coverage,
+            contract_id=contract_id,
+            rollout_shard_count=rollout_shard_count,
+            distributed=run_id is not None,
+        )
     except (KeyError, OSError, TypeError, ValueError) as error:
         report = {
             "error": str(error),
@@ -835,9 +1158,9 @@ def _adjudicate(experiment, output_root: Path, *, attempt_id: str, dry_run: bool
     if outcome is StopOutcome.ANCESTOR_STOP:
         ancestor_gate = GateReceipt(
             ReceiptBinding(
-                experiment.contract_id,
+                contract_id,
                 f"{attempt_id}-exact-reference",
-                output_root / "adjudication" / "exact-reference",
+                run_root / "adjudication" / "exact-reference",
             ),
             StopOutcome.VALID_STOP,
         )
@@ -850,7 +1173,7 @@ def _adjudicate(experiment, output_root: Path, *, attempt_id: str, dry_run: bool
         {
             "attempt_id": attempt_id,
             "budget_override": dict(experiment.budget_override),
-            "contract_id": experiment.contract_id,
+            "contract_id": contract_id,
             "coverage": coverage,
             "execution_authorization_receipt": execution_authorization.to_dict(),
             "execution_gate_receipt": execution_gate.to_dict(),
@@ -861,6 +1184,8 @@ def _adjudicate(experiment, output_root: Path, *, attempt_id: str, dry_run: bool
     )
     if ancestor_gate is not None:
         report["ancestor_gate_receipt"] = ancestor_gate.to_dict()
+    if run_id is not None:
+        report["distributed_evaluation"] = dict(experiment.distributed_evaluation)
     if outcome is not StopOutcome.PASS:
         report["downstream_run_receipt"] = evaluate_execution_permission(
             binding=binding,
@@ -868,7 +1193,7 @@ def _adjudicate(experiment, output_root: Path, *, attempt_id: str, dry_run: bool
             authorization_receipt=None,
             ancestor_receipt_id=gate.ancestor_receipt_id,
         ).to_dict()
-    adjudication_root = output_root / "adjudication"
+    adjudication_root = run_root / "adjudication"
     if adjudication_root.exists():
         raise FileExistsError(f"BFWS adjudication output already exists: {adjudication_root}")
     adjudication_root.mkdir(parents=True)
@@ -878,10 +1203,20 @@ def _adjudicate(experiment, output_root: Path, *, attempt_id: str, dry_run: bool
     return 1 if outcome is StopOutcome.INVALID else 0
 
 
-def _adjudication_metrics(experiment, output_root: Path, qualification, coverage) -> dict[str, Any]:
+def _adjudication_metrics(
+    experiment,
+    output_root: Path,
+    run_root: Path,
+    qualification,
+    coverage,
+    *,
+    contract_id: str,
+    rollout_shard_count: int,
+    distributed: bool,
+) -> dict[str, Any]:
     if (
         qualification.get("phase_id") != experiment.phase_gate.phase_id
-        or qualification.get("contract_id") != experiment.contract_id
+        or qualification.get("contract_id") != contract_id
     ):
         raise ValueError("BFWS qualification belongs to a different governed phase")
     if coverage.get("outcome") == StopOutcome.VALID_STOP.value:
@@ -938,8 +1273,9 @@ def _adjudication_metrics(experiment, output_root: Path, qualification, coverage
         _terminal_progress("adjudication-replay", completed, total, started, row["instance_id"])
 
     rollout_rows = []
-    for shard_index in (0, 1):
-        root = output_root / "rollout" / f"shard-{shard_index}"
+    expected_schema = "bfws_issue59_rollout_shard_v2" if distributed else "bfws_issue59_rollout_shard_v1"
+    for shard_index in range(rollout_shard_count):
+        root = run_root / "rollout" / f"shard-{shard_index}"
         manifest = _json_object(root / "manifest.json")
         if manifest.get("outcome") != StopOutcome.PASS.value:
             return {
@@ -948,14 +1284,17 @@ def _adjudication_metrics(experiment, output_root: Path, qualification, coverage
                 "scientific_completion": False,
             }
         if (
-            manifest.get("schema_version") != "bfws_issue59_rollout_shard_v1"
+            manifest.get("schema_version") != expected_schema
             or manifest.get("phase_receipt") != experiment.phase_gate.receipt(stage="development_structural_gate")
             or manifest.get("coverage_mode") != coverage["mode"]
-            or manifest.get("contract_id") != experiment.contract_id
+            or manifest.get("contract_id") != contract_id
             or manifest.get("budget_override") != experiment.budget_override
+            or manifest.get("rollout_shard_count") != rollout_shard_count
             or not isinstance(manifest.get("records"), list)
         ):
             raise ValueError("BFWS rollout manifest differs from its authorization or qualification")
+        if distributed and manifest.get("distributed_evaluation") != experiment.distributed_evaluation:
+            raise ValueError("BFWS rollout manifest differs from the distributed evaluation contract")
         for row in manifest["records"]:
             task = task_by_id[row["instance_id"]]
             path = root / row["evidence"]["path"]
@@ -1041,14 +1380,13 @@ def _authority(task: BFWSDevelopmentTask) -> PDDLStateAuthority:
     )
 
 
-def _cost_shards(tasks: Sequence[BFWSDevelopmentTask]):
-    shards: list[list[BFWSDevelopmentTask]] = [[], []]
-    loads = [0, 0]
-    for task in sorted(tasks, key=lambda item: (-item.model_call_limit, item.instance_id)):
-        index = min((0, 1), key=lambda value: (loads[value], value))
-        shards[index].append(task)
-        loads[index] += task.model_call_limit
-    return tuple(tuple(sorted(shard, key=lambda item: item.instance_id)) for shard in shards)
+def _distributed_run(experiment, output_root: Path, run_id: str) -> tuple[Path, Mapping[str, Any]]:
+    if run_id != experiment.distributed_evaluation["run_id"]:
+        raise ValueError(f"BFWS distributed run ID must be {experiment.distributed_evaluation['run_id']}")
+    topology = experiment.distributed_evaluation["topology"]
+    if not isinstance(topology, Mapping):
+        raise ValueError("BFWS distributed topology is malformed")
+    return output_root / "runs" / run_id, topology
 
 
 def _available_cpus() -> int:
