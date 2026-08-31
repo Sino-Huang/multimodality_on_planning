@@ -117,3 +117,37 @@ no claim about training-seed variance.
 Ordinary model, threshold, qualification, or resource failure is `VALID_STOP`.
 A prerequisite stop is `ANCESTOR_STOP`. Any manifest, provenance, input parity,
 or replay mismatch is `INVALID` and is never scientific completion.
+
+## Terminal execution
+
+The supervised run completed under contract
+`issue-59-bfws-single-training-v2`. Seed 17 trained for the authorized two
+epochs (2,988 optimizer steps) and produced complete checkpoints at steps 747,
+1,494, 2,241, and 2,988. The training report outcome is `PASS`. The reference
+manifest contains all 210 expected entries: 35 exact BFWS episodes and 175
+random-valid episodes.
+
+Outcome-blind hardware qualification measured a lower-95% throughput of
+0.180490565 calls per second. The preregistered 15-domain exact-cost panel
+required at most 9,076 scheduled calls and projected 60,424.319 seconds after
+the frozen safety margin. This could not be certified within the frozen
+15-hour rollout-certification budget, so qualification returned `VALID_STOP`
+with no selected tasks and without observing model outcomes.
+
+No learned, base, random-valid, or exact-reference rollout matrix was launched;
+therefore this attempt contains no BFWS SFT performance result. Adjudication
+correctly emitted a `VALID_STOP` gated-not-run receipt with
+`scientific_completion: false`. This is a valid terminal resource outcome, not
+an `INVALID` run and not evidence that the learned policy passed or failed the
+structural thresholds. Any downstream scientific run requiring a `PASS`
+ancestor must remain gated.
+
+Compact tracked copies of the terminal records are retained at:
+
+- `data/bfws_phase_v1/issue59-terminal/training-report.json`;
+- `data/bfws_phase_v1/issue59-terminal/qualification.json`;
+- `data/bfws_phase_v1/issue59-terminal/adjudication-report.json`;
+- `data/bfws_phase_v1/issue59-terminal/gate-receipt.json`.
+
+The 2 GB optimizer-bearing checkpoint and atomic reference evidence remain in
+the ignored execution output tree and are intentionally not committed to Git.
