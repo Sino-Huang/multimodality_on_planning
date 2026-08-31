@@ -331,6 +331,7 @@ def test_hmax_replay_accepts_and_retains_semantic_noncanonical_raw_json(tmp_path
 
     gate, authorization = _receipts(tmp_path)
     episode = run_search_episode(FIXTURE, "astar_hmax", "text-state", "exact", 64, gate, authorization)
+    assert "rationale" not in episode["evidence"]["events"][0]["decisions"][0]
     operation = episode["evidence"]["events"][0]["decisions"][0]["operation"]
     raw = json.dumps(
         {"source_state_id": operation["source_state_id"], "action": operation["action"]},

@@ -15,6 +15,11 @@ sys.path.insert(0, str(_REPO_ROOT))
 
 from examples.planning_benchmark_slice.astar_hmax import HMaxHeuristic  # noqa: E402
 from examples.planning_benchmark_slice.astar_landmarks import LandmarkCountHeuristic  # noqa: E402
+from examples.planning_benchmark_slice.astar_phase import (  # noqa: E402
+    ASTAR_PAIRED_ADAPTERS,
+    positive_astar_generation_cap,
+    validate_astar_generation_budget,
+)
 from examples.planning_benchmark_slice.pddl_state import PDDLStateAuthority  # noqa: E402
 
 _DEFAULT_SOURCE = _REPO_ROOT / "data" / "astar_paired_phase_v1" / "source-task-manifest.jsonl"
@@ -59,17 +64,19 @@ def main(argv: Sequence[str] | None = None) -> int:
     source = args.source_manifest.resolve()
     artifact_root = _REPO_ROOT if source == _DEFAULT_SOURCE.resolve() else source.parent.resolve()
     rows, source_bytes = _jsonl_rows(source)
-    source_bindings, source_evidence = _source_audit(
+    source_bindings, source_evidence, generation_budget = _source_audit(
         args.source_audit.resolve(), len(rows), artifact_root
     )
     source_bindings["source_manifest"] = _artifact_binding(source, source_bytes, artifact_root)
     pairs = _validated_pairs(rows, artifact_root)
     _validate_evidence_pairs(pairs, source_evidence)
+    _validate_generation_caps(pairs, generation_budget)
     products = _products(
         pairs,
         source_bindings,
         artifact_root,
         source == _DEFAULT_SOURCE.resolve(),
+        generation_budget,
     )
     if args.dry_run:
         summary = {
@@ -135,8 +142,13 @@ def _validated_pairs(rows: list[dict[str, Any]], artifact_root: Path) -> list[di
 
 
 def _pair_row(source: Mapping[str, Any], artifact_root: Path) -> dict[str, Any]:
-    expected = {"difficulty", "domain_id", "instance_id", "split", "task_path"}
-    if set(source) != expected or any(not isinstance(source[field], str) or not source[field] for field in expected):
+    expected = {"difficulty", "domain_id", "generation_max_expansions", "instance_id", "split", "task_path"}
+    text_fields = expected - {"generation_max_expansions"}
+    if (
+        set(source) != expected
+        or any(not isinstance(source[field], str) or not source[field] for field in text_fields)
+        or not positive_astar_generation_cap(source["generation_max_expansions"])
+    ):
         raise ValueError("A* paired source row has invalid fields")
     if source["split"] not in {"train", "dev"}:
         raise ValueError("A* paired source split must be train or dev")
@@ -164,7 +176,8 @@ def _pair_row(source: Mapping[str, Any], artifact_root: Path) -> dict[str, Any]:
         "astar_outcome_used_for_selection": False,
         "difficulty": source["difficulty"],
         "domain_id": source["domain_id"],
-        "eligible_adapters": ["astar_hmax", "astar_landmark_count"],
+        "eligible_adapters": list(ASTAR_PAIRED_ADAPTERS),
+        "generation_max_expansions": source["generation_max_expansions"],
         "instance_id": source["instance_id"],
         "normalized_domain_hash": _pddl_hash(task["domain_pddl"]),
         "normalized_problem_hash": _pddl_hash(task["problem_pddl"]),
@@ -184,6 +197,7 @@ def _products(
     source_bindings: dict[str, Any],
     artifact_root: Path,
     default_paths: bool,
+    generation_budget: Mapping[str, Any],
 ) -> dict[Path, bytes]:
     product_root = (
         artifact_root / "configs" / "experiments"
@@ -193,11 +207,11 @@ def _products(
     component_paths = {
         name: product_root / f"astar-paired-{name}-v1.json" for name in _COMPONENTS
     }
-    components = _components(pairs, source_bindings)
+    components = _components(pairs, source_bindings, generation_budget)
     freeze_path = product_root / "astar-paired-freeze-v1.json"
     authorization_path = product_root / "astar-paired-authorization-v1.json"
     freeze = {
-        "algorithms": ["astar_hmax", "astar_landmark_count"],
+        "algorithms": list(ASTAR_PAIRED_ADAPTERS),
         "component_manifests": {
             name: _relative(path, artifact_root) for name, path in component_paths.items()
         },
@@ -230,7 +244,7 @@ def _products(
 
 
 def _components(
-    pairs: list[dict[str, Any]], source_bindings: dict[str, Any]
+    pairs: list[dict[str, Any]], source_bindings: dict[str, Any], generation_budget: Mapping[str, Any]
 ) -> dict[str, dict[str, Any]]:
     common = {"parent_issue": 38, "phase_id": _PHASE_ID, "source_issue": 62}
     audits = [
@@ -249,7 +263,7 @@ def _components(
         "trace": {
             **common,
             "adapter_specific_counts": ["exact_reference_decision_count", "exact_reference_expansion_count"],
-            "algorithms": ["astar_hmax", "astar_landmark_count"],
+            "algorithms": list(ASTAR_PAIRED_ADAPTERS),
             "component": "trace",
             "controller": "AStarController",
             "goal_test": "popped_frontier_head_world_state",
@@ -310,7 +324,7 @@ def _components(
             "training_seeds": [17],
             "training_cells": [
                 {"adapter": adapter, "curriculum": curriculum, "training_seed": 17}
-                for adapter in ("astar_hmax", "astar_landmark_count")
+                for adapter in ASTAR_PAIRED_ADAPTERS
                 for curriculum in ("staged", "shuffled", "mixed_order")
             ],
             "training_cell_rule": "one_distinct_cell_with_single_seed_17",
@@ -333,6 +347,8 @@ def _components(
             },
             "component": "budget",
             "deterministic_round_scheduling": True,
+            "expert_generation_expansion_limit": "source_row.generation_max_expansions",
+            "generation_budget": dict(generation_budget),
             "panel_selection": {
                 "cheapest_summed_exact_cost_per_domain": True,
                 "fallback": {
@@ -408,6 +424,7 @@ def _fixture_rows() -> list[dict[str, Any]]:
         {
             "difficulty": difficulty,
             "domain_id": domain,
+            "generation_max_expansions": 16,
             "instance_id": f"contract-{index}",
             "split": split,
             "task_path": f"tests/fixtures/planning/{name}",
@@ -446,7 +463,7 @@ def _source_audit(
     path: Path,
     source_count: int,
     artifact_root: Path,
-) -> tuple[dict[str, dict[str, Any]], dict[str, Any]]:
+) -> tuple[dict[str, dict[str, Any]], dict[str, Any], dict[str, Any]]:
     if not path.is_file():
         raise FileNotFoundError(f"A* paired reviewed source audit is absent: {path}")
     payload = path.read_bytes()
@@ -458,6 +475,7 @@ def _source_audit(
         "efficacy_data",
         "expected_pair_count",
         "expected_task_count",
+        "generation_budget",
         "panel_purpose",
         "replay_proven",
         "review_status",
@@ -500,13 +518,24 @@ def _source_audit(
     )
     _validate_bfws_authorization(authorization)
     _validate_bfws_evidence(evidence, source_count)
+    generation_budget = _validate_generation_budget(audit.get("generation_budget"))
     return {
         "source_audit": _artifact_binding(path, payload, artifact_root),
         "source_authorization": _artifact_binding(
             authorization_path, authorization_path.read_bytes(), artifact_root
         ),
         "source_evidence": _artifact_binding(evidence_path, evidence_path.read_bytes(), artifact_root),
-    }, evidence
+    }, evidence, generation_budget
+
+
+def _validate_generation_budget(value: object) -> dict[str, Any]:
+    return validate_astar_generation_budget(value)
+
+
+def _validate_generation_caps(
+    pairs: Sequence[Mapping[str, Any]], generation_budget: Mapping[str, Any]
+) -> None:
+    validate_astar_generation_budget(generation_budget, tuple(pairs))
 
 
 def _bound_source_artifact(

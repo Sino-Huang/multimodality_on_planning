@@ -6,7 +6,10 @@ import hashlib
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any, Mapping, Sequence
+
+from src.data_collect.generate import GenerationRequest
+from src.data_collect.governance import AuthorizationReceipt, GateReceipt, ReceiptBinding, StopOutcome
 
 from .astar_hmax import HMaxHeuristic
 from .astar_landmarks import LandmarkCountHeuristic
@@ -17,6 +20,8 @@ _PHASE_ID = "issue-62-astar-paired-development-v1"
 _COMPONENTS = ("task", "trace", "corpus", "model", "budget", "analysis")
 _AUTHORIZED_STAGES = ("trace_generation", "corpus_release")
 _MODEL_REVISION = "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b"
+ASTAR_PAIRED_ADAPTERS = ("astar_hmax", "astar_landmark_count")
+ASTAR_GENERATION_BUDGET_POLICY = "shared_ceiling_by_development_difficulty"
 
 
 class AStarPairedPhaseGateError(ValueError):
@@ -37,6 +42,10 @@ class AStarPairedPhaseGate:
         return str(self.freeze["phase_id"])
 
     def require_run(self, stage: str, contract_id: str) -> None:
+        if self.authorization.get("outcome") != "PASS":
+            raise AStarPairedPhaseGateError("A* paired persisted phase authority is not PASS")
+        if self.authorization.get("phase_id") != self.phase_id:
+            raise AStarPairedPhaseGateError("A* paired persisted phase authority has the wrong phase")
         if stage not in self.authorization["authorized_stages"]:
             raise AStarPairedPhaseGateError(f"A* paired stage is not authorized: {stage}")
         if contract_id != self.authorization["contract_id"]:
@@ -98,7 +107,7 @@ def load_astar_paired_phase_gate(
     _validate_trace(components["trace"])
     _validate_corpus(components["corpus"])
     _validate_model(components["model"])
-    _validate_budget(components["budget"])
+    _validate_budget(components["budget"], components["task"])
     _validate_analysis(components["analysis"])
     _validate_authorization(
         authorization_payload,
@@ -113,6 +122,93 @@ def load_astar_paired_phase_gate(
         freeze_manifest_path=freeze_path,
         authorization_manifest_path=authorization_path,
         repo_root=root,
+    )
+
+
+def validate_astar_generation_budget(
+    value: object,
+    rows: Sequence[Mapping[str, Any]] | None = None,
+) -> dict[str, Any]:
+    """Validate the single issue-62 shared-ceiling contract."""
+
+    expected = {
+        "adapters": list(ASTAR_PAIRED_ADAPTERS),
+        "decision_outcome_blind": True,
+        "frozen_before_astar_execution": True,
+        "max_expansions_by_difficulty": (
+            value.get("max_expansions_by_difficulty") if isinstance(value, Mapping) else None
+        ),
+        "policy": ASTAR_GENERATION_BUDGET_POLICY,
+        "task_specific_overrides_allowed": False,
+    }
+    if not isinstance(value, Mapping) or dict(value) != expected:
+        raise AStarPairedPhaseGateError("A* paired generation budget contract is invalid")
+    caps = value["max_expansions_by_difficulty"]
+    if (
+        not isinstance(caps, Mapping)
+        or set(caps) != {"easy", "medium", "hard"}
+        or any(not positive_astar_generation_cap(cap) for cap in caps.values())
+    ):
+        raise AStarPairedPhaseGateError("A* paired difficulty expansion caps must be positive integers")
+    if rows is not None and any(
+        not positive_astar_generation_cap(row.get("generation_max_expansions"))
+        or row.get("generation_max_expansions") != caps.get(row.get("difficulty"))
+        for row in rows
+    ):
+        raise AStarPairedPhaseGateError(
+            "A* paired source row generation_max_expansions does not equal its difficulty cap"
+        )
+    return dict(value)
+
+
+def positive_astar_generation_cap(value: object) -> bool:
+    return isinstance(value, int) and not isinstance(value, bool) and value > 0
+
+
+def build_astar_paired_generation_request(
+    phase_gate: AStarPairedPhaseGate,
+    *,
+    binding: ReceiptBinding,
+    receipt_root: str | Path,
+    fixture_only: bool = False,
+) -> GenerationRequest:
+    """Consume phase authority, then issue attempt-bound operational receipts."""
+
+    if binding.contract_id != phase_gate.phase_id:
+        raise AStarPairedPhaseGateError("A* paired runtime binding has the wrong contract")
+    phase_gate.require_run(stage="trace_generation", contract_id=binding.contract_id)
+    if fixture_only:
+        if phase_gate.authorization.get("authorization_id") != "fixture-only-issue-62":
+            raise AStarPairedPhaseGateError("fixture-only bridge requires fixture-only phase authority")
+        authority_gate = phase_gate
+    else:
+        persisted = load_astar_paired_phase_gate(
+            phase_gate.freeze_manifest_path,
+            phase_gate.authorization_manifest_path,
+            repo_root=phase_gate.repo_root,
+        )
+        if (
+            persisted.freeze != phase_gate.freeze
+            or persisted.authorization != phase_gate.authorization
+            or set(persisted.components) != set(_COMPONENTS)
+            or set(phase_gate.components) != set(_COMPONENTS)
+            or any(persisted.components[name] != phase_gate.components[name] for name in _COMPONENTS)
+            or persisted.receipt(stage="trace_generation")
+            != phase_gate.receipt(stage="trace_generation")
+        ):
+            raise AStarPairedPhaseGateError("A* paired runtime phase authority differs from persisted peers")
+        authority_gate = persisted
+    authority_gate.require_run(stage="trace_generation", contract_id=binding.contract_id)
+    phase_receipt = authority_gate.receipt(stage="trace_generation")
+    if phase_receipt.get("outcome") != "PASS" or phase_receipt.get("phase_id") != binding.contract_id:
+        raise AStarPairedPhaseGateError("A* paired trace_generation phase receipt is not PASS")
+    operational_gate_receipt = GateReceipt(binding, StopOutcome.PASS)
+    operational_authorization = AuthorizationReceipt(binding, operational_gate_receipt.receipt_id)
+    return GenerationRequest(
+        binding=binding,
+        gate_receipt=operational_gate_receipt,
+        authorization_receipt=operational_authorization,
+        receipt_root=receipt_root,
     )
 
 
@@ -154,7 +250,8 @@ def _validate_task(component: Mapping[str, Any], root: Path) -> None:
             or row.get("normalized_domain_hash") != _pddl_hash(task["domain_pddl"])
             or row.get("normalized_problem_hash") != _pddl_hash(task["problem_pddl"])
             or row.get("pair_id") != f"astar-pair-{pair_digest[:24]}"
-            or row.get("eligible_adapters") != ["astar_hmax", "astar_landmark_count"]
+            or row.get("eligible_adapters") != list(ASTAR_PAIRED_ADAPTERS)
+            or not positive_astar_generation_cap(row.get("generation_max_expansions"))
             or row.get("astar_outcome_used_for_selection") is not False
             or row.get("split") not in {"train", "dev"}
         ):
@@ -247,11 +344,17 @@ def _validate_model(component: Mapping[str, Any]) -> None:
         raise AStarPairedPhaseGateError("A* paired model or checkpoint policy has drifted")
 
 
-def _validate_budget(component: Mapping[str, Any]) -> None:
+def _validate_budget(component: Mapping[str, Any], task: Mapping[str, Any]) -> None:
     panel = component.get("panel_selection")
+    generation_budget = component.get("generation_budget")
+    rows = task.get("pairs")
+    if not isinstance(rows, list):
+        raise AStarPairedPhaseGateError("A* paired budget task rows are malformed")
+    validate_astar_generation_budget(generation_budget, rows)
     if (
         component.get("per_adapter_model_call_limit") != "2 * matching exact_reference_decision_count"
         or component.get("per_adapter_expansion_limit") != "matching exact_reference_expansion_count"
+        or component.get("expert_generation_expansion_limit") != "source_row.generation_max_expansions"
         or component.get("deterministic_round_scheduling") is not True
         or component.get("request_session_round_policy") != "one_request_one_session_per_round"
         or component.get("adapter_isolated_cache") is not True
@@ -386,6 +489,7 @@ def _validate_source_bindings(bindings: object, pairs: list[dict[str, Any]], roo
             "efficacy_data",
             "expected_pair_count",
             "expected_task_count",
+            "generation_budget",
             "panel_purpose",
             "replay_proven",
             "review_status",
@@ -412,6 +516,7 @@ def _validate_source_bindings(bindings: object, pairs: list[dict[str, Any]], roo
         or audit.get("source_evidence") != expected_evidence_reference
     ):
         raise AStarPairedPhaseGateError("A* paired source audit authority or count has drifted")
+    validate_astar_generation_budget(audit.get("generation_budget"), pairs)
     _validate_bound_bfws_authorization(authorization)
     _validate_bound_source_rows(payloads["source_manifest"], pairs)
     _validate_bound_bfws_evidence(evidence, pairs)
@@ -461,11 +566,17 @@ def _validate_bound_source_rows(payload: bytes, pairs: list[dict[str, Any]]) -> 
             raise AStarPairedPhaseGateError("A* paired source manifest row is not canonical")
         rows.append(row)
     source_rows = {
-        (row.get("domain_id"), row.get("difficulty"), row.get("instance_id"), row.get("split"), row.get("task_path"))
+        (
+            row.get("domain_id"), row.get("difficulty"), row.get("generation_max_expansions"),
+            row.get("instance_id"), row.get("split"), row.get("task_path")
+        )
         for row in rows
     }
     pair_rows = {
-        (row["domain_id"], row["difficulty"], row["instance_id"], row["split"], row["task_path"])
+        (
+            row["domain_id"], row["difficulty"], row["generation_max_expansions"],
+            row["instance_id"], row["split"], row["task_path"]
+        )
         for row in pairs
     }
     if source_rows != pair_rows or len(rows) != len(pairs):
@@ -589,4 +700,13 @@ def _relative(path: Path, root: Path) -> str:
     return path.resolve().relative_to(root.resolve()).as_posix()
 
 
-__all__ = ["AStarPairedPhaseGate", "AStarPairedPhaseGateError", "load_astar_paired_phase_gate"]
+__all__ = [
+    "ASTAR_GENERATION_BUDGET_POLICY",
+    "ASTAR_PAIRED_ADAPTERS",
+    "AStarPairedPhaseGate",
+    "AStarPairedPhaseGateError",
+    "build_astar_paired_generation_request",
+    "load_astar_paired_phase_gate",
+    "positive_astar_generation_cap",
+    "validate_astar_generation_budget",
+]

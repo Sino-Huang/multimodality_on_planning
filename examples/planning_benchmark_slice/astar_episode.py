@@ -11,7 +11,7 @@ from .astar_landmarks import LandmarkCountHeuristic
 from .astar_model_input import build_astar_live_model_input
 from .pddl_state import CanonicalState, PDDLStateAuthority
 
-ASTAR_ACCEPTED_DELTA_LIMIT = 8
+ASTAR_ACCEPTED_DELTA_LIMIT = 16
 
 
 @dataclass(frozen=True, slots=True)

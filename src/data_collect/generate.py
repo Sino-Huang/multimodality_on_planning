@@ -121,6 +121,26 @@ class GenerationRunReceipt:
         return _canonical_json(self.to_dict())
 
 
+class ValidExecutionStop(Exception):
+    """Typed, governed stop raised after an authorized execution has started."""
+
+    def __init__(
+        self,
+        reason: str,
+        *,
+        status: str = "resource_exhaustion",
+        execution_result: Mapping[str, object] | None = None,
+    ) -> None:
+        if not isinstance(reason, str) or not reason or reason != reason.strip():
+            raise ValueError("valid execution stop reason must be non-empty canonical text")
+        if not isinstance(status, str) or not status or status != status.strip():
+            raise ValueError("valid execution stop status must be non-empty canonical text")
+        super().__init__(reason)
+        self.reason = reason
+        self.status = status
+        self.execution_result = None if execution_result is None else dict(execution_result)
+
+
 def _persist_governed_receipt(receipt: GenerationRunReceipt) -> GenerationRunReceipt:
     _atomic_write(receipt.receipt_path, (receipt.canonical_json() + "\n").encode("utf-8"))
     return receipt
@@ -184,6 +204,24 @@ def run_authorized_generation(
     try:
         raw_result = execute()
         execution_result = json.loads(_canonical_json(raw_result))
+    except ValidExecutionStop as stop:
+        execution_result = (
+            None
+            if stop.execution_result is None
+            else json.loads(_canonical_json(stop.execution_result))
+        )
+        return _persist_governed_receipt(
+            GenerationRunReceipt(
+                outcome=StopOutcome.VALID_STOP,
+                status=stop.status,
+                binding=request.binding,
+                scientific_completion=False,
+                receipt_path=receipt_path,
+                authorization_receipt=authorization,
+                execution_result=execution_result,
+                reason=stop.reason,
+            )
+        )
     except Exception as error:
         return _persist_governed_receipt(
             GenerationRunReceipt(
@@ -1217,13 +1255,14 @@ def _sorted_rejections(rejections: Sequence[RejectedCandidateMetadata]) -> list[
 __all__ = [
     "ACCEPTED_MANIFEST_FILENAME",
     "GENERATION_REJECTION_STAGE",
-    "GenerationRequest",
-    "GenerationRunReceipt",
-    "GenerationRunResult",
     "REJECTIONS_FILENAME",
     "SELECTION_NOT_SELECTED_REASON",
     "STAGING_DIRNAME",
     "SUMMARY_FILENAME",
+    "GenerationRequest",
+    "GenerationRunReceipt",
+    "GenerationRunResult",
+    "ValidExecutionStop",
     "orchestrate_generation",
     "run_authorized_generation",
     "run_governed_generation",

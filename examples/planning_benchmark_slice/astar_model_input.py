@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from typing import Any
 
 from .astar_controller import AStarController
@@ -69,17 +69,55 @@ def build_bounded_astar_model_input(
 ) -> dict[str, Any]:
     """Build bounded search memory by removing only oldest accepted deltas."""
 
-    if not isinstance(max_bytes, int) or isinstance(max_bytes, bool) or max_bytes <= 0:
+    return project_bounded_astar_model_input(
+        build_astar_model_input(authority, controller),
+        max_bytes=max_bytes,
+    )
+
+
+def project_bounded_astar_model_input(
+    model_input: Mapping[str, Any],
+    *,
+    max_bytes: int | None = None,
+    max_input_tokens: int | None = None,
+    token_counter: Callable[[Mapping[str, Any]], int] | None = None,
+) -> dict[str, Any]:
+    """Apply the frozen drop-oldest-only projection to an exact A* input."""
+
+    if max_bytes is not None and (
+        not isinstance(max_bytes, int) or isinstance(max_bytes, bool) or max_bytes <= 0
+    ):
         raise ValueError("max_bytes must be a positive integer")
-    model_input = build_astar_model_input(authority, controller)
-    model_input["schema_version"] = "bounded_astar_search_memory_v1"
-    accepted_deltas = list(model_input["accepted_deltas"])
-    model_input["accepted_deltas"] = accepted_deltas
-    while _canonical_size(model_input) > max_bytes and accepted_deltas:
+    if max_input_tokens is not None and (
+        not isinstance(max_input_tokens, int)
+        or isinstance(max_input_tokens, bool)
+        or max_input_tokens <= 0
+        or token_counter is None
+    ):
+        raise ValueError("max_input_tokens requires a positive integer and token_counter")
+    if max_bytes is None and max_input_tokens is None:
+        raise ValueError("at least one A* input bound is required")
+    projected = json.loads(json.dumps(dict(model_input), allow_nan=False))
+    projected["schema_version"] = "bounded_astar_search_memory_v1"
+    for candidate in projected.get("successor_candidates", []):
+        if isinstance(candidate, dict) and "target_node_id" not in candidate:
+            candidate["target_node_id"] = candidate.get("target_state_id")
+    accepted_deltas = projected.get("accepted_deltas")
+    if not isinstance(accepted_deltas, list):
+        raise ValueError("accepted_deltas must be an array")
+
+    def exceeds() -> bool:
+        return (max_bytes is not None and _canonical_size(projected) > max_bytes) or (
+            max_input_tokens is not None
+            and token_counter is not None
+            and token_counter(projected) > max_input_tokens
+        )
+
+    while exceeds() and accepted_deltas:
         del accepted_deltas[0]
-    if _canonical_size(model_input) > max_bytes:
-        raise ValueError("required facts alone exceed max_bytes")
-    return model_input
+    if exceeds():
+        raise ValueError("required facts alone exceed the A* input bound")
+    return projected
 
 
 def build_astar_teacher_model_input(
@@ -89,11 +127,39 @@ def build_astar_teacher_model_input(
     return build_astar_model_input(authority, controller)
 
 
+def build_bounded_astar_teacher_model_input(
+    authority: PDDLStateAuthority,
+    controller: AStarController,
+    *,
+    max_input_tokens: int,
+    token_counter: Callable[[Mapping[str, Any]], int],
+) -> dict[str, Any]:
+    return project_bounded_astar_model_input(
+        build_astar_teacher_model_input(authority, controller),
+        max_input_tokens=max_input_tokens,
+        token_counter=token_counter,
+    )
+
+
 def build_astar_live_model_input(
     authority: PDDLStateAuthority,
     controller: AStarController,
 ) -> dict[str, Any]:
     return build_astar_model_input(authority, controller)
+
+
+def build_bounded_astar_live_model_input(
+    authority: PDDLStateAuthority,
+    controller: AStarController,
+    *,
+    max_input_tokens: int,
+    token_counter: Callable[[Mapping[str, Any]], int],
+) -> dict[str, Any]:
+    return project_bounded_astar_model_input(
+        build_astar_live_model_input(authority, controller),
+        max_input_tokens=max_input_tokens,
+        token_counter=token_counter,
+    )
 
 
 def build_astar_live_chat_messages(model_input: Mapping[str, Any]) -> list[dict[str, str]]:
@@ -129,6 +195,9 @@ __all__ = [
     "build_astar_model_input",
     "build_astar_teacher_chat_messages",
     "build_astar_teacher_model_input",
+    "build_bounded_astar_live_model_input",
     "build_bounded_astar_model_input",
+    "build_bounded_astar_teacher_model_input",
+    "project_bounded_astar_model_input",
     "serialize_astar_message_prefix",
 ]

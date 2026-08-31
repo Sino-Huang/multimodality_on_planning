@@ -37,6 +37,7 @@ def _synthetic_source(tmp_path: Path) -> tuple[Path, Path]:
             {
                 "difficulty": "easy" if index == 0 else "medium",
                 "domain_id": "blocksworld" if index == 0 else "landmark-progression",
+                "generation_max_expansions": 16,
                 "instance_id": f"paired-{index}",
                 "split": split,
                 "task_path": f"tasks/{name}",
@@ -149,6 +150,14 @@ def _synthetic_source(tmp_path: Path) -> tuple[Path, Path]:
                 "efficacy_data": False,
                 "expected_pair_count": len(rows),
                 "expected_task_count": len(rows),
+                "generation_budget": {
+                    "adapters": ["astar_hmax", "astar_landmark_count"],
+                    "decision_outcome_blind": True,
+                    "frozen_before_astar_execution": True,
+                    "max_expansions_by_difficulty": {"easy": 16, "hard": 16, "medium": 16},
+                    "policy": "shared_ceiling_by_development_difficulty",
+                    "task_specific_overrides_allowed": False,
+                },
                 "panel_purpose": "paired_astar_development",
                 "replay_proven": True,
                 "review_status": "reviewed",
@@ -318,6 +327,12 @@ def test_gate_freezes_model_budget_analysis_and_narrow_authorization(tmp_path: P
     budget = gate.components["budget"]
     assert budget["per_adapter_model_call_limit"] == "2 * matching exact_reference_decision_count"
     assert budget["per_adapter_expansion_limit"] == "matching exact_reference_expansion_count"
+    assert budget["expert_generation_expansion_limit"] == "source_row.generation_max_expansions"
+    assert budget["generation_budget"]["max_expansions_by_difficulty"] == {
+        "easy": 16,
+        "hard": 16,
+        "medium": 16,
+    }
     assert budget["panel_selection"]["outcome_blind"] is True
     assert budget["panel_selection"]["full_paired_panel_first"] is True
     assert budget["precision_qualification"] == ["scalar", "batch", "repeated_batch"]
@@ -405,6 +420,23 @@ def test_real_source_requires_matching_reviewed_audit_before_writes(tmp_path: Pa
     with pytest.raises((FileNotFoundError, ValueError), match="audit"):
         main(_run_args(source, audit, "--refresh"))
     assert not _products(tmp_path)[0].exists()
+
+
+def test_source_generation_budget_requires_positive_shared_difficulty_cap(tmp_path: Path) -> None:
+    source, audit = _synthetic_source(tmp_path)
+    rows = [json.loads(line) for line in source.read_bytes().splitlines()]
+    rows[0]["generation_max_expansions"] = 15
+    source.write_bytes(b"".join(_canonical(row) + b"\n" for row in rows))
+    with pytest.raises(ValueError, match="difficulty cap"):
+        main(_run_args(source, audit, "--refresh"))
+    assert not _products(tmp_path)[0].exists()
+
+    source, audit = _synthetic_source(tmp_path)
+    payload = json.loads(audit.read_bytes())
+    payload["generation_budget"]["max_expansions_by_difficulty"]["easy"] = 0
+    audit.write_bytes(_canonical(payload))
+    with pytest.raises(ValueError, match="positive integers"):
+        main(_run_args(source, audit, "--refresh"))
 
     _source, audit = _synthetic_source(tmp_path)
     payload = json.loads(audit.read_bytes())

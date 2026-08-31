@@ -38,12 +38,13 @@ precondition, not an invitation to substitute fixtures or claim scientific
 authorization.
 
 Each source JSONL line must be one canonical, finite JSON object with exactly
-these five non-empty string fields, followed by one LF byte (`\n`). Duplicate
+five non-empty string fields and a positive integer
+`generation_max_expansions`, followed by one LF byte (`\n`). Duplicate
 keys, blank lines, CRLF, a missing final LF, non-finite constants, whitespace,
 and noncanonical key ordering are rejected before products are considered:
 
 ```json
-{"difficulty":"easy","domain_id":"blocksworld","instance_id":"bw-001","split":"train","task_path":"data/tasks/bw-001.json"}
+{"difficulty":"easy","domain_id":"blocksworld","generation_max_expansions":16,"instance_id":"test-only-example","split":"train","task_path":"tests/fixtures/planning/blocksworld_nontrivial.json"}
 ```
 
 `split` must be `train` or `dev`; `task_path` is relative to the source manifest
@@ -62,6 +63,14 @@ passed with `--source-audit`. Its exact schema is:
   "efficacy_data": false,
   "expected_pair_count": 2,
   "expected_task_count": 2,
+  "generation_budget": {
+    "adapters": ["astar_hmax", "astar_landmark_count"],
+    "decision_outcome_blind": true,
+    "frozen_before_astar_execution": true,
+    "max_expansions_by_difficulty": {"easy": 0, "hard": 0, "medium": 0},
+    "policy": "shared_ceiling_by_development_difficulty",
+    "task_specific_overrides_allowed": false
+  },
   "panel_purpose": "paired_astar_development",
   "replay_proven": true,
   "review_status": "reviewed",
@@ -84,7 +93,9 @@ passed with `--source-audit`. Its exact schema is:
 }
 ```
 
-Replace each placeholder hash and size with the exact canonical artifact values.
+Replace each placeholder hash and size with the exact canonical artifact values,
+and replace each zero generation cap with a reviewed positive integer before any
+real source is accepted. Human/real cap values remain intentionally absent.
 The identifiers, paths, and schemas are allowlisted rather than free-form. The
 authorization must be the issue-56 PASS development authority with efficacy
 access false. The evidence must be the concrete replay-proven issue-57 BFWS
@@ -94,6 +105,13 @@ must equal the source and evidence count. The task component and generated
 authorization bind the source JSONL, audit, issue-56 authorization, and issue-57
 evidence by artifact-root-relative path, SHA-256, and byte size. An arbitrary or
 self-authored audit therefore cannot produce PASS.
+
+The source audit freezes exactly the two adapters, outcome-blind decisions,
+pre-execution freezing, one positive `easy`/`medium`/`hard` shared ceiling,
+policy `shared_ceiling_by_development_difficulty`, and no task-specific
+overrides. Every row's `generation_max_expansions` must equal its difficulty
+ceiling. The budget component binds this object and
+`expert_generation_expansion_limit: source_row.generation_max_expansions`.
 
 The bounded observable contract is
 `bounded_astar_search_memory_v1`, built by
