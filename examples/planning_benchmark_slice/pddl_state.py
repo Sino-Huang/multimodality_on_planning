@@ -191,6 +191,12 @@ class PDDLStateAuthority:
             self._previews[key] = preview
         return preview
 
+    def discard_transient_search_caches(self) -> None:
+        """Discard reproducible transition and applicability lookups, retaining all states."""
+
+        self._applicable_by_state.clear()
+        self._previews.clear()
+
     def _apply(
         self,
         state: CanonicalState,

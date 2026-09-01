@@ -3,7 +3,10 @@ from __future__ import annotations
 import json
 import subprocess
 import sys
+from collections.abc import Callable
 from pathlib import Path
+
+import pytest
 
 from examples.planning_benchmark_slice.astar_controller import AStarController, AStarOperation
 from examples.planning_benchmark_slice.astar_hmax import HMaxHeuristic
@@ -59,6 +62,41 @@ def test_controller_can_count_decisions_without_retaining_evidence() -> None:
 
     assert controller.decision_count > 0
     assert controller.decision_evidence() == ()
+
+
+def test_authority_discards_reproducible_search_caches_but_retains_states() -> None:
+    authority = _authority()
+    initial = authority.initial_state
+    action = authority.applicable_actions(initial)[0]
+    target = authority.apply(initial, action).target_state
+    authority.preview_apply(initial, action)
+
+    authority.discard_transient_search_caches()
+
+    assert authority.is_goal(initial) is False
+    assert authority.applicable_actions(target)
+
+
+def test_qualification_records_memory_limit_as_a_terminal_measurement(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    original: Callable[..., int] = HMaxHeuristic.value
+    calls = 0
+
+    def fail_after_initial_value(self, state, progress) -> int:
+        nonlocal calls
+        calls += 1
+        if calls > 1:
+            raise MemoryError
+        return original(self, state, progress)
+
+    monkeypatch.setattr(HMaxHeuristic, "value", fail_after_initial_value)
+
+    result = run_astar_qualification(_authority(), "astar_hmax")
+
+    assert result.termination == "memory_limit"
+    assert result.solution_cost is None
+    assert result.expansion_count == 0
 
 
 def test_qualification_jobs_expand_every_fixed_pair_for_both_adapters() -> None:

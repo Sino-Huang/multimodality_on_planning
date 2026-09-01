@@ -360,7 +360,7 @@ def _validate_measurement(
         or value.get("composite_node_count", 0) < value.get("world_state_count", 0)
         or not _nonnegative_number(value.get("runtime_seconds"))
         or not _nonnegative_number(value.get("peak_memory_mib"))
-        or value.get("termination") not in {"frontier_exhausted", "goal_reached"}
+        or value.get("termination") not in {"frontier_exhausted", "goal_reached", "memory_limit"}
         or (
             value.get("solution_cost") is None
             if value.get("termination") == "goal_reached"
