@@ -238,3 +238,30 @@ python scripts/run_bfws_issue59.py adjudicate --run-id four-gpu-v1
 Adjudication requires all four shard manifests, independently replays every
 selected reference and model episode, and applies the unchanged frozen gate
 deadline and structural thresholds.
+
+### Distributed terminal result
+
+The four-GPU replacement attempt completed the preregistered 15-domain
+exact-cost panel. All four rollout shards passed with 30/30 model episodes, and
+adjudication independently replayed all 60 selected exact, random-valid, base,
+and process-SFT episodes. The gate outcome is `PASS` with
+`scientific_completion: true`.
+
+The selected seed-17 process-SFT checkpoint achieved invariant-valid success
+of 0.933333, compared with 0.466667 for random-valid and 0 for the pretrained
+base. Its absolute gain over the best control was 0.466667, and the paired
+whole-instance bootstrap gain lower bound was 0.2. The process-SFT
+invalid-operation rate was 0.000452694. Exact BFWS invariant-valid success was
+1.0. All frozen invariant-valid-success, invalid-operation-rate,
+absolute-gain, and bootstrap-lower-bound checks passed.
+
+These are development-panel results from one two-epoch seed-17 training run.
+They do not estimate training-seed variance, do not access the fresh held-out
+test set, and must not be generalized beyond the 15 preregistered selected
+tasks.
+
+Exact tracked copies of the distributed terminal records are retained under
+`data/bfws_phase_v1/issue59-distributed-terminal/`: two qualification-node
+reports, the merged qualification, four rollout manifests, the adjudication
+report, and the `PASS` gate receipt. Atomic gzip episode evidence and the model
+checkpoint remain in the ignored execution output tree.
