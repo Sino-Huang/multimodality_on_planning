@@ -474,13 +474,16 @@ def _source_audit(
         "audit_id",
         "efficacy_data",
         "expected_pair_count",
+        "expected_source_candidate_count",
         "expected_task_count",
         "generation_budget",
+        "generation_budget_basis",
         "panel_purpose",
         "replay_proven",
         "review_status",
         "schema_version",
         "selection_outcome_blind",
+        "selection_policy",
         "source_authorization",
         "source_evidence",
     }
@@ -493,9 +496,21 @@ def _source_audit(
         or audit.get("review_status") != "reviewed"
         or audit.get("replay_proven") is not True
         or audit.get("selection_outcome_blind") is not True
+        or audit.get("selection_policy")
+        != {
+            "astar_outcome_used_for_selection": False,
+            "estimated_grounded_operator_ceiling": 200_000,
+            "estimated_grounded_operator_formula": "sum(object_count ** action_parameter_count)",
+            "required_adapters": ["astar_hmax", "astar_landmark_count"],
+            "unsupported_adapter_contract": "exclude",
+        }
         or audit.get("efficacy_data") is not False
+        or audit.get("generation_budget_basis")
+        != "maximum_issue57_exact_bfws_expansion_count_by_source_difficulty"
         or not _audit_count(audit.get("expected_task_count"))
         or not _audit_count(audit.get("expected_pair_count"))
+        or not _audit_count(audit.get("expected_source_candidate_count"))
+        or audit["expected_source_candidate_count"] < source_count
     ):
         raise ValueError("A* paired source audit does not prove a reviewed replay-proven development source")
     if audit.get("expected_task_count") != source_count or audit.get("expected_pair_count") != source_count:
@@ -517,7 +532,7 @@ def _source_audit(
         label="source evidence",
     )
     _validate_bfws_authorization(authorization)
-    _validate_bfws_evidence(evidence, source_count)
+    _validate_bfws_evidence(evidence, audit["expected_source_candidate_count"])
     generation_budget = _validate_generation_budget(audit.get("generation_budget"))
     return {
         "source_audit": _artifact_binding(path, payload, artifact_root),
@@ -562,8 +577,9 @@ def _bound_source_artifact(
     if value["sha256"] != hashlib.sha256(payload).hexdigest() or value["size_bytes"] != len(payload):
         raise ValueError(f"A* paired {label} hash or byte size does not match")
     parsed = _strict_json(payload, f"A* paired {label}")
-    if not isinstance(parsed, dict) or _canonical_bytes(parsed) != payload:
-        raise ValueError(f"A* paired {label} must be a canonical JSON object")
+    canonical = _canonical_bytes(parsed)
+    if not isinstance(parsed, dict) or payload not in {canonical, canonical + b"\n"}:
+        raise ValueError(f"A* paired {label} must be canonical JSON with at most one trailing LF")
     return path, parsed
 
 
@@ -591,7 +607,7 @@ def _validate_bfws_authorization(value: Mapping[str, Any]) -> None:
         raise ValueError("A* paired source authorization is not the completed issue-56 PASS authority")
 
 
-def _validate_bfws_evidence(value: Mapping[str, Any], source_count: int) -> None:
+def _validate_bfws_evidence(value: Mapping[str, Any], candidate_count: int) -> None:
     traces = value.get("traces")
     coverage = value.get("coverage")
     receipt = value.get("phase_receipt")
@@ -611,7 +627,7 @@ def _validate_bfws_evidence(value: Mapping[str, Any], source_count: int) -> None
         or value.get("schema_version") != "bfws_expert_trace_generation_v1"
         or value.get("source_issue") != 57
         or not isinstance(traces, list)
-        or len(traces) != source_count
+        or len(traces) != candidate_count
         or not isinstance(coverage, dict)
         or set(coverage)
         != {
@@ -624,8 +640,8 @@ def _validate_bfws_evidence(value: Mapping[str, Any], source_count: int) -> None
         or not isinstance(coverage.get("exact_reference_decision_count"), int)
         or isinstance(coverage.get("exact_reference_decision_count"), bool)
         or coverage["exact_reference_decision_count"] <= 0
-        or coverage.get("instance_count") != source_count
-        or coverage.get("replay_verified_instance_count") != source_count
+        or coverage.get("instance_count") != candidate_count
+        or coverage.get("replay_verified_instance_count") != candidate_count
         or not isinstance(receipt, dict)
         or receipt.get("authorization_id") != "issue-56-bfws-development-authorization-v1"
         or receipt.get("phase_id") != "issue-56-bfws-development-v1"
@@ -666,7 +682,7 @@ def _validate_evidence_pairs(pairs: list[dict[str, Any]], evidence: Mapping[str,
                 trace.get("split"),
             )
         )
-    if observed != expected:
+    if not expected <= observed or len(observed) != len(evidence["traces"]):
         raise ValueError("A* paired source task identities do not match replay-proven evidence")
 
 

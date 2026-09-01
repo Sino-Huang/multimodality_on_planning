@@ -28,14 +28,25 @@ per-adapter budgets, outcome-blind panel selection, precision probes, paired
 analysis, fixed bootstrap, and terminal outcomes are all frozen before any
 downstream materialization.
 
-## Source status and schemas
+## Frozen source and schemas
 
-The real source manifest is expected at
-`data/astar_paired_phase_v1/source-task-manifest.jsonl`. It is intentionally not
-committed yet. Therefore this repository currently has no final paired panel and
-no real issue-62 authorization products. Absence of that source is a blocking
-precondition, not an invitation to substitute fixtures or claim scientific
-authorization.
+The real source manifest is
+`data/astar_paired_phase_v1/source-task-manifest.jsonl`, with its reviewed audit
+at `data/astar_paired_phase_v1/source-audit.json` and 75 immutable task snapshots
+under `data/astar_paired_phase_v1/tasks/`. The source starts from all 105
+replay-proven issue-57 BFWS development tasks and applies one deterministic,
+A*-outcome-blind compatibility rule before either A* algorithm is executed:
+the exact Cartesian grounding estimate used by the relaxation adapters,
+`sum(object_count ** action_parameter_count)`, must not exceed 200,000 and both
+adapters must accept the declared positive-STRIPS contract.
+
+This selects 75 matched pairs (50 train and 25 dev) across 12 domains and all
+three source difficulties. Thirty candidates are excluded by the grounding
+ceiling: all Freecell, Snake, and Sokoban tasks plus the oversized Depot, Grid,
+and Storage instances. No task was selected or excluded using h_max,
+landmark-count, goal-reachability, or success outcomes. This prevents the
+untyped Freecell schemas, whose current Cartesian estimate exceeds 106 billion
+grounded operators, from turning source validation into an unbounded run.
 
 Each source JSONL line must be one canonical, finite JSON object with exactly
 five non-empty string fields and a positive integer
@@ -61,21 +72,30 @@ passed with `--source-audit`. Its exact schema is:
 {
   "audit_id": "reviewed-source-audit-id",
   "efficacy_data": false,
-  "expected_pair_count": 2,
-  "expected_task_count": 2,
+  "expected_pair_count": 75,
+  "expected_source_candidate_count": 105,
+  "expected_task_count": 75,
   "generation_budget": {
     "adapters": ["astar_hmax", "astar_landmark_count"],
     "decision_outcome_blind": true,
     "frozen_before_astar_execution": true,
-    "max_expansions_by_difficulty": {"easy": 0, "hard": 0, "medium": 0},
+    "max_expansions_by_difficulty": {"easy": 3024, "hard": 2564, "medium": 3152},
     "policy": "shared_ceiling_by_development_difficulty",
     "task_specific_overrides_allowed": false
   },
+  "generation_budget_basis": "maximum_issue57_exact_bfws_expansion_count_by_source_difficulty",
   "panel_purpose": "paired_astar_development",
   "replay_proven": true,
   "review_status": "reviewed",
   "schema_version": "astar_paired_source_audit_v1",
   "selection_outcome_blind": true,
+  "selection_policy": {
+    "astar_outcome_used_for_selection": false,
+    "estimated_grounded_operator_ceiling": 200000,
+    "estimated_grounded_operator_formula": "sum(object_count ** action_parameter_count)",
+    "required_adapters": ["astar_hmax", "astar_landmark_count"],
+    "unsupported_adapter_contract": "exclude"
+  },
   "source_authorization": {
     "identifier": "issue-56-bfws-development-authorization-v1",
     "path": "configs/experiments/bfws_phase_authorization_v1.json",
@@ -93,10 +113,10 @@ passed with `--source-audit`. Its exact schema is:
 }
 ```
 
-Replace each placeholder hash and size with the exact canonical artifact values,
-and replace each zero generation cap with a reviewed positive integer before any
-real source is accepted. Human/real cap values remain intentionally absent.
-The identifiers, paths, and schemas are allowlisted rather than free-form. The
+The retained audit contains the exact artifact hashes and sizes. Each difficulty
+cap is the maximum issue-57 exact BFWS expansion count among the selected source
+tasks of that difficulty, fixed before any A* execution. The identifiers, paths,
+and schemas are allowlisted rather than free-form. The
 authorization must be the issue-56 PASS development authority with efficacy
 access false. The evidence must be the concrete replay-proven issue-57 BFWS
 expert-trace manifest; every source row must match one evidence trace by domain,
@@ -106,11 +126,11 @@ authorization bind the source JSONL, audit, issue-56 authorization, and issue-57
 evidence by artifact-root-relative path, SHA-256, and byte size. An arbitrary or
 self-authored audit therefore cannot produce PASS.
 
-The source audit freezes exactly the two adapters, outcome-blind decisions,
-pre-execution freezing, one positive `easy`/`medium`/`hard` shared ceiling,
-policy `shared_ceiling_by_development_difficulty`, and no task-specific
-overrides. Every row's `generation_max_expansions` must equal its difficulty
-ceiling. The budget component binds this object and
+The source audit freezes exactly the two adapters, the 200,000 pre-grounding
+compatibility ceiling, outcome-blind decisions, pre-execution freezing, one
+positive `easy`/`medium`/`hard` shared ceiling, policy
+`shared_ceiling_by_development_difficulty`, and no task-specific overrides.
+Every row's `generation_max_expansions` must equal its difficulty ceiling. The budget component binds this object and
 `expert_generation_expansion_limit: source_row.generation_max_expansions`.
 
 The bounded observable contract is
@@ -160,16 +180,19 @@ fixtures. It writes nothing and reports `contract_validation_only` with
 
 ```bash
 source ~/cd_vlaplan
-cd /scratch/punim0478/sukaih/multimodality_on_planning_issue60
+cd /data/scratch/projects/punim0478/sukaih/multimodality_on_planning
 python scripts/create_astar_paired_phase_v1_manifests.py --fixture-contract --dry-run
 ```
 
-After a reviewed real source manifest is supplied, dry-run the real inputs before
-the actual refresh and check commands:
+Prepare and check the reviewed source, then dry-run, refresh, and check the real
+phase products:
 
 ```bash
 source ~/cd_vlaplan
-cd /scratch/punim0478/sukaih/multimodality_on_planning_issue60
+cd /data/scratch/projects/punim0478/sukaih/multimodality_on_planning
+python scripts/prepare_astar_paired_phase_v1_source.py --dry-run
+python scripts/prepare_astar_paired_phase_v1_source.py --refresh
+python scripts/prepare_astar_paired_phase_v1_source.py --check
 python scripts/create_astar_paired_phase_v1_manifests.py \
   --source-manifest data/astar_paired_phase_v1/source-task-manifest.jsonl \
   --source-audit data/astar_paired_phase_v1/source-audit.json \
@@ -186,9 +209,15 @@ python scripts/create_astar_paired_phase_v1_manifests.py \
 
 Every validation loop prints flushed JSON terminal progress containing
 `completed`, `total`, `elapsed_seconds`, and `estimated_remaining_seconds`.
+Source preparation also prints the current instance, its deterministic grounding
+estimate, and its selection status before moving to the next task.
 `--refresh` creates missing deterministic manifests only after all real source
 rows pass. Existing byte-identical products are accepted, but a differing v1
 product is immutable and rejected: changed source or contracts require v2.
-`--check` independently requires byte-identical regeneration. Operators must not
+`--check` independently requires byte-identical regeneration. The eight frozen
+phase products are `astar-paired-{task,trace,corpus,model,budget,analysis,freeze,authorization}-v1.json`
+under `configs/experiments/`. The authorization outcome is `PASS`, permits only
+issue-63 trace generation and issue-64 corpus release, reports
+`scientific_completion: false`, and denies efficacy-test access. Operators must not
 redirect those progress records away from the terminal or launch training or an
 efficacy experiment from this issue.

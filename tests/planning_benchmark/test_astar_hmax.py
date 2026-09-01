@@ -27,6 +27,7 @@ from examples.planning_benchmark_slice.episode_evidence import (
 )
 from examples.planning_benchmark_slice.pddl_state import CanonicalState, PDDLStateAuthority
 from examples.planning_benchmark_slice.search_episode import replay_search_episode, run_search_episode
+from examples.planning_benchmark_slice.strips_relaxation import estimated_grounded_operator_count
 from src.data_collect.governance import (
     AuthorizationReceipt,
     GateReceipt,
@@ -60,6 +61,13 @@ def test_hmax_known_blocksworld_literal_values() -> None:
     assert heuristic(initial) == 2
     assert heuristic(holding_a) == 1
     assert heuristic(goal) == 0
+
+
+def test_grounding_estimate_matches_relaxation_cartesian_contract() -> None:
+    payload = json.loads(FIXTURE.read_text())
+    authority = PDDLStateAuthority.from_pddl(payload["domain_pddl"], payload["problem_pddl"])
+
+    assert estimated_grounded_operator_count(authority) == 24
 
 
 def test_hmax_rejects_normalized_equality_preconditions() -> None:

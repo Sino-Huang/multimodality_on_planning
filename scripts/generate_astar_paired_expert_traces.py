@@ -7,6 +7,7 @@ import hashlib
 import json
 import sys
 import tempfile
+import time
 from pathlib import Path
 from typing import Any, Sequence
 
@@ -56,6 +57,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _fixture_dry_run()
 
     # Ancestor products are loaded and checked before output or receipt creation.
+    preflight_started = time.monotonic()
+    _print_preflight_progress(completed=0, elapsed_seconds=0.0, status="started")
     try:
         gate = load_astar_paired_phase_gate(_DEFAULT_FREEZE, _DEFAULT_AUTHORIZATION, repo_root=_REPO_ROOT)
         rows = preflight_frozen_astar_pair_generation(gate)
@@ -74,6 +77,11 @@ def main(argv: Sequence[str] | None = None) -> int:
             flush=True,
         )
         return 2
+    _print_preflight_progress(
+        completed=1,
+        elapsed_seconds=time.monotonic() - preflight_started,
+        status="complete",
+    )
     if args.dry_run:
         print(json.dumps({
             "pair_count": len(rows),
@@ -253,6 +261,24 @@ def _request(
 
 def _print_progress(value: str) -> None:
     print(value, flush=True)
+
+
+def _print_preflight_progress(*, completed: int, elapsed_seconds: float, status: str) -> None:
+    _print_progress(
+        json.dumps(
+            {
+                "completed": completed,
+                "elapsed_seconds": round(elapsed_seconds, 6),
+                "estimated_remaining_seconds": None if completed == 0 else 0.0,
+                "pair_id": None,
+                "stage": "ancestor_preflight",
+                "status": status,
+                "total": 1,
+            },
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+    )
 
 
 if __name__ == "__main__":

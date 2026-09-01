@@ -488,13 +488,16 @@ def _validate_source_bindings(bindings: object, pairs: list[dict[str, Any]], roo
             "audit_id",
             "efficacy_data",
             "expected_pair_count",
+            "expected_source_candidate_count",
             "expected_task_count",
             "generation_budget",
+            "generation_budget_basis",
             "panel_purpose",
             "replay_proven",
             "review_status",
             "schema_version",
             "selection_outcome_blind",
+            "selection_policy",
             "source_authorization",
             "source_evidence",
         }
@@ -505,13 +508,26 @@ def _validate_source_bindings(bindings: object, pairs: list[dict[str, Any]], roo
         or audit.get("review_status") != "reviewed"
         or audit.get("replay_proven") is not True
         or audit.get("selection_outcome_blind") is not True
+        or audit.get("selection_policy")
+        != {
+            "astar_outcome_used_for_selection": False,
+            "estimated_grounded_operator_ceiling": 200_000,
+            "estimated_grounded_operator_formula": "sum(object_count ** action_parameter_count)",
+            "required_adapters": ["astar_hmax", "astar_landmark_count"],
+            "unsupported_adapter_contract": "exclude",
+        }
         or audit.get("efficacy_data") is not False
+        or audit.get("generation_budget_basis")
+        != "maximum_issue57_exact_bfws_expansion_count_by_source_difficulty"
         or not isinstance(audit.get("expected_task_count"), int)
         or isinstance(audit.get("expected_task_count"), bool)
         or not isinstance(audit.get("expected_pair_count"), int)
         or isinstance(audit.get("expected_pair_count"), bool)
         or audit.get("expected_task_count") != len(pairs)
         or audit.get("expected_pair_count") != len(pairs)
+        or not isinstance(audit.get("expected_source_candidate_count"), int)
+        or isinstance(audit.get("expected_source_candidate_count"), bool)
+        or audit["expected_source_candidate_count"] < len(pairs)
         or audit.get("source_authorization") != expected_authority_reference
         or audit.get("source_evidence") != expected_evidence_reference
     ):
@@ -519,7 +535,7 @@ def _validate_source_bindings(bindings: object, pairs: list[dict[str, Any]], roo
     validate_astar_generation_budget(audit.get("generation_budget"), pairs)
     _validate_bound_bfws_authorization(authorization)
     _validate_bound_source_rows(payloads["source_manifest"], pairs)
-    _validate_bound_bfws_evidence(evidence, pairs)
+    _validate_bound_bfws_evidence(evidence, pairs, audit["expected_source_candidate_count"])
 
 
 def _binding_payload(binding: object, root: Path, label: str) -> bytes:
@@ -583,7 +599,11 @@ def _validate_bound_source_rows(payload: bytes, pairs: list[dict[str, Any]]) -> 
         raise AStarPairedPhaseGateError("A* paired bound source manifest does not match task pairs")
 
 
-def _validate_bound_bfws_evidence(value: Mapping[str, Any], pairs: list[dict[str, Any]]) -> None:
+def _validate_bound_bfws_evidence(
+    value: Mapping[str, Any],
+    pairs: list[dict[str, Any]],
+    candidate_count: int,
+) -> None:
     traces = value.get("traces")
     coverage = value.get("coverage")
     receipt = value.get("phase_receipt")
@@ -603,8 +623,8 @@ def _validate_bound_bfws_evidence(value: Mapping[str, Any], pairs: list[dict[str
         or value.get("evidence_schema") != "search_episode_evidence_v4"
         or not isinstance(traces, list)
         or not isinstance(coverage, dict)
-        or coverage.get("instance_count") != len(pairs)
-        or coverage.get("replay_verified_instance_count") != len(pairs)
+        or coverage.get("instance_count") != candidate_count
+        or coverage.get("replay_verified_instance_count") != candidate_count
         or not isinstance(receipt, dict)
         or receipt.get("authorization_id") != "issue-56-bfws-development-authorization-v1"
         or receipt.get("phase_id") != "issue-56-bfws-development-v1"
@@ -636,7 +656,7 @@ def _validate_bound_bfws_evidence(value: Mapping[str, Any], pairs: list[dict[str
         (row["domain_id"], row["difficulty"], row["instance_id"], row["semantic_task_identity"], row["split"])
         for row in pairs
     }
-    if observed != expected or len(traces) != len(pairs):
+    if not expected <= observed or len(traces) != candidate_count or len(observed) != candidate_count:
         raise AStarPairedPhaseGateError("A* paired source evidence task identity bindings do not match")
 
 
@@ -665,8 +685,11 @@ def _json_object(path: Path, label: str) -> dict[str, Any]:
 
 def _canonical_object(payload: bytes, label: str) -> dict[str, Any]:
     value = _strict_json(payload, label)
-    if not isinstance(value, dict) or _canonical_bytes(value) != payload:
-        raise AStarPairedPhaseGateError(f"{label} must be a canonical JSON object")
+    canonical = _canonical_bytes(value)
+    if not isinstance(value, dict) or payload not in {canonical, canonical + b"\n"}:
+        raise AStarPairedPhaseGateError(
+            f"{label} must be canonical JSON with at most one trailing LF"
+        )
     return value
 
 

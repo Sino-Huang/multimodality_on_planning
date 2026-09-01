@@ -83,5 +83,8 @@ python scripts/generate_astar_paired_expert_traces.py --check
 
 There is intentionally no CLI budget override. Progress is flushed canonical
 JSON and identifies stage, pair, completed/total work, elapsed time, and ETA.
-Until issue 62 exists, real `--dry-run` exits nonzero with
-`status: ancestor_authorization_absent` and writes nothing.
+The command emits `ancestor_preflight` start/completion records around the
+persisted issue-62 validation before pair-level progress begins, so the initial
+authority check never appears stalled. A missing issue-62 authority makes real
+`--dry-run` exit nonzero with `status: ancestor_authorization_absent` and write
+nothing.

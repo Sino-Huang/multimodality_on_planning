@@ -149,6 +149,7 @@ def _synthetic_source(tmp_path: Path) -> tuple[Path, Path]:
                 "audit_id": "reviewed-synthetic-source-v1",
                 "efficacy_data": False,
                 "expected_pair_count": len(rows),
+                "expected_source_candidate_count": len(rows),
                 "expected_task_count": len(rows),
                 "generation_budget": {
                     "adapters": ["astar_hmax", "astar_landmark_count"],
@@ -158,11 +159,23 @@ def _synthetic_source(tmp_path: Path) -> tuple[Path, Path]:
                     "policy": "shared_ceiling_by_development_difficulty",
                     "task_specific_overrides_allowed": False,
                 },
+                "generation_budget_basis": (
+                    "maximum_issue57_exact_bfws_expansion_count_by_source_difficulty"
+                ),
                 "panel_purpose": "paired_astar_development",
                 "replay_proven": True,
                 "review_status": "reviewed",
                 "schema_version": "astar_paired_source_audit_v1",
                 "selection_outcome_blind": True,
+                "selection_policy": {
+                    "astar_outcome_used_for_selection": False,
+                    "estimated_grounded_operator_ceiling": 200_000,
+                    "estimated_grounded_operator_formula": (
+                        "sum(object_count ** action_parameter_count)"
+                    ),
+                    "required_adapters": ["astar_hmax", "astar_landmark_count"],
+                    "unsupported_adapter_contract": "exclude",
+                },
                 "source_authorization": binding(
                     authority_path,
                     "issue-56-bfws-development-authorization-v1",
@@ -249,6 +262,24 @@ def test_real_products_regenerate_and_gate_pair_bindings(tmp_path: Path) -> None
         assert row["pair_id"]
     assert gate.receipt(stage="trace_generation")["outcome"] == "PASS"
     assert gate.receipt(stage="corpus_release")["scientific_completion"] is False
+
+
+def test_real_products_accept_retained_upstream_canonical_json_with_lf(tmp_path: Path) -> None:
+    source, audit_path = _synthetic_source(tmp_path)
+    audit = json.loads(audit_path.read_bytes())
+    for key in ("source_authorization", "source_evidence"):
+        path = tmp_path / audit[key]["path"]
+        path.write_bytes(path.read_bytes() + b"\n")
+        payload = path.read_bytes()
+        audit[key]["sha256"] = hashlib.sha256(payload).hexdigest()
+        audit[key]["size_bytes"] = len(payload)
+    audit_path.write_bytes(_canonical(audit))
+
+    assert main(_run_args(source, audit_path, "--refresh")) == 0
+    _root, freeze, authorization = _products(tmp_path)
+    gate = load_astar_paired_phase_gate(freeze, authorization, repo_root=tmp_path)
+
+    assert gate.authorization["outcome"] == "PASS"
 
 
 def test_gate_rejects_swapped_hash_task_and_split_drift(tmp_path: Path) -> None:

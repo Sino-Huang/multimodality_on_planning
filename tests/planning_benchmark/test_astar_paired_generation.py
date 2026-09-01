@@ -54,17 +54,29 @@ def test_direct_fixture_dry_run_has_progress_exact_terminal_status_and_no_writes
     assert not output_root.exists()
 
 
-def test_real_dry_run_without_issue62_is_nonzero_and_writes_nothing(tmp_path: Path) -> None:
+def test_real_dry_run_without_issue62_reports_preflight_and_writes_nothing(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    from scripts import generate_astar_paired_expert_traces as cli
+
     output_root = tmp_path / "real-output"
-    completed = subprocess.run(
-        [sys.executable, str(SCRIPT), "--dry-run", "--output-root", str(output_root)],
-        cwd=REPO_ROOT,
-        check=False,
-        capture_output=True,
-        text=True,
-    )
-    assert completed.returncode != 0
-    assert json.loads(completed.stdout) == {
+    monkeypatch.setattr(cli, "_DEFAULT_FREEZE", tmp_path / "missing-freeze.json")
+    monkeypatch.setattr(cli, "_DEFAULT_AUTHORIZATION", tmp_path / "missing-authorization.json")
+
+    assert cli.main(["--dry-run", "--output-root", str(output_root)]) == 2
+    lines = [json.loads(line) for line in capsys.readouterr().out.splitlines()]
+    assert lines[0] == {
+        "completed": 0,
+        "elapsed_seconds": 0.0,
+        "estimated_remaining_seconds": None,
+        "pair_id": None,
+        "stage": "ancestor_preflight",
+        "status": "started",
+        "total": 1,
+    }
+    assert lines[-1] == {
         "fixture_only": False,
         "scientific_authorization": False,
         "status": "ancestor_authorization_absent",
@@ -88,7 +100,9 @@ def test_cli_does_not_start_from_merely_existing_phase_payloads(
     monkeypatch.setattr(cli, "_DEFAULT_AUTHORIZATION", authorization)
     output = tmp_path / "output"
     assert cli.main(["--dry-run", "--output-root", str(output)]) == 2
-    assert json.loads(capsys.readouterr().out)["status"] == "ancestor_authorization_absent"
+    lines = [json.loads(line) for line in capsys.readouterr().out.splitlines()]
+    assert lines[0]["stage"] == "ancestor_preflight"
+    assert lines[-1]["status"] == "ancestor_authorization_absent"
     assert not output.exists()
 
 

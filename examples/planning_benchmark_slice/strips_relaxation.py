@@ -29,6 +29,13 @@ class GroundedPositiveSTRIPSTask:
     operators: tuple[GroundedRelaxedOperator, ...]
 
 
+def estimated_grounded_operator_count(authority: PDDLStateAuthority) -> int:
+    """Return the exact Cartesian grounding count used by this relaxation adapter."""
+
+    object_count = len({item for _, values in authority.objects_by_type for item in values})
+    return sum(object_count ** len(action.parameters) for action in authority._domain.actions)
+
+
 def extract_grounded_positive_strips(authority: PDDLStateAuthority) -> GroundedPositiveSTRIPSTask:
     if authority.goal_atoms is None:
         raise UnsupportedSTRIPSTaskError("positive-conjunctive goals are required")
@@ -102,5 +109,6 @@ __all__ = [
     "GroundedPositiveSTRIPSTask",
     "GroundedRelaxedOperator",
     "UnsupportedSTRIPSTaskError",
+    "estimated_grounded_operator_count",
     "extract_grounded_positive_strips",
 ]
