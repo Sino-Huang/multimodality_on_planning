@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from collections import deque
 from copy import deepcopy
 from pathlib import Path
 
@@ -27,7 +28,10 @@ from examples.planning_benchmark_slice.episode_evidence import (
 )
 from examples.planning_benchmark_slice.pddl_state import CanonicalState, PDDLStateAuthority
 from examples.planning_benchmark_slice.search_episode import replay_search_episode, run_search_episode
-from examples.planning_benchmark_slice.strips_relaxation import estimated_grounded_operator_count
+from examples.planning_benchmark_slice.strips_relaxation import (
+    estimated_grounded_operator_count,
+    extract_grounded_positive_strips,
+)
 from src.data_collect.governance import (
     AuthorizationReceipt,
     GateReceipt,
@@ -61,6 +65,25 @@ def test_hmax_known_blocksworld_literal_values() -> None:
     assert heuristic(initial) == 2
     assert heuristic(holding_a) == 1
     assert heuristic(goal) == 0
+
+
+@pytest.mark.parametrize("fixture", (FIXTURE, UNSOLVABLE))
+def test_event_driven_hmax_matches_frozen_fixed_point_on_every_reachable_fixture_state(
+    fixture: Path,
+) -> None:
+    payload = json.loads(fixture.read_text())
+    authority = PDDLStateAuthority.from_pddl(payload["domain_pddl"], payload["problem_pddl"])
+    heuristic = HMaxHeuristic(authority)
+    frontier = deque([authority.initial_state])
+    states = {authority.initial_state.state_id: authority.initial_state}
+    while frontier:
+        state = frontier.popleft()
+        assert heuristic(state) == _fixed_point_hmax(authority, state)
+        for action in authority.applicable_actions(state):
+            target = authority.apply(state, action).target_state
+            if target.state_id not in states:
+                states[target.state_id] = target
+                frontier.append(target)
 
 
 def test_grounding_estimate_matches_relaxation_cartesian_contract() -> None:
@@ -406,3 +429,20 @@ def test_astar_terminates_only_at_popped_goal_exhaustion_or_budget(
     assert episode["result"]["goal_reached"] is goal
     assert episode["result"]["expansion_count"] == expansions
     assert replay_search_episode(episode["evidence"]) == episode
+
+
+def _fixed_point_hmax(authority: PDDLStateAuthority, state: CanonicalState) -> int:
+    task = extract_grounded_positive_strips(authority)
+    costs = {fact: 0 for fact in (*state.atoms, *task.static_facts)}
+    changed = True
+    while changed:
+        changed = False
+        for operator in task.operators:
+            if not operator.preconditions <= costs.keys():
+                continue
+            candidate = 1 + max((costs[item] for item in operator.preconditions), default=0)
+            for effect in operator.add_effects:
+                if candidate < costs.get(effect, 1_000_000_000):
+                    costs[effect] = candidate
+                    changed = True
+    return max((costs.get(goal, 1_000_000_000) for goal in task.goals), default=0)
