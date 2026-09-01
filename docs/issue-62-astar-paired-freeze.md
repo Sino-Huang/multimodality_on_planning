@@ -172,6 +172,33 @@ replay, or provenance mismatch is INVALID; ordinary threshold or resource
 failure is VALID_STOP; failed predecessor is ANCESTOR_STOP; PASS requires
 complete selected coverage.
 
+## Post-VALID_STOP fixed-panel qualification
+
+The retained issue-63 attempt 001 receipt is a `VALID_STOP` and is never rerun.
+Before a successor phase can change the expansion caps, the eventless exact
+qualification runs both frozen adapters on all 75 v1 task rows. The task
+component order is expanded mechanically to 150 jobs; the command has no task
+filter or outcome-based selection option. Each job runs in an isolated process
+with an 8 GiB address-space ceiling and retains controller search bookkeeping
+but no decision or expansion evidence.
+
+Every measurement records expansions, decisions, solution cost, composite-node
+and world-state counts, runtime, peak RSS, reopens, and termination. Progress is
+flushed while a job is running, and each completed measurement is written
+immutably so an interrupted command can resume without replacing or selecting
+tasks. The final qualification exists only after all 150 fixed jobs have a
+measurement:
+
+```bash
+source ~/cd_vlaplan
+cd /data/scratch/projects/punim0478/sukaih/multimodality_on_planning
+python scripts/qualify_astar_paired_panel.py --dry-run
+python scripts/qualify_astar_paired_panel.py
+# After interruption only:
+python scripts/qualify_astar_paired_panel.py --resume
+python scripts/qualify_astar_paired_panel.py --check
+```
+
 ## Operator checks
 
 The fixture command validates only the contract against committed planning

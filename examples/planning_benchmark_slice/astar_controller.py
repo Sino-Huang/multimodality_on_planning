@@ -116,6 +116,7 @@ class AStarController:
         *,
         accepted_delta_limit: int,
         max_budget: int | None = None,
+        retain_decision_evidence: bool = True,
     ) -> None:
         if (
             isinstance(accepted_delta_limit, bool)
@@ -153,6 +154,7 @@ class AStarController:
         self.reopen_count = 0
         self.budget_used = 0
         self.max_budget = max_budget
+        self._retain_decision_evidence_enabled = retain_decision_evidence
 
     @property
     def heuristic_name(self) -> str:
@@ -250,6 +252,13 @@ class AStarController:
             for action in self.authority.applicable_actions(state)
             if self._active_state_id is None or action not in self._submitted_actions
         )
+
+    def expansion_candidates(self) -> tuple[AStarCandidate, ...]:
+        """Return the candidates already computed for the active expansion."""
+
+        if self._active_state_id is None:
+            raise ValueError("no A* expansion is active")
+        return self._active_candidates
 
     def apply_operation(self, operation: AStarOperation, *, raw_output: str | None = None) -> AStarDecisionResult:
         raw = raw_output if raw_output is not None else _canonical_text(operation.to_dict())
@@ -442,6 +451,8 @@ class AStarController:
         return result
 
     def _retain_decision(self, result: AStarDecisionResult) -> None:
+        if not self._retain_decision_evidence_enabled:
+            return
         self._decision_evidence.append(
             {
                 "budget_charge": result.budget_charge,
