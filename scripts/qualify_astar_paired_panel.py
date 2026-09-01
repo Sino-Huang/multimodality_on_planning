@@ -177,7 +177,7 @@ def _worker(args: argparse.Namespace) -> int:
         progress=progress,
         progress_interval_seconds=args.progress_interval_seconds,
     ).to_dict()
-    result["peak_memory_mib"] = round(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024, 3)
+    result["peak_memory_mib"] = _peak_memory_mib()
     _print({"kind": "result", **result})
     return 0
 
@@ -433,6 +433,15 @@ def _artifact_binding(path: Path) -> dict[str, Any]:
         "sha256": hashlib.sha256(payload).hexdigest(),
         "size_bytes": len(payload),
     }
+
+
+def _peak_memory_mib() -> float:
+    for line in Path("/proc/self/status").read_text(encoding="utf-8").splitlines():
+        if line.startswith("VmHWM:"):
+            fields = line.split()
+            if len(fields) == 3 and fields[2] == "kB":
+                return round(int(fields[1]) / 1024, 3)
+    raise RuntimeError("Linux VmHWM is unavailable for A* qualification")
 
 
 def _json_object(path: Path) -> dict[str, Any]:
