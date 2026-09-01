@@ -386,6 +386,7 @@ def test_independent_replay_rejects_controller_defect_shaped_tampering(
         (EMPTY_GOAL, 4, "goal_reached", True, 0),
         (UNSOLVABLE, 8, "frontier_exhausted", False, 2),
         (FIXTURE, 1, "expansion_budget", False, 1),
+        (FIXTURE, 2, "goal_reached", True, 2),
     ),
 )
 def test_astar_terminates_only_at_popped_goal_exhaustion_or_budget(

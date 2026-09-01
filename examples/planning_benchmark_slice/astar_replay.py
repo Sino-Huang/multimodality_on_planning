@@ -223,19 +223,18 @@ def replay_astar_events(
         if event.get("invariants") != expected_verdict:
             raise AStarReplayError(f"A* persisted invariant verdict differs at event {expansion_index}")
 
-    if len(events) == max_expansions:
+    head = _frontier_snapshot(frontier)
+    if not head:
+        termination = "frontier_exhausted"
+        goal_reached = False
+    elif authority.is_goal(states[str(head[0]["state_id"])]):
+        termination = "goal_reached"
+        goal_reached = True
+    elif len(events) == max_expansions:
         termination = "expansion_budget"
         goal_reached = False
     else:
-        head = _frontier_snapshot(frontier)
-        if not head:
-            termination = "frontier_exhausted"
-            goal_reached = False
-        elif authority.is_goal(states[str(head[0]["state_id"])]):
-            termination = "goal_reached"
-            goal_reached = True
-        else:
-            raise AStarReplayError("A* evidence stops before a terminal condition")
+        raise AStarReplayError("A* evidence stops before a terminal condition")
 
     expected_states = {
         state_id: {

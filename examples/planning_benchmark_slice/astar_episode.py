@@ -79,7 +79,7 @@ def _run_astar_exact(
     termination = "frontier_exhausted"
     goal_reached = False
 
-    while expansion_count < max_expansions:
+    while True:
         state_id = controller.frontier_head_state_id()
         if state_id is None:
             termination = "frontier_exhausted"
@@ -88,6 +88,9 @@ def _run_astar_exact(
         if authority.is_goal(state):
             termination = "goal_reached"
             goal_reached = True
+            break
+        if expansion_count >= max_expansions:
+            termination = "expansion_budget"
             break
 
         observation = build_astar_live_model_input(authority, controller)
@@ -137,8 +140,6 @@ def _run_astar_exact(
             }
         )
         expansion_count += 1
-    else:
-        termination = "expansion_budget"
 
     return AStarSearchSummary(
         controller=controller,

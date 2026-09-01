@@ -270,6 +270,7 @@ def test_independent_landmark_replay_rejects_tampering(tmp_path: Path, field: st
     ("fixture", "budget", "termination", "goal"),
     (
         (FIXTURE, 1, "expansion_budget", False),
+        (FIXTURE, 2, "goal_reached", True),
         (UNSOLVABLE, 8, "frontier_exhausted", False),
     ),
 )

@@ -229,16 +229,15 @@ def replay_landmark_astar_events(
         }:
             raise AStarReplayError(f"landmark A* persisted invariant differs at event {expansion_index}")
 
-    if len(events) == max_expansions:
+    head = _frontier_snapshot(frontier)
+    if not head:
+        termination, goal_reached = "frontier_exhausted", False
+    elif authority.is_goal(node_states[str(head[0]["state_id"])]):
+        termination, goal_reached = "goal_reached", True
+    elif len(events) == max_expansions:
         termination, goal_reached = "expansion_budget", False
     else:
-        head = _frontier_snapshot(frontier)
-        if not head:
-            termination, goal_reached = "frontier_exhausted", False
-        elif authority.is_goal(node_states[str(head[0]["state_id"])]):
-            termination, goal_reached = "goal_reached", True
-        else:
-            raise AStarReplayError("landmark A* evidence stops before a terminal condition")
+        raise AStarReplayError("landmark A* evidence stops before a terminal condition")
     expected_states = {
         state_id: {"atoms": list(state.atoms), "authority_id": state.authority_id, "fluents": list(state.fluents)}
         for state_id, state in states.items()
