@@ -89,7 +89,7 @@ source ~/cd_vlaplan
 cd /data/scratch/projects/punim0478/sukaih/multimodality_on_planning
 python scripts/qualify_best_first_paired_panel.py --dry-run
 python scripts/generate_best_first_paired_expert_traces.py --fixture-dry-run
-python scripts/generate_best_first_paired_expert_traces.py --dry-run
+python scripts/generate_best_first_paired_expert_traces.py --dry-run --workers 8
 ```
 
 The real run is deliberately split so trace generation cannot start without a
@@ -117,8 +117,17 @@ python scripts/generate_best_first_paired_expert_traces.py
 python scripts/generate_best_first_paired_expert_traces.py --check
 ```
 
-Both commands flush JSON progress. A long task reports expansion, decision,
+Qualification, trace generation, and trace checking all default to at most eight
+isolated worker processes, bounded by CPU affinity. Generation schedules one
+matched pair per worker, preserves frozen panel order in the release manifest
+regardless of completion order, and verifies each completed pair before it is
+admitted. `--check` replays pairs with the same parallel scheduler. Use
+`--workers N` to set concurrency and `--memory-limit-mib N` to set the address
+space ceiling for each worker; the default is 2,048 MiB per worker, so eight
+workers can reserve up to roughly 16 GiB in aggregate.
+
+The commands flush JSON progress. A long task reports expansion, decision,
 reopen, visited-state, and elapsed-time counters every ten seconds. Interrupted
 qualification can continue with `--resume`; completed immutable pair directories
-can likewise be reused with generator `--resume`. A v3 `VALID_STOP` is retained
-and reported; it never authorizes generation.
+can likewise be replay-verified and reused with generator `--resume`. A v3
+`VALID_STOP` is retained and reported; it never authorizes generation.

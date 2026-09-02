@@ -6,10 +6,14 @@ import argparse
 import gzip
 import hashlib
 import json
+import os
+import resource
+import subprocess
 import sys
 import tempfile
 import time
 from collections.abc import Mapping, Sequence
+from concurrent.futures import CancelledError, ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any
 
@@ -35,6 +39,8 @@ _DESIGN = _REPO_ROOT / "configs/experiments/best-first-paired-design-v3.json"
 _AUTHORIZATION = _REPO_ROOT / "configs/experiments/best-first-paired-authorization-v3.json"
 _DEFAULT_QUALIFICATION = _REPO_ROOT / "data/best_first_paired_phase_v3/qualification-v1"
 _DEFAULT_OUTPUT = _REPO_ROOT / "data/best_first_paired_phase_v3/exact-traces"
+_DEFAULT_MEMORY_LIMIT_MIB = 2048
+_DEFAULT_WORKERS = min(8, len(os.sched_getaffinity(0)))
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -46,12 +52,23 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--qualification-root", type=Path, default=_DEFAULT_QUALIFICATION)
     parser.add_argument("--output-root", type=Path, default=_DEFAULT_OUTPUT)
+    parser.add_argument("--memory-limit-mib", type=int, default=_DEFAULT_MEMORY_LIMIT_MIB)
     parser.add_argument("--progress-interval-seconds", type=float, default=10.0)
+    parser.add_argument("--workers", type=int, default=_DEFAULT_WORKERS)
+    parser.add_argument("--worker", action="store_true", help=argparse.SUPPRESS)
+    parser.add_argument("--worker-pair-id", help=argparse.SUPPRESS)
+    parser.add_argument("--verify-only", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args(argv)
+    if args.worker:
+        return _worker(args)
     if args.fixture_dry_run:
         return _fixture_dry_run()
     if args.resume and (args.dry_run or args.check):
         parser.error("--resume cannot be combined with --dry-run or --check")
+    if args.memory_limit_mib <= 0:
+        parser.error("--memory-limit-mib must be positive")
+    if args.workers <= 0:
+        parser.error("--workers must be positive")
 
     phase = load_best_first_phase(_DESIGN, _AUTHORIZATION, repo_root=_REPO_ROOT)
     phase.require_stage("trace_generation")
@@ -59,27 +76,37 @@ def main(argv: Sequence[str] | None = None) -> int:
     _print(
         {
             "completed": 1,
+            "memory_limit_mib": args.memory_limit_mib,
             "pair_count": len(pairs),
             "phase_id": phase.phase_id,
             "stage": "generation_preflight",
             "status": "complete",
             "trace_count": len(pairs) * len(phase.algorithm_names),
+            "workers": args.workers,
         }
     )
     if args.dry_run:
         _print(
             {
+                "memory_limit_mib": args.memory_limit_mib,
                 "pair_count": len(pairs),
                 "phase_id": phase.phase_id,
                 "status": "authorized_dry_run",
                 "trace_count": len(pairs) * len(phase.algorithm_names),
+                "workers": args.workers,
                 "writes": 0,
             }
         )
         return 0
     output_root = args.output_root.resolve()
     if args.check:
-        manifest = _verify_release(output_root, phase)
+        manifest = _verify_release(
+            output_root,
+            phase,
+            workers=args.workers,
+            memory_limit_mib=args.memory_limit_mib,
+            progress_interval_seconds=args.progress_interval_seconds,
+        )
         _print(
             {
                 "pair_count": manifest["pair_count"],
@@ -94,51 +121,27 @@ def main(argv: Sequence[str] | None = None) -> int:
     if output_root.exists() and not args.resume:
         raise FileExistsError(f"best-first trace output exists; use --resume: {output_root}")
     started = time.monotonic()
-    items: list[dict[str, Any]] = []
-    try:
-        for pair_index, row in enumerate(pairs, start=1):
-            _print(
-                {
-                    "completed": pair_index - 1,
-                    "elapsed_seconds": round(time.monotonic() - started, 6),
-                    "instance_id": row["instance_id"],
-                    "pair_id": row["pair_id"],
-                    "stage": "trace_generation",
-                    "status": "started",
-                    "total": len(pairs),
-                }
-            )
-            items.append(
-                _generate_pair(
-                    row,
-                    phase,
-                    output_root,
-                    resume=args.resume,
-                    progress_interval_seconds=args.progress_interval_seconds,
-                )
-            )
-            _print(
-                {
-                    "completed": pair_index,
-                    "elapsed_seconds": round(time.monotonic() - started, 6),
-                    "estimated_remaining_seconds": _eta(time.monotonic() - started, pair_index, len(pairs)),
-                    "pair_id": row["pair_id"],
-                    "stage": "trace_generation",
-                    "status": "complete",
-                    "total": len(pairs),
-                }
-            )
-    except (BestFirstTraceLimitError, MemoryError) as error:
-        reason = str(error) or type(error).__name__
+    items, valid_stop_reason, invalid_reason = _run_pairs(
+        pairs,
+        output_root=output_root,
+        resume=args.resume,
+        workers=args.workers,
+        memory_limit_mib=args.memory_limit_mib,
+        progress_interval_seconds=args.progress_interval_seconds,
+        stage="trace_generation",
+        started=started,
+    )
+    if invalid_reason is not None:
+        receipt = _receipt(phase, "INVALID", invalid_reason, len(items))
+        _write_immutable(output_root / "generation-receipt.json", _canonical_bytes(receipt))
+        _print(receipt)
+        return 1
+    if valid_stop_reason is not None:
+        reason = valid_stop_reason
         receipt = _receipt(phase, "VALID_STOP", reason, len(items))
         _write_immutable(output_root / "generation-receipt.json", _canonical_bytes(receipt))
         _print(receipt)
         return 0
-    except ValueError as error:
-        receipt = _receipt(phase, "INVALID", str(error), len(items))
-        _write_immutable(output_root / "generation-receipt.json", _canonical_bytes(receipt))
-        _print(receipt)
-        return 1
 
     manifest = {
         "algorithms": list(phase.algorithm_names),
@@ -152,9 +155,188 @@ def main(argv: Sequence[str] | None = None) -> int:
     _write_immutable(output_root / "manifest.json", _canonical_bytes(manifest))
     receipt = _receipt(phase, "PASS", None, len(items))
     _write_immutable(output_root / "generation-receipt.json", _canonical_bytes(receipt))
-    _verify_release(output_root, phase)
     _print(receipt)
     return 0
+
+
+def _worker(args: argparse.Namespace) -> int:
+    if args.worker_pair_id is None:
+        raise ValueError("trace-generation worker pair is missing")
+    memory_bytes = args.memory_limit_mib * 1024 * 1024
+    resource.setrlimit(resource.RLIMIT_AS, (memory_bytes, memory_bytes))
+    phase = load_best_first_phase(_DESIGN, _AUTHORIZATION, repo_root=_REPO_ROOT)
+    phase.require_stage("trace_generation")
+    row = next(item for item in phase.pairs if item["pair_id"] == args.worker_pair_id)
+    output_root = args.output_root.resolve()
+    try:
+        if args.verify_only:
+            pair_root = output_root / "pairs" / str(row["pair_id"])
+            item = _json_object(pair_root / "pair.json")
+            _verify_pair(row, item, pair_root, phase)
+        else:
+            item = _generate_pair(
+                row,
+                phase,
+                output_root,
+                resume=args.resume,
+                progress_interval_seconds=args.progress_interval_seconds,
+            )
+    except (BestFirstTraceLimitError, MemoryError) as error:
+        _print({"kind": "valid_stop", "reason": str(error) or type(error).__name__})
+        return 0
+    except ValueError as error:
+        _print({"kind": "invalid", "reason": str(error)})
+        return 0
+    _print({"item": item, "kind": "result"})
+    return 0
+
+
+def _run_pairs(
+    pairs: Sequence[Mapping[str, Any]],
+    *,
+    output_root: Path,
+    resume: bool,
+    workers: int,
+    memory_limit_mib: int,
+    progress_interval_seconds: float,
+    stage: str,
+    started: float,
+    verify_only: bool = False,
+) -> tuple[list[dict[str, Any]], str | None, str | None]:
+    items_by_pair: dict[str, dict[str, Any]] = {}
+    valid_stop_reason: str | None = None
+    invalid_reason: str | None = None
+    with ThreadPoolExecutor(max_workers=workers) as executor:
+        futures = {}
+        for pair_index, row in enumerate(pairs):
+            kwargs = {
+                "output_root": output_root,
+                "resume": resume,
+                "pair_index": pair_index,
+                "total": len(pairs),
+                "started": started,
+                "memory_limit_mib": memory_limit_mib,
+                "progress_interval_seconds": progress_interval_seconds,
+            }
+            if verify_only:
+                kwargs["verify_only"] = True
+            future = executor.submit(_run_pair, row, **kwargs)
+            futures[future] = row
+
+        for future in as_completed(futures):
+            row = futures[future]
+            if future.cancelled():
+                continue
+            try:
+                item = future.result()
+            except CancelledError:
+                continue
+            except BestFirstTraceLimitError as error:
+                valid_stop_reason = valid_stop_reason or str(error) or type(error).__name__
+                for pending in futures:
+                    pending.cancel()
+                continue
+            except ValueError as error:
+                invalid_reason = invalid_reason or str(error)
+                for pending in futures:
+                    pending.cancel()
+                continue
+            items_by_pair[str(row["pair_id"])] = item
+            completed = len(items_by_pair)
+            elapsed = time.monotonic() - started
+            _print(
+                {
+                    "completed": completed,
+                    "elapsed_seconds": round(elapsed, 6),
+                    "estimated_remaining_seconds": _eta(elapsed, completed, len(pairs)),
+                    "pair_id": row["pair_id"],
+                    "stage": stage,
+                    "status": "complete",
+                    "total": len(pairs),
+                }
+            )
+    items = [items_by_pair[str(row["pair_id"])] for row in pairs if str(row["pair_id"]) in items_by_pair]
+    return items, valid_stop_reason, invalid_reason
+
+
+def _run_pair(
+    row: Mapping[str, Any],
+    *,
+    output_root: Path,
+    resume: bool,
+    pair_index: int,
+    total: int,
+    started: float,
+    memory_limit_mib: int,
+    progress_interval_seconds: float,
+    verify_only: bool = False,
+) -> dict[str, Any]:
+    _print(
+        {
+            "elapsed_seconds": round(time.monotonic() - started, 6),
+            "instance_id": row["instance_id"],
+            "pair_index": pair_index,
+            "pair_id": row["pair_id"],
+            "stage": "trace_check" if verify_only else "trace_generation",
+            "status": "started",
+            "total": total,
+        }
+    )
+    command = [
+        sys.executable,
+        str(Path(__file__).resolve()),
+        "--worker",
+        "--worker-pair-id",
+        str(row["pair_id"]),
+        "--output-root",
+        str(output_root),
+        "--memory-limit-mib",
+        str(memory_limit_mib),
+        "--progress-interval-seconds",
+        str(progress_interval_seconds),
+    ]
+    if resume:
+        command.append("--resume")
+    if verify_only:
+        command.append("--verify-only")
+    process = subprocess.Popen(
+        command,
+        cwd=_REPO_ROOT,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        bufsize=1,
+    )
+    if process.stdout is None:
+        raise AssertionError("trace-generation worker output is unavailable")
+    item: dict[str, Any] | None = None
+    valid_stop_reason: str | None = None
+    invalid_reason: str | None = None
+    for line in process.stdout:
+        try:
+            payload = json.loads(line)
+        except json.JSONDecodeError:
+            _print({"message": line.rstrip(), "stage": "trace_generation_worker", "status": "log"})
+            continue
+        kind = payload.pop("kind", None)
+        if kind == "result" and isinstance(payload.get("item"), dict):
+            item = payload["item"]
+        elif kind == "valid_stop":
+            valid_stop_reason = str(payload.get("reason"))
+        elif kind == "invalid":
+            invalid_reason = str(payload.get("reason"))
+        else:
+            _print(payload)
+    return_code = process.wait()
+    if return_code != 0:
+        raise RuntimeError(f"trace-generation worker failed for {row['pair_id']} with exit {return_code}")
+    if invalid_reason is not None:
+        raise ValueError(invalid_reason)
+    if valid_stop_reason is not None:
+        raise BestFirstTraceLimitError(valid_stop_reason)
+    if item is None:
+        raise RuntimeError(f"trace-generation worker returned no result for {row['pair_id']}")
+    return item
 
 
 def _fixture_dry_run() -> int:
@@ -295,7 +477,14 @@ def _generate_pair(
     return item
 
 
-def _verify_release(output_root: Path, phase: BestFirstPhase) -> dict[str, Any]:
+def _verify_release(
+    output_root: Path,
+    phase: BestFirstPhase,
+    *,
+    workers: int,
+    memory_limit_mib: int,
+    progress_interval_seconds: float,
+) -> dict[str, Any]:
     manifest = _json_object(output_root / "manifest.json")
     if (
         manifest.get("schema_version") != "best_first_paired_expert_traces_v1"
@@ -307,11 +496,22 @@ def _verify_release(output_root: Path, phase: BestFirstPhase) -> dict[str, Any]:
         or len(manifest["pairs"]) != 75
     ):
         raise ValueError("best-first trace release manifest is invalid")
-    for row, item in zip(phase.pairs, manifest["pairs"], strict=True):
-        _verify_pair(row, item, output_root / "pairs" / str(row["pair_id"]), phase)
     receipt = _json_object(output_root / "generation-receipt.json")
     if receipt != _receipt(phase, "PASS", None, 75):
         raise ValueError("best-first generation receipt is not PASS")
+    items, valid_stop_reason, invalid_reason = _run_pairs(
+        phase.pairs,
+        output_root=output_root,
+        resume=False,
+        workers=workers,
+        memory_limit_mib=memory_limit_mib,
+        progress_interval_seconds=progress_interval_seconds,
+        stage="trace_check",
+        started=time.monotonic(),
+        verify_only=True,
+    )
+    if invalid_reason is not None or valid_stop_reason is not None or items != manifest["pairs"]:
+        raise ValueError("best-first trace release differs from its replay-verified pairs")
     return manifest
 
 

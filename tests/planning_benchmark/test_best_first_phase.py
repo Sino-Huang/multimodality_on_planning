@@ -221,6 +221,10 @@ def test_trace_generation_dry_run_targets_v3_without_writes() -> None:
             sys.executable,
             str(ROOT / "scripts/generate_best_first_paired_expert_traces.py"),
             "--dry-run",
+            "--workers",
+            "3",
+            "--memory-limit-mib",
+            "512",
         ],
         cwd=ROOT,
         check=False,
@@ -231,9 +235,100 @@ def test_trace_generation_dry_run_targets_v3_without_writes() -> None:
 
     assert completed.returncode == 0, completed.stderr
     assert json.loads(completed.stdout.splitlines()[-1]) == {
+        "memory_limit_mib": 512,
         "pair_count": 75,
         "phase_id": "issue-63-best-first-paired-v3",
         "status": "authorized_dry_run",
         "trace_count": 150,
+        "workers": 3,
         "writes": 0,
     }
+
+
+def test_parallel_trace_generation_publishes_pairs_in_canonical_order(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from scripts import generate_best_first_paired_expert_traces as command
+
+    pairs = tuple(
+        {
+            "instance_id": f"fixture-{index:03d}",
+            "pair_id": f"pair-{index:03d}",
+            "task_path": f"fixture-{index:03d}.json",
+            "task_sha256": "fixture",
+        }
+        for index in range(75)
+    )
+    phase = SimpleNamespace(
+        algorithm_names=("best_first_add_w3", "best_first_add_greedy"),
+        authorization={
+            "authorization_id": "fixture-authorization",
+            "gate_receipt": {"receipt_id": "fixture-gate"},
+            "generation_receipt_id": "generation:issue-63-best-first-paired-v3:attempt-001",
+        },
+        pairs=pairs,
+        phase_id="issue-63-best-first-paired-v3",
+        require_stage=lambda stage: None,
+    )
+    lock = threading.Lock()
+    active = 0
+    maximum_active = 0
+    calls: list[int] = []
+
+    def run_pair(
+        row,
+        *,
+        output_root,
+        resume,
+        pair_index,
+        total,
+        started,
+        memory_limit_mib,
+        progress_interval_seconds,
+    ):
+        del output_root, resume, total, started, progress_interval_seconds
+        nonlocal active, maximum_active
+        assert memory_limit_mib == 512
+        with lock:
+            active += 1
+            maximum_active = max(maximum_active, active)
+        time.sleep(0.002)
+        with lock:
+            active -= 1
+            calls.append(pair_index)
+        return {
+            "instance_id": row["instance_id"],
+            "pair_id": row["pair_id"],
+            "schema_version": "best_first_paired_trace_item_v1",
+            "task_path": "task.json",
+            "task_sha256": row["task_sha256"],
+            "traces": {},
+        }
+
+    monkeypatch.setattr(command, "load_best_first_phase", lambda *args, **kwargs: phase)
+    monkeypatch.setattr(command, "_require_complete_qualification", lambda *args, **kwargs: None)
+    monkeypatch.setattr(command, "_run_pair", run_pair)
+
+    assert (
+        command.main(
+            [
+                "--qualification-root",
+                str(tmp_path / "qualification"),
+                "--output-root",
+                str(tmp_path / "traces"),
+                "--workers",
+                "4",
+                "--memory-limit-mib",
+                "512",
+            ]
+        )
+        == 0
+    )
+    manifest = json.loads((tmp_path / "traces/manifest.json").read_bytes())
+
+    assert maximum_active == 4
+    assert sorted(calls) == list(range(75))
+    assert [item["pair_id"] for item in manifest["pairs"]] == [row["pair_id"] for row in pairs]
+    receipt = json.loads((tmp_path / "traces/generation-receipt.json").read_bytes())
+    assert receipt["outcome"] == "PASS"
