@@ -84,6 +84,11 @@ python scripts/qualify_best_first_paired_panel.py
 python scripts/generate_best_first_paired_expert_traces.py
 ```
 
+Qualification runs one isolated subprocess per job and schedules up to eight in
+parallel by default (bounded by the process CPU affinity). Use `--workers N` to
+set a smaller explicit concurrency. Per-job search order and immutable
+measurement bytes do not depend on completion order.
+
 Both commands flush JSON progress. A long task reports expansion, decision,
 reopen, visited-state, and elapsed-time counters every ten seconds. Interrupted
 qualification can continue with `--resume`; completed immutable pair directories

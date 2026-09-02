@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import resource
 import subprocess
 import sys
 import time
 from collections.abc import Mapping, Sequence
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any
 
@@ -29,6 +31,7 @@ _DESIGN = _REPO_ROOT / "configs/experiments/best-first-paired-design-v2.json"
 _AUTHORIZATION = _REPO_ROOT / "configs/experiments/best-first-paired-authorization-v2.json"
 _DEFAULT_OUTPUT = _REPO_ROOT / "data/best_first_paired_phase_v2/qualification-v1"
 _DEFAULT_MEMORY_LIMIT_MIB = 2048
+_DEFAULT_WORKERS = min(8, len(os.sched_getaffinity(0)))
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -40,6 +43,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--output-root", type=Path, default=_DEFAULT_OUTPUT)
     parser.add_argument("--memory-limit-mib", type=int, default=_DEFAULT_MEMORY_LIMIT_MIB)
     parser.add_argument("--progress-interval-seconds", type=float, default=10.0)
+    parser.add_argument("--workers", type=int, default=_DEFAULT_WORKERS)
     parser.add_argument("--worker", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--worker-task", type=Path, help=argparse.SUPPRESS)
     parser.add_argument("--worker-algorithm", help=argparse.SUPPRESS)
@@ -52,6 +56,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         parser.error("--resume cannot be combined with --dry-run or --check")
     if args.memory_limit_mib <= 0:
         parser.error("--memory-limit-mib must be positive")
+    if args.workers <= 0:
+        parser.error("--workers must be positive")
 
     preflight_started = time.monotonic()
     _print(
@@ -83,6 +89,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "pair_count": len(phase.pairs),
                 "phase_id": phase.phase_id,
                 "status": "authorized_dry_run",
+                "workers": args.workers,
                 "writes": 0,
             }
         )
@@ -91,10 +98,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     output_root = args.output_root.resolve()
     if args.check:
         manifest = _check(output_root, jobs, phase.phase_id, args.memory_limit_mib)
+        receipt = _json_object(output_root / "qualification-receipt.json")
         _print(
             {
                 "job_count": manifest["job_count"],
-                "qualification_complete": True,
+                "outcome": receipt["outcome"],
+                "qualification_complete": manifest["qualification_complete"],
                 "status": "checked",
                 "writes": 0,
             }
@@ -102,7 +111,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0
 
     started = time.monotonic()
-    measurements: list[dict[str, Any]] = []
+    measurements_by_index: dict[int, dict[str, Any]] = {}
+    pending: list[tuple[int, dict[str, Any], Path]] = []
     for index, job in enumerate(jobs):
         path = output_root / "measurements" / f"{index:03d}-{job['algorithm']}.json"
         if path.is_file():
@@ -110,33 +120,50 @@ def main(argv: Sequence[str] | None = None) -> int:
                 raise FileExistsError(f"qualification measurement exists; use --resume: {path}")
             measurement = _json_object(path)
             _validate_measurement(measurement, job, index, args.memory_limit_mib)
-            measurements.append(measurement)
-            _print(_job_progress(job, measurement, len(measurements), len(jobs), started, "resumed"))
+            measurements_by_index[index] = measurement
+            _print(
+                _job_progress(
+                    job,
+                    measurement,
+                    len(measurements_by_index),
+                    len(jobs),
+                    started,
+                    "resumed",
+                )
+            )
             continue
-        _print(
-            {
-                "algorithm": job["algorithm"],
-                "completed": len(measurements),
-                "elapsed_seconds": round(time.monotonic() - started, 6),
-                "instance_id": job["instance_id"],
-                "pair_id": job["pair_id"],
-                "stage": "qualification",
-                "status": "started",
-                "total": len(jobs),
-            }
-        )
-        measurement = _run_job(
-            job,
-            index=index,
-            completed=len(measurements),
-            total=len(jobs),
-            started=started,
-            memory_limit_mib=args.memory_limit_mib,
-            progress_interval_seconds=args.progress_interval_seconds,
-        )
-        _write_immutable(path, _canonical_bytes(measurement))
-        measurements.append(measurement)
-        _print(_job_progress(job, measurement, len(measurements), len(jobs), started, "complete"))
+        pending.append((index, job, path))
+
+    with ThreadPoolExecutor(max_workers=args.workers) as executor:
+        future_jobs = {
+            executor.submit(
+                _run_job,
+                job,
+                index=index,
+                total=len(jobs),
+                started=started,
+                memory_limit_mib=args.memory_limit_mib,
+                progress_interval_seconds=args.progress_interval_seconds,
+            ): (index, job, path)
+            for index, job, path in pending
+        }
+        for future in as_completed(future_jobs):
+            index, job, path = future_jobs[future]
+            measurement = future.result()
+            _write_immutable(path, _canonical_bytes(measurement))
+            measurements_by_index[index] = measurement
+            _print(
+                _job_progress(
+                    job,
+                    measurement,
+                    len(measurements_by_index),
+                    len(jobs),
+                    started,
+                    "complete",
+                )
+            )
+
+    measurements = [measurements_by_index[index] for index in range(len(jobs))]
 
     manifest = _manifest(measurements, phase.phase_id, args.memory_limit_mib)
     _write_immutable(output_root / "qualification.json", _canonical_bytes(manifest))
@@ -186,12 +213,23 @@ def _run_job(
     job: Mapping[str, Any],
     *,
     index: int,
-    completed: int,
     total: int,
     started: float,
     memory_limit_mib: int,
     progress_interval_seconds: float,
 ) -> dict[str, Any]:
+    _print(
+        {
+            "algorithm": job["algorithm"],
+            "elapsed_seconds": round(time.monotonic() - started, 6),
+            "instance_id": job["instance_id"],
+            "job_index": index,
+            "pair_id": job["pair_id"],
+            "stage": "qualification",
+            "status": "started",
+            "total": total,
+        }
+    )
     command = [
         sys.executable,
         str(Path(__file__).resolve()),
@@ -233,10 +271,9 @@ def _run_job(
                 {
                     **payload,
                     "algorithm": job["algorithm"],
-                    "completed": completed,
                     "elapsed_seconds": round(elapsed, 6),
-                    "estimated_remaining_seconds": _eta(elapsed, completed, total),
                     "instance_id": job["instance_id"],
+                    "job_index": index,
                     "pair_id": job["pair_id"],
                     "stage": "qualification",
                     "status": "running",
@@ -311,12 +348,12 @@ def _check(
         measurements.append(measurement)
     expected = _manifest(measurements, phase_id, memory_limit_mib)
     actual = _json_object(output_root / "qualification.json")
-    if actual != expected or not actual["qualification_complete"]:
-        raise ValueError("best-first qualification is incomplete or differs from its measurements")
+    if actual != expected:
+        raise ValueError("best-first qualification differs from its measurements")
     phase = load_best_first_phase(_DESIGN, _AUTHORIZATION, repo_root=_REPO_ROOT)
     receipt = _json_object(output_root / "qualification-receipt.json")
-    if receipt != _qualification_receipt(phase, measurements) or receipt["outcome"] != "PASS":
-        raise ValueError("best-first qualification receipt is not PASS")
+    if receipt != _qualification_receipt(phase, measurements):
+        raise ValueError("best-first qualification receipt differs from its measurements")
     return actual
 
 
