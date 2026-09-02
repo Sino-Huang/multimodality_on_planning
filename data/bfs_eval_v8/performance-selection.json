@@ -1,0 +1,50 @@
+{
+  "coverage": {
+    "maximum_scheduled_calls": 10788,
+    "mode": "cost_qualified_panel",
+    "outcome": "PASS",
+    "projected_rollout_seconds": 49725.893939742346,
+    "task_ids": [
+      "15puzzle-dev-easy-0000",
+      "blocksworld-dev-easy-0000",
+      "depot-dev-easy-0000",
+      "driverlog-dev-medium-0000",
+      "elevators-dev-easy-0000",
+      "ferry-dev-easy-0000",
+      "freecell-dev-hard-0000",
+      "grid-dev-easy-0000",
+      "gripper-dev-medium-0000",
+      "logistics-dev-easy-0000",
+      "snake-dev-easy-0000",
+      "sokoban-dev-easy-0000",
+      "storage-dev-easy-0000",
+      "towers_of_hanoi-dev-medium-0000",
+      "visitall-dev-easy-0000"
+    ]
+  },
+  "performance_receipt": {
+    "calls_per_second_lower_95": 0.2606015386320095,
+    "max_batch_input_tokens": 48000,
+    "max_batch_size": 8,
+    "model_load_seconds": 41.243949921801686,
+    "outcomes_observed": false,
+    "probe_ids": [
+      "ferry-dev-easy-0000:0:process",
+      "grid-dev-easy-0000:79:process",
+      "snake-dev-easy-0000:51:process",
+      "blocksworld-dev-medium-0000:0:process",
+      "freecell-dev-medium-0000:86:process",
+      "depot-dev-medium-0000:123:process",
+      "blocksworld-dev-hard-0000:0:process",
+      "logistics-dev-hard-0000:155:process",
+      "storage-dev-hard-0000:248:process"
+    ],
+    "replay_calls_per_second": 64.56146936291299,
+    "runtime_overhead_seconds_per_call": 0.000043450467702415255,
+    "schema_version": "search_performance_qualification_v1"
+  },
+  "schema_version": "bfs_v8_performance_selection_v1",
+  "selected_panel": "data/bfs_eval_v8/selected-panel.json",
+  "unique_model_sessions_per_task": 6,
+  "uses_success_outcomes": false
+}

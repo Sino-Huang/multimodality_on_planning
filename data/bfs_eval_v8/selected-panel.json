@@ -1,0 +1,26 @@
+{
+  "difficulty_counts": {"easy": 11, "hard": 1, "medium": 3},
+  "exact_reference_decision_sum": 899,
+  "schema_version": "bfs_v8_evaluation_panel_v1",
+  "selection_inputs": ["domain_id", "difficulty", "exact_reference_decision_count"],
+  "selection_uses_model_outcomes": false,
+  "source_manifest": "data/bfs_pilot_v6/selected-manifest.jsonl",
+  "task_count": 15,
+  "tasks": [
+    {"difficulty": "easy", "domain_id": "15puzzle", "exact_reference_decisions": 10, "instance_id": "15puzzle-dev-easy-0000"},
+    {"difficulty": "easy", "domain_id": "blocksworld", "exact_reference_decisions": 22, "instance_id": "blocksworld-dev-easy-0000"},
+    {"difficulty": "easy", "domain_id": "depot", "exact_reference_decisions": 10, "instance_id": "depot-dev-easy-0000"},
+    {"difficulty": "medium", "domain_id": "driverlog", "exact_reference_decisions": 101, "instance_id": "driverlog-dev-medium-0000"},
+    {"difficulty": "easy", "domain_id": "elevators", "exact_reference_decisions": 9, "instance_id": "elevators-dev-easy-0000"},
+    {"difficulty": "easy", "domain_id": "ferry", "exact_reference_decisions": 5, "instance_id": "ferry-dev-easy-0000"},
+    {"difficulty": "hard", "domain_id": "freecell", "exact_reference_decisions": 378, "instance_id": "freecell-dev-hard-0000"},
+    {"difficulty": "easy", "domain_id": "grid", "exact_reference_decisions": 82, "instance_id": "grid-dev-easy-0000"},
+    {"difficulty": "medium", "domain_id": "gripper", "exact_reference_decisions": 113, "instance_id": "gripper-dev-medium-0000"},
+    {"difficulty": "easy", "domain_id": "logistics", "exact_reference_decisions": 8, "instance_id": "logistics-dev-easy-0000"},
+    {"difficulty": "easy", "domain_id": "snake", "exact_reference_decisions": 53, "instance_id": "snake-dev-easy-0000"},
+    {"difficulty": "easy", "domain_id": "sokoban", "exact_reference_decisions": 7, "instance_id": "sokoban-dev-easy-0000"},
+    {"difficulty": "easy", "domain_id": "storage", "exact_reference_decisions": 5, "instance_id": "storage-dev-easy-0000"},
+    {"difficulty": "medium", "domain_id": "towers_of_hanoi", "exact_reference_decisions": 94, "instance_id": "towers_of_hanoi-dev-medium-0000"},
+    {"difficulty": "easy", "domain_id": "visitall", "exact_reference_decisions": 2, "instance_id": "visitall-dev-easy-0000"}
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "authorization_id": "issue-54-bfs-deadline-panel-authorization-v8",
+  "authorized_stages": ["performance_qualification", "batched_evaluation", "replay_and_adjudication"],
+  "contract_id": "issue-54-bfs-deadline-panel-v8",
+  "downstream_issues": [54],
+  "freeze_manifest_path": "configs/experiments/bfs_phase_freeze_v8.json",
+  "outcome": "PASS",
+  "parent_issue": 38,
+  "phase_id": "issue-54-bfs-deadline-panel-v8",
+  "schema_version": "bfs_phase_authorization_v8",
+  "scientific_completion": false,
+  "source_issue": 54
+}

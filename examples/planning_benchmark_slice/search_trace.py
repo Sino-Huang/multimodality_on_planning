@@ -74,6 +74,10 @@ class SearchTraceSegment:
     _record_payloads: tuple[bytes, ...]
     _tail_memory: bytes
 
+    @property
+    def record_count(self) -> int:
+        return len(self._record_payloads)
+
     def to_bytes(self) -> bytes:
         records = [_load_canonical_json(item) for item in self._record_payloads]
         return _canonical_bytes(
@@ -189,17 +193,29 @@ def append_trusted_search_trace_record(
     limits: TraceSegmentLimits,
 ) -> SearchTraceSegment:
     """Append runtime-produced operations; validate the complete trace once at the end."""
-
-    return _append_search_trace_record(
-        segment,
-        memory_before=memory_before,
-        observation=observation,
-        rationale=rationale,
-        operation=operation,
-        result=result,
-        limits=limits,
-        validate_existing=False,
-        enforce_size=False,
+    if not isinstance(segment, SearchTraceSegment):
+        raise SearchTraceError("segment must be a SearchTraceSegment")
+    if len(segment._record_payloads) >= limits.max_records:
+        raise SearchTraceError("trace exceeds max_records")
+    if memory_before.authority.authority_id != segment.authority_id:
+        raise SearchTraceError("memory authority does not match trace authority")
+    if not isinstance(observation, Mapping) or not isinstance(rationale, str):
+        raise SearchTraceError("runtime trace observation and rationale are malformed")
+    operation_payload = _serialize_operation(operation)
+    result_payload = _serialize_result(result)
+    _validate_operation_result(operation_payload, result_payload)
+    record = {
+        "index": segment.record_count,
+        "observation": _normalize_json(observation, path="observation"),
+        "rationale": rationale,
+        "operation": operation_payload,
+        "result": result_payload,
+    }
+    return SearchTraceSegment(
+        schema_version=segment.schema_version,
+        authority_id=segment.authority_id,
+        _record_payloads=(*segment._record_payloads, _canonical_bytes(record)),
+        _tail_memory=b"runtime-trace-requires-final-replay",
     )
 
 

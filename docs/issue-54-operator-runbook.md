@@ -110,3 +110,84 @@ products, reports each seed, performs the frozen whole-instance paired
 bootstrap, and emits an explicit `PASS`, `VALID_STOP`, `ANCESTOR_STOP`, or
 `INVALID` gate receipt. `VALID_STOP` and `ANCESTOR_STOP` include a downstream
 `gated-not-run` receipt; `INVALID` is never scientific completion.
+
+## Evaluation-only v7 resource gate
+
+V7 reuses the immutable v6 corpus and checkpoint-1221 adapter from each seed.
+It loads one float32 Qwen backbone on each of the two A100 80 GB GPUs; float32
+is required because pinned bf16 inference did not produce byte-identical scalar
+and padded-batch greedy outputs.
+
+Run the outcome-blind performance qualification first:
+
+```bash
+python scripts/probe_bfs_batched_throughput.py \
+  --devices cuda:0 cuda:1 \
+  --output outputs/bfs_phase/issue54-v7-qualification.json
+```
+
+If that receipt emits `VALID_STOP`, do not launch a rollout. If it certifies
+`full` or `panel`, launch exactly two deterministic task shards concurrently:
+
+```bash
+python scripts/run_bfs_batched_rollout.py \
+  --qualification outputs/bfs_phase/issue54-v7-qualification.json \
+  --output-root outputs/bfs_phase/issue54-v7-rollout-shard-0 \
+  --attempt-id issue-54-v7-rollout-shard-0 --device cuda:0 \
+  --device-shard-index 0 &
+python scripts/run_bfs_batched_rollout.py \
+  --qualification outputs/bfs_phase/issue54-v7-qualification.json \
+  --output-root outputs/bfs_phase/issue54-v7-rollout-shard-1 \
+  --attempt-id issue-54-v7-rollout-shard-1 --device cuda:1 \
+  --device-shard-index 1 &
+wait
+```
+
+Both commands accept `--resume`. On SIGINT or the 18-hour cutoff, the scheduler
+persists episodes that already completed and launches no further batch. It does
+not drain queued requests.
+
+After both complete, replay and adjudicate the selected product:
+
+```bash
+python scripts/adjudicate_bfs_batched_gate.py \
+  --qualification outputs/bfs_phase/issue54-v7-qualification.json \
+  --rollout-root outputs/bfs_phase/issue54-v7-rollout-shard-0 \
+  --rollout-root outputs/bfs_phase/issue54-v7-rollout-shard-1 \
+  --output-root outputs/bfs_phase/issue54-v7-adjudication \
+  --attempt-id issue-54-v7-adjudication
+```
+
+## Deadline-qualified v8 panel
+
+V8 derives a 15-task evaluation panel from the existing v6 development set;
+it does not generate or copy task instances. The panel keeps one task from
+every domain (11 easy, 3 medium, 1 hard), all five seeds, and only final
+checkpoint 1221. Exact-reference cost balancing assigns 449 decisions to one
+GPU shard and 450 to the other. The retained two-A100 receipt projects 13.81
+rollout hours including the 20% safety margin.
+
+Start the single global clock and both A100 shards through the restart-safe
+helper:
+
+```bash
+source ~/cd_vlaplan
+./scripts/run_bfs_v8_evaluation.sh
+```
+
+The helper creates the qualification file once, reuses its global start time,
+forwards SIGINT to both schedulers, skips completed shards, and automatically
+passes `--resume` for incomplete roots. If interrupted, run the same helper
+again.
+
+After both manifests exist, adjudicate:
+
+```bash
+python scripts/adjudicate_bfs_batched_gate.py \
+  --phase v8 \
+  --qualification outputs/bfs_phase/issue54-v8-qualification.json \
+  --rollout-root outputs/bfs_phase/issue54-v8-rollout-shard-0 \
+  --rollout-root outputs/bfs_phase/issue54-v8-rollout-shard-1 \
+  --output-root outputs/bfs_phase/issue54-v8-adjudication \
+  --attempt-id issue-54-v8-adjudication
+```

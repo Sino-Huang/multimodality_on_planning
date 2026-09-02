@@ -231,6 +231,17 @@ def test_materializes_every_checkpoint_and_one_record_atomic_segment() -> None:
         )
 
 
+def test_incremental_context_is_byte_identical_to_replay_at_every_position() -> None:
+    trace_bytes, authority, _, _ = _three_record_trace("left-future")
+
+    assert search_context.verify_incremental_replay_contexts(
+        trace_bytes,
+        authority=authority,
+        limits=LIMITS,
+        accepted_delta_limit=2,
+    )
+
+
 def test_materializes_single_pass_without_rebuilding_atomic_segments(monkeypatch: pytest.MonkeyPatch) -> None:
     trace_bytes, authority, boundary_memories, _ = _three_record_trace("left-future")
 

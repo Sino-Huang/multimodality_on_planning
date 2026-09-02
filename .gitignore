@@ -153,8 +153,10 @@ cache/
 data/*
 !data/astar_paired_phase_v1/
 !data/astar_paired_phase_v1/**
+data/astar_paired_phase_v1/qualification-v1/
 !data/bfs_pilot_v5/
 !data/bfs_pilot_v6/
+!data/bfs_eval_v8/
 playground/Models
 =4.43.2
 

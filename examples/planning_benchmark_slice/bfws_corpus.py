@@ -50,6 +50,7 @@ _CURRICULUM_SCHEMA = "bfws_text_corpus_curriculum_v1"
 _AUDIT_SCHEMA = "bfws_text_corpus_audit_v1"
 _TRAINING_SCHEMA = "bfws_process_training_projection_v1"
 _DIFFICULTY_ORDER = {"easy": 0, "medium": 1, "hard": 2}
+_RETAINED_TRACE_AUDIT_IMPLEMENTATION_SHA256 = "8e474a83ce694def62c64c510bd82ab368cb47b8cfb4743107afee9d1e45cbc4"
 
 
 @dataclass(frozen=True, slots=True)
@@ -107,6 +108,9 @@ def materialize_frozen_bfws_corpus_trace(
             "revision": training["model"]["revision"],
         },
     )
+    # The retained v1 audit binds the implementation used to create it; replay
+    # below validates the trace against the current runtime without rewriting history.
+    expected_binding["implementation_sha256"] = _RETAINED_TRACE_AUDIT_IMPLEMENTATION_SHA256
     if set(audit_part) != {"binding", "result"} or audit_part["binding"] != expected_binding:
         raise ValueError(f"BFWS corpus source audit binding differs: {row['instance_id']}")
     source_audit = audit_part["result"]

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from collections import deque
+from dataclasses import dataclass, field
 from types import MappingProxyType
 from typing import Any, Mapping
 
@@ -72,6 +73,7 @@ class SearchMemoryCheckpoint:
     authority_id: str
     snapshot: SearchMemorySnapshot
     _accepted_transition_payloads: tuple[bytes, ...]
+    _live_memory: SearchMemory | None = field(default=None, repr=False, compare=False)
 
     def restore(self, authority: PDDLStateAuthority) -> SearchMemory:
         if not isinstance(authority, PDDLStateAuthority):
@@ -80,7 +82,11 @@ class SearchMemoryCheckpoint:
             raise TraceMaterializationError("checkpoint belongs to a different authority")
 
         try:
-            memory = _restore_checkpoint_memory(authority, self._accepted_transition_payloads)
+            memory = (
+                self._live_memory
+                if self._live_memory is not None
+                else _restore_checkpoint_memory(authority, self._accepted_transition_payloads)
+            )
             if _snapshot_from_memory(memory) != self.snapshot:
                 raise SearchTraceError("restored checkpoint memory does not match its typed snapshot")
             return memory
@@ -125,6 +131,78 @@ class RollingSearchContext:
         return self._payload
 
 
+class IncrementalSearchContext:
+    """Live rolling context updated once per accepted runtime operation."""
+
+    __slots__ = ("_accepted_delta_limit", "_accepted_deltas", "_limits", "_memory")
+
+    def __init__(
+        self,
+        memory: SearchMemory,
+        *,
+        accepted_delta_limit: int,
+        limits: TraceSegmentLimits,
+    ) -> None:
+        if not isinstance(memory, SearchMemory):
+            raise TypeError("memory must be a SearchMemory")
+        if (
+            isinstance(accepted_delta_limit, bool)
+            or not isinstance(accepted_delta_limit, int)
+            or accepted_delta_limit <= 0
+        ):
+            raise ValueError("accepted_delta_limit must be a positive integer")
+        if not isinstance(limits, TraceSegmentLimits):
+            raise TypeError("limits must be TraceSegmentLimits")
+        self._memory = memory
+        self._accepted_delta_limit = accepted_delta_limit
+        self._accepted_deltas: deque[AcceptedSearchDelta] = deque(maxlen=accepted_delta_limit)
+        self._limits = limits
+
+    @property
+    def memory(self) -> SearchMemory:
+        return self._memory
+
+    def accept(
+        self,
+        *,
+        record_index: int,
+        operation: SearchTransitionRequest | SearchRetireRequest,
+        result: AcceptedTransition | AcceptedRetirement,
+    ) -> None:
+        """Advance the live snapshot and retain only the bounded transition tail."""
+
+        if result.memory.authority.authority_id != self._memory.authority.authority_id:
+            raise TraceMaterializationError("live result belongs to a different authority")
+        if isinstance(result, AcceptedTransition):
+            if not isinstance(operation, SearchTransitionRequest):
+                raise TraceMaterializationError("accepted transition has invalid operation type")
+            self._accepted_deltas.append(
+                AcceptedSearchDelta(
+                    record_index=record_index,
+                    operation=operation,
+                    transition=result.transition,
+                    evaluation=result.evaluation,
+                )
+            )
+        elif not isinstance(result, AcceptedRetirement) or not isinstance(operation, SearchRetireRequest):
+            raise TraceMaterializationError("accepted retirement has invalid operation type")
+        self._memory = result.memory
+
+    def rolling_context(self) -> RollingSearchContext:
+        checkpoint = SearchMemoryCheckpoint(
+            authority_id=self._memory.authority.authority_id,
+            snapshot=_live_snapshot_from_memory(self._memory),
+            _accepted_transition_payloads=(),
+            _live_memory=self._memory,
+        )
+        deltas = tuple(self._accepted_deltas)
+        return RollingSearchContext(
+            checkpoint=checkpoint,
+            accepted_deltas=deltas,
+            _payload=_build_rolling_context_payload(checkpoint, deltas, limits=self._limits),
+        )
+
+
 @dataclass(frozen=True, slots=True)
 class _MaterializedRecord:
     record_index: int
@@ -166,6 +244,47 @@ class MaterializedSearchTrace:
             limits=self._limits,
         )
         return RollingSearchContext(checkpoint=checkpoint, accepted_deltas=deltas, _payload=payload)
+
+    def rolling_contexts_before(
+        self,
+        record_indices: tuple[int, ...],
+        *,
+        accepted_delta_limit: int,
+    ) -> tuple[RollingSearchContext, ...]:
+        """Build many replay-derived contexts in one forward pass."""
+
+        if (
+            isinstance(accepted_delta_limit, bool)
+            or not isinstance(accepted_delta_limit, int)
+            or accepted_delta_limit <= 0
+        ):
+            raise TraceMaterializationError("accepted_delta_limit must be a positive integer")
+        if any(
+            isinstance(index, bool) or not isinstance(index, int) or index < 0 or index > len(self._records)
+            for index in record_indices
+        ):
+            raise TraceMaterializationError("record index is outside the trace")
+        accepted: deque[AcceptedSearchDelta] = deque(maxlen=accepted_delta_limit)
+        contexts: list[RollingSearchContext] = []
+        cursor = 0
+        for record_index in record_indices:
+            if record_index < cursor:
+                raise TraceMaterializationError("record indices must be nondecreasing")
+            while cursor < record_index:
+                delta = self._records[cursor].accepted_delta
+                if delta is not None:
+                    accepted.append(delta)
+                cursor += 1
+            checkpoint = self.checkpoints[record_index]
+            deltas = tuple(accepted)
+            contexts.append(
+                RollingSearchContext(
+                    checkpoint=checkpoint,
+                    accepted_deltas=deltas,
+                    _payload=_build_rolling_context_payload(checkpoint, deltas, limits=self._limits),
+                )
+            )
+        return tuple(contexts)
 
 
 def materialize_search_trace(
@@ -233,6 +352,51 @@ def materialize_search_trace(
         raise TraceMaterializationError("search trace could not be materialized") from error
 
 
+def verify_incremental_replay_contexts(
+    payload: bytes,
+    *,
+    authority: PDDLStateAuthority,
+    limits: TraceSegmentLimits,
+    accepted_delta_limit: int,
+) -> bool:
+    """Compare live and replay-derived rolling context bytes at every trace position."""
+
+    materialized = materialize_search_trace(
+        payload,
+        authority=authority,
+        limits=limits,
+        include_atomic_segments=False,
+    )
+    envelope = _validated_envelope(payload, limits=limits)
+    live = IncrementalSearchContext(
+        SearchMemory.initial(authority),
+        accepted_delta_limit=accepted_delta_limit,
+        limits=limits,
+    )
+    for index, persisted_record in enumerate(envelope["records"]):
+        expected = materialized.rolling_context_before(
+            index,
+            accepted_delta_limit=accepted_delta_limit,
+        )
+        if live.rolling_context().to_bytes() != expected.to_bytes():
+            raise TraceMaterializationError(f"incremental rolling context differs at record {index}")
+        operation = _decode_operation(persisted_record["operation"])
+        result = _apply_persisted_transition(
+            live.memory,
+            persisted_record["operation"],
+            persisted_record["result"],
+        )
+        if isinstance(result, (AcceptedTransition, AcceptedRetirement)):
+            live.accept(record_index=index, operation=operation, result=result)
+    final_expected = materialized.rolling_context_before(
+        len(envelope["records"]),
+        accepted_delta_limit=accepted_delta_limit,
+    )
+    if live.rolling_context().to_bytes() != final_expected.to_bytes():
+        raise TraceMaterializationError("incremental rolling context differs after the final record")
+    return True
+
+
 def _materialize_validated_envelope(
     envelope: Mapping[str, Any],
     *,
@@ -288,7 +452,7 @@ def _materialize_validated_envelope(
         records.append(record)
 
         memory = actual.memory
-        if is_successful:
+        if is_successful and include_atomic_segments:
             accepted_transition_payloads = (
                 *accepted_transition_payloads,
                 _checkpoint_transition_bytes(persisted_record["operation"], persisted_record["result"]),
@@ -426,6 +590,7 @@ def _checkpoint_from_memory(
         authority_id=memory.authority.authority_id,
         snapshot=_snapshot_from_memory(memory),
         _accepted_transition_payloads=accepted_transition_payloads,
+        _live_memory=memory,
     )
 
 
@@ -437,6 +602,19 @@ def _snapshot_from_memory(memory: SearchMemory) -> SearchMemorySnapshot:
         heuristics=MappingProxyType(dict(memory.heuristics)),
         provenance=tuple(memory.provenance),
         known_states=MappingProxyType(dict(memory._known_states)),
+    )
+
+
+def _live_snapshot_from_memory(memory: SearchMemory) -> SearchMemorySnapshot:
+    """Expose immutable live SearchMemory fields without copying growing maps."""
+
+    return SearchMemorySnapshot(
+        frontier=memory.frontier,
+        visited=memory.visited,
+        novelty=memory.novelty,
+        heuristics=memory.heuristics,
+        provenance=memory.provenance,
+        known_states=memory._known_states,
     )
 
 
@@ -498,10 +676,12 @@ def _apply_persisted_transition(
 __all__ = [
     "AcceptedSearchDelta",
     "AtomicSearchTraceSegment",
+    "IncrementalSearchContext",
     "MaterializedSearchTrace",
     "RollingSearchContext",
     "SearchMemoryCheckpoint",
     "SearchMemorySnapshot",
     "TraceMaterializationError",
     "materialize_search_trace",
+    "verify_incremental_replay_contexts",
 ]

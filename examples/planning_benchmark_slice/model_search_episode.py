@@ -5,6 +5,7 @@ from __future__ import annotations
 import base64
 import json
 from collections.abc import Callable, Mapping
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, NoReturn
 
@@ -19,7 +20,7 @@ from src.data_collect.replay import build_canonical_bundle, parse_canonical_bund
 
 from .bfs_model_input import build_bounded_bfs_model_input, build_bounded_bfs_model_input_v4
 from .pddl_state import CanonicalState, PDDLStateAuthority
-from .search_context import materialize_search_trace
+from .search_context import IncrementalSearchContext, RollingSearchContext, materialize_search_trace
 from .search_episode import (
     TASK_SCHEMA_VERSION,
     SearchEpisodeError,
@@ -46,14 +47,16 @@ from .search_memory import (
 from .search_trace import (
     _decode_operation,
     _serialize_result,
-    append_search_trace_record,
+    append_trusted_search_trace_record,
     replay_search_trace_segment,
     start_search_trace,
+    verify_search_trace_segment,
 )
 from .validate_instance import load_fixture
 
 MODEL_EVIDENCE_SCHEMA_VERSION = "model_search_episode_evidence_v1"
 MODEL_REQUEST_SCHEMA_VERSION_V3 = "model_search_episode_request_v3"
+MODEL_REQUEST_SCHEMA_VERSION_V4 = "model_search_episode_request_v4"
 MODEL_REQUEST_SCHEMA_VERSION = "model_search_episode_request_v2"
 _LEGACY_MODEL_REQUEST_SCHEMA_VERSION = "model_search_episode_request_v1"
 _MODEL_BUNDLE_ARTIFACTS = {
@@ -70,6 +73,22 @@ _MODEL_BUNDLE_ARTIFACTS = {
 }
 
 ModelPolicy = Callable[[Mapping[str, Any]], str]
+
+
+@dataclass(frozen=True, slots=True)
+class SearchPolicyRequest:
+    """One canonical model request emitted by an incremental episode session."""
+
+    session_id: str
+    adapter_id: str | None
+    seed: int
+    instance_id: str
+    decision_index: int
+    model_input: Mapping[str, Any]
+
+    @property
+    def canonical_input(self) -> bytes:
+        return _canonical_bytes(dict(self.model_input))
 
 
 def run_model_search_episode(
@@ -89,6 +108,8 @@ def run_model_search_episode(
     gate_receipt: GateReceipt,
     authorization_receipt: AuthorizationReceipt | None,
     ancestor_receipt_id: str | None = None,
+    max_model_calls: int | None = None,
+    adapter_id: str | None = None,
 ) -> dict[str, Any]:
     """Run model-emitted typed BFS operations without repairing model output."""
 
@@ -115,6 +136,7 @@ def run_model_search_episode(
         accepted_delta_limit=accepted_delta_limit,
         model_input_projection=model_input_projection,
         seed=seed,
+        max_model_calls=max_model_calls,
     )
     fixture = load_fixture(Path(task_path))
     task = {
@@ -139,6 +161,8 @@ def run_model_search_episode(
         seed=seed,
         gate_receipt=gate_receipt,
         authorization_receipt=authorization_receipt,
+        max_model_calls=max_model_calls,
+        adapter_id=adapter_id,
     )
 
 
@@ -169,13 +193,22 @@ def replay_model_search_episode(evidence: Mapping[str, Any]) -> dict[str, Any]:
     model = _load_canonical_json(artifacts["model.json"], "model identity")
     if evidence["expansions"] != expansions or evidence["policy_events"] != policy_events:
         raise SearchEpisodeError("public model evidence differs from its bundle")
-    if request.get("schema_version") not in {
-        _LEGACY_MODEL_REQUEST_SCHEMA_VERSION,
+    if (
+        request.get("schema_version")
+        not in {
+            _LEGACY_MODEL_REQUEST_SCHEMA_VERSION,
+            MODEL_REQUEST_SCHEMA_VERSION,
+            MODEL_REQUEST_SCHEMA_VERSION_V3,
+            MODEL_REQUEST_SCHEMA_VERSION_V4,
+        }
+        or request.get("model") != model
+    ):
+        raise SearchEpisodeError("model request artifact is invalid")
+    if request["schema_version"] in {
         MODEL_REQUEST_SCHEMA_VERSION,
         MODEL_REQUEST_SCHEMA_VERSION_V3,
-    } or request.get("model") != model:
-        raise SearchEpisodeError("model request artifact is invalid")
-    if request["schema_version"] in {MODEL_REQUEST_SCHEMA_VERSION, MODEL_REQUEST_SCHEMA_VERSION_V3}:
+        MODEL_REQUEST_SCHEMA_VERSION_V4,
+    }:
         _validate_projection_request(request)
 
     gate = _gate_from_payload(_load_canonical_json(artifacts["gate-receipt.json"], "model gate receipt"))
@@ -202,10 +235,23 @@ def replay_model_search_episode(evidence: Mapping[str, Any]) -> dict[str, Any]:
     max_expansions = request.get("max_expansions")
     if isinstance(max_expansions, bool) or not isinstance(max_expansions, int) or max_expansions <= 0:
         raise SearchEpisodeError("model request expansion budget is invalid")
+    if request["schema_version"] == MODEL_REQUEST_SCHEMA_VERSION_V4:
+        max_model_calls = request.get("max_model_calls")
+        if isinstance(max_model_calls, bool) or not isinstance(max_model_calls, int) or max_model_calls <= 0:
+            raise SearchEpisodeError("model request decision budget is invalid")
+    else:
+        max_model_calls = max(1, len(policy_events))
     authority = _authority_from_task(task)
     limits = _trace_limits(authority, max_expansions)
     replay_search_trace_segment(artifacts["search-trace.json"], authority=authority, limits=limits)
-    _verify_model_event_summary(policy_events, expansions, result, max_expansions, request=request)
+    _verify_model_event_summary(
+        policy_events,
+        expansions,
+        result,
+        max_expansions,
+        max_model_calls=max_model_calls,
+        request=request,
+    )
     replayed_evidence = {
         "bundle": encoded_bundle,
         "bundle_encoding": "base64",
@@ -232,214 +278,386 @@ def _execute_authorized_model_episode(
     seed: int,
     gate_receipt: GateReceipt,
     authorization_receipt: AuthorizationReceipt,
+    max_model_calls: int | None,
+    adapter_id: str | None,
 ) -> dict[str, Any]:
-    authority = _authority_from_task(task)
-    memory = SearchMemory.initial(authority)
-    limits = _trace_limits(authority, max_expansions)
-    trace = start_search_trace(memory, limits=limits)
-    expansions: list[dict[str, Any]] = []
-    policy_events: list[dict[str, Any]] = []
-    invalid_operation_count = 0
-    budget_used = 0
-    termination_reason: str | None = None
-    exited_through_goal_check = False
-    deterministic_memoized = (
-        model_identity.get("decoding") == "greedy"
-        and model_identity.get("memoize_identical_inputs") is True
+    session = SearchEpisodeSession(
+        task=task,
+        algorithm=algorithm,
+        modality=modality,
+        arm=arm,
+        model_identity=model_identity,
+        max_expansions=max_expansions,
+        max_model_calls=max_model_calls,
+        max_input_bytes=max_input_bytes,
+        max_output_tokens=max_output_tokens,
+        accepted_delta_limit=accepted_delta_limit,
+        model_input_projection=model_input_projection,
+        seed=seed,
+        gate_receipt=gate_receipt,
+        authorization_receipt=authorization_receipt,
+        adapter_id=adapter_id,
     )
+    while (request := session.next_request()) is not None:
+        session.submit_output(policy(request.model_input))
+    return session.episode()
 
-    while memory.frontier and budget_used < max_expansions:
-        frontier_before = list(memory.frontier)
-        expanded_state_id = frontier_before[0]
-        state = memory.state(expanded_state_id)
-        if authority.is_goal(state):
-            exited_through_goal_check = True
-            termination_reason = "goal_reached"
-            break
-        enqueued_state_ids: list[str] = []
-        expansion_complete = False
 
-        while budget_used < max_expansions and not expansion_complete:
-            model_input = _model_input(
-                state=state,
-                memory=memory,
-                trace_bytes=trace.to_bytes(),
-                authority=authority,
-                max_expansions=max_expansions,
-                accepted_delta_limit=accepted_delta_limit,
-                max_input_bytes=max_input_bytes,
-                projection=model_input_projection,
+class SearchEpisodeSession:
+    """Incremental trusted-runtime BFS episode with one outstanding request."""
+
+    def __init__(
+        self,
+        *,
+        task: Mapping[str, Any],
+        algorithm: str,
+        modality: str,
+        arm: str,
+        model_identity: Mapping[str, Any],
+        max_expansions: int,
+        max_model_calls: int | None,
+        max_input_bytes: int,
+        max_output_tokens: int,
+        accepted_delta_limit: int,
+        model_input_projection: str,
+        seed: int,
+        gate_receipt: GateReceipt,
+        authorization_receipt: AuthorizationReceipt,
+        adapter_id: str | None = None,
+        authority: PDDLStateAuthority | None = None,
+    ) -> None:
+        if algorithm != "bfs" or modality != "text-state":
+            raise SearchEpisodeError("incremental session supports only BFS text-state")
+        for name, value in (
+            ("max_expansions", max_expansions),
+            ("max_input_bytes", max_input_bytes),
+            ("max_output_tokens", max_output_tokens),
+            ("accepted_delta_limit", accepted_delta_limit),
+        ):
+            if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+                raise SearchEpisodeError(f"{name} must be a positive integer")
+        if max_model_calls is not None and (
+            isinstance(max_model_calls, bool) or not isinstance(max_model_calls, int) or max_model_calls <= 0
+        ):
+            raise SearchEpisodeError("max_model_calls must be a positive integer")
+        if not isinstance(gate_receipt, GateReceipt) or not isinstance(authorization_receipt, AuthorizationReceipt):
+            raise SearchEpisodeError("incremental session requires governed receipts")
+        permission = evaluate_execution_permission(
+            binding=gate_receipt.binding,
+            gate_receipt=gate_receipt,
+            authorization_receipt=authorization_receipt,
+        )
+        if not permission.start_permitted:
+            raise SearchEpisodeError("incremental session requires matching PASS authorization receipts")
+        self.task = dict(task)
+        self.algorithm = algorithm
+        self.modality = modality
+        self.arm = arm
+        self.model_identity = _normalized_model_identity(model_identity)
+        self.max_expansions = max_expansions
+        self._explicit_model_call_budget = max_model_calls is not None
+        self.max_input_bytes = max_input_bytes
+        self.max_output_tokens = max_output_tokens
+        self.accepted_delta_limit = accepted_delta_limit
+        self.model_input_projection = model_input_projection
+        self.seed = seed
+        self.gate_receipt = gate_receipt
+        self.authorization_receipt = authorization_receipt
+        self.adapter_id = adapter_id if adapter_id is not None else self.model_identity.get("adapter_path")
+        if authority is not None and not isinstance(authority, PDDLStateAuthority):
+            raise TypeError("authority must be a PDDLStateAuthority")
+        self.authority = _authority_from_task(task) if authority is None else authority
+        initial_memory = SearchMemory.initial(self.authority)
+        self.limits = _trace_limits(self.authority, max_expansions)
+        self.max_model_calls = self.limits.max_records if max_model_calls is None else max_model_calls
+        self.context = IncrementalSearchContext(
+            initial_memory,
+            accepted_delta_limit=accepted_delta_limit,
+            limits=self.limits,
+        )
+        self.trace = start_search_trace(initial_memory, limits=self.limits)
+        self.expansions: list[dict[str, Any]] = []
+        self.policy_events: list[dict[str, Any]] = []
+        self._event_record_indices: list[int] = []
+        self.invalid_operation_count = 0
+        self.budget_used = 0
+        self.termination_reason: str | None = None
+        self.exited_through_goal_check = False
+        self._frontier_before: list[str] | None = None
+        self._expanded_state_id: str | None = None
+        self._expanded_state: CanonicalState | None = None
+        self._enqueued_state_ids: list[str] = []
+        self._pending: SearchPolicyRequest | None = None
+        self._episode: dict[str, Any] | None = None
+        self.deterministic_memoized = (
+            self.model_identity.get("decoding") == "greedy"
+            and self.model_identity.get("memoize_identical_inputs") is True
+        )
+        self.session_id = f"{self.arm}:{self.adapter_id or 'base'}:{self.seed}:{self.task['instance_id']}"
+
+    @property
+    def complete(self) -> bool:
+        return self.termination_reason is not None
+
+    def next_request(self) -> SearchPolicyRequest | None:
+        if self._pending is not None:
+            return self._pending
+        self._prepare_decision()
+        if self.complete:
+            return None
+        assert self._expanded_state is not None
+        if len(self.policy_events) >= self.max_model_calls:
+            self.termination_reason = "decision_budget_exhausted"
+            return None
+        rolling_context = self.context.rolling_context()
+        model_input = _model_input_from_context(
+            state=self._expanded_state,
+            memory=self.context.memory,
+            rolling_context=rolling_context,
+            authority=self.authority,
+            max_input_bytes=self.max_input_bytes,
+            projection=self.model_input_projection,
+        )
+        self._pending = SearchPolicyRequest(
+            session_id=self.session_id,
+            adapter_id=self.adapter_id,
+            seed=self.seed,
+            instance_id=str(self.task["instance_id"]),
+            decision_index=len(self.policy_events),
+            model_input=model_input,
+        )
+        return self._pending
+
+    def submit_output(self, raw_output: str) -> None:
+        request = self._pending
+        if request is None:
+            raise SearchEpisodeError("submit_output requires an outstanding model request")
+        if not isinstance(raw_output, str):
+            raise SearchEpisodeError("model policy must return text")
+        assert self._expanded_state_id is not None and self._expanded_state is not None
+        before = self.context.memory
+        record_index = self.trace.record_count
+        parsed, parse_error = _parse_model_output(raw_output)
+        operation = parsed["operation"] if parsed is not None else None
+        rationale = parsed["rationale"] if parsed is not None else ""
+        result, invariant_error = _apply_bfs_model_operation(
+            memory=before,
+            authority=self.authority,
+            expanded_state_id=self._expanded_state_id,
+            operation=operation,
+        )
+        error = parse_error or invariant_error
+        event: dict[str, Any] = {
+            "budget_charge": 0,
+            "input": dict(request.model_input),
+            "raw_output": raw_output,
+            "runtime_result": None,
+            "status": "accepted",
+            "trace_record_index": None,
+        }
+        self._event_record_indices.append(record_index)
+        self._pending = None
+        if error is not None or isinstance(result, RejectedTransition):
+            self.invalid_operation_count += 1
+            self.budget_used += 1
+            reason = error or result.reason
+            event.update(
+                {
+                    "budget_charge": 1,
+                    "runtime_result": {"budget_charge": 1, "reason": reason, "status": "rejected"},
+                    "status": "rejected",
+                }
             )
-            raw_output = policy(model_input)
-            if not isinstance(raw_output, str):
-                raise SearchEpisodeError("model policy must return text")
-            parsed, parse_error = _parse_model_output(raw_output)
-            operation = parsed["operation"] if parsed is not None else None
-            rationale = parsed["rationale"] if parsed is not None else ""
-            before = memory
-            result, invariant_error = _apply_bfs_model_operation(
-                memory=before,
-                authority=authority,
-                expanded_state_id=expanded_state_id,
-                operation=operation,
+            self.policy_events.append(event)
+            if self.deterministic_memoized:
+                self.termination_reason = "deterministic_invalid_operation"
+            return
+
+        assert operation is not None and isinstance(result, (AcceptedTransition, AcceptedRetirement))
+        self.trace = append_trusted_search_trace_record(
+            self.trace,
+            memory_before=before,
+            observation=_text_observation(self._expanded_state, before),
+            rationale=rationale,
+            operation=operation,
+            result=result,
+            limits=self.limits,
+        )
+        self.context.accept(record_index=record_index, operation=operation, result=result)
+        event["runtime_result"] = _serialize_result(result)
+        event["trace_record_index"] = record_index
+        self.policy_events.append(event)
+
+        expansion_complete = isinstance(result, AcceptedRetirement)
+        if isinstance(result, AcceptedTransition):
+            self._enqueued_state_ids.append(result.transition.target_state.state_id)
+            expansion_complete = (
+                self._expanded_state_id not in self.context.memory.frontier
+                and not _unvisited_successors(self.authority, self._expanded_state, self.context.memory)
             )
-            error = parse_error or invariant_error
-            event: dict[str, Any] = {
-                "budget_charge": 0,
-                "input": model_input,
-                "raw_output": raw_output,
-                "runtime_result": None,
-                "status": "accepted",
-                "trace_record_index": None,
-            }
-            if error is not None or isinstance(result, RejectedTransition):
-                invalid_operation_count += 1
-                budget_used += 1
-                reason = error or result.reason
-                event.update(
-                    {
-                        "budget_charge": 1,
-                        "runtime_result": {"budget_charge": 1, "reason": reason, "status": "rejected"},
-                        "status": "rejected",
-                    }
-                )
-                policy_events.append(event)
-                if deterministic_memoized:
-                    termination_reason = "deterministic_invalid_operation"
-                    break
-                continue
+        if expansion_complete:
+            self._complete_expansion()
 
-            assert operation is not None
-            trace_record_index = json.loads(trace.to_bytes())["record_count"]
-            trace = append_search_trace_record(
-                trace,
-                memory_before=before,
-                observation=_text_observation(state, before),
-                rationale=rationale,
-                operation=operation,
-                result=result,
-                limits=limits,
-            )
-            memory = result.memory
-            event["runtime_result"] = _serialize_result(result)
-            event["trace_record_index"] = trace_record_index
-            policy_events.append(event)
+    def episode(self) -> dict[str, Any]:
+        if not self.complete or self._pending is not None:
+            raise SearchEpisodeError("episode is not complete")
+        if self._episode is None:
+            self._episode = self._build_episode()
+        return self._episode
 
-            if isinstance(result, AcceptedTransition):
-                enqueued_state_ids.append(result.transition.target_state.state_id)
-                expansion_complete = expanded_state_id not in memory.frontier and not _unvisited_successors(
-                    authority, state, memory
-                )
-            elif isinstance(result, AcceptedRetirement):
-                expansion_complete = True
+    def _prepare_decision(self) -> None:
+        if self.complete or self._expanded_state_id is not None:
+            return
+        memory = self.context.memory
+        if not memory.frontier:
+            self.termination_reason = "frontier_exhausted"
+            return
+        if self.budget_used >= self.max_expansions:
+            self.termination_reason = "budget_exhausted"
+            return
+        state_id = memory.frontier[0]
+        state = memory.state(state_id)
+        if self.authority.is_goal(state):
+            self.exited_through_goal_check = True
+            self.termination_reason = "goal_reached"
+            return
+        self._frontier_before = list(memory.frontier)
+        self._expanded_state_id = state_id
+        self._expanded_state = state
+        self._enqueued_state_ids = []
 
-        if not expansion_complete:
-            break
-        frontier_after = list(memory.frontier)
-        expected_frontier = [*frontier_before[1:], *enqueued_state_ids]
+    def _complete_expansion(self) -> None:
+        assert self._frontier_before is not None and self._expanded_state_id is not None
+        frontier_after = list(self.context.memory.frontier)
+        expected_frontier = [*self._frontier_before[1:], *self._enqueued_state_ids]
         if frontier_after != expected_frontier:
             raise SearchEpisodeError("model-owned BFS violated FIFO frontier discipline")
-        expansions.append(
+        self.expansions.append(
             {
-                "expanded_state_id": expanded_state_id,
+                "expanded_state_id": self._expanded_state_id,
                 "frontier_after": frontier_after,
-                "frontier_before": frontier_before,
-                "enqueued_state_ids": enqueued_state_ids,
+                "frontier_before": self._frontier_before,
+                "enqueued_state_ids": list(self._enqueued_state_ids),
             }
         )
-        budget_used += 1
+        self.budget_used += 1
+        self._frontier_before = None
+        self._expanded_state_id = None
+        self._expanded_state = None
+        self._enqueued_state_ids = []
 
-    goal_reached = exited_through_goal_check
-    if termination_reason is None:
-        if budget_used >= max_expansions:
-            termination_reason = "budget_exhausted"
-        elif not memory.frontier:
-            termination_reason = "frontier_exhausted"
-        else:
-            termination_reason = "incomplete_expansion"
-    completed = RunReceipt(
-        binding=gate_receipt.binding,
-        outcome=StopOutcome.PASS,
-        run_state="completed",
-        start_permitted=False,
-        scientific_completion=True,
-        gate_receipt_id=gate_receipt.receipt_id,
-        authorization_receipt_id=authorization_receipt.receipt_id,
-    )
-    result_payload = {
-        "algorithm_invariants_hold": True,
-        "budget_used": budget_used,
-        "completion": "completed",
-        "decision_count": len(policy_events),
-        "expansion_count": len(expansions),
-        "goal_reached": goal_reached,
-        "invariant_valid_success": goal_reached and termination_reason == "goal_reached",
-        "invalid_operation_count": invalid_operation_count,
-        "invalid_operation_rate": invalid_operation_count / len(policy_events) if policy_events else 0.0,
-        "outcome": StopOutcome.PASS.value,
-        "run_receipt": completed.to_dict(),
-        "scientific_completion": True,
-        "termination_reason": termination_reason,
-    }
-    model_payload = _normalized_model_identity(model_identity)
-    request_payload = {
-        "accepted_delta_limit": accepted_delta_limit,
-        "algorithm": algorithm,
-        "arm": arm,
-        "max_input_bytes": max_input_bytes,
-        "max_expansions": max_expansions,
-        "max_output_tokens": max_output_tokens,
-        "model_input_projection": model_input_projection,
-        "modality": modality,
-        "model": model_payload,
-        "schema_version": (
-            MODEL_REQUEST_SCHEMA_VERSION_V3
-            if model_input_projection == "bounded_bfs_search_memory_v4"
-            else MODEL_REQUEST_SCHEMA_VERSION
-        ),
-        "seed": seed,
-    }
-    artifacts = {
-        "authorization-receipt.json": _canonical_bytes(authorization_receipt.to_dict()),
-        "expansions.json": _canonical_bytes(expansions),
-        "gate-receipt.json": _canonical_bytes(gate_receipt.to_dict()),
-        "model.json": _canonical_bytes(model_payload),
-        "policy-events.json": _canonical_bytes(policy_events),
-        "request.json": _canonical_bytes(request_payload),
-        "result.json": _canonical_bytes(result_payload),
-        "run-receipt.json": _canonical_bytes(completed.to_dict()),
-        "search-trace.json": trace.to_bytes(),
-        "task.json": _canonical_bytes(dict(task)),
-    }
-    bundle = build_canonical_bundle(artifacts)
-    evidence = {
-        "bundle": base64.b64encode(bundle).decode("ascii"),
-        "bundle_encoding": "base64",
-        "expansions": expansions,
-        "policy_events": policy_events,
-        "schema_version": MODEL_EVIDENCE_SCHEMA_VERSION,
-    }
-    return {"result": result_payload, "evidence": evidence}
+    def _build_episode(self) -> dict[str, Any]:
+        trace_bytes = self.trace.to_bytes()
+        verify_search_trace_segment(trace_bytes, limits=self.limits)
+        replayed_tail = replay_search_trace_segment(trace_bytes, authority=self.authority, limits=self.limits)
+        if replayed_tail.to_bytes() != self.context.memory.to_bytes():
+            raise SearchEpisodeError("incremental Search Memory differs from completed trace replay")
+        materialized = materialize_search_trace(
+            trace_bytes,
+            authority=self.authority,
+            limits=self.limits,
+            include_atomic_segments=False,
+        )
+        replay_contexts = materialized.rolling_contexts_before(
+            tuple(self._event_record_indices),
+            accepted_delta_limit=self.accepted_delta_limit,
+        )
+        for event, rolling_context in zip(self.policy_events, replay_contexts, strict=True):
+            state_id = event["input"]["observation"]["state_id"]
+            replay_memory = rolling_context.checkpoint.restore(self.authority)
+            replay_input = _model_input_from_context(
+                state=replay_memory.state(state_id),
+                memory=replay_memory,
+                rolling_context=rolling_context,
+                authority=self.authority,
+                max_input_bytes=self.max_input_bytes,
+                projection=self.model_input_projection,
+            )
+            if _canonical_bytes(replay_input) != _canonical_bytes(event["input"]):
+                raise SearchEpisodeError("incremental model input differs from completed trace replay")
+
+        completed = RunReceipt(
+            binding=self.gate_receipt.binding,
+            outcome=StopOutcome.PASS,
+            run_state="completed",
+            start_permitted=False,
+            scientific_completion=True,
+            gate_receipt_id=self.gate_receipt.receipt_id,
+            authorization_receipt_id=self.authorization_receipt.receipt_id,
+        )
+        goal_reached = self.exited_through_goal_check
+        result_payload = {
+            "algorithm_invariants_hold": True,
+            "budget_used": self.budget_used,
+            "completion": "completed",
+            "decision_count": len(self.policy_events),
+            "expansion_count": len(self.expansions),
+            "goal_reached": goal_reached,
+            "invariant_valid_success": goal_reached and self.termination_reason == "goal_reached",
+            "invalid_operation_count": self.invalid_operation_count,
+            "invalid_operation_rate": (
+                self.invalid_operation_count / len(self.policy_events) if self.policy_events else 0.0
+            ),
+            "outcome": StopOutcome.PASS.value,
+            "run_receipt": completed.to_dict(),
+            "scientific_completion": True,
+            "termination_reason": self.termination_reason,
+        }
+        request_payload = {
+            "accepted_delta_limit": self.accepted_delta_limit,
+            "algorithm": self.algorithm,
+            "arm": self.arm,
+            "max_input_bytes": self.max_input_bytes,
+            "max_expansions": self.max_expansions,
+            "max_output_tokens": self.max_output_tokens,
+            "model_input_projection": self.model_input_projection,
+            "modality": self.modality,
+            "model": self.model_identity,
+            "schema_version": (
+                MODEL_REQUEST_SCHEMA_VERSION_V4
+                if self._explicit_model_call_budget
+                else (
+                    MODEL_REQUEST_SCHEMA_VERSION_V3
+                    if self.model_input_projection == "bounded_bfs_search_memory_v4"
+                    else MODEL_REQUEST_SCHEMA_VERSION
+                )
+            ),
+            "seed": self.seed,
+        }
+        if self._explicit_model_call_budget:
+            request_payload["max_model_calls"] = self.max_model_calls
+        artifacts = {
+            "authorization-receipt.json": _canonical_bytes(self.authorization_receipt.to_dict()),
+            "expansions.json": _canonical_bytes(self.expansions),
+            "gate-receipt.json": _canonical_bytes(self.gate_receipt.to_dict()),
+            "model.json": _canonical_bytes(self.model_identity),
+            "policy-events.json": _canonical_bytes(self.policy_events),
+            "request.json": _canonical_bytes(request_payload),
+            "result.json": _canonical_bytes(result_payload),
+            "run-receipt.json": _canonical_bytes(completed.to_dict()),
+            "search-trace.json": trace_bytes,
+            "task.json": _canonical_bytes(self.task),
+        }
+        bundle = build_canonical_bundle(artifacts)
+        evidence = {
+            "bundle": base64.b64encode(bundle).decode("ascii"),
+            "bundle_encoding": "base64",
+            "expansions": self.expansions,
+            "policy_events": self.policy_events,
+            "schema_version": MODEL_EVIDENCE_SCHEMA_VERSION,
+        }
+        return {"result": result_payload, "evidence": evidence}
 
 
-def _model_input(
+def _model_input_from_context(
     *,
     state: CanonicalState,
     memory: SearchMemory,
-    trace_bytes: bytes,
+    rolling_context: RollingSearchContext,
     authority: PDDLStateAuthority,
-    max_expansions: int,
-    accepted_delta_limit: int,
     max_input_bytes: int,
     projection: str,
 ) -> dict[str, Any]:
-    limits = _trace_limits(authority, max_expansions)
-    materialized = materialize_search_trace(trace_bytes, authority=authority, limits=limits)
-    record_count = json.loads(trace_bytes)["record_count"]
-    rolling_context = materialized.rolling_context_before(
-        record_count,
-        accepted_delta_limit=accepted_delta_limit,
-    )
     if projection == "bounded_bfs_search_memory_v3":
         model_input, _dropped = build_bounded_bfs_model_input(
             goal_atoms=list(authority.goal_atoms or ()),
@@ -579,6 +797,7 @@ def _validate_model_request(
     accepted_delta_limit: int,
     model_input_projection: str,
     seed: int,
+    max_model_calls: int | None,
 ) -> None:
     if algorithm != "bfs" or modality != "text-state":
         raise SearchEpisodeError("model episode slice supports only BFS text-state")
@@ -595,6 +814,10 @@ def _validate_model_request(
     ):
         if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
             raise SearchEpisodeError(f"{name} must be a positive integer")
+    if max_model_calls is not None and (
+        isinstance(max_model_calls, bool) or not isinstance(max_model_calls, int) or max_model_calls <= 0
+    ):
+        raise SearchEpisodeError("max_model_calls must be a positive integer")
     if model_input_projection not in {
         "bounded_bfs_search_memory_v3",
         "bounded_bfs_search_memory_v4",
@@ -610,6 +833,7 @@ def _verify_model_event_summary(
     expansions: Any,
     result: Any,
     max_expansions: int,
+    max_model_calls: int,
     *,
     request: Mapping[str, Any],
 ) -> None:
@@ -623,12 +847,13 @@ def _verify_model_event_summary(
         or result.get("expansion_count") != len(expansions)
         or result.get("budget_used") != budget_used
         or budget_used > max_expansions
+        or len(events) > max_model_calls
     ):
         raise SearchEpisodeError("model evidence summary differs from its events")
     expected_rate = invalid_count / len(events) if events else 0.0
     if result.get("invalid_operation_rate") != expected_rate:
         raise SearchEpisodeError("model invalid-operation rate differs from its events")
-    if request.get("schema_version") == MODEL_REQUEST_SCHEMA_VERSION_V3:
+    if request.get("schema_version") in {MODEL_REQUEST_SCHEMA_VERSION_V3, MODEL_REQUEST_SCHEMA_VERSION_V4}:
         goal_reached = result.get("goal_reached") is True
         strict_success = (
             goal_reached

@@ -3,13 +3,25 @@ from __future__ import annotations
 import json
 from contextlib import nullcontext
 
+import pytest
 import torch
 
 from examples.planning_benchmark_slice.qwen_text_policy import (
+    BatchedPolicyAdapter,
     QwenTextPolicy,
     qwen_text_policy_messages,
     qwen_text_policy_training_messages,
 )
+
+
+def test_batched_policy_rejects_batch_shape_sensitive_bfloat16_inference() -> None:
+    with pytest.raises(ValueError, match="float32"):
+        BatchedPolicyAdapter(
+            model_id="fixture",
+            revision="fixture",
+            adapter_paths={},
+            inference_dtype="bfloat16",
+        )
 
 
 def test_qwen_policy_prompt_preserves_canonical_model_input_and_runtime_boundary() -> None:

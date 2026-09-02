@@ -21,6 +21,10 @@ _FREEZE_SCHEMA_V5 = "bfs_phase_freeze_v5"
 _AUTHORIZATION_SCHEMA_V5 = "bfs_phase_authorization_v5"
 _FREEZE_SCHEMA_V6 = "bfs_phase_freeze_v6"
 _AUTHORIZATION_SCHEMA_V6 = "bfs_phase_authorization_v6"
+_FREEZE_SCHEMA_V7 = "bfs_phase_freeze_v7"
+_AUTHORIZATION_SCHEMA_V7 = "bfs_phase_authorization_v7"
+_FREEZE_SCHEMA_V8 = "bfs_phase_freeze_v8"
+_AUTHORIZATION_SCHEMA_V8 = "bfs_phase_authorization_v8"
 _DIFFICULTIES = ("easy", "medium", "hard")
 _AUTHORIZED_STAGES_V1 = (
     "trace_generation",
@@ -44,6 +48,8 @@ _V3_PHASE_ID = "issue-111-bfs-expansion-qualified-pilot-v3"
 _V4_PHASE_ID = "issue-54-bfs-contract-repair-v4"
 _V5_PHASE_ID = "issue-111-bfs-observable-process-pilot-v5"
 _V6_PHASE_ID = "issue-111-bfs-observable-process-pilot-v6"
+_V7_PHASE_ID = "issue-54-bfs-resource-bounded-evaluation-v7"
+_V8_PHASE_ID = "issue-54-bfs-deadline-panel-v8"
 _V4_REPAIR_REVISION = "aab79248ee5889ec3d677d0356d3cbd0c7e485a5"
 _V3_MODEL_REVISION = "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b"
 _V3_PREREGISTRATION_REVISION = "4da3ae71531e1131c19ce552f41426241ed4308c"
@@ -147,6 +153,12 @@ def load_bfs_phase_gate(
     elif schema == _FREEZE_SCHEMA_V6:
         _validate_freeze_v6(freeze, root)
         _validate_authorization_v6(authorization, freeze, freeze_path, root)
+    elif schema == _FREEZE_SCHEMA_V7:
+        _validate_freeze_v7(freeze, root)
+        _validate_authorization_v7(authorization, freeze, freeze_path, root)
+    elif schema == _FREEZE_SCHEMA_V8:
+        _validate_freeze_v8(freeze, root)
+        _validate_authorization_v8(authorization, freeze, freeze_path, root)
     else:
         raise BFSPhaseGateError("BFS freeze manifest has an unsupported schema version")
     return BFSPhaseGate(
@@ -554,9 +566,7 @@ def _validate_freeze_v4(freeze: dict[str, Any], repo_root: Path) -> None:
         "deterministic_invalid_operation_policy": "charge_once_and_terminate",
         "evaluation_request_schema": "model_search_episode_request_v2",
         "process_memory_projection": "bounded_bfs_search_memory_v3",
-        "search_episode_harness": (
-            "examples.planning_benchmark_slice.model_search_episode.run_model_search_episode"
-        ),
+        "search_episode_harness": "examples.planning_benchmark_slice.model_search_episode.run_model_search_episode",
     }:
         raise BFSPhaseGateError("BFS v4 implementation repair contract has drifted")
     repair = _mapping(freeze, "repair")
@@ -676,6 +686,326 @@ def _validate_freeze_v6(freeze: dict[str, Any], repo_root: Path) -> None:
         receipt_schema="bfs_pilot_gate_receipt_v6",
         max_context_tokens=8_192,
     )
+
+
+def _validate_freeze_v7(freeze: dict[str, Any], repo_root: Path) -> None:
+    expected_fields = {
+        "algorithm",
+        "budgets",
+        "checkpoint_policy",
+        "conditions",
+        "coverage",
+        "data",
+        "implementation",
+        "modality",
+        "models",
+        "parent_issue",
+        "performance_probes",
+        "phase_id",
+        "schema_version",
+        "seeds",
+        "source_issue",
+        "statistics",
+        "stop_rules",
+        "thresholds",
+    }
+    if set(freeze) != expected_fields:
+        raise BFSPhaseGateError("BFS v7 freeze manifest has noncanonical fields")
+    if (
+        freeze.get("schema_version") != _FREEZE_SCHEMA_V7
+        or freeze.get("phase_id") != _V7_PHASE_ID
+        or freeze.get("algorithm") != "bfs"
+        or freeze.get("modality") != "text-state"
+        or freeze.get("source_issue") != 54
+        or freeze.get("parent_issue") != 38
+        or freeze.get("seeds") != _V3_SEEDS
+    ):
+        raise BFSPhaseGateError("BFS v7 freeze has the wrong authority or phase identity")
+    budgets = _mapping(freeze, "budgets")
+    if budgets != {
+        "accepted_delta_limit": 16,
+        "decision_budget_multiplier": 2,
+        "episode_max_expansions_by_difficulty": {"easy": 64, "hard": 1024, "medium": 256},
+        "gate_hours": 20,
+        "max_batch_input_tokens": 48_000,
+        "max_batch_size": 8,
+        "max_context_tokens": 8_192,
+        "max_model_input_bytes": 3_840,
+        "max_output_tokens_per_operation": 384,
+        "qualification_hours": 1,
+        "replay_and_adjudication_hours": 2,
+        "rollout_certification_hours": 15,
+        "rollout_cutoff_hours": 18,
+        "safety_margin": 1.2,
+    }:
+        raise BFSPhaseGateError("BFS v7 resource and wall-clock budgets have drifted")
+    if freeze.get("conditions") != ["base", "process_sft", "random_valid", "exact_classical"]:
+        raise BFSPhaseGateError("BFS v7 conditions are incomplete or reordered")
+    checkpoint_policy = _mapping(freeze, "checkpoint_policy")
+    if checkpoint_policy != {
+        "diagnostics": [407, 814],
+        "parameter_updates_in_v7": False,
+        "rollout": 1221,
+        "source_attempt_pattern": "issue54-v6-process-sft-seed-{seed}",
+        "source_phase_id": _V6_PHASE_ID,
+    }:
+        raise BFSPhaseGateError("BFS v7 final-checkpoint policy differs from the v6 weights")
+    coverage = _mapping(freeze, "coverage")
+    fallback = _mapping(coverage, "fallback")
+    if (
+        coverage.get("primary_task_count") != 45
+        or coverage.get("split") != "dev"
+        or coverage.get("scheduled_model_sessions_per_task") != {"base_cached": 1, "process_sft": 5, "total": 6}
+        or coverage.get("selection_uses_model_outcomes") is not False
+        or fallback.get("task_count") != 15
+        or fallback.get("difficulty_counts") != {"easy": 5, "hard": 5, "medium": 5}
+    ):
+        raise BFSPhaseGateError("BFS v7 coverage and frozen fallback panel have drifted")
+    implementation = _mapping(freeze, "implementation")
+    if implementation != {
+        "evaluation_request_schema": "model_search_episode_request_v4",
+        "incremental_session": "examples.planning_benchmark_slice.model_search_episode.SearchEpisodeSession",
+        "process_memory_projection": "bounded_bfs_search_memory_v4",
+        "scheduler": "examples.planning_benchmark_slice.batched_search_evaluation.DeterministicSearchScheduler",
+    }:
+        raise BFSPhaseGateError("BFS v7 scheduler implementation binding has drifted")
+    data = _mapping(freeze, "data")
+    expected_data = {
+        "corpus_manifest": "data/bfs_pilot_v6/process-release/manifests/bfs-text-corpus.json",
+        "exact_trace_manifest": "data/bfs_pilot_v6/exact-traces/manifests/bfs-expert-traces.json",
+        "selected_manifest": "data/bfs_pilot_v6/selected-manifest.jsonl",
+        "source_freeze": "configs/experiments/bfs_phase_freeze_v6.json",
+    }
+    if data != expected_data or any(not (repo_root / path).is_file() for path in expected_data.values()):
+        raise BFSPhaseGateError("BFS v7 immutable v6 inputs are missing or changed")
+    probes = freeze.get("performance_probes")
+    if not isinstance(probes, list) or len(probes) != 9:
+        raise BFSPhaseGateError("BFS v7 performance probes are incomplete")
+    probe_cells = {(probe.get("difficulty"), probe.get("input_bin")) for probe in probes if isinstance(probe, dict)}
+    if probe_cells != {(difficulty, bin_name) for difficulty in _DIFFICULTIES for bin_name in ("low", "medium", "high")}:
+        raise BFSPhaseGateError("BFS v7 performance probes do not span frozen strata and input bins")
+    primary_model = _mapping(_mapping(freeze, "models"), "primary")
+    if primary_model.get("revision") != _V3_MODEL_REVISION or primary_model.get("inference_dtype") != "float32":
+        raise BFSPhaseGateError("BFS v7 model revision or parity-safe inference dtype has drifted")
+
+
+def _validate_authorization_v7(
+    authorization: dict[str, Any],
+    freeze: dict[str, Any],
+    freeze_path: Path,
+    repo_root: Path,
+) -> None:
+    expected_fields = {
+        "authorization_id",
+        "authorized_stages",
+        "contract_id",
+        "downstream_issues",
+        "freeze_manifest_path",
+        "outcome",
+        "parent_issue",
+        "phase_id",
+        "schema_version",
+        "scientific_completion",
+        "source_issue",
+    }
+    if set(authorization) != expected_fields or (
+        authorization.get("schema_version") != _AUTHORIZATION_SCHEMA_V7
+        or authorization.get("authorization_id") != "issue-54-bfs-resource-bounded-evaluation-authorization-v7"
+        or authorization.get("outcome") != "PASS"
+        or authorization.get("scientific_completion") is not False
+        or authorization.get("source_issue") != 54
+        or authorization.get("parent_issue") != 38
+        or authorization.get("phase_id") != _V7_PHASE_ID
+        or authorization.get("contract_id") != freeze.get("phase_id")
+        or authorization.get("authorized_stages")
+        != ["performance_qualification", "batched_evaluation", "replay_and_adjudication"]
+        or authorization.get("downstream_issues") != [54]
+    ):
+        raise BFSPhaseGateError("BFS v7 authorization does not authorize the resource-bounded gate")
+    expected_freeze_path = (repo_root / _text(authorization, "freeze_manifest_path")).resolve()
+    if freeze_path != expected_freeze_path:
+        raise BFSPhaseGateError("BFS v7 authorization points to a different freeze manifest")
+
+
+def _validate_freeze_v8(freeze: dict[str, Any], repo_root: Path) -> None:
+    expected_fields = {
+        "algorithm",
+        "budgets",
+        "checkpoint_policy",
+        "conditions",
+        "coverage",
+        "data",
+        "implementation",
+        "modality",
+        "models",
+        "parent_issue",
+        "phase_id",
+        "schema_version",
+        "seeds",
+        "source_issue",
+        "statistics",
+        "stop_rules",
+        "thresholds",
+    }
+    if set(freeze) != expected_fields or (
+        freeze.get("schema_version") != _FREEZE_SCHEMA_V8
+        or freeze.get("phase_id") != _V8_PHASE_ID
+        or freeze.get("algorithm") != "bfs"
+        or freeze.get("modality") != "text-state"
+        or freeze.get("source_issue") != 54
+        or freeze.get("parent_issue") != 38
+        or freeze.get("seeds") != _V3_SEEDS
+    ):
+        raise BFSPhaseGateError("BFS v8 freeze has noncanonical fields or phase identity")
+    budgets = _mapping(freeze, "budgets")
+    if budgets != {
+        "accepted_delta_limit": 16,
+        "decision_budget_multiplier": 2,
+        "episode_max_expansions_by_difficulty": {"easy": 64, "hard": 1024, "medium": 256},
+        "gate_hours": 20,
+        "max_batch_input_tokens": 48_000,
+        "max_batch_size": 8,
+        "max_context_tokens": 8_192,
+        "max_model_input_bytes": 3_840,
+        "max_output_tokens_per_operation": 384,
+        "rollout_certification_hours": 15,
+        "rollout_cutoff_hours": 18,
+        "safety_margin": 1.2,
+    }:
+        raise BFSPhaseGateError("BFS v8 resource budgets have drifted")
+    if freeze.get("conditions") != ["base", "process_sft", "random_valid", "exact_classical"]:
+        raise BFSPhaseGateError("BFS v8 conditions are incomplete or reordered")
+    checkpoint_policy = _mapping(freeze, "checkpoint_policy")
+    if checkpoint_policy != {
+        "diagnostics": [407, 814],
+        "parameter_updates_in_v8": False,
+        "rollout": 1221,
+        "source_attempt_pattern": "issue54-v6-process-sft-seed-{seed}",
+        "source_phase_id": _V6_PHASE_ID,
+    }:
+        raise BFSPhaseGateError("BFS v8 checkpoint policy differs from immutable v6 weights")
+    coverage = _mapping(freeze, "coverage")
+    if coverage != {
+        "difficulty_counts": {"easy": 11, "hard": 1, "medium": 3},
+        "exact_reference_decision_sum": 899,
+        "maximum_scheduled_calls": 10_788,
+        "projected_rollout_seconds": 49_725.893939742346,
+        "scheduled_model_sessions_per_task": {"base_cached": 1, "process_sft": 5, "total": 6},
+        "selection_uses_model_outcomes": False,
+        "task_count": 15,
+    }:
+        raise BFSPhaseGateError("BFS v8 selected coverage has drifted")
+    if coverage["projected_rollout_seconds"] > 15 * 60 * 60:
+        raise BFSPhaseGateError("BFS v8 selected coverage is not performance-certified")
+    data = _mapping(freeze, "data")
+    expected_data = {
+        "exact_trace_manifest": "data/bfs_pilot_v6/exact-traces/manifests/bfs-expert-traces.json",
+        "performance_selection": "data/bfs_eval_v8/performance-selection.json",
+        "selected_panel": "data/bfs_eval_v8/selected-panel.json",
+        "source_freeze": "configs/experiments/bfs_phase_freeze_v6.json",
+        "source_manifest": "data/bfs_pilot_v6/selected-manifest.jsonl",
+    }
+    if data != expected_data or any(not (repo_root / path).is_file() for path in expected_data.values()):
+        raise BFSPhaseGateError("BFS v8 source data or selected panel is missing")
+    panel = _json_bytes_object((repo_root / data["selected_panel"]).read_bytes(), "BFS v8 selected panel")
+    performance = _json_bytes_object(
+        (repo_root / data["performance_selection"]).read_bytes(),
+        "BFS v8 performance selection",
+    )
+    tasks = panel.get("tasks")
+    if (
+        panel.get("schema_version") != "bfs_v8_evaluation_panel_v1"
+        or panel.get("source_manifest") != data["source_manifest"]
+        or panel.get("selection_uses_model_outcomes") is not False
+        or panel.get("task_count") != 15
+        or panel.get("difficulty_counts") != coverage["difficulty_counts"]
+        or panel.get("exact_reference_decision_sum") != coverage["exact_reference_decision_sum"]
+        or not isinstance(tasks, list)
+        or len(tasks) != 15
+    ):
+        raise BFSPhaseGateError("BFS v8 selected panel is malformed")
+    domains = {task.get("domain_id") for task in tasks if isinstance(task, dict)}
+    task_ids = {task.get("instance_id") for task in tasks if isinstance(task, dict)}
+    if domains != set(_V3_DOMAINS) or len(task_ids) != 15:
+        raise BFSPhaseGateError("BFS v8 panel must contain one task from every domain")
+    source_rows = [
+        json.loads(line) for line in (repo_root / data["source_manifest"]).read_text(encoding="utf-8").splitlines()
+    ]
+    source_by_id = {row.get("instance_id"): row for row in source_rows}
+    for task in tasks:
+        source = source_by_id.get(task["instance_id"])
+        if (
+            source is None
+            or source.get("split") != "dev"
+            or source.get("domain_id") != task.get("domain_id")
+            or source.get("bucket") != task.get("difficulty")
+        ):
+            raise BFSPhaseGateError("BFS v8 panel contains a task outside the existing v6 dev dataset")
+    performance_coverage = _mapping(performance, "coverage")
+    performance_receipt = _mapping(performance, "performance_receipt")
+    if (
+        performance.get("schema_version") != "bfs_v8_performance_selection_v1"
+        or performance.get("selected_panel") != data["selected_panel"]
+        or performance.get("uses_success_outcomes") is not False
+        or performance.get("unique_model_sessions_per_task") != 6
+        or performance_coverage.get("outcome") != "PASS"
+        or performance_coverage.get("mode") != "cost_qualified_panel"
+        or set(performance_coverage.get("task_ids", [])) != task_ids
+        or performance_coverage.get("maximum_scheduled_calls") != coverage["maximum_scheduled_calls"]
+        or performance_coverage.get("projected_rollout_seconds") != coverage["projected_rollout_seconds"]
+        or performance_receipt.get("outcomes_observed") is not False
+        or performance_receipt.get("max_batch_size") != 8
+        or performance_receipt.get("max_batch_input_tokens") != 48_000
+    ):
+        raise BFSPhaseGateError("BFS v8 performance selection does not bind the frozen panel")
+    primary = _mapping(_mapping(freeze, "models"), "primary")
+    if primary.get("revision") != _V3_MODEL_REVISION or primary.get("inference_dtype") != "float32":
+        raise BFSPhaseGateError("BFS v8 model revision or parity-safe dtype has drifted")
+    implementation = _mapping(freeze, "implementation")
+    if (
+        implementation.get("evaluation_request_schema") != "model_search_episode_request_v4"
+        or implementation.get("process_memory_projection") != "bounded_bfs_search_memory_v4"
+        or implementation.get("task_sharding") != "exact_reference_cost_balanced_lpt"
+    ):
+        raise BFSPhaseGateError("BFS v8 evaluator implementation binding has drifted")
+
+
+def _validate_authorization_v8(
+    authorization: dict[str, Any],
+    freeze: dict[str, Any],
+    freeze_path: Path,
+    repo_root: Path,
+) -> None:
+    expected_fields = {
+        "authorization_id",
+        "authorized_stages",
+        "contract_id",
+        "downstream_issues",
+        "freeze_manifest_path",
+        "outcome",
+        "parent_issue",
+        "phase_id",
+        "schema_version",
+        "scientific_completion",
+        "source_issue",
+    }
+    if set(authorization) != expected_fields or (
+        authorization.get("schema_version") != _AUTHORIZATION_SCHEMA_V8
+        or authorization.get("authorization_id") != "issue-54-bfs-deadline-panel-authorization-v8"
+        or authorization.get("outcome") != "PASS"
+        or authorization.get("scientific_completion") is not False
+        or authorization.get("source_issue") != 54
+        or authorization.get("parent_issue") != 38
+        or authorization.get("phase_id") != _V8_PHASE_ID
+        or authorization.get("contract_id") != freeze.get("phase_id")
+        or authorization.get("authorized_stages")
+        != ["performance_qualification", "batched_evaluation", "replay_and_adjudication"]
+        or authorization.get("downstream_issues") != [54]
+    ):
+        raise BFSPhaseGateError("BFS v8 authorization does not authorize the deadline panel")
+    expected_freeze_path = (repo_root / _text(authorization, "freeze_manifest_path")).resolve()
+    if freeze_path != expected_freeze_path:
+        raise BFSPhaseGateError("BFS v8 authorization points to a different freeze manifest")
 
 
 def _validate_observable_freeze(
@@ -819,9 +1149,7 @@ def _validate_observable_qualification(
         )
     ):
         raise BFSPhaseGateError(f"BFS {version} qualification receipt and report do not prove PASS")
-    _validate_observable_selected_manifest(
-        payloads["selected_manifest"], artifacts, repo_root, version=version
-    )
+    _validate_observable_selected_manifest(payloads["selected_manifest"], artifacts, repo_root, version=version)
 
 
 def _validate_observable_selected_manifest(
