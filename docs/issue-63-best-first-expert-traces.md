@@ -26,7 +26,9 @@ The frozen replacement contract is
 `configs/experiments/best-first-paired-design-v2.json`, with its start authority
 in `configs/experiments/best-first-paired-authorization-v2.json`. It binds the
 unchanged issue-62 task manifest by path, byte size, and SHA-256 before any new
-qualification outcome exists.
+qualification outcome exists. The authorization embeds the matching phase-gate
+receipt; qualification publishes a separate `PASS`, `VALID_STOP`, or `INVALID`
+receipt, and trace generation requires its exact `PASS` receipt.
 
 ## Compact text trace
 

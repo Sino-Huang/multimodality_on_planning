@@ -137,6 +137,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         _write_immutable(output_root / "generation-receipt.json", _canonical_bytes(receipt))
         _print(receipt)
         return 0
+    except ValueError as error:
+        receipt = _receipt(phase, "INVALID", str(error), len(items))
+        _write_immutable(output_root / "generation-receipt.json", _canonical_bytes(receipt))
+        _print(receipt)
+        return 1
 
     manifest = {
         "algorithms": list(BEST_FIRST_SETTINGS),
@@ -377,6 +382,19 @@ def _require_complete_qualification(root: Path, phase: BestFirstPhase) -> None:
             or measurement.get("termination") != "goal_reached"
         ):
             raise ValueError("best-first qualification does not match the fixed generation panel")
+    qualification_receipt = _json_object(root / "qualification-receipt.json")
+    if qualification_receipt != {
+        "authorization_id": phase.authorization["authorization_id"],
+        "completed_jobs": 150,
+        "contract_id": phase.phase_id,
+        "gate_receipt_id": phase.authorization["gate_receipt"]["receipt_id"],
+        "outcome": "PASS",
+        "reason": None,
+        "schema_version": "best_first_qualification_receipt_v1",
+        "scientific_completion": False,
+        "source_issue": 63,
+    }:
+        raise ValueError("best-first qualification receipt is not PASS")
 
 
 def _receipt(
@@ -389,6 +407,7 @@ def _receipt(
         "authorization_id": phase.authorization["authorization_id"],
         "completed_pairs": completed_pairs,
         "contract_id": phase.phase_id,
+        "gate_receipt_id": phase.authorization["gate_receipt"]["receipt_id"],
         "outcome": outcome,
         "reason": reason,
         "schema_version": "best_first_generation_receipt_v1",

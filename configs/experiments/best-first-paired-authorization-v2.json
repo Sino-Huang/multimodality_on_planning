@@ -10,6 +10,13 @@
     "sha256": "9e748b4b5f02a18cf0482fbc9b7c04f936ae19082f2c96b66f7da57a2c5ae281",
     "size_bytes": 1938
   },
+  "gate_receipt": {
+    "contract_id": "issue-63-best-first-paired-v2",
+    "outcome": "PASS",
+    "receipt_id": "gate:issue-63-best-first-paired-v2:PASS",
+    "schema_version": "best_first_phase_gate_v2",
+    "source_issue": 63
+  },
   "outcome": "PASS",
   "parent_issue": 38,
   "schema_version": "best_first_paired_authorization_v2",

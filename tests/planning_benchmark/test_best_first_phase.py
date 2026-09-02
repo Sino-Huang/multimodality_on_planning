@@ -20,6 +20,7 @@ def test_replacement_phase_binds_the_fixed_panel_and_two_scalar_settings() -> No
     jobs = qualification_jobs(phase)
 
     assert phase.phase_id == "issue-63-best-first-paired-v2"
+    assert phase.authorization["gate_receipt"]["receipt_id"] == ("gate:issue-63-best-first-paired-v2:PASS")
     assert len(phase.pairs) == 75
     assert len(jobs) == 150
     assert {job["algorithm"] for job in jobs} == {

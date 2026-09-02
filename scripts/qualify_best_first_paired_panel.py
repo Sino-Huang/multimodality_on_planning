@@ -16,6 +16,7 @@ _REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_REPO_ROOT))
 
 from examples.planning_benchmark_slice.best_first_phase import (  # noqa: E402
+    BestFirstPhase,
     load_best_first_phase,
     qualification_jobs,
 )
@@ -139,6 +140,8 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     manifest = _manifest(measurements, phase.phase_id, args.memory_limit_mib)
     _write_immutable(output_root / "qualification.json", _canonical_bytes(manifest))
+    receipt = _qualification_receipt(phase, measurements)
+    _write_immutable(output_root / "qualification-receipt.json", _canonical_bytes(receipt))
     _print(
         {
             "job_count": manifest["job_count"],
@@ -310,7 +313,38 @@ def _check(
     actual = _json_object(output_root / "qualification.json")
     if actual != expected or not actual["qualification_complete"]:
         raise ValueError("best-first qualification is incomplete or differs from its measurements")
+    phase = load_best_first_phase(_DESIGN, _AUTHORIZATION, repo_root=_REPO_ROOT)
+    receipt = _json_object(output_root / "qualification-receipt.json")
+    if receipt != _qualification_receipt(phase, measurements) or receipt["outcome"] != "PASS":
+        raise ValueError("best-first qualification receipt is not PASS")
     return actual
+
+
+def _qualification_receipt(
+    phase: BestFirstPhase,
+    measurements: list[Mapping[str, Any]],
+) -> dict[str, Any]:
+    terminations = {str(row["termination"]) for row in measurements}
+    if len(measurements) == 150 and terminations == {"goal_reached"}:
+        outcome = "PASS"
+        reason = None
+    elif terminations & {"decision_budget", "expansion_budget", "memory_limit"}:
+        outcome = "VALID_STOP"
+        reason = "resource_exhaustion"
+    else:
+        outcome = "INVALID"
+        reason = "frontier_exhaustion_or_incomplete_coverage"
+    return {
+        "authorization_id": phase.authorization["authorization_id"],
+        "completed_jobs": len(measurements),
+        "contract_id": phase.phase_id,
+        "gate_receipt_id": phase.authorization["gate_receipt"]["receipt_id"],
+        "outcome": outcome,
+        "reason": reason,
+        "schema_version": "best_first_qualification_receipt_v1",
+        "scientific_completion": False,
+        "source_issue": 63,
+    }
 
 
 def _validate_measurement(

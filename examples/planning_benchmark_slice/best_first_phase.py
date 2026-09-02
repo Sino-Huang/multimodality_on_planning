@@ -125,6 +125,14 @@ def load_best_first_phase(
         or authorization.get("scientific_completion") is not False
         or authorization.get("supersedes_contract_id") != "issue-62-astar-paired-development-v1"
         or authorization.get("supersedes_algorithms") != ["astar_hmax", "astar_landmark_count"]
+        or authorization.get("gate_receipt")
+        != {
+            "contract_id": design["phase_id"],
+            "outcome": "PASS",
+            "receipt_id": "gate:issue-63-best-first-paired-v2:PASS",
+            "schema_version": "best_first_phase_gate_v2",
+            "source_issue": 63,
+        }
         or _bound_path(root, authorization.get("design_manifest"), "design manifest") != design_file
     ):
         raise BestFirstPhaseError("best-first replacement authorization has drifted")
