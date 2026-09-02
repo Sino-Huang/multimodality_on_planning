@@ -8,8 +8,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping
 
-from .best_first_controller import BEST_FIRST_SETTINGS
-
 
 class BestFirstPhaseError(ValueError):
     """Raised when the replacement design or its fixed panel has drifted."""
@@ -25,6 +23,10 @@ class BestFirstPhase:
     @property
     def phase_id(self) -> str:
         return str(self.design["phase_id"])
+
+    @property
+    def algorithm_names(self) -> tuple[str, str]:
+        return _phase_contract(self.phase_id)["algorithm_order"]
 
     def require_stage(self, stage: str) -> None:
         if (
@@ -47,35 +49,22 @@ def load_best_first_phase(
     authorization_file = Path(authorization_path).resolve()
     design = _json_object(design_file)
     authorization = _json_object(authorization_file)
+    contract = _phase_contract(str(design.get("phase_id")))
     if (
-        design.get("schema_version") != "best_first_paired_design_v2"
-        or design.get("phase_id") != "issue-63-best-first-paired-v2"
+        design.get("schema_version") != contract["design_schema"]
         or design.get("source_issue") != 63
         or design.get("parent_issue") != 38
         or design.get("optimality_required") is not False
-        or design.get("panel_selection_used_search_outcomes") is not False
-        or set(design.get("algorithms", {})) != set(BEST_FIRST_SETTINGS)
+        or design.get("panel_selection_used_search_outcomes") is not contract["panel_selection_used_search_outcomes"]
+        or design.get("algorithms") != contract["algorithms"]
         or design.get("accepted_delta_limit") != 16
         or design.get("pair_count") != 75
     ):
         raise BestFirstPhaseError("best-first replacement design has drifted")
-    expected_algorithms = {
-        "best_first_add_greedy": {
-            "closed_node_policy": "do_not_reopen",
-            "heuristic": "h_add",
-            "priority": ["h", "generation_serial"],
-        },
-        "best_first_add_w2": {
-            "closed_node_policy": "reopen_on_cheaper_path",
-            "heuristic": "h_add",
-            "priority": ["g_plus_2h", "generation_serial"],
-        },
-    }
     caps = design.get("caps")
     trace = design.get("trace_contract")
     if (
-        design.get("algorithms") != expected_algorithms
-        or caps
+        caps
         != {
             "max_decisions_per_trace": 55_000,
             "max_expansions_per_trace": 15_000,
@@ -116,26 +105,46 @@ def load_best_first_phase(
         seen.add(pair_id)
 
     if (
-        authorization.get("schema_version") != "best_first_paired_authorization_v2"
-        or authorization.get("authorization_id") != "issue-63-best-first-paired-authorization-v2"
+        authorization.get("schema_version") != contract["authorization_schema"]
+        or authorization.get("authorization_id") != contract["authorization_id"]
         or authorization.get("contract_id") != design["phase_id"]
         or authorization.get("authorized_stages") != ["qualification", "trace_generation"]
         or authorization.get("outcome") != "PASS"
         or authorization.get("start_permitted") is not True
         or authorization.get("scientific_completion") is not False
-        or authorization.get("supersedes_contract_id") != "issue-62-astar-paired-development-v1"
-        or authorization.get("supersedes_algorithms") != ["astar_hmax", "astar_landmark_count"]
+        or authorization.get("supersedes_contract_id") != contract["supersedes_contract_id"]
+        or authorization.get("supersedes_algorithms") != contract["supersedes_algorithms"]
+        or authorization.get("qualification_receipt_id") != contract["qualification_receipt_id"]
+        or authorization.get("generation_receipt_id") != contract["generation_receipt_id"]
         or authorization.get("gate_receipt")
         != {
             "contract_id": design["phase_id"],
             "outcome": "PASS",
-            "receipt_id": "gate:issue-63-best-first-paired-v2:PASS",
-            "schema_version": "best_first_phase_gate_v2",
+            "receipt_id": contract["gate_receipt_id"],
+            "schema_version": contract["gate_schema"],
             "source_issue": 63,
         }
         or _bound_path(root, authorization.get("design_manifest"), "design manifest") != design_file
     ):
         raise BestFirstPhaseError("best-first replacement authorization has drifted")
+    if design["phase_id"] == "issue-63-best-first-paired-v3":
+        predecessor_path = _bound_path(
+            root,
+            authorization.get("predecessor_qualification_receipt"),
+            "predecessor qualification receipt",
+        )
+        if _json_object(predecessor_path) != {
+            "authorization_id": "issue-63-best-first-paired-authorization-v2",
+            "completed_jobs": 150,
+            "contract_id": "issue-63-best-first-paired-v2",
+            "gate_receipt_id": "gate:issue-63-best-first-paired-v2:PASS",
+            "outcome": "VALID_STOP",
+            "reason": "resource_exhaustion",
+            "schema_version": "best_first_qualification_receipt_v1",
+            "scientific_completion": False,
+            "source_issue": 63,
+        }:
+            raise BestFirstPhaseError("best-first predecessor receipt has drifted")
     phase = BestFirstPhase(design, authorization, tuple(pairs), root)
     phase.require_stage("qualification")
     return phase
@@ -158,8 +167,61 @@ def qualification_jobs(phase: BestFirstPhase) -> tuple[dict[str, Any], ...]:
             "task_sha256": row["task_sha256"],
         }
         for row in phase.pairs
-        for algorithm in BEST_FIRST_SETTINGS
+        for algorithm in phase.algorithm_names
     )
+
+
+def _phase_contract(phase_id: str) -> dict[str, Any]:
+    greedy = {
+        "closed_node_policy": "do_not_reopen",
+        "heuristic": "h_add",
+        "priority": ["h", "generation_serial"],
+    }
+    if phase_id == "issue-63-best-first-paired-v2":
+        return {
+            "algorithm_order": ("best_first_add_w2", "best_first_add_greedy"),
+            "algorithms": {
+                "best_first_add_greedy": greedy,
+                "best_first_add_w2": {
+                    "closed_node_policy": "reopen_on_cheaper_path",
+                    "heuristic": "h_add",
+                    "priority": ["g_plus_2h", "generation_serial"],
+                },
+            },
+            "authorization_id": "issue-63-best-first-paired-authorization-v2",
+            "authorization_schema": "best_first_paired_authorization_v2",
+            "design_schema": "best_first_paired_design_v2",
+            "gate_receipt_id": "gate:issue-63-best-first-paired-v2:PASS",
+            "gate_schema": "best_first_phase_gate_v2",
+            "generation_receipt_id": None,
+            "panel_selection_used_search_outcomes": False,
+            "qualification_receipt_id": None,
+            "supersedes_algorithms": ["astar_hmax", "astar_landmark_count"],
+            "supersedes_contract_id": "issue-62-astar-paired-development-v1",
+        }
+    if phase_id == "issue-63-best-first-paired-v3":
+        return {
+            "algorithm_order": ("best_first_add_w3", "best_first_add_greedy"),
+            "algorithms": {
+                "best_first_add_w3": {
+                    "closed_node_policy": "reopen_on_cheaper_path",
+                    "heuristic": "h_add",
+                    "priority": ["g_plus_3h", "generation_serial"],
+                },
+                "best_first_add_greedy": greedy,
+            },
+            "authorization_id": "issue-63-best-first-paired-authorization-v3",
+            "authorization_schema": "best_first_paired_authorization_v3",
+            "design_schema": "best_first_paired_design_v3",
+            "gate_receipt_id": "gate:issue-63-best-first-paired-v3:PASS",
+            "gate_schema": "best_first_phase_gate_v3",
+            "generation_receipt_id": "generation:issue-63-best-first-paired-v3:attempt-001",
+            "panel_selection_used_search_outcomes": True,
+            "qualification_receipt_id": "qualification:issue-63-best-first-paired-v3:attempt-001",
+            "supersedes_algorithms": ["best_first_add_w2"],
+            "supersedes_contract_id": "issue-63-best-first-paired-v2",
+        }
+    raise BestFirstPhaseError(f"unsupported best-first phase: {phase_id}")
 
 
 def _bound_path(root: Path, binding: object, label: str) -> Path:

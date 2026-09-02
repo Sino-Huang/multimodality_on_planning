@@ -16,9 +16,6 @@ from typing import Any
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_REPO_ROOT))
 
-from examples.planning_benchmark_slice.best_first_controller import (  # noqa: E402
-    BEST_FIRST_SETTINGS,
-)
 from examples.planning_benchmark_slice.best_first_episode import (  # noqa: E402
     BestFirstTraceLimitError,
     run_best_first,
@@ -34,10 +31,10 @@ from examples.planning_benchmark_slice.best_first_replay import (  # noqa: E402
 )
 from examples.planning_benchmark_slice.pddl_state import PDDLStateAuthority  # noqa: E402
 
-_DESIGN = _REPO_ROOT / "configs/experiments/best-first-paired-design-v2.json"
-_AUTHORIZATION = _REPO_ROOT / "configs/experiments/best-first-paired-authorization-v2.json"
-_DEFAULT_QUALIFICATION = _REPO_ROOT / "data/best_first_paired_phase_v2/qualification-v1"
-_DEFAULT_OUTPUT = _REPO_ROOT / "data/best_first_paired_phase_v2/exact-traces"
+_DESIGN = _REPO_ROOT / "configs/experiments/best-first-paired-design-v3.json"
+_AUTHORIZATION = _REPO_ROOT / "configs/experiments/best-first-paired-authorization-v3.json"
+_DEFAULT_QUALIFICATION = _REPO_ROOT / "data/best_first_paired_phase_v3/qualification-v1"
+_DEFAULT_OUTPUT = _REPO_ROOT / "data/best_first_paired_phase_v3/exact-traces"
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -66,7 +63,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             "phase_id": phase.phase_id,
             "stage": "generation_preflight",
             "status": "complete",
-            "trace_count": len(pairs) * len(BEST_FIRST_SETTINGS),
+            "trace_count": len(pairs) * len(phase.algorithm_names),
         }
     )
     if args.dry_run:
@@ -75,7 +72,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "pair_count": len(pairs),
                 "phase_id": phase.phase_id,
                 "status": "authorized_dry_run",
-                "trace_count": len(pairs) * len(BEST_FIRST_SETTINGS),
+                "trace_count": len(pairs) * len(phase.algorithm_names),
                 "writes": 0,
             }
         )
@@ -144,13 +141,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 1
 
     manifest = {
-        "algorithms": list(BEST_FIRST_SETTINGS),
+        "algorithms": list(phase.algorithm_names),
         "pair_count": len(items),
         "pairs": items,
         "phase_id": phase.phase_id,
         "schema_version": "best_first_paired_expert_traces_v1",
         "source_issue": 63,
-        "trace_count": len(items) * len(BEST_FIRST_SETTINGS),
+        "trace_count": len(items) * len(phase.algorithm_names),
     }
     _write_immutable(output_root / "manifest.json", _canonical_bytes(manifest))
     receipt = _receipt(phase, "PASS", None, len(items))
@@ -176,7 +173,7 @@ def _fixture_dry_run() -> int:
                 "max_expansions_per_trace": 64,
                 "max_uncompressed_trace_bytes": 1_000_000,
             },
-            "phase_id": "fixture-best-first",
+            "phase_id": "issue-63-best-first-paired-v3",
         },
         authorization={},
         pairs=(row,),
@@ -195,7 +192,7 @@ def _fixture_dry_run() -> int:
     _print(
         {
             "fixture_only": True,
-            "replayed_trace_count": len(BEST_FIRST_SETTINGS),
+            "replayed_trace_count": len(phase.algorithm_names),
             "status": "contract_validation_only",
             "writes": 0,
         }
@@ -232,7 +229,7 @@ def _generate_pair(
         staging = Path(raw_staging)
         (staging / "task.json").write_bytes(task_bytes)
         traces: dict[str, dict[str, Any]] = {}
-        for algorithm in BEST_FIRST_SETTINGS:
+        for algorithm in phase.algorithm_names:
             adapter_started = time.monotonic()
 
             def progress(value: dict[str, object], *, selected: str = algorithm) -> None:
@@ -305,7 +302,7 @@ def _verify_release(output_root: Path, phase: BestFirstPhase) -> dict[str, Any]:
         or manifest.get("phase_id") != phase.phase_id
         or manifest.get("pair_count") != 75
         or manifest.get("trace_count") != 150
-        or manifest.get("algorithms") != list(BEST_FIRST_SETTINGS)
+        or manifest.get("algorithms") != list(phase.algorithm_names)
         or not isinstance(manifest.get("pairs"), list)
         or len(manifest["pairs"]) != 75
     ):
@@ -330,7 +327,7 @@ def _verify_pair(
         or item.get("schema_version") != "best_first_paired_trace_item_v1"
         or item.get("task_path") != "task.json"
         or item.get("task_sha256") != row["task_sha256"]
-        or set(item.get("traces", {})) != set(BEST_FIRST_SETTINGS)
+        or set(item.get("traces", {})) != set(phase.algorithm_names)
     ):
         raise ValueError(f"best-first pair manifest differs: {row['pair_id']}")
     task_path = pair_root / "task.json"
@@ -390,7 +387,8 @@ def _require_complete_qualification(root: Path, phase: BestFirstPhase) -> None:
         "gate_receipt_id": phase.authorization["gate_receipt"]["receipt_id"],
         "outcome": "PASS",
         "reason": None,
-        "schema_version": "best_first_qualification_receipt_v1",
+        "receipt_id": phase.authorization["qualification_receipt_id"],
+        "schema_version": "best_first_qualification_receipt_v2",
         "scientific_completion": False,
         "source_issue": 63,
     }:
@@ -403,17 +401,21 @@ def _receipt(
     reason: str | None,
     completed_pairs: int,
 ) -> dict[str, Any]:
-    return {
+    is_v3 = phase.phase_id == "issue-63-best-first-paired-v3"
+    receipt = {
         "authorization_id": phase.authorization["authorization_id"],
         "completed_pairs": completed_pairs,
         "contract_id": phase.phase_id,
         "gate_receipt_id": phase.authorization["gate_receipt"]["receipt_id"],
         "outcome": outcome,
         "reason": reason,
-        "schema_version": "best_first_generation_receipt_v1",
+        "schema_version": "best_first_generation_receipt_v2" if is_v3 else "best_first_generation_receipt_v1",
         "scientific_completion": outcome == "PASS" and completed_pairs == 75,
         "source_issue": 63,
     }
+    if is_v3:
+        receipt["receipt_id"] = phase.authorization["generation_receipt_id"]
+    return receipt
 
 
 def _eta(elapsed: float, completed: int, total: int) -> float:

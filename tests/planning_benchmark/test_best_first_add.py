@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from copy import deepcopy
+from pathlib import Path
 
 import pytest
 
@@ -64,9 +65,10 @@ def test_declared_settings_expose_only_their_scalar_priority() -> None:
       (:domain priority-example) (:init (start)) (:goal (goal)))"""
     authority = PDDLStateAuthority.from_pddl(domain, problem)
 
-    quality = BestFirstController(authority, BEST_FIRST_SETTINGS["best_first_add_w2"])
+    quality = BestFirstController(authority, BEST_FIRST_SETTINGS["best_first_add_w3"])
     quality.start_expansion()
-    assert [candidate.priority for candidate in quality.current_candidates()] == [5, 3]
+    assert quality.setting.priority_name == "g_plus_3h"
+    assert [candidate.priority for candidate in quality.current_candidates()] == [7, 4]
 
     compact = BestFirstController(authority, BEST_FIRST_SETTINGS["best_first_add_greedy"])
     compact.start_expansion()
@@ -104,7 +106,7 @@ def test_compact_trace_replays_without_persisting_full_frontiers_or_inputs() -> 
 
     search = run_best_first(
         authority,
-        algorithm="best_first_add_w2",
+        algorithm="best_first_add_w3",
         max_expansions=8,
         max_trace_records=8,
         max_trace_bytes=20_000,
@@ -113,7 +115,7 @@ def test_compact_trace_replays_without_persisting_full_frontiers_or_inputs() -> 
         search.states_payload,
         list(search.events),
         authority=authority,
-        algorithm="best_first_add_w2",
+        algorithm="best_first_add_w3",
         max_expansions=8,
         accepted_delta_limit=16,
     )
@@ -147,7 +149,7 @@ def test_compact_trace_replays_without_persisting_full_frontiers_or_inputs() -> 
     with pytest.raises(BestFirstTraceLimitError, match="limit is 100"):
         run_best_first(
             authority,
-            algorithm="best_first_add_w2",
+            algorithm="best_first_add_w3",
             max_expansions=8,
             max_trace_records=8,
             max_trace_bytes=100,
@@ -184,3 +186,38 @@ def test_eventless_qualification_obeys_both_search_ceilings() -> None:
     )
     assert solved.solution_cost == 2
     assert stopped.termination == "expansion_budget"
+
+
+def test_w3_reduces_expansions_on_the_frozen_visitall_regression() -> None:
+    root = Path(__file__).resolve().parents[2]
+    design = json.loads((root / "configs/experiments/best-first-paired-design-v3.json").read_bytes())
+    regression = design["selection_evidence"]["bounded_expansion_regression"]
+    task = json.loads((root / regression["task_path"]).read_bytes())
+    authority = PDDLStateAuthority.from_pddl(task["domain_pddl"], task["problem_pddl"])
+
+    results = {
+        algorithm: run_best_first_qualification(
+            authority,
+            algorithm,
+            max_expansions=2_000,
+            max_decisions=10_000,
+        )
+        for algorithm in ("best_first_add_w2", "best_first_add_w3")
+    }
+
+    assert regression == {
+        "best_first_add_w2": {"decision_count": 1689, "expansion_count": 448, "solution_cost": 44},
+        "best_first_add_w3": {"decision_count": 1261, "expansion_count": 331, "solution_cost": 48},
+        "task_path": "data/astar_paired_phase_v1/tasks/visitall/easy/train/visitall-train-easy-0038.json",
+    }
+    for algorithm, expected in regression.items():
+        if algorithm == "task_path":
+            continue
+        result = results[algorithm]
+        assert result.termination == "goal_reached"
+        assert {
+            "decision_count": result.decision_count,
+            "expansion_count": result.expansion_count,
+            "solution_cost": result.solution_cost,
+        } == expected
+    assert results["best_first_add_w3"].expansion_count < results["best_first_add_w2"].expansion_count

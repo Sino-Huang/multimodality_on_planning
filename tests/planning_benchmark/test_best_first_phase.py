@@ -16,24 +16,34 @@ from examples.planning_benchmark_slice.best_first_phase import (
 )
 
 ROOT = Path(__file__).resolve().parents[2]
-DESIGN = ROOT / "configs/experiments/best-first-paired-design-v2.json"
-AUTHORIZATION = ROOT / "configs/experiments/best-first-paired-authorization-v2.json"
+DESIGN = ROOT / "configs/experiments/best-first-paired-design-v3.json"
+AUTHORIZATION = ROOT / "configs/experiments/best-first-paired-authorization-v3.json"
+V2_RECEIPT = ROOT / "data/best_first_paired_phase_v2/qualification-v1/qualification-receipt.json"
+V2_DESIGN = ROOT / "configs/experiments/best-first-paired-design-v2.json"
+V2_AUTHORIZATION = ROOT / "configs/experiments/best-first-paired-authorization-v2.json"
 
 
 def test_replacement_phase_binds_the_fixed_panel_and_two_scalar_settings() -> None:
     phase = load_best_first_phase(DESIGN, AUTHORIZATION, repo_root=ROOT)
     jobs = qualification_jobs(phase)
 
-    assert phase.phase_id == "issue-63-best-first-paired-v2"
-    assert phase.authorization["gate_receipt"]["receipt_id"] == ("gate:issue-63-best-first-paired-v2:PASS")
+    assert phase.phase_id == "issue-63-best-first-paired-v3"
+    assert phase.authorization["gate_receipt"]["receipt_id"] == ("gate:issue-63-best-first-paired-v3:PASS")
     assert len(phase.pairs) == 75
     assert len(jobs) == 150
     assert {job["algorithm"] for job in jobs} == {
-        "best_first_add_w2",
+        "best_first_add_w3",
         "best_first_add_greedy",
     }
     assert all(job["max_expansions"] == 15_000 for job in jobs)
     assert all(job["max_decisions"] == 55_000 for job in jobs)
+
+
+def test_retained_v2_authority_remains_loadable_without_becoming_the_default() -> None:
+    phase = load_best_first_phase(V2_DESIGN, V2_AUTHORIZATION, repo_root=ROOT)
+
+    assert phase.phase_id == "issue-63-best-first-paired-v2"
+    assert phase.algorithm_names == ("best_first_add_w2", "best_first_add_greedy")
 
 
 def test_qualification_command_dry_run_checks_authority_without_writes() -> None:
@@ -59,7 +69,7 @@ def test_qualification_command_dry_run_checks_authority_without_writes() -> None
         "job_count": 150,
         "memory_limit_mib": 2048,
         "pair_count": 75,
-        "phase_id": "issue-63-best-first-paired-v2",
+        "phase_id": "issue-63-best-first-paired-v3",
         "status": "authorized_dry_run",
         "workers": 3,
         "writes": 0,
@@ -76,13 +86,14 @@ def test_parallel_qualification_publishes_each_job_once_in_canonical_order(
         authorization={
             "authorization_id": "fixture-authorization",
             "gate_receipt": {"receipt_id": "fixture-gate"},
+            "qualification_receipt_id": "qualification:issue-63-best-first-paired-v3:attempt-001",
         },
         pairs=tuple(range(75)),
-        phase_id="fixture-parallel-phase",
+        phase_id="issue-63-best-first-paired-v3",
     )
     jobs = [
         {
-            "algorithm": "best_first_add_w2" if index % 2 == 0 else "best_first_add_greedy",
+            "algorithm": "best_first_add_w3" if index % 2 == 0 else "best_first_add_greedy",
             "difficulty": "easy",
             "domain_id": "fixture",
             "instance_id": f"fixture-{index:03d}",
@@ -135,6 +146,9 @@ def test_parallel_qualification_publishes_each_job_once_in_canonical_order(
     assert maximum_active == 4
     assert sorted(calls) == list(range(150))
     assert [row["job_index"] for row in manifest["measurements"]] == list(range(150))
+    receipt = json.loads((tmp_path / "qualification-receipt.json").read_bytes())
+    assert receipt["receipt_id"] == "qualification:issue-63-best-first-paired-v3:attempt-001"
+    assert receipt["schema_version"] == "best_first_qualification_receipt_v2"
 
     stopped = dict(manifest["measurements"][0])
     stopped.update(
@@ -144,7 +158,7 @@ def test_parallel_qualification_publishes_each_job_once_in_canonical_order(
             "termination": "decision_budget",
         }
     )
-    (tmp_path / "measurements/000-best_first_add_w2.json").write_bytes(command._canonical_bytes(stopped))
+    (tmp_path / "measurements/000-best_first_add_w3.json").write_bytes(command._canonical_bytes(stopped))
     measurements = [stopped, *manifest["measurements"][1:]]
     (tmp_path / "qualification.json").write_bytes(
         command._canonical_bytes(command._manifest(measurements, phase.phase_id, 2048))
@@ -154,6 +168,28 @@ def test_parallel_qualification_publishes_each_job_once_in_canonical_order(
     )
 
     assert command.main(["--output-root", str(tmp_path), "--check"]) == 0
+
+
+def test_v3_authorization_binds_the_retained_v2_valid_stop() -> None:
+    receipt = json.loads(V2_RECEIPT.read_bytes())
+
+    assert receipt == {
+        "authorization_id": "issue-63-best-first-paired-authorization-v2",
+        "completed_jobs": 150,
+        "contract_id": "issue-63-best-first-paired-v2",
+        "gate_receipt_id": "gate:issue-63-best-first-paired-v2:PASS",
+        "outcome": "VALID_STOP",
+        "reason": "resource_exhaustion",
+        "schema_version": "best_first_qualification_receipt_v1",
+        "scientific_completion": False,
+        "source_issue": 63,
+    }
+    authorization = json.loads(AUTHORIZATION.read_bytes())
+    assert authorization["qualification_receipt_id"] == ("qualification:issue-63-best-first-paired-v3:attempt-001")
+    assert authorization["generation_receipt_id"] == "generation:issue-63-best-first-paired-v3:attempt-001"
+    assert authorization["predecessor_qualification_receipt"]["path"] == (
+        "data/best_first_paired_phase_v2/qualification-v1/qualification-receipt.json"
+    )
 
 
 def test_trace_generation_fixture_dry_run_executes_and_replays_both_settings() -> None:
@@ -175,5 +211,29 @@ def test_trace_generation_fixture_dry_run_executes_and_replays_both_settings() -
         "fixture_only": True,
         "replayed_trace_count": 2,
         "status": "contract_validation_only",
+        "writes": 0,
+    }
+
+
+def test_trace_generation_dry_run_targets_v3_without_writes() -> None:
+    completed = subprocess.run(
+        [
+            sys.executable,
+            str(ROOT / "scripts/generate_best_first_paired_expert_traces.py"),
+            "--dry-run",
+        ],
+        cwd=ROOT,
+        check=False,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    assert json.loads(completed.stdout.splitlines()[-1]) == {
+        "pair_count": 75,
+        "phase_id": "issue-63-best-first-paired-v3",
+        "status": "authorized_dry_run",
+        "trace_count": 150,
         "writes": 0,
     }

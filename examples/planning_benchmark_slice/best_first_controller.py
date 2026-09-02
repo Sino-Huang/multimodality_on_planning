@@ -1,4 +1,4 @@
-"""Small trusted runtime for the two additive best-first search settings."""
+"""Small trusted runtime for the declared additive best-first search settings."""
 
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ class BestFirstSetting:
 
     @property
     def priority_name(self) -> str:
-        return "h" if self.heuristic_weight is None else "g_plus_2h"
+        return "h" if self.heuristic_weight is None else f"g_plus_{self.heuristic_weight}h"
 
     def priority(self, g: int, h: int) -> int:
         return h if self.heuristic_weight is None else g + self.heuristic_weight * h
@@ -30,6 +30,7 @@ class BestFirstSetting:
 BEST_FIRST_SETTINGS: Mapping[str, BestFirstSetting] = MappingProxyType(
     {
         "best_first_add_w2": BestFirstSetting("best_first_add_w2", 2, True),
+        "best_first_add_w3": BestFirstSetting("best_first_add_w3", 3, True),
         "best_first_add_greedy": BestFirstSetting("best_first_add_greedy", None, False),
     }
 )

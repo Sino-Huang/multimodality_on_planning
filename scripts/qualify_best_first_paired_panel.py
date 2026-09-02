@@ -27,9 +27,9 @@ from examples.planning_benchmark_slice.best_first_qualification import (  # noqa
 )
 from examples.planning_benchmark_slice.pddl_state import PDDLStateAuthority  # noqa: E402
 
-_DESIGN = _REPO_ROOT / "configs/experiments/best-first-paired-design-v2.json"
-_AUTHORIZATION = _REPO_ROOT / "configs/experiments/best-first-paired-authorization-v2.json"
-_DEFAULT_OUTPUT = _REPO_ROOT / "data/best_first_paired_phase_v2/qualification-v1"
+_DESIGN = _REPO_ROOT / "configs/experiments/best-first-paired-design-v3.json"
+_AUTHORIZATION = _REPO_ROOT / "configs/experiments/best-first-paired-authorization-v3.json"
+_DEFAULT_OUTPUT = _REPO_ROOT / "data/best_first_paired_phase_v3/qualification-v1"
 _DEFAULT_MEMORY_LIMIT_MIB = 2048
 _DEFAULT_WORKERS = min(8, len(os.sched_getaffinity(0)))
 
@@ -371,17 +371,21 @@ def _qualification_receipt(
     else:
         outcome = "INVALID"
         reason = "frontier_exhaustion_or_incomplete_coverage"
-    return {
+    is_v3 = phase.phase_id == "issue-63-best-first-paired-v3"
+    receipt = {
         "authorization_id": phase.authorization["authorization_id"],
         "completed_jobs": len(measurements),
         "contract_id": phase.phase_id,
         "gate_receipt_id": phase.authorization["gate_receipt"]["receipt_id"],
         "outcome": outcome,
         "reason": reason,
-        "schema_version": "best_first_qualification_receipt_v1",
+        "schema_version": "best_first_qualification_receipt_v2" if is_v3 else "best_first_qualification_receipt_v1",
         "scientific_completion": False,
         "source_issue": 63,
     }
+    if is_v3:
+        receipt["receipt_id"] = phase.authorization["qualification_receipt_id"]
+    return receipt
 
 
 def _validate_measurement(
