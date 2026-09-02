@@ -36,7 +36,11 @@ def estimated_grounded_operator_count(authority: PDDLStateAuthority) -> int:
     return sum(object_count ** len(action.parameters) for action in authority._domain.actions)
 
 
-def extract_grounded_positive_strips(authority: PDDLStateAuthority) -> GroundedPositiveSTRIPSTask:
+def extract_grounded_positive_strips(
+    authority: PDDLStateAuthority,
+    *,
+    prune_type_impossible_groundings: bool = False,
+) -> GroundedPositiveSTRIPSTask:
     if authority.goal_atoms is None:
         raise UnsupportedSTRIPSTaskError("positive-conjunctive goals are required")
     domain = authority._domain  # package-internal normalized PDDL authority
@@ -45,15 +49,24 @@ def extract_grounded_positive_strips(authority: PDDLStateAuthority) -> GroundedP
     for action in domain.actions:
         preconditions = _positive_atoms(action.precondition, "action precondition")
         add_effects = _add_effect_atoms(action.effect)
-        choices = [all_objects for _parameter in action.parameters]
+        choices = [
+            (
+                _parameter_objects(
+                    parameter.name,
+                    preconditions,
+                    all_objects,
+                    authority.static_initial_facts,
+                )
+                if prune_type_impossible_groundings
+                else all_objects
+            )
+            for parameter in action.parameters
+        ]
         if any(not choice for choice in choices):
             continue
         assignments = product(*choices) if choices else ((),)
         for arguments in assignments:
-            binding = {
-                parameter.name: value
-                for parameter, value in zip(action.parameters, arguments, strict=True)
-            }
+            binding = {parameter.name: value for parameter, value in zip(action.parameters, arguments, strict=True)}
             operators.append(
                 GroundedRelaxedOperator(
                     action=GroundedAction(action.name, tuple(arguments)),
@@ -95,14 +108,34 @@ def _add_effect_atoms(effect: pddl.ActionEffect) -> tuple[pddl.Atom | pddl.AtomE
         for child in effect.effects:
             atoms.extend(_add_effect_atoms(child))
         return tuple(atoms)
-    raise UnsupportedSTRIPSTaskError(
-        "conditional, probabilistic, and numeric effects are unsupported"
-    )
+    raise UnsupportedSTRIPSTaskError("conditional, probabilistic, and numeric effects are unsupported")
 
 
 def _ground_atom(atom: pddl.Atom | pddl.AtomEffect, binding: dict[str, str]) -> str:
     arguments = tuple(binding.get(argument.name, argument.name) for argument in atom.arguments)
     return atom.name if not arguments else f"{atom.name}({','.join(arguments)})"
+
+
+def _parameter_objects(
+    parameter_name: str,
+    preconditions: tuple[pddl.Atom, ...],
+    all_objects: tuple[str, ...],
+    static_facts: tuple[str, ...],
+) -> tuple[str, ...]:
+    static_predicates = frozenset(fact.partition("(")[0] for fact in static_facts)
+    required_static_atoms = tuple(
+        atom
+        for atom in preconditions
+        if len(atom.arguments) == 1 and atom.arguments[0].name == parameter_name and atom.name in static_predicates
+    )
+    if not required_static_atoms:
+        return all_objects
+    available = frozenset(static_facts)
+    return tuple(
+        item
+        for item in all_objects
+        if all(_ground_atom(atom, {parameter_name: item}) in available for atom in required_static_atoms)
+    )
 
 
 __all__ = [

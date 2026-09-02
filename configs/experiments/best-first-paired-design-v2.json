@@ -1,0 +1,62 @@
+{
+  "accepted_delta_limit": 16,
+  "algorithms": {
+    "best_first_add_greedy": {
+      "closed_node_policy": "do_not_reopen",
+      "heuristic": "h_add",
+      "priority": ["h", "generation_serial"]
+    },
+    "best_first_add_w2": {
+      "closed_node_policy": "reopen_on_cheaper_path",
+      "heuristic": "h_add",
+      "priority": ["g_plus_2h", "generation_serial"]
+    }
+  },
+  "caps": {
+    "max_decisions_per_trace": 55000,
+    "max_expansions_per_trace": 15000,
+    "max_uncompressed_trace_bytes": 37400000,
+    "overflow_outcome": "VALID_STOP",
+    "segmentation_allowed": false
+  },
+  "modality": "text-state",
+  "optimality_required": false,
+  "pair_count": 75,
+  "panel_selection_used_search_outcomes": false,
+  "parent_issue": 38,
+  "phase_id": "issue-63-best-first-paired-v2",
+  "schema_version": "best_first_paired_design_v2",
+  "selection_evidence": {
+    "development_pair_count": 25,
+    "fast_downward_screen": {
+      "best_first_add_greedy": {
+        "solved": 25,
+        "total_expansions": 9542,
+        "total_plan_cost": 2098
+      },
+      "best_first_add_w2": {
+        "solved": 25,
+        "total_expansions": 16622,
+        "total_plan_cost": 1699
+      }
+    },
+    "selected_before_production_panel_outcomes": true
+  },
+  "source_issue": 63,
+  "task_manifest": {
+    "path": "configs/experiments/astar-paired-task-v1.json",
+    "sha256": "544b677874deb1499a37526f1c73b2fe3fbe7d127299870af11d330acf767866",
+    "size_bytes": 323088
+  },
+  "trace_contract": {
+    "candidate_order": "canonical_grounded_action_order",
+    "full_frontier_arrays_persisted": false,
+    "independent_replay": true,
+    "model_input_evidence": "sha256_of_canonical_exact_input",
+    "repeated_model_inputs_persisted": false,
+    "schema_version": "best_first_compact_trace_v1",
+    "state_references": "deterministic_s_integer",
+    "state_storage": "each_model_observed_state_once",
+    "task_storage": "once_per_episode"
+  }
+}

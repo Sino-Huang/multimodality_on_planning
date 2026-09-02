@@ -1,0 +1,24 @@
+{
+  "authorization_id": "issue-63-best-first-paired-authorization-v2",
+  "authorized_stages": [
+    "qualification",
+    "trace_generation"
+  ],
+  "contract_id": "issue-63-best-first-paired-v2",
+  "design_manifest": {
+    "path": "configs/experiments/best-first-paired-design-v2.json",
+    "sha256": "9e748b4b5f02a18cf0482fbc9b7c04f936ae19082f2c96b66f7da57a2c5ae281",
+    "size_bytes": 1938
+  },
+  "outcome": "PASS",
+  "parent_issue": 38,
+  "schema_version": "best_first_paired_authorization_v2",
+  "scientific_completion": false,
+  "source_issue": 63,
+  "start_permitted": true,
+  "supersedes_algorithms": [
+    "astar_hmax",
+    "astar_landmark_count"
+  ],
+  "supersedes_contract_id": "issue-62-astar-paired-development-v1"
+}
