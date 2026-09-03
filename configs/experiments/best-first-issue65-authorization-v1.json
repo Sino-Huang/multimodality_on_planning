@@ -1,0 +1,31 @@
+{
+  "authorization_id": "issue-65-best-first-add-w3-authorization-v1",
+  "authorized_stages": [
+    "preflight",
+    "dataset_preparation",
+    "performance_qualification",
+    "process_sft_training",
+    "development_references",
+    "batched_evaluation",
+    "replay_and_adjudication"
+  ],
+  "contract_id": "issue-65-best-first-add-w3-development-v1",
+  "gate_receipt": {
+    "contract_id": "issue-65-best-first-add-w3-development-v1",
+    "outcome": "PASS",
+    "receipt_id": "gate:issue-65-best-first-add-w3-development-v1:PASS",
+    "source_issue": 65
+  },
+  "gate_receipt": {
+    "contract_id": "issue-65-best-first-add-w3-development-v1",
+    "outcome": "PASS",
+    "receipt_id": "gate:issue-65-best-first-add-w3-development-v1:PASS",
+    "source_issue": 65
+  },
+  "outcome": "PASS",
+  "parent_issue": 38,
+  "schema_version": "best_first_issue65_authorization_v1",
+  "scientific_completion": false,
+  "source_issue": 65,
+  "start_permitted": true
+}

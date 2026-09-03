@@ -222,7 +222,20 @@ def serialize_best_first_message_prefix(
     ]
 
 
+def best_first_policy_messages(model_input: Mapping[str, Any]) -> list[dict[str, Any]]:
+    """Render the same best-first prefix for live Qwen inference."""
+
+    return [
+        {
+            "role": message["role"],
+            "content": [{"type": "text", "text": message["content"]}],
+        }
+        for message in serialize_best_first_message_prefix(model_input)
+    ]
+
+
 __all__ = [
+    "best_first_policy_messages",
     "build_best_first_live_model_input",
     "build_best_first_model_input",
     "build_best_first_teacher_model_input",

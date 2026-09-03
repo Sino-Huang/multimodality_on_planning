@@ -6,7 +6,7 @@ import json
 from collections.abc import Mapping
 from contextlib import contextmanager, nullcontext
 from pathlib import Path
-from typing import Any, Iterator, Sequence
+from typing import Any, Callable, Iterator, Sequence
 
 from .model_search_episode import SearchPolicyRequest
 
@@ -218,6 +218,10 @@ class BatchedPolicyAdapter:
         max_batch_size: int = FROZEN_MAX_BATCH_SIZE,
         max_batch_input_tokens: int = FROZEN_MAX_BATCH_INPUT_TOKENS,
         inference_dtype: str = FROZEN_BATCHED_INFERENCE_DTYPE,
+        training_message_builder: Callable[[Mapping[str, Any]], list[dict[str, str]]] = (
+            qwen_text_policy_training_messages
+        ),
+        policy_message_builder: Callable[[Mapping[str, Any]], list[dict[str, Any]]] = qwen_text_policy_messages,
     ) -> None:
         for name, value in (
             ("max_new_tokens", max_new_tokens),
@@ -243,6 +247,8 @@ class BatchedPolicyAdapter:
         self.max_context_tokens = max_context_tokens
         self.max_batch_size = max_batch_size
         self.max_batch_input_tokens = max_batch_input_tokens
+        self.training_message_builder = training_message_builder
+        self.policy_message_builder = policy_message_builder
         self.processor = AutoProcessor.from_pretrained(model_id, revision=revision)
         tokenizer = getattr(self.processor, "tokenizer", None)
         if tokenizer is not None:
@@ -282,7 +288,7 @@ class BatchedPolicyAdapter:
         if cached is not None:
             return cached
         tokens = self.processor.tokenizer.apply_chat_template(
-            qwen_text_policy_training_messages(request.model_input),
+            self.training_message_builder(request.model_input),
             tokenize=True,
             add_generation_prompt=True,
         )
@@ -360,7 +366,7 @@ class BatchedPolicyAdapter:
         if padded_input_tokens > self.max_batch_input_tokens:
             raise ValueError("batch exceeds max_batch_input_tokens")
 
-        conversations = [qwen_text_policy_messages(request.model_input) for request in requests]
+        conversations = [self.policy_message_builder(request.model_input) for request in requests]
         inputs = self.processor.apply_chat_template(
             conversations,
             tokenize=True,
