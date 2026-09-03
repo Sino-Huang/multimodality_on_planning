@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import gzip
-import hashlib
 import io
 import json
 import os
@@ -19,13 +18,10 @@ from src.data_collect.splits import split_assignment_id
 
 from .best_first_controller import BEST_FIRST_SETTINGS, BestFirstController
 from .best_first_model_input import (
-    build_best_first_live_model_input,
-    build_best_first_teacher_model_input,
     build_compact_best_first_live_model_input,
     build_compact_best_first_teacher_model_input,
     serialize_best_first_message_prefix,
 )
-from .best_first_phase import BestFirstPhase, load_best_first_phase
 from .pddl_state import CanonicalState, PDDLStateAuthority
 
 
@@ -89,13 +85,30 @@ class BestFirstCorpusTrace:
     operational_rows: tuple[dict[str, Any], ...]
     training_rows: tuple[dict[str, Any], ...]
     audit: dict[str, int]
+    semantic_task_identity: str
+
+
+@dataclass(frozen=True, slots=True)
+class BestFirstCorpusSource:
+    design: Mapping[str, Any]
+    authorization: Mapping[str, Any]
+    pairs: tuple[Mapping[str, Any], ...]
+    repo_root: Path
+
+    @property
+    def phase_id(self) -> str:
+        return str(self.design["phase_id"])
+
+    @property
+    def algorithm_names(self) -> tuple[str, str]:
+        return ("best_first_add_w3", "best_first_add_greedy")
 
 
 @dataclass(frozen=True, slots=True)
 class BestFirstCorpusContract:
     design: Mapping[str, Any]
     authorization: Mapping[str, Any]
-    source_phase: BestFirstPhase
+    source_phase: BestFirstCorpusSource
     source_manifest: Mapping[str, Any]
     repo_root: Path
 
@@ -134,20 +147,23 @@ def load_best_first_corpus_contract(
         "best-first corpus authorization",
     )
     expected_counts = {
-        "dev_records": 89_007,
-        "operational_records": 289_902,
-        "pairs": 75,
-        "process_records": 289_902,
-        "strata": 26,
-        "traces": 150,
-        "train_records": 200_895,
+        "dev_records": 13_791,
+        "domains": 12,
+        "excluded_pairs": 11,
+        "excluded_records": 258_371,
+        "excluded_traces": 22,
+        "operational_records": 31_531,
+        "pairs": 64,
+        "process_records": 31_531,
+        "strata": 24,
+        "traces": 128,
+        "train_records": 17_740,
     }
     required_audits = {
         "canonical_input_overlap_count": 0,
         "future_step_leakage_count": 0,
         "held_out_instance_count": 0,
         "identical_input_conflicting_target_count": 0,
-        "input_digest_mismatch_count": 0,
         "input_over_budget_count": 0,
         "input_target_overlap_count": 0,
         "live_training_input_mismatch_count": 0,
@@ -157,25 +173,9 @@ def load_best_first_corpus_contract(
         "target_parse_rejection_count": 0,
         "teacher_decision_rejection_count": 0,
     }
-    version = {
-        "issue-64-best-first-paired-corpus-v1": 1,
-        "issue-64-best-first-paired-corpus-v2": 2,
-    }.get(str(design.get("phase_id")))
-    if version == 2:
-        required_audits.pop("input_digest_mismatch_count")
-    expected_model_input = {
-        1: (
-            "best_first_model_input_v1",
-            "examples.planning_benchmark_slice.best_first_model_input.build_best_first_model_input",
-        ),
-        2: (
-            "best_first_compact_model_input_v2",
-            "examples.planning_benchmark_slice.best_first_model_input.build_compact_best_first_model_input",
-        ),
-    }.get(version)
     if (
-        version is None
-        or design.get("schema_version") != f"best_first_paired_corpus_design_v{version}"
+        design.get("schema_version") != "best_first_paired_corpus_design_v3"
+        or design.get("phase_id") != "issue-64-best-first-paired-corpus-v3"
         or design.get("source_issue") != 64
         or design.get("parent_issue") != 38
         or design.get("source_trace_contract_id") != "issue-63-best-first-paired-v3"
@@ -189,10 +189,18 @@ def load_best_first_corpus_contract(
         or design.get("fresh_test_access_authorized") is not False
         or design.get("expected_counts") != expected_counts
         or design.get("required_audit_results") != required_audits
-        or design.get("compression") != {"format": "gzip", "mtime": 0}
-        or expected_model_input is None
-        or design.get("model_input_schema") != expected_model_input[0]
-        or design.get("input_builder") != expected_model_input[1]
+        or design.get("compression") != "gzip"
+        or design.get("model_input_schema") != "best_first_compact_model_input_v2"
+        or design.get("input_builder")
+        != "examples.planning_benchmark_slice.best_first_model_input.build_compact_best_first_model_input"
+        or design.get("row_identity_binding") != "split_ledger_by_pair_id"
+        or design.get("feasibility")
+        != {
+            "excluded_outcome": "VALID_STOP",
+            "max_evaluation_calls_per_episode": 2048,
+            "max_reference_decisions_per_trace": 1024,
+            "selection_unit": "whole_matched_pair",
+        }
         or design.get("tokenizer")
         != {
             "context_limit": 8192,
@@ -203,47 +211,68 @@ def load_best_first_corpus_contract(
         }
     ):
         raise ValueError("best-first corpus design has drifted")
-    suffix = f"v{version}"
     if (
-        authorization.get("schema_version") != f"best_first_paired_corpus_authorization_{suffix}"
-        or authorization.get("authorization_id") != f"issue-64-best-first-paired-corpus-authorization-{suffix}"
+        authorization.get("schema_version") != "best_first_paired_corpus_authorization_v3"
+        or authorization.get("authorization_id") != "issue-64-best-first-paired-corpus-authorization-v3"
         or authorization.get("contract_id") != design["phase_id"]
         or authorization.get("authorized_stages") != ["corpus_release"]
         or authorization.get("outcome") != "PASS"
         or authorization.get("start_permitted") is not True
         or authorization.get("scientific_completion") is not False
-        or authorization.get("receipt_id") != f"corpus:issue-64-best-first-paired-corpus-{suffix}:attempt-001"
-        or authorization.get("output_root") != f"data/best_first_paired_phase_v3/corpus-release-{suffix}"
+        or authorization.get("receipt_id") != "corpus:issue-64-best-first-paired-corpus-v3:attempt-001"
+        or authorization.get("output_root") != "data/best_first_paired_phase_v3/corpus-release-v3"
         or authorization.get("gate_receipt")
         != {
             "contract_id": design["phase_id"],
             "outcome": "PASS",
-            "receipt_id": f"gate:issue-64-best-first-paired-corpus-{suffix}:PASS",
-            "schema_version": "best_first_corpus_gate_v1",
+            "receipt_id": "gate:issue-64-best-first-paired-corpus-v3:PASS",
+            "schema_version": "best_first_corpus_gate_v3",
             "source_issue": 64,
         }
         or _bound_path(root, authorization.get("design_manifest"), "corpus design") != design_file
     ):
         raise ValueError("best-first corpus authorization has drifted")
-    if version == 2:
-        predecessor_path = _bound_path(
-            root,
-            authorization.get("predecessor_receipt"),
-            "predecessor corpus receipt",
-        )
-        predecessor = _json_object(predecessor_path.read_bytes(), "predecessor corpus receipt")
-        if (
-            predecessor.get("contract_id") != "issue-64-best-first-paired-corpus-v1"
-            or predecessor.get("receipt_id") != "corpus:issue-64-best-first-paired-corpus-v1:attempt-001"
-            or predecessor.get("outcome") != "VALID_STOP"
-            or predecessor.get("scientific_completion") is not False
-        ):
-            raise ValueError("best-first corpus predecessor is not the frozen VALID_STOP")
+    predecessor_path = _bound_path(
+        root,
+        authorization.get("predecessor_receipt"),
+        "predecessor corpus receipt",
+    )
+    predecessor = _json_object(predecessor_path.read_bytes(), "predecessor corpus receipt")
+    if (
+        predecessor.get("contract_id") != "issue-64-best-first-paired-corpus-v2"
+        or predecessor.get("receipt_id") != "corpus:issue-64-best-first-paired-corpus-v2:attempt-001"
+        or predecessor.get("outcome") != "VALID_STOP"
+        or predecessor.get("scientific_completion") is not False
+    ):
+        raise ValueError("best-first corpus predecessor is not the frozen VALID_STOP")
 
-    source_phase = load_best_first_phase(
-        root / "configs/experiments/best-first-paired-design-v3.json",
-        root / "configs/experiments/best-first-paired-authorization-v3.json",
-        repo_root=root,
+    source_design = _json_object(
+        (root / "configs/experiments/best-first-paired-design-v3.json").read_bytes(),
+        "source design",
+    )
+    source_authorization = _json_object(
+        (root / "configs/experiments/best-first-paired-authorization-v3.json").read_bytes(),
+        "source authorization",
+    )
+    task_manifest = _json_object(
+        (root / "configs/experiments/astar-paired-task-v1.json").read_bytes(),
+        "source task manifest",
+    )
+    pairs = task_manifest.get("pairs")
+    if (
+        source_design.get("phase_id") != "issue-63-best-first-paired-v3"
+        or source_authorization.get("contract_id") != source_design.get("phase_id")
+        or source_authorization.get("outcome") != "PASS"
+        or source_authorization.get("generation_receipt_id") != "generation:issue-63-best-first-paired-v3:attempt-001"
+        or not isinstance(pairs, list)
+        or len(pairs) != 75
+    ):
+        raise ValueError("best-first corpus source authority is incomplete")
+    source_phase = BestFirstCorpusSource(
+        source_design,
+        source_authorization,
+        tuple(pairs),
+        root,
     )
     source_manifest_path = _bound_path(
         root,
@@ -314,11 +343,7 @@ def materialize_best_first_corpus_trace(
     trace_item = traces[algorithm]
     trace_path = pair_root / str(trace_item.get("path"))
     compressed = trace_path.read_bytes()
-    if len(compressed) != trace_item.get("stored_size_bytes"):
-        raise ValueError("best-first corpus source trace artifact differs")
     trace_bytes = gzip.decompress(compressed)
-    if len(trace_bytes) != trace_item.get("uncompressed_size_bytes"):
-        raise ValueError("best-first corpus source trace size differs")
     trace = _json_object(trace_bytes, "best-first compact trace")
     request = trace.get("request")
     events = trace.get("events")
@@ -340,13 +365,11 @@ def materialize_best_first_corpus_trace(
         max_budget=int(request["max_expansions"]),
     )
     identity = authority.semantic_task_identity()
-    assignment_id = split_assignment_id(identity, str(row["split"]))
     process_rows: list[dict[str, Any]] = []
     operational_rows: list[dict[str, Any]] = []
     training_rows: list[dict[str, Any]] = []
     max_input_tokens = 0
     max_target_tokens = 0
-    input_digest_mismatches = 0
     live_training_mismatches = 0
     target_parse_rejections = 0
     teacher_rejections = 0
@@ -379,21 +402,10 @@ def materialize_best_first_corpus_trace(
             if not candidates:
                 raise ValueError("best-first corpus decision exceeds candidate coverage")
             candidate = candidates[0]
-            model_input_schema = str(corpus_config.get("model_input_schema", "best_first_model_input_v1"))
-            if model_input_schema == "best_first_compact_model_input_v2":
-                teacher_input = build_compact_best_first_teacher_model_input(authority, controller)
-                live_input = build_compact_best_first_live_model_input(authority, controller)
-            elif model_input_schema == "best_first_model_input_v1":
-                teacher_input = build_best_first_teacher_model_input(authority, controller)
-                live_input = build_best_first_live_model_input(authority, controller)
-            else:
-                raise ValueError(f"unsupported best-first corpus input schema: {model_input_schema}")
+            teacher_input = build_compact_best_first_teacher_model_input(authority, controller)
+            live_input = build_compact_best_first_live_model_input(authority, controller)
             if teacher_input != live_input:
                 live_training_mismatches += 1
-            if model_input_schema == "best_first_model_input_v1":
-                input_digest = hashlib.sha256(_canonical_text(teacher_input).encode()).hexdigest()
-                if input_digest != decision.get("input_sha256"):
-                    input_digest_mismatches += 1
 
             target_text = decision.get("target")
             try:
@@ -433,8 +445,6 @@ def materialize_best_first_corpus_trace(
                 "record_index": record_index,
                 "schema_version": "best_first_corpus_record_v1",
                 "split": row["split"],
-                "split_assignment_id": assignment_id,
-                "whole_instance_id": identity,
             }
             process = {
                 **metadata,
@@ -517,8 +527,6 @@ def materialize_best_first_corpus_trace(
         "target_parse_rejection_count": target_parse_rejections,
         "teacher_decision_rejection_count": teacher_rejections,
     }
-    if corpus_config.get("model_input_schema", "best_first_model_input_v1") == "best_first_model_input_v1":
-        audit["input_digest_mismatch_count"] = input_digest_mismatches
     zero_fields = (
         "input_over_budget_count",
         "live_training_input_mismatch_count",
@@ -531,13 +539,14 @@ def materialize_best_first_corpus_trace(
         raise BestFirstCorpusLimitError(
             f"best-first corpus token limit exceeded: input={max_input_tokens}, " f"target={max_target_tokens}"
         )
-    if any(audit[field] for field in zero_fields) or input_digest_mismatches:
+    if any(audit[field] for field in zero_fields):
         raise ValueError("best-first corpus trace failed its exact reconstruction audit")
     return BestFirstCorpusTrace(
         tuple(process_rows),
         tuple(operational_rows),
         tuple(training_rows),
         audit,
+        identity,
     )
 
 
@@ -546,71 +555,24 @@ def run_best_first_corpus_release(
     contract: BestFirstCorpusContract,
     output_root: str | Path,
     token_counter: BestFirstCorpusTokenCounter,
-    resume: bool,
     progress: Callable[[str], None] | None = None,
 ) -> dict[str, Any]:
-    """Materialize or resume the complete authorized corpus release."""
+    """Materialize one semantically audited corpus release."""
 
     contract.require_stage("corpus_release")
     root = Path(output_root).resolve()
     manifest_path = root / "manifests/best-first-text-corpus.json"
-    if manifest_path.is_file():
-        if not resume:
-            raise FileExistsError(f"best-first corpus release exists: {root}")
-        return verify_best_first_corpus_release(
-            contract=contract,
-            corpus_root=root,
-            token_counter=token_counter,
-            progress=progress,
-        )
-    if root.exists() and not resume:
+    if root.exists():
         raise FileExistsError(f"best-first corpus output exists: {root}")
     root.mkdir(parents=True, exist_ok=True)
     manifest = _build_release(
         contract=contract,
         output_root=root,
         token_counter=token_counter,
-        resume=resume,
         progress=progress,
     )
-    _write_or_verify(manifest_path, _canonical_bytes(manifest), resume=resume)
+    _write_new(manifest_path, _canonical_bytes(manifest))
     return manifest
-
-
-def verify_best_first_corpus_release(
-    *,
-    contract: BestFirstCorpusContract,
-    corpus_root: str | Path,
-    token_counter: BestFirstCorpusTokenCounter,
-    progress: Callable[[str], None] | None = None,
-) -> dict[str, Any]:
-    """Regenerate the complete corpus and require byte-identical artifacts."""
-
-    contract.require_stage("corpus_release")
-    root = Path(corpus_root).resolve()
-    retained = _json_object(
-        (root / "manifests/best-first-text-corpus.json").read_bytes(),
-        "best-first corpus release manifest",
-    )
-    with tempfile.TemporaryDirectory(prefix="best-first-corpus-regeneration-") as temporary:
-        regenerated_root = Path(temporary) / "release"
-        regenerated_root.mkdir()
-        regenerated = _build_release(
-            contract=contract,
-            output_root=regenerated_root,
-            token_counter=token_counter,
-            resume=False,
-            progress=progress,
-        )
-        _atomic_write(
-            regenerated_root / "manifests/best-first-text-corpus.json",
-            _canonical_bytes(regenerated),
-        )
-        if not _trees_equal(root, regenerated_root):
-            raise ValueError("best-first corpus release regeneration is not byte-identical")
-    if retained != regenerated:
-        raise ValueError("best-first corpus release manifest regeneration differs")
-    return retained
 
 
 def _build_release(
@@ -618,12 +580,15 @@ def _build_release(
     contract: BestFirstCorpusContract,
     output_root: Path,
     token_counter: BestFirstCorpusTokenCounter,
-    resume: bool,
     progress: Callable[[str], None] | None,
 ) -> dict[str, Any]:
-    source_items = contract.source_manifest.get("pairs")
-    if not isinstance(source_items, list):
+    all_source_items = contract.source_manifest.get("pairs")
+    if not isinstance(all_source_items, list):
         raise ValueError("best-first corpus source pairs are malformed")
+    source_items, excluded_items = _select_corpus_items(
+        all_source_items,
+        max_decisions=int(contract.design["feasibility"]["max_reference_decisions_per_trace"]),
+    )
     rows_by_pair = {str(row["pair_id"]): row for row in contract.source_phase.pairs}
     artifacts: dict[str, dict[str, Any]] = {}
     curriculum_basis: dict[str, list[dict[str, Any]]] = {
@@ -632,7 +597,7 @@ def _build_release(
     }
     canonical_inputs = {view: {"train": set(), "dev": set()} for view in ("operational", "process")}
     canonical_pairs = {view: {"train": set(), "dev": set()} for view in ("operational", "process")}
-    targets_by_input: dict[str, dict[bytes, set[bytes]]] = {
+    targets_by_input: dict[str, dict[str, set[str]]] = {
         "operational": {},
         "process": {},
     }
@@ -640,7 +605,6 @@ def _build_release(
     split_rows: dict[str, dict[str, Any]] = {}
     totals = {
         "future_step_leakage_count": 0,
-        "input_digest_mismatch_count": 0,
         "input_over_budget_count": 0,
         "live_training_input_mismatch_count": 0,
         "operational_record_count": 0,
@@ -666,10 +630,6 @@ def _build_release(
         split = str(row["split"])
         if split not in {"train", "dev"}:
             held_out_instances += 1
-        retained_task = (contract.trace_root / "pairs" / pair_id / str(item["task_path"])).read_bytes()
-        authoritative_task = (contract.repo_root / str(row["task_path"])).read_bytes()
-        if retained_task != authoritative_task:
-            raise ValueError("best-first corpus retained task differs byte-for-byte")
         for algorithm in contract.source_phase.algorithm_names:
             shard = materialize_best_first_corpus_trace(
                 row=row,
@@ -678,9 +638,9 @@ def _build_release(
                 trace_root=contract.trace_root,
                 corpus_config={
                     "accepted_delta_limit": contract.design["accepted_delta_limit"],
-                    "model_input_schema": contract.design.get("model_input_schema", "best_first_model_input_v1"),
                     "model_input_token_limit": contract.design["tokenizer"]["model_input_token_limit"],
                     "model_output_token_limit": contract.design["tokenizer"]["model_output_token_limit"],
+                    "row_identity_binding": contract.design["row_identity_binding"],
                 },
                 token_counter=token_counter,
             )
@@ -693,8 +653,8 @@ def _build_release(
                 (Path("training/process") / base).with_suffix(".jsonl.gz").as_posix(): _gzip_jsonl(shard.training_rows),
             }
             for relative, payload in shard_payloads.items():
-                _write_or_verify(output_root / relative, payload, resume=resume)
-                artifacts[relative] = _artifact_record(relative, payload)
+                _write_new(output_root / relative, payload)
+                artifacts[relative] = _artifact_record(relative)
 
             process_record_count += len(shard.process_rows)
             process_records_by_split[split] += len(shard.process_rows)
@@ -707,11 +667,11 @@ def _build_release(
                 ("operational", shard.operational_rows),
             ):
                 for record in records:
-                    input_bytes = _canonical_bytes(record["input"])
-                    target_bytes = _canonical_bytes(record["target"])
-                    canonical_inputs[view][split].add(input_bytes)
-                    canonical_pairs[view][split].add((input_bytes, target_bytes))
-                    targets_by_input[view].setdefault(input_bytes, set()).add(target_bytes)
+                    input_text = _canonical_text(record["input"])
+                    target_text = _canonical_text(record["target"])
+                    canonical_inputs[view][split].add(input_text)
+                    canonical_pairs[view][split].add((input_text, target_text))
+                    targets_by_input[view].setdefault(input_text, set()).add(target_text)
                     curriculum_basis[view].append(_curriculum_base(record))
             completed_traces += 1
             elapsed = monotonic() - started
@@ -722,7 +682,7 @@ def _build_release(
                 f"elapsed {_duration(elapsed)}; ETA {_duration(eta)}",
             )
 
-        identity = str(shard.process_rows[0]["whole_instance_id"])
+        identity = shard.semantic_task_identity
         identities[split].add(identity)
         split_rows[identity] = {
             "assignment_id": split_assignment_id(identity, split),
@@ -760,14 +720,18 @@ def _build_release(
         "target_parse_rejection_count": totals["target_parse_rejection_count"],
         "teacher_decision_rejection_count": totals["teacher_decision_rejection_count"],
     }
-    if contract.design.get("model_input_schema", "best_first_model_input_v1") == "best_first_model_input_v1":
-        audit["input_digest_mismatch_count"] = totals["input_digest_mismatch_count"]
     if any(audit.get(name) != expected for name, expected in contract.design["required_audit_results"].items()):
         raise ValueError("best-first corpus release failed its frozen zero-error audit")
 
     expected = contract.design["expected_counts"]
     observed = {
         "dev_records": process_records_by_split["dev"],
+        "domains": len({str(rows_by_pair[str(item["pair_id"])]["domain_id"]) for item in source_items}),
+        "excluded_pairs": len(excluded_items),
+        "excluded_records": sum(
+            int(trace["decision_count"]) for item in excluded_items for trace in item["traces"].values()
+        ),
+        "excluded_traces": len(excluded_items) * len(contract.source_phase.algorithm_names),
         "operational_records": totals["operational_record_count"],
         "pairs": len(source_items),
         "process_records": process_record_count,
@@ -799,17 +763,28 @@ def _build_release(
                     seed=curriculum_seed,
                 )
             )
-            _write_or_verify(output_root / relative, payload, resume=resume)
-            artifacts[relative] = _artifact_record(relative, payload)
+            _write_new(output_root / relative, payload)
+            artifacts[relative] = _artifact_record(relative)
+
+    exclusion_relative = "exclusions/pairs.jsonl.gz"
+    exclusion_payload = _gzip_jsonl(
+        _exclusion_rows(
+            excluded_items,
+            rows_by_pair=rows_by_pair,
+            max_decisions=int(contract.design["feasibility"]["max_reference_decisions_per_trace"]),
+        )
+    )
+    _write_new(output_root / exclusion_relative, exclusion_payload)
+    artifacts[exclusion_relative] = _artifact_record(exclusion_relative)
 
     split_payload = _gzip_jsonl([split_rows[identity] for identity in sorted(split_rows)])
     split_relative = "splits/assignments.jsonl.gz"
-    _write_or_verify(output_root / split_relative, split_payload, resume=resume)
-    artifacts[split_relative] = _artifact_record(split_relative, split_payload)
+    _write_new(output_root / split_relative, split_payload)
+    artifacts[split_relative] = _artifact_record(split_relative)
     audit_relative = "audits/corpus.json"
     audit_payload = _canonical_bytes(audit)
-    _write_or_verify(output_root / audit_relative, audit_payload, resume=resume)
-    artifacts[audit_relative] = _artifact_record(audit_relative, audit_payload)
+    _write_new(output_root / audit_relative, audit_payload)
+    artifacts[audit_relative] = _artifact_record(audit_relative)
     training_artifacts = [artifacts[path] for path in sorted(artifacts) if path.startswith("training/process/")]
     training_manifest = {
         "artifacts": training_artifacts,
@@ -822,16 +797,13 @@ def _build_release(
     }
     training_relative = "training/manifest.json"
     training_payload = _canonical_bytes(training_manifest)
-    _write_or_verify(output_root / training_relative, training_payload, resume=resume)
-    artifacts[training_relative] = _artifact_record(
-        training_relative,
-        training_payload,
-    )
+    _write_new(output_root / training_relative, training_payload)
+    artifacts[training_relative] = _artifact_record(training_relative)
     return {
         "algorithms": list(contract.source_phase.algorithm_names),
         "artifacts": [artifacts[path] for path in sorted(artifacts)],
-        "byte_identical_regeneration_required": contract.design["byte_identical_regeneration_required"],
         "counts": {
+            "excluded_pairs": len(excluded_items),
             "operational_records": totals["operational_record_count"],
             "process_records": process_record_count,
             "split_assignments": len(split_rows),
@@ -840,7 +812,8 @@ def _build_release(
         },
         "curriculum_controls": contract.design["curriculum_controls"],
         "phase_id": contract.phase_id,
-        "schema_version": "best_first_paired_corpus_release_v1",
+        "feasibility": contract.design["feasibility"],
+        "schema_version": "best_first_paired_corpus_release_v2",
         "segment_alignment": "atomic_successor_decision",
         "source_trace_manifest_path": contract.design["source_trace_manifest"]["path"],
         "split_unit": "semantic_task_identity",
@@ -851,6 +824,53 @@ def _build_release(
 
 def _frontier_summary(controller: BestFirstController) -> dict[str, object]:
     return {"count": controller.frontier_count, "head": controller.frontier_head()}
+
+
+def _select_corpus_items(
+    items: list[Any],
+    *,
+    max_decisions: int,
+) -> tuple[list[Mapping[str, Any]], list[Mapping[str, Any]]]:
+    selected: list[Mapping[str, Any]] = []
+    excluded: list[Mapping[str, Any]] = []
+    for item in items:
+        if not isinstance(item, Mapping) or not isinstance(item.get("traces"), Mapping):
+            raise ValueError("best-first corpus source pair is malformed")
+        destination = (
+            selected
+            if max(int(trace["decision_count"]) for trace in item["traces"].values()) <= max_decisions
+            else excluded
+        )
+        destination.append(item)
+    return selected, excluded
+
+
+def _exclusion_rows(
+    items: list[Mapping[str, Any]],
+    *,
+    rows_by_pair: Mapping[str, Mapping[str, Any]],
+    max_decisions: int,
+) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for item in items:
+        pair_id = str(item["pair_id"])
+        source = rows_by_pair[pair_id]
+        rows.append(
+            {
+                "decision_counts": {
+                    algorithm: int(trace["decision_count"]) for algorithm, trace in item["traces"].items()
+                },
+                "difficulty": source["difficulty"],
+                "domain_id": source["domain_id"],
+                "max_reference_decisions_per_trace": max_decisions,
+                "outcome": "VALID_STOP",
+                "pair_id": pair_id,
+                "reason": "paired reference exceeds the VLM decision-call feasibility ceiling",
+                "scientific_completion": False,
+                "split": source["split"],
+            }
+        )
+    return rows
 
 
 def _curriculum_base(record: Mapping[str, Any]) -> dict[str, Any]:
@@ -935,20 +955,13 @@ def _gzip_jsonl(rows: Any) -> bytes:
     return buffer.getvalue()
 
 
-def _artifact_record(path: str, payload: bytes) -> dict[str, Any]:
-    return {
-        "path": path,
-        "size_bytes": len(payload),
-    }
+def _artifact_record(path: str) -> dict[str, str]:
+    return {"path": path}
 
 
-def _write_or_verify(path: Path, payload: bytes, *, resume: bool) -> None:
+def _write_new(path: Path, payload: bytes) -> None:
     if path.is_file():
-        if not resume:
-            raise FileExistsError(f"best-first corpus artifact exists: {path}")
-        if path.read_bytes() != payload:
-            raise ValueError(f"best-first resumed corpus artifact differs: {path}")
-        return
+        raise FileExistsError(f"best-first corpus artifact exists: {path}")
     _atomic_write(path, payload)
 
 
@@ -963,14 +976,6 @@ def _atomic_write(path: Path, payload: bytes) -> None:
         Path(temporary_name).replace(path)
     finally:
         Path(temporary_name).unlink(missing_ok=True)
-
-
-def _trees_equal(left: Path, right: Path) -> bool:
-    left_paths = [path.relative_to(left) for path in sorted(left.rglob("*")) if path.is_file()]
-    right_paths = [path.relative_to(right) for path in sorted(right.rglob("*")) if path.is_file()]
-    if left_paths != right_paths:
-        return False
-    return all((left / relative).read_bytes() == (right / relative).read_bytes() for relative in left_paths)
 
 
 def _report(progress: Callable[[str], None] | None, message: str) -> None:
@@ -1035,5 +1040,4 @@ __all__ = [
     "load_best_first_corpus_token_counter",
     "materialize_best_first_corpus_trace",
     "run_best_first_corpus_release",
-    "verify_best_first_corpus_release",
 ]

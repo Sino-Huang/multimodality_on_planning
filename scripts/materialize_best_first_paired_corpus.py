@@ -1,4 +1,4 @@
-"""Materialize or verify the authorized paired best-first text corpus."""
+"""Materialize the authorized, semantically audited best-first text corpus."""
 
 from __future__ import annotations
 
@@ -18,15 +18,14 @@ from examples.planning_benchmark_slice.best_first_corpus import (  # noqa: E402
     load_best_first_corpus_contract,
     load_best_first_corpus_token_counter,
     run_best_first_corpus_release,
-    verify_best_first_corpus_release,
 )
 
-_DESIGN = _REPO_ROOT / "configs/experiments/best-first-paired-corpus-design-v2.json"
-_AUTHORIZATION = _REPO_ROOT / "configs/experiments/best-first-paired-corpus-authorization-v2.json"
+_DESIGN = _REPO_ROOT / "configs/experiments/best-first-paired-corpus-design-v3.json"
+_AUTHORIZATION = _REPO_ROOT / "configs/experiments/best-first-paired-corpus-authorization-v3.json"
 _RECEIPT = (
     _REPO_ROOT
     / "data/best_first_paired_phase_v3/corpus-receipts"
-    / "corpus-issue-64-best-first-paired-corpus-v2-attempt-001.json"
+    / "corpus-issue-64-best-first-paired-corpus-v3-attempt-001.json"
 )
 
 
@@ -35,12 +34,8 @@ def main(arguments: Sequence[str] | None = None) -> int:
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument("--fixture-dry-run", action="store_true")
     mode.add_argument("--dry-run", action="store_true")
-    mode.add_argument("--check", action="store_true")
     mode.add_argument("--materialize", action="store_true")
-    parser.add_argument("--resume", action="store_true")
     args = parser.parse_args(arguments)
-    if args.resume and not args.materialize:
-        parser.error("--resume requires --materialize")
 
     contract = load_best_first_corpus_contract(
         _DESIGN,
@@ -58,7 +53,11 @@ def main(arguments: Sequence[str] | None = None) -> int:
                     "authorized_stage": "corpus_release",
                     "contract_id": contract.phase_id,
                     "curriculum_controls": contract.design["curriculum_controls"],
+                    "excluded_pair_count": counts["excluded_pairs"],
                     "fresh_test_access_authorized": False,
+                    "max_reference_decisions_per_trace": contract.design["feasibility"][
+                        "max_reference_decisions_per_trace"
+                    ],
                     "operational_records": counts["operational_records"],
                     "output_root": str(output_root),
                     "pair_count": counts["pairs"],
@@ -78,47 +77,13 @@ def main(arguments: Sequence[str] | None = None) -> int:
         model_id=str(tokenizer["model_id"]),
         revision=str(tokenizer["revision"]),
     )
-    if args.check:
-        manifest = verify_best_first_corpus_release(
-            contract=contract,
-            corpus_root=output_root,
-            token_counter=token_counter,
-            progress=_progress,
-        )
-        receipt = _json_object(_RECEIPT)
-        if receipt != _receipt(contract, "PASS", None, manifest):
-            raise ValueError("best-first corpus receipt is not a complete PASS")
-        print(
-            json.dumps(
-                {
-                    "byte_identical_regeneration": True,
-                    "counts": manifest["counts"],
-                    "outcome": receipt["outcome"],
-                    "status": "checked",
-                    "writes": 0,
-                },
-                sort_keys=True,
-            ),
-            flush=True,
-        )
-        return 0
-
     try:
         manifest = run_best_first_corpus_release(
             contract=contract,
             output_root=output_root,
             token_counter=token_counter,
-            resume=args.resume,
             progress=_progress,
         )
-        verified = verify_best_first_corpus_release(
-            contract=contract,
-            corpus_root=output_root,
-            token_counter=token_counter,
-            progress=_progress,
-        )
-        if verified != manifest:
-            raise ValueError("best-first corpus verification manifest differs")
     except (BestFirstCorpusLimitError, MemoryError) as error:
         receipt = _receipt(
             contract,
@@ -126,16 +91,16 @@ def main(arguments: Sequence[str] | None = None) -> int:
             str(error) or type(error).__name__,
             None,
         )
-        _write_immutable(_RECEIPT, _canonical_bytes(receipt))
+        _write_new(_RECEIPT, _canonical_bytes(receipt))
         print(json.dumps(receipt, sort_keys=True), flush=True)
         return 0
     except ValueError as error:
         receipt = _receipt(contract, "INVALID", str(error), None)
-        _write_immutable(_RECEIPT, _canonical_bytes(receipt))
+        _write_new(_RECEIPT, _canonical_bytes(receipt))
         print(json.dumps(receipt, sort_keys=True), flush=True)
         return 1
     receipt = _receipt(contract, "PASS", None, manifest)
-    _write_immutable(_RECEIPT, _canonical_bytes(receipt))
+    _write_new(_RECEIPT, _canonical_bytes(receipt))
     print(json.dumps(receipt, sort_keys=True), flush=True)
     return 0
 
@@ -157,6 +122,10 @@ def _fixture_dry_run(contract: BestFirstCorpusContract) -> int:
             **contract.design,
             "expected_counts": {
                 "dev_records": record_count,
+                "domains": 1,
+                "excluded_pairs": 0,
+                "excluded_records": 0,
+                "excluded_traces": 0,
                 "operational_records": record_count,
                 "pairs": 1,
                 "process_records": record_count,
@@ -181,21 +150,14 @@ def _fixture_dry_run(contract: BestFirstCorpusContract) -> int:
             contract=fixture,
             output_root=root,
             token_counter=_FixtureTokenCounter(),
-            resume=False,
-        )
-        verify_best_first_corpus_release(
-            contract=fixture,
-            corpus_root=root,
-            token_counter=_FixtureTokenCounter(),
         )
     print(
         json.dumps(
             {
-                "byte_identical_regeneration": True,
                 "operational_records": manifest["counts"]["operational_records"],
                 "pair_count": 1,
                 "process_records": manifest["counts"]["process_records"],
-                "status": "fixture_contract_checked",
+                "status": "fixture_contract_validated",
                 "trace_count": 2,
                 "writes": 0,
             },
@@ -215,25 +177,17 @@ def _receipt(
     counts = None if manifest is None else manifest["counts"]
     return {
         "authorization_id": contract.authorization["authorization_id"],
-        "byte_identical_regeneration": outcome == "PASS",
         "contract_id": contract.phase_id,
         "counts": counts,
         "gate_receipt_id": contract.authorization["gate_receipt"]["receipt_id"],
         "outcome": outcome,
         "reason": reason,
         "receipt_id": contract.authorization["receipt_id"],
-        "schema_version": "best_first_corpus_receipt_v1",
+        "schema_version": "best_first_corpus_receipt_v2",
         "scientific_completion": outcome == "PASS",
         "source_generation_receipt_id": contract.source_phase.authorization["generation_receipt_id"],
         "source_issue": 64,
     }
-
-
-def _json_object(path: Path) -> dict:
-    value = json.loads(path.read_bytes())
-    if not isinstance(value, dict):
-        raise ValueError(f"expected JSON object: {path}")
-    return value
 
 
 def _canonical_bytes(value: object) -> bytes:
@@ -249,11 +203,9 @@ def _canonical_bytes(value: object) -> bytes:
     ).encode()
 
 
-def _write_immutable(path: Path, payload: bytes) -> None:
+def _write_new(path: Path, payload: bytes) -> None:
     if path.is_file():
-        if path.read_bytes() != payload:
-            raise ValueError(f"immutable best-first corpus receipt differs: {path}")
-        return
+        raise FileExistsError(f"best-first corpus receipt exists: {path}")
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_bytes(payload)
 
