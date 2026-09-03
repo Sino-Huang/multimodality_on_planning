@@ -166,6 +166,8 @@ data/best_first_paired_phase_v3/*
 !data/best_first_paired_phase_v3/exact-traces/**
 !data/best_first_paired_phase_v3/corpus-receipts/
 !data/best_first_paired_phase_v3/corpus-receipts/**
+!data/best_first_paired_phase_v3/corpus-release-v3/
+!data/best_first_paired_phase_v3/corpus-release-v3/**
 !data/bfs_pilot_v5/
 !data/bfs_pilot_v6/
 !data/bfs_eval_v8/
