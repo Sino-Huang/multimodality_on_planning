@@ -158,6 +158,12 @@ data/astar_paired_phase_v1/qualification-v1/
 data/best_first_paired_phase_v2/*
 !data/best_first_paired_phase_v2/qualification-v1/
 !data/best_first_paired_phase_v2/qualification-v1/**
+!data/best_first_paired_phase_v3/
+data/best_first_paired_phase_v3/*
+!data/best_first_paired_phase_v3/qualification-v1/
+!data/best_first_paired_phase_v3/qualification-v1/**
+!data/best_first_paired_phase_v3/exact-traces/
+!data/best_first_paired_phase_v3/exact-traces/**
 !data/bfs_pilot_v5/
 !data/bfs_pilot_v6/
 !data/bfs_eval_v8/
