@@ -21,12 +21,12 @@ from examples.planning_benchmark_slice.best_first_corpus import (  # noqa: E402
     verify_best_first_corpus_release,
 )
 
-_DESIGN = _REPO_ROOT / "configs/experiments/best-first-paired-corpus-design-v1.json"
-_AUTHORIZATION = _REPO_ROOT / "configs/experiments/best-first-paired-corpus-authorization-v1.json"
+_DESIGN = _REPO_ROOT / "configs/experiments/best-first-paired-corpus-design-v2.json"
+_AUTHORIZATION = _REPO_ROOT / "configs/experiments/best-first-paired-corpus-authorization-v2.json"
 _RECEIPT = (
     _REPO_ROOT
     / "data/best_first_paired_phase_v3/corpus-receipts"
-    / "corpus-issue-64-best-first-paired-corpus-v1-attempt-001.json"
+    / "corpus-issue-64-best-first-paired-corpus-v2-attempt-001.json"
 )
 
 

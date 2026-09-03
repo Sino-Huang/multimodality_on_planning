@@ -21,6 +21,8 @@ from .best_first_controller import BEST_FIRST_SETTINGS, BestFirstController
 from .best_first_model_input import (
     build_best_first_live_model_input,
     build_best_first_teacher_model_input,
+    build_compact_best_first_live_model_input,
+    build_compact_best_first_teacher_model_input,
     serialize_best_first_message_prefix,
 )
 from .best_first_phase import BestFirstPhase, load_best_first_phase
@@ -51,6 +53,20 @@ class QwenBestFirstCorpusTokenCounter:
                 add_generation_prompt=True,
             )
         )
+
+    def input_token_counts(self, model_inputs: list[Mapping[str, Any]]) -> list[int]:
+        counts: list[int] = []
+        for start in range(0, len(model_inputs), 256):
+            conversations = [
+                serialize_best_first_message_prefix(model_input) for model_input in model_inputs[start : start + 256]
+            ]
+            token_ids = self.tokenizer.apply_chat_template(
+                conversations,
+                tokenize=True,
+                add_generation_prompt=True,
+            )
+            counts.extend(len(row) for row in token_ids)
+        return counts
 
     def target_tokens(self, target_text: str) -> int:
         return len(self.tokenizer.encode(target_text, add_special_tokens=False))
@@ -141,9 +157,25 @@ def load_best_first_corpus_contract(
         "target_parse_rejection_count": 0,
         "teacher_decision_rejection_count": 0,
     }
+    version = {
+        "issue-64-best-first-paired-corpus-v1": 1,
+        "issue-64-best-first-paired-corpus-v2": 2,
+    }.get(str(design.get("phase_id")))
+    if version == 2:
+        required_audits.pop("input_digest_mismatch_count")
+    expected_model_input = {
+        1: (
+            "best_first_model_input_v1",
+            "examples.planning_benchmark_slice.best_first_model_input.build_best_first_model_input",
+        ),
+        2: (
+            "best_first_compact_model_input_v2",
+            "examples.planning_benchmark_slice.best_first_model_input.build_compact_best_first_model_input",
+        ),
+    }.get(version)
     if (
-        design.get("schema_version") != "best_first_paired_corpus_design_v1"
-        or design.get("phase_id") != "issue-64-best-first-paired-corpus-v1"
+        version is None
+        or design.get("schema_version") != f"best_first_paired_corpus_design_v{version}"
         or design.get("source_issue") != 64
         or design.get("parent_issue") != 38
         or design.get("source_trace_contract_id") != "issue-63-best-first-paired-v3"
@@ -158,6 +190,9 @@ def load_best_first_corpus_contract(
         or design.get("expected_counts") != expected_counts
         or design.get("required_audit_results") != required_audits
         or design.get("compression") != {"format": "gzip", "mtime": 0}
+        or expected_model_input is None
+        or design.get("model_input_schema") != expected_model_input[0]
+        or design.get("input_builder") != expected_model_input[1]
         or design.get("tokenizer")
         != {
             "context_limit": 8192,
@@ -168,27 +203,42 @@ def load_best_first_corpus_contract(
         }
     ):
         raise ValueError("best-first corpus design has drifted")
+    suffix = f"v{version}"
     if (
-        authorization.get("schema_version") != "best_first_paired_corpus_authorization_v1"
-        or authorization.get("authorization_id") != "issue-64-best-first-paired-corpus-authorization-v1"
+        authorization.get("schema_version") != f"best_first_paired_corpus_authorization_{suffix}"
+        or authorization.get("authorization_id") != f"issue-64-best-first-paired-corpus-authorization-{suffix}"
         or authorization.get("contract_id") != design["phase_id"]
         or authorization.get("authorized_stages") != ["corpus_release"]
         or authorization.get("outcome") != "PASS"
         or authorization.get("start_permitted") is not True
         or authorization.get("scientific_completion") is not False
-        or authorization.get("receipt_id") != "corpus:issue-64-best-first-paired-corpus-v1:attempt-001"
-        or authorization.get("output_root") != "data/best_first_paired_phase_v3/corpus-release-v1"
+        or authorization.get("receipt_id") != f"corpus:issue-64-best-first-paired-corpus-{suffix}:attempt-001"
+        or authorization.get("output_root") != f"data/best_first_paired_phase_v3/corpus-release-{suffix}"
         or authorization.get("gate_receipt")
         != {
             "contract_id": design["phase_id"],
             "outcome": "PASS",
-            "receipt_id": "gate:issue-64-best-first-paired-corpus-v1:PASS",
+            "receipt_id": f"gate:issue-64-best-first-paired-corpus-{suffix}:PASS",
             "schema_version": "best_first_corpus_gate_v1",
             "source_issue": 64,
         }
         or _bound_path(root, authorization.get("design_manifest"), "corpus design") != design_file
     ):
         raise ValueError("best-first corpus authorization has drifted")
+    if version == 2:
+        predecessor_path = _bound_path(
+            root,
+            authorization.get("predecessor_receipt"),
+            "predecessor corpus receipt",
+        )
+        predecessor = _json_object(predecessor_path.read_bytes(), "predecessor corpus receipt")
+        if (
+            predecessor.get("contract_id") != "issue-64-best-first-paired-corpus-v1"
+            or predecessor.get("receipt_id") != "corpus:issue-64-best-first-paired-corpus-v1:attempt-001"
+            or predecessor.get("outcome") != "VALID_STOP"
+            or predecessor.get("scientific_completion") is not False
+        ):
+            raise ValueError("best-first corpus predecessor is not the frozen VALID_STOP")
 
     source_phase = load_best_first_phase(
         root / "configs/experiments/best-first-paired-design-v3.json",
@@ -329,13 +379,21 @@ def materialize_best_first_corpus_trace(
             if not candidates:
                 raise ValueError("best-first corpus decision exceeds candidate coverage")
             candidate = candidates[0]
-            teacher_input = build_best_first_teacher_model_input(authority, controller)
-            live_input = build_best_first_live_model_input(authority, controller)
+            model_input_schema = str(corpus_config.get("model_input_schema", "best_first_model_input_v1"))
+            if model_input_schema == "best_first_compact_model_input_v2":
+                teacher_input = build_compact_best_first_teacher_model_input(authority, controller)
+                live_input = build_compact_best_first_live_model_input(authority, controller)
+            elif model_input_schema == "best_first_model_input_v1":
+                teacher_input = build_best_first_teacher_model_input(authority, controller)
+                live_input = build_best_first_live_model_input(authority, controller)
+            else:
+                raise ValueError(f"unsupported best-first corpus input schema: {model_input_schema}")
             if teacher_input != live_input:
                 live_training_mismatches += 1
-            input_digest = hashlib.sha256(_canonical_text(teacher_input).encode()).hexdigest()
-            if input_digest != decision.get("input_sha256"):
-                input_digest_mismatches += 1
+            if model_input_schema == "best_first_model_input_v1":
+                input_digest = hashlib.sha256(_canonical_text(teacher_input).encode()).hexdigest()
+                if input_digest != decision.get("input_sha256"):
+                    input_digest_mismatches += 1
 
             target_text = decision.get("target")
             try:
@@ -413,9 +471,7 @@ def materialize_best_first_corpus_trace(
                     "view": "operational",
                 }
             )
-            input_tokens = token_counter.input_tokens(teacher_input)
             target_tokens = token_counter.target_tokens(str(target_text))
-            max_input_tokens = max(max_input_tokens, input_tokens)
             max_target_tokens = max(max_target_tokens, target_tokens)
             record_index += 1
 
@@ -442,10 +498,15 @@ def materialize_best_first_corpus_trace(
         or trace_item.get("solution_cost") != controller.best_g[terminal_id]
     ):
         raise ValueError("best-first corpus source trace result differs")
-    audit = {
+    batch_counter = getattr(token_counter, "input_token_counts", None)
+    if callable(batch_counter):
+        input_token_counts = batch_counter([record["input"] for record in process_rows])
+    else:
+        input_token_counts = [token_counter.input_tokens(record["input"]) for record in process_rows]
+    max_input_tokens = max(input_token_counts, default=0)
+    audit: dict[str, int] = {
         "decision_count": record_index,
         "future_step_leakage_count": 0,
-        "input_digest_mismatch_count": input_digest_mismatches,
         "input_over_budget_count": int(max_input_tokens > int(corpus_config["model_input_token_limit"])),
         "live_training_input_mismatch_count": live_training_mismatches,
         "max_input_tokens": max_input_tokens,
@@ -456,8 +517,9 @@ def materialize_best_first_corpus_trace(
         "target_parse_rejection_count": target_parse_rejections,
         "teacher_decision_rejection_count": teacher_rejections,
     }
+    if corpus_config.get("model_input_schema", "best_first_model_input_v1") == "best_first_model_input_v1":
+        audit["input_digest_mismatch_count"] = input_digest_mismatches
     zero_fields = (
-        "input_digest_mismatch_count",
         "input_over_budget_count",
         "live_training_input_mismatch_count",
         "state_action_mismatch_count",
@@ -469,7 +531,7 @@ def materialize_best_first_corpus_trace(
         raise BestFirstCorpusLimitError(
             f"best-first corpus token limit exceeded: input={max_input_tokens}, " f"target={max_target_tokens}"
         )
-    if any(audit[field] for field in zero_fields):
+    if any(audit[field] for field in zero_fields) or input_digest_mismatches:
         raise ValueError("best-first corpus trace failed its exact reconstruction audit")
     return BestFirstCorpusTrace(
         tuple(process_rows),
@@ -616,6 +678,7 @@ def _build_release(
                 trace_root=contract.trace_root,
                 corpus_config={
                     "accepted_delta_limit": contract.design["accepted_delta_limit"],
+                    "model_input_schema": contract.design.get("model_input_schema", "best_first_model_input_v1"),
                     "model_input_token_limit": contract.design["tokenizer"]["model_input_token_limit"],
                     "model_output_token_limit": contract.design["tokenizer"]["model_output_token_limit"],
                 },
@@ -682,7 +745,6 @@ def _build_release(
         "future_step_leakage_count": totals["future_step_leakage_count"],
         "held_out_instance_count": held_out_instances,
         "identical_input_conflicting_target_count": conflicting_inputs,
-        "input_digest_mismatch_count": totals["input_digest_mismatch_count"],
         "input_over_budget_count": totals["input_over_budget_count"],
         "input_target_overlap_count": input_target_overlap,
         "live_training_input_mismatch_count": totals["live_training_input_mismatch_count"],
@@ -698,6 +760,8 @@ def _build_release(
         "target_parse_rejection_count": totals["target_parse_rejection_count"],
         "teacher_decision_rejection_count": totals["teacher_decision_rejection_count"],
     }
+    if contract.design.get("model_input_schema", "best_first_model_input_v1") == "best_first_model_input_v1":
+        audit["input_digest_mismatch_count"] = totals["input_digest_mismatch_count"]
     if any(audit.get(name) != expected for name, expected in contract.design["required_audit_results"].items()):
         raise ValueError("best-first corpus release failed its frozen zero-error audit")
 

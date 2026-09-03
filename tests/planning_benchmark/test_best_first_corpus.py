@@ -7,6 +7,10 @@ import subprocess
 import sys
 from pathlib import Path
 
+from examples.planning_benchmark_slice.best_first_controller import (
+    BEST_FIRST_SETTINGS,
+    BestFirstController,
+)
 from examples.planning_benchmark_slice.best_first_corpus import (
     BestFirstCorpusContract,
     materialize_best_first_corpus_trace,
@@ -18,6 +22,9 @@ from examples.planning_benchmark_slice.best_first_episode import (
     serialize_best_first_trace,
 )
 from examples.planning_benchmark_slice.best_first_model_input import (
+    build_compact_best_first_live_model_input,
+    build_compact_best_first_teacher_model_input,
+    expand_compact_best_first_facts,
     serialize_best_first_message_prefix,
 )
 from examples.planning_benchmark_slice.best_first_phase import load_best_first_phase
@@ -82,6 +89,7 @@ def test_compact_trace_materializes_process_operational_and_training_views(tmp_p
     }
     corpus_config = {
         "accepted_delta_limit": 16,
+        "model_input_schema": "best_first_compact_model_input_v2",
         "model_input_token_limit": 7_808,
         "model_output_token_limit": 384,
     }
@@ -98,7 +106,7 @@ def test_compact_trace_materializes_process_operational_and_training_views(tmp_p
     assert len(shard.process_rows) == search.decision_count == 6
     assert len(shard.operational_rows) == search.decision_count
     assert len(shard.training_rows) == search.decision_count
-    assert shard.audit["input_digest_mismatch_count"] == 0
+    assert "input_digest_mismatch_count" not in shard.audit
     assert shard.audit["live_training_input_mismatch_count"] == 0
     assert shard.audit["target_parse_rejection_count"] == 0
     assert shard.audit["teacher_decision_rejection_count"] == 0
@@ -124,6 +132,48 @@ def test_compact_trace_materializes_process_operational_and_training_views(tmp_p
     assert operational["input"]["source_state"] != operational["target"]["target_state"]
 
 
+def test_compact_v2_input_round_trips_hard_visitall_facts_and_matches_live() -> None:
+    pair_root = ROOT / "data/best_first_paired_phase_v3/exact-traces/pairs" / "astar-pair-d1dcee3d1a6d2d3e7f6219fd"
+    task = json.loads((pair_root / "task.json").read_bytes())
+    authority = PDDLStateAuthority.from_pddl(task["domain_pddl"], task["problem_pddl"])
+    controller = BestFirstController(
+        authority,
+        BEST_FIRST_SETTINGS["best_first_add_w3"],
+        accepted_delta_limit=16,
+        max_budget=15_000,
+    )
+    controller.start_expansion()
+
+    teacher = build_compact_best_first_teacher_model_input(authority, controller)
+    live = build_compact_best_first_live_model_input(authority, controller)
+    legacy_context = authority.task_context()
+
+    assert teacher == live
+    assert teacher["schema_version"] == "best_first_compact_model_input_v2"
+    assert expand_compact_best_first_facts(teacher["current"]["state_facts"]) == list(authority.initial_state.atoms)
+    assert expand_compact_best_first_facts(teacher["task_context"]["goal_facts"]) == list(authority.goal_atoms or ())
+    assert expand_compact_best_first_facts(teacher["task_context"]["static_facts"]) == list(
+        legacy_context["static_initial_facts"]
+    )
+    assert expand_compact_best_first_facts(teacher["task_context"]["initial_dynamic_facts"]) == list(
+        legacy_context["initial_dynamic_atoms"]
+    )
+    assert teacher["successor_candidates"]["columns"] == [
+        "action",
+        "best_cost",
+        "closed",
+        "dominated",
+        "frontier",
+        "g",
+        "h",
+        "priority",
+        "pruned",
+        "target_state_id",
+    ]
+    assert len(teacher["successor_candidates"]["rows"]) == len(controller.current_candidates())
+    assert len(json.dumps(teacher, sort_keys=True, separators=(",", ":"))) < 8_500
+
+
 def test_corpus_command_dry_run_binds_the_complete_issue63_release() -> None:
     completed = subprocess.run(
         [
@@ -141,11 +191,11 @@ def test_corpus_command_dry_run_binds_the_complete_issue63_release() -> None:
     assert completed.returncode == 0, completed.stderr
     assert json.loads(completed.stdout.splitlines()[-1]) == {
         "authorized_stage": "corpus_release",
-        "contract_id": "issue-64-best-first-paired-corpus-v1",
+        "contract_id": "issue-64-best-first-paired-corpus-v2",
         "curriculum_controls": ["staged", "shuffled", "mixed_order"],
         "fresh_test_access_authorized": False,
         "operational_records": 289_902,
-        "output_root": str((ROOT / "data/best_first_paired_phase_v3/corpus-release-v1").resolve()),
+        "output_root": str((ROOT / "data/best_first_paired_phase_v3/corpus-release-v2").resolve()),
         "pair_count": 75,
         "process_records": 289_902,
         "source_generation_receipt": "generation:issue-63-best-first-paired-v3:attempt-001",
