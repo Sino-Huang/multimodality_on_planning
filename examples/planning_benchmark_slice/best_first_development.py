@@ -1,4 +1,4 @@
-"""Issue-65 additive best-first development experiment."""
+"""Governed additive best-first development experiments."""
 
 from __future__ import annotations
 
@@ -19,8 +19,10 @@ from .best_first_model_input import build_compact_best_first_live_model_input
 from .model_search_episode import SearchPolicyRequest
 from .pddl_state import PDDLStateAuthority
 
-_DESIGN = Path("configs/experiments/best-first-issue65-development-v1.json")
-_AUTHORIZATION = Path("configs/experiments/best-first-issue65-authorization-v1.json")
+_ISSUE65_DESIGN = Path("configs/experiments/best-first-issue65-development-v1.json")
+_ISSUE65_AUTHORIZATION = Path("configs/experiments/best-first-issue65-authorization-v1.json")
+_ISSUE66_DESIGN = Path("configs/experiments/best-first-issue66-development-v1.json")
+_ISSUE66_AUTHORIZATION = Path("configs/experiments/best-first-issue66-authorization-v1.json")
 
 
 @dataclass(frozen=True, slots=True)
@@ -32,6 +34,8 @@ class BestFirstDevelopmentTask:
     task_path: Path
     exact_decisions: int
     exact_expansions: int
+    algorithm: str = "best_first_add_w3"
+    source_issue: int = 65
 
     @property
     def model_call_limit(self) -> int:
@@ -39,7 +43,7 @@ class BestFirstDevelopmentTask:
 
 
 @dataclass(frozen=True, slots=True)
-class BestFirstIssue65Experiment:
+class BestFirstDevelopmentExperiment:
     repo_root: Path
     design: Mapping[str, Any]
     authorization: Mapping[str, Any]
@@ -53,8 +57,32 @@ class BestFirstIssue65Experiment:
         return str(self.design["contract_id"])
 
     @property
+    def source_issue(self) -> int:
+        return int(self.design["source_issue"])
+
+    @property
+    def algorithm(self) -> str:
+        return str(self.design["algorithm"])
+
+    @property
     def evaluation_seeds(self) -> tuple[int, ...]:
         return tuple(int(seed) for seed in self.design["evaluation"]["seeds"])
+
+    @property
+    def training_counts(self) -> dict[str, int]:
+        expected = self.design["expected"]
+        if self.algorithm == "best_first_add_w3":
+            return {
+                "dev": int(expected["training_w3_validation_records"]),
+                "train": int(expected["training_w3_records"]),
+            }
+        return {
+            "dev": int(expected["training_greedy_validation_records"]),
+            "train": int(expected["training_greedy_records"]),
+        }
+
+    def schema(self, product: str) -> str:
+        return f"best_first_issue{self.source_issue}_{product}_v1"
 
     def require_stage(self, stage: str) -> None:
         if (
@@ -63,10 +91,10 @@ class BestFirstIssue65Experiment:
             or self.authorization.get("start_permitted") is not True
             or stage not in self.authorization.get("authorized_stages", [])
         ):
-            raise ValueError(f"issue #65 stage is not authorized: {stage}")
+            raise ValueError(f"issue #{self.source_issue} stage is not authorized: {stage}")
 
     def preflight(self) -> dict[str, Any]:
-        return {
+        result = {
             "algorithm": self.design["algorithm"],
             "contract_id": self.contract_id,
             "development_exact_decisions": sum(task.exact_decisions for task in self.tasks),
@@ -76,40 +104,86 @@ class BestFirstIssue65Experiment:
             "max_reference_decisions": max(task.exact_decisions for task in self.tasks),
             "maximum_calls_per_episode": max(task.model_call_limit for task in self.tasks),
             "physical_model_conditions": 2,
-            "training_w3_counts": {
-                "dev": self.design["expected"]["training_w3_validation_records"],
-                "train": self.design["expected"]["training_w3_records"],
-            },
             "training_epochs": self.design["training"]["epochs"],
             "training_seed": self.design["training"]["seed"],
             "training_runs": 1,
         }
+        label = "w3" if self.algorithm == "best_first_add_w3" else "greedy"
+        result[f"training_{label}_counts"] = self.training_counts
+        return result
 
 
-def load_best_first_issue65(repo_root: str | Path) -> BestFirstIssue65Experiment:
+BestFirstIssue65Experiment = BestFirstDevelopmentExperiment
+BestFirstIssue66Experiment = BestFirstDevelopmentExperiment
+
+
+def load_best_first_issue65(repo_root: str | Path) -> BestFirstDevelopmentExperiment:
     """Load the active issue-65 development contract."""
 
+    return _load_best_first_development(
+        repo_root,
+        design_path=_ISSUE65_DESIGN,
+        authorization_path=_ISSUE65_AUTHORIZATION,
+        source_issue=65,
+        contract_id="issue-65-best-first-add-w3-development-v1",
+        authorization_id="issue-65-best-first-add-w3-authorization-v1",
+        algorithm="best_first_add_w3",
+        priority="g + 3*h_add",
+        reopen_closed=True,
+    )
+
+
+def load_best_first_issue66(repo_root: str | Path) -> BestFirstDevelopmentExperiment:
+    """Load the active issue-66 development contract."""
+
+    return _load_best_first_development(
+        repo_root,
+        design_path=_ISSUE66_DESIGN,
+        authorization_path=_ISSUE66_AUTHORIZATION,
+        source_issue=66,
+        contract_id="issue-66-best-first-add-greedy-development-v1",
+        authorization_id="issue-66-best-first-add-greedy-authorization-v1",
+        algorithm="best_first_add_greedy",
+        priority="h_add",
+        reopen_closed=False,
+    )
+
+
+def _load_best_first_development(
+    repo_root: str | Path,
+    *,
+    design_path: Path,
+    authorization_path: Path,
+    source_issue: int,
+    contract_id: str,
+    authorization_id: str,
+    algorithm: str,
+    priority: str,
+    reopen_closed: bool,
+) -> BestFirstDevelopmentExperiment:
+    """Load one authorized additive best-first development contract."""
+
     root = Path(repo_root).resolve()
-    design = _json_object(root / _DESIGN)
-    authorization = _json_object(root / _AUTHORIZATION)
-    if design.get("schema_version") != "best_first_issue65_development_v1":
-        raise ValueError("issue #65 development design has the wrong schema")
+    design = _json_object(root / design_path)
+    authorization = _json_object(root / authorization_path)
+    if design.get("schema_version") != f"best_first_issue{source_issue}_development_v1":
+        raise ValueError(f"issue #{source_issue} development design has the wrong schema")
     if (
-        design.get("contract_id") != "issue-65-best-first-add-w3-development-v1"
-        or design.get("source_issue") != 65
+        design.get("contract_id") != contract_id
+        or design.get("source_issue") != source_issue
         or design.get("parent_issue") != 38
-        or design.get("algorithm") != "best_first_add_w3"
-        or design.get("priority") != "g + 3*h_add"
-        or design.get("reopen_closed") is not True
+        or design.get("algorithm") != algorithm
+        or design.get("priority") != priority
+        or design.get("reopen_closed") is not reopen_closed
         or design.get("training", {}).get("seed") != 17
         or design.get("training", {}).get("replicate_count") != 1
         or design.get("evaluation", {}).get("decision_call_multiplier") != 2
         or design.get("evaluation", {}).get("reference_decision_ceiling") != 1_024
     ):
-        raise ValueError("issue #65 development design differs from the ticket")
+        raise ValueError(f"issue #{source_issue} development design differs from the ticket")
     if (
-        authorization.get("schema_version") != "best_first_issue65_authorization_v1"
-        or authorization.get("authorization_id") != "issue-65-best-first-add-w3-authorization-v1"
+        authorization.get("schema_version") != f"best_first_issue{source_issue}_authorization_v1"
+        or authorization.get("authorization_id") != authorization_id
         or authorization.get("contract_id") != design["contract_id"]
         or authorization.get("outcome") != StopOutcome.PASS.value
         or authorization.get("start_permitted") is not True
@@ -118,11 +192,11 @@ def load_best_first_issue65(repo_root: str | Path) -> BestFirstIssue65Experiment
         != {
             "contract_id": design["contract_id"],
             "outcome": StopOutcome.PASS.value,
-            "receipt_id": "gate:issue-65-best-first-add-w3-development-v1:PASS",
-            "source_issue": 65,
+            "receipt_id": f"gate:{contract_id}:PASS",
+            "source_issue": source_issue,
         }
     ):
-        raise ValueError("issue #65 authorization differs from the active contract")
+        raise ValueError(f"issue #{source_issue} authorization differs from the active contract")
 
     paths = design["data"]
     corpus_receipt = _json_object(root / paths["corpus_receipt"])
@@ -164,6 +238,8 @@ def load_best_first_issue65(repo_root: str | Path) -> BestFirstIssue65Experiment
                 task_path=(root / paths["trace_root"] / "pairs" / pair_id / str(trace_row["task_path"])),
                 exact_decisions=int(trace["decision_count"]),
                 exact_expansions=int(trace["expansion_count"]),
+                algorithm=algorithm,
+                source_issue=source_issue,
             )
         )
     tasks.sort(key=lambda task: task.instance_id)
@@ -174,8 +250,8 @@ def load_best_first_issue65(repo_root: str | Path) -> BestFirstIssue65Experiment
         or max(task.exact_decisions for task in tasks) > design["evaluation"]["reference_decision_ceiling"]
         or any(not task.task_path.is_file() for task in tasks)
     ):
-        raise ValueError("issue #65 development tasks differ from the issue #64 v3 panel")
-    experiment = BestFirstIssue65Experiment(
+        raise ValueError(f"issue #{source_issue} development tasks differ from the issue #64 v3 panel")
+    experiment = BestFirstDevelopmentExperiment(
         root,
         design,
         authorization,
@@ -190,7 +266,7 @@ def load_best_first_issue65(repo_root: str | Path) -> BestFirstIssue65Experiment
 
 
 def build_best_first_sft_command(
-    experiment: BestFirstIssue65Experiment,
+    experiment: BestFirstDevelopmentExperiment,
     *,
     dataset_root: str | Path,
     output_root: str | Path,
@@ -306,8 +382,8 @@ def build_best_first_sft_command(
     return tuple(command)
 
 
-def expected_training_steps(experiment: BestFirstIssue65Experiment) -> int:
-    train_count = int(experiment.design["expected"]["training_w3_records"])
+def expected_training_steps(experiment: BestFirstDevelopmentExperiment) -> int:
+    train_count = experiment.training_counts["train"]
     batch = int(experiment.design["training"]["optimization"]["global_batch_size"])
     return math.ceil(train_count / batch) * int(experiment.design["training"]["epochs"])
 
@@ -326,7 +402,7 @@ class BestFirstModelSession:
         accepted_delta_limit: int = 16,
     ) -> None:
         if arm not in {"pretrained_base", "process_sft", "random_valid", "exact_reference"}:
-            raise ValueError("issue #65 episode arm is invalid")
+            raise ValueError(f"issue #{task.source_issue} episode arm is invalid")
         self.authority = authority
         self.task = task
         self.arm = arm
@@ -335,7 +411,7 @@ class BestFirstModelSession:
         self.accepted_delta_limit = accepted_delta_limit
         self.controller = BestFirstController(
             authority,
-            BEST_FIRST_SETTINGS["best_first_add_w3"],
+            BEST_FIRST_SETTINGS[task.algorithm],
             accepted_delta_limit=accepted_delta_limit,
             retain_decision_evidence=False,
         )
@@ -384,7 +460,7 @@ class BestFirstModelSession:
 
     def submit_output(self, output: str) -> None:
         if self._pending is None or self.complete:
-            raise ValueError("issue #65 episode has no pending model request")
+            raise ValueError(f"issue #{self.task.source_issue} episode has no pending model request")
         request = self._pending
         result = self.controller.apply_raw_output(output)
         self.events.append(
@@ -403,7 +479,7 @@ class BestFirstModelSession:
 
     def result(self) -> dict[str, Any]:
         if not self.complete:
-            raise ValueError("issue #65 episode is not complete")
+            raise ValueError(f"issue #{self.task.source_issue} episode is not complete")
         goal_reached = self.termination_reason == "goal_reached"
         return {
             "algorithm_invariants_hold": self.controller.invalid_operation_count == 0,
@@ -419,11 +495,11 @@ class BestFirstModelSession:
 
     def episode(self) -> dict[str, Any]:
         if not self.complete or self._pending is not None:
-            raise ValueError("issue #65 episode is not complete")
+            raise ValueError(f"issue #{self.task.source_issue} episode is not complete")
         return {
             "accepted_delta_limit": self.accepted_delta_limit,
             "adapter_id": self.adapter_id,
-            "algorithm": "best_first_add_w3",
+            "algorithm": self.task.algorithm,
             "arm": self.arm,
             "events": self.events,
             "exact_reference_decisions": self.task.exact_decisions,
@@ -431,7 +507,7 @@ class BestFirstModelSession:
             "instance_id": self.task.instance_id,
             "pair_id": self.task.pair_id,
             "result": self.result(),
-            "schema_version": "best_first_issue65_model_episode_v1",
+            "schema_version": f"best_first_issue{self.task.source_issue}_model_episode_v1",
             "seed": self.seed,
         }
 
@@ -484,13 +560,13 @@ def replay_best_first_model_episode(
     """Reconstruct every model input and trusted runtime transition semantically."""
 
     if (
-        episode.get("schema_version") != "best_first_issue65_model_episode_v1"
+        episode.get("schema_version") != f"best_first_issue{task.source_issue}_model_episode_v1"
         or episode.get("pair_id") != task.pair_id
         or episode.get("instance_id") != task.instance_id
-        or episode.get("algorithm") != "best_first_add_w3"
+        or episode.get("algorithm") != task.algorithm
         or not isinstance(episode.get("events"), list)
     ):
-        raise ValueError("issue #65 episode identity is invalid")
+        raise ValueError(f"issue #{task.source_issue} episode identity is invalid")
     task_payload = _json_object(task.task_path)
     authority = PDDLStateAuthority.from_pddl(task_payload["domain_pddl"], task_payload["problem_pddl"])
     session = BestFirstModelSession(
@@ -503,15 +579,15 @@ def replay_best_first_model_episode(
     )
     for index, event in enumerate(episode["events"]):
         if not isinstance(event, Mapping) or event.get("decision_index") != index:
-            raise ValueError("issue #65 episode decision sequence is invalid")
+            raise ValueError(f"issue #{task.source_issue} episode decision sequence is invalid")
         request = session.next_request()
         if request is None or request.model_input != event.get("input"):
-            raise ValueError("issue #65 replay reconstructed a different scientific model input")
+            raise ValueError(f"issue #{task.source_issue} replay reconstructed a different scientific model input")
         session.submit_output(str(event["raw_output"]))
         if session.events[-1]["trusted_runtime_result"] != event.get("trusted_runtime_result"):
-            raise ValueError("issue #65 replay reconstructed a different trusted runtime result")
+            raise ValueError(f"issue #{task.source_issue} replay reconstructed a different trusted runtime result")
     if session.next_request() is not None or session.result() != episode.get("result"):
-        raise ValueError("issue #65 replay reconstructed a different episode result")
+        raise ValueError(f"issue #{task.source_issue} replay reconstructed a different episode result")
     return session.result()
 
 
@@ -525,6 +601,7 @@ class BestFirstQualification:
     projected_rollout_seconds: float
     task_ids: tuple[str, ...]
     outcome: StopOutcome
+    source_issue: int = 65
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -540,7 +617,7 @@ class BestFirstQualification:
             "model_load_seconds": self.model_load_seconds,
             "outcomes_observed": False,
             "runtime_seconds_per_call": self.runtime_seconds_per_call,
-            "schema_version": "best_first_issue65_hardware_qualification_v1",
+            "schema_version": f"best_first_issue{self.source_issue}_hardware_qualification_v1",
         }
 
 
@@ -554,9 +631,30 @@ def select_issue65_coverage(
 ) -> BestFirstQualification:
     """Certify the complete issue-64 v3 development panel or stop."""
 
+    return select_best_first_coverage(
+        tasks,
+        model_load_seconds=model_load_seconds,
+        throughput_samples=throughput_samples,
+        runtime_seconds_per_call=runtime_seconds_per_call,
+        rollout_shard_count=rollout_shard_count,
+        source_issue=65,
+    )
+
+
+def select_best_first_coverage(
+    tasks: Sequence[BestFirstDevelopmentTask],
+    *,
+    model_load_seconds: float,
+    throughput_samples: Sequence[float],
+    runtime_seconds_per_call: float,
+    rollout_shard_count: int,
+    source_issue: int,
+) -> BestFirstQualification:
+    """Certify one complete issue-64 v3 development panel or stop."""
+
     task_list = tuple(tasks)
     if len(task_list) != 23 or rollout_shard_count <= 0:
-        raise ValueError("issue #65 qualification requires 23 tasks and positive shard count")
+        raise ValueError(f"issue #{source_issue} qualification requires 23 tasks and positive shard count")
     throughput = lower_95_bound(throughput_samples)
     conditions = 2
     calls = conditions * sum(task.model_call_limit for task in task_list)
@@ -575,6 +673,7 @@ def select_issue65_coverage(
         projected,
         tuple(task.instance_id for task in task_list) if passed else (),
         StopOutcome.PASS if passed else StopOutcome.VALID_STOP,
+        source_issue,
     )
 
 
@@ -582,7 +681,7 @@ def cost_balanced_task_shards(
     tasks: Sequence[BestFirstDevelopmentTask], *, shard_count: int
 ) -> tuple[tuple[BestFirstDevelopmentTask, ...], ...]:
     if shard_count <= 0:
-        raise ValueError("issue #65 shard count must be positive")
+        raise ValueError("best-first shard count must be positive")
     shards: list[list[BestFirstDevelopmentTask]] = [[] for _ in range(shard_count)]
     loads = [0] * shard_count
     for task in sorted(tasks, key=lambda item: (-item.model_call_limit, item.instance_id)):
@@ -595,7 +694,7 @@ def cost_balanced_task_shards(
 def lower_95_bound(samples: Sequence[float]) -> float:
     values = tuple(float(value) for value in samples)
     if not values or any(value <= 0 for value in values):
-        raise ValueError("issue #65 throughput samples must be positive")
+        raise ValueError("best-first throughput samples must be positive")
     if len(values) == 1:
         return values[0]
     return max(
@@ -604,7 +703,7 @@ def lower_95_bound(samples: Sequence[float]) -> float:
     )
 
 
-def adjudicate_issue65(
+def adjudicate_best_first(
     *,
     expected_tasks: Sequence[BestFirstDevelopmentTask],
     seeds: Sequence[int],
@@ -688,7 +787,7 @@ def _require_product(
     product = {(str(row["instance_id"]), row.get("seed")) for row in rows}
     expected = {(instance_id, seed) for instance_id in expected_ids for seed in expected_seeds}
     if product != expected or len(rows) != len(expected):
-        raise ValueError(f"issue #65 {label} coverage is incomplete")
+        raise ValueError(f"best-first {label} coverage is incomplete")
 
 
 def _success(row: Mapping[str, Any]) -> float:
@@ -749,19 +848,27 @@ def _canonical_text(value: object) -> str:
 
 
 __all__ = [
+    "BestFirstDevelopmentExperiment",
     "BestFirstDevelopmentTask",
     "BestFirstIssue65Experiment",
+    "BestFirstIssue66Experiment",
     "BestFirstModelSession",
     "BestFirstQualification",
+    "adjudicate_best_first",
     "adjudicate_issue65",
     "build_best_first_sft_command",
     "cost_balanced_task_shards",
     "exact_best_first_output",
     "expected_training_steps",
     "load_best_first_issue65",
+    "load_best_first_issue66",
     "lower_95_bound",
     "random_valid_best_first_output",
     "replay_best_first_model_episode",
     "run_reference_episode",
+    "select_best_first_coverage",
     "select_issue65_coverage",
 ]
+
+
+adjudicate_issue65 = adjudicate_best_first

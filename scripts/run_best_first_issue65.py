@@ -1,4 +1,4 @@
-"""Run the governed issue-65 additive best-first development experiment."""
+"""Run a governed additive best-first development experiment."""
 
 from __future__ import annotations
 
@@ -20,15 +20,16 @@ from examples.planning_benchmark_slice.batched_search_evaluation import form_det
 from examples.planning_benchmark_slice.best_first_development import (
     BestFirstDevelopmentTask,
     BestFirstModelSession,
-    adjudicate_issue65,
+    adjudicate_best_first,
     build_best_first_sft_command,
     cost_balanced_task_shards,
     expected_training_steps,
     load_best_first_issue65,
+    load_best_first_issue66,
     lower_95_bound,
     replay_best_first_model_episode,
     run_reference_episode,
-    select_issue65_coverage,
+    select_best_first_coverage,
 )
 from examples.planning_benchmark_slice.best_first_model_input import (
     best_first_policy_messages,
@@ -40,8 +41,14 @@ from examples.planning_benchmark_slice.qwen_text_policy import BatchedPolicyAdap
 from src.data_collect.governance import StopOutcome
 
 _ROOT = Path(__file__).resolve().parents[1]
-_DEFAULT_OUTPUT = _ROOT / "outputs" / "best_first_phase" / "issue65-v1"
-_DEFAULT_DATASET = _ROOT / "data" / "best_first_paired_phase_v3" / "issue65-w3-sft"
+_DEFAULT_OUTPUTS = {
+    65: _ROOT / "outputs" / "best_first_phase" / "issue65-v1",
+    66: _ROOT / "outputs" / "best_first_phase" / "issue66-v1",
+}
+_DEFAULT_DATASETS = {
+    65: _ROOT / "data" / "best_first_paired_phase_v3" / "issue65-w3-sft",
+    66: _ROOT / "data" / "best_first_paired_phase_v3" / "issue66-greedy-sft",
+}
 
 
 @dataclass(frozen=True, slots=True)
@@ -56,6 +63,7 @@ class _ReferenceJob:
 
 def main(arguments: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--source-issue", type=int, choices=(65, 66), default=65, help=argparse.SUPPRESS)
     parser.add_argument(
         "stage",
         choices=(
@@ -71,8 +79,8 @@ def main(arguments: Sequence[str] | None = None) -> int:
             "adjudicate",
         ),
     )
-    parser.add_argument("--output-root", type=Path, default=_DEFAULT_OUTPUT)
-    parser.add_argument("--dataset-root", type=Path, default=_DEFAULT_DATASET)
+    parser.add_argument("--output-root", type=Path)
+    parser.add_argument("--dataset-root", type=Path)
     parser.add_argument("--devices", nargs="+", default=("cuda:0", "cuda:1"))
     parser.add_argument("--device")
     parser.add_argument("--shard-index", type=int)
@@ -90,9 +98,10 @@ def main(arguments: Sequence[str] | None = None) -> int:
     if not 1024 <= args.master_port <= 65535:
         raise ValueError("MASTER_PORT must be between 1024 and 65535")
 
-    experiment = load_best_first_issue65(_ROOT)
-    output_root = args.output_root.resolve()
-    dataset_root = args.dataset_root.resolve()
+    loader = load_best_first_issue65 if args.source_issue == 65 else load_best_first_issue66
+    experiment = loader(_ROOT)
+    output_root = (args.output_root or _DEFAULT_OUTPUTS[args.source_issue]).resolve()
+    dataset_root = (args.dataset_root or _DEFAULT_DATASETS[args.source_issue]).resolve()
     if args.stage == "preflight":
         experiment.require_stage("preflight")
         print(_canonical_text({**experiment.preflight(), "status": "PASS", "writes": 0}))
@@ -199,8 +208,8 @@ def _prepare_plan(experiment, dataset_root: Path) -> dict[str, Any]:
     return {
         "dataset_root": str(dataset_root),
         "dev_shards": len(experiment.dev_datasets),
-        "expected_dev_rows": experiment.design["expected"]["training_w3_validation_records"],
-        "expected_train_rows": experiment.design["expected"]["training_w3_records"],
+        "expected_dev_rows": experiment.training_counts["dev"],
+        "expected_train_rows": experiment.training_counts["train"],
         "train_shards": len(experiment.train_datasets),
     }
 
@@ -214,15 +223,14 @@ def _prepare(experiment, dataset_root: Path, *, dry_run: bool) -> int:
     manifest_path = dataset_root / "manifest.json"
     if manifest_path.is_file():
         manifest = _json_object(manifest_path)
-        if manifest.get("counts") != {
-            "dev": experiment.design["expected"]["training_w3_validation_records"],
-            "train": experiment.design["expected"]["training_w3_records"],
-        }:
-            raise ValueError("existing issue #65 training dataset has incomplete scientific coverage")
+        if manifest.get("counts") != experiment.training_counts:
+            raise ValueError(
+                f"existing issue #{experiment.source_issue} training dataset has incomplete scientific coverage"
+            )
         print(_canonical_text({"manifest": str(manifest_path), "status": "already_prepared"}))
         return 0
     if dataset_root.exists():
-        raise FileExistsError(f"incomplete issue #65 dataset root exists: {dataset_root}")
+        raise FileExistsError(f"incomplete issue #{experiment.source_issue} dataset root exists: {dataset_root}")
     dataset_root.mkdir(parents=True)
     counts = {}
     for split, paths in (("train", experiment.train_datasets), ("dev", experiment.dev_datasets)):
@@ -240,28 +248,25 @@ def _prepare(experiment, dataset_root: Path, *, dry_run: bool) -> int:
                         if not isinstance(messages, list) or len(messages) != 3:
                             raise ValueError(f"malformed issue #64 training row: {path}")
                         model_input = json.loads(messages[1]["content"])
-                        if model_input.get("algorithm") != "best_first_add_w3":
-                            raise ValueError("issue #65 dataset included a different algorithm")
+                        if model_input.get("algorithm") != experiment.algorithm:
+                            raise ValueError(f"issue #{experiment.source_issue} dataset included a different algorithm")
                         output.write(_canonical_text(row) + "\n")
                         count += 1
                 _terminal_progress(f"prepare-{split}", shard_index, len(paths), started, f"rows={count}")
         temporary.replace(destination)
         counts[split] = count
-    expected = {
-        "dev": experiment.design["expected"]["training_w3_validation_records"],
-        "train": experiment.design["expected"]["training_w3_records"],
-    }
+    expected = experiment.training_counts
     if counts != expected:
-        raise ValueError("prepared issue #65 dataset does not cover all selected w3 records")
+        raise ValueError(f"prepared issue #{experiment.source_issue} dataset does not cover all selected records")
     manifest = {
-        "algorithm": "best_first_add_w3",
+        "algorithm": experiment.algorithm,
         "authorization_id": experiment.authorization["authorization_id"],
         "contract_id": experiment.contract_id,
         "counts": counts,
         "data": {split: f"data/{split}.jsonl" for split in ("train", "dev")},
         "framework": {"name": "ms-swift", "version": "4.2.2"},
         "gate_receipt_id": experiment.authorization["gate_receipt"]["receipt_id"],
-        "schema_version": "best_first_issue65_training_dataset_v1",
+        "schema_version": experiment.schema("training_dataset"),
     }
     _atomic_write_json(manifest_path, manifest)
     print(_canonical_text({"manifest": str(manifest_path), "status": "PASS", **counts}))
@@ -270,7 +275,7 @@ def _prepare(experiment, dataset_root: Path, *, dry_run: bool) -> int:
 
 def _qualification_plan(experiment, output_root: Path, devices: tuple[str, ...]) -> dict[str, Any]:
     if len(devices) != 2 or len(set(devices)) != 2:
-        raise ValueError("issue #65 qualification requires two distinct A100 devices")
+        raise ValueError(f"issue #{experiment.source_issue} qualification requires two distinct A100 devices")
     return {
         "devices": list(devices),
         "development_tasks": len(experiment.tasks),
@@ -302,6 +307,8 @@ def _qualify(experiment, output_root: Path, devices: tuple[str, ...], *, dry_run
         (
             sys.executable,
             str(Path(__file__).resolve()),
+            "--source-issue",
+            str(experiment.source_issue),
             "qualification-device",
             "--output-root",
             str(output_root),
@@ -316,12 +323,13 @@ def _qualify(experiment, output_root: Path, devices: tuple[str, ...], *, dry_run
         return 1
     measurements = [_json_object(qualification_root / f"device-{index}.json") for index in range(len(devices))]
     device_bounds = [lower_95_bound(row["throughput_samples"]) for row in measurements]
-    qualification = select_issue65_coverage(
+    qualification = select_best_first_coverage(
         experiment.tasks,
         model_load_seconds=max(float(row["model_load_seconds"]) for row in measurements),
         throughput_samples=(min(device_bounds),),
         runtime_seconds_per_call=max(float(row["runtime_seconds_per_call"]) for row in measurements),
         rollout_shard_count=len(devices),
+        source_issue=experiment.source_issue,
     ).to_dict()
     if time.time() - started_at > experiment.design["evaluation"]["qualification_seconds"]:
         qualification["coverage"].update({"mode": None, "outcome": "VALID_STOP", "task_ids": []})
@@ -341,7 +349,7 @@ def _qualify(experiment, output_root: Path, devices: tuple[str, ...], *, dry_run
         {
             "contract_id": experiment.contract_id,
             "outcome": qualification["coverage"]["outcome"],
-            "receipt_id": "gate:issue-65-best-first-add-w3-development-v1:qualification-attempt-001",
+            "receipt_id": f"gate:{experiment.contract_id}:qualification-attempt-001",
             "scientific_completion": False,
             "start_permitted": qualification["coverage"]["outcome"] == StopOutcome.PASS.value,
         },
@@ -421,7 +429,7 @@ def _qualification_device(experiment, output_root: Path, device: str, index: int
         "outcomes_observed": False,
         "probe_ids": [request.instance_id for request in requests],
         "runtime_seconds_per_call": runtime_seconds_per_call,
-        "schema_version": "best_first_issue65_device_qualification_v1",
+        "schema_version": experiment.schema("device_qualification"),
         "throughput_samples": samples,
     }
     path = output_root / "qualification" / f"device-{index}.json"
@@ -503,18 +511,15 @@ def _train(
         return 0
     _require_qualification_pass(output_root)
     dataset_manifest = _json_object(dataset_root / "manifest.json")
-    if dataset_manifest.get("counts") != {
-        "dev": experiment.design["expected"]["training_w3_validation_records"],
-        "train": experiment.design["expected"]["training_w3_records"],
-    }:
-        raise ValueError("issue #65 training dataset coverage is incomplete")
+    if dataset_manifest.get("counts") != experiment.training_counts:
+        raise ValueError(f"issue #{experiment.source_issue} training dataset coverage is incomplete")
     training_root = output_root / "training"
     report_path = training_root / "training-report.json"
     if report_path.is_file() and _json_object(report_path).get("outcome") == StopOutcome.PASS.value:
         print(_canonical_text({"output": str(report_path), "status": "already_complete"}))
         return 0
     if training_root.exists() and not resume:
-        raise FileExistsError(f"issue #65 training root exists; pass --resume: {training_root}")
+        raise FileExistsError(f"issue #{experiment.source_issue} training root exists; pass --resume: {training_root}")
     training_root.mkdir(parents=True, exist_ok=True)
     attempt_number = _next_training_attempt(training_root)
     attempt_root = training_root / f"attempt-{attempt_number:03d}"
@@ -566,7 +571,7 @@ def _train(
             StopOutcome.PASS.value if returncode == 0 and final_checkpoint.is_dir() else StopOutcome.INVALID.value
         ),
         "returncode": returncode,
-        "schema_version": "best_first_issue65_training_report_v1",
+        "schema_version": experiment.schema("training_report"),
         "scientific_completion": False,
         "seed": 17,
         "source_gate_receipt_id": experiment.authorization["gate_receipt"]["receipt_id"],
@@ -601,7 +606,7 @@ def _references(experiment, output_root: Path, *, workers: int, resume: bool, dr
         print(_canonical_text({"output": str(manifest_path), "status": "already_complete"}))
         return 0
     if reference_root.exists() and not resume:
-        raise FileExistsError(f"issue #65 reference root exists; pass --resume: {reference_root}")
+        raise FileExistsError(f"issue #{experiment.source_issue} reference root exists; pass --resume: {reference_root}")
     reference_root.mkdir(parents=True, exist_ok=True)
     jobs = _reference_jobs(experiment, reference_root, resume)
     rows: list[dict[str, Any] | None] = [None] * len(jobs)
@@ -622,7 +627,7 @@ def _references(experiment, output_root: Path, *, workers: int, resume: bool, dr
         },
         "outcome": StopOutcome.PASS.value,
         "records": records,
-        "schema_version": "best_first_issue65_references_v1",
+        "schema_version": experiment.schema("references"),
         "source_gate_receipt_id": experiment.authorization["gate_receipt"]["receipt_id"],
     }
     _atomic_write_json(manifest_path, manifest)
@@ -676,7 +681,7 @@ def _run_reference_job(job: _ReferenceJob) -> tuple[int, str, dict[str, Any]]:
 
 def _evaluation_plan(experiment, output_root: Path, devices: tuple[str, ...]) -> dict[str, Any]:
     if len(devices) != 2 or len(set(devices)) != 2:
-        raise ValueError("issue #65 evaluation requires two distinct A100 devices")
+        raise ValueError(f"issue #{experiment.source_issue} evaluation requires two distinct A100 devices")
     shards = cost_balanced_task_shards(experiment.tasks, shard_count=len(devices))
     return {
         "devices": list(devices),
@@ -703,15 +708,15 @@ def _evaluate(experiment, output_root: Path, devices: tuple[str, ...], *, resume
     _require_qualification_pass(output_root)
     training = _json_object(output_root / "training" / "training-report.json")
     if training.get("outcome") != StopOutcome.PASS.value or not Path(training["final_checkpoint"]).is_dir():
-        raise ValueError("issue #65 final process-SFT checkpoint is unavailable")
+        raise ValueError(f"issue #{experiment.source_issue} final process-SFT checkpoint is unavailable")
     references = _json_object(output_root / "references" / "manifest.json")
     if references.get("outcome") != StopOutcome.PASS.value:
-        raise ValueError("issue #65 references are incomplete")
+        raise ValueError(f"issue #{experiment.source_issue} references are incomplete")
     rollout_root = output_root / "rollout"
     launch_path = rollout_root / "launch.json"
     if launch_path.is_file():
         if not resume:
-            raise FileExistsError(f"issue #65 rollout exists; pass --resume: {rollout_root}")
+            raise FileExistsError(f"issue #{experiment.source_issue} rollout exists; pass --resume: {rollout_root}")
         rollout_started_at = float(_json_object(launch_path)["rollout_started_at"])
     else:
         rollout_started_at = time.time()
@@ -721,6 +726,8 @@ def _evaluate(experiment, output_root: Path, devices: tuple[str, ...], *, resume
         (
             sys.executable,
             str(Path(__file__).resolve()),
+            "--source-issue",
+            str(experiment.source_issue),
             "evaluation-shard",
             "--output-root",
             str(output_root),
@@ -754,7 +761,7 @@ def _evaluation_shard(
 ) -> int:
     experiment.require_stage("batched_evaluation")
     if shard_index < 0 or shard_index >= shard_count:
-        raise ValueError("issue #65 rollout shard index is invalid")
+        raise ValueError(f"issue #{experiment.source_issue} rollout shard index is invalid")
     qualification = _require_qualification_pass(output_root)
     selected = set(qualification["coverage"]["task_ids"])
     if selected != {task.instance_id for task in experiment.tasks}:
@@ -764,7 +771,7 @@ def _evaluation_shard(
     adapter_path = Path(training["final_checkpoint"])
     shard_root = output_root / "rollout" / f"shard-{shard_index}"
     if shard_root.exists() and not resume:
-        raise FileExistsError(f"issue #65 rollout shard exists; pass --resume: {shard_root}")
+        raise FileExistsError(f"issue #{experiment.source_issue} rollout shard exists; pass --resume: {shard_root}")
     shard_root.mkdir(parents=True, exist_ok=True)
     task_by_id = {task.instance_id: task for task in tasks}
     records = []
@@ -850,7 +857,7 @@ def _evaluation_shard(
         "logical_model_calls": logical_calls,
         "outcome": StopOutcome.PASS.value if complete else StopOutcome.VALID_STOP.value,
         "records": sorted(records, key=lambda row: (row["arm"], row["seed"], row["instance_id"])),
-        "schema_version": "best_first_issue65_rollout_shard_v1",
+        "schema_version": experiment.schema("rollout_shard"),
         "shard_count": shard_count,
         "shard_index": shard_index,
         "stop_reason": "wall_clock_cutoff" if stopped else None,
@@ -940,7 +947,7 @@ def _adjudicate(experiment, output_root: Path, *, dry_run: bool) -> int:
             "contract_id": experiment.contract_id,
             "outcome": StopOutcome.VALID_STOP.value,
             "reason": "outcome-blind hardware qualification did not certify complete coverage",
-            "schema_version": "best_first_issue65_adjudication_v1",
+            "schema_version": experiment.schema("adjudication"),
             "scientific_completion": False,
         }
         _write_adjudication(adjudication_root, report)
@@ -954,7 +961,7 @@ def _adjudicate(experiment, output_root: Path, *, dry_run: bool) -> int:
             "contract_id": experiment.contract_id,
             "outcome": StopOutcome.VALID_STOP.value,
             "reason": "complete selected rollout coverage was not retained before the cutoff",
-            "schema_version": "best_first_issue65_adjudication_v1",
+            "schema_version": experiment.schema("adjudication"),
             "scientific_completion": False,
         }
         _write_adjudication(adjudication_root, report)
@@ -969,7 +976,7 @@ def _adjudicate(experiment, output_root: Path, *, dry_run: bool) -> int:
             episode = _read_gzip_json(_ROOT / row["path"])
             replay_best_first_model_episode(episode, task=task_by_id[row["instance_id"]])
             _terminal_progress("adjudication-replay", index, len(all_rows), started, row["instance_id"])
-        metrics = adjudicate_issue65(
+        metrics = adjudicate_best_first(
             expected_tasks=experiment.tasks,
             seeds=experiment.evaluation_seeds,
             exact_rows=[row for row in reference_rows if row["arm"] == "exact_reference"],
@@ -984,7 +991,7 @@ def _adjudicate(experiment, output_root: Path, *, dry_run: bool) -> int:
             "metrics": metrics,
             "outcome": metrics["outcome"],
             "replayed_episodes": len(all_rows),
-            "schema_version": "best_first_issue65_adjudication_v1",
+            "schema_version": experiment.schema("adjudication"),
             "scientific_completion": metrics["scientific_completion"],
         }
     except ValueError as error:
@@ -992,7 +999,7 @@ def _adjudicate(experiment, output_root: Path, *, dry_run: bool) -> int:
             "contract_id": experiment.contract_id,
             "outcome": StopOutcome.INVALID.value,
             "reason": str(error),
-            "schema_version": "best_first_issue65_adjudication_v1",
+            "schema_version": experiment.schema("adjudication"),
             "scientific_completion": False,
         }
     _write_adjudication(adjudication_root, report)
@@ -1006,7 +1013,7 @@ def _write_adjudication(root: Path, report: Mapping[str, Any]) -> None:
         {
             "contract_id": report["contract_id"],
             "outcome": report["outcome"],
-            "receipt_id": "gate:issue-65-best-first-add-w3-development-v1:attempt-001",
+            "receipt_id": f"gate:{report['contract_id']}:attempt-001",
             "scientific_completion": report["scientific_completion"],
             "start_permitted": False,
         },
@@ -1017,7 +1024,7 @@ def _write_adjudication(root: Path, report: Mapping[str, Any]) -> None:
 def _require_qualification_pass(output_root: Path) -> dict[str, Any]:
     qualification = _json_object(output_root / "qualification" / "qualification.json")
     if qualification.get("coverage", {}).get("outcome") != StopOutcome.PASS.value:
-        raise ValueError("issue #65 qualification did not authorize model training or rollout")
+        raise ValueError("best-first qualification did not authorize model training or rollout")
     return qualification
 
 
