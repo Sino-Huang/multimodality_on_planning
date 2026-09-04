@@ -79,3 +79,28 @@ than either control. The report keeps invariant-valid success,
 invalid-operation rate, budget usage, learned-versus-best-control gain, and
 the whole-instance bootstrap bound separate. A qualification or wall-clock
 resource stop is `VALID_STOP`; a semantic replay failure is `INVALID`.
+
+## Completed result
+
+Attempt 001 completed with scientific `PASS` on the complete 23-task
+development panel. The outcome-blind qualification measured a lower-95%
+throughput of 0.393304 calls/second and projected 43,403.66 seconds for the
+rollout, below the frozen 15-hour ceiling. The single seed-17 training run
+completed two epochs and 588 optimizer steps.
+
+All 138 reference episodes and 230 model episodes completed. Independent
+semantic replay reconstructed all 368 episodes:
+
+- exact reference: 23/23 invariant-valid successes;
+- random-valid: 115/115 successes with zero invalid operations;
+- pretrained base: 0/115 successes; every episode terminated after one
+  deterministic invalid operation;
+- process SFT: 115/115 successes with zero invalid operations and 0.5 mean
+  call-budget usage.
+
+Process SFT therefore improved substantially over the pretrained base, but it
+did not beat random-valid: both reached 100%, giving an absolute gain and
+paired whole-instance bootstrap lower bound of 0. This is a completed
+development result, not evidence of learned superiority over the best
+control. The compact terminal record is retained at
+`data/best_first_paired_phase_v3/issue65-terminal/result.json`.

@@ -1,0 +1,117 @@
+{
+  "authorization_id": "issue-65-best-first-add-w3-authorization-v1",
+  "condition_results": {
+    "exact_reference": {
+      "allowed_calls": 14190,
+      "budget_usage": 0.5,
+      "decisions": 7095,
+      "episodes": 23,
+      "invalid_operation_rate": 0.0,
+      "invalid_operations": 0,
+      "invariant_valid_success": 1.0,
+      "successes": 23,
+      "termination": "goal_reached"
+    },
+    "pretrained_base": {
+      "allowed_calls": 70950,
+      "budget_usage": 0.001620859760394644,
+      "decisions": 115,
+      "episodes": 115,
+      "invalid_operation_rate": 1.0,
+      "invalid_operations": 115,
+      "invariant_valid_success": 0.0,
+      "successes": 0,
+      "termination": "deterministic_invalid_operation"
+    },
+    "process_sft": {
+      "allowed_calls": 70950,
+      "budget_usage": 0.5,
+      "decisions": 35475,
+      "episodes": 115,
+      "invalid_operation_rate": 0.0,
+      "invalid_operations": 0,
+      "invariant_valid_success": 1.0,
+      "successes": 115,
+      "termination": "goal_reached"
+    },
+    "random_valid": {
+      "allowed_calls": 70950,
+      "budget_usage": 0.5,
+      "decisions": 35475,
+      "episodes": 115,
+      "invalid_operation_rate": 0.0,
+      "invalid_operations": 0,
+      "invariant_valid_success": 1.0,
+      "successes": 115,
+      "termination": "goal_reached"
+    }
+  },
+  "contract_id": "issue-65-best-first-add-w3-development-v1",
+  "coverage": {
+    "development_tasks": 23,
+    "evaluation_seeds": [
+      17,
+      29,
+      43,
+      71,
+      101
+    ],
+    "reference_episodes": 138,
+    "maximum_calls_per_episode": 1836,
+    "maximum_reference_decisions": 918,
+    "replayed_episodes": 368,
+    "rollout_episodes": 230,
+    "rollout_shards": [
+      {
+        "completed_episodes": 110,
+        "device": "cuda:0",
+        "launched_batches": 2737,
+        "logical_model_calls": 17785,
+        "outcome": "PASS",
+        "shard_index": 0
+      },
+      {
+        "completed_episodes": 120,
+        "device": "cuda:1",
+        "launched_batches": 2656,
+        "logical_model_calls": 17805,
+        "outcome": "PASS",
+        "shard_index": 1
+      }
+    ],
+    "training_seed": 17
+  },
+  "interpretation": {
+    "absolute_gain_over_best_control": 0.0,
+    "best_control": "random_valid",
+    "paired_bootstrap_gain_lower_bound": 0.0,
+    "statement": "Process SFT achieved complete invariant-valid development success, but random-valid also achieved complete success; this run does not establish an advantage over the best control."
+  },
+  "outcome": "PASS",
+  "qualification": {
+    "calls_per_second_lower_95": 0.3933036224255623,
+    "maximum_scheduled_calls": 28380,
+    "maximum_shard_scheduled_calls": 14196,
+    "model_load_seconds": 74.52160913590342,
+    "outcomes_observed": false,
+    "projected_rollout_seconds": 43403.66216185308,
+    "qualification_elapsed_seconds": 140.9945571422577,
+    "selected_complete_panel": true
+  },
+  "schema_version": "best_first_issue65_terminal_result_v1",
+  "scientific_completion": true,
+  "semantic_replay": {
+    "episodes": 368,
+    "status": "PASS"
+  },
+  "source_issue": 65,
+  "training": {
+    "attempt": 1,
+    "completed_steps": 588,
+    "elapsed_seconds": 21888.690349210054,
+    "epochs": 2,
+    "final_checkpoint": "outputs/best_first_phase/issue65-v1/training/attempt-001/checkpoints/checkpoint-588",
+    "outcome": "PASS",
+    "seed": 17
+  }
+}
