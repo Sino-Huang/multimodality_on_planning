@@ -1,0 +1,12 @@
+{
+  "ancestor_contract_id": "issue-62-astar-paired-development-v1",
+  "contract_id": "issue-67-original-heuristic-representation-v1",
+  "outcome": "ANCESTOR_STOP",
+  "reason": "The optimal h_max and landmark-count A-star phase stopped on trace infeasibility; the authorized replacements both use h_add and therefore cannot identify a heuristic-representation effect.",
+  "receipt_id": "gated-not-run:issue-67-original-heuristic-representation-v1:ANCESTOR_STOP",
+  "receipt_type": "gated_not_run",
+  "schema_version": "best_first_issue67_heuristic_gated_not_run_v1",
+  "scientific_completion": false,
+  "source_issue": 67,
+  "start_permitted": false
+}

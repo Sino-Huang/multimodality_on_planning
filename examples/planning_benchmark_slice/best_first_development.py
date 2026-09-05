@@ -103,7 +103,7 @@ class BestFirstDevelopmentExperiment:
             "fresh_test_accessed": False,
             "max_reference_decisions": max(task.exact_decisions for task in self.tasks),
             "maximum_calls_per_episode": max(task.model_call_limit for task in self.tasks),
-            "physical_model_conditions": 2,
+            "physical_model_conditions": int(self.design["evaluation"].get("physical_model_conditions", 2)),
             "training_epochs": self.design["training"]["epochs"],
             "training_seed": self.design["training"]["seed"],
             "training_runs": 1,

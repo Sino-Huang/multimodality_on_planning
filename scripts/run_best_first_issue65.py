@@ -503,13 +503,14 @@ def _train(
     progress_interval: float,
     resume: bool,
     dry_run: bool,
+    qualification_output_root: Path | None = None,
 ) -> int:
     experiment.require_stage("process_sft_training")
     plan = _training_plan(experiment, output_root, dataset_root, training_device, master_port)
     if dry_run:
         print(_canonical_text({**plan, "dry_run": True, "writes": 0}))
         return 0
-    _require_qualification_pass(output_root)
+    _require_qualification_pass(qualification_output_root or output_root)
     dataset_manifest = _json_object(dataset_root / "manifest.json")
     if dataset_manifest.get("counts") != experiment.training_counts:
         raise ValueError(f"issue #{experiment.source_issue} training dataset coverage is incomplete")
