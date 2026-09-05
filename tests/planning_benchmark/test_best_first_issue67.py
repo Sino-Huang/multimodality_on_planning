@@ -13,8 +13,20 @@ from examples.planning_benchmark_slice.best_first_curriculum import (
     replacement_setting_summary,
     select_issue67_coverage,
 )
+from scripts.run_best_first_issue65 import _run_children
 
 ROOT = Path(__file__).resolve().parents[2]
+
+
+def test_child_log_multiplexer_tolerates_malformed_terminal_bytes(capsys) -> None:
+    command = (
+        sys.executable,
+        "-c",
+        "import os; os.write(1, b'\\xe2\\n')",
+    )
+
+    assert _run_children((command,), prefixes=("terminal",)) == 0
+    assert "[terminal]" in capsys.readouterr().out
 
 
 def test_issue67_contract_uses_the_greedy_representative_cell() -> None:
