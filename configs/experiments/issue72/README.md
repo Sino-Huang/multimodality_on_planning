@@ -46,12 +46,19 @@ Before any bulk-render command can be offered, a successor contract must:
   while using a compact layout that fits small images;
 - explicitly support the required negative/other goal constraints, or obtain
   approval for a changed task panel; never silently omit them;
-- set a supervisor-approved total disk cap and per-image limit, accounting for
+- enforce the approved 5,000,000,000-byte total disk cap and qualify a per-image limit, accounting for
   source VFGs, temporary frames, final images and metadata (including parallel
   workers), with a storage estimate before collection and a stop at the cap;
 - reuse repeated state images and task-level goal assets and share image paths
   between visual and multimodal projections; do not duplicate frames per row.
 
-The exact disk cap and successor image settings remain unapproved. No long run
+The supervisor approved a **5 GB total hard cap (5,000,000,000 bytes)** on
+2026-09-07. This is one aggregate budget, not a budget per worker, modality or
+attempt. Include retained render outputs, VFGs, temporary files and metadata;
+account for concurrent in-flight writes and stop before exceeding the cap.
+Storage accounting measures resource consumption only, not artifact integrity.
+
+The compact successor image settings and per-image limit still need qualification.
+The cap is recorded here but enforcement is not yet implemented. No long run
 or full collector has been launched or represented as complete. #72 stays open.
 No hashes, checksums, artifact-integrity or regeneration comparisons were added.
