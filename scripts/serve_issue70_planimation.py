@@ -6,7 +6,11 @@ import argparse
 import os
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING, cast
 from wsgiref.simple_server import make_server
+
+if TYPE_CHECKING:
+    from _typeshed.wsgi import WSGIApplication
 
 
 def main() -> None:
@@ -25,7 +29,8 @@ def main() -> None:
     from django.core.wsgi import get_wsgi_application
 
     settings.DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": ":memory:"}}
-    with make_server("127.0.0.1", args.port, get_wsgi_application()) as server:
+    application = cast("WSGIApplication", get_wsgi_application())
+    with make_server("127.0.0.1", args.port, application) as server:
         print(f"Planimation localhost backend ready at http://127.0.0.1:{args.port}; Ctrl-C stops it.", flush=True)
         try:
             server.serve_forever()
