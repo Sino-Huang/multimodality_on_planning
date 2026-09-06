@@ -182,15 +182,9 @@ def best_first_semantic_input(controller: BestFirstController) -> SemanticModelI
         raise ModalityParityError("partial-goal images currently require conjunctive positive STRIPS goals")
     raw = build_best_first_live_model_input(authority, controller)
     current = dict(raw["current"])
-    state_relations = _relations("state", current.pop("state_atoms"))
+    current.pop("state_atoms")
     state = controller.node_state(controller.active_state_id or "")
-    state_relations += _relations("state_fluent", state.fluents)
-    state_relations += _relations("static", authority.static_initial_facts)
-    state_relations += _relations("initial", authority.initial_state.atoms)
-    state_relations += _relations("initial_fluent", authority.initial_state.fluents)
-    state_relations += tuple(
-        ("object_type", type_name, (obj,)) for type_name, objects in authority.objects_by_type for obj in objects
-    )
+    state_relations, goal_relations = state_goal_relations(authority, state)
     common = {
         "algorithm": raw["algorithm"],
         "current": current,
@@ -200,7 +194,24 @@ def best_first_semantic_input(controller: BestFirstController) -> SemanticModelI
             "successor_candidates": raw["successor_candidates"],
         },
     }
-    return SemanticModelInput(_json(common), tuple(sorted(state_relations)), _relations("goal", authority.goal_atoms))
+    return SemanticModelInput(_json(common), state_relations, goal_relations)
+
+
+def state_goal_relations(
+    authority: PDDLStateAuthority, state: CanonicalState
+) -> tuple[tuple[Relation, ...], tuple[Relation, ...]]:
+    """The shared complete visual fact projection, also usable before rendering."""
+    if authority.goal_atoms is None:
+        raise ModalityParityError("partial-goal images currently require conjunctive positive STRIPS goals")
+    state_relations = _relations("state", state.atoms)
+    state_relations += _relations("state_fluent", state.fluents)
+    state_relations += _relations("static", authority.static_initial_facts)
+    state_relations += _relations("initial", authority.initial_state.atoms)
+    state_relations += _relations("initial_fluent", authority.initial_state.fluents)
+    state_relations += tuple(
+        ("object_type", type_name, (obj,)) for type_name, objects in authority.objects_by_type for obj in objects
+    )
+    return tuple(sorted(state_relations)), _relations("goal", authority.goal_atoms)
 
 
 def build_matched_best_first_observations(
@@ -330,25 +341,43 @@ def _json(value: Any) -> str:
     return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
 
 
+def measure_relation_layout(
+    relations: tuple[Relation, ...], *, has_scene: bool, limits: ModalityInputLimits
+) -> dict[str, int | bool]:
+    """Measure the actual frozen layout without allocating images or writing files."""
+    font = ImageFont.truetype(limits.font_name, limits.font_size)
+    title = "STATE / TASK FACTS" if has_scene else "PARTIAL GOAL: all rows required; other facts unconstrained"
+    required_width = int(font.getlength(title)) + 33
+    for section, predicate, arguments in relations:
+        widths = [int(font.getlength(label)) + 20 for label in (section, predicate, *arguments)]
+        required_width = max(required_width, 32 + sum(widths) + 8 * (len(widths) - 1))
+    required_height = 16 + limits.font_size + 16 + (limits.image_height // 4 if has_scene else 0)
+    required_height += 16 + max(1, len(relations)) * (limits.font_size + 16) + 16
+    return {
+        "rows": len(relations),
+        "required_width": required_width,
+        "required_height": required_height,
+        "fits": required_width <= limits.image_width and required_height <= limits.image_height,
+    }
+
+
 def _draw_relations(
     relations: tuple[Relation, ...],
     source_frame: Path | None,
     path: Path,
     limits: ModalityInputLimits,
 ) -> RelationImage:
+    layout = measure_relation_layout(relations, has_scene=source_frame is not None, limits=limits)
+    if not layout["fits"]:
+        raise ModalityParityError("complete relation panel exceeds the frozen image width/height capacity")
     font = ImageFont.truetype(limits.font_name, limits.font_size)
     canvas = Image.new("RGB", (limits.image_width, limits.image_height), "white")
     draw = ImageDraw.Draw(canvas)
     y = 16
     title = "STATE / TASK FACTS" if source_frame else "PARTIAL GOAL: all rows required; other facts unconstrained"
-    if draw.textlength(title, font=font) > limits.image_width - 32:
-        raise ModalityParityError("image width cannot fit the relation legend at the frozen font size")
     draw.text((16, y), title, fill="black", font=font)
     y += limits.font_size + 16
     row_height = limits.font_size + 16
-    scene_height = limits.image_height // 4 if source_frame else 0
-    if y + scene_height + 16 + max(1, len(relations)) * row_height > limits.image_height - 16:
-        raise ModalityParityError("complete relation panel exceeds the frozen image height")
     if source_frame:
         with Image.open(source_frame) as scene:
             thumbnail = ImageOps.contain(scene.convert("RGB"), (limits.image_width - 32, limits.image_height // 4))
@@ -360,8 +389,6 @@ def _draw_relations(
         x = 16
         for index, label in enumerate((section, predicate, *arguments)):
             width = int(draw.textlength(label, font=font)) + 20
-            if x + width > limits.image_width - 16:
-                raise ModalityParityError("complete relation row exceeds the frozen image width")
             draw.rounded_rectangle(
                 (x, y, x + width, y + row_height - 4),
                 radius=4,
