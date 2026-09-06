@@ -30,6 +30,7 @@ class PlanimationRenderRequest:
     output_dir: Path
     timeout_seconds: int
     solver_url: str | None = None
+    canvas_size: int = 1024
 
 
 @dataclass(frozen=True, slots=True)
@@ -49,6 +50,8 @@ def produce_planimation_render(
     supplied_plan = "\n".join(canonical_supplied_actions(request.supplied_plan))
     if request.solver_url is not None:
         raise PlanimationRenderError("planning fallback is prohibited")
+    if request.canvas_size <= 0:
+        raise PlanimationRenderError("canvas size must be positive")
 
     upload_url = f"{base_url}/upload/pddl"
     try:
@@ -76,6 +79,7 @@ def produce_planimation_render(
             output_dir=frames_dir,
             start_step=0,
             stop_step=len(request.supplied_plan or ()),
+            canvas_size=request.canvas_size,
         )
     except (OSError, RuntimeError, ValueError) as error:
         raise PlanimationRenderError(f"Planimation Render Production failed: {error}") from error

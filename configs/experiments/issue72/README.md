@@ -1,5 +1,10 @@
 # Issue 72 initial-layout preflight
 
+The scoped **128px scene-asset successor** is now implemented; see
+[SCENES128.md](SCENES128.md) for the tested dry-run and parallel preflight/collection
+commands. The findings below remain the retained outcome for the old combined
+image layout; the successor does not claim its goal/annotation views are ready.
+
 Bulk rendering is blocked. The full selected panel was checked without HTTP,
 model/tokenizer calls, image allocation, or frame production. The approximately
 four-second attempt produced one 132,331-byte JSON report:

@@ -1,0 +1,20 @@
+{
+  "schema_version": "scene_assets_contract_v1",
+  "contract_id": "issue-72-scene-assets-128-v1",
+  "source_phase_authorization_id": "issue-71-modality-development-authorization-v2",
+  "stored_scene_size": [128, 128],
+  "format": "PNG",
+  "endpoints": ["http://127.0.0.1:18092", "http://127.0.0.1:18093", "http://127.0.0.1:18094", "http://127.0.0.1:18095"],
+  "timeout_seconds": 30,
+  "authorization_basis": "Supervisor selected stored 128x128 scene frames and permits larger VLM inputs at use time. This successor authorizes only scene-asset preparation from the frozen panel, with PDDL replay and supplied-plan interpretation checks. It does not authorize model training or claim complete partial-goal images or matched corpus release.",
+  "semantic_storage": "Exact task/goal formula, state facts and decision-to-state bindings remain structured metadata. Do not downsample relation text and pretend upscaling restores it; compose readable annotations at VLM input time under a separately qualified view contract.",
+  "total_disk_cap": null,
+  "profile_compatibility_override": "15puzzle: renderer-only typed-position grid profile, coordinates validated against the authoritative neighbor graph. Original PDDL and supplied actions are unchanged; used/source profile paths and transformation are retained per task.",
+  "predecessor_attempt": "issue72-layout-001",
+  "superseded_submission_only_smoke": "outputs/modality_phase/issue72-scenes128-v1/smoke-001/report.json",
+  "attempts": {
+    "smoke": {"attempt_id": "scene-smoke-005", "output_root": "outputs/modality_phase/issue72-scenes128-v1/smoke-005", "gate_outcome": "PASS", "authorization_gate_id": "gate:issue-72-scene-assets-128-v1:scene-smoke-005:PASS"},
+    "preflight": {"attempt_id": "scene-preflight-001", "output_root": "outputs/modality_phase/issue72-scenes128-v1/preflight-001", "gate_outcome": "PASS", "authorization_gate_id": "gate:issue-72-scene-assets-128-v1:scene-preflight-001:PASS"},
+    "collect": {"attempt_id": "scene-collect-001", "output_root": "outputs/modality_phase/issue72-scenes128-v1/collect-001", "gate_outcome": "PASS", "authorization_gate_id": "gate:issue-72-scene-assets-128-v1:scene-collect-001:PASS"}
+  }
+}
