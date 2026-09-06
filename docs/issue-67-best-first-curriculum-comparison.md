@@ -78,3 +78,34 @@ Before the long run, the complete no-write launch can be inspected with:
 ```bash
 python scripts/run_best_first_issue67.py all --dry-run
 ```
+
+## Completed result
+
+The authorized run completed with scientific `PASS` on the frozen
+cheapest-whole-task-per-domain panel. Outcome-blind qualification selected 12
+tasks, projected the four-condition rollout at 19,949.97 seconds, and retained
+a lower-95% throughput of 0.287157 calls per second.
+
+Staged and shuffled resumed their interrupted first attempts from step 260;
+both completed 522/522 steps in attempt 2. Mixed-order completed 522/522 steps
+in attempt 1. These are one logical seed-17 training run per curriculum cell,
+not independent training replicates.
+
+The terminal product contains 72 reference episodes and 240 model episodes.
+All 312 were reconstructed through semantic replay. Exact-reference,
+random-valid, staged, shuffled, and mixed-order achieved complete
+invariant-valid success with zero invalid operations. The pretrained base
+achieved 0/60 and every output was invalid. All three curriculum pairwise
+success differences and 95% intervals were exactly zero, establishing
+practical equivalence under the frozen +/-0.05 margin on this selected panel.
+
+The replacement setting comparison remains bounded: greedy used 6,696 versus
+7,095 model decisions and 1,188 versus 1,351 expansions, but its 5.62% decision
+reduction had a paired 95% interval from -4.77% to 16.97% and did not satisfy
+the frozen 10% material threshold. Aggregate solution cost was 485 for greedy
+versus 454 for weighted best-first. The original h-max versus landmark-count
+heuristic-representation estimand remains `ANCESTOR_STOP`; the two replacements
+share `h_add` and do not identify that effect.
+
+The compact terminal result is retained at
+`data/best_first_paired_phase_v3/issue67-terminal/result.json`.
