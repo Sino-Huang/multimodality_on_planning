@@ -1,0 +1,23 @@
+{
+  "schema_version": "modality_phase_authorization_v1",
+  "phase_id": "issue-71-modality-development-v2",
+  "authorization_id": "issue-71-modality-development-authorization-v2",
+  "freeze_manifest": "configs/experiments/issue71/v2/freeze.json",
+  "outcome": "PASS",
+  "receipt_id": "gate:issue-71-modality-development-v2:freeze-attempt-002:PASS",
+  "scientific_completion": false,
+  "start_permitted": true,
+  "authorized_stages": [
+    "render",
+    "corpus",
+    "training",
+    "qualification",
+    "evaluation",
+    "synthesis",
+    "render_preflight"
+  ],
+  "authorization_basis": "Supervisor request to finish #71 under inherited #38/#68/#69/#70 representation and #71 single-training-seed clarification.",
+  "scope": "Conditional development-stage permission only. Every run also requires matching contract/attempt/output receipts and completed predecessors.",
+  "efficacy_test_access_authorized": false,
+  "predecessor_receipt": "gate:issue-71-modality-development-v1:freeze-attempt-001:VALID_STOP"
+}

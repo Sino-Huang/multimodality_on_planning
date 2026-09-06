@@ -1,0 +1,13 @@
+{
+  "schema_version": "modality_phase_authorization_v1",
+  "phase_id": "issue-71-modality-development-v1",
+  "authorization_id": "issue-71-modality-development-authorization-v1",
+  "freeze_manifest": "configs/experiments/issue71/freeze.json",
+  "outcome": "VALID_STOP",
+  "receipt_id": "gate:issue-71-modality-development-v1:freeze-attempt-001:VALID_STOP",
+  "scientific_completion": false,
+  "start_permitted": false,
+  "authorized_stages": [],
+  "reason": "Production profile map and matched corpus selection/adapter coverage are unresolved. Candidate settings do not authorize rendering, training, or model evaluation.",
+  "successor_required": true
+}

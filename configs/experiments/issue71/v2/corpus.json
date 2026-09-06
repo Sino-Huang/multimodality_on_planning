@@ -1,0 +1,89 @@
+{
+  "component": "corpus",
+  "phase_id": "issue-71-modality-development-v2",
+  "sources": {
+    "bfs": {
+      "manifest": "data/bfs_pilot_v6/process-release/manifests/bfs-text-corpus.json",
+      "process_records": 25109,
+      "tasks": 90
+    },
+    "best_first_width": {
+      "manifest": "data/bfws_phase_v1/corpus-release/manifests/bfws-text-corpus.json",
+      "process_records": 69019,
+      "tasks": 105
+    },
+    "paired_additive": {
+      "manifest": "data/best_first_paired_phase_v3/corpus-release-v3/manifests/best-first-text-corpus.json",
+      "process_records": 31531,
+      "tasks": 64
+    }
+  },
+  "source_counts_are_not_modality_release_counts": true,
+  "allowed_splits": [
+    "train",
+    "dev"
+  ],
+  "held_out_access": false,
+  "split_unit": "whole_problem_instance",
+  "preserve_source_split_assignments": true,
+  "row_identity": [
+    "source_task",
+    "algorithm",
+    "decision_index"
+  ],
+  "projection": "one replay-derived semantic input projected into three modalities",
+  "search_memory": {
+    "schema": "authoritative task context, exact successor/candidate and visited/pruning membership, current algorithm state, accepted deltas",
+    "max_bytes": 32768,
+    "accepted_delta_limit": 16,
+    "identical_across_modalities": true,
+    "no_hidden_teacher_facts": true
+  },
+  "training_view": "process",
+  "curriculum": "staged",
+  "validation": [
+    "semantic replay",
+    "state-plus-goal parity at every decision",
+    "shared corpus/live model-input builder",
+    "strict target parse and runtime application",
+    "whole-instance split isolation",
+    "zero cross-split semantic/input overlap",
+    "zero conflicting identical inputs",
+    "no future leakage",
+    "complete selected coverage",
+    "processor input and target limits"
+  ],
+  "validation_excludes": [
+    "hashes",
+    "checksums",
+    "artifact integrity",
+    "file comparisons",
+    "regeneration comparisons"
+  ],
+  "reference_decision_ceiling": 1024,
+  "selection": "before rendering, retain complete tasks within the ceiling; retain or exclude additive settings as whole pairs; record VALID_STOP exclusions; no segmentation",
+  "contract_frozen": true,
+  "panel_manifest": "configs/experiments/issue71/v2/panel.json",
+  "selected_counts": {
+    "selected_task_groups": 241,
+    "excluded_task_groups": 18,
+    "episodes_by_algorithm_split": {
+      "best_first_add_greedy/dev": 23,
+      "best_first_add_greedy/train": 41,
+      "best_first_add_w3/dev": 23,
+      "best_first_add_w3/train": 41,
+      "best_first_width/dev": 30,
+      "best_first_width/train": 58,
+      "bfs/dev": 45,
+      "bfs/train": 44
+    },
+    "reference_decisions_by_algorithm": {
+      "best_first_add_greedy": 15038,
+      "best_first_add_w3": 16493,
+      "best_first_width": 22673,
+      "bfs": 24026
+    }
+  },
+  "family_adapter_qualification_stage": "corpus",
+  "release_rule": "All selected decision positions need all three matched projections and family-specific teacher/live semantic parity. Unimplemented adapters or missing observations cannot pass release."
+}
