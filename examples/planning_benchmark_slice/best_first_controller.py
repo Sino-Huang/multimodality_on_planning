@@ -172,6 +172,12 @@ class BestFirstController:
     def accepted_deltas(self) -> list[dict[str, object]]:
         return list(self._accepted_deltas)
 
+    @property
+    def accepted_delta_limit(self) -> int:
+        """Frozen capacity of the model-visible accepted-delta window."""
+        assert self._accepted_deltas.maxlen is not None
+        return self._accepted_deltas.maxlen
+
     def decision_evidence(self) -> tuple[dict[str, object], ...]:
         return tuple(self._decision_evidence)
 

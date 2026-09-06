@@ -46,7 +46,7 @@ def produce_planimation_render(
 
     base_url = request.base_url.rstrip("/")
     _require_local_base_url(base_url)
-    supplied_plan = _canonical_supplied_plan(request.supplied_plan)
+    supplied_plan = "\n".join(canonical_supplied_actions(request.supplied_plan))
     if request.solver_url is not None:
         raise PlanimationRenderError("planning fallback is prohibited")
 
@@ -98,7 +98,8 @@ def _require_local_base_url(base_url: str) -> None:
         raise PlanimationRenderError("Planimation endpoint must be localhost over HTTP")
 
 
-def _canonical_supplied_plan(actions: tuple[str, ...] | None) -> str:
+def canonical_supplied_actions(actions: tuple[str, ...] | None) -> tuple[str, ...]:
+    """Normalize one supplied Action Sequence for submission and semantic binding."""
     if not actions:
         raise PlanimationRenderError("supplied plan is required")
     canonical: list[str] = []
@@ -106,4 +107,4 @@ def _canonical_supplied_plan(actions: tuple[str, ...] | None) -> str:
         if not isinstance(action, str) or _ACTION.fullmatch(action) is None:
             raise PlanimationRenderError("supplied plan actions must be parenthesized")
         canonical.append("(" + " ".join(action.strip()[1:-1].split()).lower() + ")")
-    return "\n".join(canonical)
+    return tuple(canonical)
