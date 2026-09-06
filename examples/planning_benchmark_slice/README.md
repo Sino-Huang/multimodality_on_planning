@@ -86,6 +86,10 @@ PY
 ```
 # State-frame and partial-goal parity (#69)
 
+The matched episode runner and completed live development result are documented in
+[the #70 guide](../../configs/experiments/issue70/README.md). It executes three
+independent policies through the Search Episode Harness and replays aligned evidence.
+
 `modality_observation.render_replayed_plan(request)` uses the localhost supplied-plan
 Render Production boundary from #68. It first progresses every supplied action through
 the PDDL authority, then checks the interpreted VFG action order and binds stage zero

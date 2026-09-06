@@ -39,6 +39,12 @@ from .iw_episode import (
     run_iterative_width,
     serialize_novelty_table,
 )
+from .matched_modality_episode import (
+    replay_matched_modality_episode as replay_matched_modality_episode,
+)
+from .matched_modality_episode import (
+    run_matched_modality_episode as run_matched_modality_episode,
+)
 from .pddl_state import CanonicalState, PDDLStateAuthority
 from .search_memory import (
     AcceptedTransition,
@@ -231,9 +237,7 @@ def _execute_authorized_episode(
                     "index": len(events),
                     "newly_enqueued_state_ids": [target.state_id],
                     "operation": serialize_operation(request),
-                    "rationale": (
-                        "exact_bfs_canonical_successor" if policy == "exact" else "random_bfs_seeded_successor"
-                    ),
+                    "rationale": "exact_bfs_canonical_successor" if policy == "exact" else "random_bfs_seeded_successor",
                 }
             )
             retire_source = False
@@ -516,9 +520,7 @@ def _execute_exact_iw_episode(
                     "novel_item": None if step.novel_item is None else list(step.novel_item),
                     "novelty_table_after": serialize_novelty_table(step.novelty_table_after),
                     "novelty_table_before": serialize_novelty_table(step.novelty_table_before),
-                    "target_novel_item": (
-                        None if step.target_novel_item is None else list(step.target_novel_item)
-                    ),
+                    "target_novel_item": None if step.target_novel_item is None else list(step.target_novel_item),
                     "width": step.width,
                 },
                 "observation": observation,

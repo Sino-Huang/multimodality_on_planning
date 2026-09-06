@@ -1,0 +1,1243 @@
+{
+  "schema_version": "matched_modality_episode_v1",
+  "permission": {
+    "ancestor_receipt_id": null,
+    "authorization_receipt_id": "authorization:issue-70-matched-modality-development-v1:issue70-attempt-001",
+    "binding": {
+      "attempt_id": "issue70-attempt-001",
+      "contract_id": "issue-70-matched-modality-development-v1",
+      "output_root": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/modality_phase/issue70-v1"
+    },
+    "gate_receipt_id": "gate:issue-70-matched-modality-development-v1:issue70-attempt-001:PASS",
+    "outcome": "PASS",
+    "reason": null,
+    "receipt_type": "run",
+    "run_state": "authorized-to-start",
+    "schema_version": "generation_governance_v2",
+    "scientific_completion": false,
+    "start_permitted": true
+  },
+  "episodes": [
+    {
+      "modality": "text-state",
+      "events": [
+        {
+          "index": 0,
+          "observation": {
+            "modality": "text-state",
+            "prompt": "{\"algorithm\":\"best_first_add_greedy\",\"current\":{\"g\":0,\"h\":2,\"priority\":2,\"state_id\":\"s0\"},\"goal\":[[\"goal\",\"at\",[\"c\"]]],\"relation_legend\":\"Rows: section | predicate | ordered arguments. State and initial rows list all true dynamic facts; omitted dynamic facts are false. Static rows are always true. Goal rows are required together; unlisted goal facts are unconstrained. object_type rows declare objects. The relation panels are authoritative; scene geometry is illustrative.\",\"representation\":\"text-state\",\"search_memory\":{\"accepted_deltas\":[],\"best_cost_count\":1,\"closed_count\":0,\"frontier_count\":0,\"frontier_head\":null,\"successor_candidates\":[{\"action\":{\"args\":[\"a\",\"b\"],\"name\":\"move\"},\"best_cost\":null,\"closed\":false,\"dominated\":false,\"frontier\":false,\"g\":1,\"h\":1,\"priority\":1,\"pruned\":false,\"target_state_id\":\"s1\"}],\"visited_count\":1},\"state\":[[\"initial\",\"at\",[\"a\"]],[\"object_type\",\"object\",[\"a\"]],[\"object_type\",\"object\",[\"b\"]],[\"object_type\",\"object\",[\"c\"]],[\"state\",\"at\",[\"a\"]],[\"static\",\"@type-object@\",[\"a\"]],[\"static\",\"@type-object@\",[\"b\"]],[\"static\",\"@type-object@\",[\"c\"]],[\"static\",\"left\",[\"a\"]],[\"static\",\"link\",[\"a\",\"b\"]],[\"static\",\"link\",[\"b\",\"a\"]],[\"static\",\"link\",[\"b\",\"c\"]],[\"static\",\"middle\",[\"b\"]],[\"static\",\"right\",[\"c\"]]]}",
+            "images": [],
+            "input_tokens": 361,
+            "input_size_bin": 2048,
+            "limits": {
+              "tokenizer_id": "Qwen/Qwen3-VL-8B-Instruct",
+              "tokenizer_revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+              "max_input_tokens": 8192,
+              "image_width": 1024,
+              "image_height": 1536,
+              "font_size": 18,
+              "max_memory_bytes": 32768,
+              "accepted_delta_limit": 16,
+              "input_size_bins": [
+                2048,
+                4096,
+                6144,
+                8192
+              ],
+              "font_name": "DejaVuSans.ttf"
+            }
+          },
+          "raw_output": "{\"source_state_id\": \"s0\", \"action\": {\"args\": [\"a\", \"b\"], \"name\": \"move\"}}",
+          "runtime": {
+            "accepted": true,
+            "best_cost_before": null,
+            "budget_charge": 0,
+            "g": 1,
+            "h": 1,
+            "priority": 1,
+            "status": "enqueued",
+            "target_state_id": "s1"
+          }
+        },
+        {
+          "index": 1,
+          "observation": {
+            "modality": "text-state",
+            "prompt": "{\"algorithm\":\"best_first_add_greedy\",\"current\":{\"g\":1,\"h\":1,\"priority\":1,\"state_id\":\"s1\"},\"goal\":[[\"goal\",\"at\",[\"c\"]]],\"relation_legend\":\"Rows: section | predicate | ordered arguments. State and initial rows list all true dynamic facts; omitted dynamic facts are false. Static rows are always true. Goal rows are required together; unlisted goal facts are unconstrained. object_type rows declare objects. The relation panels are authoritative; scene geometry is illustrative.\",\"representation\":\"text-state\",\"search_memory\":{\"accepted_deltas\":[{\"action\":{\"args\":[\"a\",\"b\"],\"name\":\"move\"},\"g\":1,\"h\":1,\"priority\":1,\"source_state_id\":\"s0\",\"status\":\"enqueued\",\"target_state_id\":\"s1\"}],\"best_cost_count\":2,\"closed_count\":1,\"frontier_count\":0,\"frontier_head\":null,\"successor_candidates\":[{\"action\":{\"args\":[\"b\",\"a\"],\"name\":\"move\"},\"best_cost\":0,\"closed\":true,\"dominated\":true,\"frontier\":false,\"g\":2,\"h\":2,\"priority\":2,\"pruned\":true,\"target_state_id\":\"s0\"},{\"action\":{\"args\":[\"b\",\"c\"],\"name\":\"move\"},\"best_cost\":null,\"closed\":false,\"dominated\":false,\"frontier\":false,\"g\":2,\"h\":0,\"priority\":0,\"pruned\":false,\"target_state_id\":\"s2\"}],\"visited_count\":2},\"state\":[[\"initial\",\"at\",[\"a\"]],[\"object_type\",\"object\",[\"a\"]],[\"object_type\",\"object\",[\"b\"]],[\"object_type\",\"object\",[\"c\"]],[\"state\",\"at\",[\"b\"]],[\"static\",\"@type-object@\",[\"a\"]],[\"static\",\"@type-object@\",[\"b\"]],[\"static\",\"@type-object@\",[\"c\"]],[\"static\",\"left\",[\"a\"]],[\"static\",\"link\",[\"a\",\"b\"]],[\"static\",\"link\",[\"b\",\"a\"]],[\"static\",\"link\",[\"b\",\"c\"]],[\"static\",\"middle\",[\"b\"]],[\"static\",\"right\",[\"c\"]]]}",
+            "images": [],
+            "input_tokens": 459,
+            "input_size_bin": 2048,
+            "limits": {
+              "tokenizer_id": "Qwen/Qwen3-VL-8B-Instruct",
+              "tokenizer_revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+              "max_input_tokens": 8192,
+              "image_width": 1024,
+              "image_height": 1536,
+              "font_size": 18,
+              "max_memory_bytes": 32768,
+              "accepted_delta_limit": 16,
+              "input_size_bins": [
+                2048,
+                4096,
+                6144,
+                8192
+              ],
+              "font_name": "DejaVuSans.ttf"
+            }
+          },
+          "raw_output": "{\"source_state_id\": \"s1\", \"action\": {\"args\": [\"b\", \"a\"], \"name\": \"move\"}}",
+          "runtime": {
+            "accepted": true,
+            "best_cost_before": 0,
+            "budget_charge": 0,
+            "g": 2,
+            "h": 2,
+            "priority": 2,
+            "status": "closed_pruned",
+            "target_state_id": "s0"
+          }
+        },
+        {
+          "index": 2,
+          "observation": {
+            "modality": "text-state",
+            "prompt": "{\"algorithm\":\"best_first_add_greedy\",\"current\":{\"g\":1,\"h\":1,\"priority\":1,\"state_id\":\"s1\"},\"goal\":[[\"goal\",\"at\",[\"c\"]]],\"relation_legend\":\"Rows: section | predicate | ordered arguments. State and initial rows list all true dynamic facts; omitted dynamic facts are false. Static rows are always true. Goal rows are required together; unlisted goal facts are unconstrained. object_type rows declare objects. The relation panels are authoritative; scene geometry is illustrative.\",\"representation\":\"text-state\",\"search_memory\":{\"accepted_deltas\":[{\"action\":{\"args\":[\"a\",\"b\"],\"name\":\"move\"},\"g\":1,\"h\":1,\"priority\":1,\"source_state_id\":\"s0\",\"status\":\"enqueued\",\"target_state_id\":\"s1\"}],\"best_cost_count\":2,\"closed_count\":1,\"frontier_count\":0,\"frontier_head\":null,\"successor_candidates\":[{\"action\":{\"args\":[\"b\",\"c\"],\"name\":\"move\"},\"best_cost\":null,\"closed\":false,\"dominated\":false,\"frontier\":false,\"g\":2,\"h\":0,\"priority\":0,\"pruned\":false,\"target_state_id\":\"s2\"}],\"visited_count\":2},\"state\":[[\"initial\",\"at\",[\"a\"]],[\"object_type\",\"object\",[\"a\"]],[\"object_type\",\"object\",[\"b\"]],[\"object_type\",\"object\",[\"c\"]],[\"state\",\"at\",[\"b\"]],[\"static\",\"@type-object@\",[\"a\"]],[\"static\",\"@type-object@\",[\"b\"]],[\"static\",\"@type-object@\",[\"c\"]],[\"static\",\"left\",[\"a\"]],[\"static\",\"link\",[\"a\",\"b\"]],[\"static\",\"link\",[\"b\",\"a\"]],[\"static\",\"link\",[\"b\",\"c\"]],[\"static\",\"middle\",[\"b\"]],[\"static\",\"right\",[\"c\"]]]}",
+            "images": [],
+            "input_tokens": 404,
+            "input_size_bin": 2048,
+            "limits": {
+              "tokenizer_id": "Qwen/Qwen3-VL-8B-Instruct",
+              "tokenizer_revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+              "max_input_tokens": 8192,
+              "image_width": 1024,
+              "image_height": 1536,
+              "font_size": 18,
+              "max_memory_bytes": 32768,
+              "accepted_delta_limit": 16,
+              "input_size_bins": [
+                2048,
+                4096,
+                6144,
+                8192
+              ],
+              "font_name": "DejaVuSans.ttf"
+            }
+          },
+          "raw_output": "{\"source_state_id\": \"s1\", \"action\": {\"args\": [\"b\", \"c\"], \"name\": \"move\"}}",
+          "runtime": {
+            "accepted": true,
+            "best_cost_before": null,
+            "budget_charge": 0,
+            "g": 2,
+            "h": 0,
+            "priority": 0,
+            "status": "enqueued",
+            "target_state_id": "s2"
+          }
+        }
+      ],
+      "result": {
+        "termination": "goal_reached",
+        "goal_reached": true,
+        "expansions": 2,
+        "decisions": 3,
+        "budget_used": 2,
+        "invalid_operations": 0
+      }
+    },
+    {
+      "modality": "visual-state",
+      "events": [
+        {
+          "index": 0,
+          "observation": {
+            "modality": "visual-state",
+            "prompt": "{\"algorithm\":\"best_first_add_greedy\",\"current\":{\"g\":0,\"h\":2,\"priority\":2,\"state_id\":\"s0\"},\"relation_legend\":\"Rows: section | predicate | ordered arguments. State and initial rows list all true dynamic facts; omitted dynamic facts are false. Static rows are always true. Goal rows are required together; unlisted goal facts are unconstrained. object_type rows declare objects. The relation panels are authoritative; scene geometry is illustrative.\",\"representation\":\"visual-state\",\"search_memory\":{\"accepted_deltas\":[],\"best_cost_count\":1,\"closed_count\":0,\"frontier_count\":0,\"frontier_head\":null,\"successor_candidates\":[{\"action\":{\"args\":[\"a\",\"b\"],\"name\":\"move\"},\"best_cost\":null,\"closed\":false,\"dominated\":false,\"frontier\":false,\"g\":1,\"h\":1,\"priority\":1,\"pruned\":false,\"target_state_id\":\"s1\"}],\"visited_count\":1}}",
+            "images": [
+              {
+                "path": "observations/visual-state/state-000000.png",
+                "relations": [
+                  [
+                    "initial",
+                    "at",
+                    [
+                      "a"
+                    ]
+                  ],
+                  [
+                    "object_type",
+                    "object",
+                    [
+                      "a"
+                    ]
+                  ],
+                  [
+                    "object_type",
+                    "object",
+                    [
+                      "b"
+                    ]
+                  ],
+                  [
+                    "object_type",
+                    "object",
+                    [
+                      "c"
+                    ]
+                  ],
+                  [
+                    "state",
+                    "at",
+                    [
+                      "a"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "@type-object@",
+                    [
+                      "a"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "@type-object@",
+                    [
+                      "b"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "@type-object@",
+                    [
+                      "c"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "left",
+                    [
+                      "a"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "link",
+                    [
+                      "a",
+                      "b"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "link",
+                    [
+                      "b",
+                      "a"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "link",
+                    [
+                      "b",
+                      "c"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "middle",
+                    [
+                      "b"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "right",
+                    [
+                      "c"
+                    ]
+                  ]
+                ],
+                "source_frame": "render/path-000000/frames/frame_000.png"
+              },
+              {
+                "path": "observations/visual-state/goal.png",
+                "relations": [
+                  [
+                    "goal",
+                    "at",
+                    [
+                      "c"
+                    ]
+                  ]
+                ],
+                "source_frame": null
+              }
+            ],
+            "input_tokens": 3281,
+            "input_size_bin": 4096,
+            "limits": {
+              "tokenizer_id": "Qwen/Qwen3-VL-8B-Instruct",
+              "tokenizer_revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+              "max_input_tokens": 8192,
+              "image_width": 1024,
+              "image_height": 1536,
+              "font_size": 18,
+              "max_memory_bytes": 32768,
+              "accepted_delta_limit": 16,
+              "input_size_bins": [
+                2048,
+                4096,
+                6144,
+                8192
+              ],
+              "font_name": "DejaVuSans.ttf"
+            }
+          },
+          "raw_output": "{\"source_state_id\": \"s0\", \"action\": {\"args\": [\"a\", \"b\"], \"name\": \"move\"}}",
+          "runtime": {
+            "accepted": true,
+            "best_cost_before": null,
+            "budget_charge": 0,
+            "g": 1,
+            "h": 1,
+            "priority": 1,
+            "status": "enqueued",
+            "target_state_id": "s1"
+          }
+        },
+        {
+          "index": 1,
+          "observation": {
+            "modality": "visual-state",
+            "prompt": "{\"algorithm\":\"best_first_add_greedy\",\"current\":{\"g\":1,\"h\":1,\"priority\":1,\"state_id\":\"s1\"},\"relation_legend\":\"Rows: section | predicate | ordered arguments. State and initial rows list all true dynamic facts; omitted dynamic facts are false. Static rows are always true. Goal rows are required together; unlisted goal facts are unconstrained. object_type rows declare objects. The relation panels are authoritative; scene geometry is illustrative.\",\"representation\":\"visual-state\",\"search_memory\":{\"accepted_deltas\":[{\"action\":{\"args\":[\"a\",\"b\"],\"name\":\"move\"},\"g\":1,\"h\":1,\"priority\":1,\"source_state_id\":\"s0\",\"status\":\"enqueued\",\"target_state_id\":\"s1\"}],\"best_cost_count\":2,\"closed_count\":1,\"frontier_count\":0,\"frontier_head\":null,\"successor_candidates\":[{\"action\":{\"args\":[\"b\",\"a\"],\"name\":\"move\"},\"best_cost\":0,\"closed\":true,\"dominated\":true,\"frontier\":false,\"g\":2,\"h\":2,\"priority\":2,\"pruned\":true,\"target_state_id\":\"s0\"},{\"action\":{\"args\":[\"b\",\"c\"],\"name\":\"move\"},\"best_cost\":null,\"closed\":false,\"dominated\":false,\"frontier\":false,\"g\":2,\"h\":0,\"priority\":0,\"pruned\":false,\"target_state_id\":\"s2\"}],\"visited_count\":2}}",
+            "images": [
+              {
+                "path": "observations/visual-state/state-000001.png",
+                "relations": [
+                  [
+                    "initial",
+                    "at",
+                    [
+                      "a"
+                    ]
+                  ],
+                  [
+                    "object_type",
+                    "object",
+                    [
+                      "a"
+                    ]
+                  ],
+                  [
+                    "object_type",
+                    "object",
+                    [
+                      "b"
+                    ]
+                  ],
+                  [
+                    "object_type",
+                    "object",
+                    [
+                      "c"
+                    ]
+                  ],
+                  [
+                    "state",
+                    "at",
+                    [
+                      "b"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "@type-object@",
+                    [
+                      "a"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "@type-object@",
+                    [
+                      "b"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "@type-object@",
+                    [
+                      "c"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "left",
+                    [
+                      "a"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "link",
+                    [
+                      "a",
+                      "b"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "link",
+                    [
+                      "b",
+                      "a"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "link",
+                    [
+                      "b",
+                      "c"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "middle",
+                    [
+                      "b"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "right",
+                    [
+                      "c"
+                    ]
+                  ]
+                ],
+                "source_frame": "render/path-000000/frames/frame_001.png"
+              },
+              {
+                "path": "observations/visual-state/goal.png",
+                "relations": [
+                  [
+                    "goal",
+                    "at",
+                    [
+                      "c"
+                    ]
+                  ]
+                ],
+                "source_frame": null
+              }
+            ],
+            "input_tokens": 3379,
+            "input_size_bin": 4096,
+            "limits": {
+              "tokenizer_id": "Qwen/Qwen3-VL-8B-Instruct",
+              "tokenizer_revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+              "max_input_tokens": 8192,
+              "image_width": 1024,
+              "image_height": 1536,
+              "font_size": 18,
+              "max_memory_bytes": 32768,
+              "accepted_delta_limit": 16,
+              "input_size_bins": [
+                2048,
+                4096,
+                6144,
+                8192
+              ],
+              "font_name": "DejaVuSans.ttf"
+            }
+          },
+          "raw_output": "{\"source_state_id\": \"s1\", \"action\": {\"args\": [\"b\", \"a\"], \"name\": \"move\"}}",
+          "runtime": {
+            "accepted": true,
+            "best_cost_before": 0,
+            "budget_charge": 0,
+            "g": 2,
+            "h": 2,
+            "priority": 2,
+            "status": "closed_pruned",
+            "target_state_id": "s0"
+          }
+        },
+        {
+          "index": 2,
+          "observation": {
+            "modality": "visual-state",
+            "prompt": "{\"algorithm\":\"best_first_add_greedy\",\"current\":{\"g\":1,\"h\":1,\"priority\":1,\"state_id\":\"s1\"},\"relation_legend\":\"Rows: section | predicate | ordered arguments. State and initial rows list all true dynamic facts; omitted dynamic facts are false. Static rows are always true. Goal rows are required together; unlisted goal facts are unconstrained. object_type rows declare objects. The relation panels are authoritative; scene geometry is illustrative.\",\"representation\":\"visual-state\",\"search_memory\":{\"accepted_deltas\":[{\"action\":{\"args\":[\"a\",\"b\"],\"name\":\"move\"},\"g\":1,\"h\":1,\"priority\":1,\"source_state_id\":\"s0\",\"status\":\"enqueued\",\"target_state_id\":\"s1\"}],\"best_cost_count\":2,\"closed_count\":1,\"frontier_count\":0,\"frontier_head\":null,\"successor_candidates\":[{\"action\":{\"args\":[\"b\",\"c\"],\"name\":\"move\"},\"best_cost\":null,\"closed\":false,\"dominated\":false,\"frontier\":false,\"g\":2,\"h\":0,\"priority\":0,\"pruned\":false,\"target_state_id\":\"s2\"}],\"visited_count\":2}}",
+            "images": [
+              {
+                "path": "observations/visual-state/state-000001.png",
+                "relations": [
+                  [
+                    "initial",
+                    "at",
+                    [
+                      "a"
+                    ]
+                  ],
+                  [
+                    "object_type",
+                    "object",
+                    [
+                      "a"
+                    ]
+                  ],
+                  [
+                    "object_type",
+                    "object",
+                    [
+                      "b"
+                    ]
+                  ],
+                  [
+                    "object_type",
+                    "object",
+                    [
+                      "c"
+                    ]
+                  ],
+                  [
+                    "state",
+                    "at",
+                    [
+                      "b"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "@type-object@",
+                    [
+                      "a"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "@type-object@",
+                    [
+                      "b"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "@type-object@",
+                    [
+                      "c"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "left",
+                    [
+                      "a"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "link",
+                    [
+                      "a",
+                      "b"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "link",
+                    [
+                      "b",
+                      "a"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "link",
+                    [
+                      "b",
+                      "c"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "middle",
+                    [
+                      "b"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "right",
+                    [
+                      "c"
+                    ]
+                  ]
+                ],
+                "source_frame": "render/path-000000/frames/frame_001.png"
+              },
+              {
+                "path": "observations/visual-state/goal.png",
+                "relations": [
+                  [
+                    "goal",
+                    "at",
+                    [
+                      "c"
+                    ]
+                  ]
+                ],
+                "source_frame": null
+              }
+            ],
+            "input_tokens": 3324,
+            "input_size_bin": 4096,
+            "limits": {
+              "tokenizer_id": "Qwen/Qwen3-VL-8B-Instruct",
+              "tokenizer_revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+              "max_input_tokens": 8192,
+              "image_width": 1024,
+              "image_height": 1536,
+              "font_size": 18,
+              "max_memory_bytes": 32768,
+              "accepted_delta_limit": 16,
+              "input_size_bins": [
+                2048,
+                4096,
+                6144,
+                8192
+              ],
+              "font_name": "DejaVuSans.ttf"
+            }
+          },
+          "raw_output": "{\"source_state_id\": \"s1\", \"action\": {\"args\": [\"b\", \"c\"], \"name\": \"move\"}}",
+          "runtime": {
+            "accepted": true,
+            "best_cost_before": null,
+            "budget_charge": 0,
+            "g": 2,
+            "h": 0,
+            "priority": 0,
+            "status": "enqueued",
+            "target_state_id": "s2"
+          }
+        }
+      ],
+      "result": {
+        "termination": "goal_reached",
+        "goal_reached": true,
+        "expansions": 2,
+        "decisions": 3,
+        "budget_used": 2,
+        "invalid_operations": 0
+      }
+    },
+    {
+      "modality": "multimodal-state",
+      "events": [
+        {
+          "index": 0,
+          "observation": {
+            "modality": "multimodal-state",
+            "prompt": "{\"algorithm\":\"best_first_add_greedy\",\"current\":{\"g\":0,\"h\":2,\"priority\":2,\"state_id\":\"s0\"},\"goal\":[[\"goal\",\"at\",[\"c\"]]],\"relation_legend\":\"Rows: section | predicate | ordered arguments. State and initial rows list all true dynamic facts; omitted dynamic facts are false. Static rows are always true. Goal rows are required together; unlisted goal facts are unconstrained. object_type rows declare objects. The relation panels are authoritative; scene geometry is illustrative.\",\"representation\":\"multimodal-state\",\"search_memory\":{\"accepted_deltas\":[],\"best_cost_count\":1,\"closed_count\":0,\"frontier_count\":0,\"frontier_head\":null,\"successor_candidates\":[{\"action\":{\"args\":[\"a\",\"b\"],\"name\":\"move\"},\"best_cost\":null,\"closed\":false,\"dominated\":false,\"frontier\":false,\"g\":1,\"h\":1,\"priority\":1,\"pruned\":false,\"target_state_id\":\"s1\"}],\"visited_count\":1},\"state\":[[\"initial\",\"at\",[\"a\"]],[\"object_type\",\"object\",[\"a\"]],[\"object_type\",\"object\",[\"b\"]],[\"object_type\",\"object\",[\"c\"]],[\"state\",\"at\",[\"a\"]],[\"static\",\"@type-object@\",[\"a\"]],[\"static\",\"@type-object@\",[\"b\"]],[\"static\",\"@type-object@\",[\"c\"]],[\"static\",\"left\",[\"a\"]],[\"static\",\"link\",[\"a\",\"b\"]],[\"static\",\"link\",[\"b\",\"a\"]],[\"static\",\"link\",[\"b\",\"c\"]],[\"static\",\"middle\",[\"b\"]],[\"static\",\"right\",[\"c\"]]]}",
+            "images": [
+              {
+                "path": "observations/multimodal-state/state-000000.png",
+                "relations": [
+                  [
+                    "initial",
+                    "at",
+                    [
+                      "a"
+                    ]
+                  ],
+                  [
+                    "object_type",
+                    "object",
+                    [
+                      "a"
+                    ]
+                  ],
+                  [
+                    "object_type",
+                    "object",
+                    [
+                      "b"
+                    ]
+                  ],
+                  [
+                    "object_type",
+                    "object",
+                    [
+                      "c"
+                    ]
+                  ],
+                  [
+                    "state",
+                    "at",
+                    [
+                      "a"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "@type-object@",
+                    [
+                      "a"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "@type-object@",
+                    [
+                      "b"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "@type-object@",
+                    [
+                      "c"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "left",
+                    [
+                      "a"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "link",
+                    [
+                      "a",
+                      "b"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "link",
+                    [
+                      "b",
+                      "a"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "link",
+                    [
+                      "b",
+                      "c"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "middle",
+                    [
+                      "b"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "right",
+                    [
+                      "c"
+                    ]
+                  ]
+                ],
+                "source_frame": "render/path-000000/frames/frame_000.png"
+              },
+              {
+                "path": "observations/multimodal-state/goal.png",
+                "relations": [
+                  [
+                    "goal",
+                    "at",
+                    [
+                      "c"
+                    ]
+                  ]
+                ],
+                "source_frame": null
+              }
+            ],
+            "input_tokens": 3439,
+            "input_size_bin": 4096,
+            "limits": {
+              "tokenizer_id": "Qwen/Qwen3-VL-8B-Instruct",
+              "tokenizer_revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+              "max_input_tokens": 8192,
+              "image_width": 1024,
+              "image_height": 1536,
+              "font_size": 18,
+              "max_memory_bytes": 32768,
+              "accepted_delta_limit": 16,
+              "input_size_bins": [
+                2048,
+                4096,
+                6144,
+                8192
+              ],
+              "font_name": "DejaVuSans.ttf"
+            }
+          },
+          "raw_output": "{\"source_state_id\": \"s0\", \"action\": {\"args\": [\"a\", \"b\"], \"name\": \"move\"}}",
+          "runtime": {
+            "accepted": true,
+            "best_cost_before": null,
+            "budget_charge": 0,
+            "g": 1,
+            "h": 1,
+            "priority": 1,
+            "status": "enqueued",
+            "target_state_id": "s1"
+          }
+        },
+        {
+          "index": 1,
+          "observation": {
+            "modality": "multimodal-state",
+            "prompt": "{\"algorithm\":\"best_first_add_greedy\",\"current\":{\"g\":1,\"h\":1,\"priority\":1,\"state_id\":\"s1\"},\"goal\":[[\"goal\",\"at\",[\"c\"]]],\"relation_legend\":\"Rows: section | predicate | ordered arguments. State and initial rows list all true dynamic facts; omitted dynamic facts are false. Static rows are always true. Goal rows are required together; unlisted goal facts are unconstrained. object_type rows declare objects. The relation panels are authoritative; scene geometry is illustrative.\",\"representation\":\"multimodal-state\",\"search_memory\":{\"accepted_deltas\":[{\"action\":{\"args\":[\"a\",\"b\"],\"name\":\"move\"},\"g\":1,\"h\":1,\"priority\":1,\"source_state_id\":\"s0\",\"status\":\"enqueued\",\"target_state_id\":\"s1\"}],\"best_cost_count\":2,\"closed_count\":1,\"frontier_count\":0,\"frontier_head\":null,\"successor_candidates\":[{\"action\":{\"args\":[\"b\",\"a\"],\"name\":\"move\"},\"best_cost\":0,\"closed\":true,\"dominated\":true,\"frontier\":false,\"g\":2,\"h\":2,\"priority\":2,\"pruned\":true,\"target_state_id\":\"s0\"},{\"action\":{\"args\":[\"b\",\"c\"],\"name\":\"move\"},\"best_cost\":null,\"closed\":false,\"dominated\":false,\"frontier\":false,\"g\":2,\"h\":0,\"priority\":0,\"pruned\":false,\"target_state_id\":\"s2\"}],\"visited_count\":2},\"state\":[[\"initial\",\"at\",[\"a\"]],[\"object_type\",\"object\",[\"a\"]],[\"object_type\",\"object\",[\"b\"]],[\"object_type\",\"object\",[\"c\"]],[\"state\",\"at\",[\"b\"]],[\"static\",\"@type-object@\",[\"a\"]],[\"static\",\"@type-object@\",[\"b\"]],[\"static\",\"@type-object@\",[\"c\"]],[\"static\",\"left\",[\"a\"]],[\"static\",\"link\",[\"a\",\"b\"]],[\"static\",\"link\",[\"b\",\"a\"]],[\"static\",\"link\",[\"b\",\"c\"]],[\"static\",\"middle\",[\"b\"]],[\"static\",\"right\",[\"c\"]]]}",
+            "images": [
+              {
+                "path": "observations/multimodal-state/state-000001.png",
+                "relations": [
+                  [
+                    "initial",
+                    "at",
+                    [
+                      "a"
+                    ]
+                  ],
+                  [
+                    "object_type",
+                    "object",
+                    [
+                      "a"
+                    ]
+                  ],
+                  [
+                    "object_type",
+                    "object",
+                    [
+                      "b"
+                    ]
+                  ],
+                  [
+                    "object_type",
+                    "object",
+                    [
+                      "c"
+                    ]
+                  ],
+                  [
+                    "state",
+                    "at",
+                    [
+                      "b"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "@type-object@",
+                    [
+                      "a"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "@type-object@",
+                    [
+                      "b"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "@type-object@",
+                    [
+                      "c"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "left",
+                    [
+                      "a"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "link",
+                    [
+                      "a",
+                      "b"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "link",
+                    [
+                      "b",
+                      "a"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "link",
+                    [
+                      "b",
+                      "c"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "middle",
+                    [
+                      "b"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "right",
+                    [
+                      "c"
+                    ]
+                  ]
+                ],
+                "source_frame": "render/path-000000/frames/frame_001.png"
+              },
+              {
+                "path": "observations/multimodal-state/goal.png",
+                "relations": [
+                  [
+                    "goal",
+                    "at",
+                    [
+                      "c"
+                    ]
+                  ]
+                ],
+                "source_frame": null
+              }
+            ],
+            "input_tokens": 3537,
+            "input_size_bin": 4096,
+            "limits": {
+              "tokenizer_id": "Qwen/Qwen3-VL-8B-Instruct",
+              "tokenizer_revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+              "max_input_tokens": 8192,
+              "image_width": 1024,
+              "image_height": 1536,
+              "font_size": 18,
+              "max_memory_bytes": 32768,
+              "accepted_delta_limit": 16,
+              "input_size_bins": [
+                2048,
+                4096,
+                6144,
+                8192
+              ],
+              "font_name": "DejaVuSans.ttf"
+            }
+          },
+          "raw_output": "{\"source_state_id\": \"s1\", \"action\": {\"args\": [\"b\", \"a\"], \"name\": \"move\"}}",
+          "runtime": {
+            "accepted": true,
+            "best_cost_before": 0,
+            "budget_charge": 0,
+            "g": 2,
+            "h": 2,
+            "priority": 2,
+            "status": "closed_pruned",
+            "target_state_id": "s0"
+          }
+        },
+        {
+          "index": 2,
+          "observation": {
+            "modality": "multimodal-state",
+            "prompt": "{\"algorithm\":\"best_first_add_greedy\",\"current\":{\"g\":1,\"h\":1,\"priority\":1,\"state_id\":\"s1\"},\"goal\":[[\"goal\",\"at\",[\"c\"]]],\"relation_legend\":\"Rows: section | predicate | ordered arguments. State and initial rows list all true dynamic facts; omitted dynamic facts are false. Static rows are always true. Goal rows are required together; unlisted goal facts are unconstrained. object_type rows declare objects. The relation panels are authoritative; scene geometry is illustrative.\",\"representation\":\"multimodal-state\",\"search_memory\":{\"accepted_deltas\":[{\"action\":{\"args\":[\"a\",\"b\"],\"name\":\"move\"},\"g\":1,\"h\":1,\"priority\":1,\"source_state_id\":\"s0\",\"status\":\"enqueued\",\"target_state_id\":\"s1\"}],\"best_cost_count\":2,\"closed_count\":1,\"frontier_count\":0,\"frontier_head\":null,\"successor_candidates\":[{\"action\":{\"args\":[\"b\",\"c\"],\"name\":\"move\"},\"best_cost\":null,\"closed\":false,\"dominated\":false,\"frontier\":false,\"g\":2,\"h\":0,\"priority\":0,\"pruned\":false,\"target_state_id\":\"s2\"}],\"visited_count\":2},\"state\":[[\"initial\",\"at\",[\"a\"]],[\"object_type\",\"object\",[\"a\"]],[\"object_type\",\"object\",[\"b\"]],[\"object_type\",\"object\",[\"c\"]],[\"state\",\"at\",[\"b\"]],[\"static\",\"@type-object@\",[\"a\"]],[\"static\",\"@type-object@\",[\"b\"]],[\"static\",\"@type-object@\",[\"c\"]],[\"static\",\"left\",[\"a\"]],[\"static\",\"link\",[\"a\",\"b\"]],[\"static\",\"link\",[\"b\",\"a\"]],[\"static\",\"link\",[\"b\",\"c\"]],[\"static\",\"middle\",[\"b\"]],[\"static\",\"right\",[\"c\"]]]}",
+            "images": [
+              {
+                "path": "observations/multimodal-state/state-000001.png",
+                "relations": [
+                  [
+                    "initial",
+                    "at",
+                    [
+                      "a"
+                    ]
+                  ],
+                  [
+                    "object_type",
+                    "object",
+                    [
+                      "a"
+                    ]
+                  ],
+                  [
+                    "object_type",
+                    "object",
+                    [
+                      "b"
+                    ]
+                  ],
+                  [
+                    "object_type",
+                    "object",
+                    [
+                      "c"
+                    ]
+                  ],
+                  [
+                    "state",
+                    "at",
+                    [
+                      "b"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "@type-object@",
+                    [
+                      "a"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "@type-object@",
+                    [
+                      "b"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "@type-object@",
+                    [
+                      "c"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "left",
+                    [
+                      "a"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "link",
+                    [
+                      "a",
+                      "b"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "link",
+                    [
+                      "b",
+                      "a"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "link",
+                    [
+                      "b",
+                      "c"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "middle",
+                    [
+                      "b"
+                    ]
+                  ],
+                  [
+                    "static",
+                    "right",
+                    [
+                      "c"
+                    ]
+                  ]
+                ],
+                "source_frame": "render/path-000000/frames/frame_001.png"
+              },
+              {
+                "path": "observations/multimodal-state/goal.png",
+                "relations": [
+                  [
+                    "goal",
+                    "at",
+                    [
+                      "c"
+                    ]
+                  ]
+                ],
+                "source_frame": null
+              }
+            ],
+            "input_tokens": 3482,
+            "input_size_bin": 4096,
+            "limits": {
+              "tokenizer_id": "Qwen/Qwen3-VL-8B-Instruct",
+              "tokenizer_revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+              "max_input_tokens": 8192,
+              "image_width": 1024,
+              "image_height": 1536,
+              "font_size": 18,
+              "max_memory_bytes": 32768,
+              "accepted_delta_limit": 16,
+              "input_size_bins": [
+                2048,
+                4096,
+                6144,
+                8192
+              ],
+              "font_name": "DejaVuSans.ttf"
+            }
+          },
+          "raw_output": "{\"source_state_id\": \"s1\", \"action\": {\"args\": [\"b\", \"c\"], \"name\": \"move\"}}",
+          "runtime": {
+            "accepted": true,
+            "best_cost_before": null,
+            "budget_charge": 0,
+            "g": 2,
+            "h": 0,
+            "priority": 0,
+            "status": "enqueued",
+            "target_state_id": "s2"
+          }
+        }
+      ],
+      "result": {
+        "termination": "goal_reached",
+        "goal_reached": true,
+        "expansions": 2,
+        "decisions": 3,
+        "budget_used": 2,
+        "invalid_operations": 0
+      }
+    }
+  ],
+  "execution_started": true,
+  "scientific_completion": true,
+  "header": {
+    "request": {
+      "binding": {
+        "contract_id": "issue-70-matched-modality-development-v1",
+        "attempt_id": "issue70-attempt-001",
+        "output_root": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/modality_phase/issue70-v1"
+      },
+      "algorithm": "best_first_add_greedy",
+      "max_expansions": 8,
+      "max_decisions": 16,
+      "render": {
+        "base_url": "http://127.0.0.1:18092",
+        "domain_path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/configs/experiments/issue70/domain.pddl",
+        "problem_path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/configs/experiments/issue70/problem.pddl",
+        "animation_profile_path": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/configs/experiments/issue70/animation.pddl",
+        "supplied_plan": null,
+        "output_dir": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/modality_phase/issue70-v1/render",
+        "timeout_seconds": 30,
+        "solver_url": null
+      },
+      "supplied_paths": [
+        [
+          "(move a b)",
+          "(move b c)"
+        ]
+      ],
+      "limits": {
+        "tokenizer_id": "Qwen/Qwen3-VL-8B-Instruct",
+        "tokenizer_revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+        "max_input_tokens": 8192,
+        "image_width": 1024,
+        "image_height": 1536,
+        "font_size": 18,
+        "max_memory_bytes": 32768,
+        "accepted_delta_limit": 16,
+        "input_size_bins": [
+          2048,
+          4096,
+          6144,
+          8192
+        ],
+        "font_name": "DejaVuSans.ttf"
+      }
+    },
+    "gate_receipt": {
+      "ancestor_receipt_id": null,
+      "binding": {
+        "attempt_id": "issue70-attempt-001",
+        "contract_id": "issue-70-matched-modality-development-v1",
+        "output_root": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/modality_phase/issue70-v1"
+      },
+      "outcome": "PASS",
+      "receipt_type": "gate",
+      "schema_version": "generation_governance_v2"
+    },
+    "authorization_receipt": {
+      "binding": {
+        "attempt_id": "issue70-attempt-001",
+        "contract_id": "issue-70-matched-modality-development-v1",
+        "output_root": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/modality_phase/issue70-v1"
+      },
+      "gate_receipt_id": "gate:issue-70-matched-modality-development-v1:issue70-attempt-001:PASS",
+      "receipt_type": "authorization",
+      "schema_version": "generation_governance_v2"
+    },
+    "domain_pddl": "(define (domain matched-rooms)\n  (:requirements :strips)\n  (:predicates (at ?x) (link ?x ?y) (left ?x) (middle ?x) (right ?x))\n  (:action move\n    :parameters (?x ?y)\n    :precondition (and (at ?x) (link ?x ?y))\n    :effect (and (not (at ?x)) (at ?y))))\n",
+    "problem_pddl": "(define (problem matched-rooms-development)\n  (:domain matched-rooms)\n  (:objects a b c)\n  (:init (at a) (left a) (middle b) (right c) (link a b) (link b a) (link b c))\n  (:goal (at c)))\n",
+    "policy_role": "matched_infrastructure_episode",
+    "frame_bindings": [
+      {
+        "atoms": [
+          "at(a)"
+        ],
+        "fluents": [],
+        "frame": "render/path-000000/frames/frame_000.png"
+      },
+      {
+        "atoms": [
+          "at(b)"
+        ],
+        "fluents": [],
+        "frame": "render/path-000000/frames/frame_001.png"
+      },
+      {
+        "atoms": [
+          "at(c)"
+        ],
+        "fluents": [],
+        "frame": "render/path-000000/frames/frame_002.png"
+      }
+    ]
+  },
+  "outcome": "PASS",
+  "aligned_decisions": 3,
+  "replayed_episodes": 3,
+  "run_receipt": {
+    "ancestor_receipt_id": null,
+    "authorization_receipt_id": "authorization:issue-70-matched-modality-development-v1:issue70-attempt-001",
+    "binding": {
+      "attempt_id": "issue70-attempt-001",
+      "contract_id": "issue-70-matched-modality-development-v1",
+      "output_root": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/modality_phase/issue70-v1"
+    },
+    "gate_receipt_id": "gate:issue-70-matched-modality-development-v1:issue70-attempt-001:PASS",
+    "outcome": "PASS",
+    "reason": null,
+    "receipt_type": "run",
+    "run_state": "completed",
+    "schema_version": "generation_governance_v2",
+    "scientific_completion": true,
+    "start_permitted": false
+  }
+}
