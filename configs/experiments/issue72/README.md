@@ -17,8 +17,8 @@ scientific completion or permission to collect renders.
 The selected 15-puzzle example needs 93 relation rows and 3,628 pixels of
 height under the actual layout versus the frozen 1,536. The largest measured
 initial observation has 848 rows and requires 29,298 pixels. Enlarging frames
-is not the chosen remedy: the supervisor has requested small frames and bounded
-disk use on the shared server.
+is not the chosen remedy: the supervisor has requested compact frame resolutions
+to reduce storage use on the shared server.
 
 To repeat only the read-only feasibility calculation, with per-task progress
 and ETA:
@@ -46,19 +46,21 @@ Before any bulk-render command can be offered, a successor contract must:
   while using a compact layout that fits small images;
 - explicitly support the required negative/other goal constraints, or obtain
   approval for a changed task panel; never silently omit them;
-- enforce the approved 5,000,000,000-byte total disk cap and qualify a per-image limit, accounting for
-  source VFGs, temporary frames, final images and metadata (including parallel
-  workers), with a storage estimate before collection and a stop at the cap;
+- qualify compact frame dimensions and label readability on representative
+  tasks, then estimate storage from measured encoded image sizes and unique
+  state counts, including VFGs, temporary files and metadata;
 - reuse repeated state images and task-level goal assets and share image paths
   between visual and multimodal projections; do not duplicate frames per row.
 
-The supervisor approved a **5 GB total hard cap (5,000,000,000 bytes)** on
-2026-09-07. This is one aggregate budget, not a budget per worker, modality or
-attempt. Include retained render outputs, VFGs, temporary files and metadata;
-account for concurrent in-flight writes and stop before exceeding the cap.
-Storage accounting measures resource consumption only, not artifact integrity.
+The supervisor withdrew the previously approved 5 GB cap on 2026-09-07.
+There is **no fixed total-byte cap**. Prioritize compact frame resolution,
+readability and image reuse; report estimated/actual disk use rather than
+stopping at an arbitrary total size. No cap enforcement was implemented.
+Storage estimates measure resource consumption only, not artifact integrity.
 
-The compact successor image settings and per-image limit still need qualification.
-The cap is recorded here but enforcement is not yet implemented. No long run
+The compact successor image dimensions still need qualification. Merely
+downscaling the overflowing relation panels would make their labels unreadable;
+the layout must preserve the required semantics at the selected resolution.
+No long run
 or full collector has been launched or represented as complete. #72 stays open.
 No hashes, checksums, artifact-integrity or regeneration comparisons were added.
