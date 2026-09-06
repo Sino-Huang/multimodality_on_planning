@@ -2,6 +2,13 @@
 
 Minimal example for reading one accepted instance from the merged curriculum PDDL dataset.
 
+## Local supplied-plan Render Production
+
+`planimation_render.produce_planimation_render` is the active Planimation production boundary. It accepts an ordered,
+non-empty supplied plan and an HTTP loopback base URL, submits exactly one `/upload/pddl` request, and renders the returned
+VFG to local PNG frames. Hosted endpoints, absent or malformed plans, and solver fallback URLs raise
+`PlanimationRenderError` before any request is sent. Planimation does not select or generate a plan at this boundary.
+
 ## Command
 
 ```bash
