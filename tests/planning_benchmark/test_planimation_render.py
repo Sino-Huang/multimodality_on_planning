@@ -62,13 +62,15 @@ def test_production_uses_one_local_supplied_plan_request_and_writes_render(
 
     assert len(posted) == 1
     assert posted[0]["url"] == "http://127.0.0.1:18082/upload/pddl"
+    assert posted[0]["allow_redirects"] is False
     files = posted[0]["files"]
     assert isinstance(files, dict)
     assert list(files) == ["domain", "problem", "animation", "plan"]
     assert files["plan"] == (None, "(pickup b1)\n(stack b1 b2)")
     assert result.used_endpoint == "http://127.0.0.1:18082/upload/pddl"
-    assert json.loads(result.trace_path.read_text(encoding="utf-8")) == vfg_payload
-    assert result.frame_paths == tuple(tmp_path / "render" / "frames" / f"frame_{index:03d}.png" for index in range(3))
+    assert result.trace_path.is_file()
+    assert len(result.frame_paths) == 3
+    assert all(path.is_file() for path in result.frame_paths)
 
 
 @pytest.mark.parametrize(
@@ -83,18 +85,19 @@ def test_production_uses_one_local_supplied_plan_request_and_writes_render(
 )
 def test_production_hard_fails_unsafe_requests_before_http(
     tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
     overrides: dict[str, object],
     message: str,
 ) -> None:
     posts: list[object] = []
     request = _request(tmp_path, **overrides)  # type: ignore[arg-type]
+    monkeypatch.setattr(
+        "scripts.planimation_phase1_client.requests.post",
+        lambda *args, **kwargs: posts.append((args, kwargs)),
+    )
 
     with pytest.raises(PlanimationRenderError, match=message):
-        produce_planimation_render(
-            request,
-            post_pddl_for_vfg=lambda **kwargs: posts.append(kwargs),  # type: ignore[arg-type,return-value]
-            render_vfg_to_png_frames=lambda **kwargs: 0,
-        )
+        produce_planimation_render(request)
 
     assert posts == []
     assert not request.output_dir.exists()

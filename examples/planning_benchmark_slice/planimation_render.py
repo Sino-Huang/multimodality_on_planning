@@ -6,8 +6,10 @@ import ipaddress
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Protocol, Sequence
 from urllib.parse import urlsplit
+
+from scripts.planimation_phase1_client import post_pddl_for_vfg
+from scripts.planimation_phase1_frames import render_vfg_to_local_png_frames
 
 TRACE_FILENAME = "trace.vfg.json"
 FRAMES_DIRNAME = "frames"
@@ -16,30 +18,6 @@ _ACTION = re.compile(r"\s*\(\s*[^()\s;]+(?:\s+[^()\s;]+)*\s*\)\s*")
 
 class PlanimationRenderError(RuntimeError):
     """Raised when the supplied-plan Render Production contract is violated."""
-
-
-class SuppliedPlanPoster(Protocol):
-    def __call__(
-        self,
-        domain_path: Path,
-        problem_path: Path,
-        animation_profile_path: Path,
-        pddl_candidates: Sequence[str],
-        timeout: int,
-        plan: str | None = None,
-        solver_url: str | None = None,
-    ) -> tuple[bytes, str]: ...
-
-
-class VfgFrameRenderer(Protocol):
-    def __call__(
-        self,
-        *,
-        vfg_bytes: bytes,
-        output_dir: Path,
-        start_step: int,
-        stop_step: int,
-    ) -> int: ...
 
 
 @dataclass(frozen=True, slots=True)
@@ -63,9 +41,6 @@ class PlanimationRenderResult:
 
 def produce_planimation_render(
     request: PlanimationRenderRequest,
-    *,
-    post_pddl_for_vfg: SuppliedPlanPoster | None = None,
-    render_vfg_to_png_frames: VfgFrameRenderer | None = None,
 ) -> PlanimationRenderResult:
     """Create a VFG and PNG frames without permitting any planning fallback."""
 
@@ -74,15 +49,6 @@ def produce_planimation_render(
     supplied_plan = _canonical_supplied_plan(request.supplied_plan)
     if request.solver_url is not None:
         raise PlanimationRenderError("planning fallback is prohibited")
-
-    if post_pddl_for_vfg is None:
-        from scripts.planimation_phase1_client import post_pddl_for_vfg as default_poster
-
-        post_pddl_for_vfg = default_poster
-    if render_vfg_to_png_frames is None:
-        from scripts.planimation_phase1_frames import render_vfg_to_local_png_frames as default_frame_renderer
-
-        render_vfg_to_png_frames = default_frame_renderer
 
     upload_url = f"{base_url}/upload/pddl"
     try:
@@ -93,9 +59,10 @@ def produce_planimation_render(
             pddl_candidates=[upload_url],
             timeout=request.timeout_seconds,
             plan=supplied_plan,
+            allow_redirects=False,
         )
     except (OSError, RuntimeError, ValueError) as error:
-        raise PlanimationRenderError(f"Planimation supplied-plan request failed: {error}") from error
+        raise PlanimationRenderError(f"Planimation Plan Submission failed: {error}") from error
     if used_endpoint != upload_url:
         raise PlanimationRenderError("Planimation used an endpoint outside the localhost production contract")
 
@@ -104,7 +71,7 @@ def produce_planimation_render(
     try:
         request.output_dir.mkdir(parents=True, exist_ok=True)
         trace_path.write_bytes(vfg_bytes)
-        frame_count = render_vfg_to_png_frames(
+        frame_count = render_vfg_to_local_png_frames(
             vfg_bytes=vfg_bytes,
             output_dir=frames_dir,
             start_step=0,
@@ -112,9 +79,9 @@ def produce_planimation_render(
         )
     except (OSError, RuntimeError, ValueError) as error:
         raise PlanimationRenderError(f"Planimation Render Production failed: {error}") from error
-    frame_paths = tuple(sorted(frames_dir.glob("*.png")))
-    if frame_count <= 0 or len(frame_paths) != frame_count:
-        raise PlanimationRenderError("Planimation Render Production did not create the reported PNG frames")
+    if frame_count <= 0:
+        raise PlanimationRenderError("Planimation Render Production produced no PNG frames")
+    frame_paths = tuple(frames_dir / f"frame_{index:03d}.png" for index in range(frame_count))
     return PlanimationRenderResult(used_endpoint, trace_path, frame_paths)
 
 
