@@ -24,6 +24,12 @@ Relation: TypeAlias = tuple[str, str, tuple[str, ...]]
 Modality: TypeAlias = Literal["text-state", "visual-state", "multimodal-state"]
 MODALITIES: tuple[Modality, ...] = ("text-state", "visual-state", "multimodal-state")
 TokenCounter: TypeAlias = Callable[[str, tuple[Path, ...]], int]
+RELATION_LEGEND = (
+    "Rows: section | predicate | ordered arguments. State and initial rows list all true dynamic facts; "
+    "omitted dynamic facts are false. Static rows are always true. Goal rows are required together; "
+    "unlisted goal facts are unconstrained. object_type rows declare objects. "
+    "The relation panels are authoritative; scene geometry is illustrative."
+)
 
 
 @dataclass(frozen=True)
@@ -212,10 +218,7 @@ def build_matched_best_first_observations(
     """
     semantic = best_first_semantic_input(controller)
     memory = json.loads(semantic.common_json)["search_memory"]
-    if controller.accepted_delta_limit != limits.accepted_delta_limit:
-        raise ModalityParityError("Search Memory accepted-delta capacity differs from the frozen contract")
-    if len(_json(memory).encode()) > limits.max_memory_bytes:
-        raise ModalityParityError("Search Memory exceeds the frozen byte capacity")
+    _validate_memory_capacity(memory, controller, limits)
     state = controller.node_state(controller.active_state_id or "")
     if frames.authority.task_context() != controller.authority.task_context():
         raise ModalityParityError("frames belong to a different authoritative task")
@@ -229,12 +232,7 @@ def build_matched_best_first_observations(
     for modality in MODALITIES:
         payload = json.loads(semantic.common_json)
         payload["representation"] = modality
-        payload["relation_legend"] = (
-            "Rows: section | predicate | ordered arguments. State and initial rows list all true dynamic facts; "
-            "omitted dynamic facts are false. Static rows are always true. Goal rows are required together; "
-            "unlisted goal facts are unconstrained. object_type rows declare objects. "
-            "The relation panels are authoritative; scene geometry is illustrative."
-        )
+        payload["relation_legend"] = RELATION_LEGEND
         if modality != "visual-state":
             payload["state"] = semantic.state_relations
             payload["goal"] = semantic.goal_relations
@@ -265,7 +263,7 @@ def validate_modality_parity(
 ) -> int:
     """Compare the exposed semantic drawing/text content against current trusted replay.
 
-    This checks facts and memory, not file integrity or byte-identical regeneration.
+    This checks the meaning of exposed facts, goals, and Search Memory.
     It does not infer the semantics of arbitrary Planimation sprite geometry.
     """
     expected = best_first_semantic_input(controller)
@@ -277,7 +275,8 @@ def validate_modality_parity(
         payload = json.loads(item.prompt)
         if payload.pop("representation") != item.modality:
             raise ModalityParityError("observation representation differs from its modality")
-        payload.pop("relation_legend")
+        if payload.pop("relation_legend") != RELATION_LEGEND:
+            raise ModalityParityError("state or partial-goal interpretation differs across modalities")
         if item.modality != "visual-state":
             state_rows = _row_tuples(payload.pop("state"))
             goal_rows = _row_tuples(payload.pop("goal"))
@@ -294,7 +293,19 @@ def validate_modality_parity(
             raise ModalityParityError("text-state cannot include images")
         if _json(payload) != expected.common_json:
             raise ModalityParityError("visible Search Memory differs from authoritative replay")
+        _validate_memory_capacity(payload["search_memory"], controller, item.limits)
     return len(observations)
+
+
+def _validate_memory_capacity(
+    memory: dict[str, Any],
+    controller: BestFirstController,
+    limits: ModalityInputLimits,
+) -> None:
+    if controller.accepted_delta_limit != limits.accepted_delta_limit:
+        raise ModalityParityError("Search Memory accepted-delta capacity differs from the frozen contract")
+    if len(_json(memory).encode()) > limits.max_memory_bytes:
+        raise ModalityParityError("Search Memory exceeds the frozen byte capacity")
 
 
 def _relations(section: str, facts: Sequence[str]) -> tuple[Relation, ...]:

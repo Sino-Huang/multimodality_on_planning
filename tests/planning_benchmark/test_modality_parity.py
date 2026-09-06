@@ -182,7 +182,7 @@ def test_each_decision_replays_with_exact_membership_and_distinct_state_frames(
             replay.finish_expansion()
 
 
-@pytest.mark.parametrize("defect", ["static", "goal", "membership", "capacity"])
+@pytest.mark.parametrize("defect", ["static", "goal", "membership", "capacity", "goal_meaning", "replay_capacity"])
 def test_replay_rejects_modality_specific_semantic_omission(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -214,9 +214,15 @@ def test_replay_rejects_modality_specific_semantic_omission(
         payload = json.loads(visual.prompt)
         payload["search_memory"]["successor_candidates"][0].pop("closed")
         observations[1] = replace(visual, prompt=json.dumps(payload))
-    else:
+    elif defect == "capacity":
         observations[1] = replace(visual, limits=replace(limits(), max_memory_bytes=16384))
-    with pytest.raises(ModalityParityError, match=r"replay|capacities"):
+    elif defect == "goal_meaning":
+        payload = json.loads(visual.prompt)
+        payload["relation_legend"] = "Unlisted goal facts are false."
+        observations[1] = replace(visual, prompt=json.dumps(payload))
+    else:
+        observations = [replace(item, limits=replace(item.limits, accepted_delta_limit=1)) for item in observations]
+    with pytest.raises(ModalityParityError, match=r"replay|capacit|interpretation"):
         validate_modality_parity(observations, controller=controller)
 
 
