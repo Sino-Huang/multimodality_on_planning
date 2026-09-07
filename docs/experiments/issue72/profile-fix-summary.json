@@ -1,0 +1,16 @@
+{
+  "schema_version": "scene_profile_fix_evidence_v1",
+  "failed_preflight": "outputs/modality_phase/issue72-scenes128-v1/preflight-001/report.json",
+  "fixes": ["task-aware Storage type/containment bindings", "Grid non-spatial shape categories and explicit key/lock icons"],
+  "original_pddl_and_actions_changed": false,
+  "stored_scene_size": [128, 128],
+  "live_smoke": "outputs/modality_phase/issue72-scenes128-v1/smoke-007/report.json",
+  "live_smoke_outcome": "PASS",
+  "live_smoke_tasks": 5,
+  "live_smoke_workers": 4,
+  "profile_generation_coverage": {"storage": 13, "grid": 15},
+  "focused_tests_passed": 89,
+  "new_preflight_attempt": "scene-preflight-002",
+  "scientific_completion": false,
+  "full_preflight_rerun": false
+}

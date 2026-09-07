@@ -131,6 +131,10 @@ def main(argv=None):
             sample = []
             for family in ("bfs", "best_first_width", "best_first_add_w3"):
                 sample.append(next(row for row in panel if family in row["trace_paths"]))
+            for task_id in config.get("smoke_task_ids", []):
+                row = next(row for row in panel if row["task_id"] == task_id)
+                if row not in sample:
+                    sample.append(row)
             panel = sample
         if args.dry_run:
             total_states = 0

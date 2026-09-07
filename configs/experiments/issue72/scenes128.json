@@ -9,12 +9,14 @@
   "authorization_basis": "Supervisor selected stored 128x128 scene frames and permits larger VLM inputs at use time. This successor authorizes only scene-asset preparation from the frozen panel, with PDDL replay and supplied-plan interpretation checks. It does not authorize model training or claim complete partial-goal images or matched corpus release.",
   "semantic_storage": "Exact task/goal formula, state facts and decision-to-state bindings remain structured metadata. Do not downsample relation text and pretend upscaling restores it; compose readable annotations at VLM input time under a separately qualified view contract.",
   "total_disk_cap": null,
-  "profile_compatibility_override": "15puzzle: renderer-only typed-position grid profile, coordinates validated against the authoritative neighbor graph. Original PDDL and supplied actions are unchanged; used/source profile paths and transformation are retained per task.",
+  "profile_compatibility_override": "15puzzle: typed-position grid validated against neighbor facts. Storage: actual typed depot/container/area/hoist objects and containment bind the retained profile. Grid: declared shape categories bind distinct retained icon templates, without spatializing shape objects. Original PDDL/actions are unchanged; source/used profiles and transformations are retained.",
+  "failed_preflight": "outputs/modality_phase/issue72-scenes128-v1/preflight-001/report.json",
+  "smoke_task_ids": ["astar-pair-12081de85b7805e93ea9c5ec", "astar-pair-1ade7fc9f40863f1c7f8ab28"],
   "predecessor_attempt": "issue72-layout-001",
   "superseded_submission_only_smoke": "outputs/modality_phase/issue72-scenes128-v1/smoke-001/report.json",
   "attempts": {
-    "smoke": {"attempt_id": "scene-smoke-005", "output_root": "outputs/modality_phase/issue72-scenes128-v1/smoke-005", "gate_outcome": "PASS", "authorization_gate_id": "gate:issue-72-scene-assets-128-v1:scene-smoke-005:PASS"},
-    "preflight": {"attempt_id": "scene-preflight-001", "output_root": "outputs/modality_phase/issue72-scenes128-v1/preflight-001", "gate_outcome": "PASS", "authorization_gate_id": "gate:issue-72-scene-assets-128-v1:scene-preflight-001:PASS"},
-    "collect": {"attempt_id": "scene-collect-001", "output_root": "outputs/modality_phase/issue72-scenes128-v1/collect-001", "gate_outcome": "PASS", "authorization_gate_id": "gate:issue-72-scene-assets-128-v1:scene-collect-001:PASS"}
+    "smoke": {"attempt_id": "scene-smoke-007", "output_root": "outputs/modality_phase/issue72-scenes128-v1/smoke-007", "gate_outcome": "PASS", "authorization_gate_id": "gate:issue-72-scene-assets-128-v1:scene-smoke-007:PASS"},
+    "preflight": {"attempt_id": "scene-preflight-002", "output_root": "outputs/modality_phase/issue72-scenes128-v1/preflight-002", "gate_outcome": "PASS", "authorization_gate_id": "gate:issue-72-scene-assets-128-v1:scene-preflight-002:PASS"},
+    "collect": {"attempt_id": "scene-collect-002", "output_root": "outputs/modality_phase/issue72-scenes128-v1/collect-002", "gate_outcome": "PASS", "authorization_gate_id": "gate:issue-72-scene-assets-128-v1:scene-collect-002:PASS"}
   }
 }

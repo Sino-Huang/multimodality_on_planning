@@ -28,8 +28,8 @@ python scripts/collect_modality_scene_assets.py --dry-run --workers 4
 python scripts/collect_modality_scene_assets.py --preflight --workers 4
 ```
 
-The dry-run inspects the complete source inventory and physically replays three
-representative task groups without HTTP or scene-file output. Add `--full-replay`
+The dry-run inspects the complete source inventory and physically replays five
+representative/regression task groups without HTTP or scene-file output. Add `--full-replay`
 to replay all selected tasks without rendering. This was exercised over all
 241 task groups: **51,208 distinct states and 78,230 decision bindings**, zero
 transition-replay failures. The earlier ~44,759-state inventory omitted generated
@@ -109,4 +109,27 @@ three representative task groups, six 128px frames, correct supplied transitions
 The corrected puzzle scenes were visually inspected. Earlier smoke attempts are
 retained: the initial submission-only pass missed unresolved coordinates;
 subsequent stops exposed profile/parser compatibility issues and drove fixes.
-Those are not production passes. The full preflight and collection have not run.
+Those are not production passes. Neither full preflight nor collection has completed successfully.
+
+### Storage/Grid repair after preflight-001
+
+The operator's first full preflight stopped after nine tasks: seven passed,
+Storage had unresolved depot/hoist positions, and Grid rendered symbolic shape
+categories as default spatial nodes. That attempt and report are preserved.
+
+Storage now binds the retained profile to actual typed depot/container/area/hoist
+objects and area containment, with row widths derived from compartment counts.
+Grid binds declared shape categories to distinct existing icons, keeps categories
+non-spatial, and explicitly assigns the same icon to matching keys and locks.
+The collector validates those Grid icon associations as well as coordinates.
+Original PDDL, actions, and 128px output dimensions are unchanged.
+
+The five-task live regression smoke passed with four backend workers at
+`outputs/modality_phase/issue72-scenes128-v1/smoke-007/report.json`, including
+both failed tasks. Profile generation was also checked for all 13 Storage and
+15 Grid groups in the frozen panel; this is not full render qualification.
+
+The default config now uses **preflight-002** and **collect-002**, so rerun the
+same preflight command above without deleting anything. The existing backend
+processes need not restart. Collection still requires the new complete preflight
+PASS; the old stopped report cannot authorize it.

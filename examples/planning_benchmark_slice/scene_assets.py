@@ -13,6 +13,7 @@ from typing import Any, Callable
 
 from .pddl_state import CanonicalState, GroundedAction, PDDLStateAuthority
 from .planimation_render import PlanimationRenderRequest, canonical_supplied_actions, produce_planimation_render
+from .scene_profiles import grid_profile, require_grid_shape_icons, storage_profile
 
 
 def require_resolved_scene_coordinates(stages: list[dict[str, Any]]) -> None:
@@ -237,6 +238,14 @@ def collect_task_scenes(
         profile = output / "typed-puzzle-animation.pddl"
         profile.write_text(typed_puzzle_profile(catalog["task_context"]))
         profile_transform = "typed_position_grid_validated_against_neighbor_graph"
+    elif row["domain"] in {"storage", "grid"}:
+        transform = storage_profile if row["domain"] == "storage" else grid_profile
+        adapted = transform(catalog["task_context"], source_profile.read_text())
+        profile = output / f"{row['domain']}-animation.pddl"
+        profile.write_text(adapted)
+        profile_transform = (
+            "typed_storage_containment_bindings" if row["domain"] == "storage" else "grid_shape_icon_bindings"
+        )
     (output / "frames").mkdir()
     rendered: set[int] = set()
     bindings = []
@@ -268,6 +277,8 @@ def collect_task_scenes(
             with result.trace_path.open("rb") as source, gzip.open(vfg_path, "wb") as destination:
                 shutil.copyfileobj(source, destination)
             require_resolved_scene_coordinates(stages)
+            if row["domain"] == "grid":
+                require_grid_shape_icons(catalog["task_context"], stages)
             for state_index, frame in zip(indices, result.frame_paths, strict=True):
                 if state_index not in rendered:
                     frame.replace(output / "frames" / f"state-{state_index:06d}.png")
