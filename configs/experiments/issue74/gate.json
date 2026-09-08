@@ -1,0 +1,11 @@
+{
+  "ancestor_receipt_id": null,
+  "binding": {
+    "attempt_id": "release-001",
+    "contract_id": "issue-74-matched-corpus-32k-v1",
+    "output_root": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/modality_corpus/issue74-matched-32k-v1/release-001"
+  },
+  "outcome": "PASS",
+  "receipt_type": "gate",
+  "schema_version": "generation_governance_v2"
+}

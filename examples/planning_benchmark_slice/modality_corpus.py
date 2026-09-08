@@ -1,4 +1,4 @@
-"""Visual-state release bound to the approved readable-page successor.
+"""Matched modality releases bound to the approved readable-page successor.
 
 Rows retain one authoritative family input, a teacher target, and page bindings.
 The model-facing projection is built by the same adapter used for live views.
@@ -109,14 +109,58 @@ def release_permission(root: Path, contract: dict, authorization: dict, gate_pay
             or contract["source_corpora"] != phase.components["corpus"]["sources"]
             or contract["model_id"] != view_contract["model_id"]
             or contract["model_revision"] != view_contract["model_revision"]
-            or contract["released_modalities"] != ["text-state", "visual-state"]
+            or contract["released_modalities"]
+            != {73: ["text-state", "visual-state"], 74: list(MODALITIES)}.get(contract["source_issue"])
             or contract["qualified_modalities"] != list(MODALITIES)
             or len(panel) != contract["expected"]["tasks"]
         ):
             raise ValueError("corpus successor differs from approved views/memory/model/scope")
+        if contract["source_issue"] == 74:
+            source_release(root, contract)
+    except CorpusStop as error:
+        return stop(error.outcome, str(error), error.ancestor)
     except (ValueError, KeyError, OSError) as error:
         return stop(StopOutcome.INVALID, str(error))
     return receipt
+
+
+def source_release(root: Path, contract: dict) -> dict:
+    """Require the complete matching #73 predecessor before reusing its records."""
+    path = root / contract["source_release"]
+    if not path.is_file():
+        raise CorpusStop(StopOutcome.VALID_STOP, "missing matched text/visual corpus predecessor")
+    source = read_json(path)
+    if source["contract"]["source_issue"] != 73 or source["contract"]["contract_id"] != contract["source_contract_id"]:
+        raise ValueError("source release must be the bound #73 corpus")
+    outcome = source.get("outcome")
+    if outcome in ("VALID_STOP", "ANCESTOR_STOP"):
+        raise CorpusStop(
+            StopOutcome.ANCESTOR_STOP,
+            "text/visual corpus predecessor stopped",
+            f"corpus:{contract['source_contract_id']}:{path.parent.name}:{outcome}",
+        )
+    if outcome != "PASS":
+        raise ValueError("invalid text/visual corpus predecessor")
+    if not source.get("complete_selected_coverage") or not source.get("scientific_completion"):
+        raise CorpusStop(StopOutcome.VALID_STOP, "incomplete text/visual corpus predecessor")
+    for field in (
+        "parent_freeze",
+        "panel_manifest",
+        "views_report",
+        "expected",
+        "context_tokens",
+        "output_tokens",
+        "model_id",
+        "model_revision",
+        "search_memory",
+        "source_corpora",
+        "qualified_modalities",
+        "required_checks",
+    ):
+        if source["contract"][field] != contract[field]:
+            raise ValueError(f"matched corpus setting differs: {field}")
+    ModalityCorpus(root, path)
+    return source
 
 
 def iter_shard(path: Path):
@@ -300,8 +344,8 @@ def audit_release(root: Path, results: list[dict], progress=None) -> dict:
     }
 
 
-class VisualCorpus:
-    """Load released text/visual training examples with on-demand page composition."""
+class ModalityCorpus:
+    """Load authorized matched training examples with on-demand page composition."""
 
     def __init__(self, root: Path, report_path: Path):
         self.root = root
@@ -310,6 +354,13 @@ class VisualCorpus:
         permission = release_permission(root, self.contract, report["authorization"], report["gate"], report_path.parent)
         if not permission.start_permitted or report.get("outcome") != "PASS" or not report.get("scientific_completion"):
             raise ValueError("corpus loader requires a complete authorized PASS release")
+        completed = replace(permission, run_state="completed", scientific_completion=True, start_permitted=False)
+        if (
+            report.get("receipt") != completed.to_dict()
+            or report.get("released_modalities") != self.contract["released_modalities"]
+            or any(report.get("checks", {}).get(name) is not True for name in self.contract["required_checks"])
+        ):
+            raise ValueError("corpus completion receipt/modality/check binding differs")
         panel, _ = load_view_panel(root, root / self.contract["panel_manifest"])
         self.results = {r["task_id"]: r for r in report["results"]}
         if (
@@ -320,6 +371,10 @@ class VisualCorpus:
         ):
             raise ValueError("corpus release coverage is incomplete")
         self.views = ModalityViewStore(root, root / self.contract["views_report"])
+        if self.contract["source_issue"] == 74:
+            source = read_json(root / self.contract["source_release"])
+            if report["results"] != source["results"]:
+                raise ValueError("matched release must reference the exact source task shards")
 
     def records(self, *, algorithm: str, split: str):
         if split not in ("train", "dev"):
@@ -353,3 +408,7 @@ class VisualCorpus:
             "images": [page.image for page in observation.pages],
             "page_roles": [page.role for page in observation.pages],
         }
+
+
+# Preserve the released #73 import while exposing the shared three-modality name.
+VisualCorpus = ModalityCorpus

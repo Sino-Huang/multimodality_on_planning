@@ -1,4 +1,4 @@
-"""Release/check the approved visual-state corpus with four CPU workers."""
+"""Release/check approved matched modality corpora with four CPU workers."""
 
 # ruff: noqa: E402
 from __future__ import annotations
@@ -16,11 +16,11 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from examples.planning_benchmark_slice.modality_corpus import (
-    DEFAULT_CONTRACT,
     CorpusStop,
     audit_release,
     build_task,
     release_permission,
+    source_release,
 )
 from examples.planning_benchmark_slice.modality_view_panel import load_view_panel
 from examples.planning_benchmark_slice.modality_view_preparation import write_json
@@ -28,14 +28,15 @@ from examples.planning_benchmark_slice.scene_assets import read_json
 from src.data_collect.governance import ReceiptBinding, RunReceipt, StopOutcome
 
 
-def main(argv=None):
+def main(argv=None, *, issue=73):
     parser = argparse.ArgumentParser(description=__doc__)
     modes = parser.add_mutually_exclusive_group(required=True)
     for mode in ("dry-run", "materialize", "check"):
         modes.add_argument(f"--{mode}", action="store_true")
-    parser.add_argument("--contract", type=Path, default=ROOT / DEFAULT_CONTRACT)
-    parser.add_argument("--authorization", type=Path, default=ROOT / "configs/experiments/issue73/authorization.json")
-    parser.add_argument("--gate", type=Path, default=ROOT / "configs/experiments/issue73/gate.json")
+    config = ROOT / f"configs/experiments/issue{issue}"
+    parser.add_argument("--contract", type=Path, default=config / "contract.json")
+    parser.add_argument("--authorization", type=Path, default=config / "authorization.json")
+    parser.add_argument("--gate", type=Path, default=config / "gate.json")
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--resume", action="store_true", help="reuse completed shards of an interrupted attempt")
     parser.add_argument(
@@ -91,6 +92,9 @@ def main(argv=None):
         panel, _ = load_view_panel(ROOT, ROOT / contract["panel_manifest"])
         view_report = read_json(ROOT / contract["views_report"])
         views = {r["task_id"]: r for r in view_report["results"]}
+        source = source_release(ROOT, contract) if contract["source_issue"] == 74 else None
+        source_results = {r["task_id"]: r for r in source["results"]} if source else {}
+        record_root = ROOT / source["contract"]["output_root"] if source else output
         total = len(panel)
         if mode == "dry-run":
             log(
@@ -133,7 +137,9 @@ def main(argv=None):
                     return
                 task_path = output / "tasks" / row["task_id"].replace("/", "__") / "task.json"
                 checking = mode == "check" or (args.resume and task_path.exists())
-                future = executor.submit(build_task, ROOT, row, views[row["task_id"]], contract, output, checking)
+                future = executor.submit(
+                    build_task, ROOT, row, views[row["task_id"]], contract, record_root, checking or source is not None
+                )
                 pending[future] = row["task_id"]
 
             for _ in range(args.workers):
@@ -146,7 +152,10 @@ def main(argv=None):
                 for future in done:
                     task_id = pending.pop(future)
                     try:
-                        results.append(future.result())
+                        result = future.result()
+                        if source is not None and result != source_results[task_id]:
+                            raise ValueError("replayed task does not match the source release binding")
+                        results.append(result)
                         completed += 1
                         log(f"{mode}:task", task_id=task_id)
                     except Exception as error:
@@ -173,7 +182,7 @@ def main(argv=None):
             raise ValueError("release coverage/audit differs from retained receipt")
         receipt = replace(permission, run_state="completed", scientific_completion=True, start_permitted=False)
         report = {
-            "schema_version": "visual_state_corpus_release_v1",
+            "schema_version": "matched_modality_corpus_release_v1" if source else "visual_state_corpus_release_v1",
             "contract": contract,
             "authorization": authorization,
             "gate": gate,
