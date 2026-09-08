@@ -1,10 +1,9 @@
 {
-  "contract_id": "issue-75-visual-development-32k-v1",
+  "contract_id": "issue-75-visual-development-32k-v2",
   "source_issue": 75,
   "parent_freeze": "configs/experiments/issue71/v2/freeze.json",
   "corpus_report": "outputs/modality_corpus/issue74-matched-32k-v1/release-001/report.json",
-  "authorization": "configs/experiments/issue75/authorization.json",
-  "output_root": "outputs/visual_development/issue75-32k-v1/attempt-001",
+  "output_root": "outputs/visual_development/issue75-32k-v2/attempt-001",
   "modality": "visual-state",
   "algorithms": [
     "bfs",
@@ -43,7 +42,6 @@
   "gate_seconds": 72000,
   "stop_new_calls_seconds": 64800,
   "rollout_certification_seconds": 54000,
-  "qualification_seconds": 3600,
   "input_bins": [
     4096,
     8192,
@@ -68,7 +66,7 @@
   },
   "inference_dtype": "float32",
   "output_cache": "none; per-call KV cache only, no cross-episode reuse",
-  "qualification": "every occupied algorithm/difficulty/input-bin; scalar/batch/repeated semantic and trained-adapter isolation; worst-case 384-token timing; disposable lr=0 training memory/timing probe",
+  "qualification": "visual-state only, all selected algorithm/difficulty/input bins; one scalar per distinct probe input, mixed batch and repeated batch semantics; full 384-token timing; disposable lr=0 training probe; uses the overall run clock",
   "coverage": "full development panel, then cheapest complete task per domain/family; paired additive settings stay together; selection shared with later matched modalities",
   "bfs_ties": "canonical training targets; accept any unvisited applicable successor with valid FIFO update at evaluation",
   "model_call_multiplier": 2,
@@ -82,6 +80,5 @@
     "seed": 1729,
     "confidence": 0.95,
     "unit": "whole_problem_instance"
-  },
-  "authorization_basis": "User requested completing #75 tooling and dry-run verification, leaving long actual experiment command to the user."
+  }
 }

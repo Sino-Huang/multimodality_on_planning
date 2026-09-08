@@ -102,12 +102,36 @@ class SemanticProbe:
         return self.cache[key]
 
 
+def qualify_batch(policy, records, examples, semantics, progress, adapter=None):
+    """Compare each distinct scalar input against every position in two batches."""
+    unique = {r["record_id"]: (r, e) for r, e in zip(records, examples, strict=True)}
+    total = len(unique) + 2
+    scalar_results = {}
+    for i, (key, (record, example)) in enumerate(unique.items()):
+        progress("qualification_call", completed=i, total=total, operation="scalar", record_id=key)
+        output = policy.generate([example], adapter)[0]
+        scalar_results[key] = semantics.evaluate(record, output)
+    for repeat in range(2):
+        progress(
+            "qualification_call",
+            completed=len(unique) + repeat,
+            total=total,
+            operation="batch" if repeat == 0 else "repeated_batch",
+            batch_size=len(examples),
+        )
+        outputs = policy.generate(examples, adapter)
+        for record, output in zip(records, outputs, strict=True):
+            if semantics.evaluate(record, output) != scalar_results[record["record_id"]]:
+                raise ValueError("scalar/batch/repeated operation or trusted runtime result differs")
+    progress("qualification_call", completed=total, total=total, operation="semantic_check_complete")
+
+
 def qualify_device(experiment, worker, progress):
     import torch
 
     c = experiment.config
     started = time.monotonic()
-    deadline = min(experiment.deadline(), started + c["qualification_seconds"])
+    deadline = experiment.deadline()
     records = select_probes(experiment)
     progress("model_loading", completed=0, total=len(records))
     policy = make_policy(experiment)
@@ -117,24 +141,34 @@ def qualify_device(experiment, worker, progress):
     for i, record in enumerate(records):
         if time.monotonic() >= deadline:
             raise RuntimeError("VALID_STOP: qualification clock exhausted")
-        for modality in ("text-state", "visual-state", "multimodal-state"):
-            batch_records = probe_records(c, records, record, modality)
-            then = time.monotonic()
-            examples = probe_examples(experiment, batch_records, modality)
-            composition_seconds = time.monotonic() - then
-            scalars = [policy.generate([example])[0] for example in examples]
-            batched = policy.generate(examples)
-            repeated = policy.generate(examples)
-            for retained, scalar, batch_output, repeat_output in zip(
-                batch_records, scalars, batched, repeated, strict=True
-            ):
-                expected = semantics.evaluate(retained, scalar)
-                if any(semantics.evaluate(retained, value) != expected for value in (batch_output, repeat_output)):
-                    raise ValueError("scalar/batch/repeated operation or trusted runtime result differs")
-            then = time.monotonic()
-            policy.generate(examples, force_full_output=True)
-            torch.cuda.synchronize()
-            timings.append((composition_seconds + time.monotonic() - then) / len(examples))
+        batch_records = probe_records(c, records, record, c["modality"])
+        then = time.monotonic()
+        examples = probe_examples(experiment, batch_records, c["modality"])
+        composition_seconds = time.monotonic() - then
+
+        def probe_progress(stage, probe=i + 1, primary_record=record["record_id"], **fields):
+            progress(stage, probe=probe, probes=len(records), primary_record=primary_record, **fields)
+
+        qualify_batch(policy, batch_records, examples, semantics, probe_progress)
+        probe_progress("qualification_timing", completed=0, total=1, operation="full_384_tokens")
+        then = time.monotonic()
+        policy.generate(examples, force_full_output=True)
+        torch.cuda.synchronize()
+        seconds_per_call = (composition_seconds + time.monotonic() - then) / len(examples)
+        timings.append(seconds_per_call)
+        write_json(
+            experiment.output / "qualification" / f"worker-{worker}-probes" / f"{i:03d}.json",
+            {
+                "record_id": record["record_id"],
+                "modality": c["modality"],
+                "outcome": "PASS",
+                "batch_size": len(examples),
+                "distinct_scalar_inputs": len({r["record_id"] for r in batch_records}),
+                "seconds_per_call": seconds_per_call,
+                "composition_seconds": composition_seconds,
+                "elapsed_seconds": time.monotonic() - started,
+            },
+        )
 
         progress(
             "qualification",
@@ -235,18 +269,10 @@ def run_jobs(experiment, worker, reference, progress, resume=False):
                 batch_records = probe_records(c, records, record, "visual-state")
                 examples = probe_examples(experiment, batch_records)
                 before = policy.generate([examples[0]])[0]
-                scalars = [policy.generate([example], algorithm)[0] for example in examples]
-                batched = policy.generate(examples, algorithm)
-                repeated = policy.generate(examples, algorithm)
+                qualify_batch(policy, batch_records, examples, semantics, progress, algorithm)
                 after = policy.generate([examples[0]])[0]
                 if semantics.evaluate(record, before) != semantics.evaluate(record, after):
                     raise ValueError("trained adapter leaked into base condition")
-                for retained, scalar, batch_output, repeat_output in zip(
-                    batch_records, scalars, batched, repeated, strict=True
-                ):
-                    expected = semantics.evaluate(retained, scalar)
-                    if any(semantics.evaluate(retained, value) != expected for value in (batch_output, repeat_output)):
-                        raise ValueError("trained adapter scalar/batch/repeated semantics differ")
                 progress("trained_adapter_probe", completed=probe_index + 1, total=len(records), algorithm=algorithm)
 
     results = []

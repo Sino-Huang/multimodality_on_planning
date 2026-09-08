@@ -50,13 +50,32 @@ def test_launches_keep_concurrent_gpu_and_backend_ports_distinct():
     assert all("--resume" in j["command"] for j in jobs)
 
 
-def test_authorization_drift_fails_without_experiment_output(tmp_path):
+def test_corpus_scope_drift_fails_without_experiment_output(tmp_path):
     c = read_json(ROOT / "configs/experiments/issue75/experiment.json")
     c["training_seed"] = 29
     path = tmp_path / "bad.json"
     write_json(path, c)
-    with pytest.raises(ValueError, match="authorization settings"):
+    with pytest.raises(ValueError, match="scope differs"):
         VisualExperiment(path)
+
+
+def test_research_settings_and_output_override_need_no_approval(tmp_path, capsys):
+    config = read_json(ROOT / "configs/experiments/issue75/experiment.json")
+    assert "authorization" not in config
+    config["training"]["global_batch_size"] = 16
+    path = tmp_path / "experiment.json"
+    write_json(path, config)
+    output = tmp_path / "new-run"
+    assert main(["all", "--dry-run", "--config", str(path), "--output", str(output)]) == 0
+    report = json.loads(capsys.readouterr().out.splitlines()[-1])
+    assert report["approval_required"] is False and not output.exists()
+    for stage in ("qualify", "train", "evaluate"):
+        for launch in report["commands"][stage]:
+            command = launch["command"]
+            assert command[command.index("--output") + 1] == str(output)
+    e = VisualExperiment(path, output)
+    assert "permission" not in e.start()
+    assert e.start(resume=True)["experiment"] == e.config
 
 
 def test_clock_resume_preserves_start_and_finished_attempt_is_immutable(tmp_path, monkeypatch):
@@ -75,7 +94,7 @@ def test_clock_resume_preserves_start_and_finished_attempt_is_immutable(tmp_path
     with pytest.raises(RuntimeError, match="cutoff"):
         e.require("train")
     write_json(e.output / "result.json", {"outcome": "VALID_STOP"})
-    with pytest.raises(ValueError, match="immutable"):
+    with pytest.raises(ValueError, match="new directory"):
         e.start(resume=True)
 
 
@@ -286,7 +305,7 @@ def test_new_accepted_state_uses_supplied_local_path_and_replay_never_renders(mo
         assert reader.register(replayed_source, operation) == state_index and len(calls) == 1
 
 
-def test_missing_predecessor_writes_a_gated_stop_not_a_success(tmp_path, monkeypatch, capsys):
+def test_missing_predecessor_writes_a_stop_not_a_success(tmp_path, monkeypatch, capsys):
     from scripts import run_visual_issue75
 
     e = VisualExperiment()
@@ -296,7 +315,7 @@ def test_missing_predecessor_writes_a_gated_stop_not_a_success(tmp_path, monkeyp
     assert main(["train", "--resume"]) == 1
     result = read_json(e.output / "result.json")
     assert result["outcome"] == "VALID_STOP" and not result["scientific_completion"]
-    assert result["receipt"]["run_state"] == "gated-not-run"
+    assert "receipt" not in result
     assert json.loads(capsys.readouterr().out.splitlines()[-1])["outcome"] == "VALID_STOP"
 
 

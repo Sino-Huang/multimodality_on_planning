@@ -1,18 +1,10 @@
-"""Frozen #75 scope, clock, permissions and outcome-blind coverage selection."""
+"""Reproducible #75 scope, run clock and outcome-blind coverage selection."""
 
 from __future__ import annotations
 
 import time
 from collections import Counter
 from pathlib import Path
-
-from src.data_collect.governance import (
-    AuthorizationReceipt,
-    GateReceipt,
-    ReceiptBinding,
-    StopOutcome,
-    evaluate_execution_permission,
-)
 
 from .modality_corpus import ModalityCorpus
 from .modality_view_preparation import write_json
@@ -24,28 +16,11 @@ ARMS = ("exact_reference", "random_valid", "pretrained_base", "process_sft")
 
 
 class VisualExperiment:
-    def __init__(self, config_path=ROOT / "configs/experiments/issue75/experiment.json"):
+    def __init__(self, config_path=ROOT / "configs/experiments/issue75/experiment.json", output=None):
         self.config = read_json(config_path)
         c = self.config
-        self.output = ROOT / c["output_root"]
-        auth = read_json(ROOT / c["authorization"])
-        gate = GateReceipt(
-            ReceiptBinding(**auth["gate"]["binding"]),
-            StopOutcome(auth["gate"]["outcome"]),
-            auth["gate"].get("ancestor_receipt_id"),
-        )
-        authorization = AuthorizationReceipt(ReceiptBinding(**auth["binding"]), auth["gate_receipt_id"])
-        binding = ReceiptBinding(c["contract_id"], self.output.name, self.output.resolve())
-        self.permission = evaluate_execution_permission(
-            binding=binding,
-            gate_receipt=gate,
-            authorization_receipt=authorization,
-            ancestor_receipt_id=gate.ancestor_receipt_id,
-        )
-        if not self.permission.start_permitted:
-            raise RuntimeError(f"{self.permission.outcome.value}: {self.permission.reason}")
-        if auth["experiment"] != c:
-            raise ValueError("experiment authorization settings differ")
+        self.output = (ROOT / (output or c["output_root"])).resolve()
+        c["output_root"] = str(self.output)
         self.corpus = ModalityCorpus(ROOT, ROOT / c["corpus_report"])
         source = self.corpus.contract
         if (
@@ -63,7 +38,7 @@ class VisualExperiment:
         ):
             raise ValueError("model, corpus or visual training scope differs")
         if (
-            not 0 < c["qualification_seconds"] < c["stop_new_calls_seconds"] < c["gate_seconds"]
+            not 0 < c["stop_new_calls_seconds"] < c["gate_seconds"]
             or c["rollout_certification_seconds"] > c["stop_new_calls_seconds"]
             or len(set(c["devices"])) != len(c["devices"])
             or len(set(c["master_ports"])) != len(c["devices"])
@@ -88,7 +63,7 @@ class VisualExperiment:
     def start(self, resume=False):
         path = self.output / "attempt.json"
         if (self.output / "result.json").exists():
-            raise ValueError("completed matrix attempt is immutable")
+            raise ValueError("completed run already exists; use --output with a new directory")
         if path.exists():
             if not resume:
                 raise ValueError("interrupted matrix requires --resume; the clock is not reset")
@@ -100,7 +75,6 @@ class VisualExperiment:
             raise ValueError("cannot resume an output without its original attempt clock")
         attempt = {
             "experiment": self.config,
-            "permission": self.permission.to_dict(),
             "started_unix": time.time(),
             "started_monotonic": time.monotonic(),
         }
@@ -191,6 +165,9 @@ class VisualExperiment:
             "model_calls_started": False,
             "scientific_completion": False,
             "clock_seconds": self.config["gate_seconds"],
+            "output_root": str(self.output),
+            "qualification_modalities": [self.config["modality"]],
+            "approval_required": False,
             "actual_hardware_qualification_required": True,
         }
 

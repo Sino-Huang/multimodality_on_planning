@@ -1,4 +1,4 @@
-"""Run the governed visual matrix; dry-runs never load weights or start experiments."""
+"""Run the visual research matrix; dry-runs never load weights or start experiments."""
 
 # ruff: noqa: E402
 from __future__ import annotations
@@ -11,7 +11,6 @@ import sys
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import replace
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -23,17 +22,20 @@ from examples.planning_benchmark_slice.scene_assets import read_json
 from examples.planning_benchmark_slice.visual_experiment import ALGORITHMS, VisualExperiment, select_coverage
 from examples.planning_benchmark_slice.visual_jobs import adjudicate, qualify_device, run_jobs
 from examples.planning_benchmark_slice.visual_model import train_visual
-from src.data_collect.governance import StopOutcome
 
 RUNNER_STARTED = time.monotonic()
+LAST_PROGRESS = {}
 
 
 def log(stage, **fields):
+    global LAST_PROGRESS
     fields.setdefault("completed", 0)
     fields.setdefault("total", 0)
     elapsed = fields.setdefault("elapsed_seconds", round(time.monotonic() - RUNNER_STARTED, 2))
     completed, total = fields["completed"], fields["total"]
     fields.setdefault("eta_seconds", round(elapsed / completed * (total - completed), 2) if completed else None)
+    if not stage.endswith(":heartbeat"):
+        LAST_PROGRESS = {"activity": stage, **fields}
     print(json.dumps({"stage": stage, **fields}), flush=True)
 
 
@@ -43,7 +45,8 @@ def heartbeat(function, stage):
 
     def beat():
         while not stopped.wait(20):
-            log(f"{stage}:heartbeat", elapsed_seconds=round(time.monotonic() - started, 2))
+            fields = {**LAST_PROGRESS, "heartbeat_elapsed_seconds": round(time.monotonic() - started, 2)}
+            log(f"{stage}:heartbeat", **fields)
 
     thread = threading.Thread(target=beat, daemon=True)
     thread.start()
@@ -68,7 +71,16 @@ def commands(experiment, stage, config_path, resume):
         return []
     for index in slots:
         worker = index % len(c["devices"]) if stage == "train" else index
-        command = [*base, "_" + stage, "--config", str(config_path), "--worker", str(worker)]
+        command = [
+            *base,
+            "_" + stage,
+            "--config",
+            str(config_path),
+            "--output",
+            str(experiment.output),
+            "--worker",
+            str(worker),
+        ]
         if stage == "train":
             command.extend(["--algorithm", ALGORITHMS[index]])
         if resume:
@@ -186,6 +198,7 @@ def main(argv=None):
         ],
     )
     parser.add_argument("--config", type=Path, default=ROOT / "configs/experiments/issue75/experiment.json")
+    parser.add_argument("--output", type=Path, help="Run directory; use a new directory for a fresh run")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--worker", type=int, default=0)
@@ -196,7 +209,7 @@ def main(argv=None):
     worker_scope = False
     started = time.monotonic()
     try:
-        experiment = VisualExperiment(args.config)
+        experiment = VisualExperiment(args.config, args.output)
         plan = experiment.plan()
         stages = ["qualify", "references", "train", "evaluate", "adjudicate"] if args.stage == "all" else [args.stage]
         if args.dry_run:
@@ -214,14 +227,14 @@ def main(argv=None):
             c = experiment.config
             worker_count = len(c["backend_endpoints"]) if stage == "references" else len(c["devices"])
             if args.worker not in range(worker_count):
-                raise ValueError("worker is outside the authorized device/backend mapping")
+                raise ValueError("worker is outside the configured device/backend mapping")
             worker_scope = True
             experiment.require(stage)
             if stage != "references" and (
                 os.environ.get("CUDA_VISIBLE_DEVICES") != c["devices"][args.worker]
                 or os.environ.get("MASTER_PORT") != str(c["master_ports"][args.worker])
             ):
-                raise ValueError("GPU/MASTER_PORT mapping differs from authorized launch")
+                raise ValueError("GPU/MASTER_PORT mapping differs from configured launch")
 
             def progress(stage, **fields):
                 log(stage, worker=args.worker, elapsed_seconds=round(time.monotonic() - started, 2), **fields)
@@ -298,10 +311,7 @@ def main(argv=None):
             if report["outcome"] != "PASS":
                 raise RuntimeError(f"{report['outcome']}: {report.get('reason','frozen threshold failed')}")
         if args.stage in ("all", "adjudicate"):
-            receipt = replace(
-                experiment.permission, run_state="completed", start_permitted=False, scientific_completion=True
-            )
-            write_json(experiment.output / "result.json", {**report, "receipt": receipt.to_dict()})
+            write_json(experiment.output / "result.json", {**report, "scientific_completion": True})
             log(
                 "matrix:complete",
                 outcome=report["outcome"],
@@ -327,18 +337,6 @@ def main(argv=None):
         if experiment is not None:
             report["contract_id"] = experiment.config["contract_id"]
             if not args.dry_run and (owns_attempt or worker_scope) and (experiment.output / "attempt.json").exists():
-                receipt = replace(
-                    experiment.permission,
-                    outcome=StopOutcome(outcome),
-                    start_permitted=False,
-                    scientific_completion=False,
-                    run_state="invalid-not-run" if outcome == "INVALID" else "gated-not-run",
-                    reason=message,
-                    ancestor_receipt_id=(
-                        f"stage:{experiment.config['contract_id']}:{args.stage}" if outcome == "ANCESTOR_STOP" else None
-                    ),
-                )
-                report["receipt"] = receipt.to_dict()
                 if args.stage.startswith("_"):
                     stage = {
                         "_qualify": "qualification",

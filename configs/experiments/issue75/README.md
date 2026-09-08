@@ -1,26 +1,11 @@
 # Visual development matrix (#75)
 
-The runner is implemented and dry-run tested. **Attempt 001 stopped during GPU
-qualification with `VALID_STOP`; #75 is not scientifically complete.** Both
-workers completed 4 of 31 qualification probes before the one-hour limit. No
-references, training or evaluation ran. See
-`docs/experiments/issue75/attempt-001-verification.json` for the verification.
+The runner performs visual-state qualification, references, training, rollout and
+adjudication. Run it directly; no authorization or approval file is required.
+The original v1 attempt remains preserved. It stopped after one hour during
+qualification and produced no training or evaluation results.
 
-Preparation passed the full repository suite (1,002 tests, 13 skipped), followed
-by 18 focused tests after review fixes, plus formatting, lint and type checks.
-All 31 selected teacher snapshots replayed on CPU with zero
-model calls. The retained preparation summary is in
-`docs/experiments/issue75/development-summary.json`; these checks do not establish
-GPU readiness or replace the actual qualification stage.
-
-## Operator commands
-
-From the repository:
-
-These are the original attempt commands. Attempt 001 now has an immutable final
-receipt, so neither a fresh launch nor `--resume` can restart it. Address the
-qualification runtime and prepare a separately authorized successor before
-another actual run.
+## Run
 
 ```bash
 source ~/cd_vlaplan
@@ -28,15 +13,27 @@ python scripts/run_visual_issue75.py all --dry-run
 python -u scripts/run_visual_issue75.py all
 ```
 
-The actual command uses GPUs **0 and 1**, one model process per GPU, with distinct
-`MASTER_PORT` values **18575 and 18576**. Four isolated localhost renderer ports
-are **18092–18095**. The reference workers each own one backend endpoint. GPU
-training jobs queue sequentially on each GPU, so two adapters train concurrently
-and four train in total. The exact child commands and environment mappings are
-printed by the dry-run and retained under the attempt's `launches/` directory.
+The current configuration writes to a fresh directory:
+`outputs/visual_development/issue75-32k-v2/attempt-001`.
+Dry-run prints all child commands and writes no experiment outputs or model calls.
 
-Those renderer ports were reachable during development. If the backend is no
-longer running, start it in another terminal before the actual matrix command:
+For another fresh run, choose a new output directory:
+
+```bash
+python -u scripts/run_visual_issue75.py all \
+  --output outputs/visual_development/issue75-32k-v2/attempt-002
+```
+
+For an interrupted run that has no final `result.json`, use the same directory
+and `--resume`. Resume retains its settings and original monotonic clock,
+including downtime; it replays completed episodes and resumes training from the
+latest checkpoint. A completed result is preserved; use a new directory to rerun.
+Settings are ordinary JSON in `experiment.json`. Each run records a snapshot of
+those settings. Changing them does not require a matching approval document.
+
+The runner uses GPUs **0 and 1**, one model process per GPU, with distinct
+`MASTER_PORT` values **18575 and 18576**. Four localhost renderer ports are
+**18092–18095**. If the renderer is not running, start it in another terminal:
 
 ```bash
 source ~/cd_vlaplan
@@ -44,47 +41,53 @@ source ~/cd_vlaplan
   --port 18092 --workers 4
 ```
 
-Every stage flushes JSON progress with completed/total, elapsed time and ETA.
-The parent and worker emit heartbeats every **20 seconds** during blocking model
-loads, generation, diagnostics, and replay. Child output is streamed to the
-terminal and retained in `launches/<stage>/worker-*.log`. A failed worker stops
-its siblings and queued work; it does not leave unrelated training jobs running.
+Worker output is streamed to the terminal and saved in
+`launches/<stage>/worker-*.log`. Progress includes completed/total, elapsed time
+and ETA; **20-second heartbeats** retain the latest activity and progress.
+Qualification logs each scalar, mixed batch, repeated batch and timing operation.
+Completed probe measurements are saved under
+`qualification/worker-<n>-probes/` even if a later probe stops. These partial
+measurements do not count as complete qualification.
 
-The final outcome is written to:
+## Qualification timeout fix
 
-```text
-outputs/visual_development/issue75-32k-v1/attempt-001/result.json
-```
+The original code scheduled **940 generation calls per GPU**: it tested three
+modalities for this visual-only matrix and repeatedly generated scalar outputs
+for identical entries in mixed batches. Model loading took about a minute,
+whereas each of the first four complete probes took roughly 11–16 minutes.
+A separate one-hour cutoff stopped the run after 4 of 31 probes.
 
-After an interruption **without** a final result, resume with:
+The current visual qualification schedules **151 generation calls per GPU**,
+an 84% reduction in calls, keeping all 31 selected probe records. It computes one
+scalar result for each distinct input and compares every position in both the
+mixed batch and repeated batch against that result. It retains full 384-token
+generation timing, actual processor/context checks and the training hardware
+probe. Trained-adapter qualification uses the same distinct-input comparison and
+still checks base/adapter isolation. This does not cache scientific rollout
+outputs. Text and multimodal generation qualification belongs to those runs;
+this visual run does not certify them.
 
-```bash
-python -u scripts/run_visual_issue75.py all --resume
-```
+Qualification now uses the overall run deadline instead of a separate one-hour
+limit. The **20-hour total budget**, **18-hour new-call cutoff** and **15-hour
+rollout estimate limit** remain. Actual CUDA memory and throughput can still
+produce a resource stop. The reduced call count is measured from the real
+corpus; the revised full GPU runtime has not yet been measured.
 
-The original monotonic clock is retained, including downtime; wall-clock
-adjustments cannot extend the allowance. Completed episodes are
-semantically replayed and reused; completed training cells use their retained
-final adapter, and interrupted training resumes its latest checkpoint. A
-completed PASS, VALID_STOP or INVALID attempt is immutable. A later attempt or
-changed scientific setting requires a successor experiment and matching
-`authorization.json`; `--resume` cannot reset the time budget.
+## Data and execution
 
-## Scope and budgets
+The input is the complete #74 matched corpus. All #72/#73 state/goal pages,
+source splits, teacher targets and bounded Search Memory remain unchanged.
+Each observation attaches its complete context, current-state and partial-goal
+pages. Existing scenes are referenced directly. Newly accepted states outside
+the expert catalog are rendered from their supplied Action Sequence through
+localhost Planimation, after the producing operation. Replay never renders a
+missing image. The state-page cache is shared and bounded to 64 MiB per process.
 
-This successor consumes the completed #74 matched corpus, retaining the #72/#73
-32K scope, source splits, source-goal semantics and common Search Memory.
-It runs **visual-state only** for BFS, unpruned BFWS, additive w3 and additive
-greedy. The four conditions are exact-reference, oracle-assisted random-valid,
-pretrained base, and process SFT. It does not run #76's multimodal conditions or
-claim a learned text/visual comparison.
-
-The full development scope has **97 task groups / 120 algorithm episodes**.
-There are 120 exact references and five evaluation seeds for each other
-condition, producing **1,920 logical episodes**. Seeds are 17, 29, 43, 71 and 101;
-they are rollout/reference seeds, not independent training replicates.
-
-Each algorithm has exactly one seed-17, two-epoch LoRA training run:
+The four algorithms are BFS, BFWS, additive w3 and additive greedy. The full dev
+scope contains **97 task groups / 120 algorithm episodes / 1,920 condition
+episodes**, covering exact reference, random-valid, pretrained base and process
+SFT. Evaluation seeds are 17, 29, 43, 71 and 101. Each algorithm trains exactly
+one seed-17 adapter; these are not independent training-seed replicates.
 
 | Algorithm | Training rows | Optimizer steps |
 | --- | ---: | ---: |
@@ -93,101 +96,38 @@ Each algorithm has exactly one seed-17, two-epoch LoRA training run:
 | Additive w3 | 9,398 | 588 |
 | Additive greedy | 8,342 | 522 |
 
-The language-model linear layers use rank-64 LoRA (alpha 128, dropout 0.05),
-with the vision backbone frozen. Training uses bf16, SDPA, a global batch of 32,
-AdamW at 1e-4, cosine scheduling, and sequential staged curriculum order.
-Instruction and image tokens are masked from the loss; only the assistant
-teacher target is supervised. Intermediate checkpoints receive teacher-forced
-dev-loss diagnostics at approximately one-third and two-thirds of the updates.
-Only the final adapter is used for rollout; no dev-success checkpoint selection
-or reuse of a historical text adapter occurs.
+Training uses two epochs, bf16, SDPA, global batch 32 and language-model LoRA
+rank 64 (alpha 128, dropout 0.05), with the vision backbone frozen. Only assistant
+teacher targets receive loss. One-third and two-thirds checkpoints receive
+teacher-forced dev-loss diagnostics; only the final adapter is evaluated in
+rollout. Inference uses float32, 32,768 context tokens with 384 reserved for
+output, and batches of at most eight requests / 48,000 padded input tokens.
 
-Inputs use 32,768 total tokens with 384 reserved for output. Inference uses
-float32, at most eight requests per batch and 48,000 padded input tokens. The
-scheduler permits at most one request from an active episode per round. Every
-logical episode has its own allowance of twice its matching exact-reference
-**decision count**, with the reference expansion count enforced separately.
-There is no cross-episode or cross-adapter output cache; KV caching lasts only
-for the current generation call.
+The stages are qualification, cost-only panel selection, references, training,
+model evaluation and independent replay/adjudication. If the full dev workload
+cannot fit, selection tries the predeclared cheapest complete task per
+domain/family (42 task groups), keeping additive settings paired. Selection never
+uses model success and retains the complete training set. Later matched
+modalities must use the same selected panel for a comparison.
 
-One attempt clock covers qualification, references, training, rollout and
-adjudication: 20 hours total; no new calls after 18 hours; rollout certification
-must fit 15 hours. Stages cannot start without matching authorization and their
-completed scoped predecessors. The old #71 8K phase and earlier experiment
-receipts are not rewritten or silently reused at 32K.
+Every episode has twice its exact-reference decision-call allowance and a
+separate expansion limit. Deterministic rounds issue at most one request per
+active episode. Invalid operations are charged and never repaired. BFS accepts
+valid FIFO ties; BFWS preserves the teacher corpus's explicit empty novelty
+partitions. Completed episodes are retained immediately and independently
+replayed. Partial coverage cannot pass adjudication.
 
-## What the actual command does
+## Results
 
-1. **Qualification.** On both GPUs, load the frozen Qwen revision and test every
-   occupied algorithm/difficulty/input-size bin. Use scalar, mixed-length batch,
-   repeated-batch and runtime-semantic probes across all three modality inputs.
-   Time full 384-token generations conservatively. A disposable, zero-learning-
-   rate adapter measures training memory and timing; it produces no learned
-   checkpoint. These measurements do not inspect model success for selection.
-2. **Selection.** Estimate the full visual workload, including training and the
-   two teacher-forced diagnostic passes. If it cannot fit, try the predefined
-   cheapest complete task per domain/family; the two additive settings stay
-   paired. This fallback contains 42 task groups. The selected task IDs are
-   recorded for subsequent matched-modality experiments. No tasks are selected
-   using model outcomes, and training rows remain the complete frozen train set.
-   If neither panel fits, write `VALID_STOP` before starting training.
-3. **References and training.** Execute/replay complete exact and random-valid
-   references, then train the four visual adapters under the original clock.
-4. **Evaluation.** Before scientific rollout, check the actual trained adapters
-   for scalar/batch/repeated semantics and base/adapter isolation. Run base and
-   final-adapter episodes in deterministic rounds and retain complete evidence.
-5. **Adjudication.** Independently reconstruct every episode, including exact
-   model-facing page bindings and trusted runtime effects. Require the entire
-   selected task/algorithm/condition/seed product. Report success, invalid
-   operations, budget usage and learned-minus-best-control gain separately,
-   with paired whole-instance bootstrap bounds and per-seed success summaries.
+Read `<output>/result.json` for the final outcome. `PASS` requires complete
+selected coverage and the configured competence thresholds: exact success 1.0,
+learned success at least 0.8 and learned invalid-operation rate at most 0.05 in
+each setting. Learned-versus-best-control gain and paired whole-instance
+bootstrap bounds are reported separately; panel success alone is not an
+advantage claim.
 
-Qualification is deliberately conservative: it uses maximum measured call and
-microstep costs plus a 1.2 safety margin. A dry-run validates command/configuration
-readiness; it does **not** certify CUDA memory, throughput or scientific success.
-The real qualification can therefore end in a governed resource stop.
-
-## Live visual observations and evidence
-
-Every model call receives the complete ordered task-context, current-state and
-partial-goal page set, using the same shared projection as the released corpus.
-The state-page cache is shared across corpus and live views and bounded to
-64 MiB per process. Existing 128×128 scenes are referenced directly.
-
-If an accepted operation reaches a state outside the expert catalog, the runner
-replays its parent Action Sequence through localhost Planimation and retains the
-new scene, VFG provenance and readable page recipe. It never sends an earlier
-input the image of its future successor. The PDDL runtime remains authoritative;
-there is no hosted endpoint, solver fallback, invented solved-goal scene, or
-state-dependent goal-satisfaction annotation. Replay checks existing bindings
-without rendering missing images.
-
-The new visual BFS controller accepts any applicable unvisited successor that
-preserves FIFO updates. Canonical teacher targets stay unchanged. This implements
-the parent specification's evaluation tie policy without changing the older
-BFS text runner or retrospectively reinterpreting its results. The visual BFWS
-session also preserves the source corpus's explicit empty novelty partitions;
-this adds no novelty facts and leaves the older BFWS runner unchanged. Invalid policy
-operations are charged and never repaired; deterministic invalid operations
-terminate the episode unsuccessfully.
-
-Completed episode files contain the authoritative input, emitted operation,
-acceptance status, current page binding, post-operation successor binding and
-terminal metrics. Completed episodes are saved immediately, including episodes
-finishing in the last allowed batch. Incomplete coverage cannot satisfy the gate.
-No hashes, checksums, integrity machinery or regeneration comparisons are used.
-
-## Outcomes
-
-`PASS` requires complete selected coverage and the frozen competence thresholds:
-exact success 1.0, learned success at least 0.8 and learned invalid-operation
-rate at most 0.05 in every setting. Learned superiority is a separate claim:
-a positive paired gain bound over the best control is reported explicitly.
-Saturating the oracle-assisted random-valid control does not establish an
-advantage.
-
-Ordinary resource/threshold failures are `VALID_STOP`; stopped predecessors
-produce `ANCESTOR_STOP`; semantic, scope, provenance or permission defects are
-`INVALID`. Governed stops produce `gated-not-run` receipts; `INVALID` never means
-scientific completion. Keep #75 open until its actual execution criteria have
-been adjudicated from the retained experiment evidence.
+`VALID_STOP` records a resource or threshold stop; `ANCESTOR_STOP` records a
+stopped prerequisite; `INVALID` records a configuration, semantic or execution
+error. None implies a completed successful matrix. There are no approval
+receipts in new runs. The old attempt's receipts and source data are preserved
+as historical evidence. Keep #75 open until actual execution is adjudicated.
