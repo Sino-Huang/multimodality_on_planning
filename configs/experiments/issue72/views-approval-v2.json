@@ -1,0 +1,9 @@
+{
+  "contract_id": "issue-72-readable-pages-v2",
+  "qualification_attempt": "qualify-32k-v2-001",
+  "preview_index": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/modality_views/qualify-32k-v2-001/previews.json",
+  "readability_approved": true,
+  "approved_context": 32768,
+  "materialization_output": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/modality_views/materialize-32k-v2-001",
+  "approved_by": "Sino-Huang (explicit approval in conversation)"
+}

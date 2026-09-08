@@ -1,9 +1,107 @@
-"""Task-aware bindings for the retained Storage and Grid animation profiles."""
+"""Renderer-only task bindings for retained animation profiles."""
 
 from __future__ import annotations
 
 import re
 from typing import Any
+
+
+def freecell_renderer_domain(domain: str) -> str:
+    """Track covered foundation cards in a rendering-only copy of the domain.
+
+    Freecell's home predicate identifies only the top card. Once covered, a
+    card has no location predicate but still exists as a backend sprite. The
+    extra fact is display bookkeeping only; original planning replay is unchanged.
+    """
+    domain = re.sub(r"\(:predicates\b", "(:predicates (coveredhome ?c - card)", domain, count=1, flags=re.I)
+    return re.sub(
+        r"\(not\s+\(home\s+(\?[\w-]+)\)\s*\)", lambda match: match[0] + f" (coveredhome {match[1]})", domain, flags=re.I
+    )
+
+
+def renderer_domain(domain: str) -> str:
+    """Alpha-rename variables to avoid the legacy backend's prefix substitution.
+
+    Equal-length names preserve variable identity and scope, action names and
+    argument order. The planning authority continues to use the original PDDL.
+    """
+    pattern = r"\?[a-zA-Z0-9_-]+"
+    names = sorted(set(re.findall(pattern, domain.lower())))
+    width = len(str(len(names)))
+    mapping = {name: f"?render{index:0{width}d}" for index, name in enumerate(names)}
+    return re.sub(pattern, lambda match: mapping[match[0].lower()], domain)
+
+
+def _block(profile: str, kind: str, name: str) -> tuple[int, int]:
+    start = re.search(r"\(:" + kind + r"\s+" + re.escape(name) + r"\b", profile, re.IGNORECASE)
+    if start is None:
+        raise RuntimeError(f"missing animation {kind} {name}")
+    depth = 0
+    for end in range(start.start(), len(profile)):
+        depth += (profile[end] == "(") - (profile[end] == ")")
+        if depth == 0:
+            return start.start(), end + 1
+    raise RuntimeError(f"unclosed animation {kind} {name}")
+
+
+def task_bound_profile(domain: str, context: dict[str, Any], profile: str) -> str:
+    """Bind static layout roots; dynamic at/on/in rules remain authoritative.
+
+    Typed place declarations are not unary facts in the legacy backend. Logical
+    Freecell counters/suits are deliberately non-spatial, not failed sprites.
+    """
+    bindings: list[str] = []
+
+    def bind(template: str, obj: str, x: int, y: int) -> None:
+        start, end = _block(profile, "visual", template)
+        block = profile[start:end]
+        block = re.sub(r"(:visual\s+)\S+", r"\1mapped-" + obj, block, count=1)
+        block = re.sub(r":objects\s+(?:\([^)]*\)|[^\s()]+)", f":objects ({obj})", block, count=1)
+        for key, value in (("x", x), ("y", y)):
+            block = re.sub(r"\(" + key + r"\s+[^)]+\)", f"({key} {value})", block, count=1, flags=re.I)
+        bindings.append(block)
+
+    if domain == "logistics":
+        cities = sorted(args[0] for args in _facts(context, "city"))
+        for row, city in enumerate(cities):
+            bind("city", city, 0, row * 300 + 100)
+            locations = sorted(loc for loc, parent in _facts(context, "in-city") if parent == city)
+            for column, location in enumerate(locations):
+                bind("hub", location, column * 750, row * 300 + 100)
+        for predicate in ("city", "in-city"):
+            start, end = _block(profile, "predicate", predicate)
+            profile = profile[:start] + profile[end:]
+    elif domain == "depot":
+        for row, (place,) in enumerate(sorted(_facts(context, "@type-place@"))):
+            is_depot = (place,) in _facts(context, "@type-depot@")
+            bind("depot" if is_depot else "distributor", place, 10 if is_depot else 300, row * 300 + 100)
+    elif domain == "driverlog":
+        locations = sorted(args[0] for args in _facts(context, "@type-location@"))
+        sites = {obj for edge in _facts(context, "link") for obj in edge}
+        for objects, template, y in (
+            ([obj for obj in locations if obj in sites], "s", 0),
+            ([obj for obj in locations if obj not in sites], "p", 500),
+        ):
+            for column, obj in enumerate(objects):
+                bind(template, obj, column * 440, y)
+    elif domain == "freecell":
+        bindings.append(
+            "(:predicate coveredhome :parameters (?c) :effect ("
+            "(equal (?c x) (?c origx)) (equal (?c y) (?c origy)) "
+            "(equal (?c depth) 0) (equal (?c showName) FALSE)))"
+        )
+        symbols = sorted(
+            args[0] for kind in ("cellnum", "colnum", "num", "suit") for args in _facts(context, f"@type-{kind}@")
+        )
+        bindings.append(
+            "(:visual logical-symbols :type predefine :objects ("
+            + " ".join(symbols)
+            + ") :properties ((showName FALSE)))"
+        )
+    else:
+        raise ValueError(f"unsupported task-bound profile: {domain}")
+    end = profile.rfind(")")
+    return profile[:end] + "\n" + "\n".join(bindings) + "\n" + profile[end:]
 
 
 def _facts(context: dict[str, Any], predicate: str) -> list[tuple[str, ...]]:

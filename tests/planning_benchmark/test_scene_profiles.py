@@ -9,6 +9,85 @@ from examples.planning_benchmark_slice.scene_assets import load_scene_task, read
 from examples.planning_benchmark_slice.scene_profiles import grid_profile, require_grid_shape_icons, storage_profile
 
 
+def test_freecell_render_domain_tracks_covered_home_without_changing_planning_state():
+    from examples.planning_benchmark_slice.pddl_state import GroundedAction
+    from examples.planning_benchmark_slice.scene_profiles import freecell_renderer_domain
+
+    row = next(
+        row
+        for row in read_json(ROOT / "configs/experiments/issue71/v2/panel.json")["selected"]
+        if row["task_id"] == "best_first_width/freecell-train-easy-0053"
+    )
+    domain, problem, _ = load_scene_task(ROOT, row)
+    original = PDDLStateAuthority.from_pddl(domain, problem)
+    rendered = PDDLStateAuthority.from_pddl(freecell_renderer_domain(domain), problem)
+    a, b = original.initial_state, rendered.initial_state
+    actions = [
+        "sendtofree ha c2 celln4 celln3",
+        "sendtofree c2 s2 celln3 celln2",
+        "sendtofree s2 s3 celln2 celln1",
+        "sendtofree s3 da celln1 celln0",
+        "sendtohome da d2 d n1 d0 n0",
+        "sendtohome-b d2 d n2 da n1 coln2 coln3",
+    ]
+    for text in actions:
+        name, *args = text.split()
+        action = GroundedAction(name, tuple(args))
+        a = original.apply(a, action).target_state
+        b = rendered.apply(b, action).target_state
+        assert set(a.atoms) == {atom for atom in b.atoms if not atom.startswith("coveredhome(")}
+    assert "coveredhome(da)" in b.atoms and "home(d2)" in b.atoms
+    assert "home(da)" not in b.atoms
+
+
+def test_renderer_variable_names_do_not_overlap():
+    from examples.planning_benchmark_slice.scene_profiles import renderer_domain
+
+    domain = "(at ?ply ?ply-from) (at ?blk ?blk-to) (at ?ply ?ply-to)"
+    renamed = renderer_domain(domain)
+    variables = set(re.findall(r"\?[\w-]+", renamed))
+    assert len(variables) == 5
+    assert not any(a != b and b.startswith(a) for a in variables for b in variables)
+    assert renamed.split()[1] == renamed.split()[-2]
+
+
+def test_sokoban_alpha_renaming_preserves_replayed_search_states():
+    from examples.planning_benchmark_slice.scene_assets import build_scene_catalog
+    from examples.planning_benchmark_slice.scene_profiles import renderer_domain
+
+    rows = read_json(ROOT / "configs/experiments/issue71/v2/panel.json")["selected"]
+    row = rows[217]
+    assert row["domain"] == "sokoban"
+    domain, problem, traces = load_scene_task(ROOT, row)
+    original = build_scene_catalog(domain, problem, traces)
+    renamed = build_scene_catalog(renderer_domain(domain), problem, traces)
+    assert renamed["states"] == original["states"]
+    assert renamed["decisions"] == original["decisions"]
+
+
+@pytest.mark.parametrize(
+    "domain,path,spatial",
+    [
+        ("logistics", "logistics/logistics_ap.pddl", "l0-0"),
+        ("depot", "depot/depot_ap.pddl", "depot0"),
+        ("driverlog", "driverlog/ap.pddl", "s0"),
+        ("freecell", "freecell/freecell_AP.pddl", None),
+    ],
+)
+def test_task_bound_profile_roots(domain, path, spatial):
+    from examples.planning_benchmark_slice.scene_profiles import task_bound_profile
+
+    profile = task_bound_profile(domain, context_for(domain), (ROOT / "data/pddl_instances" / path).read_text())
+    if spatial:
+        block = re.search(r"\(:visual mapped-" + spatial + r"\s.*?\)\s*\)\s*\)", profile, re.S)
+        assert block is not None
+        assert "(x NULL)" not in block[0] and "(y NULL)" not in block[0]
+    else:
+        block = re.search(r"\(:visual logical-symbols.*?\)\)\)", profile, re.S)
+        assert block is not None and "celln0" in block[0]
+        assert "(x " not in block[0] and "(y " not in block[0]
+
+
 def context_for(domain) -> dict[str, Any]:
     rows = read_json(ROOT / "configs/experiments/issue71/v2/panel.json")["selected"]
     row = next(row for row in rows if row["domain"] == domain)

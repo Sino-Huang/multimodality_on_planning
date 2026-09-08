@@ -155,3 +155,9 @@ def test_cli_rejects_stopped_or_unmatched_permission_before_task_reads(tmp_path,
         lambda: pytest.fail("source phase read without permission"),
     )
     assert main(["--dry-run", "--config", str(path)]) == 1
+
+
+def test_diagnostic_continuation_is_not_available_for_collection():
+    with pytest.raises(SystemExit) as error:
+        main(["--collect", "--diagnostic-continue"])
+    assert error.value.code == 2

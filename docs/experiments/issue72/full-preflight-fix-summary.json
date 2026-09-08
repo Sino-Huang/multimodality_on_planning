@@ -1,0 +1,31 @@
+{
+  "issue": 72,
+  "scope": "128px scene preflight compatibility repair; not full collection or training-view qualification",
+  "diagnostic_report": "outputs/modality_phase/issue72-scenes128-v1/preflight-003/report.json",
+  "diagnostic_tasks": 241,
+  "diagnostic_pass": 185,
+  "diagnostic_stops": {"logistics": 15, "depot": 16, "driverlog": 12, "freecell": 11, "sokoban": 2},
+  "qualified_report": "outputs/modality_phase/issue72-scenes128-v1/preflight-004/report.json",
+  "outcome": "PASS",
+  "qualified_tasks": 241,
+  "rendered_frames": 482,
+  "stored_scene_size": [128, 128],
+  "workers": 4,
+  "elapsed_seconds": 19.62,
+  "checks": [
+    "Full panel source-state physical replay and first-transition supplied-plan rendering",
+    "All 482 saved PNG dimensions checked",
+    "Representative repaired scenes visually inspected",
+    "Sokoban player and block coordinates match the submitted push",
+    "Alpha-renamed Sokoban domain preserves replayed search states and decision bindings",
+    "463 planning tests passed",
+    "Changed Python files pass Ruff, Black and Pyright"
+  ],
+  "scene_asset_completion": false,
+  "partial_goal_images_complete": false,
+  "model_input_ready": false,
+  "scientific_completion": false,
+  "next_command": "python scripts/collect_modality_scene_assets.py --collect --workers 4",
+  "next_attempt": "scene-collect-003",
+  "preserved_attempts": ["preflight-001", "preflight-002", "preflight-003", "preflight-004"]
+}

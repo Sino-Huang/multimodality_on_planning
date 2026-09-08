@@ -32,6 +32,52 @@ from src.data_collect.governance import (
 )
 
 
+def reusable_results(root, config, panel):
+    """Reference successful task catalogs from the declared stopped collection.
+
+    This is semantic scope/coverage selection, not artifact comparison. Nothing
+    is copied, rewritten, or accepted from a failed/partial task.
+    """
+    source = config.get("reuse_collection")
+    if source is None:
+        return []
+    report_path = root / source["output_root"] / "report.json"
+    report = read_json(report_path)
+    expected = ReceiptBinding(config["contract_id"], source["attempt_id"], root / source["output_root"])
+    if (
+        report["binding"] != expected.to_dict()
+        or report["contract_id"] != config["contract_id"]
+        or report["stage"] != "collect"
+        or report["outcome"] not in {"PASS", "VALID_STOP"}
+        or report["stored_scene_size"] != [128, 128]
+    ):
+        raise ValueError("reuse requires the declared matching collection report")
+    selected = {row["task_id"]: row for row in panel}
+    reused = []
+    seen = set()
+    for result in report["results"]:
+        if result["outcome"] != "PASS" or not result["complete_state_coverage"]:
+            continue
+        row = selected[result["task_id"]]
+        # The repaired Freecell representation must be rendered anew.
+        if row["domain"] == "freecell":
+            continue
+        catalog = read_json(root / result["catalog"])
+        if (
+            result["task_id"] in seen
+            or catalog["task_id"] != row["task_id"]
+            or catalog["source_trace_paths"] != row["trace_paths"]
+            or catalog["reference_costs"] != row["reference_costs"]
+            or catalog["stored_scene_size"] != [128, 128]
+            or len(catalog["states"]) != result["scene_frames"]
+            or any(state["scene_path"] is None for state in catalog["states"])
+        ):
+            raise ValueError("reused scene task scope or complete coverage differs")
+        seen.add(result["task_id"])
+        reused.append({**result, "reused_from_report": str(report_path.relative_to(root))})
+    return reused
+
+
 def work(arguments):
     row, profile, endpoint, output, timeout, preflight = arguments
     started = time.monotonic()
@@ -77,8 +123,15 @@ def main(argv=None):
     for name in ("dry-run", "smoke", "preflight", "collect"):
         mode.add_argument(f"--{name}", action="store_true")
     parser.add_argument("--workers", type=int, default=4)
+    parser.add_argument(
+        "--diagnostic-continue",
+        action="store_true",
+        help="preflight only: record all task failures; never override the gate",
+    )
     parser.add_argument("--full-replay", action="store_true", help="with --dry-run, replay all selected task groups")
     args = parser.parse_args(argv)
+    if args.diagnostic_continue and not args.preflight:
+        parser.error("--diagnostic-continue requires --preflight")
     if args.full_replay and not args.dry_run:
         parser.error("--full-replay requires --dry-run")
     started = time.monotonic()
@@ -127,6 +180,14 @@ def main(argv=None):
             endpoints=endpoints[: args.workers],
             stored_scene_size=[128, 128],
         )
+        reused = reusable_results(ROOT, config, panel) if args.collect or args.dry_run else []
+        if args.collect or args.dry_run:
+            log(
+                "reuse_plan",
+                reused_tasks=len(reused),
+                tasks_to_render=len(panel) - len(reused),
+                reused_frames=sum(row["scene_frames"] for row in reused),
+            )
         if (args.dry_run and not args.full_replay) or args.smoke:
             sample = []
             for family in ("bfs", "best_first_width", "best_first_add_w3"):
@@ -189,9 +250,13 @@ def main(argv=None):
             ):
                 raise ValueError("collection requires a complete matching scene preflight PASS")
         output.mkdir(parents=True)
-        results = []
+        results = list(reused)
+        with (output / "task-results.jsonl").open("w") as journal:
+            for result in reused:
+                journal.write(json.dumps(result) + "\n")
         stopped = False
-        iterator = iter(enumerate(panel))
+        reused_ids = {row["task_id"] for row in reused}
+        iterator = iter((index, row) for index, row in enumerate(panel) if row["task_id"] not in reused_ids)
         with ProcessPoolExecutor(max_workers=args.workers) as pool:
             pending = {}
 
@@ -229,9 +294,9 @@ def main(argv=None):
                         completed=len(results),
                         total=len(panel),
                         **result,
-                        eta_seconds=round(elapsed / len(results) * (len(panel) - len(results)), 2),
+                        eta_seconds=round(elapsed / (len(results) - len(reused)) * (len(panel) - len(results)), 2),
                     )
-                    if not stopped:
+                    if not stopped or args.diagnostic_continue:
                         submit(slot)
         complete = len(results) == len(panel) and not stopped
         outcome = "PASS" if complete else "INVALID" if any(r["outcome"] == "INVALID" for r in results) else "VALID_STOP"
@@ -240,6 +305,8 @@ def main(argv=None):
             "contract_id": config["contract_id"],
             "binding": binding.to_dict(),
             "stage": stage,
+            "diagnostic_continue": args.diagnostic_continue,
+            "reused_tasks": len(reused),
             "outcome": outcome,
             "scientific_completion": False,
             "scene_asset_completion": complete and args.collect,

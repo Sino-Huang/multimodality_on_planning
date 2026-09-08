@@ -1,0 +1,32 @@
+{
+  "issue": 72,
+  "scope": "Freecell covered-foundation rendering and reuse of completed scene tasks",
+  "preserved_stop": "outputs/modality_phase/issue72-scenes128-v1/collect-003/report.json",
+  "root_cause": "home denotes only the top foundation card; after replacement, the old top had no profile coordinate rule",
+  "repair": "Renderer-only coveredhome facts and a profile rule place covered cards beneath the current top without labels. Original PDDL replay and task-state metadata are unchanged.",
+  "preflight_report": "outputs/modality_phase/issue72-scenes128-v1/preflight-005/report.json",
+  "preflight_outcome": "PASS",
+  "preflight_tasks": 241,
+  "preflight_elapsed_seconds": 19.91,
+  "validation": {
+    "planning_tests_passed": 471,
+    "opt_in_live_tests_run_separately": 12,
+    "multi_home_path_tasks_passed": 11,
+    "exact_previously_failed_path_passed": true,
+    "full_previously_failed_task_passed": true,
+    "full_task_states": 363,
+    "full_task_supplied_paths": 283,
+    "full_task_test_elapsed_seconds": 173.73,
+    "dry_run_outcome": "PASS",
+    "ruff_black_pyright": "PASS"
+  },
+  "reused_tasks": 99,
+  "reused_frames": 19839,
+  "remaining_tasks": 142,
+  "successor_attempt": "scene-collect-004",
+  "successor_output": "outputs/modality_phase/issue72-scenes128-v1/collect-004",
+  "next_command": "python scripts/collect_modality_scene_assets.py --collect --workers 4",
+  "successor_collection_started": false,
+  "scientific_completion": false,
+  "model_input_ready": false
+}

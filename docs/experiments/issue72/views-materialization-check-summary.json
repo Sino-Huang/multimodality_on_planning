@@ -1,0 +1,26 @@
+{
+  "outcome": "PASS",
+  "model_input_ready": true,
+  "counts": {
+    "tasks": 238,
+    "states": 49274,
+    "decisions": 76217
+  },
+  "elapsed_seconds": 35.22,
+  "check_log": "outputs/modality_views/check-32k-v2-fix-001.log",
+  "materialization_report": "outputs/modality_views/materialize-32k-v2-001/report.json",
+  "qualification_report": "outputs/modality_views/qualify-32k-v2-001/report.json",
+  "approval": "configs/experiments/issue72/views-approval-v2.json",
+  "cause": "Quantified source-goal parameters were tuples in memory and lists after JSON storage; direct equality rejected equivalent bindings.",
+  "fix": "Return the JSON representation of the source goal before exposing it; preserve quantifier names, types, scope and all persisted data.",
+  "materialization_rerun_required": false,
+  "validation": {
+    "tests_passed": 44,
+    "optional_processor_test_skipped": 1,
+    "quantified_materialization_regressions_passed": 3,
+    "ruff": "PASS",
+    "black": "PASS",
+    "basedpyright": "PASS"
+  },
+  "scope": "Readable-view materialization verification only; no corpus release or training completion claim."
+}

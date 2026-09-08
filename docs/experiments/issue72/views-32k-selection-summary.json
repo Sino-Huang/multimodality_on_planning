@@ -1,0 +1,82 @@
+{
+  "panel_id": "issue-72-readable-pages-panel-32k-v2",
+  "outcome": "PASS",
+  "selection_uses_model_outcomes": false,
+  "selection_report": "outputs/modality_views/select-32k-001/report.json",
+  "parent": {
+    "tasks": 241,
+    "states": 51208,
+    "decisions": 78230
+  },
+  "selected": {
+    "tasks": 238,
+    "states": 49274,
+    "decisions": 76217
+  },
+  "excluded": [
+    {
+      "task_id": "best_first_width/visitall-train-hard-0007",
+      "split": "dev",
+      "domain": "visitall",
+      "difficulty": "hard",
+      "maximum_input_tokens": 49847
+    },
+    {
+      "task_id": "best_first_width/visitall-train-hard-0013",
+      "split": "train",
+      "domain": "visitall",
+      "difficulty": "hard",
+      "maximum_input_tokens": 49963
+    },
+    {
+      "task_id": "best_first_width/visitall-train-hard-0047",
+      "split": "train",
+      "domain": "visitall",
+      "difficulty": "hard",
+      "maximum_input_tokens": 49896
+    }
+  ],
+  "maximum_retained_input_tokens": 23379,
+  "reserved_output_tokens": 384,
+  "elapsed_seconds": 337.29140375368297,
+  "dry_run": {
+    "outcome": "PASS",
+    "counts": {
+      "tasks": 238,
+      "states": 49274,
+      "decisions": 76217
+    },
+    "elapsed_seconds": 15.47
+  },
+  "model_input_ready": false,
+  "readability_approved": false,
+  "scientific_completion": false,
+  "remaining_gates": [
+    "complete source-goal and processed-preview qualification",
+    "human readability/context/materialization approval",
+    "materialization and read-only coverage check"
+  ],
+  "training_alignment": "Retained tasks keep the source BFS/BFWS/additive task identities, splits, traces, candidates and bounded Search Memory. The same subset applies to all three modalities; original 8K corpus releases remain historical evidence.",
+  "coverage_change": "All three BFWS hard Visitall tasks in the parent panel are excluded: two train, one dev. All parent BFS tasks and additive pairs are retained.",
+  "bounded_successor_qualification": {
+    "report": "outputs/modality_views/smoke-32k-v2-001/report.json",
+    "outcome": "INCOMPLETE",
+    "counts": {
+      "tasks": 1,
+      "states": 205,
+      "decisions": 204
+    },
+    "maximum_input_tokens": 23379,
+    "recommended_context": 32768,
+    "elapsed_seconds": 30.443839225918055,
+    "complete_selected_coverage": false
+  },
+  "validation": {
+    "panel_tests_passed": 11,
+    "broader_regression_tests_passed": 36,
+    "optional_processor_test_skipped": 1,
+    "ruff": "PASS",
+    "black": "PASS",
+    "basedpyright": "PASS"
+  }
+}

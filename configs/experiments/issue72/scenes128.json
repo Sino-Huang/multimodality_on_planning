@@ -9,14 +9,16 @@
   "authorization_basis": "Supervisor selected stored 128x128 scene frames and permits larger VLM inputs at use time. This successor authorizes only scene-asset preparation from the frozen panel, with PDDL replay and supplied-plan interpretation checks. It does not authorize model training or claim complete partial-goal images or matched corpus release.",
   "semantic_storage": "Exact task/goal formula, state facts and decision-to-state bindings remain structured metadata. Do not downsample relation text and pretend upscaling restores it; compose readable annotations at VLM input time under a separately qualified view contract.",
   "total_disk_cap": null,
-  "profile_compatibility_override": "15puzzle: typed-position grid validated against neighbor facts. Storage: actual typed depot/container/area/hoist objects and containment bind the retained profile. Grid: declared shape categories bind distinct retained icon templates, without spatializing shape objects. Original PDDL/actions are unchanged; source/used profiles and transformations are retained.",
+  "profile_compatibility_override": "15puzzle: typed-position grid validated against neighbor facts. Storage: actual typed depot/container/area/hoist objects and containment bind the retained profile. Grid: declared shape categories bind distinct retained icon templates, without spatializing shape objects. Logistics/Depot/Driverlog: task-bound static location layouts retain dynamic spatial rules. Freecell: typed counters and suits are non-spatial. Sokoban: renderer-only equal-length variable alpha-renaming avoids legacy parameter-prefix substitution. Original planning PDDL/actions are unchanged; rendering copies and transformations are retained.",
   "failed_preflight": "outputs/modality_phase/issue72-scenes128-v1/preflight-001/report.json",
+  "freecell_covered_home_override": "Rendering-only coveredhome facts keep covered foundation cards under the current top card without labels; original planning PDDL and trace facts remain unchanged.",
+  "reuse_collection": {"attempt_id": "scene-collect-003", "output_root": "outputs/modality_phase/issue72-scenes128-v1/collect-003"},
   "smoke_task_ids": ["astar-pair-12081de85b7805e93ea9c5ec", "astar-pair-1ade7fc9f40863f1c7f8ab28"],
   "predecessor_attempt": "issue72-layout-001",
   "superseded_submission_only_smoke": "outputs/modality_phase/issue72-scenes128-v1/smoke-001/report.json",
   "attempts": {
     "smoke": {"attempt_id": "scene-smoke-007", "output_root": "outputs/modality_phase/issue72-scenes128-v1/smoke-007", "gate_outcome": "PASS", "authorization_gate_id": "gate:issue-72-scene-assets-128-v1:scene-smoke-007:PASS"},
-    "preflight": {"attempt_id": "scene-preflight-002", "output_root": "outputs/modality_phase/issue72-scenes128-v1/preflight-002", "gate_outcome": "PASS", "authorization_gate_id": "gate:issue-72-scene-assets-128-v1:scene-preflight-002:PASS"},
-    "collect": {"attempt_id": "scene-collect-002", "output_root": "outputs/modality_phase/issue72-scenes128-v1/collect-002", "gate_outcome": "PASS", "authorization_gate_id": "gate:issue-72-scene-assets-128-v1:scene-collect-002:PASS"}
+    "preflight": {"attempt_id": "scene-preflight-005", "output_root": "outputs/modality_phase/issue72-scenes128-v1/preflight-005", "gate_outcome": "PASS", "authorization_gate_id": "gate:issue-72-scene-assets-128-v1:scene-preflight-005:PASS"},
+    "collect": {"attempt_id": "scene-collect-004", "output_root": "outputs/modality_phase/issue72-scenes128-v1/collect-004", "gate_outcome": "PASS", "authorization_gate_id": "gate:issue-72-scene-assets-128-v1:scene-collect-004:PASS"}
   }
 }

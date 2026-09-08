@@ -13,7 +13,14 @@ from typing import Any, Callable
 
 from .pddl_state import CanonicalState, GroundedAction, PDDLStateAuthority
 from .planimation_render import PlanimationRenderRequest, canonical_supplied_actions, produce_planimation_render
-from .scene_profiles import grid_profile, require_grid_shape_icons, storage_profile
+from .scene_profiles import (
+    freecell_renderer_domain,
+    grid_profile,
+    renderer_domain,
+    require_grid_shape_icons,
+    storage_profile,
+    task_bound_profile,
+)
 
 
 def require_resolved_scene_coordinates(stages: list[dict[str, Any]]) -> None:
@@ -62,7 +69,8 @@ def typed_puzzle_profile(context: dict[str, Any]) -> str:
     for index, (name, (y, x)) in enumerate(sorted(coordinates.items())):
         parts.append(
             f"(:visual cell{index} :type predefine :objects ({name}) :properties "
-            f"((showName FALSE) (x {(x-1)*100}) (y {(top_row-y)*100}) (width 90) (height 90) (color GRAY) (depth 1)))"
+            f"((showName FALSE) (x {(x - 1) * 100}) (y {(top_row - y) * 100}) "
+            "(width 90) (height 90) (color GRAY) (depth 1)))"
         )
     return "\n".join(parts) + "\n)\n"
 
@@ -232,6 +240,16 @@ def collect_task_scenes(
     output.mkdir(parents=True, exist_ok=False)
     (output / "domain.pddl").write_text(domain)
     (output / "problem.pddl").write_text(problem)
+    render_domain_path = output / "domain.pddl"
+    domain_transform = None
+    if row["domain"] == "sokoban":
+        render_domain_path = output / "render-domain.pddl"
+        render_domain_path.write_text(renderer_domain(domain))
+        domain_transform = "equal_length_variable_alpha_renaming"
+    elif row["domain"] == "freecell":
+        render_domain_path = output / "render-domain.pddl"
+        render_domain_path.write_text(freecell_renderer_domain(domain))
+        domain_transform = "covered_home_display_facts_only"
     source_profile = profile
     profile_transform = None
     if row["domain"] == "15puzzle":
@@ -246,6 +264,11 @@ def collect_task_scenes(
         profile_transform = (
             "typed_storage_containment_bindings" if row["domain"] == "storage" else "grid_shape_icon_bindings"
         )
+    elif row["domain"] in {"logistics", "depot", "driverlog", "freecell"}:
+        adapted = task_bound_profile(row["domain"], catalog["task_context"], source_profile.read_text())
+        profile = output / f"{row['domain']}-animation.pddl"
+        profile.write_text(adapted)
+        profile_transform = "task_static_layout_and_non_spatial_type_bindings"
     (output / "frames").mkdir()
     rendered: set[int] = set()
     bindings = []
@@ -256,7 +279,7 @@ def collect_task_scenes(
         with tempfile.TemporaryDirectory(prefix="render-path-", dir=output) as temporary:
             request = PlanimationRenderRequest(
                 endpoint,
-                output / "domain.pddl",
+                render_domain_path,
                 output / "problem.pddl",
                 profile,
                 actions,
@@ -304,6 +327,8 @@ def collect_task_scenes(
         source_profile=str(source_profile.relative_to(root)),
         used_profile=str(profile.relative_to(root)),
         profile_transform=profile_transform,
+        domain_transform=domain_transform,
+        render_domain=str(render_domain_path.relative_to(root)),
         split=row["split"],
         reference_costs=row["reference_costs"],
         source_trace_paths=row["trace_paths"],
