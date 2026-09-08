@@ -1,7 +1,10 @@
 # Visual development matrix (#75)
 
-The runner is implemented and dry-run tested. **The long GPU experiment has not
-been started, and #75 is not scientifically complete.**
+The runner is implemented and dry-run tested. **Attempt 001 stopped during GPU
+qualification with `VALID_STOP`; #75 is not scientifically complete.** Both
+workers completed 4 of 31 qualification probes before the one-hour limit. No
+references, training or evaluation ran. See
+`docs/experiments/issue75/attempt-001-verification.json` for the verification.
 
 Preparation passed the full repository suite (1,002 tests, 13 skipped), followed
 by 18 focused tests after review fixes, plus formatting, lint and type checks.
@@ -13,6 +16,11 @@ GPU readiness or replace the actual qualification stage.
 ## Operator commands
 
 From the repository:
+
+These are the original attempt commands. Attempt 001 now has an immutable final
+receipt, so neither a fresh launch nor `--resume` can restart it. Address the
+qualification runtime and prepare a separately authorized successor before
+another actual run.
 
 ```bash
 source ~/cd_vlaplan
