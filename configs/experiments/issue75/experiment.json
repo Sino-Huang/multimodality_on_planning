@@ -1,9 +1,9 @@
 {
-  "contract_id": "issue-75-visual-development-32k-v2",
+  "contract_id": "issue-75-visual-development-32k-v3",
   "source_issue": 75,
   "parent_freeze": "configs/experiments/issue71/v2/freeze.json",
   "corpus_report": "outputs/modality_corpus/issue74-matched-32k-v1/release-001/report.json",
-  "output_root": "outputs/visual_development/issue75-32k-v2/attempt-001",
+  "output_root": "outputs/visual_development/issue75-32k-v3/attempt-001",
   "modality": "visual-state",
   "algorithms": [
     "bfs",
@@ -15,8 +15,8 @@
   "model_revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
   "context_tokens": 32768,
   "output_tokens": 384,
-  "max_batch_size": 8,
-  "max_batch_input_tokens": 48000,
+  "max_batch_size": 2,
+  "max_batch_input_tokens": 24000,
   "training_seed": 17,
   "evaluation_seeds": [
     17,
@@ -65,6 +65,7 @@
     "max_grad_norm": 1
   },
   "inference_dtype": "float32",
+  "inference_attention": "visual_sdpa",
   "output_cache": "none; per-call KV cache only, no cross-episode reuse",
   "qualification": "visual-state only, all selected algorithm/difficulty/input bins; one scalar per distinct probe input, mixed batch and repeated batch semantics; full 384-token timing; disposable lr=0 training probe; uses the overall run clock",
   "coverage": "full development panel, then cheapest complete task per domain/family; paired additive settings stay together; selection shared with later matched modalities",

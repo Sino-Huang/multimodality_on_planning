@@ -8,6 +8,19 @@ from examples.planning_benchmark_slice import visual_jobs as jobs
 from examples.planning_benchmark_slice.visual_experiment import VisualExperiment
 
 
+def test_record_that_oomed_uses_a_small_batch_with_full_context():
+    experiment = VisualExperiment()
+    records = jobs.select_probes(experiment)
+    lengths = [r["tokens"]["input"]["visual-state"] for r in records]
+    assert lengths == sorted(lengths, reverse=True)
+    record = next(r for r in records if r["record_id"] == "astar-pair-36f9d84cdc0c9b6047aecdfa:best_first_add_w3:98")
+    batch = jobs.probe_records(experiment.config, records, record, "visual-state")
+    assert len(batch) <= 2
+    assert experiment.config["max_batch_input_tokens"] <= 24000
+    assert experiment.config["context_tokens"] == 32768
+    assert experiment.config["inference_dtype"] == "float32"
+
+
 @pytest.mark.parametrize("seconds_per_call", [5.0, 30.0])
 def test_qualification_reaches_training_probe_without_redundant_generation(monkeypatch, tmp_path, seconds_per_call):
     experiment = VisualExperiment()
@@ -50,6 +63,10 @@ def test_qualification_reaches_training_probe_without_redundant_generation(monke
 
     monkeypatch.setattr(torch.cuda, "synchronize", lambda: None)
     monkeypatch.setattr(torch.cuda, "empty_cache", lambda: None)
+    monkeypatch.setattr(torch.cuda, "mem_get_info", lambda: (70 * 2**30, 80 * 2**30))
+    monkeypatch.setattr(torch.cuda, "reset_peak_memory_stats", lambda: None)
+    monkeypatch.setattr(torch.cuda, "max_memory_allocated", lambda: 0)
+    monkeypatch.setattr(torch.cuda, "max_memory_reserved", lambda: 0)
     with pytest.raises(TrainingReached):
         jobs.qualify_device(experiment, 0, lambda *args, **kwargs: None)
     assert len(calls) <= 31 * 5

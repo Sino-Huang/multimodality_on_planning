@@ -26,7 +26,8 @@ def select_probes(experiment):
             key = (record["algorithm"], record["difficulty"], bucket)
             if key not in probes or maximum > max(probes[key]["tokens"]["input"].values()):
                 probes[key] = record
-    return [probes[key] for key in sorted(probes)]
+    # Exercise the largest visual inputs first so memory failures surface early.
+    return sorted(probes.values(), key=lambda r: (-r["tokens"]["input"]["visual-state"], r["record_id"]))
 
 
 def semantic_output(experiment, record, output):
@@ -60,8 +61,10 @@ def semantic_output(experiment, record, output):
 
 
 def make_policy(experiment, adapters=None):
+    from .visual_attention import configure_visual_attention
+
     c = experiment.config
-    return VisualPolicy(
+    policy = VisualPolicy(
         model_id=c["model_id"],
         revision=c["model_revision"],
         adapter_paths=adapters or {},
@@ -71,6 +74,9 @@ def make_policy(experiment, adapters=None):
         max_batch_size=c["max_batch_size"],
         max_batch_input_tokens=c["max_batch_input_tokens"],
     )
+    configure_visual_attention(policy.model, c["inference_attention"])
+    policy.identity.update(attention_implementation=c["inference_attention"], memoize_identical_inputs=False)
+    return policy
 
 
 def probe_examples(experiment, records, modality="visual-state"):
@@ -133,7 +139,8 @@ def qualify_device(experiment, worker, progress):
     started = time.monotonic()
     deadline = experiment.deadline()
     records = select_probes(experiment)
-    progress("model_loading", completed=0, total=len(records))
+    free_bytes, total_bytes = torch.cuda.mem_get_info()
+    progress("model_loading", completed=0, total=len(records), gpu_free_bytes=free_bytes, gpu_total_bytes=total_bytes)
     policy = make_policy(experiment)
     policy.stop_at = deadline
     timings = []
@@ -149,6 +156,7 @@ def qualify_device(experiment, worker, progress):
         def probe_progress(stage, probe=i + 1, primary_record=record["record_id"], **fields):
             progress(stage, probe=probe, probes=len(records), primary_record=primary_record, **fields)
 
+        torch.cuda.reset_peak_memory_stats()
         qualify_batch(policy, batch_records, examples, semantics, probe_progress)
         probe_progress("qualification_timing", completed=0, total=1, operation="full_384_tokens")
         then = time.monotonic()
@@ -167,6 +175,9 @@ def qualify_device(experiment, worker, progress):
                 "seconds_per_call": seconds_per_call,
                 "composition_seconds": composition_seconds,
                 "elapsed_seconds": time.monotonic() - started,
+                "peak_allocated_bytes": torch.cuda.max_memory_allocated(),
+                "peak_reserved_bytes": torch.cuda.max_memory_reserved(),
+                "gpu_free_bytes": torch.cuda.mem_get_info()[0],
             },
         )
 
@@ -214,6 +225,7 @@ def qualify_device(experiment, worker, progress):
         "seconds_per_call": max(timings),
         "training_microstep_seconds": max(training_times),
         "dtype": "float32",
+        "attention_implementation": c["inference_attention"],
         "model_outcomes_used_for_selection": False,
         "device": torch.cuda.get_device_name(0),
         "peak_allocated_bytes": torch.cuda.max_memory_allocated(),

@@ -2,8 +2,9 @@
 
 The runner performs visual-state qualification, references, training, rollout and
 adjudication. Run it directly; no authorization or approval file is required.
-The original v1 attempt remains preserved. It stopped after one hour during
-qualification and produced no training or evaluation results.
+The previous attempts remain preserved: v1 stopped at its qualification time
+limit; v2 ran out of GPU memory at batch size eight. Neither trained or evaluated
+a policy. The current v3 configuration uses smaller inference batches.
 
 ## Run
 
@@ -14,14 +15,14 @@ python -u scripts/run_visual_issue75.py all
 ```
 
 The current configuration writes to a fresh directory:
-`outputs/visual_development/issue75-32k-v2/attempt-001`.
+`outputs/visual_development/issue75-32k-v3/attempt-001`.
 Dry-run prints all child commands and writes no experiment outputs or model calls.
 
 For another fresh run, choose a new output directory:
 
 ```bash
 python -u scripts/run_visual_issue75.py all \
-  --output outputs/visual_development/issue75-32k-v2/attempt-002
+  --output outputs/visual_development/issue75-32k-v3/attempt-002
 ```
 
 For an interrupted run that has no final `result.json`, use the same directory
@@ -57,7 +58,7 @@ for identical entries in mixed batches. Model loading took about a minute,
 whereas each of the first four complete probes took roughly 11–16 minutes.
 A separate one-hour cutoff stopped the run after 4 of 31 probes.
 
-The current visual qualification schedules **151 generation calls per GPU**,
+The v2 visual qualification reduced this to **151 generation calls per GPU**,
 an 84% reduction in calls, keeping all 31 selected probe records. It computes one
 scalar result for each distinct input and compares every position in both the
 mixed batch and repeated batch against that result. It retains full 384-token
@@ -72,6 +73,38 @@ limit. The **20-hour total budget**, **18-hour new-call cutoff** and **15-hour
 rollout estimate limit** remain. Actual CUDA memory and throughput can still
 produce a resource stop. The reduced call count is measured from the real
 corpus; the revised full GPU runtime has not yet been measured.
+
+## GPU memory fix
+
+Each GPU runs its own model copy; the two 80 GB cards do not form one shared
+160 GB memory pool. The float32 backbone alone allocates about 32.7 GiB on each
+card. Batch activations, image processing and generation caches need additional
+space. The v2 batch of eight ran out of memory with another process using
+9.31 GiB on GPU 0. The other process remains running.
+
+The largest selected input also failed at batch size one: the installed
+float32 grouped-query SDPA path requested a **33.63 GiB attention matrix**.
+The `visual_sdpa` inference backend expands key/value heads explicitly and uses
+PyTorch's memory-efficient kernel, avoiding that quadratic math-kernel fallback.
+It reuses Transformers' causal and padding mask builder. Model precision stays
+float32, and training keeps its existing bf16 attention configuration.
+
+V3 also reduces inference batches from eight to two and the padded batch-token ceiling
+from 48,000 to 24,000. This affects qualification, trained-adapter checks and
+rollout together. All tasks, complete observations, model precision, output-token
+allowances and the training global batch remain unchanged. The largest visual
+inputs are now qualified first. Each completed probe records peak allocated,
+peak reserved and remaining GPU memory alongside its timings.
+
+A bounded live GPU check reproduced the old batch-eight OOM in a fresh worker.
+The same input at batch two completed all 384 output tokens with **41.4 GiB**
+peak PyTorch allocation, while the other process stayed running. With efficient
+attention, the largest selected probe (16,795 input tokens) also completed all
+384 output tokens at **41.9 GiB** peak allocation on GPU 0. See
+`docs/experiments/issue75/memory-fix.json` for retained measurements. The attention
+registration follows the [Transformers attention interface](https://huggingface.co/docs/transformers/attention_interface),
+including its required mask registration. These bounded
+checks do not replace full qualification or establish matrix completion.
 
 ## Data and execution
 
@@ -101,7 +134,7 @@ rank 64 (alpha 128, dropout 0.05), with the vision backbone frozen. Only assista
 teacher targets receive loss. One-third and two-thirds checkpoints receive
 teacher-forced dev-loss diagnostics; only the final adapter is evaluated in
 rollout. Inference uses float32, 32,768 context tokens with 384 reserved for
-output, and batches of at most eight requests / 48,000 padded input tokens.
+output, and batches of at most **two requests / 24,000 padded input tokens**.
 
 The stages are qualification, cost-only panel selection, references, training,
 model evaluation and independent replay/adjudication. If the full dev workload
