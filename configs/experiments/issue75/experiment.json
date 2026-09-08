@@ -1,0 +1,87 @@
+{
+  "contract_id": "issue-75-visual-development-32k-v1",
+  "source_issue": 75,
+  "parent_freeze": "configs/experiments/issue71/v2/freeze.json",
+  "corpus_report": "outputs/modality_corpus/issue74-matched-32k-v1/release-001/report.json",
+  "authorization": "configs/experiments/issue75/authorization.json",
+  "output_root": "outputs/visual_development/issue75-32k-v1/attempt-001",
+  "modality": "visual-state",
+  "algorithms": [
+    "bfs",
+    "best_first_width",
+    "best_first_add_w3",
+    "best_first_add_greedy"
+  ],
+  "model_id": "Qwen/Qwen3-VL-8B-Instruct",
+  "model_revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+  "context_tokens": 32768,
+  "output_tokens": 384,
+  "max_batch_size": 8,
+  "max_batch_input_tokens": 48000,
+  "training_seed": 17,
+  "evaluation_seeds": [
+    17,
+    29,
+    43,
+    71,
+    101
+  ],
+  "devices": [
+    "0",
+    "1"
+  ],
+  "master_ports": [
+    18575,
+    18576
+  ],
+  "backend_endpoints": [
+    "http://127.0.0.1:18092",
+    "http://127.0.0.1:18093",
+    "http://127.0.0.1:18094",
+    "http://127.0.0.1:18095"
+  ],
+  "gate_seconds": 72000,
+  "stop_new_calls_seconds": 64800,
+  "rollout_certification_seconds": 54000,
+  "qualification_seconds": 3600,
+  "input_bins": [
+    4096,
+    8192,
+    16384,
+    32384
+  ],
+  "training": {
+    "epochs": 2,
+    "global_batch_size": 32,
+    "learning_rate": 0.0001,
+    "lora_rank": 64,
+    "lora_alpha": 128,
+    "lora_dropout": 0.05,
+    "freeze_vision": true,
+    "dtype": "bfloat16",
+    "attention": "sdpa",
+    "optimizer": "adamw_torch",
+    "warmup_ratio": 0.03,
+    "lr_scheduler": "cosine",
+    "weight_decay": 0,
+    "max_grad_norm": 1
+  },
+  "inference_dtype": "float32",
+  "output_cache": "none; per-call KV cache only, no cross-episode reuse",
+  "qualification": "every occupied algorithm/difficulty/input-bin; scalar/batch/repeated semantic and trained-adapter isolation; worst-case 384-token timing; disposable lr=0 training memory/timing probe",
+  "coverage": "full development panel, then cheapest complete task per domain/family; paired additive settings stay together; selection shared with later matched modalities",
+  "bfs_ties": "canonical training targets; accept any unvisited applicable successor with valid FIFO update at evaluation",
+  "model_call_multiplier": 2,
+  "thresholds": {
+    "exact_success": 1.0,
+    "learned_success": 0.8,
+    "maximum_invalid_rate": 0.05
+  },
+  "bootstrap": {
+    "resamples": 10000,
+    "seed": 1729,
+    "confidence": 0.95,
+    "unit": "whole_problem_instance"
+  },
+  "authorization_basis": "User requested completing #75 tooling and dry-run verification, leaving long actual experiment command to the user."
+}

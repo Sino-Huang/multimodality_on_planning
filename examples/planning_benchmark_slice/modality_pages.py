@@ -217,6 +217,12 @@ class StatePageCache:
         return image
 
 
+@lru_cache(maxsize=1)
+def shared_state_page_cache(root: Path) -> StatePageCache:
+    """One 64 MiB cache shared by corpus and concurrent live views in a worker."""
+    return StatePageCache(root)
+
+
 def project_messages(
     raw: dict[str, Any], algorithm: str, modality: str, blocks: dict[str, Any], images: list[tuple[str, Any]]
 ) -> list[dict[str, Any]]:
@@ -304,7 +310,7 @@ class ModalityViewStore:
         self.manifests = {r["task_id"]: r["manifest"] for r in report["results"]}
         if len(self.manifests) != contract["expected"]["tasks"] or not report.get("complete_selected_coverage"):
             raise ValueError("view store task coverage is incomplete")
-        self.cache = StatePageCache(root)
+        self.cache = shared_state_page_cache(root)
         self._task_id = None
         self._manifest: dict[str, Any] | None = None
         self._catalog: dict[str, Any] | None = None
