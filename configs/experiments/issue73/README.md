@@ -15,6 +15,19 @@ The common capacity is 16 accepted deltas with the source compaction policy;
 the larger 32,768-token context accommodates readable pages. Every complete
 input must leave the same 384-token output allowance.
 
+## Completed release
+
+Materialization and the independent read-only check both passed all 238 tasks
+and 76,217 decisions. The global audit reports zero semantic/input split overlaps
+and zero conflicting identical-input targets. Shards occupy 11,126,647 bytes.
+Maximum input tokens are 8,659 text / 16,812 visual / 23,379 multimodal; the
+maximum target is 307 tokens. The full repository suite passed: 970 passed,
+13 skipped. Both review axes passed; changed-file formatting/lint and typechecking
+passed. Evidence: `docs/experiments/issue73/release-summary.json`.
+
+The commands below document the completed attempt. Use `--check` to verify it;
+materialization intentionally refuses to overwrite it.
+
 ## Authorization and execution
 
 `contract.json`, `gate.json`, and `authorization.json` bind this exact successor,

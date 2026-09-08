@@ -123,7 +123,7 @@ def fixture_task(tmp_path, task_id="task-a", split="train", target=None):
 def test_same_semantics_in_train_and_dev_is_rejected_even_with_different_asset_paths(tmp_path):
     a, *_ = fixture_task(tmp_path)
     b, *_ = fixture_task(tmp_path, "task-b", "dev")
-    with pytest.raises(ValueError, match="cross-split semantic"):
+    with pytest.raises(ValueError, match=r"cross-split .*task overlap"):
         audit_release(tmp_path, [a, b])
 
 
