@@ -6,6 +6,22 @@ It references the same authoritative records and #72 assets, retaining all
 Each of text-state, visual-state and multimodal-state covers the same decisions,
 for 228,651 released decision projections across 12 algorithm/modality cells.
 
+## Completed release
+
+Materialization and the independent read-only check passed all 238 tasks and
+76,217 decisions, in 525.77 and 521.32 seconds respectively. All global split/input
+overlap and conflicting-target counters are zero. The 238 source shards remain
+referenced in place; only 245,351 bytes of release metadata were added.
+Maximum multimodal input is 23,379 tokens; maximum teacher target is 307 tokens.
+
+Validation: 37 focused tests; full repository suite 985 passed / 13 skipped;
+Black/Ruff pass; basedpyright reports zero errors/warnings; both independent
+review axes pass. The released multimodal loader was exercised for all four
+algorithm settings. Evidence: `docs/experiments/issue74/release-summary.json`.
+
+The materialization command below documents the completed attempt; use `--check`
+for subsequent verification, since completed attempts cannot be overwritten.
+
 ## Contract and representation
 
 `contract.json`, `gate.json`, and `authorization.json` bind the exact successor,
