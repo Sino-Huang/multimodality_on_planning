@@ -106,7 +106,7 @@ def qualify_device(experiment, worker, progress):
     import torch
 
     c = experiment.config
-    started = time.time()
+    started = time.monotonic()
     deadline = min(experiment.deadline(), started + c["qualification_seconds"])
     records = select_probes(experiment)
     progress("model_loading", completed=0, total=len(records))
@@ -115,7 +115,7 @@ def qualify_device(experiment, worker, progress):
     timings = []
     semantics = SemanticProbe(experiment)
     for i, record in enumerate(records):
-        if time.time() >= deadline:
+        if time.monotonic() >= deadline:
             raise RuntimeError("VALID_STOP: qualification clock exhausted")
         for modality in ("text-state", "visual-state", "multimodal-state"):
             batch_records = probe_records(c, records, record, modality)
@@ -140,7 +140,7 @@ def qualify_device(experiment, worker, progress):
             "qualification",
             completed=i + 1,
             total=len(records),
-            eta_seconds=(time.time() - started) / (i + 1) * (len(records) - i - 1),
+            eta_seconds=(time.monotonic() - started) / (i + 1) * (len(records) - i - 1),
         )
     del policy
     gc.collect()
@@ -157,14 +157,15 @@ def qualify_device(experiment, worker, progress):
         index = max(
             range(len(dataset)), key=lambda i, records=dataset.records: records[i]["tokens"]["input"]["visual-state"]
         )
-        if time.time() >= deadline:
+        if time.monotonic() >= deadline:
             raise RuntimeError("VALID_STOP: qualification clock exhausted before training probe")
         batch = {k: v.to("cuda:0") for k, v in collator([dataset[index]]).items()}
         then = time.monotonic()
         optimizer.zero_grad(set_to_none=True)
-        if time.time() >= deadline:
+        if time.monotonic() >= deadline:
             raise RuntimeError("VALID_STOP: cutoff before hardware training probe")
-        loss = model(**batch).loss
+        with torch.autocast("cuda", dtype=torch.bfloat16):
+            loss = model(**batch).loss
         loss.backward()
         optimizer.step()  # lr=0; disposable hardware probe, no trained checkpoint or learned update.
         torch.cuda.synchronize()
@@ -182,7 +183,7 @@ def qualify_device(experiment, worker, progress):
         "model_outcomes_used_for_selection": False,
         "device": torch.cuda.get_device_name(0),
         "peak_allocated_bytes": torch.cuda.max_memory_allocated(),
-        "elapsed_seconds": time.time() - started,
+        "elapsed_seconds": time.monotonic() - started,
         "timing_output_tokens": 384,
     }
 
@@ -229,7 +230,7 @@ def run_jobs(experiment, worker, reference, progress, resume=False):
         for algorithm in ALGORITHMS:
             records = [r for r in all_records if r["algorithm"] == algorithm]
             for probe_index, record in enumerate(records):
-                if time.time() >= experiment.deadline():
+                if time.monotonic() >= experiment.deadline():
                     raise RuntimeError("VALID_STOP: cutoff during trained-adapter qualification")
                 batch_records = probe_records(c, records, record, "visual-state")
                 examples = probe_examples(experiment, batch_records)
@@ -338,7 +339,7 @@ def run_jobs(experiment, worker, reference, progress, resume=False):
     while active or not exhausted:
         if len(results) == len(jobs):
             break
-        if time.time() >= experiment.deadline():
+        if time.monotonic() >= experiment.deadline():
             raise RuntimeError("VALID_STOP: matrix cutoff with incomplete episode coverage")
         schedule()
         requests = []
@@ -356,7 +357,7 @@ def run_jobs(experiment, worker, reference, progress, resume=False):
             session = item["session"]
             adapter = session.algorithm if session.arm == "process_sft" else None
             if reference:
-                if time.time() >= experiment.deadline():
+                if time.monotonic() >= experiment.deadline():
                     break
                 session.submit(session.reference_output(), example["binding"])
                 if session.next_request() is None:
@@ -373,7 +374,7 @@ def run_jobs(experiment, worker, reference, progress, resume=False):
                 batches.append((adapter, []))
             batches[-1][1].append((item, example))
         for adapter, batch in batches:
-            if time.time() >= experiment.deadline():
+            if time.monotonic() >= experiment.deadline():
                 raise RuntimeError("VALID_STOP: cutoff before new model calls")
             assert policy is not None
             outputs = policy.generate([e for _, e in batch], adapter)
@@ -425,7 +426,7 @@ def adjudicate(experiment, progress):
         if replay_visual_episode(ROOT, row, report, views) != item["result"]:
             raise ValueError("adjudication episode result differs")
         progress("adjudication", completed=i + 1, total=len(episodes))
-        if time.time() >= experiment.deadline("gate"):
+        if time.monotonic() >= experiment.deadline("gate"):
             raise RuntimeError("VALID_STOP: certification exceeded original gate clock")
     metrics = {}
     passed = True

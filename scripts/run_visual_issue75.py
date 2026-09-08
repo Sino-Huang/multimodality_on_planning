@@ -108,7 +108,7 @@ def run_children(experiment, stage, jobs):
             for index, job in items:
                 if cancelled.is_set():
                     return
-                if time.time() >= experiment.deadline():
+                if time.monotonic() >= experiment.deadline():
                     raise RuntimeError("VALID_STOP: cutoff before child launch")
                 env = os.environ.copy()
                 env.update(job["environment"])

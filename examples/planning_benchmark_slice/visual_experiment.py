@@ -98,17 +98,24 @@ class VisualExperiment:
             return old
         if resume and self.output.exists():
             raise ValueError("cannot resume an output without its original attempt clock")
-        attempt = {"experiment": self.config, "permission": self.permission.to_dict(), "started_unix": time.time()}
+        attempt = {
+            "experiment": self.config,
+            "permission": self.permission.to_dict(),
+            "started_unix": time.time(),
+            "started_monotonic": time.monotonic(),
+        }
         write_json(path, attempt)
         return attempt
 
     def deadline(self, stage="calls"):
         attempt = read_json(self.output / "attempt.json")
         seconds = self.config["stop_new_calls_seconds"] if stage == "calls" else self.config["gate_seconds"]
-        return attempt["started_unix"] + seconds
+        if time.monotonic() < attempt["started_monotonic"]:
+            raise RuntimeError("VALID_STOP: original monotonic clock is unavailable")
+        return attempt["started_monotonic"] + seconds
 
     def require(self, stage):
-        if time.time() >= self.deadline("gate" if stage == "adjudicate" else "calls"):
+        if time.monotonic() >= self.deadline("gate" if stage == "adjudicate" else "calls"):
             raise RuntimeError("VALID_STOP: original matrix cutoff has elapsed")
         predecessors = {
             "train": ("qualification",),
@@ -208,7 +215,7 @@ def select_coverage(experiment, qualifications):
         * (sum(experiment.train_counts.values()) * c["training"]["epochs"] + 2 * sum(experiment.dev_counts.values()))
         / len(qualifications)
     )
-    elapsed = time.time() - read_json(experiment.output / "attempt.json")["started_unix"]
+    elapsed = time.monotonic() - read_json(experiment.output / "attempt.json")["started_monotonic"]
     estimates = []
     for name, rows in [("full", experiment.dev), ("cost_fallback", cheapest_panel(experiment.dev))]:
         calls = (

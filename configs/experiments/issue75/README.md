@@ -3,6 +3,13 @@
 The runner is implemented and dry-run tested. **The long GPU experiment has not
 been started, and #75 is not scientifically complete.**
 
+Preparation passed the full repository suite (1,002 tests, 13 skipped), followed
+by 18 focused tests after review fixes, plus formatting, lint and type checks.
+All 31 selected teacher snapshots replayed on CPU with zero
+model calls. The retained preparation summary is in
+`docs/experiments/issue75/development-summary.json`; these checks do not establish
+GPU readiness or replace the actual qualification stage.
+
 ## Operator commands
 
 From the repository:
@@ -47,7 +54,8 @@ After an interruption **without** a final result, resume with:
 python -u scripts/run_visual_issue75.py all --resume
 ```
 
-The original clock is retained, including downtime. Completed episodes are
+The original monotonic clock is retained, including downtime; wall-clock
+adjustments cannot extend the allowance. Completed episodes are
 semantically replayed and reused; completed training cells use their retained
 final adapter, and interrupted training resumes its latest checkpoint. A
 completed PASS, VALID_STOP or INVALID attempt is immutable. A later attempt or

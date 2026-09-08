@@ -59,14 +59,18 @@ def test_authorization_drift_fails_without_experiment_output(tmp_path):
         VisualExperiment(path)
 
 
-def test_clock_resume_preserves_start_and_finished_attempt_is_immutable(tmp_path):
+def test_clock_resume_preserves_start_and_finished_attempt_is_immutable(tmp_path, monkeypatch):
     e = VisualExperiment()
     e.output = tmp_path / "run"
     original = e.start()
+    deadline = e.deadline()
+    monkeypatch.setattr(time, "time", lambda: original["started_unix"] - 86400)
+    assert e.deadline() == deadline
+    e.require("qualify")
     assert e.start(resume=True) == original
     with pytest.raises(ValueError, match="--resume"):
         e.start()
-    original["started_unix"] = time.time() - e.config["gate_seconds"] - 1
+    original["started_monotonic"] = time.monotonic() - e.config["gate_seconds"] - 1
     write_json(e.output / "attempt.json", original)
     with pytest.raises(RuntimeError, match="cutoff"):
         e.require("train")
@@ -87,6 +91,29 @@ def test_cost_selection_keeps_additive_pairs_and_stops_when_nothing_fits(tmp_pat
     slow = [{"seconds_per_call": 1e6, "training_microstep_seconds": 1e6}] * 2
     stopped = select_coverage(e, slow)
     assert stopped["outcome"] == "VALID_STOP" and not stopped["model_outcomes_used_for_selection"]
+
+
+def test_training_loader_activates_training_mode_for_hardware_probe(monkeypatch):
+    from types import SimpleNamespace
+
+    import peft
+    import torch
+    from transformers import Qwen3VLForConditionalGeneration
+
+    from examples.planning_benchmark_slice.visual_model import load_training_model
+
+    model = torch.nn.Sequential(torch.nn.Linear(2, 2), torch.nn.Dropout(0.5)).eval()
+    monkeypatch.setattr(model, "config", SimpleNamespace(use_cache=True), raising=False)
+    flags = {}
+    monkeypatch.setattr(model, "to", lambda *args, **kwargs: model)
+    monkeypatch.setattr(model, "gradient_checkpointing_enable", lambda **kw: flags.update(kw), raising=False)
+    monkeypatch.setattr(model, "enable_input_require_grads", lambda: None, raising=False)
+    monkeypatch.setattr(Qwen3VLForConditionalGeneration, "from_pretrained", lambda *args, **kwargs: model)
+    monkeypatch.setattr(peft, "get_peft_model", lambda model, config: model)
+    loaded = load_training_model(VisualExperiment().config)
+    assert loaded.training and loaded[1].training
+    assert not loaded.config.use_cache
+    assert flags == {"gradient_checkpointing_kwargs": {"use_reentrant": False}}
 
 
 DOMAIN = """(define (domain rooms) (:requirements :strips) (:predicates (at ?x) (link ?x ?y))
@@ -284,14 +311,16 @@ def test_reference_worker_preserves_last_completed_episode_at_cutoff():
         e.output = Path(temporary)
         e.config = copy.deepcopy(e.config)
         e.config["evaluation_seeds"] = [17]
-        write_json(e.output / "attempt.json", {"started_unix": time.time()})
+        write_json(e.output / "attempt.json", {"started_monotonic": time.monotonic()})
         write_json(e.output / "qualification.json", {"selection": {"task_ids": [row["task_id"]]}})
         progress = []
 
         def completed(stage, **fields):
             progress.append((stage, fields))
             if stage == "references" and fields["completed"] == fields["total"]:
-                write_json(e.output / "attempt.json", {"started_unix": time.time() - e.config["gate_seconds"] - 1})
+                write_json(
+                    e.output / "attempt.json", {"started_monotonic": time.monotonic() - e.config["gate_seconds"] - 1}
+                )
 
         result = run_jobs(e, 0, True, completed)
         assert result["outcome"] == "PASS"

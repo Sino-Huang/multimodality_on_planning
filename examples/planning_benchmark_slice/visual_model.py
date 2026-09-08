@@ -19,7 +19,7 @@ class VisualPolicy(BatchedPolicyAdapter):
     stop_at: float = float("inf")
 
     def generate(self, examples, adapter_id=None, *, force_full_output=False):
-        if time.time() >= getattr(self, "stop_at", float("inf")):
+        if time.monotonic() >= getattr(self, "stop_at", float("inf")):
             raise RuntimeError("VALID_STOP: no new model calls after cutoff")
         lengths = [frozen_processor().count(e["messages"]) for e in examples]
         if (
@@ -37,7 +37,7 @@ class VisualPolicy(BatchedPolicyAdapter):
         width = inputs["input_ids"].shape[1]
         if width != max(lengths):
             raise ValueError("actual visual processor differs from complete input measurement")
-        if time.time() >= self.stop_at:
+        if time.monotonic() >= self.stop_at:
             raise RuntimeError("VALID_STOP: cutoff before model generation")
         with self._adapter_context(adapter_id), self._torch.inference_mode():
             ids = self.model.generate(
@@ -128,6 +128,7 @@ def load_training_model(config):
     model.config.use_cache = False
     model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
     model.enable_input_require_grads()
+    model.train()
     return model
 
 
@@ -139,16 +140,16 @@ def train_visual(config, root, algorithm, output, *, deadline, progress, resume=
     diagnostics = VisualDataset(root, root / config["corpus_report"], algorithm, split="dev")
     training = config["training"]
     total = math.ceil(len(dataset) / training["global_batch_size"]) * training["epochs"]
-    started = time.time()
+    started = time.monotonic()
 
     class StagedTrainer(Trainer):
         def training_step(self, *args, **kwargs):
-            if time.time() >= deadline:
+            if time.monotonic() >= deadline:
                 raise RuntimeError("VALID_STOP: cutoff before training forward pass")
             return super().training_step(*args, **kwargs)
 
         def prediction_step(self, *args, **kwargs):
-            if time.time() >= deadline:
+            if time.monotonic() >= deadline:
                 raise RuntimeError("VALID_STOP: cutoff before teacher diagnostic forward pass")
             return super().prediction_step(*args, **kwargs)
 
@@ -178,11 +179,11 @@ def train_visual(config, root, algorithm, output, *, deadline, progress, resume=
                 "training",
                 completed=state.global_step,
                 total=total,
-                eta_seconds=(time.time() - started) / max(1, state.global_step) * (total - state.global_step),
+                eta_seconds=(time.monotonic() - started) / max(1, state.global_step) * (total - state.global_step),
             )
             if state.global_step in {max(1, total // 3), max(1, 2 * (total // 3))}:
                 control.should_evaluate = True
-            if time.time() >= deadline:
+            if time.monotonic() >= deadline:
                 control.should_save = True
                 control.should_training_stop = True
             return control
