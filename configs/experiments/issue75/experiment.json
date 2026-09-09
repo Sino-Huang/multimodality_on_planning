@@ -1,9 +1,9 @@
 {
-  "contract_id": "issue-75-visual-development-32k-v3",
+  "contract_id": "issue-75-visual-development-32k-v4",
   "source_issue": 75,
   "parent_freeze": "configs/experiments/issue71/v2/freeze.json",
   "corpus_report": "outputs/modality_corpus/issue74-matched-32k-v1/release-001/report.json",
-  "output_root": "outputs/visual_development/issue75-32k-v3/attempt-001",
+  "output_root": "outputs/visual_development/issue75-32k-v4/attempt-001",
   "modality": "visual-state",
   "algorithms": [
     "bfs",
@@ -81,5 +81,7 @@
     "seed": 1729,
     "confidence": 0.95,
     "unit": "whole_problem_instance"
-  }
+  },
+  "budget_mode": "advisory",
+  "qualification_source": "outputs/visual_development/issue75-32k-v3/attempt-001/qualification.json"
 }

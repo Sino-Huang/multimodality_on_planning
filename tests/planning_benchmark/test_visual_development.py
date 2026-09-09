@@ -63,6 +63,7 @@ def test_research_settings_and_output_override_need_no_approval(tmp_path, capsys
     config = read_json(ROOT / "configs/experiments/issue75/experiment.json")
     assert "authorization" not in config
     config["training"]["global_batch_size"] = 16
+    config.pop("qualification_source", None)
     path = tmp_path / "experiment.json"
     write_json(path, config)
     output = tmp_path / "new-run"
@@ -80,6 +81,7 @@ def test_research_settings_and_output_override_need_no_approval(tmp_path, capsys
 
 def test_clock_resume_preserves_start_and_finished_attempt_is_immutable(tmp_path, monkeypatch):
     e = VisualExperiment()
+    e.config["budget_mode"] = "hard"
     e.output = tmp_path / "run"
     original = e.start()
     deadline = e.deadline()
@@ -100,14 +102,20 @@ def test_clock_resume_preserves_start_and_finished_attempt_is_immutable(tmp_path
 
 def test_cost_selection_keeps_additive_pairs_and_stops_when_nothing_fits(tmp_path):
     e = VisualExperiment()
+    e.config["budget_mode"] = "hard"
     e.output = tmp_path / "run"
     e.start()
     rows = cheapest_panel(e.dev)
     assert len(rows) == 42
     assert all(set(r["reference_costs"]) == set(ALGORITHMS[2:]) for r in rows if r["task_id"].startswith("astar-pair-"))
-    fast = [{"seconds_per_call": 0.001, "training_microstep_seconds": 0.001}] * 2
+    fast = [
+        {"seconds_per_call": 0.001, "training_microstep_seconds": 0.001, "worker": i, "outcome": "PASS"}
+        for i in range(2)
+    ]
     assert select_coverage(e, fast)["selection"]["mode"] == "full"
-    slow = [{"seconds_per_call": 1e6, "training_microstep_seconds": 1e6}] * 2
+    slow = [
+        {"seconds_per_call": 1e6, "training_microstep_seconds": 1e6, "worker": i, "outcome": "PASS"} for i in range(2)
+    ]
     stopped = select_coverage(e, slow)
     assert stopped["outcome"] == "VALID_STOP" and not stopped["model_outcomes_used_for_selection"]
 
@@ -330,6 +338,7 @@ def test_reference_worker_preserves_last_completed_episode_at_cutoff():
         e.output = Path(temporary)
         e.config = copy.deepcopy(e.config)
         e.config["evaluation_seeds"] = [17]
+        e.config["budget_mode"] = "hard"
         write_json(e.output / "attempt.json", {"started_monotonic": time.monotonic()})
         write_json(e.output / "qualification.json", {"selection": {"task_ids": [row["task_id"]]}})
         progress = []

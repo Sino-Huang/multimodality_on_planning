@@ -37,6 +37,8 @@ class VisualExperiment:
             or c["inference_dtype"] != "float32"
         ):
             raise ValueError("model, corpus or visual training scope differs")
+        if c.get("budget_mode", "hard") not in ("hard", "advisory"):
+            raise ValueError("budget_mode must be hard or advisory")
         if (
             not 0 < c["stop_new_calls_seconds"] < c["gate_seconds"]
             or c["rollout_certification_seconds"] > c["stop_new_calls_seconds"]
@@ -83,10 +85,56 @@ class VisualExperiment:
 
     def deadline(self, stage="calls"):
         attempt = read_json(self.output / "attempt.json")
+        if self.config.get("budget_mode", "hard") == "advisory":
+            return float("inf")
         seconds = self.config["stop_new_calls_seconds"] if stage == "calls" else self.config["gate_seconds"]
         if time.monotonic() < attempt["started_monotonic"]:
             raise RuntimeError("VALID_STOP: original monotonic clock is unavailable")
         return attempt["started_monotonic"] + seconds
+
+    def reused_qualification(self):
+        """Reuse passed hardware probes when only bookkeeping/budget settings changed."""
+        source = ROOT / self.config["qualification_source"]
+        report = read_json(source)
+        previous = read_json(source.parent / "attempt.json")["experiment"]
+        bookkeeping = {
+            "contract_id",
+            "output_root",
+            "budget_mode",
+            "gate_seconds",
+            "stop_new_calls_seconds",
+            "rollout_certification_seconds",
+            "qualification_source",
+        }
+        if {k: v for k, v in previous.items() if k not in bookkeeping} != {
+            k: v for k, v in self.config.items() if k not in bookkeeping
+        }:
+            raise ValueError("qualification reuse requires unchanged model, data, training and device settings")
+        if report.get("outcome") not in ("PASS", "VALID_STOP") or report.get("contract_id") != previous["contract_id"]:
+            raise ValueError("qualification source is invalid")
+        qualifications = []
+        for worker in range(len(self.config["devices"])):
+            device = read_json(source.parent / "qualification" / f"{worker}.json")
+            probes = [
+                read_json(p)
+                for p in sorted((source.parent / "qualification" / f"worker-{worker}-probes").glob("*.json"))
+            ]
+            if (
+                device.get("outcome") != "PASS"
+                or device.get("worker") != worker
+                or device.get("contract_id") != previous["contract_id"]
+                or device.get("probe_records", 0) != len(probes)
+                or not probes
+                or len({p["record_id"] for p in probes}) != len(probes)
+                or any(p.get("outcome") != "PASS" or p.get("modality") != self.config["modality"] for p in probes)
+                or device.get("dtype") != self.config["inference_dtype"]
+                or device.get("attention_implementation") != self.config["inference_attention"]
+                or device.get("timing_output_tokens") != self.config["output_tokens"]
+                or device.get("model_outcomes_used_for_selection") is not False
+            ):
+                raise ValueError("qualification source has incomplete or mismatched hardware coverage")
+            qualifications.append(device)
+        return qualifications, previous["contract_id"]
 
     def require(self, stage):
         if time.monotonic() >= self.deadline("gate" if stage == "adjudicate" else "calls"):
@@ -118,7 +166,9 @@ class VisualExperiment:
                     or len(devices) != len(self.config["devices"])
                     or {d.get("worker") for d in devices} != set(range(len(self.config["devices"])))
                     or any(
-                        d.get("outcome") != "PASS" or d.get("contract_id") != self.config["contract_id"] for d in devices
+                        d.get("outcome") != "PASS"
+                        or d.get("contract_id") != report.get("qualification_contract_id", self.config["contract_id"])
+                        for d in devices
                     )
                     or report.get("model_outcomes_used_for_selection") is not False
                 ):
@@ -164,7 +214,10 @@ class VisualExperiment:
             "stages": ["qualification", "references", "training", "evaluation", "adjudication"],
             "model_calls_started": False,
             "scientific_completion": False,
-            "clock_seconds": self.config["gate_seconds"],
+            "clock_seconds": self.config["gate_seconds"] if self.config.get("budget_mode", "hard") == "hard" else None,
+            "budget_mode": self.config.get("budget_mode", "hard"),
+            "reference_budget_seconds": self.config["gate_seconds"],
+            "qualification_source": self.config.get("qualification_source"),
             "output_root": str(self.output),
             "qualification_modalities": [self.config["modality"]],
             "approval_required": False,
@@ -186,6 +239,12 @@ def cheapest_panel(rows):
 def select_coverage(experiment, qualifications):
     """Conservative full/fallback estimates use timings only, never model success."""
     c = experiment.config
+    if (
+        len(qualifications) != len(c["devices"])
+        or {q.get("worker") for q in qualifications} != set(range(len(c["devices"])))
+        or any(q.get("outcome") != "PASS" for q in qualifications)
+    ):
+        raise ValueError("complete passed hardware qualification is required before panel selection")
     seconds_per_call = max(q["seconds_per_call"] for q in qualifications)
     training_seconds = (
         max(q["training_microstep_seconds"] for q in qualifications)
@@ -207,29 +266,38 @@ def select_coverage(experiment, qualifications):
             {
                 "mode": name,
                 "task_ids": [r["task_id"] for r in rows],
-                "scheduled_model_calls": calls,
+                "maximum_model_calls": calls,
                 "projected_rollout_seconds": rollout,
                 "projected_training_seconds": training_seconds,
                 "projected_total_seconds": projected,
             }
         )
-        if projected <= c["stop_new_calls_seconds"] and 1.2 * rollout <= c["rollout_certification_seconds"]:
-            return {
-                "contract_id": c["contract_id"],
-                "outcome": "PASS",
-                "selection": estimates[-1],
-                "estimates": estimates,
-                "device_qualifications": qualifications,
-                "model_outcomes_used_for_selection": False,
-            }
-    return {
+        estimates[-1]["fits_reference_budget"] = (
+            projected <= c["stop_new_calls_seconds"] and 1.2 * rollout <= c["rollout_certification_seconds"]
+        )
+    advisory = c.get("budget_mode", "hard") == "advisory"
+    selection = estimates[0] if advisory else next((e for e in estimates if e["fits_reference_budget"]), None)
+    report = {
         "contract_id": c["contract_id"],
-        "outcome": "VALID_STOP",
-        "reason": "neither frozen panel fits the clock",
+        "outcome": "PASS" if selection else "VALID_STOP",
+        "hardware_qualification": "PASS",
+        "budget_mode": c.get("budget_mode", "hard"),
+        "estimate_kind": "stress_projection_not_eta",
+        "estimate_assumptions": [
+            "Every episode exhausts its maximum decision-call allowance.",
+            "Every call costs the slowest measured forced-384-token generation.",
+            "Every training example and diagnostic uses the slowest training microstep cost.",
+            "Ideal device balance, 1.2 margin; references, adapter checks and I/O excluded.",
+        ],
         "estimates": estimates,
         "device_qualifications": qualifications,
         "model_outcomes_used_for_selection": False,
     }
+    if selection:
+        report["selection"] = selection
+    else:
+        report["reason"] = "stress projection exceeds hard time budget for both panels"
+    return report
 
 
 def training_steps(records, training):

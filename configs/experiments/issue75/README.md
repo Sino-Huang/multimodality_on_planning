@@ -3,8 +3,10 @@
 The runner performs visual-state qualification, references, training, rollout and
 adjudication. Run it directly; no authorization or approval file is required.
 The previous attempts remain preserved: v1 stopped at its qualification time
-limit; v2 ran out of GPU memory at batch size eight. Neither trained or evaluated
-a policy. The current v3 configuration uses smaller inference batches.
+limit; v2 ran out of GPU memory at batch size eight. V3 passed hardware
+qualification on both GPUs, then stopped at a conservative runtime estimate.
+None trained or evaluated a policy. V4 reuses that passed hardware qualification
+and makes runtime estimates advisory by default.
 
 ## Run
 
@@ -15,14 +17,16 @@ python -u scripts/run_visual_issue75.py all
 ```
 
 The current configuration writes to a fresh directory:
-`outputs/visual_development/issue75-32k-v3/attempt-001`.
-Dry-run prints all child commands and writes no experiment outputs or model calls.
+`outputs/visual_development/issue75-32k-v4/attempt-001`.
+Dry-run checks the reusable qualification and prints child commands without
+writing experiment outputs or making model calls. The current run reuses v3
+qualification; it does not repeat the 76-minute GPU qualification stage.
 
 For another fresh run, choose a new output directory:
 
 ```bash
 python -u scripts/run_visual_issue75.py all \
-  --output outputs/visual_development/issue75-32k-v3/attempt-002
+  --output outputs/visual_development/issue75-32k-v4/attempt-002
 ```
 
 For an interrupted run that has no final `result.json`, use the same directory
@@ -68,11 +72,42 @@ still checks base/adapter isolation. This does not cache scientific rollout
 outputs. Text and multimodal generation qualification belongs to those runs;
 this visual run does not certify them.
 
-Qualification now uses the overall run deadline instead of a separate one-hour
-limit. The **20-hour total budget**, **18-hour new-call cutoff** and **15-hour
-rollout estimate limit** remain. Actual CUDA memory and throughput can still
-produce a resource stop. The reduced call count is measured from the real
-corpus; the revised full GPU runtime has not yet been measured.
+V3 completed all 31 probes plus the training hardware probes on both GPUs in
+about 76 minutes. Those reports are retained under
+`outputs/visual_development/issue75-32k-v3/attempt-001/qualification/`.
+
+## Runtime estimates and qualification reuse
+
+V3's hardware qualification passed. Its next step projected the entire workload
+using the slowest forced-384-token generation (93.0 seconds per logical call),
+the slowest training microstep (12.0 seconds), maximum episode call allowances,
+and a 1.2 margin. This produced stress projections of about **431 days** for
+full coverage and **76 days** for the fallback. Neither fit a hard 20-hour budget.
+These are not measured ETAs: they apply the largest-input cost to every example,
+charge backward/optimizer work even to diagnostics, and assume all episodes
+exhaust their call budgets. They also omit separately timed references, adapter
+checks and I/O, so they are not guaranteed wall-time bounds either.
+
+`budget_mode: "advisory"` is now the default. It keeps the full development
+panel, prints both stress projections and does not reject or interrupt a run
+based on elapsed time. Per-episode call/expansion limits, context/memory limits,
+complete-coverage checks and semantic validation remain enforced. This fixes
+an estimate-based stop; it does not speed up training or establish that the
+experiment will fit within 20 hours. The actual run may be lengthy.
+
+For a strict budget, set `budget_mode` to `"hard"` in `experiment.json`. This
+retains the full-then-cost-fallback selection and enforces the configured
+`gate_seconds` (20 hours), `stop_new_calls_seconds` (18 hours) and
+`rollout_certification_seconds` (15 hours). Use a fresh output directory when
+changing settings.
+
+`qualification_source` points to v3's `qualification.json`. Reuse checks the
+saved model, data, training and device settings and requires complete passed
+probe records from both workers. Their original contract IDs are preserved in
+the new report. Budget and output changes need no new GPU qualification. If you
+change an execution setting such as batch size or attention backend, set
+`qualification_source` to `null` and run fresh qualification. An incomplete or
+failed hardware qualification is never bypassed by advisory mode.
 
 ## GPU memory fix
 
@@ -137,9 +172,10 @@ rollout. Inference uses float32, 32,768 context tokens with 384 reserved for
 output, and batches of at most **two requests / 24,000 padded input tokens**.
 
 The stages are qualification, cost-only panel selection, references, training,
-model evaluation and independent replay/adjudication. If the full dev workload
+model evaluation and independent replay/adjudication. In hard-budget mode, if the full dev workload
 cannot fit, selection tries the predeclared cheapest complete task per
-domain/family (42 task groups), keeping additive settings paired. Selection never
+domain/family (42 task groups), keeping additive settings paired. Advisory mode
+keeps the full panel. Selection never
 uses model success and retains the complete training set. Later matched
 modalities must use the same selected panel for a comparison.
 

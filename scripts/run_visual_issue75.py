@@ -59,6 +59,8 @@ def heartbeat(function, stage):
 
 def commands(experiment, stage, config_path, resume):
     c = experiment.config
+    if stage == "qualify" and c.get("qualification_source"):
+        return []
     base = [sys.executable, "-u", str(ROOT / "scripts/run_visual_issue75.py")]
     jobs = []
     if stage in ("qualify", "evaluate"):
@@ -211,6 +213,7 @@ def main(argv=None):
     try:
         experiment = VisualExperiment(args.config, args.output)
         plan = experiment.plan()
+        reused = experiment.reused_qualification() if experiment.config.get("qualification_source") else None
         stages = ["qualify", "references", "train", "evaluate", "adjudicate"] if args.stage == "all" else [args.stage]
         if args.dry_run:
             log(
@@ -282,6 +285,19 @@ def main(argv=None):
             log(f"{stage}:start", elapsed_seconds=round(time.monotonic() - started, 2))
             if stage == "adjudicate":
                 report = heartbeat(lambda: adjudicate(experiment, log), stage)
+            elif stage == "qualify" and reused is not None:
+                qualifications, source_contract = reused
+                report = select_coverage(experiment, qualifications)
+                report.update(
+                    qualification_source=experiment.config["qualification_source"],
+                    qualification_contract_id=source_contract,
+                )
+                log(
+                    "qualification:reused",
+                    completed=len(qualifications),
+                    total=len(qualifications),
+                    source=experiment.config["qualification_source"],
+                )
             else:
                 launches = commands(experiment, stage, args.config, args.resume)
                 heartbeat(lambda stage=stage, launches=launches: run_children(experiment, stage, launches), stage)
@@ -307,6 +323,18 @@ def main(argv=None):
                         "episodes": [e for r in reports for e in r["episodes"]],
                     }
             write_json(output, report)
+            if stage == "qualify":
+                for estimate in report["estimates"]:
+                    log(
+                        "runtime:estimate",
+                        mode=estimate["mode"],
+                        estimate_kind=report["estimate_kind"],
+                        budget_mode=report["budget_mode"],
+                        projected_hours=round(estimate["projected_total_seconds"] / 3600, 1),
+                        fits_reference_budget=estimate["fits_reference_budget"],
+                        maximum_model_calls=estimate["maximum_model_calls"],
+                        elapsed_seconds=round(time.monotonic() - started, 2),
+                    )
             log(f"{stage}:complete", outcome=report["outcome"], elapsed_seconds=round(time.monotonic() - started, 2))
             if report["outcome"] != "PASS":
                 raise RuntimeError(f"{report['outcome']}: {report.get('reason','frozen threshold failed')}")

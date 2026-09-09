@@ -1,0 +1,36 @@
+{
+  "issue": 75,
+  "contract_id": "issue-75-visual-development-32k-v4",
+  "cause": "Passed hardware qualification was coupled to a hard budget using a maximum-cost stress projection as the admission rule.",
+  "source_qualification": "outputs/visual_development/issue75-32k-v3/attempt-001/qualification.json",
+  "source_hardware_outcomes": [
+    "PASS",
+    "PASS"
+  ],
+  "budget_mode": "advisory",
+  "selected_dev_task_groups": 97,
+  "estimate_kind": "stress_projection_not_eta",
+  "estimates_days": {
+    "full": 430.51,
+    "cost_fallback": 75.84
+  },
+  "changes": [
+    "Runtime stress projections are advisory by default; no hidden elapsed-time cutoff.",
+    "Hard-budget mode remains available.",
+    "Reuse matching complete passed hardware reports without new GPU work; preserve original contract IDs.",
+    "Failed/incomplete hardware, source-setting changes and partial experiment coverage still fail validation."
+  ],
+  "verification": {
+    "focused_tests_passed": 37,
+    "test_seconds": 41.81,
+    "dry_run": "PASS",
+    "black": "PASS",
+    "ruff": "PASS",
+    "basedpyright": "PASS",
+    "public_qualification_reuse_without_child_launch": "PASS"
+  },
+  "model_calls_started": false,
+  "full_matrix_started": false,
+  "scientific_completion": false,
+  "evidence": "outputs/visual_development/issue75-budget-check-001"
+}
