@@ -246,6 +246,8 @@ def jobs_for(experiment, reference, worker, workers):
     costs = {r["task_id"]: sum(c["decisions"] for c in r["reference_costs"].values()) for r in rows}
     if experiment.cost_panel and not reference:
         costs = {t["task_id"]: t["proxy_gpu_seconds"] for t in experiment.cost_panel["tasks"]}
+    if experiment.pilot and not reference:
+        costs = experiment.pilot["evaluation_costs"]
     partitions, _ = partition_tasks(rows, workers, costs)
     jobs = []
     arms = ("exact_reference", "random_valid") if reference else ("pretrained_base", "process_sft")
@@ -271,10 +273,15 @@ def run_jobs(experiment, worker, reference, progress, resume=False):
         policy.stop_at = experiment.deadline()
         # Actual trained adapter/base isolation, before any scientific episode generation.
         semantics = SemanticProbe(experiment)
-        all_records = select_probes(experiment)
+        if experiment.pilot:
+            from .visual_pilot import probe_records_for_pilot
+
+            all_records = probe_records_for_pilot(experiment)
+        else:
+            all_records = select_probes(experiment)
         for algorithm in ALGORITHMS:
             records = [r for r in all_records if r["algorithm"] == algorithm]
-            for probe_index, record in enumerate(records):
+            for probe_index, record in enumerate(records[:1] if experiment.pilot else records):
                 if time.monotonic() >= experiment.deadline():
                     raise RuntimeError("VALID_STOP: cutoff during trained-adapter qualification")
                 batch_records = probe_records(c, records, record, "visual-state")
@@ -508,7 +515,7 @@ def adjudicate(experiment, progress):
             "best_control": best,
             "gain": rates["process_sft"] - rates[best],
             "paired_bootstrap_lower_bound": lower,
-            "advantage_established": lower > 0,
+            "advantage_established": lower > 0 and not bool(experiment.pilot),
             "per_seed_success": {
                 str(seed): {
                     arm: statistics.mean(
@@ -541,6 +548,10 @@ def adjudicate(experiment, progress):
         "episodes": len(episodes),
         "metrics": metrics,
         "family_normalized_success": family,
-        "scientific_completion": bool(passed),
+        "scientific_completion": bool(passed) and not bool(experiment.pilot),
+        "study_scope": c.get("study_scope", "development_matrix"),
+        "pilot_complete": bool(experiment.pilot),
+        "full_matrix_complete": bool(passed) and not bool(experiment.pilot),
+        "uncertainty_scope": "descriptive_pilot_only" if experiment.pilot else "whole_problem_instance_bootstrap",
         "training_seed_variance_claim": False,
     }

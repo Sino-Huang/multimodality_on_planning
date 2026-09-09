@@ -116,6 +116,22 @@ def run_children(experiment, stage, jobs):
     lock = threading.Lock()
     running = set()
     failures = []
+    watchdog_stop = threading.Event()
+
+    def abort(error):
+        with lock:
+            if not failures:
+                failures.append(error)
+            cancelled.set()
+            for process in running:
+                if process.poll() is None:
+                    process.terminate()
+
+    def watch_deadline():
+        while not watchdog_stop.wait(1):
+            if time.monotonic() >= experiment.deadline("gate"):
+                abort(RuntimeError("VALID_STOP: wall-clock limit reached; owned workers stopped"))
+                return
 
     def queue(items):
         try:
@@ -166,18 +182,18 @@ def run_children(experiment, stage, jobs):
                     report = read_json(experiment.output / stage_name / f"{name}.json")
                     raise RuntimeError(f"{report['outcome']}: {report.get('reason','worker stopped')}")
         except Exception as error:
-            with lock:
-                if not failures:
-                    failures.append(error)
-                cancelled.set()
-                for process in running:
-                    if process.poll() is None:
-                        process.terminate()
+            abort(error)
 
-    with ThreadPoolExecutor(max_workers=len(queues)) as pool:
-        futures = [pool.submit(queue, items) for items in queues.values()]
-        for future in futures:
-            future.result()
+    watcher = threading.Thread(target=watch_deadline, daemon=True)
+    watcher.start()
+    try:
+        with ThreadPoolExecutor(max_workers=len(queues)) as pool:
+            futures = [pool.submit(queue, items) for items in queues.values()]
+            for future in futures:
+                future.result()
+    finally:
+        watchdog_stop.set()
+        watcher.join()
     if failures:
         raise failures[0]
 
@@ -199,7 +215,7 @@ def main(argv=None):
             "_evaluate",
         ],
     )
-    parser.add_argument("--config", type=Path, default=ROOT / "configs/experiments/issue75/experiment.json")
+    parser.add_argument("--config", type=Path, default=ROOT / "configs/experiments/issue75/pilot.json")
     parser.add_argument("--output", type=Path, help="Run directory; use a new directory for a fresh run")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--resume", action="store_true")
@@ -337,9 +353,20 @@ def main(argv=None):
                     )
             log(f"{stage}:complete", outcome=report["outcome"], elapsed_seconds=round(time.monotonic() - started, 2))
             if report["outcome"] != "PASS":
+                if experiment.pilot and stage == "adjudicate" and report["outcome"] == "VALID_STOP":
+                    break  # A complete negative pilot is evidence, not a reason for automatic retraining.
                 raise RuntimeError(f"{report['outcome']}: {report.get('reason','frozen threshold failed')}")
         if args.stage in ("all", "adjudicate"):
-            write_json(experiment.output / "result.json", {**report, "scientific_completion": True})
+            write_json(
+                experiment.output / "result.json",
+                {
+                    **report,
+                    "scientific_completion": not bool(experiment.pilot),
+                    "study_scope": experiment.config.get("study_scope", "development_matrix"),
+                    "pilot_complete": bool(experiment.pilot),
+                    "full_matrix_complete": not bool(experiment.pilot),
+                },
+            )
             log(
                 "matrix:complete",
                 outcome=report["outcome"],
@@ -364,6 +391,9 @@ def main(argv=None):
         }
         if experiment is not None:
             report["contract_id"] = experiment.config["contract_id"]
+            report["study_scope"] = experiment.config.get("study_scope", "development_matrix")
+            report["full_matrix_complete"] = False
+            report["pilot_complete"] = False
             if not args.dry_run and (owns_attempt or worker_scope) and (experiment.output / "attempt.json").exists():
                 if args.stage.startswith("_"):
                     stage = {

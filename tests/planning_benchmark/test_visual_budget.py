@@ -70,7 +70,12 @@ def test_public_qualification_reuse_runs_without_launching_models(tmp_path, monk
 
     monkeypatch.setattr(runner, "run_children", no_children)
     output = tmp_path / "reused"
-    assert runner.main(["qualify", "--output", str(output)]) == 0
+    assert (
+        runner.main(
+            ["qualify", "--output", str(output), "--config", str(ROOT / "configs/experiments/issue75/experiment.json")]
+        )
+        == 0
+    )
     report = read_json(output / "qualification.json")
     assert report["outcome"] == "PASS" and report["budget_mode"] == "advisory"
     assert report["qualification_contract_id"] == "issue-75-visual-development-32k-v3"

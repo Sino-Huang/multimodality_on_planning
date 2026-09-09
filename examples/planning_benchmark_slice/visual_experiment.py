@@ -38,8 +38,8 @@ class VisualExperiment:
             or c["inference_dtype"] != "float32"
         ):
             raise ValueError("model, corpus or visual training scope differs")
-        if c.get("budget_mode", "hard") not in ("hard", "advisory"):
-            raise ValueError("budget_mode must be hard or advisory")
+        if c.get("budget_mode", "hard") not in ("hard", "advisory", "timeboxed"):
+            raise ValueError("budget_mode must be hard, advisory or timeboxed")
         if (
             not 0 < c["stop_new_calls_seconds"] < c["gate_seconds"]
             or c["rollout_certification_seconds"] > c["stop_new_calls_seconds"]
@@ -63,6 +63,23 @@ class VisualExperiment:
                 for algorithm, cost in row["reference_costs"].items():
                     self.dev_counts[algorithm] += cost["decisions"]
         self.cost_panel = load_cost_panel(ROOT / c["cost_panel"], c, self.dev) if c.get("cost_panel") else None
+        self.pilot = read_json(ROOT / c["pilot_manifest"]) if c.get("pilot_manifest") else None
+        if self.pilot:
+            if (
+                self.pilot["schema"] != "deadline_pilot_v1"
+                or c.get("study_scope") != "deadline_pilot"
+                or self.pilot["corpus_report"] != c["corpus_report"]
+                or c["evaluation_seeds"] != [17]
+                or not set(self.pilot["selected_task_ids"]) <= {r["task_id"] for r in self.dev}
+            ):
+                raise ValueError("pilot source, scope or seed differs")
+            for key in ("training_record_ids", "diagnostic_record_ids"):
+                if set(self.pilot[key]) != set(ALGORITHMS) or any(
+                    not ids or len(ids) != len(set(ids)) for ids in self.pilot[key].values()
+                ):
+                    raise ValueError("pilot record membership is incomplete or duplicated")
+            self.train_counts = Counter({a: len(ids) for a, ids in self.pilot["training_record_ids"].items()})
+            self.dev_counts = Counter({a: len(ids) for a, ids in self.pilot["diagnostic_record_ids"].items()})
 
     def start(self, resume=False):
         path = self.output / "attempt.json"
@@ -72,7 +89,11 @@ class VisualExperiment:
             if not resume:
                 raise ValueError("interrupted matrix requires --resume; the clock is not reset")
             old = read_json(path)
-            if old["experiment"] != self.config or old.get("cost_panel") != self.cost_panel:
+            if (
+                old["experiment"] != self.config
+                or old.get("cost_panel") != self.cost_panel
+                or old.get("pilot_manifest") != self.pilot
+            ):
                 raise ValueError("interrupted experiment differs")
             return old
         if resume and self.output.exists():
@@ -80,6 +101,7 @@ class VisualExperiment:
         attempt = {
             "experiment": self.config,
             "cost_panel": self.cost_panel,
+            "pilot_manifest": self.pilot,
             "started_unix": time.time(),
             "started_monotonic": time.monotonic(),
         }
@@ -109,10 +131,19 @@ class VisualExperiment:
             "rollout_certification_seconds",
             "qualification_source",
             "cost_panel",
+            "pilot_manifest",
+            "study_scope",
+            "evaluation_seeds",
+            "coverage",
+            "qualification",
         }
-        if {k: v for k, v in previous.items() if k not in bookkeeping} != {
-            k: v for k, v in self.config.items() if k not in bookkeeping
-        }:
+
+        def hardware_settings(config):
+            settings = {k: v for k, v in config.items() if k not in bookkeeping}
+            settings["training"] = {k: v for k, v in config["training"].items() if k != "epochs"}
+            return settings
+
+        if hardware_settings(previous) != hardware_settings(self.config):
             raise ValueError("qualification reuse requires unchanged model, data, training and device settings")
         if report.get("outcome") not in ("PASS", "VALID_STOP") or report.get("contract_id") != previous["contract_id"]:
             raise ValueError("qualification source is invalid")
@@ -163,15 +194,20 @@ class VisualExperiment:
             if predecessor == "qualification":
                 selection = report.get("selection", {})
                 mode = selection.get("mode")
+                if self.pilot and mode != "deadline_pilot":
+                    raise ValueError("qualification must use the configured pilot")
                 if self.cost_panel and mode != "cost_ranked":
                     raise ValueError("qualification must use the configured cost-ranked panel")
-                if mode == "cost_ranked" and self.cost_panel:
+                if mode == "deadline_pilot" and self.pilot:
+                    expected = [r for r in self.dev if r["task_id"] in self.pilot["selected_task_ids"]]
+                elif mode == "cost_ranked" and self.cost_panel:
                     expected = [r for r in self.dev if r["task_id"] in self.cost_panel["selected_task_ids"]]
                 else:
                     expected = self.dev if mode == "full" else cheapest_panel(self.dev)
                 devices = report.get("device_qualifications", [])
                 if (
-                    mode not in ("full", "cost_fallback", "cost_ranked")
+                    mode not in ("full", "cost_fallback", "cost_ranked", "deadline_pilot")
+                    or (mode == "deadline_pilot" and not self.pilot)
                     or (mode == "cost_ranked" and not self.cost_panel)
                     or selection.get("task_ids") != [r["task_id"] for r in expected]
                     or len(devices) != len(self.config["devices"])
@@ -206,6 +242,8 @@ class VisualExperiment:
         rows = self.dev
         episodes = sum(len(r["reference_costs"]) for r in rows)
         selected = [r for r in rows if not self.cost_panel or r["task_id"] in self.cost_panel["selected_task_ids"]]
+        if self.pilot:
+            selected = [r for r in rows if r["task_id"] in self.pilot["selected_task_ids"]]
         selected_episodes = sum(len(r["reference_costs"]) for r in selected)
         return {
             "outcome": "PASS",
@@ -216,6 +254,8 @@ class VisualExperiment:
             "train_records": dict(self.train_counts),
             "training_runs": 4,
             "training_seed": 17,
+            "evaluation_seeds": self.config["evaluation_seeds"],
+            "study_scope": self.config.get("study_scope", "development_matrix"),
             "optimizer_steps": {a: training_steps(n, self.config["training"]) for a, n in self.train_counts.items()},
             "full_dev_task_groups": len(rows),
             "full_dev_algorithm_episodes": episodes,
@@ -232,7 +272,9 @@ class VisualExperiment:
             "stages": ["qualification", "references", "training", "evaluation", "adjudication"],
             "model_calls_started": False,
             "scientific_completion": False,
-            "clock_seconds": self.config["gate_seconds"] if self.config.get("budget_mode", "hard") == "hard" else None,
+            "clock_seconds": (
+                self.config["gate_seconds"] if self.config.get("budget_mode", "hard") != "advisory" else None
+            ),
             "budget_mode": self.config.get("budget_mode", "hard"),
             "reference_budget_seconds": self.config["gate_seconds"],
             "qualification_source": self.config.get("qualification_source"),
@@ -281,6 +323,10 @@ def select_coverage(experiment, qualifications):
         training_seconds = panel["training"]["combined_proxy_wall_seconds"]
     else:
         candidates = [("full", experiment.dev), ("cost_fallback", cheapest_panel(experiment.dev))]
+    if experiment.pilot:
+        candidates = [
+            ("deadline_pilot", [r for r in experiment.dev if r["task_id"] in experiment.pilot["selected_task_ids"]])
+        ]
     for name, rows in candidates:
         calls = (
             2
@@ -292,6 +338,8 @@ def select_coverage(experiment, qualifications):
         if experiment.cost_panel:
             key = "full_proxy_wall_seconds" if name == "full" else "selected_proxy_wall_seconds"
             rollout = experiment.cost_panel["evaluation"][key] / experiment.cost_panel["policy"]["margin"]
+        if experiment.pilot:
+            rollout = experiment.pilot["evaluation_proxy_seconds"] / margin
         projected = elapsed + margin * (training_seconds + rollout)
         estimates.append(
             {
@@ -306,7 +354,7 @@ def select_coverage(experiment, qualifications):
         estimates[-1]["fits_reference_budget"] = (
             projected <= c["stop_new_calls_seconds"] and margin * rollout <= c["rollout_certification_seconds"]
         )
-    advisory = c.get("budget_mode", "hard") == "advisory"
+    advisory = c.get("budget_mode", "hard") != "hard"
     eligible = estimates[-1:] if experiment.cost_panel else estimates
     selection = eligible[0] if advisory else next((e for e in eligible if e["fits_reference_budget"]), None)
     report = {
@@ -339,6 +387,17 @@ def select_coverage(experiment, qualifications):
         )
         if not selection:
             report["reason"] = "configured cost-ranked panel exceeds hard time budget"
+    if experiment.pilot:
+        report.update(
+            study_scope="deadline_pilot",
+            estimate_kind="input_weighted_evaluation_and_training_stress_not_eta",
+            estimate_assumptions=[
+                "Evaluation uses input-weighted forced-384-token costs and maximum episode calls.",
+                "Subset training and diagnostics use the slowest measured training microstep.",
+                "Ideal device balance, 1.2 margin; references, adapter checks and I/O excluded.",
+                "Estimates are advisory; the live wall-clock limit stops owned workers.",
+            ],
+        )
     return report
 
 

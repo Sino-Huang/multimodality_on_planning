@@ -1,0 +1,85 @@
+{
+  "contract_id": "issue-75-deadline-pilot-v1",
+  "source_issue": 75,
+  "parent_freeze": "configs/experiments/issue71/v2/freeze.json",
+  "corpus_report": "outputs/modality_corpus/issue74-matched-32k-v1/release-001/report.json",
+  "output_root": "outputs/visual_development/issue75-deadline-pilot-v1/attempt-001",
+  "modality": "visual-state",
+  "algorithms": [
+    "bfs",
+    "best_first_width",
+    "best_first_add_w3",
+    "best_first_add_greedy"
+  ],
+  "model_id": "Qwen/Qwen3-VL-8B-Instruct",
+  "model_revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+  "context_tokens": 32768,
+  "output_tokens": 384,
+  "max_batch_size": 2,
+  "max_batch_input_tokens": 24000,
+  "training_seed": 17,
+  "evaluation_seeds": [
+    17
+  ],
+  "devices": [
+    "0",
+    "1"
+  ],
+  "master_ports": [
+    18575,
+    18576
+  ],
+  "backend_endpoints": [
+    "http://127.0.0.1:18092",
+    "http://127.0.0.1:18093",
+    "http://127.0.0.1:18094",
+    "http://127.0.0.1:18095"
+  ],
+  "gate_seconds": 14400,
+  "stop_new_calls_seconds": 13500,
+  "rollout_certification_seconds": 7200,
+  "input_bins": [
+    4096,
+    8192,
+    16384,
+    32384
+  ],
+  "training": {
+    "epochs": 1,
+    "global_batch_size": 32,
+    "learning_rate": 0.0001,
+    "lora_rank": 64,
+    "lora_alpha": 128,
+    "lora_dropout": 0.05,
+    "freeze_vision": true,
+    "dtype": "bfloat16",
+    "attention": "sdpa",
+    "optimizer": "adamw_torch",
+    "warmup_ratio": 0.03,
+    "lr_scheduler": "cosine",
+    "weight_decay": 0,
+    "max_grad_norm": 1
+  },
+  "inference_dtype": "float32",
+  "inference_attention": "visual_sdpa",
+  "output_cache": "none; per-call KV cache only, no cross-episode reuse",
+  "qualification": "reuse passed visual-state hardware qualification; trained-adapter checks use maximum and minimum declared pilot inputs per algorithm",
+  "coverage": "deadline pilot: exact manifest membership, three selected domains, four algorithms, one evaluation seed; shared across later matched modalities",
+  "bfs_ties": "canonical training targets; accept any unvisited applicable successor with valid FIFO update at evaluation",
+  "model_call_multiplier": 2,
+  "thresholds": {
+    "exact_success": 1.0,
+    "learned_success": 0.8,
+    "maximum_invalid_rate": 0.05
+  },
+  "bootstrap": {
+    "resamples": 10000,
+    "seed": 1729,
+    "confidence": 0.95,
+    "unit": "whole_problem_instance"
+  },
+  "budget_mode": "timeboxed",
+  "qualification_source": "outputs/visual_development/issue75-32k-v3/attempt-001/qualification.json",
+  "study_scope": "deadline_pilot",
+  "pilot_manifest": "configs/experiments/issue75/pilot-plan-v1.json"
+}

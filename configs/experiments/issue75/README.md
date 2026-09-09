@@ -1,12 +1,33 @@
-# Visual development matrix (#75)
+# Visual development pilot (#75)
 
-The runner performs visual-state qualification, references, training, rollout and
-adjudication. Run it directly; no authorization or approval file is required.
-The previous attempts remain preserved: v1 stopped at its qualification time
-limit; v2 ran out of GPU memory at batch size eight. V3 passed hardware
-qualification on both GPUs, then stopped at a conservative runtime estimate.
-None trained or evaluated a policy. V5 reuses that passed hardware qualification
-and selects a cost-ranked evaluation panel shared across modalities.
+The default command now runs a **four-hour deadline pilot** from
+[`pilot.json`](pilot.json), with exact sample membership in
+[`pilot-plan-v1.json`](pilot-plan-v1.json). It uses seed 17 for training and
+evaluation, 512 complete training records per algorithm, one epoch (16 optimizer
+updates), and at most 32 teacher-diagnostic records per algorithm. Training is
+balanced across available domains within a 4,096-token visual-input cap, then
+ordered easy to hard; the four algorithms receive their own source records.
+Later modalities must reuse those exact record IDs.
+
+Evaluation retains storage, blocksworld and ferry: 12 algorithm/task cases and
+48 episodes across base, SFT, random-valid and exact-reference controls. Selection
+uses reference cost and input size before model outcomes. All facts and goal
+constraints remain complete. These small, inexpensive cases support a feasibility
+study; they do not establish broad planning generalization or seed variance.
+
+The runner stops launching calls after 3 hours 45 minutes and terminates its own
+workers at four hours. It does not stop unrelated GPU processes. A timeout saves
+partial evidence and cannot count as a complete pilot. Completed negative evidence
+can proceed to #77 without repeated training. Pilot results always state
+`full_matrix_complete: false`; `pilot_complete` requires complete replayed coverage.
+The input-weighted evaluation proxy is about 1.8 hours, not a measured ETA;
+training, adapter qualification and I/O also consume the four-hour budget.
+
+The previous full-size configuration remains in `experiment.json` for historical
+reproduction and is **not the CLI default**. An already-running full-size process
+is unaffected by this change. Do not start this two-GPU pilot alongside that run.
+See the [deadline roadmap](../../../docs/experiments/deadline-plan/README.md) for
+matched-modality scope and the revised ticket ordering. No approval file is needed.
 
 ## Run
 
@@ -17,7 +38,7 @@ python -u scripts/run_visual_issue75.py all
 ```
 
 The current configuration writes to a fresh directory:
-`outputs/visual_development/issue75-32k-v5/attempt-001`.
+`outputs/visual_development/issue75-deadline-pilot-v1/attempt-001`.
 Dry-run checks the reusable qualification and prints child commands without
 writing experiment outputs or making model calls. The current run reuses v3
 qualification; it does not repeat the 76-minute GPU qualification stage.
@@ -26,14 +47,14 @@ For another fresh run, choose a new output directory:
 
 ```bash
 python -u scripts/run_visual_issue75.py all \
-  --output outputs/visual_development/issue75-32k-v5/attempt-002
+  --output outputs/visual_development/issue75-deadline-pilot-v1/attempt-002
 ```
 
 For an interrupted run that has no final `result.json`, use the same directory
 and `--resume`. Resume retains its settings and original monotonic clock,
 including downtime; it replays completed episodes and resumes training from the
 latest checkpoint. A completed result is preserved; use a new directory to rerun.
-Settings are ordinary JSON in `experiment.json`. Each run records a snapshot of
+Pilot settings are ordinary JSON in `pilot.json`. Each run records a snapshot of
 those settings. Changing them does not require a matching approval document.
 
 The runner uses GPUs **0 and 1**, one model process per GPU, with distinct
@@ -54,9 +75,14 @@ Completed probe measurements are saved under
 `qualification/worker-<n>-probes/` even if a later probe stops. These partial
 measurements do not count as complete qualification.
 
-## Cost-ranked shared evaluation panel
+## Historical full-size evaluation panel
 
-The default `cost_panel` is
+The following sections explain the prior full-size configurations and their
+failures. To reproduce that longer scope explicitly, pass
+`--config configs/experiments/issue75/experiment.json`; it has no live time cap
+and is outside the deadline plan.
+
+That configuration's `cost_panel` is
 [`cost-panel-v1.json`](cost-panel-v1.json). It retains **42 of 97 dev task groups**
 and excludes **55**. The retained scope has **54 algorithm/task cases and 864
 condition episodes**: 15 BFS, 15 BFWS, 12 additive w3 and 12 additive greedy cases.
@@ -109,8 +135,8 @@ membership. The runner snapshots it into `attempt.json` and rejects panel change
 on resume. Use a fresh output directory after changing the panel. Qualification,
 reference runs, rollout and adjudication enforce the selected IDs; GPU task
 assignment uses the same cost-weighted placement as the estimate. The #74 corpus,
-its original splits, images and records are not rewritten. This panel is the
-handoff contract for the later matched-modality runs, not completion of #76.
+its original splits, images and records are not rewritten. The deadline pilot manifest now defines the
+smaller handoff to #76; neither manifest is evidence that #76 is complete.
 
 ## Qualification timeout fix
 
@@ -146,7 +172,7 @@ charge backward/optimizer work even to diagnostics, and assume all episodes
 exhaust their call budgets. They also omit separately timed references, adapter
 checks and I/O, so they are not guaranteed wall-time bounds either.
 
-`budget_mode: "advisory"` remains the default. It uses the configured shared
+`budget_mode: "advisory"` remains in the historical full-size configuration. It uses the configured shared
 cost panel, prints the cost projections and does not reject or interrupt a run
 based on elapsed time. Per-episode call/expansion limits, context/memory limits,
 complete-coverage checks and semantic validation remain enforced. This fixes

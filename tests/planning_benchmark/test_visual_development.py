@@ -25,10 +25,12 @@ from examples.planning_benchmark_slice.visual_model import VisualCollator
 from scripts.run_visual_issue75 import commands, main
 
 
-def test_complete_workflow_dry_run_has_no_experiment_writes(capsys):
-    experiment = VisualExperiment()
+def test_complete_workflow_dry_run_has_no_experiment_writes(capsys, tmp_path):
+    output = tmp_path / "dry-run"
+    experiment = VisualExperiment(output=output)
+    arguments = ["--config", str(ROOT / "configs/experiments/issue75/experiment.json"), "--output", str(output)]
     assert not experiment.output.exists()
-    assert main(["all", "--dry-run"]) == 0
+    assert main(["all", "--dry-run", *arguments]) == 0
     report = json.loads(capsys.readouterr().out.splitlines()[-1])
     assert report["writes"] == 0 and not report["model_calls_started"] and not report["scientific_completion"]
     assert report["training_runs"] == 4 and report["training_seed"] == 17
@@ -37,7 +39,7 @@ def test_complete_workflow_dry_run_has_no_experiment_writes(capsys):
     assert set(report["commands"]) == {"qualify", "references", "train", "evaluate", "adjudicate"}
     assert not experiment.output.exists()
     for stage in ("qualify", "references", "train", "evaluate", "adjudicate"):
-        assert main([stage, "--dry-run"]) == 0
+        assert main([stage, "--dry-run", *arguments]) == 0
 
 
 def test_launches_keep_concurrent_gpu_and_backend_ports_distinct():

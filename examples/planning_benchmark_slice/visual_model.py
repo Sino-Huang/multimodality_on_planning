@@ -56,9 +56,12 @@ class VisualPolicy(BatchedPolicyAdapter):
 
 
 class VisualDataset(Dataset):
-    def __init__(self, root, report, algorithm, split="train"):
+    def __init__(self, root, report, algorithm, split="train", record_ids=None):
         self.corpus = ModalityCorpus(root, report)
         self.records = list(self.corpus.records(algorithm=algorithm, split=split))
+        if record_ids is not None:
+            indexed = {r["record_id"]: r for r in self.records}
+            self.records = [indexed[i] for i in record_ids]
 
     def __len__(self):
         return len(self.records)
@@ -136,8 +139,22 @@ def train_visual(config, root, algorithm, output, *, deadline, progress, resume=
     from torch.utils.data import SequentialSampler
     from transformers import Trainer, TrainerCallback, TrainingArguments
 
-    dataset = VisualDataset(root, root / config["corpus_report"], algorithm)
-    diagnostics = VisualDataset(root, root / config["corpus_report"], algorithm, split="dev")
+    from .scene_assets import read_json
+
+    pilot = read_json(root / config["pilot_manifest"]) if config.get("pilot_manifest") else None
+    dataset = VisualDataset(
+        root,
+        root / config["corpus_report"],
+        algorithm,
+        record_ids=pilot["training_record_ids"][algorithm] if pilot else None,
+    )
+    diagnostics = VisualDataset(
+        root,
+        root / config["corpus_report"],
+        algorithm,
+        split="dev",
+        record_ids=pilot["diagnostic_record_ids"][algorithm] if pilot else None,
+    )
     training = config["training"]
     total = math.ceil(len(dataset) / training["global_batch_size"]) * training["epochs"]
     started = time.monotonic()
