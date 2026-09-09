@@ -9,6 +9,7 @@ from pathlib import Path
 from .modality_corpus import ModalityCorpus
 from .modality_view_preparation import write_json
 from .scene_assets import read_json
+from .visual_panel import load_cost_panel
 
 ROOT = Path(__file__).resolve().parents[2]
 ALGORITHMS = ("bfs", "best_first_width", "best_first_add_w3", "best_first_add_greedy")
@@ -61,6 +62,7 @@ class VisualExperiment:
             else:
                 for algorithm, cost in row["reference_costs"].items():
                     self.dev_counts[algorithm] += cost["decisions"]
+        self.cost_panel = load_cost_panel(ROOT / c["cost_panel"], c, self.dev) if c.get("cost_panel") else None
 
     def start(self, resume=False):
         path = self.output / "attempt.json"
@@ -70,13 +72,14 @@ class VisualExperiment:
             if not resume:
                 raise ValueError("interrupted matrix requires --resume; the clock is not reset")
             old = read_json(path)
-            if old["experiment"] != self.config:
+            if old["experiment"] != self.config or old.get("cost_panel") != self.cost_panel:
                 raise ValueError("interrupted experiment differs")
             return old
         if resume and self.output.exists():
             raise ValueError("cannot resume an output without its original attempt clock")
         attempt = {
             "experiment": self.config,
+            "cost_panel": self.cost_panel,
             "started_unix": time.time(),
             "started_monotonic": time.monotonic(),
         }
@@ -105,6 +108,7 @@ class VisualExperiment:
             "stop_new_calls_seconds",
             "rollout_certification_seconds",
             "qualification_source",
+            "cost_panel",
         }
         if {k: v for k, v in previous.items() if k not in bookkeeping} != {
             k: v for k, v in self.config.items() if k not in bookkeeping
@@ -158,10 +162,17 @@ class VisualExperiment:
                 raise ValueError(f"invalid {predecessor} predecessor")
             if predecessor == "qualification":
                 selection = report.get("selection", {})
-                expected = self.dev if selection.get("mode") == "full" else cheapest_panel(self.dev)
+                mode = selection.get("mode")
+                if self.cost_panel and mode != "cost_ranked":
+                    raise ValueError("qualification must use the configured cost-ranked panel")
+                if mode == "cost_ranked" and self.cost_panel:
+                    expected = [r for r in self.dev if r["task_id"] in self.cost_panel["selected_task_ids"]]
+                else:
+                    expected = self.dev if mode == "full" else cheapest_panel(self.dev)
                 devices = report.get("device_qualifications", [])
                 if (
-                    selection.get("mode") not in ("full", "cost_fallback")
+                    mode not in ("full", "cost_fallback", "cost_ranked")
+                    or (mode == "cost_ranked" and not self.cost_panel)
                     or selection.get("task_ids") != [r["task_id"] for r in expected]
                     or len(devices) != len(self.config["devices"])
                     or {d.get("worker") for d in devices} != set(range(len(self.config["devices"])))
@@ -194,6 +205,8 @@ class VisualExperiment:
     def plan(self):
         rows = self.dev
         episodes = sum(len(r["reference_costs"]) for r in rows)
+        selected = [r for r in rows if not self.cost_panel or r["task_id"] in self.cost_panel["selected_task_ids"]]
+        selected_episodes = sum(len(r["reference_costs"]) for r in selected)
         return {
             "outcome": "PASS",
             "dry_run": True,
@@ -206,7 +219,12 @@ class VisualExperiment:
             "optimizer_steps": {a: training_steps(n, self.config["training"]) for a, n in self.train_counts.items()},
             "full_dev_task_groups": len(rows),
             "full_dev_algorithm_episodes": episodes,
-            "planned_condition_episodes": episodes * (1 + 3 * len(self.config["evaluation_seeds"])),
+            "selected_dev_task_groups": len(selected),
+            "selected_dev_algorithm_episodes": selected_episodes,
+            "planned_condition_episodes": selected_episodes * (1 + 3 * len(self.config["evaluation_seeds"])),
+            "cost_panel": self.config.get("cost_panel"),
+            "evaluation_cost": self.cost_panel["evaluation"] if self.cost_panel else None,
+            "training_cost": self.cost_panel["training"] if self.cost_panel else None,
             "fallback_task_groups": len(cheapest_panel(rows)),
             "devices": self.config["devices"],
             "master_ports": self.config["master_ports"],
@@ -252,8 +270,18 @@ def select_coverage(experiment, qualifications):
         / len(qualifications)
     )
     elapsed = time.monotonic() - read_json(experiment.output / "attempt.json")["started_monotonic"]
+    margin = experiment.cost_panel["policy"]["margin"] if experiment.cost_panel else 1.2
     estimates = []
-    for name, rows in [("full", experiment.dev), ("cost_fallback", cheapest_panel(experiment.dev))]:
+    if experiment.cost_panel:
+        panel = experiment.cost_panel
+        candidates = [
+            ("full", experiment.dev),
+            ("cost_ranked", [r for r in experiment.dev if r["task_id"] in panel["selected_task_ids"]]),
+        ]
+        training_seconds = panel["training"]["combined_proxy_wall_seconds"]
+    else:
+        candidates = [("full", experiment.dev), ("cost_fallback", cheapest_panel(experiment.dev))]
+    for name, rows in candidates:
         calls = (
             2
             * 2
@@ -261,7 +289,10 @@ def select_coverage(experiment, qualifications):
             * sum(cost["decisions"] for r in rows for cost in r["reference_costs"].values())
         )
         rollout = calls * seconds_per_call / len(qualifications)
-        projected = elapsed + 1.2 * (training_seconds + rollout)
+        if experiment.cost_panel:
+            key = "full_proxy_wall_seconds" if name == "full" else "selected_proxy_wall_seconds"
+            rollout = experiment.cost_panel["evaluation"][key] / experiment.cost_panel["policy"]["margin"]
+        projected = elapsed + margin * (training_seconds + rollout)
         estimates.append(
             {
                 "mode": name,
@@ -273,10 +304,11 @@ def select_coverage(experiment, qualifications):
             }
         )
         estimates[-1]["fits_reference_budget"] = (
-            projected <= c["stop_new_calls_seconds"] and 1.2 * rollout <= c["rollout_certification_seconds"]
+            projected <= c["stop_new_calls_seconds"] and margin * rollout <= c["rollout_certification_seconds"]
         )
     advisory = c.get("budget_mode", "hard") == "advisory"
-    selection = estimates[0] if advisory else next((e for e in estimates if e["fits_reference_budget"]), None)
+    eligible = estimates[-1:] if experiment.cost_panel else estimates
+    selection = eligible[0] if advisory else next((e for e in eligible if e["fits_reference_budget"]), None)
     report = {
         "contract_id": c["contract_id"],
         "outcome": "PASS" if selection else "VALID_STOP",
@@ -297,6 +329,16 @@ def select_coverage(experiment, qualifications):
         report["selection"] = selection
     else:
         report["reason"] = "stress projection exceeds hard time budget for both panels"
+    if experiment.cost_panel:
+        report.update(
+            cost_panel=c.get("cost_panel"),
+            estimate_kind=experiment.cost_panel["evaluation"]["estimate_kind"],
+            evaluation_cost=experiment.cost_panel["evaluation"],
+            training_cost=experiment.cost_panel["training"],
+            estimate_assumptions=experiment.cost_panel["limitations"],
+        )
+        if not selection:
+            report["reason"] = "configured cost-ranked panel exceeds hard time budget"
     return report
 
 

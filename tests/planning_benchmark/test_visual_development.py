@@ -32,7 +32,8 @@ def test_complete_workflow_dry_run_has_no_experiment_writes(capsys):
     report = json.loads(capsys.readouterr().out.splitlines()[-1])
     assert report["writes"] == 0 and not report["model_calls_started"] and not report["scientific_completion"]
     assert report["training_runs"] == 4 and report["training_seed"] == 17
-    assert report["planned_condition_episodes"] == 1920
+    assert report["selected_dev_task_groups"] == 42
+    assert report["planned_condition_episodes"] == 16 * report["selected_dev_algorithm_episodes"]
     assert set(report["commands"]) == {"qualify", "references", "train", "evaluate", "adjudicate"}
     assert not experiment.output.exists()
     for stage in ("qualify", "references", "train", "evaluate", "adjudicate"):
@@ -64,6 +65,7 @@ def test_research_settings_and_output_override_need_no_approval(tmp_path, capsys
     assert "authorization" not in config
     config["training"]["global_batch_size"] = 16
     config.pop("qualification_source", None)
+    config.pop("cost_panel", None)
     path = tmp_path / "experiment.json"
     write_json(path, config)
     output = tmp_path / "new-run"
@@ -102,6 +104,7 @@ def test_clock_resume_preserves_start_and_finished_attempt_is_immutable(tmp_path
 
 def test_cost_selection_keeps_additive_pairs_and_stops_when_nothing_fits(tmp_path):
     e = VisualExperiment()
+    e.cost_panel = None
     e.config["budget_mode"] = "hard"
     e.output = tmp_path / "run"
     e.start()

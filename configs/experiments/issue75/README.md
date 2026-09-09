@@ -5,8 +5,8 @@ adjudication. Run it directly; no authorization or approval file is required.
 The previous attempts remain preserved: v1 stopped at its qualification time
 limit; v2 ran out of GPU memory at batch size eight. V3 passed hardware
 qualification on both GPUs, then stopped at a conservative runtime estimate.
-None trained or evaluated a policy. V4 reuses that passed hardware qualification
-and makes runtime estimates advisory by default.
+None trained or evaluated a policy. V5 reuses that passed hardware qualification
+and selects a cost-ranked evaluation panel shared across modalities.
 
 ## Run
 
@@ -17,7 +17,7 @@ python -u scripts/run_visual_issue75.py all
 ```
 
 The current configuration writes to a fresh directory:
-`outputs/visual_development/issue75-32k-v4/attempt-001`.
+`outputs/visual_development/issue75-32k-v5/attempt-001`.
 Dry-run checks the reusable qualification and prints child commands without
 writing experiment outputs or making model calls. The current run reuses v3
 qualification; it does not repeat the 76-minute GPU qualification stage.
@@ -26,7 +26,7 @@ For another fresh run, choose a new output directory:
 
 ```bash
 python -u scripts/run_visual_issue75.py all \
-  --output outputs/visual_development/issue75-32k-v4/attempt-002
+  --output outputs/visual_development/issue75-32k-v5/attempt-002
 ```
 
 For an interrupted run that has no final `result.json`, use the same directory
@@ -53,6 +53,64 @@ Qualification logs each scalar, mixed batch, repeated batch and timing operation
 Completed probe measurements are saved under
 `qualification/worker-<n>-probes/` even if a later probe stops. These partial
 measurements do not count as complete qualification.
+
+## Cost-ranked shared evaluation panel
+
+The default `cost_panel` is
+[`cost-panel-v1.json`](cost-panel-v1.json). It retains **42 of 97 dev task groups**
+and excludes **55**. The retained scope has **54 algorithm/task cases and 864
+condition episodes**: 15 BFS, 15 BFWS, 12 additive w3 and 12 additive greedy cases.
+Every available domain/algorithm-family combination remains represented.
+
+Costs use each reference decision's complete visual input-token count and its
+algorithm's measured timing curve. Each curve uses the slower GPU measurement,
+an upper-neighbour lookup and a monotone envelope. Inputs above the largest
+calibration point use proportional extrapolation. This avoids charging short
+inputs the global 93-second maximum. Costs still use full 384-token generations
+and maximum episode call allowances, so they are **proxies, not ETAs**.
+
+Task contexts identify shared problems across algorithms. Those groups, including
+all additive w3/greedy pairs, are selected or removed together. Selection first
+keeps the cheapest groups needed for domain/family coverage, then adds affordable
+groups in cost order. Text, visual and multimodal comparisons must use the same
+saved task membership through `panel_task_ids`; only visual hardware timing has
+been measured. No learned outputs or model success scores drive selection.
+
+| Evaluation quantity | Full | Selected |
+| --- | ---: | ---: |
+| Dev task groups | 97 | 42 |
+| Algorithm/task cases | 120 | 54 |
+| Condition episodes | 1,920 | 864 |
+| Input-weighted cost proxy, two GPUs with margin | 129.4 days | 19.4 days |
+
+Pruning removes about **85% of the evaluation work proxy**. The coverage-preserving
+base already exceeds the 15-hour evaluation target under these assumptions;
+`fits_evaluation_budget` is explicitly false. No domain or algorithm is silently
+dropped to make that flag pass. This does not establish a 20-hour end-to-end run.
+
+The **43,876 training records remain unchanged**, as do the two teacher-loss
+passes over the full dev set. Their costs are reported separately. The retained
+hardware data has only a maximum training-microstep time, so its combined
+training/diagnostic stress projection is about **11.25 days**; no representative
+short-input training ETA is claimed. Evaluation pruning does not eliminate this
+fixed training work.
+
+Rebuild or inspect the panel without model calls:
+
+```bash
+source ~/cd_vlaplan
+python scripts/prepare_visual_cost_panel.py --dry-run
+python scripts/prepare_visual_cost_panel.py --evaluation-hours 15
+```
+
+The manifest records every candidate's input-size statistics, reference counts,
+rank, cost, selected/excluded reason, calibration sources and shared problem
+membership. The runner snapshots it into `attempt.json` and rejects panel changes
+on resume. Use a fresh output directory after changing the panel. Qualification,
+reference runs, rollout and adjudication enforce the selected IDs; GPU task
+assignment uses the same cost-weighted placement as the estimate. The #74 corpus,
+its original splits, images and records are not rewritten. This panel is the
+handoff contract for the later matched-modality runs, not completion of #76.
 
 ## Qualification timeout fix
 
@@ -88,15 +146,15 @@ charge backward/optimizer work even to diagnostics, and assume all episodes
 exhaust their call budgets. They also omit separately timed references, adapter
 checks and I/O, so they are not guaranteed wall-time bounds either.
 
-`budget_mode: "advisory"` is now the default. It keeps the full development
-panel, prints both stress projections and does not reject or interrupt a run
+`budget_mode: "advisory"` remains the default. It uses the configured shared
+cost panel, prints the cost projections and does not reject or interrupt a run
 based on elapsed time. Per-episode call/expansion limits, context/memory limits,
 complete-coverage checks and semantic validation remain enforced. This fixes
 an estimate-based stop; it does not speed up training or establish that the
 experiment will fit within 20 hours. The actual run may be lengthy.
 
 For a strict budget, set `budget_mode` to `"hard"` in `experiment.json`. This
-retains the full-then-cost-fallback selection and enforces the configured
+enforces the configured panel against the time limits in
 `gate_seconds` (20 hours), `stop_new_calls_seconds` (18 hours) and
 `rollout_certification_seconds` (15 hours). Use a fresh output directory when
 changing settings.
@@ -104,7 +162,7 @@ changing settings.
 `qualification_source` points to v3's `qualification.json`. Reuse checks the
 saved model, data, training and device settings and requires complete passed
 probe records from both workers. Their original contract IDs are preserved in
-the new report. Budget and output changes need no new GPU qualification. If you
+the new report. Budget, output and evaluation-panel changes need no new GPU qualification. If you
 change an execution setting such as batch size or attention backend, set
 `qualification_source` to `null` and run fresh qualification. An incomplete or
 failed hardware qualification is never bypassed by advisory mode.
@@ -171,13 +229,12 @@ teacher-forced dev-loss diagnostics; only the final adapter is evaluated in
 rollout. Inference uses float32, 32,768 context tokens with 384 reserved for
 output, and batches of at most **two requests / 24,000 padded input tokens**.
 
-The stages are qualification, cost-only panel selection, references, training,
-model evaluation and independent replay/adjudication. In hard-budget mode, if the full dev workload
-cannot fit, selection tries the predeclared cheapest complete task per
-domain/family (42 task groups), keeping additive settings paired. Advisory mode
-keeps the full panel. Selection never
-uses model success and retains the complete training set. Later matched
-modalities must use the same selected panel for a comparison.
+The stages are qualification, panel binding, references, training, model
+evaluation and independent replay/adjudication. The configured cost panel is used
+in both advisory and hard-budget modes; hard mode can reject it when it exceeds
+the configured limits. Without a cost panel, the older full/fallback selection
+is still available. Later matched modalities must consume the same saved panel
+for a valid comparison.
 
 Every episode has twice its exact-reference decision-call allowance and a
 separate expansion limit. Deterministic rounds issue at most one request per

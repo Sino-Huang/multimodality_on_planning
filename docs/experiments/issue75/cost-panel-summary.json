@@ -1,0 +1,78 @@
+{
+  "issue": 75,
+  "contract_id": "issue-75-visual-development-32k-v5",
+  "panel": "configs/experiments/issue75/cost-panel-v1.json",
+  "selected_dev_task_groups": 42,
+  "excluded_dev_task_groups": 55,
+  "selected_algorithm_task_cases": 54,
+  "planned_condition_episodes": 864,
+  "training_records_unchanged": 43876,
+  "model_outcomes_used_for_selection": false,
+  "evaluation": {
+    "estimate_kind": "reference_input_full_output_cost_proxy_not_eta",
+    "full_proxy_wall_seconds": 11177833.320825476,
+    "selected_proxy_wall_seconds": 1676611.9949049912,
+    "coverage_floor_proxy_wall_seconds": 1676611.9949049912,
+    "fits_evaluation_budget": false,
+    "proxy_work_reduction_percent": 85.00279908613105
+  },
+  "training_estimate": {
+    "corpus_changed": false,
+    "estimate_kind": "global_max_microstep_stress_not_eta",
+    "settings": [
+      {
+        "algorithm": "bfs",
+        "training_records": 11911,
+        "optimizer_steps": 746,
+        "training_proxy_gpu_seconds": 285717.31242492795,
+        "full_dev_diagnostic_records_per_pass": 12115,
+        "diagnostic_proxy_gpu_seconds": 290610.80010309815,
+        "worker": 0
+      },
+      {
+        "algorithm": "best_first_width",
+        "training_records": 14225,
+        "optimizer_steps": 890,
+        "training_proxy_gpu_seconds": 341224.8148135841,
+        "full_dev_diagnostic_records_per_pass": 6435,
+        "diagnostic_proxy_gpu_seconds": 154360.75102463365,
+        "worker": 1
+      },
+      {
+        "algorithm": "best_first_add_w3",
+        "training_records": 9398,
+        "optimizer_steps": 588,
+        "training_proxy_gpu_seconds": 225436.26078158617,
+        "full_dev_diagnostic_records_per_pass": 7095,
+        "diagnostic_proxy_gpu_seconds": 170192.62292459607,
+        "worker": 0
+      },
+      {
+        "algorithm": "best_first_add_greedy",
+        "training_records": 8342,
+        "optimizer_steps": 522,
+        "training_proxy_gpu_seconds": 200105.2657416463,
+        "full_dev_diagnostic_records_per_pass": 6696,
+        "diagnostic_proxy_gpu_seconds": 160621.53673052788,
+        "worker": 1
+      }
+    ],
+    "training_proxy_wall_seconds": 541330.0805552304,
+    "full_dev_diagnostic_proxy_wall_seconds": 460803.4230276942,
+    "combined_proxy_wall_seconds": 971956.9962342083
+  },
+  "verification": {
+    "focused_tests_passed": 44,
+    "test_seconds": 47.6,
+    "black": "PASS",
+    "ruff": "PASS",
+    "basedpyright": "PASS",
+    "panel_dry_run": "PASS",
+    "matrix_dry_run": "PASS",
+    "qualified_panel_binding": "PASS"
+  },
+  "gpu_model_calls": 0,
+  "full_experiment_started": false,
+  "scientific_completion": false,
+  "evidence": "outputs/visual_development/issue75-cost-panel-check-001"
+}

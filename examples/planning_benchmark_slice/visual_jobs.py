@@ -14,6 +14,7 @@ from .scene_assets import read_json
 from .visual_episode import VisualSession, VisualTaskViews, replay_visual_episode
 from .visual_experiment import ALGORITHMS, ROOT
 from .visual_model import VisualCollator, VisualDataset, VisualPolicy, load_training_model
+from .visual_panel import partition_tasks
 
 
 def select_probes(experiment):
@@ -242,12 +243,10 @@ def selected_rows(experiment):
 def jobs_for(experiment, reference, worker, workers):
     rows = selected_rows(experiment)
     # Whole task groups remain together, including both additive settings.
-    loads = [0] * workers
-    partitions = [[] for _ in range(workers)]
-    for row in sorted(rows, key=lambda r: (-sum(c["decisions"] for c in r["reference_costs"].values()), r["task_id"])):
-        slot = min(range(workers), key=lambda j: (loads[j], j))
-        partitions[slot].append(row)
-        loads[slot] += sum(c["decisions"] for c in row["reference_costs"].values())
+    costs = {r["task_id"]: sum(c["decisions"] for c in r["reference_costs"].values()) for r in rows}
+    if experiment.cost_panel and not reference:
+        costs = {t["task_id"]: t["proxy_gpu_seconds"] for t in experiment.cost_panel["tasks"]}
+    partitions, _ = partition_tasks(rows, workers, costs)
     jobs = []
     arms = ("exact_reference", "random_valid") if reference else ("pretrained_base", "process_sft")
     for algorithm in ALGORITHMS:

@@ -20,8 +20,8 @@ def test_advisory_estimate_does_not_reject_passed_hardware_qualification(tmp_pat
     assert all(q["outcome"] == "PASS" for q in source["device_qualifications"])
     report = select_coverage(experiment, source["device_qualifications"])
     assert report["outcome"] == "PASS"
-    assert report["selection"]["mode"] == "full"
-    assert len(report["selection"]["task_ids"]) == 97
+    assert report["selection"]["mode"] == "cost_ranked"
+    assert len(report["selection"]["task_ids"]) == 42
     assert report["estimates"][0]["projected_total_seconds"] > experiment.config["gate_seconds"]
 
 
@@ -32,7 +32,7 @@ def test_hard_budget_still_reports_the_measured_rejection(tmp_path):
     report = select_coverage(experiment, read_json(SOURCE)["device_qualifications"])
     assert report["outcome"] == "VALID_STOP"
     assert report["hardware_qualification"] == "PASS"
-    assert report["estimate_kind"] == "stress_projection_not_eta"
+    assert report["estimate_kind"] == "reference_input_full_output_cost_proxy_not_eta"
     assert not any(e["fits_reference_budget"] for e in report["estimates"])
 
 
@@ -74,7 +74,7 @@ def test_public_qualification_reuse_runs_without_launching_models(tmp_path, monk
     report = read_json(output / "qualification.json")
     assert report["outcome"] == "PASS" and report["budget_mode"] == "advisory"
     assert report["qualification_contract_id"] == "issue-75-visual-development-32k-v3"
-    assert len(report["selection"]["task_ids"]) == 97
+    assert len(report["selection"]["task_ids"]) == 42
     assert not (output / "result.json").exists()
 
 

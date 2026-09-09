@@ -1,0 +1,3772 @@
+{
+  "schema": "shared_cost_panel_v1",
+  "outcome": "PASS",
+  "scientific_completion": false,
+  "corpus_report": "outputs/modality_corpus/issue74-matched-32k-v1/release-001/report.json",
+  "source_qualification": "outputs/visual_development/issue75-32k-v3/attempt-001/qualification.json",
+  "qualification_contract_id": "issue-75-visual-development-32k-v3",
+  "cost_basis_modality": "visual-state",
+  "modalities": [
+    "text-state",
+    "visual-state",
+    "multimodal-state"
+  ],
+  "model_outcomes_used_for_selection": false,
+  "policy": {
+    "evaluation_budget_seconds": 54000,
+    "margin": 1.2,
+    "coverage": "one whole problem group per available domain/algorithm family, then cheapest additions",
+    "calibration": "per-algorithm monotone upper-neighbour input-size curve; proportional extrapolation above last probe",
+    "call_multiplier": 20,
+    "device_count": 2
+  },
+  "selected_task_ids": [
+    "astar-pair-051fdbd100fbacd0ec37c6bd",
+    "astar-pair-12081de85b7805e93ea9c5ec",
+    "astar-pair-15205002a905be45f6de13ba",
+    "astar-pair-1ade7fc9f40863f1c7f8ab28",
+    "astar-pair-2f0e9c94cb201b472f3c22ca",
+    "astar-pair-39c476766409cc3a2d68a6ef",
+    "astar-pair-6171b339e4cb4134c758558d",
+    "astar-pair-7bd5e7f0ad6f979dee4756cb",
+    "astar-pair-b24e907353a060c05285227f",
+    "astar-pair-b59a82d550893559e72e3eb5",
+    "astar-pair-f26ec7b6805ca59777107b77",
+    "astar-pair-f8eddbc6c32516f0586eadd1",
+    "best_first_width/15puzzle-train-easy-0091",
+    "best_first_width/blocksworld-train-easy-0086",
+    "best_first_width/depot-train-medium-0014",
+    "best_first_width/driverlog-train-medium-0077",
+    "best_first_width/elevators-train-easy-0040",
+    "best_first_width/ferry-train-easy-0039",
+    "best_first_width/freecell-train-easy-0057",
+    "best_first_width/grid-train-easy-0086",
+    "best_first_width/gripper-train-easy-0020",
+    "best_first_width/logistics-train-easy-0066",
+    "best_first_width/snake-train-medium-0070",
+    "best_first_width/sokoban-train-medium-0057",
+    "best_first_width/storage-train-easy-0004",
+    "best_first_width/towers_of_hanoi-train-easy-0059",
+    "best_first_width/visitall-train-easy-0020",
+    "bfs/15puzzle-dev-easy-0000",
+    "bfs/blocksworld-dev-easy-0000",
+    "bfs/depot-dev-easy-0000",
+    "bfs/driverlog-dev-easy-0000",
+    "bfs/elevators-dev-easy-0000",
+    "bfs/ferry-dev-easy-0000",
+    "bfs/freecell-dev-easy-0000",
+    "bfs/grid-dev-easy-0000",
+    "bfs/gripper-dev-easy-0000",
+    "bfs/logistics-dev-easy-0000",
+    "bfs/snake-dev-easy-0000",
+    "bfs/sokoban-dev-easy-0000",
+    "bfs/storage-dev-easy-0000",
+    "bfs/towers_of_hanoi-dev-easy-0000",
+    "bfs/visitall-dev-easy-0000"
+  ],
+  "excluded_task_ids": [
+    "astar-pair-1957c98ec374a1aabc24ead1",
+    "astar-pair-48e4e2038f5443ea4e720c87",
+    "astar-pair-596aea50549b5d145900c791",
+    "astar-pair-6e86542e71a4e886a3206800",
+    "astar-pair-848763f2407cee58328339d3",
+    "astar-pair-91e111bd7f3e3b0915798450",
+    "astar-pair-9a5aedca496cf39ce562443e",
+    "astar-pair-cd52ad7ea95f66092a00388e",
+    "astar-pair-e234ab366482ad80703c71f7",
+    "astar-pair-e6a3347bbbc25d3eb1abd5e0",
+    "astar-pair-ec82a9ef4b15093fffe787a0",
+    "best_first_width/15puzzle-train-medium-0001",
+    "best_first_width/blocksworld-train-medium-0112",
+    "best_first_width/depot-train-easy-0088",
+    "best_first_width/elevators-train-hard-0043",
+    "best_first_width/elevators-train-medium-0004",
+    "best_first_width/ferry-train-hard-0028",
+    "best_first_width/ferry-train-medium-0035",
+    "best_first_width/freecell-train-medium-0010",
+    "best_first_width/snake-train-easy-0126",
+    "best_first_width/snake-train-hard-0006",
+    "best_first_width/sokoban-train-easy-0029",
+    "best_first_width/sokoban-train-hard-0062",
+    "best_first_width/towers_of_hanoi-train-medium-0046",
+    "best_first_width/visitall-train-medium-0061",
+    "bfs/15puzzle-dev-hard-0000",
+    "bfs/15puzzle-dev-medium-0000",
+    "bfs/blocksworld-dev-hard-0000",
+    "bfs/blocksworld-dev-medium-0000",
+    "bfs/depot-dev-hard-0000",
+    "bfs/depot-dev-medium-0000",
+    "bfs/driverlog-dev-hard-0000",
+    "bfs/driverlog-dev-medium-0000",
+    "bfs/elevators-dev-hard-0000",
+    "bfs/elevators-dev-medium-0000",
+    "bfs/ferry-dev-hard-0000",
+    "bfs/ferry-dev-medium-0000",
+    "bfs/freecell-dev-hard-0000",
+    "bfs/freecell-dev-medium-0000",
+    "bfs/grid-dev-hard-0000",
+    "bfs/grid-dev-medium-0000",
+    "bfs/gripper-dev-hard-0000",
+    "bfs/gripper-dev-medium-0000",
+    "bfs/logistics-dev-hard-0000",
+    "bfs/logistics-dev-medium-0000",
+    "bfs/snake-dev-hard-0000",
+    "bfs/snake-dev-medium-0000",
+    "bfs/sokoban-dev-hard-0000",
+    "bfs/sokoban-dev-medium-0000",
+    "bfs/storage-dev-hard-0000",
+    "bfs/storage-dev-medium-0000",
+    "bfs/towers_of_hanoi-dev-hard-0000",
+    "bfs/towers_of_hanoi-dev-medium-0000",
+    "bfs/visitall-dev-hard-0000",
+    "bfs/visitall-dev-medium-0000"
+  ],
+  "matched_problem_groups": [
+    [
+      "astar-pair-051fdbd100fbacd0ec37c6bd",
+      "best_first_width/gripper-train-easy-0020"
+    ],
+    [
+      "astar-pair-12081de85b7805e93ea9c5ec",
+      "best_first_width/storage-train-easy-0004",
+      "bfs/storage-dev-easy-0000"
+    ],
+    [
+      "astar-pair-15205002a905be45f6de13ba",
+      "best_first_width/blocksworld-train-easy-0086"
+    ],
+    [
+      "astar-pair-1957c98ec374a1aabc24ead1",
+      "best_first_width/ferry-train-medium-0035"
+    ],
+    [
+      "astar-pair-1ade7fc9f40863f1c7f8ab28",
+      "best_first_width/grid-train-easy-0086"
+    ],
+    [
+      "astar-pair-2f0e9c94cb201b472f3c22ca",
+      "best_first_width/visitall-train-easy-0020"
+    ],
+    [
+      "astar-pair-39c476766409cc3a2d68a6ef",
+      "best_first_width/ferry-train-easy-0039"
+    ],
+    [
+      "astar-pair-48e4e2038f5443ea4e720c87"
+    ],
+    [
+      "astar-pair-596aea50549b5d145900c791"
+    ],
+    [
+      "astar-pair-6171b339e4cb4134c758558d",
+      "best_first_width/towers_of_hanoi-train-easy-0059"
+    ],
+    [
+      "astar-pair-6e86542e71a4e886a3206800",
+      "best_first_width/ferry-train-hard-0028"
+    ],
+    [
+      "astar-pair-7bd5e7f0ad6f979dee4756cb",
+      "best_first_width/elevators-train-easy-0040"
+    ],
+    [
+      "astar-pair-848763f2407cee58328339d3",
+      "best_first_width/elevators-train-medium-0004"
+    ],
+    [
+      "astar-pair-91e111bd7f3e3b0915798450",
+      "best_first_width/towers_of_hanoi-train-medium-0046"
+    ],
+    [
+      "astar-pair-9a5aedca496cf39ce562443e",
+      "best_first_width/elevators-train-hard-0043"
+    ],
+    [
+      "astar-pair-b24e907353a060c05285227f",
+      "best_first_width/logistics-train-easy-0066"
+    ],
+    [
+      "astar-pair-b59a82d550893559e72e3eb5",
+      "best_first_width/depot-train-medium-0014"
+    ],
+    [
+      "astar-pair-cd52ad7ea95f66092a00388e",
+      "best_first_width/depot-train-easy-0088"
+    ],
+    [
+      "astar-pair-e234ab366482ad80703c71f7"
+    ],
+    [
+      "astar-pair-e6a3347bbbc25d3eb1abd5e0",
+      "best_first_width/15puzzle-train-medium-0001"
+    ],
+    [
+      "astar-pair-ec82a9ef4b15093fffe787a0",
+      "best_first_width/blocksworld-train-medium-0112"
+    ],
+    [
+      "astar-pair-f26ec7b6805ca59777107b77",
+      "best_first_width/driverlog-train-medium-0077"
+    ],
+    [
+      "astar-pair-f8eddbc6c32516f0586eadd1",
+      "best_first_width/15puzzle-train-easy-0091"
+    ],
+    [
+      "best_first_width/freecell-train-easy-0057"
+    ],
+    [
+      "best_first_width/freecell-train-medium-0010"
+    ],
+    [
+      "best_first_width/snake-train-easy-0126"
+    ],
+    [
+      "best_first_width/snake-train-hard-0006"
+    ],
+    [
+      "best_first_width/snake-train-medium-0070"
+    ],
+    [
+      "best_first_width/sokoban-train-easy-0029"
+    ],
+    [
+      "best_first_width/sokoban-train-hard-0062"
+    ],
+    [
+      "best_first_width/sokoban-train-medium-0057"
+    ],
+    [
+      "best_first_width/visitall-train-medium-0061"
+    ],
+    [
+      "bfs/15puzzle-dev-easy-0000"
+    ],
+    [
+      "bfs/15puzzle-dev-hard-0000"
+    ],
+    [
+      "bfs/15puzzle-dev-medium-0000"
+    ],
+    [
+      "bfs/blocksworld-dev-easy-0000"
+    ],
+    [
+      "bfs/blocksworld-dev-hard-0000"
+    ],
+    [
+      "bfs/blocksworld-dev-medium-0000"
+    ],
+    [
+      "bfs/depot-dev-easy-0000"
+    ],
+    [
+      "bfs/depot-dev-hard-0000"
+    ],
+    [
+      "bfs/depot-dev-medium-0000"
+    ],
+    [
+      "bfs/driverlog-dev-easy-0000"
+    ],
+    [
+      "bfs/driverlog-dev-hard-0000"
+    ],
+    [
+      "bfs/driverlog-dev-medium-0000"
+    ],
+    [
+      "bfs/elevators-dev-easy-0000"
+    ],
+    [
+      "bfs/elevators-dev-hard-0000"
+    ],
+    [
+      "bfs/elevators-dev-medium-0000"
+    ],
+    [
+      "bfs/ferry-dev-easy-0000"
+    ],
+    [
+      "bfs/ferry-dev-hard-0000"
+    ],
+    [
+      "bfs/ferry-dev-medium-0000"
+    ],
+    [
+      "bfs/freecell-dev-easy-0000"
+    ],
+    [
+      "bfs/freecell-dev-hard-0000"
+    ],
+    [
+      "bfs/freecell-dev-medium-0000"
+    ],
+    [
+      "bfs/grid-dev-easy-0000"
+    ],
+    [
+      "bfs/grid-dev-hard-0000"
+    ],
+    [
+      "bfs/grid-dev-medium-0000"
+    ],
+    [
+      "bfs/gripper-dev-easy-0000"
+    ],
+    [
+      "bfs/gripper-dev-hard-0000"
+    ],
+    [
+      "bfs/gripper-dev-medium-0000"
+    ],
+    [
+      "bfs/logistics-dev-easy-0000"
+    ],
+    [
+      "bfs/logistics-dev-hard-0000"
+    ],
+    [
+      "bfs/logistics-dev-medium-0000"
+    ],
+    [
+      "bfs/snake-dev-easy-0000"
+    ],
+    [
+      "bfs/snake-dev-hard-0000"
+    ],
+    [
+      "bfs/snake-dev-medium-0000"
+    ],
+    [
+      "bfs/sokoban-dev-easy-0000"
+    ],
+    [
+      "bfs/sokoban-dev-hard-0000"
+    ],
+    [
+      "bfs/sokoban-dev-medium-0000"
+    ],
+    [
+      "bfs/storage-dev-hard-0000"
+    ],
+    [
+      "bfs/storage-dev-medium-0000"
+    ],
+    [
+      "bfs/towers_of_hanoi-dev-easy-0000"
+    ],
+    [
+      "bfs/towers_of_hanoi-dev-hard-0000"
+    ],
+    [
+      "bfs/towers_of_hanoi-dev-medium-0000"
+    ],
+    [
+      "bfs/visitall-dev-easy-0000"
+    ],
+    [
+      "bfs/visitall-dev-hard-0000"
+    ],
+    [
+      "bfs/visitall-dev-medium-0000"
+    ]
+  ],
+  "tasks": [
+    {
+      "task_id": "astar-pair-596aea50549b5d145900c791",
+      "domain": "blocksworld",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-596aea50549b5d145900c791/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-596aea50549b5d145900c791/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 893,
+          "expansions": 146
+        },
+        "best_first_add_w3": {
+          "decisions": 905,
+          "expansions": 149
+        }
+      },
+      "settings": {
+        "best_first_add_greedy": {
+          "reference_decisions": 893,
+          "maximum_model_calls": 17860,
+          "mean_input_tokens": 4041.4456886898097,
+          "maximum_input_tokens": 4236,
+          "reference_input_proxy_gpu_seconds": 492284.6714058425
+        },
+        "best_first_add_w3": {
+          "reference_decisions": 905,
+          "maximum_model_calls": 18100,
+          "mean_input_tokens": 4047.750276243094,
+          "maximum_input_tokens": 4247,
+          "reference_input_proxy_gpu_seconds": 502375.6783776451
+        }
+      },
+      "proxy_gpu_seconds": 994660.3497834876,
+      "cost_rank_descending": 1,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "astar-pair-cd52ad7ea95f66092a00388e",
+      "domain": "depot",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-cd52ad7ea95f66092a00388e/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-cd52ad7ea95f66092a00388e/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 923,
+          "expansions": 105
+        },
+        "best_first_add_w3": {
+          "decisions": 783,
+          "expansions": 89
+        }
+      },
+      "settings": {
+        "best_first_add_greedy": {
+          "reference_decisions": 923,
+          "maximum_model_calls": 18460,
+          "mean_input_tokens": 4929.950162513543,
+          "maximum_input_tokens": 5160,
+          "reference_input_proxy_gpu_seconds": 508822.7902660612
+        },
+        "best_first_add_w3": {
+          "reference_decisions": 783,
+          "maximum_model_calls": 15660,
+          "mean_input_tokens": 4939.348659003831,
+          "maximum_input_tokens": 5156,
+          "reference_input_proxy_gpu_seconds": 434652.1062648576
+        }
+      },
+      "proxy_gpu_seconds": 943474.8965309188,
+      "cost_rank_descending": 2,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "astar-pair-e6a3347bbbc25d3eb1abd5e0",
+      "domain": "15puzzle",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-e6a3347bbbc25d3eb1abd5e0/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-e6a3347bbbc25d3eb1abd5e0/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 554,
+          "expansions": 188
+        },
+        "best_first_add_w3": {
+          "decisions": 918,
+          "expansions": 312
+        }
+      },
+      "settings": {
+        "best_first_add_greedy": {
+          "reference_decisions": 554,
+          "maximum_model_calls": 11080,
+          "mean_input_tokens": 4167.380866425993,
+          "maximum_input_tokens": 4275,
+          "reference_input_proxy_gpu_seconds": 305403.9282853715
+        },
+        "best_first_add_w3": {
+          "reference_decisions": 918,
+          "maximum_model_calls": 18360,
+          "mean_input_tokens": 4181.754901960784,
+          "maximum_input_tokens": 4285,
+          "reference_input_proxy_gpu_seconds": 509592.12458638474
+        }
+      },
+      "proxy_gpu_seconds": 814996.0528717563,
+      "cost_rank_descending": 3,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "astar-pair-91e111bd7f3e3b0915798450",
+      "domain": "towers_of_hanoi",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-91e111bd7f3e3b0915798450/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-91e111bd7f3e3b0915798450/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 599,
+          "expansions": 200
+        },
+        "best_first_add_w3": {
+          "decisions": 779,
+          "expansions": 260
+        }
+      },
+      "settings": {
+        "best_first_add_greedy": {
+          "reference_decisions": 599,
+          "maximum_model_calls": 11980,
+          "mean_input_tokens": 4012.193656093489,
+          "maximum_input_tokens": 4102,
+          "reference_input_proxy_gpu_seconds": 329902.9713795427
+        },
+        "best_first_add_w3": {
+          "reference_decisions": 779,
+          "maximum_model_calls": 15580,
+          "mean_input_tokens": 4025.4903722721438,
+          "maximum_input_tokens": 4101,
+          "reference_input_proxy_gpu_seconds": 432431.66127755307
+        }
+      },
+      "proxy_gpu_seconds": 762334.6326570958,
+      "cost_rank_descending": 4,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "astar-pair-48e4e2038f5443ea4e720c87",
+      "domain": "gripper",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-48e4e2038f5443ea4e720c87/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-48e4e2038f5443ea4e720c87/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 622,
+          "expansions": 51
+        },
+        "best_first_add_w3": {
+          "decisions": 622,
+          "expansions": 51
+        }
+      },
+      "settings": {
+        "best_first_add_greedy": {
+          "reference_decisions": 622,
+          "maximum_model_calls": 12440,
+          "mean_input_tokens": 4995.344051446946,
+          "maximum_input_tokens": 5510,
+          "reference_input_proxy_gpu_seconds": 347868.2317472063
+        },
+        "best_first_add_w3": {
+          "reference_decisions": 622,
+          "maximum_model_calls": 12440,
+          "mean_input_tokens": 5008.887459807074,
+          "maximum_input_tokens": 5553,
+          "reference_input_proxy_gpu_seconds": 349434.69099724665
+        }
+      },
+      "proxy_gpu_seconds": 697302.922744453,
+      "cost_rank_descending": 5,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "astar-pair-6e86542e71a4e886a3206800",
+      "domain": "ferry",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-6e86542e71a4e886a3206800/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-6e86542e71a4e886a3206800/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 629,
+          "expansions": 89
+        },
+        "best_first_add_w3": {
+          "decisions": 610,
+          "expansions": 85
+        }
+      },
+      "settings": {
+        "best_first_add_greedy": {
+          "reference_decisions": 629,
+          "maximum_model_calls": 12580,
+          "mean_input_tokens": 4035.9030206677267,
+          "maximum_input_tokens": 4246,
+          "reference_input_proxy_gpu_seconds": 346749.2254359182
+        },
+        "best_first_add_w3": {
+          "reference_decisions": 610,
+          "maximum_model_calls": 12200,
+          "mean_input_tokens": 4037.077049180328,
+          "maximum_input_tokens": 4244,
+          "reference_input_proxy_gpu_seconds": 338617.8605639376
+        }
+      },
+      "proxy_gpu_seconds": 685367.0859998558,
+      "cost_rank_descending": 6,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "astar-pair-e234ab366482ad80703c71f7",
+      "domain": "logistics",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-e234ab366482ad80703c71f7/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-e234ab366482ad80703c71f7/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 584,
+          "expansions": 42
+        },
+        "best_first_add_w3": {
+          "decisions": 584,
+          "expansions": 42
+        }
+      },
+      "settings": {
+        "best_first_add_greedy": {
+          "reference_decisions": 584,
+          "maximum_model_calls": 11680,
+          "mean_input_tokens": 4325.506849315068,
+          "maximum_input_tokens": 4723,
+          "reference_input_proxy_gpu_seconds": 321942.0471455902
+        },
+        "best_first_add_w3": {
+          "reference_decisions": 584,
+          "maximum_model_calls": 11680,
+          "mean_input_tokens": 4337.481164383562,
+          "maximum_input_tokens": 4757,
+          "reference_input_proxy_gpu_seconds": 324184.96814645827
+        }
+      },
+      "proxy_gpu_seconds": 646127.0152920485,
+      "cost_rank_descending": 7,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "bfs/towers_of_hanoi-dev-hard-0000",
+      "domain": "towers_of_hanoi",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/towers_of_hanoi/hard/towers_of_hanoi-dev-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 918,
+          "expansions": 675
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 918,
+          "maximum_model_calls": 18360,
+          "mean_input_tokens": 4317.945533769063,
+          "maximum_input_tokens": 4320,
+          "reference_input_proxy_gpu_seconds": 535640.5999813601
+        }
+      },
+      "proxy_gpu_seconds": 535640.5999813601,
+      "cost_rank_descending": 8,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "bfs/driverlog-dev-hard-0000",
+      "domain": "driverlog",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/driverlog/hard/driverlog-dev-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 768,
+          "expansions": 541
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 768,
+          "maximum_model_calls": 15360,
+          "mean_input_tokens": 4056.25390625,
+          "maximum_input_tokens": 4166,
+          "reference_input_proxy_gpu_seconds": 448117.6261281967
+        }
+      },
+      "proxy_gpu_seconds": 448117.6261281967,
+      "cost_rank_descending": 9,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "best_first_width/visitall-train-medium-0061",
+      "domain": "visitall",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/visitall/medium/dev/visitall-train-medium-0061/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 237,
+          "expansions": 86
+        }
+      },
+      "settings": {
+        "best_first_width": {
+          "reference_decisions": 237,
+          "maximum_model_calls": 4740,
+          "mean_input_tokens": 15702.54430379747,
+          "maximum_input_tokens": 16751,
+          "reference_input_proxy_gpu_seconds": 440896.4299223386
+        }
+      },
+      "proxy_gpu_seconds": 440896.4299223386,
+      "cost_rank_descending": 10,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "best_first_width/15puzzle-train-medium-0001",
+      "domain": "15puzzle",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/15puzzle/medium/dev/15puzzle-train-medium-0001/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 734,
+          "expansions": 432
+        }
+      },
+      "settings": {
+        "best_first_width": {
+          "reference_decisions": 734,
+          "maximum_model_calls": 14680,
+          "mean_input_tokens": 4562.24523160763,
+          "maximum_input_tokens": 4803,
+          "reference_input_proxy_gpu_seconds": 437144.029033836
+        }
+      },
+      "proxy_gpu_seconds": 437144.029033836,
+      "cost_rank_descending": 11,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "best_first_width/driverlog-train-medium-0077",
+      "domain": "driverlog",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/driverlog/medium/dev/driverlog-train-medium-0077/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 707,
+          "expansions": 171
+        }
+      },
+      "settings": {
+        "best_first_width": {
+          "reference_decisions": 707,
+          "maximum_model_calls": 14140,
+          "mean_input_tokens": 5054.0509193776525,
+          "maximum_input_tokens": 5531,
+          "reference_input_proxy_gpu_seconds": 421063.79908300005
+        }
+      },
+      "proxy_gpu_seconds": 421063.79908300005,
+      "cost_rank_descending": 12,
+      "selected": true,
+      "selection_reason": "coverage_floor"
+    },
+    {
+      "task_id": "bfs/gripper-dev-hard-0000",
+      "domain": "gripper",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/gripper/hard/gripper-dev-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 935,
+          "expansions": 702
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 935,
+          "maximum_model_calls": 18700,
+          "mean_input_tokens": 3496.5882352941176,
+          "maximum_input_tokens": 3965,
+          "reference_input_proxy_gpu_seconds": 418839.77825687267
+        }
+      },
+      "proxy_gpu_seconds": 418839.77825687267,
+      "cost_rank_descending": 13,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "astar-pair-b59a82d550893559e72e3eb5",
+      "domain": "depot",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-b59a82d550893559e72e3eb5/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-b59a82d550893559e72e3eb5/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 372,
+          "expansions": 44
+        },
+        "best_first_add_w3": {
+          "decisions": 372,
+          "expansions": 44
+        }
+      },
+      "settings": {
+        "best_first_add_greedy": {
+          "reference_decisions": 372,
+          "maximum_model_calls": 7440,
+          "mean_input_tokens": 4910.897849462365,
+          "maximum_input_tokens": 5144,
+          "reference_input_proxy_gpu_seconds": 205072.67386671156
+        },
+        "best_first_add_w3": {
+          "reference_decisions": 372,
+          "maximum_model_calls": 7440,
+          "mean_input_tokens": 4920.919354838709,
+          "maximum_input_tokens": 5160,
+          "reference_input_proxy_gpu_seconds": 206536.59988263622
+        }
+      },
+      "proxy_gpu_seconds": 411609.2737493478,
+      "cost_rank_descending": 14,
+      "selected": true,
+      "selection_reason": "coverage_floor"
+    },
+    {
+      "task_id": "best_first_width/elevators-train-hard-0043",
+      "domain": "elevators",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/elevators/hard/dev/elevators-train-hard-0043/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 676,
+          "expansions": 250
+        }
+      },
+      "settings": {
+        "best_first_width": {
+          "reference_decisions": 676,
+          "maximum_model_calls": 13520,
+          "mean_input_tokens": 5271.748520710059,
+          "maximum_input_tokens": 5652,
+          "reference_input_proxy_gpu_seconds": 402601.3128431514
+        }
+      },
+      "proxy_gpu_seconds": 402601.3128431514,
+      "cost_rank_descending": 15,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "astar-pair-9a5aedca496cf39ce562443e",
+      "domain": "elevators",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-9a5aedca496cf39ce562443e/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-9a5aedca496cf39ce562443e/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 338,
+          "expansions": 28
+        },
+        "best_first_add_w3": {
+          "decisions": 338,
+          "expansions": 28
+        }
+      },
+      "settings": {
+        "best_first_add_greedy": {
+          "reference_decisions": 338,
+          "maximum_model_calls": 6760,
+          "mean_input_tokens": 4862.369822485207,
+          "maximum_input_tokens": 5116,
+          "reference_input_proxy_gpu_seconds": 186329.47249179706
+        },
+        "best_first_add_w3": {
+          "reference_decisions": 338,
+          "maximum_model_calls": 6760,
+          "mean_input_tokens": 4869.136094674556,
+          "maximum_input_tokens": 5116,
+          "reference_input_proxy_gpu_seconds": 187627.60142723098
+        }
+      },
+      "proxy_gpu_seconds": 373957.07391902804,
+      "cost_rank_descending": 16,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "bfs/blocksworld-dev-hard-0000",
+      "domain": "blocksworld",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/blocksworld/hard/blocksworld-dev-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 729,
+          "expansions": 498
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 729,
+          "maximum_model_calls": 14580,
+          "mean_input_tokens": 3673.923182441701,
+          "maximum_input_tokens": 3819,
+          "reference_input_proxy_gpu_seconds": 373510.22441393696
+        }
+      },
+      "proxy_gpu_seconds": 373510.22441393696,
+      "cost_rank_descending": 17,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "bfs/depot-dev-hard-0000",
+      "domain": "depot",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/depot/hard/depot-dev-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 588,
+          "expansions": 411
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 588,
+          "maximum_model_calls": 11760,
+          "mean_input_tokens": 6263.501700680272,
+          "maximum_input_tokens": 6614,
+          "reference_input_proxy_gpu_seconds": 361105.4012712091
+        }
+      },
+      "proxy_gpu_seconds": 361105.4012712091,
+      "cost_rank_descending": 18,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "bfs/storage-dev-hard-0000",
+      "domain": "storage",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/storage/hard/storage-dev-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 524,
+          "expansions": 262
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 524,
+          "maximum_model_calls": 10480,
+          "mean_input_tokens": 6321.125954198474,
+          "maximum_input_tokens": 7813,
+          "reference_input_proxy_gpu_seconds": 335867.87054193206
+        }
+      },
+      "proxy_gpu_seconds": 335867.87054193206,
+      "cost_rank_descending": 19,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "bfs/visitall-dev-hard-0000",
+      "domain": "visitall",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/visitall/hard/visitall-dev-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 547,
+          "expansions": 352
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 547,
+          "maximum_model_calls": 10940,
+          "mean_input_tokens": 3977.213893967093,
+          "maximum_input_tokens": 4231,
+          "reference_input_proxy_gpu_seconds": 319053.0781617202
+        }
+      },
+      "proxy_gpu_seconds": 319053.0781617202,
+      "cost_rank_descending": 20,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "bfs/grid-dev-hard-0000",
+      "domain": "grid",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/grid/hard/grid-dev-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 510,
+          "expansions": 264
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 510,
+          "maximum_model_calls": 10200,
+          "mean_input_tokens": 5455.939215686274,
+          "maximum_input_tokens": 5731,
+          "reference_input_proxy_gpu_seconds": 301597.9698118195
+        }
+      },
+      "proxy_gpu_seconds": 301597.9698118195,
+      "cost_rank_descending": 21,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "best_first_width/15puzzle-train-easy-0091",
+      "domain": "15puzzle",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/15puzzle/easy/dev/15puzzle-train-easy-0091/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 484,
+          "expansions": 276
+        }
+      },
+      "settings": {
+        "best_first_width": {
+          "reference_decisions": 484,
+          "maximum_model_calls": 9680,
+          "mean_input_tokens": 4518.898760330579,
+          "maximum_input_tokens": 4801,
+          "reference_input_proxy_gpu_seconds": 288253.01097054034
+        }
+      },
+      "proxy_gpu_seconds": 288253.01097054034,
+      "cost_rank_descending": 22,
+      "selected": true,
+      "selection_reason": "coverage_floor"
+    },
+    {
+      "task_id": "bfs/snake-dev-hard-0000",
+      "domain": "snake",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/snake/hard/snake-dev-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 429,
+          "expansions": 260
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 429,
+          "maximum_model_calls": 8580,
+          "mean_input_tokens": 6447.305361305362,
+          "maximum_input_tokens": 6518,
+          "reference_input_proxy_gpu_seconds": 284296.0387600865
+        }
+      },
+      "proxy_gpu_seconds": 284296.0387600865,
+      "cost_rank_descending": 23,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "bfs/sokoban-dev-hard-0000",
+      "domain": "sokoban",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/sokoban/hard/sokoban-dev-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 469,
+          "expansions": 306
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 469,
+          "maximum_model_calls": 9380,
+          "mean_input_tokens": 6233.38592750533,
+          "maximum_input_tokens": 6289,
+          "reference_input_proxy_gpu_seconds": 281686.00301793776
+        }
+      },
+      "proxy_gpu_seconds": 281686.00301793776,
+      "cost_rank_descending": 24,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "best_first_width/towers_of_hanoi-train-medium-0046",
+      "domain": "towers_of_hanoi",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/towers_of_hanoi/medium/dev/towers_of_hanoi-train-medium-0046/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 464,
+          "expansions": 349
+        }
+      },
+      "settings": {
+        "best_first_width": {
+          "reference_decisions": 464,
+          "maximum_model_calls": 9280,
+          "mean_input_tokens": 4381.3426724137935,
+          "maximum_input_tokens": 4440,
+          "reference_input_proxy_gpu_seconds": 276341.7295254767
+        }
+      },
+      "proxy_gpu_seconds": 276341.7295254767,
+      "cost_rank_descending": 25,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "astar-pair-ec82a9ef4b15093fffe787a0",
+      "domain": "blocksworld",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-ec82a9ef4b15093fffe787a0/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-ec82a9ef4b15093fffe787a0/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 285,
+          "expansions": 69
+        },
+        "best_first_add_w3": {
+          "decisions": 328,
+          "expansions": 80
+        }
+      },
+      "settings": {
+        "best_first_add_greedy": {
+          "reference_decisions": 285,
+          "maximum_model_calls": 5700,
+          "mean_input_tokens": 3188.122807017544,
+          "maximum_input_tokens": 3314,
+          "reference_input_proxy_gpu_seconds": 118256.39427118935
+        },
+        "best_first_add_w3": {
+          "reference_decisions": 328,
+          "maximum_model_calls": 6560,
+          "mean_input_tokens": 3200.0274390243903,
+          "maximum_input_tokens": 3321,
+          "reference_input_proxy_gpu_seconds": 135469.3573739007
+        }
+      },
+      "proxy_gpu_seconds": 253725.75164509006,
+      "cost_rank_descending": 26,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "bfs/elevators-dev-hard-0000",
+      "domain": "elevators",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/elevators/hard/elevators-dev-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 430,
+          "expansions": 265
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 430,
+          "maximum_model_calls": 8600,
+          "mean_input_tokens": 4253.918604651163,
+          "maximum_input_tokens": 4368,
+          "reference_input_proxy_gpu_seconds": 250899.1917124018
+        }
+      },
+      "proxy_gpu_seconds": 250899.1917124018,
+      "cost_rank_descending": 27,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "bfs/15puzzle-dev-hard-0000",
+      "domain": "15puzzle",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/15puzzle/hard/15puzzle-dev-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 427,
+          "expansions": 265
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 427,
+          "maximum_model_calls": 8540,
+          "mean_input_tokens": 4261.44262295082,
+          "maximum_input_tokens": 4409,
+          "reference_input_proxy_gpu_seconds": 249148.73223533854
+        }
+      },
+      "proxy_gpu_seconds": 249148.73223533854,
+      "cost_rank_descending": 28,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "bfs/snake-dev-medium-0000",
+      "domain": "snake",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/snake/medium/snake-dev-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 368,
+          "expansions": 211
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 368,
+          "maximum_model_calls": 7360,
+          "mean_input_tokens": 6448.85597826087,
+          "maximum_input_tokens": 6518,
+          "reference_input_proxy_gpu_seconds": 244060.93748867512
+        }
+      },
+      "proxy_gpu_seconds": 244060.93748867512,
+      "cost_rank_descending": 29,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "bfs/ferry-dev-hard-0000",
+      "domain": "ferry",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/ferry/hard/ferry-dev-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 501,
+          "expansions": 323
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 501,
+          "maximum_model_calls": 10020,
+          "mean_input_tokens": 3628.129740518962,
+          "maximum_input_tokens": 3721,
+          "reference_input_proxy_gpu_seconds": 233698.79170398228
+        }
+      },
+      "proxy_gpu_seconds": 233698.79170398228,
+      "cost_rank_descending": 30,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "best_first_width/ferry-train-hard-0028",
+      "domain": "ferry",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/ferry/hard/dev/ferry-train-hard-0028/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 386,
+          "expansions": 104
+        }
+      },
+      "settings": {
+        "best_first_width": {
+          "reference_decisions": 386,
+          "maximum_model_calls": 7720,
+          "mean_input_tokens": 4316.90414507772,
+          "maximum_input_tokens": 4537,
+          "reference_input_proxy_gpu_seconds": 229887.73188972846
+        }
+      },
+      "proxy_gpu_seconds": 229887.73188972846,
+      "cost_rank_descending": 31,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "bfs/logistics-dev-hard-0000",
+      "domain": "logistics",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/logistics/hard/logistics-dev-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 408,
+          "expansions": 326
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 408,
+          "maximum_model_calls": 8160,
+          "mean_input_tokens": 3770.4901960784314,
+          "maximum_input_tokens": 3847,
+          "reference_input_proxy_gpu_seconds": 229705.5138393212
+        }
+      },
+      "proxy_gpu_seconds": 229705.5138393212,
+      "cost_rank_descending": 32,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "astar-pair-f8eddbc6c32516f0586eadd1",
+      "domain": "15puzzle",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-f8eddbc6c32516f0586eadd1/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-f8eddbc6c32516f0586eadd1/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 227,
+          "expansions": 78
+        },
+        "best_first_add_w3": {
+          "decisions": 179,
+          "expansions": 61
+        }
+      },
+      "settings": {
+        "best_first_add_greedy": {
+          "reference_decisions": 227,
+          "maximum_model_calls": 4540,
+          "mean_input_tokens": 4123.277533039648,
+          "maximum_input_tokens": 4273,
+          "reference_input_proxy_gpu_seconds": 125138.43270898797
+        },
+        "best_first_add_w3": {
+          "reference_decisions": 179,
+          "maximum_model_calls": 3580,
+          "mean_input_tokens": 4105.284916201117,
+          "maximum_input_tokens": 4251,
+          "reference_input_proxy_gpu_seconds": 99364.91318187676
+        }
+      },
+      "proxy_gpu_seconds": 224503.34589086473,
+      "cost_rank_descending": 33,
+      "selected": true,
+      "selection_reason": "coverage_floor"
+    },
+    {
+      "task_id": "bfs/elevators-dev-medium-0000",
+      "domain": "elevators",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/elevators/medium/elevators-dev-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 382,
+          "expansions": 218
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 382,
+          "maximum_model_calls": 7640,
+          "mean_input_tokens": 4259.2434554973825,
+          "maximum_input_tokens": 4359,
+          "reference_input_proxy_gpu_seconds": 222891.8400793895
+        }
+      },
+      "proxy_gpu_seconds": 222891.8400793895,
+      "cost_rank_descending": 34,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "bfs/freecell-dev-hard-0000",
+      "domain": "freecell",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/freecell/hard/freecell-dev-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 378,
+          "expansions": 267
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 378,
+          "maximum_model_calls": 7560,
+          "mean_input_tokens": 5076.137566137566,
+          "maximum_input_tokens": 5408,
+          "reference_input_proxy_gpu_seconds": 220557.89410997182
+        }
+      },
+      "proxy_gpu_seconds": 220557.89410997182,
+      "cost_rank_descending": 35,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "best_first_width/freecell-train-medium-0010",
+      "domain": "freecell",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/freecell/medium/dev/freecell-train-medium-0010/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 314,
+          "expansions": 66
+        }
+      },
+      "settings": {
+        "best_first_width": {
+          "reference_decisions": 314,
+          "maximum_model_calls": 6280,
+          "mean_input_tokens": 6349.6942675159235,
+          "maximum_input_tokens": 7066,
+          "reference_input_proxy_gpu_seconds": 213400.8822408039
+        }
+      },
+      "proxy_gpu_seconds": 213400.8822408039,
+      "cost_rank_descending": 36,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "astar-pair-2f0e9c94cb201b472f3c22ca",
+      "domain": "visitall",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-2f0e9c94cb201b472f3c22ca/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-2f0e9c94cb201b472f3c22ca/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 142,
+          "expansions": 40
+        },
+        "best_first_add_w3": {
+          "decisions": 146,
+          "expansions": 41
+        }
+      },
+      "settings": {
+        "best_first_add_greedy": {
+          "reference_decisions": 142,
+          "maximum_model_calls": 2840,
+          "mean_input_tokens": 7128.492957746479,
+          "maximum_input_tokens": 7232,
+          "reference_input_proxy_gpu_seconds": 100962.24332882091
+        },
+        "best_first_add_w3": {
+          "reference_decisions": 146,
+          "maximum_model_calls": 2920,
+          "mean_input_tokens": 7137.219178082192,
+          "maximum_input_tokens": 7249,
+          "reference_input_proxy_gpu_seconds": 105269.55737926066
+        }
+      },
+      "proxy_gpu_seconds": 206231.80070808157,
+      "cost_rank_descending": 37,
+      "selected": true,
+      "selection_reason": "coverage_floor"
+    },
+    {
+      "task_id": "best_first_width/freecell-train-easy-0057",
+      "domain": "freecell",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/freecell/easy/dev/freecell-train-easy-0057/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 271,
+          "expansions": 65
+        }
+      },
+      "settings": {
+        "best_first_width": {
+          "reference_decisions": 271,
+          "maximum_model_calls": 5420,
+          "mean_input_tokens": 6188.1992619926195,
+          "maximum_input_tokens": 6891,
+          "reference_input_proxy_gpu_seconds": 176060.6069294084
+        }
+      },
+      "proxy_gpu_seconds": 176060.6069294084,
+      "cost_rank_descending": 38,
+      "selected": true,
+      "selection_reason": "coverage_floor"
+    },
+    {
+      "task_id": "bfs/sokoban-dev-medium-0000",
+      "domain": "sokoban",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/sokoban/medium/sokoban-dev-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 275,
+          "expansions": 164
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 275,
+          "maximum_model_calls": 5500,
+          "mean_input_tokens": 6268.134545454545,
+          "maximum_input_tokens": 6319,
+          "reference_input_proxy_gpu_seconds": 170273.69849414565
+        }
+      },
+      "proxy_gpu_seconds": 170273.69849414565,
+      "cost_rank_descending": 39,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "bfs/logistics-dev-medium-0000",
+      "domain": "logistics",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/logistics/medium/logistics-dev-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 300,
+          "expansions": 222
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 300,
+          "maximum_model_calls": 6000,
+          "mean_input_tokens": 3769.6033333333335,
+          "maximum_input_tokens": 3847,
+          "reference_input_proxy_gpu_seconds": 168627.53631957807
+        }
+      },
+      "proxy_gpu_seconds": 168627.53631957807,
+      "cost_rank_descending": 40,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "bfs/15puzzle-dev-medium-0000",
+      "domain": "15puzzle",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/15puzzle/medium/15puzzle-dev-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 279,
+          "expansions": 158
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 279,
+          "maximum_model_calls": 5580,
+          "mean_input_tokens": 4269.100358422939,
+          "maximum_input_tokens": 4408,
+          "reference_input_proxy_gpu_seconds": 162792.73136688396
+        }
+      },
+      "proxy_gpu_seconds": 162792.73136688396,
+      "cost_rank_descending": 41,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "best_first_width/depot-train-easy-0088",
+      "domain": "depot",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/depot/easy/dev/depot-train-easy-0088/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 271,
+          "expansions": 84
+        }
+      },
+      "settings": {
+        "best_first_width": {
+          "reference_decisions": 271,
+          "maximum_model_calls": 5420,
+          "mean_input_tokens": 5125.118081180812,
+          "maximum_input_tokens": 5508,
+          "reference_input_proxy_gpu_seconds": 161397.86358061247
+        }
+      },
+      "proxy_gpu_seconds": 161397.86358061247,
+      "cost_rank_descending": 42,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "astar-pair-f26ec7b6805ca59777107b77",
+      "domain": "driverlog",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-f26ec7b6805ca59777107b77/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-f26ec7b6805ca59777107b77/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 142,
+          "expansions": 18
+        },
+        "best_first_add_w3": {
+          "decisions": 142,
+          "expansions": 18
+        }
+      },
+      "settings": {
+        "best_first_add_greedy": {
+          "reference_decisions": 142,
+          "maximum_model_calls": 2840,
+          "mean_input_tokens": 4846.767605633803,
+          "maximum_input_tokens": 5061,
+          "reference_input_proxy_gpu_seconds": 78280.42927170172
+        },
+        "best_first_add_w3": {
+          "reference_decisions": 142,
+          "maximum_model_calls": 2840,
+          "mean_input_tokens": 4861.042253521126,
+          "maximum_input_tokens": 5087,
+          "reference_input_proxy_gpu_seconds": 78825.79704931006
+        }
+      },
+      "proxy_gpu_seconds": 157106.22632101178,
+      "cost_rank_descending": 43,
+      "selected": true,
+      "selection_reason": "coverage_floor"
+    },
+    {
+      "task_id": "best_first_width/sokoban-train-hard-0062",
+      "domain": "sokoban",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/sokoban/hard/dev/sokoban-train-hard-0062/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 206,
+          "expansions": 108
+        }
+      },
+      "settings": {
+        "best_first_width": {
+          "reference_decisions": 206,
+          "maximum_model_calls": 4120,
+          "mean_input_tokens": 7457.97572815534,
+          "maximum_input_tokens": 7615,
+          "reference_input_proxy_gpu_seconds": 151014.83367174864
+        }
+      },
+      "proxy_gpu_seconds": 151014.83367174864,
+      "cost_rank_descending": 44,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "best_first_width/snake-train-easy-0126",
+      "domain": "snake",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/snake/easy/dev/snake-train-easy-0126/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 210,
+          "expansions": 87
+        }
+      },
+      "settings": {
+        "best_first_width": {
+          "reference_decisions": 210,
+          "maximum_model_calls": 4200,
+          "mean_input_tokens": 6469.823809523809,
+          "maximum_input_tokens": 6657,
+          "reference_input_proxy_gpu_seconds": 147910.10752005503
+        }
+      },
+      "proxy_gpu_seconds": 147910.10752005503,
+      "cost_rank_descending": 45,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "bfs/freecell-dev-medium-0000",
+      "domain": "freecell",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/freecell/medium/freecell-dev-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 247,
+          "expansions": 173
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 247,
+          "maximum_model_calls": 4940,
+          "mean_input_tokens": 5026.263157894737,
+          "maximum_input_tokens": 5335,
+          "reference_input_proxy_gpu_seconds": 144121.16361154243
+        }
+      },
+      "proxy_gpu_seconds": 144121.16361154243,
+      "cost_rank_descending": 46,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "bfs/depot-dev-medium-0000",
+      "domain": "depot",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/depot/medium/depot-dev-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 219,
+          "expansions": 141
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 219,
+          "maximum_model_calls": 4380,
+          "mean_input_tokens": 6293.004566210046,
+          "maximum_input_tokens": 6613,
+          "reference_input_proxy_gpu_seconds": 135772.82039402984
+        }
+      },
+      "proxy_gpu_seconds": 135772.82039402984,
+      "cost_rank_descending": 47,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "bfs/grid-dev-medium-0000",
+      "domain": "grid",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/grid/medium/grid-dev-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 214,
+          "expansions": 103
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 214,
+          "maximum_model_calls": 4280,
+          "mean_input_tokens": 5493.046728971963,
+          "maximum_input_tokens": 5729,
+          "reference_input_proxy_gpu_seconds": 126945.82793311216
+        }
+      },
+      "proxy_gpu_seconds": 126945.82793311216,
+      "cost_rank_descending": 48,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "bfs/visitall-dev-medium-0000",
+      "domain": "visitall",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/visitall/medium/visitall-dev-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 206,
+          "expansions": 100
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 206,
+          "maximum_model_calls": 4120,
+          "mean_input_tokens": 3933.0873786407765,
+          "maximum_input_tokens": 4112,
+          "reference_input_proxy_gpu_seconds": 120198.2174250111
+        }
+      },
+      "proxy_gpu_seconds": 120198.2174250111,
+      "cost_rank_descending": 49,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "best_first_width/blocksworld-train-medium-0112",
+      "domain": "blocksworld",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/blocksworld/medium/dev/blocksworld-train-medium-0112/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 225,
+          "expansions": 88
+        }
+      },
+      "settings": {
+        "best_first_width": {
+          "reference_decisions": 225,
+          "maximum_model_calls": 4500,
+          "mean_input_tokens": 3581.1911111111112,
+          "maximum_input_tokens": 3773,
+          "reference_input_proxy_gpu_seconds": 120119.86884777434
+        }
+      },
+      "proxy_gpu_seconds": 120119.86884777434,
+      "cost_rank_descending": 50,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "best_first_width/depot-train-medium-0014",
+      "domain": "depot",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/depot/medium/dev/depot-train-medium-0014/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 198,
+          "expansions": 67
+        }
+      },
+      "settings": {
+        "best_first_width": {
+          "reference_decisions": 198,
+          "maximum_model_calls": 3960,
+          "mean_input_tokens": 5085.39898989899,
+          "maximum_input_tokens": 5447,
+          "reference_input_proxy_gpu_seconds": 117921.68630613014
+        }
+      },
+      "proxy_gpu_seconds": 117921.68630613014,
+      "cost_rank_descending": 51,
+      "selected": true,
+      "selection_reason": "coverage_floor"
+    },
+    {
+      "task_id": "best_first_width/sokoban-train-easy-0029",
+      "domain": "sokoban",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/sokoban/easy/dev/sokoban-train-easy-0029/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 148,
+          "expansions": 73
+        }
+      },
+      "settings": {
+        "best_first_width": {
+          "reference_decisions": 148,
+          "maximum_model_calls": 2960,
+          "mean_input_tokens": 6642.108108108108,
+          "maximum_input_tokens": 6811,
+          "reference_input_proxy_gpu_seconds": 107828.21100411937
+        }
+      },
+      "proxy_gpu_seconds": 107828.21100411937,
+      "cost_rank_descending": 52,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "best_first_width/snake-train-hard-0006",
+      "domain": "snake",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/snake/hard/dev/snake-train-hard-0006/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 154,
+          "expansions": 128
+        }
+      },
+      "settings": {
+        "best_first_width": {
+          "reference_decisions": 154,
+          "maximum_model_calls": 3080,
+          "mean_input_tokens": 6187.850649350649,
+          "maximum_input_tokens": 6474,
+          "reference_input_proxy_gpu_seconds": 100532.47539829463
+        }
+      },
+      "proxy_gpu_seconds": 100532.47539829463,
+      "cost_rank_descending": 53,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "bfs/ferry-dev-medium-0000",
+      "domain": "ferry",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/ferry/medium/ferry-dev-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 213,
+          "expansions": 123
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 213,
+          "maximum_model_calls": 4260,
+          "mean_input_tokens": 3628.6713615023473,
+          "maximum_input_tokens": 3718,
+          "reference_input_proxy_gpu_seconds": 99212.24919414148
+        }
+      },
+      "proxy_gpu_seconds": 99212.24919414148,
+      "cost_rank_descending": 54,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "best_first_width/snake-train-medium-0070",
+      "domain": "snake",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/snake/medium/dev/snake-train-medium-0070/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 120,
+          "expansions": 106
+        }
+      },
+      "settings": {
+        "best_first_width": {
+          "reference_decisions": 120,
+          "maximum_model_calls": 2400,
+          "mean_input_tokens": 6164.683333333333,
+          "maximum_input_tokens": 6454,
+          "reference_input_proxy_gpu_seconds": 77775.50317885354
+        }
+      },
+      "proxy_gpu_seconds": 77775.50317885354,
+      "cost_rank_descending": 55,
+      "selected": true,
+      "selection_reason": "coverage_floor"
+    },
+    {
+      "task_id": "bfs/storage-dev-medium-0000",
+      "domain": "storage",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/storage/medium/storage-dev-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 129,
+          "expansions": 73
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 129,
+          "maximum_model_calls": 2580,
+          "mean_input_tokens": 5695.449612403101,
+          "maximum_input_tokens": 6286,
+          "reference_input_proxy_gpu_seconds": 76553.8790464215
+        }
+      },
+      "proxy_gpu_seconds": 76553.8790464215,
+      "cost_rank_descending": 56,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "astar-pair-b24e907353a060c05285227f",
+      "domain": "logistics",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-b24e907353a060c05285227f/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-b24e907353a060c05285227f/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 80,
+          "expansions": 11
+        },
+        "best_first_add_w3": {
+          "decisions": 80,
+          "expansions": 11
+        }
+      },
+      "settings": {
+        "best_first_add_greedy": {
+          "reference_decisions": 80,
+          "maximum_model_calls": 1600,
+          "mean_input_tokens": 3219.775,
+          "maximum_input_tokens": 3522,
+          "reference_input_proxy_gpu_seconds": 34584.071184340864
+        },
+        "best_first_add_w3": {
+          "reference_decisions": 80,
+          "maximum_model_calls": 1600,
+          "mean_input_tokens": 3236.6625,
+          "maximum_input_tokens": 3547,
+          "reference_input_proxy_gpu_seconds": 36589.95182195678
+        }
+      },
+      "proxy_gpu_seconds": 71174.02300629765,
+      "cost_rank_descending": 57,
+      "selected": true,
+      "selection_reason": "coverage_floor"
+    },
+    {
+      "task_id": "astar-pair-051fdbd100fbacd0ec37c6bd",
+      "domain": "gripper",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-051fdbd100fbacd0ec37c6bd/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-051fdbd100fbacd0ec37c6bd/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 82,
+          "expansions": 15
+        },
+        "best_first_add_w3": {
+          "decisions": 82,
+          "expansions": 15
+        }
+      },
+      "settings": {
+        "best_first_add_greedy": {
+          "reference_decisions": 82,
+          "maximum_model_calls": 1640,
+          "mean_input_tokens": 3158.378048780488,
+          "maximum_input_tokens": 3352,
+          "reference_input_proxy_gpu_seconds": 34095.412306152284
+        },
+        "best_first_add_w3": {
+          "reference_decisions": 82,
+          "maximum_model_calls": 1640,
+          "mean_input_tokens": 3170.5853658536585,
+          "maximum_input_tokens": 3376,
+          "reference_input_proxy_gpu_seconds": 33996.223020860925
+        }
+      },
+      "proxy_gpu_seconds": 68091.63532701321,
+      "cost_rank_descending": 58,
+      "selected": true,
+      "selection_reason": "coverage_floor"
+    },
+    {
+      "task_id": "best_first_width/sokoban-train-medium-0057",
+      "domain": "sokoban",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/sokoban/medium/dev/sokoban-train-medium-0057/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 86,
+          "expansions": 46
+        }
+      },
+      "settings": {
+        "best_first_width": {
+          "reference_decisions": 86,
+          "maximum_model_calls": 1720,
+          "mean_input_tokens": 6651.7558139534885,
+          "maximum_input_tokens": 6812,
+          "reference_input_proxy_gpu_seconds": 62618.5743614845
+        }
+      },
+      "proxy_gpu_seconds": 62618.5743614845,
+      "cost_rank_descending": 59,
+      "selected": true,
+      "selection_reason": "coverage_floor"
+    },
+    {
+      "task_id": "bfs/driverlog-dev-medium-0000",
+      "domain": "driverlog",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/driverlog/medium/driverlog-dev-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 101,
+          "expansions": 78
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 101,
+          "maximum_model_calls": 2020,
+          "mean_input_tokens": 4153.376237623763,
+          "maximum_input_tokens": 4253,
+          "reference_input_proxy_gpu_seconds": 58932.1357277967
+        }
+      },
+      "proxy_gpu_seconds": 58932.1357277967,
+      "cost_rank_descending": 60,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "bfs/blocksworld-dev-medium-0000",
+      "domain": "blocksworld",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/blocksworld/medium/blocksworld-dev-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 122,
+          "expansions": 90
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 122,
+          "maximum_model_calls": 2440,
+          "mean_input_tokens": 3646.8688524590166,
+          "maximum_input_tokens": 3789,
+          "reference_input_proxy_gpu_seconds": 58853.95342068747
+        }
+      },
+      "proxy_gpu_seconds": 58853.95342068747,
+      "cost_rank_descending": 61,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "astar-pair-6171b339e4cb4134c758558d",
+      "domain": "towers_of_hanoi",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-6171b339e4cb4134c758558d/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-6171b339e4cb4134c758558d/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 68,
+          "expansions": 23
+        },
+        "best_first_add_w3": {
+          "decisions": 71,
+          "expansions": 24
+        }
+      },
+      "settings": {
+        "best_first_add_greedy": {
+          "reference_decisions": 68,
+          "maximum_model_calls": 1360,
+          "mean_input_tokens": 3062.6029411764707,
+          "maximum_input_tokens": 3235,
+          "reference_input_proxy_gpu_seconds": 27775.49197409302
+        },
+        "best_first_add_w3": {
+          "reference_decisions": 71,
+          "maximum_model_calls": 1420,
+          "mean_input_tokens": 3083.2535211267605,
+          "maximum_input_tokens": 3255,
+          "reference_input_proxy_gpu_seconds": 29073.0722673703
+        }
+      },
+      "proxy_gpu_seconds": 56848.56424146332,
+      "cost_rank_descending": 62,
+      "selected": true,
+      "selection_reason": "coverage_floor"
+    },
+    {
+      "task_id": "best_first_width/ferry-train-medium-0035",
+      "domain": "ferry",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/ferry/medium/dev/ferry-train-medium-0035/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 100,
+          "expansions": 36
+        }
+      },
+      "settings": {
+        "best_first_width": {
+          "reference_decisions": 100,
+          "maximum_model_calls": 2000,
+          "mean_input_tokens": 3598.25,
+          "maximum_input_tokens": 3702,
+          "reference_input_proxy_gpu_seconds": 56661.49901561439
+        }
+      },
+      "proxy_gpu_seconds": 56661.49901561439,
+      "cost_rank_descending": 63,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "bfs/gripper-dev-medium-0000",
+      "domain": "gripper",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/gripper/medium/gripper-dev-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 113,
+          "expansions": 86
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 113,
+          "maximum_model_calls": 2260,
+          "mean_input_tokens": 3512.380530973451,
+          "maximum_input_tokens": 3618,
+          "reference_input_proxy_gpu_seconds": 49890.4266784247
+        }
+      },
+      "proxy_gpu_seconds": 49890.4266784247,
+      "cost_rank_descending": 64,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "bfs/grid-dev-easy-0000",
+      "domain": "grid",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/grid/easy/grid-dev-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 82,
+          "expansions": 46
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 82,
+          "maximum_model_calls": 1640,
+          "mean_input_tokens": 4226.695121951219,
+          "maximum_input_tokens": 4418,
+          "reference_input_proxy_gpu_seconds": 47845.89237306267
+        }
+      },
+      "proxy_gpu_seconds": 47845.89237306267,
+      "cost_rank_descending": 65,
+      "selected": true,
+      "selection_reason": "coverage_floor"
+    },
+    {
+      "task_id": "best_first_width/visitall-train-easy-0020",
+      "domain": "visitall",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/visitall/easy/dev/visitall-train-easy-0020/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 64,
+          "expansions": 22
+        }
+      },
+      "settings": {
+        "best_first_width": {
+          "reference_decisions": 64,
+          "maximum_model_calls": 1280,
+          "mean_input_tokens": 7343.65625,
+          "maximum_input_tokens": 7511,
+          "reference_input_proxy_gpu_seconds": 46717.52868413925
+        }
+      },
+      "proxy_gpu_seconds": 46717.52868413925,
+      "cost_rank_descending": 66,
+      "selected": true,
+      "selection_reason": "coverage_floor"
+    },
+    {
+      "task_id": "best_first_width/gripper-train-easy-0020",
+      "domain": "gripper",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/gripper/easy/dev/gripper-train-easy-0020/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 90,
+          "expansions": 39
+        }
+      },
+      "settings": {
+        "best_first_width": {
+          "reference_decisions": 90,
+          "maximum_model_calls": 1800,
+          "mean_input_tokens": 3533.8444444444444,
+          "maximum_input_tokens": 3758,
+          "reference_input_proxy_gpu_seconds": 46553.67225557566
+        }
+      },
+      "proxy_gpu_seconds": 46553.67225557566,
+      "cost_rank_descending": 67,
+      "selected": true,
+      "selection_reason": "coverage_floor"
+    },
+    {
+      "task_id": "astar-pair-1957c98ec374a1aabc24ead1",
+      "domain": "ferry",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-1957c98ec374a1aabc24ead1/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-1957c98ec374a1aabc24ead1/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 56,
+          "expansions": 11
+        },
+        "best_first_add_w3": {
+          "decisions": 56,
+          "expansions": 11
+        }
+      },
+      "settings": {
+        "best_first_add_greedy": {
+          "reference_decisions": 56,
+          "maximum_model_calls": 1120,
+          "mean_input_tokens": 3028.285714285714,
+          "maximum_input_tokens": 3241,
+          "reference_input_proxy_gpu_seconds": 22873.934566900134
+        },
+        "best_first_add_w3": {
+          "reference_decisions": 56,
+          "maximum_model_calls": 1120,
+          "mean_input_tokens": 3041.9285714285716,
+          "maximum_input_tokens": 3263,
+          "reference_input_proxy_gpu_seconds": 22930.87390102446
+        }
+      },
+      "proxy_gpu_seconds": 45804.808467924595,
+      "cost_rank_descending": 68,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "bfs/towers_of_hanoi-dev-medium-0000",
+      "domain": "towers_of_hanoi",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/towers_of_hanoi/medium/towers_of_hanoi-dev-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 94,
+          "expansions": 67
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 94,
+          "maximum_model_calls": 1880,
+          "mean_input_tokens": 3635.2659574468084,
+          "maximum_input_tokens": 3649,
+          "reference_input_proxy_gpu_seconds": 44063.5043185018
+        }
+      },
+      "proxy_gpu_seconds": 44063.5043185018,
+      "cost_rank_descending": 69,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "best_first_width/logistics-train-easy-0066",
+      "domain": "logistics",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/logistics/easy/dev/logistics-train-easy-0066/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 80,
+          "expansions": 34
+        }
+      },
+      "settings": {
+        "best_first_width": {
+          "reference_decisions": 80,
+          "maximum_model_calls": 1600,
+          "mean_input_tokens": 3592.35,
+          "maximum_input_tokens": 3781,
+          "reference_input_proxy_gpu_seconds": 43464.08381955698
+        }
+      },
+      "proxy_gpu_seconds": 43464.08381955698,
+      "cost_rank_descending": 70,
+      "selected": true,
+      "selection_reason": "coverage_floor"
+    },
+    {
+      "task_id": "bfs/snake-dev-easy-0000",
+      "domain": "snake",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/snake/easy/snake-dev-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 53,
+          "expansions": 22
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 53,
+          "maximum_model_calls": 1060,
+          "mean_input_tokens": 6446.962264150943,
+          "maximum_input_tokens": 6515,
+          "reference_input_proxy_gpu_seconds": 35121.330956621096
+        }
+      },
+      "proxy_gpu_seconds": 35121.330956621096,
+      "cost_rank_descending": 71,
+      "selected": true,
+      "selection_reason": "coverage_floor"
+    },
+    {
+      "task_id": "best_first_width/grid-train-easy-0086",
+      "domain": "grid",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/grid/easy/dev/grid-train-easy-0086/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 57,
+          "expansions": 29
+        }
+      },
+      "settings": {
+        "best_first_width": {
+          "reference_decisions": 57,
+          "maximum_model_calls": 1140,
+          "mean_input_tokens": 4986.894736842105,
+          "maximum_input_tokens": 5272,
+          "reference_input_proxy_gpu_seconds": 33947.152118431404
+        }
+      },
+      "proxy_gpu_seconds": 33947.152118431404,
+      "cost_rank_descending": 72,
+      "selected": true,
+      "selection_reason": "coverage_floor"
+    },
+    {
+      "task_id": "best_first_width/towers_of_hanoi-train-easy-0059",
+      "domain": "towers_of_hanoi",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/towers_of_hanoi/easy/dev/towers_of_hanoi-train-easy-0059/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 44,
+          "expansions": 32
+        }
+      },
+      "settings": {
+        "best_first_width": {
+          "reference_decisions": 44,
+          "maximum_model_calls": 880,
+          "mean_input_tokens": 3632.340909090909,
+          "maximum_input_tokens": 3787,
+          "reference_input_proxy_gpu_seconds": 23844.69276238233
+        }
+      },
+      "proxy_gpu_seconds": 23844.69276238233,
+      "cost_rank_descending": 73,
+      "selected": true,
+      "selection_reason": "coverage_floor"
+    },
+    {
+      "task_id": "astar-pair-848763f2407cee58328339d3",
+      "domain": "elevators",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-848763f2407cee58328339d3/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-848763f2407cee58328339d3/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 29,
+          "expansions": 7
+        },
+        "best_first_add_w3": {
+          "decisions": 29,
+          "expansions": 7
+        }
+      },
+      "settings": {
+        "best_first_add_greedy": {
+          "reference_decisions": 29,
+          "maximum_model_calls": 580,
+          "mean_input_tokens": 2943.7241379310344,
+          "maximum_input_tokens": 3167,
+          "reference_input_proxy_gpu_seconds": 11845.43040071614
+        },
+        "best_first_add_w3": {
+          "reference_decisions": 29,
+          "maximum_model_calls": 580,
+          "mean_input_tokens": 2955.7241379310344,
+          "maximum_input_tokens": 3185,
+          "reference_input_proxy_gpu_seconds": 11874.916841601953
+        }
+      },
+      "proxy_gpu_seconds": 23720.347242318094,
+      "cost_rank_descending": 74,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "best_first_width/elevators-train-easy-0040",
+      "domain": "elevators",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/elevators/easy/dev/elevators-train-easy-0040/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 41,
+          "expansions": 20
+        }
+      },
+      "settings": {
+        "best_first_width": {
+          "reference_decisions": 41,
+          "maximum_model_calls": 820,
+          "mean_input_tokens": 3515.268292682927,
+          "maximum_input_tokens": 3624,
+          "reference_input_proxy_gpu_seconds": 21449.5523376856
+        }
+      },
+      "proxy_gpu_seconds": 21449.5523376856,
+      "cost_rank_descending": 75,
+      "selected": true,
+      "selection_reason": "coverage_floor"
+    },
+    {
+      "task_id": "best_first_width/elevators-train-medium-0004",
+      "domain": "elevators",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/elevators/medium/dev/elevators-train-medium-0004/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 41,
+          "expansions": 21
+        }
+      },
+      "settings": {
+        "best_first_width": {
+          "reference_decisions": 41,
+          "maximum_model_calls": 820,
+          "mean_input_tokens": 3498.0731707317073,
+          "maximum_input_tokens": 3624,
+          "reference_input_proxy_gpu_seconds": 21295.445964625105
+        }
+      },
+      "proxy_gpu_seconds": 21295.445964625105,
+      "cost_rank_descending": 76,
+      "selected": false,
+      "selection_reason": "above_remaining_budget"
+    },
+    {
+      "task_id": "astar-pair-7bd5e7f0ad6f979dee4756cb",
+      "domain": "elevators",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-7bd5e7f0ad6f979dee4756cb/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-7bd5e7f0ad6f979dee4756cb/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 26,
+          "expansions": 6
+        },
+        "best_first_add_w3": {
+          "decisions": 26,
+          "expansions": 6
+        }
+      },
+      "settings": {
+        "best_first_add_greedy": {
+          "reference_decisions": 26,
+          "maximum_model_calls": 520,
+          "mean_input_tokens": 2957.923076923077,
+          "maximum_input_tokens": 3167,
+          "reference_input_proxy_gpu_seconds": 10620.04104891792
+        },
+        "best_first_add_w3": {
+          "reference_decisions": 26,
+          "maximum_model_calls": 520,
+          "mean_input_tokens": 2970.346153846154,
+          "maximum_input_tokens": 3185,
+          "reference_input_proxy_gpu_seconds": 10646.477168332785
+        }
+      },
+      "proxy_gpu_seconds": 21266.518217250705,
+      "cost_rank_descending": 77,
+      "selected": true,
+      "selection_reason": "coverage_floor"
+    },
+    {
+      "task_id": "astar-pair-1ade7fc9f40863f1c7f8ab28",
+      "domain": "grid",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-1ade7fc9f40863f1c7f8ab28/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-1ade7fc9f40863f1c7f8ab28/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 18,
+          "expansions": 6
+        },
+        "best_first_add_w3": {
+          "decisions": 18,
+          "expansions": 6
+        }
+      },
+      "settings": {
+        "best_first_add_greedy": {
+          "reference_decisions": 18,
+          "maximum_model_calls": 360,
+          "mean_input_tokens": 4424.777777777777,
+          "maximum_input_tokens": 4603,
+          "reference_input_proxy_gpu_seconds": 9922.871316131204
+        },
+        "best_first_add_w3": {
+          "reference_decisions": 18,
+          "maximum_model_calls": 360,
+          "mean_input_tokens": 4432.722222222223,
+          "maximum_input_tokens": 4615,
+          "reference_input_proxy_gpu_seconds": 9992.002442870289
+        }
+      },
+      "proxy_gpu_seconds": 19914.873759001493,
+      "cost_rank_descending": 78,
+      "selected": true,
+      "selection_reason": "coverage_floor"
+    },
+    {
+      "task_id": "bfs/towers_of_hanoi-dev-easy-0000",
+      "domain": "towers_of_hanoi",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/towers_of_hanoi/easy/towers_of_hanoi-dev-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 34,
+          "expansions": 25
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 34,
+          "maximum_model_calls": 680,
+          "mean_input_tokens": 3527.5588235294117,
+          "maximum_input_tokens": 3702,
+          "reference_input_proxy_gpu_seconds": 14887.110231788829
+        }
+      },
+      "proxy_gpu_seconds": 14887.110231788829,
+      "cost_rank_descending": 79,
+      "selected": true,
+      "selection_reason": "coverage_floor"
+    },
+    {
+      "task_id": "bfs/gripper-dev-easy-0000",
+      "domain": "gripper",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/gripper/easy/gripper-dev-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 33,
+          "expansions": 24
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 33,
+          "maximum_model_calls": 660,
+          "mean_input_tokens": 3535.0,
+          "maximum_input_tokens": 3622,
+          "reference_input_proxy_gpu_seconds": 14775.757961980999
+        }
+      },
+      "proxy_gpu_seconds": 14775.757961980999,
+      "cost_rank_descending": 80,
+      "selected": true,
+      "selection_reason": "coverage_floor"
+    },
+    {
+      "task_id": "bfs/blocksworld-dev-easy-0000",
+      "domain": "blocksworld",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/blocksworld/easy/blocksworld-dev-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 22,
+          "expansions": 18
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 22,
+          "maximum_model_calls": 440,
+          "mean_input_tokens": 3565.4545454545455,
+          "maximum_input_tokens": 3724,
+          "reference_input_proxy_gpu_seconds": 10311.787983067334
+        }
+      },
+      "proxy_gpu_seconds": 10311.787983067334,
+      "cost_rank_descending": 81,
+      "selected": true,
+      "selection_reason": "coverage_floor"
+    },
+    {
+      "task_id": "best_first_width/ferry-train-easy-0039",
+      "domain": "ferry",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/ferry/easy/dev/ferry-train-easy-0039/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 19,
+          "expansions": 11
+        }
+      },
+      "settings": {
+        "best_first_width": {
+          "reference_decisions": 19,
+          "maximum_model_calls": 380,
+          "mean_input_tokens": 3490.0526315789475,
+          "maximum_input_tokens": 3641,
+          "reference_input_proxy_gpu_seconds": 10168.058292055503
+        }
+      },
+      "proxy_gpu_seconds": 10168.058292055503,
+      "cost_rank_descending": 82,
+      "selected": true,
+      "selection_reason": "coverage_floor"
+    },
+    {
+      "task_id": "astar-pair-39c476766409cc3a2d68a6ef",
+      "domain": "ferry",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-39c476766409cc3a2d68a6ef/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-39c476766409cc3a2d68a6ef/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 12,
+          "expansions": 4
+        },
+        "best_first_add_w3": {
+          "decisions": 12,
+          "expansions": 4
+        }
+      },
+      "settings": {
+        "best_first_add_greedy": {
+          "reference_decisions": 12,
+          "maximum_model_calls": 240,
+          "mean_input_tokens": 2796.5,
+          "maximum_input_tokens": 2879,
+          "reference_input_proxy_gpu_seconds": 4901.557407192886
+        },
+        "best_first_add_w3": {
+          "reference_decisions": 12,
+          "maximum_model_calls": 240,
+          "mean_input_tokens": 2800.0833333333335,
+          "maximum_input_tokens": 2883,
+          "reference_input_proxy_gpu_seconds": 4913.75869307667
+        }
+      },
+      "proxy_gpu_seconds": 9815.316100269556,
+      "cost_rank_descending": 83,
+      "selected": true,
+      "selection_reason": "coverage_floor"
+    },
+    {
+      "task_id": "astar-pair-12081de85b7805e93ea9c5ec",
+      "domain": "storage",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-12081de85b7805e93ea9c5ec/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-12081de85b7805e93ea9c5ec/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 7,
+          "expansions": 3
+        },
+        "best_first_add_w3": {
+          "decisions": 7,
+          "expansions": 3
+        }
+      },
+      "settings": {
+        "best_first_add_greedy": {
+          "reference_decisions": 7,
+          "maximum_model_calls": 140,
+          "mean_input_tokens": 3549.1428571428573,
+          "maximum_input_tokens": 3624,
+          "reference_input_proxy_gpu_seconds": 3550.759204560891
+        },
+        "best_first_add_w3": {
+          "reference_decisions": 7,
+          "maximum_model_calls": 140,
+          "mean_input_tokens": 3549.0,
+          "maximum_input_tokens": 3624,
+          "reference_input_proxy_gpu_seconds": 3885.77872778289
+        }
+      },
+      "proxy_gpu_seconds": 7436.537932343781,
+      "cost_rank_descending": 84,
+      "selected": true,
+      "selection_reason": "coverage_floor"
+    },
+    {
+      "task_id": "astar-pair-15205002a905be45f6de13ba",
+      "domain": "blocksworld",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-15205002a905be45f6de13ba/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-15205002a905be45f6de13ba/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 8,
+          "expansions": 4
+        },
+        "best_first_add_w3": {
+          "decisions": 8,
+          "expansions": 4
+        }
+      },
+      "settings": {
+        "best_first_add_greedy": {
+          "reference_decisions": 8,
+          "maximum_model_calls": 160,
+          "mean_input_tokens": 2731.625,
+          "maximum_input_tokens": 2794,
+          "reference_input_proxy_gpu_seconds": 3267.7049381285906
+        },
+        "best_first_add_w3": {
+          "reference_decisions": 8,
+          "maximum_model_calls": 160,
+          "mean_input_tokens": 2733.125,
+          "maximum_input_tokens": 2797,
+          "reference_input_proxy_gpu_seconds": 3275.83912871778
+        }
+      },
+      "proxy_gpu_seconds": 6543.544066846371,
+      "cost_rank_descending": 85,
+      "selected": true,
+      "selection_reason": "coverage_floor"
+    },
+    {
+      "task_id": "bfs/depot-dev-easy-0000",
+      "domain": "depot",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/depot/easy/depot-dev-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 10,
+          "expansions": 8
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 10,
+          "maximum_model_calls": 200,
+          "mean_input_tokens": 4217.7,
+          "maximum_input_tokens": 4289,
+          "reference_input_proxy_gpu_seconds": 5834.864923544228
+        }
+      },
+      "proxy_gpu_seconds": 5834.864923544228,
+      "cost_rank_descending": 86,
+      "selected": true,
+      "selection_reason": "coverage_floor"
+    },
+    {
+      "task_id": "bfs/15puzzle-dev-easy-0000",
+      "domain": "15puzzle",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/15puzzle/easy/15puzzle-dev-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 10,
+          "expansions": 9
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 10,
+          "maximum_model_calls": 200,
+          "mean_input_tokens": 3618.3,
+          "maximum_input_tokens": 3764,
+          "reference_input_proxy_gpu_seconds": 5395.101527897641
+        }
+      },
+      "proxy_gpu_seconds": 5395.101527897641,
+      "cost_rank_descending": 87,
+      "selected": true,
+      "selection_reason": "coverage_floor"
+    },
+    {
+      "task_id": "bfs/freecell-dev-easy-0000",
+      "domain": "freecell",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/freecell/easy/freecell-dev-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 8,
+          "expansions": 5
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 8,
+          "maximum_model_calls": 160,
+          "mean_input_tokens": 4133.5,
+          "maximum_input_tokens": 4265,
+          "reference_input_proxy_gpu_seconds": 4667.8919388353825
+        }
+      },
+      "proxy_gpu_seconds": 4667.8919388353825,
+      "cost_rank_descending": 88,
+      "selected": true,
+      "selection_reason": "coverage_floor"
+    },
+    {
+      "task_id": "bfs/sokoban-dev-easy-0000",
+      "domain": "sokoban",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/sokoban/easy/sokoban-dev-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 7,
+          "expansions": 3
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 7,
+          "maximum_model_calls": 140,
+          "mean_input_tokens": 6141.428571428572,
+          "maximum_input_tokens": 6146,
+          "reference_input_proxy_gpu_seconds": 4182.110345708206
+        }
+      },
+      "proxy_gpu_seconds": 4182.110345708206,
+      "cost_rank_descending": 89,
+      "selected": true,
+      "selection_reason": "coverage_floor"
+    },
+    {
+      "task_id": "bfs/logistics-dev-easy-0000",
+      "domain": "logistics",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/logistics/easy/logistics-dev-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 8,
+          "expansions": 6
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 8,
+          "maximum_model_calls": 160,
+          "mean_input_tokens": 3636.25,
+          "maximum_input_tokens": 3845,
+          "reference_input_proxy_gpu_seconds": 4114.095387039706
+        }
+      },
+      "proxy_gpu_seconds": 4114.095387039706,
+      "cost_rank_descending": 90,
+      "selected": true,
+      "selection_reason": "coverage_floor"
+    },
+    {
+      "task_id": "bfs/elevators-dev-easy-0000",
+      "domain": "elevators",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/elevators/easy/elevators-dev-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 9,
+          "expansions": 6
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 9,
+          "maximum_model_calls": 180,
+          "mean_input_tokens": 3281.5555555555557,
+          "maximum_input_tokens": 3584,
+          "reference_input_proxy_gpu_seconds": 3964.6428866498172
+        }
+      },
+      "proxy_gpu_seconds": 3964.6428866498172,
+      "cost_rank_descending": 91,
+      "selected": true,
+      "selection_reason": "coverage_floor"
+    },
+    {
+      "task_id": "bfs/storage-dev-easy-0000",
+      "domain": "storage",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/storage/easy/storage-dev-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 5,
+          "expansions": 3
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 5,
+          "maximum_model_calls": 100,
+          "mean_input_tokens": 4153.6,
+          "maximum_input_tokens": 4319,
+          "reference_input_proxy_gpu_seconds": 2917.432461772114
+        }
+      },
+      "proxy_gpu_seconds": 2917.432461772114,
+      "cost_rank_descending": 92,
+      "selected": true,
+      "selection_reason": "coverage_floor"
+    },
+    {
+      "task_id": "best_first_width/blocksworld-train-easy-0086",
+      "domain": "blocksworld",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/blocksworld/easy/dev/blocksworld-train-easy-0086/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 5,
+          "expansions": 4
+        }
+      },
+      "settings": {
+        "best_first_width": {
+          "reference_decisions": 5,
+          "maximum_model_calls": 100,
+          "mean_input_tokens": 3255.8,
+          "maximum_input_tokens": 3633,
+          "reference_input_proxy_gpu_seconds": 2438.609488448128
+        }
+      },
+      "proxy_gpu_seconds": 2438.609488448128,
+      "cost_rank_descending": 93,
+      "selected": true,
+      "selection_reason": "coverage_floor"
+    },
+    {
+      "task_id": "bfs/driverlog-dev-easy-0000",
+      "domain": "driverlog",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/driverlog/easy/driverlog-dev-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 4,
+          "expansions": 3
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 4,
+          "maximum_model_calls": 80,
+          "mean_input_tokens": 4032.25,
+          "maximum_input_tokens": 4323,
+          "reference_input_proxy_gpu_seconds": 2333.9459694176912
+        }
+      },
+      "proxy_gpu_seconds": 2333.9459694176912,
+      "cost_rank_descending": 94,
+      "selected": true,
+      "selection_reason": "coverage_floor"
+    },
+    {
+      "task_id": "bfs/ferry-dev-easy-0000",
+      "domain": "ferry",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/ferry/easy/ferry-dev-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 5,
+          "expansions": 4
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 5,
+          "maximum_model_calls": 100,
+          "mean_input_tokens": 3123.8,
+          "maximum_input_tokens": 3288,
+          "reference_input_proxy_gpu_seconds": 2184.4934690278023
+        }
+      },
+      "proxy_gpu_seconds": 2184.4934690278023,
+      "cost_rank_descending": 95,
+      "selected": true,
+      "selection_reason": "coverage_floor"
+    },
+    {
+      "task_id": "best_first_width/storage-train-easy-0004",
+      "domain": "storage",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/storage/easy/dev/storage-train-easy-0004/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 3,
+          "expansions": 3
+        }
+      },
+      "settings": {
+        "best_first_width": {
+          "reference_decisions": 3,
+          "maximum_model_calls": 60,
+          "mean_input_tokens": 3926.6666666666665,
+          "maximum_input_tokens": 4276,
+          "reference_input_proxy_gpu_seconds": 1643.78846664913
+        }
+      },
+      "proxy_gpu_seconds": 1643.78846664913,
+      "cost_rank_descending": 96,
+      "selected": true,
+      "selection_reason": "coverage_floor"
+    },
+    {
+      "task_id": "bfs/visitall-dev-easy-0000",
+      "domain": "visitall",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/visitall/easy/visitall-dev-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 2,
+          "expansions": 1
+        }
+      },
+      "settings": {
+        "bfs": {
+          "reference_decisions": 2,
+          "maximum_model_calls": 40,
+          "mean_input_tokens": 3010.5,
+          "maximum_input_tokens": 3102,
+          "reference_input_proxy_gpu_seconds": 873.7973876111209
+        }
+      },
+      "proxy_gpu_seconds": 873.7973876111209,
+      "cost_rank_descending": 97,
+      "selected": true,
+      "selection_reason": "coverage_floor"
+    }
+  ],
+  "calibration": [
+    {
+      "record_id": "astar-pair-075c3ed815a56bd67d6aa030:best_first_add_greedy:140",
+      "algorithm": "best_first_add_greedy",
+      "input_tokens": 7254,
+      "seconds_per_call": 35.550085679162294,
+      "batch_size": 2,
+      "sources": [
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-0-probes/006.json",
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-1-probes/006.json"
+      ]
+    },
+    {
+      "record_id": "astar-pair-075c3ed815a56bd67d6aa030:best_first_add_w3:152",
+      "algorithm": "best_first_add_w3",
+      "input_tokens": 7277,
+      "seconds_per_call": 36.05121828056872,
+      "batch_size": 2,
+      "sources": [
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-0-probes/005.json",
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-1-probes/005.json"
+      ]
+    },
+    {
+      "record_id": "astar-pair-36f9d84cdc0c9b6047aecdfa:best_first_add_greedy:49",
+      "algorithm": "best_first_add_greedy",
+      "input_tokens": 3253,
+      "seconds_per_call": 20.42315586330369,
+      "batch_size": 2,
+      "sources": [
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-0-probes/030.json",
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-1-probes/030.json"
+      ]
+    },
+    {
+      "record_id": "astar-pair-36f9d84cdc0c9b6047aecdfa:best_first_add_w3:98",
+      "algorithm": "best_first_add_w3",
+      "input_tokens": 3272,
+      "seconds_per_call": 20.473994554486126,
+      "batch_size": 2,
+      "sources": [
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-0-probes/029.json",
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-1-probes/029.json"
+      ]
+    },
+    {
+      "record_id": "astar-pair-68749e308f10bfe2d08d1760:best_first_add_w3:183",
+      "algorithm": "best_first_add_w3",
+      "input_tokens": 5118,
+      "seconds_per_call": 27.75556234130636,
+      "batch_size": 2,
+      "sources": [
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-0-probes/019.json",
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-1-probes/019.json"
+      ]
+    },
+    {
+      "record_id": "astar-pair-6945fa02d2d17d867112c4f8:best_first_add_w3:88",
+      "algorithm": "best_first_add_w3",
+      "input_tokens": 3405,
+      "seconds_per_call": 22.08504052180797,
+      "batch_size": 2,
+      "sources": [
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-0-probes/026.json",
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-1-probes/026.json"
+      ]
+    },
+    {
+      "record_id": "astar-pair-9a5aedca496cf39ce562443e:best_first_add_greedy:193",
+      "algorithm": "best_first_add_greedy",
+      "input_tokens": 5116,
+      "seconds_per_call": 27.56353143369779,
+      "batch_size": 2,
+      "sources": [
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-0-probes/020.json",
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-1-probes/020.json"
+      ]
+    },
+    {
+      "record_id": "astar-pair-a7e9f9d8a560449e7e8dea7c:best_first_add_greedy:754",
+      "algorithm": "best_first_add_greedy",
+      "input_tokens": 5636,
+      "seconds_per_call": 29.93396034417674,
+      "batch_size": 2,
+      "sources": [
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-0-probes/015.json",
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-1-probes/015.json"
+      ]
+    },
+    {
+      "record_id": "astar-pair-a7e9f9d8a560449e7e8dea7c:best_first_add_w3:754",
+      "algorithm": "best_first_add_w3",
+      "input_tokens": 5683,
+      "seconds_per_call": 29.51636550715193,
+      "batch_size": 2,
+      "sources": [
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-0-probes/014.json",
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-1-probes/014.json"
+      ]
+    },
+    {
+      "record_id": "astar-pair-b24e907353a060c05285227f:best_first_add_greedy:50",
+      "algorithm": "best_first_add_greedy",
+      "input_tokens": 3511,
+      "seconds_per_call": 22.42794483108446,
+      "batch_size": 2,
+      "sources": [
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-0-probes/025.json",
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-1-probes/025.json"
+      ]
+    },
+    {
+      "record_id": "astar-pair-cd52ad7ea95f66092a00388e:best_first_add_greedy:832",
+      "algorithm": "best_first_add_greedy",
+      "input_tokens": 5160,
+      "seconds_per_call": 27.409254984464496,
+      "batch_size": 2,
+      "sources": [
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-0-probes/017.json",
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-1-probes/017.json"
+      ]
+    },
+    {
+      "record_id": "astar-pair-cd52ad7ea95f66092a00388e:best_first_add_w3:534",
+      "algorithm": "best_first_add_w3",
+      "input_tokens": 5156,
+      "seconds_per_call": 27.50181889999658,
+      "batch_size": 2,
+      "sources": [
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-0-probes/018.json",
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-1-probes/018.json"
+      ]
+    },
+    {
+      "record_id": "best_first_width/blocksworld-train-hard-0060:best_first_width:338",
+      "algorithm": "best_first_width",
+      "input_tokens": 3363,
+      "seconds_per_call": 20.791355732362717,
+      "batch_size": 2,
+      "sources": [
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-0-probes/028.json",
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-1-probes/028.json"
+      ]
+    },
+    {
+      "record_id": "best_first_width/blocksworld-train-medium-0112:best_first_width:103",
+      "algorithm": "best_first_width",
+      "input_tokens": 3538,
+      "seconds_per_call": 22.633016107138246,
+      "batch_size": 2,
+      "sources": [
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-0-probes/024.json",
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-1-probes/024.json"
+      ]
+    },
+    {
+      "record_id": "best_first_width/elevators-train-hard-0021:best_first_width:583",
+      "algorithm": "best_first_width",
+      "input_tokens": 5768,
+      "seconds_per_call": 29.778203612659127,
+      "batch_size": 2,
+      "sources": [
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-0-probes/013.json",
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-1-probes/013.json"
+      ]
+    },
+    {
+      "record_id": "best_first_width/freecell-train-easy-0053:best_first_width:196",
+      "algorithm": "best_first_width",
+      "input_tokens": 6389,
+      "seconds_per_call": 31.88104499038309,
+      "batch_size": 2,
+      "sources": [
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-0-probes/009.json",
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-1-probes/009.json"
+      ]
+    },
+    {
+      "record_id": "best_first_width/gripper-train-easy-0050:best_first_width:236",
+      "algorithm": "best_first_width",
+      "input_tokens": 3405,
+      "seconds_per_call": 22.072884959634393,
+      "batch_size": 2,
+      "sources": [
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-0-probes/027.json",
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-1-probes/027.json"
+      ]
+    },
+    {
+      "record_id": "best_first_width/sokoban-train-hard-0062:best_first_width:103",
+      "algorithm": "best_first_width",
+      "input_tokens": 7615,
+      "seconds_per_call": 36.89108223374933,
+      "batch_size": 2,
+      "sources": [
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-0-probes/002.json",
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-1-probes/002.json"
+      ]
+    },
+    {
+      "record_id": "best_first_width/sokoban-train-medium-0003:best_first_width:60",
+      "algorithm": "best_first_width",
+      "input_tokens": 7602,
+      "seconds_per_call": 36.95455104857683,
+      "batch_size": 2,
+      "sources": [
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-0-probes/003.json",
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-1-probes/003.json"
+      ]
+    },
+    {
+      "record_id": "best_first_width/storage-train-medium-0047:best_first_width:473",
+      "algorithm": "best_first_width",
+      "input_tokens": 6014,
+      "seconds_per_call": 30.834053503349423,
+      "batch_size": 2,
+      "sources": [
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-0-probes/012.json",
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-1-probes/012.json"
+      ]
+    },
+    {
+      "record_id": "best_first_width/visitall-train-easy-0038:best_first_width:75",
+      "algorithm": "best_first_width",
+      "input_tokens": 7485,
+      "seconds_per_call": 36.45938438922167,
+      "batch_size": 2,
+      "sources": [
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-0-probes/004.json",
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-1-probes/004.json"
+      ]
+    },
+    {
+      "record_id": "best_first_width/visitall-train-medium-0050:best_first_width:188",
+      "algorithm": "best_first_width",
+      "input_tokens": 16795,
+      "seconds_per_call": 93.01612445618957,
+      "batch_size": 1,
+      "sources": [
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-0-probes/000.json",
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-1-probes/000.json"
+      ]
+    },
+    {
+      "record_id": "bfs/blocksworld-dev-hard-0000:bfs:479",
+      "algorithm": "bfs",
+      "input_tokens": 3695,
+      "seconds_per_call": 23.472666810266674,
+      "batch_size": 2,
+      "sources": [
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-0-probes/022.json",
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-1-probes/022.json"
+      ]
+    },
+    {
+      "record_id": "bfs/blocksworld-dev-medium-0000:bfs:50",
+      "algorithm": "bfs",
+      "input_tokens": 3718,
+      "seconds_per_call": 22.85996460681781,
+      "batch_size": 2,
+      "sources": [
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-0-probes/021.json",
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-1-probes/021.json"
+      ]
+    },
+    {
+      "record_id": "bfs/snake-dev-easy-0000:bfs:51",
+      "algorithm": "bfs",
+      "input_tokens": 6515,
+      "seconds_per_call": 33.73795810388401,
+      "batch_size": 2,
+      "sources": [
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-0-probes/007.json",
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-1-probes/007.json"
+      ]
+    },
+    {
+      "record_id": "bfs/sokoban-dev-medium-0000:bfs:118",
+      "algorithm": "bfs",
+      "input_tokens": 6319,
+      "seconds_per_call": 31.775562723632902,
+      "batch_size": 2,
+      "sources": [
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-0-probes/010.json",
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-1-probes/010.json"
+      ]
+    },
+    {
+      "record_id": "bfs/storage-dev-hard-0000:bfs:239",
+      "algorithm": "bfs",
+      "input_tokens": 6481,
+      "seconds_per_call": 32.11704150540754,
+      "batch_size": 2,
+      "sources": [
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-0-probes/008.json",
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-1-probes/008.json"
+      ]
+    },
+    {
+      "record_id": "bfs/storage-dev-hard-0000:bfs:248",
+      "algorithm": "bfs",
+      "input_tokens": 7813,
+      "seconds_per_call": 35.332315714564174,
+      "batch_size": 2,
+      "sources": [
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-0-probes/001.json",
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-1-probes/001.json"
+      ]
+    },
+    {
+      "record_id": "bfs/storage-dev-medium-0000:bfs:89",
+      "algorithm": "bfs",
+      "input_tokens": 6286,
+      "seconds_per_call": 29.872216755058616,
+      "batch_size": 2,
+      "sources": [
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-0-probes/011.json",
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-1-probes/011.json"
+      ]
+    },
+    {
+      "record_id": "bfs/storage-train-easy-0000:bfs:4",
+      "algorithm": "bfs",
+      "input_tokens": 5421,
+      "seconds_per_call": 29.17432461772114,
+      "batch_size": 2,
+      "sources": [
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-0-probes/016.json",
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-1-probes/016.json"
+      ]
+    },
+    {
+      "record_id": "bfs/visitall-train-easy-0000:bfs:9",
+      "algorithm": "bfs",
+      "input_tokens": 3580,
+      "seconds_per_call": 21.844934690278023,
+      "batch_size": 2,
+      "sources": [
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-0-probes/023.json",
+        "outputs/visual_development/issue75-32k-v3/attempt-001/qualification/worker-1-probes/023.json"
+      ]
+    }
+  ],
+  "evaluation": {
+    "estimate_kind": "reference_input_full_output_cost_proxy_not_eta",
+    "full_proxy_wall_seconds": 11177833.320825476,
+    "selected_proxy_wall_seconds": 1676611.9949049912,
+    "coverage_floor_proxy_wall_seconds": 1676611.9949049912,
+    "fits_evaluation_budget": false,
+    "proxy_work_reduction_percent": 85.00279908613105
+  },
+  "training": {
+    "corpus_changed": false,
+    "estimate_kind": "global_max_microstep_stress_not_eta",
+    "settings": [
+      {
+        "algorithm": "bfs",
+        "training_records": 11911,
+        "optimizer_steps": 746,
+        "training_proxy_gpu_seconds": 285717.31242492795,
+        "full_dev_diagnostic_records_per_pass": 12115,
+        "diagnostic_proxy_gpu_seconds": 290610.80010309815,
+        "worker": 0
+      },
+      {
+        "algorithm": "best_first_width",
+        "training_records": 14225,
+        "optimizer_steps": 890,
+        "training_proxy_gpu_seconds": 341224.8148135841,
+        "full_dev_diagnostic_records_per_pass": 6435,
+        "diagnostic_proxy_gpu_seconds": 154360.75102463365,
+        "worker": 1
+      },
+      {
+        "algorithm": "best_first_add_w3",
+        "training_records": 9398,
+        "optimizer_steps": 588,
+        "training_proxy_gpu_seconds": 225436.26078158617,
+        "full_dev_diagnostic_records_per_pass": 7095,
+        "diagnostic_proxy_gpu_seconds": 170192.62292459607,
+        "worker": 0
+      },
+      {
+        "algorithm": "best_first_add_greedy",
+        "training_records": 8342,
+        "optimizer_steps": 522,
+        "training_proxy_gpu_seconds": 200105.2657416463,
+        "full_dev_diagnostic_records_per_pass": 6696,
+        "diagnostic_proxy_gpu_seconds": 160621.53673052788,
+        "worker": 1
+      }
+    ],
+    "training_proxy_wall_seconds": 541330.0805552304,
+    "full_dev_diagnostic_proxy_wall_seconds": 460803.4230276942,
+    "combined_proxy_wall_seconds": 971956.9962342083
+  },
+  "limitations": [
+    "Only visual hardware timing is measured; this same panel must be used for other modality comparisons.",
+    "Uses 384-token timing and maximum call allowances; live inputs may differ from reference inputs.",
+    "Batch-normalized timing, device packing and a margin are cost proxies, not an end-to-end time guarantee.",
+    "Training and diagnostics use full source data; short-input training timing is unmeasured.",
+    "Reference rendering, adapter qualification and I/O are not timed in these projections."
+  ]
+}
