@@ -41,7 +41,9 @@
     "tag": "deadline-study-v1",
     "url": "https://github.com/Sino-Huang/multimodality_on_planning/releases/tag/deadline-study-v1",
     "published_at": "2026-09-12T16:53:24Z",
-    "assets": 19
+    "assets": 19,
+    "github_state": "CLOSED",
+    "closed_at": "2026-09-12T17:07:13Z"
   },
   "conditional_final_branch": [
     {
