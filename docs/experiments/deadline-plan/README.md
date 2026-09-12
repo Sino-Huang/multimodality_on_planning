@@ -1,10 +1,26 @@
 # Deadline research plan
 
-The deadline study uses one seed (17), a small matched comparison and fixed wall
-time budgets. This supersedes the full-matrix requirements in issues #75–#109.
-Original ticket bodies and comments are retained in `original-issues.json`;
-`revised-issues.json` records the replacement titles and bodies. Deferred tickets
-remain open, preserving their history without blocking the deadline release.
+The planned deadline study uses one seed (17), a small matched comparison and
+fixed wall time budgets. Original ticket bodies and comments are retained in
+`original-issues.json`; `revised-issues.json` records the initial deadline rewrite.
+Deferred tickets remain open without blocking the deadline release.
+
+**Actual #75 outcome:** the operator continued the already-running cost-ranked v5
+experiment. It completed four full-corpus training runs and 864 episodes in
+76.23 hours, with a failed BFWS performance gate. The four-hour visual pilot was
+not run. See [the completion report](../issue75/v5-completion.md). Closing #75
+records completed evidence, including the negative result; it does not declare
+the scientific gate passed or the pilot executed.
+
+Before #76/#77 or final comparisons, reconcile the actual v5 training schedule
+(43,876 records across four algorithms, two epochs) with the planned
+512-record/one-epoch multimodal/text pilots. Restricting evaluation to common tasks
+cannot remove that training mismatch. Do not infer a modality effect from such a
+comparison or automatically expand downstream compute. #76's four-hour cap stays
+in force pending a scientifically interpretable bounded plan. The initial 16-hour
+plan was not the actual compute spent: #75 alone used 76.23 hours, excluding its
+earlier attempts. Remaining listed GPU caps total 12 hours, plus optional DAgger;
+their feasibility and comparison scope still need reconciliation.
 
 ## Required execution order
 
@@ -21,23 +37,23 @@ distinct explicit MASTER_PORT values; GPU isolation does not isolate ports.
 
 | Ticket | Work | Maximum wall time for GPU stage |
 | --- | --- | ---: |
-| #75 | Visual development pilot | 4 hours |
+| #75 | Completed v5 visual experiment; pilot not run | 76.23 hours actually spent |
 | #76 | Matched multimodal development pilot | 4 hours |
 | #93 | Matched text training and final evaluation | 4 hours |
 | #94 | Final visual evaluation using pilot adapters | 2 hours |
 | #95 | Final multimodal evaluation using pilot adapters | 2 hours |
-| Total | Primary GPU stages, serialized on two A100s | 16 hours |
+| Remaining total | #76 and #93–#95, subject to scope reconciliation | 12 hours |
 
-These are spending caps, not runtime forecasts or guarantees of completion. They
+Remaining budgets are spending caps, not runtime forecasts or guarantees of completion. They
 exclude implementation, CPU preparation and writing, and are not GPU-hours.
 #91 and #92 each have at most one hour of local preparation. #77, #90, #97, #109,
 #100 and #108 add no model calls. #77 may stop the study before final evaluation
 if the development evidence is incomplete, invalid or uninformative. Record actual
 compute, including earlier attempts, separately from this remaining-work budget.
 
-## Matched scope
+## Initially planned matched pilot scope
 
-#75 uses `configs/experiments/issue75/pilot.json` and `pilot-plan-v1.json`:
+The unrun visual pilot uses `configs/experiments/issue75/pilot.json` and `pilot-plan-v1.json`:
 512 complete training records per algorithm, one epoch, global batch 32 (16
 optimizer updates), at most 32 diagnostic records per algorithm, seed 17.
 The evaluation panel has storage, blocksworld and ferry, four algorithms, and
@@ -87,7 +103,7 @@ extensions have zero allocated deadline compute and remain unmeasured. Reopening
 active execution later requires a fresh bounded plan, not automatic restoration
 of the old multi-seed matrix.
 
-## Run the implemented visual pilot
+## Optional unrun visual pilot command
 
 ```bash
 source ~/cd_vlaplan
@@ -102,7 +118,7 @@ ETA where measurable, and 20-second heartbeats. New calls stop at 3h45m; the
 runner terminates its own workers at 4h and preserves incomplete evidence.
 Do not overlap this command with an older full-size #75 run. The old configuration
 is retained only for explicit historical reproduction and has no live wall cap.
-No new GPU experiment was launched when implementing this plan. The other active
+No new GPU experiment was launched by the agent when implementing this plan; the operator continued the existing v5 run. The other active
 tickets still require implementation and verification within their revised scopes.
 
 A ticket may close with the evidence its revised criteria require, including a

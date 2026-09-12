@@ -1,4 +1,21 @@
-# Visual development pilot (#75)
+# Visual development experiments (#75)
+
+## Completed v5 experiment
+
+The operator continued the older v5 run instead of switching to the pilot. All
+four full-corpus adapters and all 864 selected episodes completed in **76.23 hours**.
+Its outcome is `VALID_STOP`, with `complete_selected_coverage: true`: BFWS success
+was 66.7%, below the frozen 80% threshold. This is complete experimental evidence
+with a failed performance gate, not a runtime failure. Original receipts remain
+unchanged. See the [v5 completion report](../../../docs/experiments/issue75/v5-completion.md).
+
+The four-hour pilot below was **not run** and is not required to close the completed
+v5 execution. Do not rerun #75 just to turn its outcome into PASS. Before #76 or
+later modality comparisons, reconcile training scope: v5 used 43,876 records and
+two epochs, so its adapters are not matched to 512-record/one-epoch pilot adapters.
+No longer downstream experiment is implicitly authorized by this completed run.
+
+## Optional pilot configuration
 
 The default command now runs a **four-hour deadline pilot** from
 [`pilot.json`](pilot.json), with exact sample membership in
