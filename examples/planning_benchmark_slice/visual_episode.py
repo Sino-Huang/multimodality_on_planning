@@ -399,7 +399,14 @@ def replay_visual_episode(root, row, report, views=None):
             if request is None or dict(request.model_input) != event["input"]:
                 raise ValueError("visual episode replay input differs")
             binding = (
-                views.observe(dict(request.model_input), report["algorithm"], pixels=False)["binding"] if views else None
+                views.observe(
+                    dict(request.model_input),
+                    report["algorithm"],
+                    modality=report.get("modality", "visual-state"),
+                    pixels=False,
+                )["binding"]
+                if views
+                else None
             )
             if binding != event["view"]:
                 raise ValueError("visual episode page binding differs")

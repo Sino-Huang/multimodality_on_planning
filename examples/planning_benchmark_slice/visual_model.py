@@ -56,8 +56,9 @@ class VisualPolicy(BatchedPolicyAdapter):
 
 
 class VisualDataset(Dataset):
-    def __init__(self, root, report, algorithm, split="train", record_ids=None):
+    def __init__(self, root, report, algorithm, split="train", record_ids=None, modality="visual-state"):
         self.corpus = ModalityCorpus(root, report)
+        self.modality = modality
         self.records = list(self.corpus.records(algorithm=algorithm, split=split))
         if record_ids is not None:
             indexed = {r["record_id"]: r for r in self.records}
@@ -67,7 +68,7 @@ class VisualDataset(Dataset):
         return len(self.records)
 
     def __getitem__(self, index):
-        return self.corpus.training_example(self.records[index], "visual-state")
+        return self.corpus.training_example(self.records[index], self.modality)
 
 
 class VisualCollator:
@@ -147,6 +148,7 @@ def train_visual(config, root, algorithm, output, *, deadline, progress, resume=
         root / config["corpus_report"],
         algorithm,
         record_ids=pilot["training_record_ids"][algorithm] if pilot else None,
+        modality=config["modality"],
     )
     diagnostics = VisualDataset(
         root,
@@ -154,6 +156,7 @@ def train_visual(config, root, algorithm, output, *, deadline, progress, resume=
         algorithm,
         split="dev",
         record_ids=pilot["diagnostic_record_ids"][algorithm] if pilot else None,
+        modality=config["modality"],
     )
     training = config["training"]
     total = math.ceil(len(dataset) / training["global_batch_size"]) * training["epochs"]

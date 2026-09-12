@@ -99,7 +99,8 @@ def build_pilot(experiment, domain_count=3, train_limit=512, diagnostic_limit=32
 
 
 def probe_records_for_pilot(experiment):
-    ids = [r for a in experiment.config["algorithms"] for r in experiment.pilot["adapter_probe_record_ids"][a]]
+    probes = experiment.config.get("qualification_probe_record_ids", experiment.pilot["adapter_probe_record_ids"])
+    ids = [r for a in experiment.config["algorithms"] for r in probes[a]]
     wanted, found = set(ids), {}
     for result in experiment.corpus.results.values():
         for record in iter_shard(experiment.corpus.root / result["path"]):

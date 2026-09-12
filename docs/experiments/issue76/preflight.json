@@ -1,0 +1,357 @@
+{
+  "dry_run": {
+    "stage": "dry-run:complete",
+    "outcome": "PASS",
+    "dry_run": true,
+    "writes": 0,
+    "contract_id": "issue-76-multimodal-feasibility-v1",
+    "modality": "multimodal-state",
+    "train_records": {
+      "bfs": 512,
+      "best_first_width": 512,
+      "best_first_add_w3": 512,
+      "best_first_add_greedy": 512
+    },
+    "training_runs": 4,
+    "training_seed": 17,
+    "evaluation_seeds": [
+      17
+    ],
+    "study_scope": "deadline_pilot",
+    "comparison_scope": "within_multimodal_feasibility; training_unmatched_to_issue75_v5",
+    "optimizer_steps": {
+      "bfs": 16,
+      "best_first_width": 16,
+      "best_first_add_w3": 16,
+      "best_first_add_greedy": 16
+    },
+    "full_dev_task_groups": 97,
+    "full_dev_algorithm_episodes": 120,
+    "selected_dev_task_groups": 9,
+    "selected_dev_algorithm_episodes": 12,
+    "planned_condition_episodes": 48,
+    "cost_panel": null,
+    "evaluation_cost": null,
+    "training_cost": null,
+    "fallback_task_groups": 42,
+    "devices": [
+      "0",
+      "1"
+    ],
+    "master_ports": [
+      18675,
+      18676
+    ],
+    "backend_endpoints": [
+      "http://127.0.0.1:18092",
+      "http://127.0.0.1:18093",
+      "http://127.0.0.1:18094",
+      "http://127.0.0.1:18095"
+    ],
+    "stages": [
+      "qualification",
+      "references",
+      "training",
+      "evaluation",
+      "adjudication"
+    ],
+    "model_calls_started": false,
+    "scientific_completion": false,
+    "clock_seconds": 14400,
+    "budget_mode": "timeboxed",
+    "reference_budget_seconds": 14400,
+    "qualification_source": null,
+    "output_root": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/multimodal_development/issue76-feasibility-v1/attempt-001",
+    "qualification_modalities": [
+      "multimodal-state"
+    ],
+    "approval_required": false,
+    "actual_hardware_qualification_required": true,
+    "completed": 1,
+    "total": 1,
+    "commands": {
+      "qualify": [
+        {
+          "command": [
+            "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+            "-u",
+            "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/scripts/run_visual_issue75.py",
+            "_qualify",
+            "--config",
+            "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/configs/experiments/issue76/experiment.json",
+            "--output",
+            "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/multimodal_development/issue76-feasibility-v1/attempt-001",
+            "--worker",
+            "0"
+          ],
+          "worker": 0,
+          "environment": {
+            "CUDA_VISIBLE_DEVICES": "0",
+            "MASTER_PORT": "18675",
+            "TOKENIZERS_PARALLELISM": "false",
+            "PYTHONUNBUFFERED": "1"
+          }
+        },
+        {
+          "command": [
+            "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+            "-u",
+            "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/scripts/run_visual_issue75.py",
+            "_qualify",
+            "--config",
+            "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/configs/experiments/issue76/experiment.json",
+            "--output",
+            "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/multimodal_development/issue76-feasibility-v1/attempt-001",
+            "--worker",
+            "1"
+          ],
+          "worker": 1,
+          "environment": {
+            "CUDA_VISIBLE_DEVICES": "1",
+            "MASTER_PORT": "18676",
+            "TOKENIZERS_PARALLELISM": "false",
+            "PYTHONUNBUFFERED": "1"
+          }
+        }
+      ],
+      "references": [
+        {
+          "command": [
+            "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+            "-u",
+            "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/scripts/run_visual_issue75.py",
+            "_references",
+            "--config",
+            "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/configs/experiments/issue76/experiment.json",
+            "--output",
+            "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/multimodal_development/issue76-feasibility-v1/attempt-001",
+            "--worker",
+            "0"
+          ],
+          "worker": 0,
+          "environment": {
+            "CUDA_VISIBLE_DEVICES": "",
+            "MASTER_PORT": "18675",
+            "TOKENIZERS_PARALLELISM": "false",
+            "PYTHONUNBUFFERED": "1"
+          }
+        },
+        {
+          "command": [
+            "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+            "-u",
+            "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/scripts/run_visual_issue75.py",
+            "_references",
+            "--config",
+            "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/configs/experiments/issue76/experiment.json",
+            "--output",
+            "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/multimodal_development/issue76-feasibility-v1/attempt-001",
+            "--worker",
+            "1"
+          ],
+          "worker": 1,
+          "environment": {
+            "CUDA_VISIBLE_DEVICES": "",
+            "MASTER_PORT": "18676",
+            "TOKENIZERS_PARALLELISM": "false",
+            "PYTHONUNBUFFERED": "1"
+          }
+        },
+        {
+          "command": [
+            "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+            "-u",
+            "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/scripts/run_visual_issue75.py",
+            "_references",
+            "--config",
+            "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/configs/experiments/issue76/experiment.json",
+            "--output",
+            "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/multimodal_development/issue76-feasibility-v1/attempt-001",
+            "--worker",
+            "2"
+          ],
+          "worker": 2,
+          "environment": {
+            "CUDA_VISIBLE_DEVICES": "",
+            "MASTER_PORT": "18677",
+            "TOKENIZERS_PARALLELISM": "false",
+            "PYTHONUNBUFFERED": "1"
+          }
+        },
+        {
+          "command": [
+            "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+            "-u",
+            "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/scripts/run_visual_issue75.py",
+            "_references",
+            "--config",
+            "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/configs/experiments/issue76/experiment.json",
+            "--output",
+            "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/multimodal_development/issue76-feasibility-v1/attempt-001",
+            "--worker",
+            "3"
+          ],
+          "worker": 3,
+          "environment": {
+            "CUDA_VISIBLE_DEVICES": "",
+            "MASTER_PORT": "18678",
+            "TOKENIZERS_PARALLELISM": "false",
+            "PYTHONUNBUFFERED": "1"
+          }
+        }
+      ],
+      "train": [
+        {
+          "command": [
+            "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+            "-u",
+            "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/scripts/run_visual_issue75.py",
+            "_train",
+            "--config",
+            "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/configs/experiments/issue76/experiment.json",
+            "--output",
+            "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/multimodal_development/issue76-feasibility-v1/attempt-001",
+            "--worker",
+            "0",
+            "--algorithm",
+            "bfs"
+          ],
+          "worker": 0,
+          "environment": {
+            "CUDA_VISIBLE_DEVICES": "0",
+            "MASTER_PORT": "18675",
+            "TOKENIZERS_PARALLELISM": "false",
+            "PYTHONUNBUFFERED": "1"
+          }
+        },
+        {
+          "command": [
+            "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+            "-u",
+            "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/scripts/run_visual_issue75.py",
+            "_train",
+            "--config",
+            "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/configs/experiments/issue76/experiment.json",
+            "--output",
+            "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/multimodal_development/issue76-feasibility-v1/attempt-001",
+            "--worker",
+            "1",
+            "--algorithm",
+            "best_first_width"
+          ],
+          "worker": 1,
+          "environment": {
+            "CUDA_VISIBLE_DEVICES": "1",
+            "MASTER_PORT": "18676",
+            "TOKENIZERS_PARALLELISM": "false",
+            "PYTHONUNBUFFERED": "1"
+          }
+        },
+        {
+          "command": [
+            "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+            "-u",
+            "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/scripts/run_visual_issue75.py",
+            "_train",
+            "--config",
+            "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/configs/experiments/issue76/experiment.json",
+            "--output",
+            "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/multimodal_development/issue76-feasibility-v1/attempt-001",
+            "--worker",
+            "0",
+            "--algorithm",
+            "best_first_add_w3"
+          ],
+          "worker": 0,
+          "environment": {
+            "CUDA_VISIBLE_DEVICES": "0",
+            "MASTER_PORT": "18675",
+            "TOKENIZERS_PARALLELISM": "false",
+            "PYTHONUNBUFFERED": "1"
+          }
+        },
+        {
+          "command": [
+            "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+            "-u",
+            "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/scripts/run_visual_issue75.py",
+            "_train",
+            "--config",
+            "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/configs/experiments/issue76/experiment.json",
+            "--output",
+            "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/multimodal_development/issue76-feasibility-v1/attempt-001",
+            "--worker",
+            "1",
+            "--algorithm",
+            "best_first_add_greedy"
+          ],
+          "worker": 1,
+          "environment": {
+            "CUDA_VISIBLE_DEVICES": "1",
+            "MASTER_PORT": "18676",
+            "TOKENIZERS_PARALLELISM": "false",
+            "PYTHONUNBUFFERED": "1"
+          }
+        }
+      ],
+      "evaluate": [
+        {
+          "command": [
+            "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+            "-u",
+            "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/scripts/run_visual_issue75.py",
+            "_evaluate",
+            "--config",
+            "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/configs/experiments/issue76/experiment.json",
+            "--output",
+            "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/multimodal_development/issue76-feasibility-v1/attempt-001",
+            "--worker",
+            "0"
+          ],
+          "worker": 0,
+          "environment": {
+            "CUDA_VISIBLE_DEVICES": "0",
+            "MASTER_PORT": "18675",
+            "TOKENIZERS_PARALLELISM": "false",
+            "PYTHONUNBUFFERED": "1"
+          }
+        },
+        {
+          "command": [
+            "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+            "-u",
+            "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/scripts/run_visual_issue75.py",
+            "_evaluate",
+            "--config",
+            "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/configs/experiments/issue76/experiment.json",
+            "--output",
+            "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/multimodal_development/issue76-feasibility-v1/attempt-001",
+            "--worker",
+            "1"
+          ],
+          "worker": 1,
+          "environment": {
+            "CUDA_VISIBLE_DEVICES": "1",
+            "MASTER_PORT": "18676",
+            "TOKENIZERS_PARALLELISM": "false",
+            "PYTHONUNBUFFERED": "1"
+          }
+        }
+      ],
+      "adjudicate": []
+    },
+    "elapsed_seconds": 0.39,
+    "eta_seconds": 0.0
+  },
+  "focused_tests": {
+    "passed": 36,
+    "suite_passed": 35,
+    "corrected_probe_test_passed": 1,
+    "model_calls": 0
+  },
+  "black": "PASS",
+  "ruff": "PASS",
+  "basedpyright": "PASS",
+  "scope": "standalone multimodal feasibility, not matched to full v5 visual training",
+  "long_run_started": false
+}

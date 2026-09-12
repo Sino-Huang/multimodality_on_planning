@@ -30,7 +30,8 @@ class VisualExperiment:
             or c["context_tokens"] != source["context_tokens"]
             or c["output_tokens"] != source["output_tokens"]
             or c["training_seed"] != 17
-            or c["modality"] != "visual-state"
+            or c["modality"] not in ("visual-state", "multimodal-state")
+            or c["modality"] not in source["released_modalities"]
             or c["algorithms"] != list(ALGORITHMS)
             or c["parent_freeze"] != source["parent_freeze"]
             or c["training"]["dtype"] != "bfloat16"
@@ -250,12 +251,13 @@ class VisualExperiment:
             "dry_run": True,
             "writes": 0,
             "contract_id": self.config["contract_id"],
-            "modality": "visual-state",
+            "modality": self.config["modality"],
             "train_records": dict(self.train_counts),
             "training_runs": 4,
             "training_seed": 17,
             "evaluation_seeds": self.config["evaluation_seeds"],
             "study_scope": self.config.get("study_scope", "development_matrix"),
+            "comparison_scope": self.config.get("comparison_scope", "within_modality"),
             "optimizer_steps": {a: training_steps(n, self.config["training"]) for a, n in self.train_counts.items()},
             "full_dev_task_groups": len(rows),
             "full_dev_algorithm_episodes": episodes,
@@ -338,7 +340,7 @@ def select_coverage(experiment, qualifications):
         if experiment.cost_panel:
             key = "full_proxy_wall_seconds" if name == "full" else "selected_proxy_wall_seconds"
             rollout = experiment.cost_panel["evaluation"][key] / experiment.cost_panel["policy"]["margin"]
-        if experiment.pilot:
+        if experiment.pilot and c["modality"] == "visual-state":
             rollout = experiment.pilot["evaluation_proxy_seconds"] / margin
         projected = elapsed + margin * (training_seconds + rollout)
         estimates.append(
@@ -398,6 +400,11 @@ def select_coverage(experiment, qualifications):
                 "Estimates are advisory; the live wall-clock limit stops owned workers.",
             ],
         )
+    if experiment.pilot and c["modality"] == "multimodal-state":
+        report["estimate_kind"] = "measured_multimodal_maximum_call_stress_not_eta"
+        report["estimate_assumptions"][
+            0
+        ] = "Evaluation uses the slowest measured multimodal full-output call and maximum episode calls."
     return report
 
 

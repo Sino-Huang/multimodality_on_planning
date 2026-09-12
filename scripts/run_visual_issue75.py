@@ -198,7 +198,7 @@ def run_children(experiment, stage, jobs):
         raise failures[0]
 
 
-def main(argv=None):
+def main(argv=None, *, default_config=ROOT / "configs/experiments/issue75/pilot.json"):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "stage",
@@ -215,7 +215,7 @@ def main(argv=None):
             "_evaluate",
         ],
     )
-    parser.add_argument("--config", type=Path, default=ROOT / "configs/experiments/issue75/pilot.json")
+    parser.add_argument("--config", type=Path, default=default_config)
     parser.add_argument("--output", type=Path, help="Run directory; use a new directory for a fresh run")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--resume", action="store_true")
@@ -285,6 +285,15 @@ def main(argv=None):
                     lambda: run_jobs(experiment, args.worker, stage == "references", progress, args.resume), stage
                 )
                 output = experiment.output / ("evaluation" if stage == "evaluate" else stage) / f"{args.worker}.json"
+            if stage in ("train", "evaluate"):
+                import torch
+
+                result.update(
+                    peak_allocated_bytes=torch.cuda.max_memory_allocated(),
+                    peak_reserved_bytes=torch.cuda.max_memory_reserved(),
+                    elapsed_seconds=round(time.monotonic() - started, 2),
+                    modality=c["modality"],
+                )
             write_json(output, {"contract_id": c["contract_id"], **result})
             return 0
         experiment.start(args.resume)

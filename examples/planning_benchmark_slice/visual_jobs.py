@@ -18,6 +18,13 @@ from .visual_panel import partition_tasks
 
 
 def select_probes(experiment):
+    if experiment.pilot:
+        from .visual_pilot import probe_records_for_pilot
+
+        return sorted(
+            probe_records_for_pilot(experiment),
+            key=lambda r: -r["tokens"]["input"][experiment.config["modality"]],
+        )
     probes = {}
     c = experiment.config
     for result in experiment.corpus.results.values():
@@ -196,12 +203,25 @@ def qualify_device(experiment, worker, progress):
     collator = VisualCollator(frozen_processor().processor)
     training_times = []
     for algorithm in ALGORITHMS:
-        dataset = VisualDataset(ROOT, ROOT / c["corpus_report"], algorithm)
-        dev_dataset = VisualDataset(ROOT, ROOT / c["corpus_report"], algorithm, split="dev")
+        dataset = VisualDataset(
+            ROOT,
+            ROOT / c["corpus_report"],
+            algorithm,
+            modality=c["modality"],
+            record_ids=experiment.pilot["training_record_ids"][algorithm] if experiment.pilot else None,
+        )
+        dev_dataset = VisualDataset(
+            ROOT,
+            ROOT / c["corpus_report"],
+            algorithm,
+            split="dev",
+            modality=c["modality"],
+            record_ids=experiment.pilot["diagnostic_record_ids"][algorithm] if experiment.pilot else None,
+        )
         dataset.records.extend(dev_dataset.records)
         del dev_dataset
         index = max(
-            range(len(dataset)), key=lambda i, records=dataset.records: records[i]["tokens"]["input"]["visual-state"]
+            range(len(dataset)), key=lambda i, records=dataset.records: records[i]["tokens"]["input"][c["modality"]]
         )
         if time.monotonic() >= deadline:
             raise RuntimeError("VALID_STOP: qualification clock exhausted before training probe")
@@ -284,8 +304,8 @@ def run_jobs(experiment, worker, reference, progress, resume=False):
             for probe_index, record in enumerate(records[:1] if experiment.pilot else records):
                 if time.monotonic() >= experiment.deadline():
                     raise RuntimeError("VALID_STOP: cutoff during trained-adapter qualification")
-                batch_records = probe_records(c, records, record, "visual-state")
-                examples = probe_examples(experiment, batch_records)
+                batch_records = probe_records(c, records, record, c["modality"])
+                examples = probe_examples(experiment, batch_records, c["modality"])
                 before = policy.generate([examples[0]])[0]
                 qualify_batch(policy, batch_records, examples, semantics, progress, algorithm)
                 after = policy.generate([examples[0]])[0]
@@ -356,6 +376,7 @@ def run_jobs(experiment, worker, reference, progress, resume=False):
         views.save()
         report = {
             "contract_id": c["contract_id"],
+            "modality": c["modality"],
             "task_id": item["row"]["task_id"],
             "algorithm": session.algorithm,
             "arm": session.arm,
@@ -393,7 +414,7 @@ def run_jobs(experiment, worker, reference, progress, resume=False):
             if request is None:
                 finish(item)
             else:
-                example = item["views"].observe(dict(request.model_input), session.algorithm)
+                example = item["views"].observe(dict(request.model_input), session.algorithm, modality=c["modality"])
                 requests.append((item, example))
         # Each active episode contributes at most one call in a deterministic round.
         batches = []
@@ -550,6 +571,8 @@ def adjudicate(experiment, progress):
         "family_normalized_success": family,
         "scientific_completion": bool(passed) and not bool(experiment.pilot),
         "study_scope": c.get("study_scope", "development_matrix"),
+        "modality": c["modality"],
+        "comparison_scope": c.get("comparison_scope", "within_modality"),
         "pilot_complete": bool(experiment.pilot),
         "full_matrix_complete": bool(passed) and not bool(experiment.pilot),
         "uncertainty_scope": "descriptive_pilot_only" if experiment.pilot else "whole_problem_instance_bootstrap",
