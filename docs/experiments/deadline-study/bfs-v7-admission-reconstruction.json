@@ -1,0 +1,24 @@
+{
+  "contract_id": "issue-54-bfs-resource-bounded-evaluation-v7",
+  "evidence_kind": "CPU reconstruction of v7 admission using retained v8 performance measurements; not the missing original v7 receipt",
+  "calibration_source": "data/bfs_eval_v8/performance-selection.json",
+  "freeze": "configs/experiments/bfs_phase_freeze_v7.json",
+  "original_v7_receipt_available": false,
+  "outcome": "VALID_STOP",
+  "projections": [
+    {
+      "panel": "full",
+      "tasks": 45,
+      "maximum_calls": 145380,
+      "projected_seconds": 669492.8748711802
+    },
+    {
+      "panel": "balanced_fallback",
+      "tasks": 15,
+      "maximum_calls": 51060,
+      "projected_seconds": 235169.7231128794
+    }
+  ],
+  "rollout_certificate_seconds": 54000,
+  "new_model_calls": 0
+}

@@ -4,6 +4,7 @@ import copy
 import json
 import tempfile
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -28,6 +29,32 @@ def test_multimodal_dry_run_requires_fresh_qualification_and_bounds_work(capsys)
     assert report["master_ports"] == [18675, 18676]
     assert not report["model_calls_started"]
     assert "training_unmatched" in report["comparison_scope"]
+
+
+def test_paired_adapter_probe_progress_counts_probes_and_reports_both_inputs(tmp_path, monkeypatch):
+    from examples.planning_benchmark_slice import visual_jobs, visual_pilot
+
+    e = VisualExperiment(CONFIG, tmp_path / "run")
+    records = [
+        {"algorithm": a, "record_id": f"{a}-{i}", "tokens": {"input": {"multimodal-state": tokens}}}
+        for a in ALGORITHMS
+        for i, tokens in enumerate((1000, 500))
+    ]
+    monkeypatch.setattr(e, "deadline", lambda *args: float("inf"))
+    monkeypatch.setattr(visual_jobs, "jobs_for", lambda *args: [])
+    monkeypatch.setattr(
+        visual_jobs,
+        "make_policy",
+        lambda *args: SimpleNamespace(generate=lambda examples, *args: ["op"] * len(examples)),
+    )
+    monkeypatch.setattr(visual_pilot, "probe_records_for_pilot", lambda e: records)
+    monkeypatch.setattr(visual_jobs, "probe_examples", lambda e, records, modality: records)
+    monkeypatch.setattr(visual_jobs, "SemanticProbe", lambda e: SimpleNamespace(evaluate=lambda *args: "same"))
+    progress = []
+    visual_jobs.run_jobs(e, 0, False, lambda stage, **fields: progress.append((stage, fields)))
+    probes = [fields for stage, fields in progress if stage == "trained_adapter_probe"]
+    assert len(probes) == 4
+    assert all(r["completed"] == r["total"] == 1 and r["qualified_inputs"] == 2 for r in probes)
 
 
 def test_multimodal_pilot_probes_cover_maximum_inputs_without_full_corpus_probes():

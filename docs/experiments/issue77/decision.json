@@ -1,0 +1,127 @@
+{
+  "issue": 77,
+  "decision": "NO_GO",
+  "selected_route": [
+    100,
+    108
+  ],
+  "scope": "development_feasibility_and_limitations",
+  "reason": "All four multimodal pilot adapters fail the existing success and invalid-operation readiness thresholds; final comparison is not justified with these adapters under the declared deadline protocol.",
+  "additional_limitation": "Visual v5 full-corpus/two-epoch training and multimodal 512-record/one-epoch training are unmatched; differences cannot identify a modality effect.",
+  "visual_evidence": "docs/experiments/issue75/v5-completion-verification.json",
+  "multimodal_evidence": "docs/experiments/issue76/completion-verification.json",
+  "multimodal_threshold_failures": [
+    {
+      "algorithm": "bfs",
+      "criterion": "learned_success",
+      "actual": 0.0,
+      "limit": 0.8
+    },
+    {
+      "algorithm": "bfs",
+      "criterion": "maximum_invalid_rate",
+      "actual": 0.42857142857142855,
+      "limit": 0.05
+    },
+    {
+      "algorithm": "best_first_width",
+      "criterion": "learned_success",
+      "actual": 0.0,
+      "limit": 0.8
+    },
+    {
+      "algorithm": "best_first_width",
+      "criterion": "maximum_invalid_rate",
+      "actual": 1.0,
+      "limit": 0.05
+    },
+    {
+      "algorithm": "best_first_add_w3",
+      "criterion": "learned_success",
+      "actual": 0.3333333333333333,
+      "limit": 0.8
+    },
+    {
+      "algorithm": "best_first_add_w3",
+      "criterion": "maximum_invalid_rate",
+      "actual": 0.18181818181818182,
+      "limit": 0.05
+    },
+    {
+      "algorithm": "best_first_add_greedy",
+      "criterion": "learned_success",
+      "actual": 0.3333333333333333,
+      "limit": 0.8
+    },
+    {
+      "algorithm": "best_first_add_greedy",
+      "criterion": "maximum_invalid_rate",
+      "actual": 0.2,
+      "limit": 0.05
+    }
+  ],
+  "existing_text_evidence": {
+    "source": "data/best_first_paired_phase_v3/issue67-terminal/result.json",
+    "matched": false,
+    "reason": "Different input/corpus contract, curriculum cells, training schedule and task panel; retained as historical context only."
+  },
+  "dagger": {
+    "selected": false,
+    "selected_cell": null,
+    "additional_gpu_seconds": 0,
+    "reason": "A single-cell/two-hour correction branch is not justified as a repair for four failed readiness gates and the unmatched training design."
+  },
+  "conditional_tickets_not_selected": [
+    90,
+    91,
+    92,
+    93,
+    94,
+    95,
+    97,
+    109
+  ],
+  "optional_tickets_skipped": [
+    78,
+    79,
+    80,
+    81,
+    82,
+    83,
+    84
+  ],
+  "previously_deferred": [
+    85,
+    86,
+    87,
+    88,
+    89,
+    96,
+    98,
+    99,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107
+  ],
+  "additional_gpu_experiments": false,
+  "automatic_retraining": false,
+  "claims_excluded": [
+    "controlled modality effect",
+    "held-out generalization",
+    "training-seed variance",
+    "DAgger benefit",
+    "end-to-end successor prediction",
+    "second-backbone replication",
+    "external-task transfer"
+  ],
+  "known_core_run_elapsed_seconds": {
+    "issue75_v5": 274431.03,
+    "issue76": 3894.99
+  },
+  "timing_note": "Wall-clock run durations, not GPU-hours; earlier attempts are accounted separately in the final report.",
+  "no_new_model_calls": true
+}

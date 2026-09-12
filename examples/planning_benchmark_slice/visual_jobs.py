@@ -301,7 +301,8 @@ def run_jobs(experiment, worker, reference, progress, resume=False):
             all_records = select_probes(experiment)
         for algorithm in ALGORITHMS:
             records = [r for r in all_records if r["algorithm"] == algorithm]
-            for probe_index, record in enumerate(records[:1] if experiment.pilot else records):
+            primary_records = records[:1] if experiment.pilot else records
+            for probe_index, record in enumerate(primary_records):
                 if time.monotonic() >= experiment.deadline():
                     raise RuntimeError("VALID_STOP: cutoff during trained-adapter qualification")
                 batch_records = probe_records(c, records, record, c["modality"])
@@ -311,7 +312,13 @@ def run_jobs(experiment, worker, reference, progress, resume=False):
                 after = policy.generate([examples[0]])[0]
                 if semantics.evaluate(record, before) != semantics.evaluate(record, after):
                     raise ValueError("trained adapter leaked into base condition")
-                progress("trained_adapter_probe", completed=probe_index + 1, total=len(records), algorithm=algorithm)
+                progress(
+                    "trained_adapter_probe",
+                    completed=probe_index + 1,
+                    total=len(primary_records),
+                    algorithm=algorithm,
+                    qualified_inputs=len({r["record_id"] for r in batch_records}),
+                )
 
     results = []
     active = []

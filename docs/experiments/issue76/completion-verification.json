@@ -1,0 +1,185 @@
+{
+  "contract_id": "issue-76-multimodal-feasibility-v1",
+  "modality": "multimodal-state",
+  "verification_outcome": "PASS",
+  "execution_complete": true,
+  "scientific_gate_passed": false,
+  "retained_outcome": "VALID_STOP",
+  "retained_scientific_completion": false,
+  "comparison_scope": "within_multimodal_feasibility; training_unmatched_to_issue75_v5",
+  "coverage": {
+    "complete": true,
+    "completed": 48,
+    "total": 48,
+    "missing": []
+  },
+  "independently_replayed_episodes": 48,
+  "condition_counts": {
+    "pretrained_base": 12,
+    "process_sft": 12,
+    "exact_reference": 12,
+    "random_valid": 12
+  },
+  "metrics": {
+    "bfs": {
+      "exact_reference": {
+        "episodes": 3,
+        "invariant_valid_success": 1.0,
+        "invalid_operation_rate": 0.0,
+        "budget_usage": 0.5
+      },
+      "random_valid": {
+        "episodes": 3,
+        "invariant_valid_success": 0.3333333333333333,
+        "invalid_operation_rate": 0.0,
+        "budget_usage": 0.5
+      },
+      "pretrained_base": {
+        "episodes": 3,
+        "invariant_valid_success": 0.0,
+        "invalid_operation_rate": 1.0,
+        "budget_usage": 0.046875
+      },
+      "process_sft": {
+        "episodes": 3,
+        "invariant_valid_success": 0.0,
+        "invalid_operation_rate": 0.42857142857142855,
+        "budget_usage": 0.109375
+      }
+    },
+    "best_first_width": {
+      "exact_reference": {
+        "episodes": 3,
+        "invariant_valid_success": 1.0,
+        "invalid_operation_rate": 0.0,
+        "budget_usage": 0.5
+      },
+      "random_valid": {
+        "episodes": 3,
+        "invariant_valid_success": 0.6666666666666666,
+        "invalid_operation_rate": 0.0,
+        "budget_usage": 0.5185185185185185
+      },
+      "pretrained_base": {
+        "episodes": 3,
+        "invariant_valid_success": 0.0,
+        "invalid_operation_rate": 1.0,
+        "budget_usage": 0.05555555555555555
+      },
+      "process_sft": {
+        "episodes": 3,
+        "invariant_valid_success": 0.0,
+        "invalid_operation_rate": 1.0,
+        "budget_usage": 0.05555555555555555
+      }
+    },
+    "best_first_add_w3": {
+      "exact_reference": {
+        "episodes": 3,
+        "invariant_valid_success": 1.0,
+        "invalid_operation_rate": 0.0,
+        "budget_usage": 0.5
+      },
+      "random_valid": {
+        "episodes": 3,
+        "invariant_valid_success": 1.0,
+        "invalid_operation_rate": 0.0,
+        "budget_usage": 0.5
+      },
+      "pretrained_base": {
+        "episodes": 3,
+        "invariant_valid_success": 0.0,
+        "invalid_operation_rate": 1.0,
+        "budget_usage": 0.05555555555555555
+      },
+      "process_sft": {
+        "episodes": 3,
+        "invariant_valid_success": 0.3333333333333333,
+        "invalid_operation_rate": 0.18181818181818182,
+        "budget_usage": 0.2037037037037037
+      }
+    },
+    "best_first_add_greedy": {
+      "exact_reference": {
+        "episodes": 3,
+        "invariant_valid_success": 1.0,
+        "invalid_operation_rate": 0.0,
+        "budget_usage": 0.5
+      },
+      "random_valid": {
+        "episodes": 3,
+        "invariant_valid_success": 1.0,
+        "invalid_operation_rate": 0.0,
+        "budget_usage": 0.5
+      },
+      "pretrained_base": {
+        "episodes": 3,
+        "invariant_valid_success": 0.0,
+        "invalid_operation_rate": 1.0,
+        "budget_usage": 0.05555555555555555
+      },
+      "process_sft": {
+        "episodes": 3,
+        "invariant_valid_success": 0.3333333333333333,
+        "invalid_operation_rate": 0.2,
+        "budget_usage": 0.18518518518518517
+      }
+    }
+  },
+  "training": {
+    "bfs": {
+      "contract_id": "issue-76-multimodal-feasibility-v1",
+      "algorithm": "bfs",
+      "seed": 17,
+      "steps": 16,
+      "final_checkpoint": "outputs/multimodal_development/issue76-feasibility-v1/attempt-001/training/bfs/final",
+      "train_records": 512,
+      "outcome": "PASS",
+      "peak_allocated_bytes": 34135289856,
+      "peak_reserved_bytes": 84527808512,
+      "elapsed_seconds": 1242.05,
+      "modality": "multimodal-state"
+    },
+    "best_first_width": {
+      "contract_id": "issue-76-multimodal-feasibility-v1",
+      "algorithm": "best_first_width",
+      "seed": 17,
+      "steps": 16,
+      "final_checkpoint": "outputs/multimodal_development/issue76-feasibility-v1/attempt-001/training/best_first_width/final",
+      "train_records": 512,
+      "outcome": "PASS",
+      "peak_allocated_bytes": 32544347648,
+      "peak_reserved_bytes": 83200311296,
+      "elapsed_seconds": 1212.45,
+      "modality": "multimodal-state"
+    },
+    "best_first_add_w3": {
+      "contract_id": "issue-76-multimodal-feasibility-v1",
+      "algorithm": "best_first_add_w3",
+      "seed": 17,
+      "steps": 16,
+      "final_checkpoint": "outputs/multimodal_development/issue76-feasibility-v1/attempt-001/training/best_first_add_w3/final",
+      "train_records": 512,
+      "outcome": "PASS",
+      "peak_allocated_bytes": 34202628096,
+      "peak_reserved_bytes": 84148224000,
+      "elapsed_seconds": 1249.63,
+      "modality": "multimodal-state"
+    },
+    "best_first_add_greedy": {
+      "contract_id": "issue-76-multimodal-feasibility-v1",
+      "algorithm": "best_first_add_greedy",
+      "seed": 17,
+      "steps": 16,
+      "final_checkpoint": "outputs/multimodal_development/issue76-feasibility-v1/attempt-001/training/best_first_add_greedy/final",
+      "train_records": 512,
+      "outcome": "PASS",
+      "peak_allocated_bytes": 34213340672,
+      "peak_reserved_bytes": 84148224000,
+      "elapsed_seconds": 1228.43,
+      "modality": "multimodal-state"
+    }
+  },
+  "new_model_calls": 0,
+  "elapsed_seconds": 14.77
+}

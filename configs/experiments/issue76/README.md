@@ -1,5 +1,11 @@
 # Multimodal feasibility experiment (#76)
 
+**Completed:** all four adapters and 48 episodes, independently replayed, in 64.92 minutes.
+The retained outcome is VALID_STOP: all four learned settings fail the performance
+gate. See [completion evidence](../../../docs/experiments/issue76/completion.md) and
+[the #77 NO_GO decision](../../../docs/experiments/issue77/decision.md). No rerun is
+part of the deadline study; commands below are retained for reproduction.
+
 This four-hour run uses 512 declared source training records per algorithm,
 one epoch (16 optimizer updates), seed 17, and the existing three-domain pilot
 panel: storage, blocksworld and ferry, four algorithms, 48 condition episodes.
