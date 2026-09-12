@@ -172,18 +172,25 @@ Source reports and scope limitations are collected in [prior-evidence.json](prio
 Historical multi-seed/curriculum runs are context, not pooled with the one-training-seed
 core modality results. No historical outcome or receipt was rewritten.
 
-## Artifacts and remaining work
+## Artifacts and reproduction
 
-The final #108 release must include configs, exact training/task IDs, all eight
-verified final adapters, original receipts/logs, retained episode evidence, replay
-assets/tools and this limited conclusion. The portable release is for retained
-**evaluation replay**, not a mirror of all training-corpus assets or base weights.
-Full retraining requires the separately retained #72/#73/#74 resources. The release
-must independently replay the full restored package and report any missing items;
-its preparation dry-run alone is not publication or complete verification.
+The [published #108 release](https://github.com/Sino-Huang/multimodality_on_planning/releases/tag/deadline-study-v1)
+contains source configs, exact training/task IDs, eight final adapters, original
+receipts/logs, retained episode evidence, selected replay assets/tools and this
+limited conclusion. All **912 episodes** were independently replayed from a
+separately restored package with matching point metrics and zero model calls.
+The package lists 8,305 replay assets and separate final adapter files; base Qwen
+weights are not distributed.
 
-#90–#95, #97 and #109 were not selected after NO_GO. #78–#84 are skipped optional
-work. #85–#89, #96, #98–#99 and #101–#107 remain deferred/unmeasured. The completion
-ledger and release verification under #108 will distinguish these states from
-completed experiments. This report is development feasibility/limitations evidence,
-not a final-test paper result or completion of the parent research program.
+This is a retained **evaluation replay** release, not a mirror of all training-corpus
+assets. Full retraining requires the separately retained #72/#73/#74 resources.
+Package versions, model/code revisions and reproduction commands are recorded in
+the release index and [release tooling guide](release-tools.md). The completion
+ledger and publication verification distinguish delivered artifacts from scientific
+gate success.
+
+#90–#95, #97 and #109 were not selected after NO_GO and are closed as not planned.
+#78–#84 are likewise skipped optional work. #85–#89, #96, #98–#99 and #101–#107
+remain deferred/open and unmeasured. This report is development feasibility and
+limitations evidence, not a final-test paper result or completion of the parent
+research program. No original performance outcome was rewritten.

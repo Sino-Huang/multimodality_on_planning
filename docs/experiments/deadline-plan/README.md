@@ -13,8 +13,9 @@ a controlled modality effect. Original negative performance outcomes remain inta
 
 - **Completed:** #75 visual execution/replay, #76 multimodal execution/replay,
   #77 go/no-go synthesis, #100 development feasibility/limitations report.
-- **Final release:** #108 packages and publishes the verified retained evidence;
-  its publication record is maintained in the completion ledger.
+- **Published release:** #108 contains the verified retained evidence and eight
+  final adapters, with 912/912 restored episodes independently replayed.
+  [Download the release](https://github.com/Sino-Huang/multimodality_on_planning/releases/tag/deadline-study-v1).
 - **Closed as not planned after NO_GO:** #90–#95, #97, #109 (conditional final
   branch), and #78–#84 (optional DAgger). These experiments were not executed.
 - **Remain deferred/open:** #85–#89, #96, #98–#99, #101–#107. No end-to-end,

@@ -1,0 +1,134 @@
+{
+  "issue": 108,
+  "publication_verified": true,
+  "release_url": "https://github.com/Sino-Huang/multimodality_on_planning/releases/tag/deadline-study-v1",
+  "tag": "deadline-study-v1",
+  "published_at": "2026-09-12T16:53:24Z",
+  "is_draft": false,
+  "asset_count": 19,
+  "assets": [
+    {
+      "name": "completion-ledger.json",
+      "bytes": 6225,
+      "state": "uploaded",
+      "url": "https://github.com/Sino-Huang/multimodality_on_planning/releases/download/deadline-study-v1/completion-ledger.json"
+    },
+    {
+      "name": "compute-accounting.json",
+      "bytes": 3104,
+      "state": "uploaded",
+      "url": "https://github.com/Sino-Huang/multimodality_on_planning/releases/download/deadline-study-v1/compute-accounting.json"
+    },
+    {
+      "name": "core-results.csv",
+      "bytes": 4192,
+      "state": "uploaded",
+      "url": "https://github.com/Sino-Huang/multimodality_on_planning/releases/download/deadline-study-v1/core-results.csv"
+    },
+    {
+      "name": "decision.json",
+      "bytes": 3301,
+      "state": "uploaded",
+      "url": "https://github.com/Sino-Huang/multimodality_on_planning/releases/download/deadline-study-v1/decision.json"
+    },
+    {
+      "name": "index.json",
+      "bytes": 4587181,
+      "state": "uploaded",
+      "url": "https://github.com/Sino-Huang/multimodality_on_planning/releases/download/deadline-study-v1/index.json"
+    },
+    {
+      "name": "issue75-best_first_add_greedy-adapter.safetensors",
+      "bytes": 698427288,
+      "state": "uploaded",
+      "url": "https://github.com/Sino-Huang/multimodality_on_planning/releases/download/deadline-study-v1/issue75-best_first_add_greedy-adapter.safetensors"
+    },
+    {
+      "name": "issue75-best_first_add_w3-adapter.safetensors",
+      "bytes": 698427288,
+      "state": "uploaded",
+      "url": "https://github.com/Sino-Huang/multimodality_on_planning/releases/download/deadline-study-v1/issue75-best_first_add_w3-adapter.safetensors"
+    },
+    {
+      "name": "issue75-best_first_width-adapter.safetensors",
+      "bytes": 698427288,
+      "state": "uploaded",
+      "url": "https://github.com/Sino-Huang/multimodality_on_planning/releases/download/deadline-study-v1/issue75-best_first_width-adapter.safetensors"
+    },
+    {
+      "name": "issue75-bfs-adapter.safetensors",
+      "bytes": 698427288,
+      "state": "uploaded",
+      "url": "https://github.com/Sino-Huang/multimodality_on_planning/releases/download/deadline-study-v1/issue75-bfs-adapter.safetensors"
+    },
+    {
+      "name": "issue75-completion-verification.json",
+      "bytes": 9369,
+      "state": "uploaded",
+      "url": "https://github.com/Sino-Huang/multimodality_on_planning/releases/download/deadline-study-v1/issue75-completion-verification.json"
+    },
+    {
+      "name": "issue76-best_first_add_greedy-adapter.safetensors",
+      "bytes": 698427288,
+      "state": "uploaded",
+      "url": "https://github.com/Sino-Huang/multimodality_on_planning/releases/download/deadline-study-v1/issue76-best_first_add_greedy-adapter.safetensors"
+    },
+    {
+      "name": "issue76-best_first_add_w3-adapter.safetensors",
+      "bytes": 698427288,
+      "state": "uploaded",
+      "url": "https://github.com/Sino-Huang/multimodality_on_planning/releases/download/deadline-study-v1/issue76-best_first_add_w3-adapter.safetensors"
+    },
+    {
+      "name": "issue76-best_first_width-adapter.safetensors",
+      "bytes": 698427288,
+      "state": "uploaded",
+      "url": "https://github.com/Sino-Huang/multimodality_on_planning/releases/download/deadline-study-v1/issue76-best_first_width-adapter.safetensors"
+    },
+    {
+      "name": "issue76-bfs-adapter.safetensors",
+      "bytes": 698427288,
+      "state": "uploaded",
+      "url": "https://github.com/Sino-Huang/multimodality_on_planning/releases/download/deadline-study-v1/issue76-bfs-adapter.safetensors"
+    },
+    {
+      "name": "issue76-completion-summary.json",
+      "bytes": 8994,
+      "state": "uploaded",
+      "url": "https://github.com/Sino-Huang/multimodality_on_planning/releases/download/deadline-study-v1/issue76-completion-summary.json"
+    },
+    {
+      "name": "issue76-parent-progress.jsonl",
+      "bytes": 39809,
+      "state": "uploaded",
+      "url": "https://github.com/Sino-Huang/multimodality_on_planning/releases/download/deadline-study-v1/issue76-parent-progress.jsonl"
+    },
+    {
+      "name": "replay-assets.tar.gz",
+      "bytes": 229152847,
+      "state": "uploaded",
+      "url": "https://github.com/Sino-Huang/multimodality_on_planning/releases/download/deadline-study-v1/replay-assets.tar.gz"
+    },
+    {
+      "name": "report.md",
+      "bytes": 12058,
+      "state": "uploaded",
+      "url": "https://github.com/Sino-Huang/multimodality_on_planning/releases/download/deadline-study-v1/report.md"
+    },
+    {
+      "name": "restored-replay-verification.json",
+      "bytes": 7565,
+      "state": "uploaded",
+      "url": "https://github.com/Sino-Huang/multimodality_on_planning/releases/download/deadline-study-v1/restored-replay-verification.json"
+    }
+  ],
+  "checkpoint_assets": 8,
+  "source_code_commit": "68763b25b6d353d2c50749864d318023560f1473",
+  "replay_asset_count": 8305,
+  "replayed_episodes": 912,
+  "full_restored_replay": "PASS",
+  "downloaded_index_and_archive": "PASS",
+  "new_model_calls_for_release": 0,
+  "experiment_scientific_outcomes_unchanged": true,
+  "release_scope": "retained episode replay and final adapters; not a full training-corpus mirror"
+}
