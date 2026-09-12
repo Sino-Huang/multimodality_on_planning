@@ -1,0 +1,247 @@
+{
+  "schema": "deadline_completion_ledger_v1",
+  "selected_route": [
+    76,
+    77,
+    100,
+    108
+  ],
+  "decision": "NO_GO",
+  "study_scope": "development_feasibility_and_limitations",
+  "completed": [
+    {
+      "issue": 75,
+      "work": "visual v5 execution and independent replay",
+      "scientific_gate": "VALID_STOP",
+      "scientific_completion": false,
+      "github_state": "CLOSED"
+    },
+    {
+      "issue": 76,
+      "work": "multimodal pilot execution and independent replay",
+      "scientific_gate": "VALID_STOP",
+      "scientific_completion": false,
+      "github_state": "CLOSED"
+    },
+    {
+      "issue": 77,
+      "work": "CPU synthesis and NO_GO decision",
+      "github_state": "CLOSED"
+    },
+    {
+      "issue": 100,
+      "work": "development feasibility/limitations report",
+      "github_state": "CLOSED"
+    }
+  ],
+  "release": {
+    "issue": 108,
+    "status": "prepared_and_fully_replayed; publication pending",
+    "verified_episodes": 912,
+    "tag": "deadline-study-v1",
+    "url": "https://github.com/Sino-Huang/multimodality_on_planning/releases/tag/deadline-study-v1"
+  },
+  "conditional_final_branch": [
+    {
+      "issue": 90,
+      "disposition": "closed_not_planned_after_NO_GO",
+      "executed": false,
+      "scientific_completion": false,
+      "github_state": "CLOSED"
+    },
+    {
+      "issue": 91,
+      "disposition": "closed_not_planned_after_NO_GO",
+      "executed": false,
+      "scientific_completion": false,
+      "github_state": "CLOSED"
+    },
+    {
+      "issue": 92,
+      "disposition": "closed_not_planned_after_NO_GO",
+      "executed": false,
+      "scientific_completion": false,
+      "github_state": "CLOSED"
+    },
+    {
+      "issue": 93,
+      "disposition": "closed_not_planned_after_NO_GO",
+      "executed": false,
+      "scientific_completion": false,
+      "github_state": "CLOSED"
+    },
+    {
+      "issue": 94,
+      "disposition": "closed_not_planned_after_NO_GO",
+      "executed": false,
+      "scientific_completion": false,
+      "github_state": "CLOSED"
+    },
+    {
+      "issue": 95,
+      "disposition": "closed_not_planned_after_NO_GO",
+      "executed": false,
+      "scientific_completion": false,
+      "github_state": "CLOSED"
+    },
+    {
+      "issue": 97,
+      "disposition": "closed_not_planned_after_NO_GO",
+      "executed": false,
+      "scientific_completion": false,
+      "github_state": "CLOSED"
+    },
+    {
+      "issue": 109,
+      "disposition": "closed_not_planned_after_NO_GO",
+      "executed": false,
+      "scientific_completion": false,
+      "github_state": "CLOSED"
+    }
+  ],
+  "optional_dagger": [
+    {
+      "issue": 78,
+      "disposition": "closed_not_planned_after_NO_GO",
+      "executed": false,
+      "scientific_completion": false,
+      "github_state": "CLOSED"
+    },
+    {
+      "issue": 79,
+      "disposition": "closed_not_planned_after_NO_GO",
+      "executed": false,
+      "scientific_completion": false,
+      "github_state": "CLOSED"
+    },
+    {
+      "issue": 80,
+      "disposition": "closed_not_planned_after_NO_GO",
+      "executed": false,
+      "scientific_completion": false,
+      "github_state": "CLOSED"
+    },
+    {
+      "issue": 81,
+      "disposition": "closed_not_planned_after_NO_GO",
+      "executed": false,
+      "scientific_completion": false,
+      "github_state": "CLOSED"
+    },
+    {
+      "issue": 82,
+      "disposition": "closed_not_planned_after_NO_GO",
+      "executed": false,
+      "scientific_completion": false,
+      "github_state": "CLOSED"
+    },
+    {
+      "issue": 83,
+      "disposition": "closed_not_planned_after_NO_GO",
+      "executed": false,
+      "scientific_completion": false,
+      "github_state": "CLOSED"
+    },
+    {
+      "issue": 84,
+      "disposition": "closed_not_planned_after_NO_GO",
+      "executed": false,
+      "scientific_completion": false,
+      "github_state": "CLOSED"
+    }
+  ],
+  "deferred": [
+    {
+      "issue": 85,
+      "disposition": "deferred_unmeasured",
+      "executed_in_this_study": false,
+      "github_state": "OPEN"
+    },
+    {
+      "issue": 86,
+      "disposition": "deferred_unmeasured",
+      "executed_in_this_study": false,
+      "github_state": "OPEN"
+    },
+    {
+      "issue": 87,
+      "disposition": "deferred_unmeasured",
+      "executed_in_this_study": false,
+      "github_state": "OPEN"
+    },
+    {
+      "issue": 88,
+      "disposition": "deferred_unmeasured",
+      "executed_in_this_study": false,
+      "github_state": "OPEN"
+    },
+    {
+      "issue": 89,
+      "disposition": "deferred_unmeasured",
+      "executed_in_this_study": false,
+      "github_state": "OPEN"
+    },
+    {
+      "issue": 96,
+      "disposition": "deferred_unmeasured",
+      "executed_in_this_study": false,
+      "github_state": "OPEN"
+    },
+    {
+      "issue": 98,
+      "disposition": "deferred_unmeasured",
+      "executed_in_this_study": false,
+      "github_state": "OPEN"
+    },
+    {
+      "issue": 99,
+      "disposition": "deferred_unmeasured",
+      "executed_in_this_study": false,
+      "github_state": "OPEN"
+    },
+    {
+      "issue": 101,
+      "disposition": "deferred_unmeasured",
+      "executed_in_this_study": false,
+      "github_state": "OPEN"
+    },
+    {
+      "issue": 102,
+      "disposition": "deferred_unmeasured",
+      "executed_in_this_study": false,
+      "github_state": "OPEN"
+    },
+    {
+      "issue": 103,
+      "disposition": "deferred_unmeasured",
+      "executed_in_this_study": false,
+      "github_state": "OPEN"
+    },
+    {
+      "issue": 104,
+      "disposition": "deferred_unmeasured",
+      "executed_in_this_study": false,
+      "github_state": "OPEN"
+    },
+    {
+      "issue": 105,
+      "disposition": "deferred_unmeasured",
+      "executed_in_this_study": false,
+      "github_state": "OPEN"
+    },
+    {
+      "issue": 106,
+      "disposition": "deferred_unmeasured",
+      "executed_in_this_study": false,
+      "github_state": "OPEN"
+    },
+    {
+      "issue": 107,
+      "disposition": "deferred_unmeasured",
+      "executed_in_this_study": false,
+      "github_state": "OPEN"
+    }
+  ],
+  "additional_gpu_work_after_no_go": false,
+  "parent_program_complete": false
+}

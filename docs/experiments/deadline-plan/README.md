@@ -1,127 +1,48 @@
-# Deadline research plan
+# Deadline study execution record
 
-The planned deadline study uses one seed (17), a small matched comparison and
-fixed wall time budgets. Original ticket bodies and comments are retained in
-`original-issues.json`; `revised-issues.json` records the initial deadline rewrite.
-Deferred tickets remain open without blocking the deadline release.
+The selected route is **#76 → #77 (NO_GO) → #100 → #108**. The multimodal pilot
+completed and was independently replayed, but every learned setting failed its
+existing success and invalid-operation thresholds. Further GPU work stops.
 
-**Actual #75 outcome:** the operator continued the already-running cost-ranked v5
-experiment. It completed four full-corpus training runs and 864 episodes in
-76.23 hours, with a failed BFWS performance gate. The four-hour visual pilot was
-not run. See [the completion report](../issue75/v5-completion.md). Closing #75
-records completed evidence, including the negative result; it does not declare
-the scientific gate passed or the pilot executed.
+#75's older visual v5 run completed on its larger scope in 76.23 hours; the proposed
+four-hour visual pilot was never run. #76 completed its 512-record/one-epoch pilot
+in 64.92 minutes under the four-hour cap. Their unequal schedules do not identify
+a controlled modality effect. Original negative performance outcomes remain intact.
 
-Before #76/#77 or final comparisons, reconcile the actual v5 training schedule
-(43,876 records across four algorithms, two epochs) with the planned
-512-record/one-epoch multimodal/text pilots. Restricting evaluation to common tasks
-cannot remove that training mismatch. Do not infer a modality effect from such a
-comparison or automatically expand downstream compute. #76's four-hour cap stays
-in force pending a scientifically interpretable bounded plan. The initial 16-hour
-plan was not the actual compute spent: #75 alone used 76.23 hours, excluding its
-earlier attempts. Remaining listed GPU caps total 12 hours, plus optional DAgger;
-their feasibility and comparison scope still need reconciliation.
+## Ticket dispositions
 
-## Required execution order
+- **Completed:** #75 visual execution/replay, #76 multimodal execution/replay,
+  #77 go/no-go synthesis, #100 development feasibility/limitations report.
+- **Final release:** #108 packages and publishes the verified retained evidence;
+  its publication record is maintained in the completion ledger.
+- **Closed as not planned after NO_GO:** #90–#95, #97, #109 (conditional final
+  branch), and #78–#84 (optional DAgger). These experiments were not executed.
+- **Remain deferred/open:** #85–#89, #96, #98–#99, #101–#107. No end-to-end,
+  broad robustness, replication or transfer result is claimed.
 
-```text
-75 → 76 → 77
-           ├─ stop:     100 → 108 (development feasibility/limitations only)
-           └─ continue: 90 → 91 → 92 → 93 → 94 → 95 → (97 || 109) → 100 → 108
-```
+No additional model command is part of this deadline study. Old reproduction
+commands and unselected specifications remain available for a new future protocol;
+they are not pending work on the selected route.
 
-#75 and #76 are logically independent, as are #93–#95 after their prerequisites.
-Execute their GPU stages sequentially because each may use both available A100s.
-CPU preparation can overlap where dependencies permit. Give concurrent workers
-distinct explicit MASTER_PORT values; GPU isolation does not isolate ports.
+## Evidence and artifacts
 
-| Ticket | Work | Maximum wall time for GPU stage |
-| --- | --- | ---: |
-| #75 | Completed v5 visual experiment; pilot not run | 76.23 hours actually spent |
-| #76 | Matched multimodal development pilot | 4 hours |
-| #93 | Matched text training and final evaluation | 4 hours |
-| #94 | Final visual evaluation using pilot adapters | 2 hours |
-| #95 | Final multimodal evaluation using pilot adapters | 2 hours |
-| Remaining total | #76 and #93–#95, subject to scope reconciliation | 12 hours |
+- [#75 completion](../issue75/v5-completion.md)
+- [#76 completion](../issue76/completion.md)
+- [#77 decision](../issue77/decision.md)
+- [Final feasibility/limitations report](../deadline-study/report.md)
+- [Condition metrics](../deadline-study/core-results.csv)
+- [Compute accounting](../deadline-study/compute-accounting.json)
+- [Completion/skip/defer ledger](../deadline-study/completion-ledger.json)
+- [Artifact preparation and portable replay](../deadline-study/release-tools.md)
 
-Remaining budgets are spending caps, not runtime forecasts or guarantees of completion. They
-exclude implementation, CPU preparation and writing, and are not GPU-hours.
-#91 and #92 each have at most one hour of local preparation. #77, #90, #97, #109,
-#100 and #108 add no model calls. #77 may stop the study before final evaluation
-if the development evidence is incomplete, invalid or uninformative. Record actual
-compute, including earlier attempts, separately from this remaining-work budget.
+The original full ticket bodies/comments are archived in `original-issues.json`;
+`revised-issues.json` records the earlier deadline proposal. That initial proposal
+allocated 16 GPU-stage wall-clock hours plus an optional two-hour DAgger branch.
+It was not the actual historical spend: visual v5 alone exceeded it before this
+automation, while #76 respected its cap. Known timed #75 attempts plus #76 total
+80.42 wall-clock hours; this excludes earlier BFS/curriculum training and is not
+GPU-hours. Unused final-evaluation/DAgger budgets were not reassigned.
 
-## Initially planned matched pilot scope
-
-The unrun visual pilot uses `configs/experiments/issue75/pilot.json` and `pilot-plan-v1.json`:
-512 complete training records per algorithm, one epoch, global batch 32 (16
-optimizer updates), at most 32 diagnostic records per algorithm, seed 17.
-The evaluation panel has storage, blocksworld and ferry, four algorithms, and
-12 algorithm/task cases. Base, SFT, random-valid and exact-reference controls
-produce 48 development episodes. Training records are balanced across available
-source domains under a 4,096-token visual input cap, then ordered easy to hard.
-Text and multimodal work must use those exact IDs and the same schedules,
-Search Memory, candidate information, task membership and episode budgets.
-No source corpus, images, facts or planning traces are rewritten or truncated.
-
-#76 must qualify its actual multimodal processor/model inputs within its budget;
-visual hardware qualification does not certify another modality. #93 trains the
-matched text comparison if no compatible adapter exists. #90 freezes the final
-protocol before evaluating held-out outcomes. #91 selects one new, inexpensive
-problem per domain, matched across all four algorithms and three modalities,
-using declared reference-cost/layout limits. No test-outcome-based task selection
-or checkpoint tuning is allowed. #94/#95 reuse final pilot adapters.
-
-The final three-problem, one-seed result is a limited pilot. It cannot establish
-broad generalization, seed variance, architecture replication or transfer. #97
-and #109 derive only valid diagnostics from retained traces. A different budget
-that would change model behavior cannot be reconstructed as a counterfactual
-result from an incompatible trace.
-
-## Optional DAgger
-
-```text
-77 → 78 → 79 → (80 OR 81 OR 82) → 83 → 84
-```
-
-Run this only if #77 justifies it, and finish before #90 if including its adapter
-in final evaluation. The entire branch shares **two hours**, not two hours per
-ticket: one algorithm/modality cell, one iteration, seed 17, at most 64 expert
-corrections from training tasks, at most 512 combined training records and one
-epoch (at most 16 updates). #80, #81 and #82 are alternatives, not three required
-parallel collections. Otherwise skip the branch; it does not block #90/#100.
-
-## Deferred beyond the deadline study
-
-- #85–#89: full-state end-to-end development.
-- #96, #98, #99: broad structural generalization, robustness and end-to-end final evaluation.
-- #101–#103: second-backbone replication.
-- #104–#107: transfer registration and FOLIO/HumanEval/GSM8K runs.
-
-#108 now follows #100 without replication or transfer prerequisites. These
-extensions have zero allocated deadline compute and remain unmeasured. Reopening
-active execution later requires a fresh bounded plan, not automatic restoration
-of the old multi-seed matrix.
-
-## Optional unrun visual pilot command
-
-```bash
-source ~/cd_vlaplan
-python scripts/run_visual_issue75.py all --dry-run
-python -u scripts/run_visual_issue75.py all
-```
-
-The output is `outputs/visual_development/issue75-deadline-pilot-v1/attempt-001`.
-The local renderer must be running as described in the #75 configuration README.
-Terminal progress and worker log files include completed/total, elapsed time,
-ETA where measurable, and 20-second heartbeats. New calls stop at 3h45m; the
-runner terminates its own workers at 4h and preserves incomplete evidence.
-Do not overlap this command with an older full-size #75 run. The old configuration
-is retained only for explicit historical reproduction and has no live wall cap.
-No new GPU experiment was launched by the agent when implementing this plan; the operator continued the existing v5 run. The other active
-tickets still require implementation and verification within their revised scopes.
-
-A ticket may close with the evidence its revised criteria require, including a
-fully collected negative pilot. Partial coverage must never be marked complete.
-#100/#108 distinguish completed, incomplete, skipped and deferred work and state
-whether the release is a held-out comparison or only development feasibility.
+A completed execution or artifact release does not turn a failed scientific gate
+into PASS. The retained scope supports development feasibility and limitations,
+not held-out generalization or completion of the broader parent research program.
