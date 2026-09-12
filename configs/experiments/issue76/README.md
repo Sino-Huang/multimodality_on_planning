@@ -39,3 +39,21 @@ Worker reports retain elapsed time and training/evaluation peak allocated and
 reserved GPU memory. The final report distinguishes complete pilot execution,
 performance-gate outcome, and full-matrix scientific completion. Evaluation is
 development evidence; no held-out or training-seed-variance claim is supported.
+
+After the runner has a terminal `result.json`, independently verify the retained
+experiment without model calls or changes to its original outputs:
+
+```bash
+source ~/cd_vlaplan
+python scripts/verify_modality_experiment.py \
+  --config configs/experiments/issue76/experiment.json \
+  --output docs/experiments/issue76/completion-verification.json
+```
+
+The verifier checks every retained episode through the trusted runtime, exact
+task/algorithm/condition/seed membership, final adapters, aggregate reports and
+the performance gate. It records `PARTIAL` and exits with code 2 if terminal
+coverage is incomplete; it never certifies a live run as complete. A complete
+negative performance result can pass verification while its original gate stays
+`VALID_STOP`. Point metrics are recomputed from replayed outcomes; bootstrap
+statistics remain separately recorded in the original adjudication report.
