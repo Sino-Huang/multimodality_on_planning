@@ -9,7 +9,7 @@
   "assets": [
     {
       "name": "completion-ledger.json",
-      "bytes": 6225,
+      "bytes": 6296,
       "state": "uploaded",
       "url": "https://github.com/Sino-Huang/multimodality_on_planning/releases/download/deadline-study-v1/completion-ledger.json"
     },
@@ -130,5 +130,6 @@
   "downloaded_index_and_archive": "PASS",
   "new_model_calls_for_release": 0,
   "experiment_scientific_outcomes_unchanged": true,
-  "release_scope": "retained episode replay and final adapters; not a full training-corpus mirror"
+  "release_scope": "retained episode replay and final adapters; not a full training-corpus mirror",
+  "completion_ledger_finalized_after_issue_closure": true
 }
