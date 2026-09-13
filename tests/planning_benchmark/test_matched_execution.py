@@ -87,4 +87,6 @@ def test_admission_prices_all_modalities_and_worst_gpu():
     other["modalities"]["multimodal-state"]["seconds_per_call"] = 500
     estimate = admission_estimate(study, panel, [worker, other])
     assert not estimate["fits"]
+    assert estimate["training_fits"]
+    assert not estimate["evaluation_fits"]
     assert estimate["by_modality"]["multimodal-state"]["seconds_per_call"] == 500

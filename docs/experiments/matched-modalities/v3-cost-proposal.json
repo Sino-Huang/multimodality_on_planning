@@ -1,0 +1,55 @@
+{
+  "status": "UNACTIVATED_PROPOSAL",
+  "selection_basis": "reference costs only; no learned outcomes",
+  "changes": [
+    "Ferry profile: two locations, one car, seeds 780000-780063",
+    "Per-domain summed reference-decision ceilings: Storage 34, Blocksworld 20, Ferry 22; first eligible seed"
+  ],
+  "tasks": [
+    {
+      "task_id": "matched-final/storage-760000",
+      "states": 21,
+      "reference_decisions": 34
+    },
+    {
+      "task_id": "matched-final/blocksworld-730060",
+      "states": 125,
+      "reference_decisions": 16
+    },
+    {
+      "task_id": "matched-final/ferry-780004",
+      "states": 6,
+      "reference_decisions": 22
+    }
+  ],
+  "estimate_using_v2_hardware_timings": {
+    "by_modality": {
+      "text-state": {
+        "training_seconds": 2640.4920855211094,
+        "evaluation_seconds": 4573.032437353395,
+        "training_microstep_seconds": 1.3901763502508402,
+        "seconds_per_call": 24.744936952367425
+      },
+      "visual-state": {
+        "training_seconds": 4960.2545581245795,
+        "evaluation_seconds": 6726.81902066106,
+        "training_microstep_seconds": 2.896019270643592,
+        "seconds_per_call": 36.848260490223765
+      },
+      "multimodal-state": {
+        "training_seconds": 5588.066667444073,
+        "evaluation_seconds": 7905.863279893529,
+        "training_microstep_seconds": 3.242849553003907,
+        "seconds_per_call": 43.403307838365436
+      }
+    },
+    "training_seconds": 13188.813311089762,
+    "evaluation_seconds": 19205.714737907983,
+    "training_fits": true,
+    "evaluation_fits": true,
+    "fits": true
+  },
+  "new_input_qualification_required": true,
+  "training_settings_changed": false,
+  "training_executed": false
+}

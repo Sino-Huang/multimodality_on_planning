@@ -82,5 +82,5 @@
   "completed_candidate_preparation_with_stop": [
     91
   ],
-  "preparation_status": "CPU PASS: 191 final states and 2156 source records; actual GPU qualification running"
+  "preparation_status": "CPU and two-GPU hardware PASS; final evaluation budget admission fails (16.78h estimate / 6h cap); #92 remains open"
 }

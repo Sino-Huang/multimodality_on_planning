@@ -49,14 +49,15 @@ def admission_estimate(study, panel, qualifications):
         }
     training = sum(r["training_seconds"] for r in estimates.values())
     evaluation = sum(r["evaluation_seconds"] for r in estimates.values())
+    training_fits = training <= study["budget"]["training_development_seconds"] - 120
+    evaluation_fits = evaluation <= study["budget"]["final_evaluation_seconds"] - 120
     return {
         "by_modality": estimates,
         "training_seconds": training,
         "evaluation_seconds": evaluation,
-        "fits": (
-            training <= study["budget"]["training_development_seconds"] - 120
-            and evaluation <= study["budget"]["final_evaluation_seconds"] - 120
-        ),
+        "training_fits": training_fits,
+        "evaluation_fits": evaluation_fits,
+        "fits": training_fits and evaluation_fits,
     }
 
 
