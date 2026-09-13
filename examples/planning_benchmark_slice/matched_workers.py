@@ -139,9 +139,13 @@ def train_worker(root, study, job, deadline, progress, resume):
     from .visual_pilot import probe_records_for_pilot
 
     modality, algorithm = job["modality"], job["algorithm"]
+
+    def tagged(stage, **fields):
+        progress(stage, **{"modality": modality, "algorithm": algorithm, **fields})
+
     output = root / study["output_root"] / "training" / modality / algorithm
     ex = experiment(root, study, modality, output, deadline)
-    result = train_visual(ex.config, root, algorithm, output, deadline=deadline, progress=progress, resume=resume)
+    result = train_visual(ex.config, root, algorithm, output, deadline=deadline, progress=tagged, resume=resume)
     gc.collect()
     torch.cuda.empty_cache()
     # A final checkpoint is never admitted without trained-adapter/base isolation.
@@ -151,7 +155,7 @@ def train_worker(root, study, job, deadline, progress, resume):
     examples = probe_examples(ex, records, modality)
     semantics = SemanticProbe(ex)
     before = policy.generate([examples[0]])[0]
-    qualify_batch(policy, records, examples, semantics, progress, algorithm)
+    qualify_batch(policy, records, examples, semantics, tagged, algorithm)
     after = policy.generate([examples[0]])[0]
     if semantics.evaluate(records[0], before) != semantics.evaluate(records[0], after):
         raise ValueError("trained adapter leaked into the base condition")
