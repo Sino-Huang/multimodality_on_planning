@@ -250,7 +250,8 @@ def main(argv=None):
             )
             return 0 if args.stage == "verify" else 2
         except (ValueError, OSError, RuntimeError) as error:
-            progress(f"{args.stage}:stopped", outcome="INVALID", model_input_ready=False, reason=str(error))
+            outcome = "VALID_STOP" if str(error).startswith("VALID_STOP:") else "INVALID"
+            progress(f"{args.stage}:stopped", outcome=outcome, model_input_ready=False, reason=str(error))
             return 2
 
 

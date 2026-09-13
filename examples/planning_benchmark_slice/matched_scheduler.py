@@ -199,7 +199,12 @@ def run_gpu_jobs(root, study, stage, jobs, progress, *, resume=False):
                         continue
                     if proc.returncode or not status.exists():
                         reason = read_json(status).get("reason") if status.exists() else f"exit {proc.returncode}"
-                        raise RuntimeError(f"VALID_STOP: {stage} worker failed: {reason}")
+                        outcome = (
+                            read_json(status)["outcome"]
+                            if status.exists()
+                            else ("VALID_STOP" if proc.returncode == 124 else "INVALID")
+                        )
+                        raise RuntimeError(f"{outcome}: {stage} worker failed: {reason}")
                     result = read_json(status)
                     results.append(result)
                     del active[worker]

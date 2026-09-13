@@ -75,10 +75,15 @@ def qualify_worker(root, study, worker, deadline, progress):
 
     results = {}
     for modality in study["modalities"]:
+
+        def tagged(stage, **fields):
+            progress(stage, **{"modality": modality, **fields})
+
+        tagged("qualification:modality_started", completed=len(results), total=3)
         output = root / study["output_root"] / "qualification" / modality
         ex = experiment(root, study, modality, output, deadline)
         examples = qualifying_examples(root, study, modality)
-        results[modality] = qualify_device(ex, worker, progress, examples)
+        results[modality] = qualify_device(ex, worker, tagged, examples)
         for example in examples:
             for image in example["images"]:
                 image.close()
@@ -211,7 +216,11 @@ def worker_main(root, payload):
                 raise ValueError("unknown GPU stage")
         except (Exception, SystemExit) as error:
             code = 2
-            result = {"outcome": "VALID_STOP", "reason": f"{type(error).__name__}: {error}"}
+            resource_stop = isinstance(error, SystemExit) or "VALID_STOP" in str(error) or "out of memory" in str(error)
+            result = {
+                "outcome": "VALID_STOP" if resource_stop else "INVALID",
+                "reason": f"{type(error).__name__}: {error}",
+            }
             progress(f"{stage}:stopped", **result)
         finally:
             result.update(
