@@ -23,9 +23,10 @@ from .visual_model import train_visual
 
 
 def experiment(root, study, modality, output, deadline):
-    corpus = ModalityCorpus(root, root / study["corpus_report"])
+    corpus = ModalityCorpus(root, root / study["corpus_report"], scene_views=study.get("scene_views"))
     pilot = read_json(root / study["membership"])
     probes = {}
+    selected = []
     for algorithm in study["algorithms"]:
         wanted = set(pilot["training_record_ids"][algorithm] + pilot["diagnostic_record_ids"][algorithm])
         rows = [
@@ -38,6 +39,7 @@ def experiment(root, study, modality, output, deadline):
             max(rows, key=lambda r: r["tokens"]["input"][modality])["record_id"],
             min(rows, key=lambda r: r["tokens"]["input"][modality])["record_id"],
         ]
+        selected.extend(rows)
     pilot["adapter_probe_record_ids"] = probes
     config = {
         **study,
@@ -56,6 +58,7 @@ def experiment(root, study, modality, output, deadline):
         output=output,
         panel=read_json(root / corpus.contract["panel_manifest"])["selected"],
         deadline=lambda: deadline,
+        selected_records=selected,
     )
 
 
@@ -74,6 +77,10 @@ def qualifying_examples(root, study, modality):
 def qualify_worker(root, study, worker, deadline, progress):
     import torch
 
+    if study.get("scene_views"):
+        from .scene_only_qualification import qualify_scene_worker
+
+        return qualify_scene_worker(root, study, worker, deadline, progress)
     previous = qualification_predecessor(root, study)
     prior_path = root / previous["output_root"] / "qualification" / f"gpu-{worker}.json" if previous else None
     prior = read_json(prior_path) if prior_path else None
@@ -107,7 +114,9 @@ def qualify_worker(root, study, worker, deadline, progress):
                 torch.cuda.synchronize()
                 measurements.append(
                     {
-                        "input_tokens": frozen_processor().count(example["messages"]),
+                        "input_tokens": (
+                            frozen_processor().count(example["messages"], image_sizes=example.get("image_sizes"))
+                        ),
                         "seconds_per_call": time.monotonic() - then,
                         "output_tokens": 384,
                     }
@@ -149,6 +158,18 @@ def train_worker(root, study, job, deadline, progress, resume):
 
     output = root / study["output_root"] / "training" / modality / algorithm
     ex = experiment(root, study, modality, output, deadline)
+    if study.get("scene_views"):
+        binding = {
+            "study": study,
+            "algorithm": algorithm,
+            "modality": modality,
+            "training_record_ids": ex.pilot["training_record_ids"][algorithm],
+            "diagnostic_record_ids": ex.pilot["diagnostic_record_ids"][algorithm],
+        }
+        path = output / "training-binding.json"
+        if path.exists() and read_json(path) != binding:
+            raise ValueError("training resume would change matched inputs or settings")
+        write_json(path, binding)
     result = train_visual(ex.config, root, algorithm, output, deadline=deadline, progress=tagged, resume=resume)
     gc.collect()
     torch.cuda.empty_cache()
@@ -173,11 +194,16 @@ def train_worker(root, study, job, deadline, progress, resume):
 
 
 def evaluate_worker(root, study, job, worker, deadline, progress, resume):
+    from pathlib import Path
+
+    from .matched_execution import adapter_paths
+
     modality = job["modality"]
     output = root / study["output_root"]
     tasks = read_json(output / "preparation/final-panel.json")["tasks"]
     ex = experiment(root, study, modality, output, deadline)
-    policy = make_policy(ex, {a: str(output / "training" / modality / a / "final") for a in study["algorithms"]})
+    checkpoints = adapter_paths(root, study, modality)
+    policy = make_policy(ex, checkpoints)
     policy.stop_at = deadline
     selected = [
         (t, a, arm)
@@ -217,11 +243,7 @@ def evaluate_worker(root, study, job, worker, deadline, progress, resume):
             "events": session.events,
             "result": session.result(),
             "output": str(path.relative_to(root)),
-            "checkpoint": (
-                str((output / "training" / modality / algorithm / "final").relative_to(root))
-                if arm == "process_sft"
-                else None
-            ),
+            "checkpoint": str(Path(checkpoints[algorithm]).relative_to(root)) if arm == "process_sft" else None,
             "model_id": study["model_id"],
             "model_revision": study["model_revision"],
         }

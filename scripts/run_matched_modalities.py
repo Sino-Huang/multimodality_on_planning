@@ -36,6 +36,51 @@ def execute_v2(args, study, progress):
         )
         return 0
     if args.stage in ("prepare", "verify"):
+        if study.get("scene_views"):
+            from examples.planning_benchmark_slice.scene_only_preparation import prepare
+
+            native = prepare(ROOT, study, progress, args.workers, check=args.stage == "verify")
+            if args.stage == "prepare":
+                previous = read_json(ROOT / study["preparation_predecessor"])
+                source_path = ROOT / previous["output_root"] / "preparation/final-panel.json"
+                source = read_json(source_path)
+                tasks = [
+                    {**t, "study": study, "measurements": native["final_measurements"][t["row"]["task_id"]]}
+                    for t in source["tasks"]
+                ]
+                write_json(
+                    output / "preparation/final-panel.json",
+                    {
+                        "study": study,
+                        "tasks": tasks,
+                        "source_panel": str(source_path.relative_to(ROOT)),
+                        "outcome": "PASS",
+                    },
+                )
+                write_json(
+                    output / "preparation/report.json",
+                    {
+                        "study": study,
+                        "outcome": "PASS",
+                        "model_input_ready": True,
+                        "training": native["source_audit"],
+                        "final_tasks": [t["row"]["task_id"] for t in tasks],
+                        "final_states": native["counts"]["final_states"],
+                        "scene_views": study["scene_views"],
+                    },
+                )
+            _, panel = execution.require_preparation(ROOT, study)
+            for task in panel["tasks"]:
+                if check_final_task(ROOT, study, task, progress) != task["measurements"]:
+                    raise ValueError("scene-only final replay/measurements differ")
+            if args.stage == "verify" and (output / "training").exists():
+                for job in execution.training_jobs(ROOT, study):
+                    execution.verify_training_cell(ROOT, study, job)
+            if args.stage == "verify" and (output / "evaluation").exists():
+                if execution.verify_evaluations(ROOT, study, panel) != 144:
+                    raise ValueError("partial scene-only final episode coverage")
+            progress(f"{args.stage}:complete", completed=2156, total=2156, outcome="PASS", model_input_ready=True)
+            return 0
         pool = (
             read_json(output / "preparation/candidates.json")
             if (output / "preparation/candidates.json").exists()
@@ -136,7 +181,7 @@ def validate_settings(study, devices, ports):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("stage", choices=("prepare", "verify", "qualify", "train", "decide", "evaluate", "_worker"))
-    parser.add_argument("--study", type=Path, default=ROOT / "configs/experiments/matched-modalities/study-v3.json")
+    parser.add_argument("--study", type=Path, default=ROOT / "configs/experiments/matched-modalities/study-v4.json")
     parser.add_argument("--job", type=Path)
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--devices", nargs="+", default=["0", "1"])
@@ -155,7 +200,7 @@ def main(argv=None):
         try:
             study = read_json(args.study)
             validate_settings(study, args.devices, args.master_ports)
-            if study["study_id"] in {"matched-modalities-v2", "matched-modalities-v3"}:
+            if study["study_id"] in {"matched-modalities-v2", "matched-modalities-v3", "matched-modalities-v4"}:
                 if (
                     list(map(str, study["launch"]["devices"])) != args.devices
                     or study["launch"]["master_ports"] != args.master_ports

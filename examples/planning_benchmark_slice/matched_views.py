@@ -39,6 +39,7 @@ def final_view_store(root, study, task, *, read_only=True):
         root / study["output_root"] / "live-views" / task["row"]["task_id"].replace("/", "__"),
         study["backend_endpoints"][0],
         read_only=read_only,
+        scene_views=study.get("scene_views"),
     )
 
 

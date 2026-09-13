@@ -1,0 +1,91 @@
+{
+  "study_id": "matched-modalities-v4",
+  "outcome": "PASS",
+  "counts": {
+    "records": 2156,
+    "tasks": 81,
+    "states": 1588,
+    "final_states": 152
+  },
+  "text_inputs_unchanged": true,
+  "source_input_maxima": {
+    "text-state": 2366,
+    "visual-state": 7937,
+    "multimodal-state": 9272
+  },
+  "final_input_maxima": {
+    "text-state": 2713,
+    "visual-state": 8447,
+    "multimodal-state": 9655
+  },
+  "processor_cross_checks": [
+    [
+      "best_first_add_greedy",
+      "multimodal-state"
+    ],
+    [
+      "best_first_add_greedy",
+      "text-state"
+    ],
+    [
+      "best_first_add_greedy",
+      "visual-state"
+    ],
+    [
+      "best_first_add_w3",
+      "multimodal-state"
+    ],
+    [
+      "best_first_add_w3",
+      "text-state"
+    ],
+    [
+      "best_first_add_w3",
+      "visual-state"
+    ],
+    [
+      "best_first_width",
+      "multimodal-state"
+    ],
+    [
+      "best_first_width",
+      "text-state"
+    ],
+    [
+      "best_first_width",
+      "visual-state"
+    ],
+    [
+      "bfs",
+      "multimodal-state"
+    ],
+    [
+      "bfs",
+      "text-state"
+    ],
+    [
+      "bfs",
+      "visual-state"
+    ]
+  ],
+  "report": "outputs/matched_modalities/v4/preparation/scene-views.json",
+  "preview_review": {
+    "reviewer": "Codex",
+    "domains": 12,
+    "held_out_tasks": 3,
+    "outcome": "PASS",
+    "corrected_findings": [
+      "overlapping object names now displaced with leader lines",
+      "Visitall robot now contrasts with its cell",
+      "initial dynamic facts removed from static-context pages"
+    ]
+  },
+  "training_loss_mask_check": {
+    "sample_total_tokens": 7008,
+    "source_target_tokens": 121,
+    "supervised_tokens_including_turn_end": 123,
+    "target_token_ids_equal_across_modalities": true
+  },
+  "gpu_qualified": false,
+  "new_training_cells_completed": 0
+}

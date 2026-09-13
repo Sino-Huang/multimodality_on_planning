@@ -11,6 +11,7 @@ from examples.planning_benchmark_slice.matched_execution import admission_estima
 from examples.planning_benchmark_slice.matched_scheduler import StageBudget, run_gpu_jobs
 from examples.planning_benchmark_slice.matched_tasks import ROOT
 from examples.planning_benchmark_slice.scene_assets import read_json
+from examples.planning_benchmark_slice.scene_only_qualification import semantic_algorithms
 
 
 def small_study():
@@ -114,3 +115,53 @@ def test_admission_prices_all_modalities_and_worst_gpu():
     assert estimate["training_fits"]
     assert not estimate["evaluation_fits"]
     assert estimate["by_modality"]["multimodal-state"]["seconds_per_call"] == 500
+
+
+def test_native_qualification_covers_every_family_and_retains_spent_training():
+    study = read_json(ROOT / "configs/experiments/matched-modalities/study-v4.json")
+    cases = [a for worker in range(2) for a in semantic_algorithms(study, worker)]
+    assert sorted(cases) == sorted(study["algorithms"])
+    assert len(cases) == len(set(cases))
+    worker = {
+        "modalities": {
+            m: {
+                "training_microstep_seconds": 1,
+                "seconds_per_call": 2,
+                "training_load_seconds": 3,
+                "inference_load_seconds": 4,
+                "adapter_save_seconds": 1,
+            }
+            for m in study["modalities"]
+        }
+    }
+    panel = {"tasks": [{"row": {"reference_costs": {a: {"decisions": 10} for a in study["algorithms"]}}}]}
+    estimate = admission_estimate(
+        study,
+        panel,
+        [worker, worker],
+        spent_training_seconds=1500,
+        completed_cells={("text-state", a) for a in study["algorithms"]},
+    )
+    assert estimate["by_modality"]["text-state"]["training_seconds"] == 0
+    assert estimate["training_seconds"] == 1500 + estimate["remaining_training_seconds"]
+
+
+def test_native_qualification_reserve_does_not_reset_or_increase_cap(tmp_path):
+    previous = small_study()
+    (tmp_path / "previous.json").write_text(json.dumps(previous))
+    with StageBudget(tmp_path, previous, "qualify"):
+        time.sleep(0.02)
+    current = {
+        **previous,
+        "output_root": "native",
+        "budget_predecessor": "previous.json",
+        "budget": {**previous["budget"], "qualification_shutdown_reserve_seconds": 0.01},
+    }
+    with StageBudget(tmp_path, current, "qualify") as clock:
+        assert clock.cap == previous["budget"]["qualification_seconds"]
+        assert clock.reserve == 0.01
+        assert clock.segment["prior_spent"] >= 0.02
+        assert clock.path == tmp_path / "run/budget.json"
+    current["budget"]["qualification_seconds"] += 1
+    with pytest.raises(ValueError, match="shared stage budgets"):
+        StageBudget(tmp_path, current, "qualify")

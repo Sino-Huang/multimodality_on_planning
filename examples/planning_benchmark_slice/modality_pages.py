@@ -202,10 +202,13 @@ class StatePageCache:
         key = (task_id, state_id, page.index)
         if page.role != "current-state":
             raise ValueError("state cache requires current-state page")
+        return self.get_image(key, lambda: compose_page(page, self.root))
+
+    def get_image(self, key, compose) -> Image.Image:
         if key in self.pages:
             self.pages.move_to_end(key)
             return self.pages[key].copy()
-        image = compose_page(page, self.root)
+        image = compose()
         size = image.width * image.height * 3
         while self.pages and self.bytes + size > self.capacity:
             _, old = self.pages.popitem(last=False)
@@ -224,7 +227,13 @@ def shared_state_page_cache(root: Path) -> StatePageCache:
 
 
 def project_messages(
-    raw: dict[str, Any], algorithm: str, modality: str, blocks: dict[str, Any], images: list[tuple[str, Any]]
+    raw: dict[str, Any],
+    algorithm: str,
+    modality: str,
+    blocks: dict[str, Any],
+    images: list[tuple[str, Any]],
+    *,
+    legend: str = LEGEND,
 ) -> list[dict[str, Any]]:
     """Retain the family builder's common input and replace only modality semantics."""
     from .best_first_model_input import serialize_best_first_message_prefix
@@ -244,7 +253,7 @@ def project_messages(
             for key in ("state_atoms", "state_facts", "atoms", "fluents", "state_fluents", "goal_atoms", "modality"):
                 payload[field].pop(key, None)
     payload["representation"] = modality
-    payload["view_legend"] = LEGEND
+    payload["view_legend"] = legend
     if modality != "visual-state":
         payload["semantic_blocks"] = blocks
     builder = (

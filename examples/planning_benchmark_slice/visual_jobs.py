@@ -208,7 +208,7 @@ def qualify_device(experiment, worker, progress, extra_examples=()):
         timings.append(elapsed)
         extra_measurements.append(
             {
-                "input_tokens": frozen_processor().count(example["messages"]),
+                "input_tokens": frozen_processor().count(example["messages"], image_sizes=example.get("image_sizes")),
                 "seconds_per_call": elapsed,
                 "output_tokens": 384,
             }
@@ -229,6 +229,7 @@ def qualify_device(experiment, worker, progress, extra_examples=()):
             algorithm,
             modality=c["modality"],
             record_ids=experiment.pilot["training_record_ids"][algorithm] if experiment.pilot else None,
+            scene_views=c.get("scene_views"),
         )
         dev_dataset = VisualDataset(
             ROOT,
@@ -237,6 +238,7 @@ def qualify_device(experiment, worker, progress, extra_examples=()):
             split="dev",
             modality=c["modality"],
             record_ids=experiment.pilot["diagnostic_record_ids"][algorithm] if experiment.pilot else None,
+            scene_views=c.get("scene_views"),
         )
         dataset.records.extend(dev_dataset.records)
         del dev_dataset

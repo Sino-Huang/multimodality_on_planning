@@ -41,7 +41,13 @@ def process_identity(pid):
 class StageBudget:
     def __init__(self, root, study, stage):
         self.root, self.study, self.stage = root, study, stage
-        self.budget_study = qualification_predecessor(root, study) or study
+        if study.get("budget_predecessor"):
+            self.budget_study = read_json(root / study["budget_predecessor"])
+            comparable = {k: v for k, v in study["budget"].items() if k != "qualification_shutdown_reserve_seconds"}
+            if self.budget_study["budget"] != comparable:
+                raise ValueError("successor cannot change the shared stage budgets")
+        else:
+            self.budget_study = qualification_predecessor(root, study) or study
         self.output = root / self.budget_study["output_root"]
         self.path = self.output / "budget.json"
         self.cap = study["budget"][
@@ -51,6 +57,13 @@ class StageBudget:
                 "evaluate": "final_evaluation_seconds",
             }[stage]
         ]
+        self.reserve = (
+            study["budget"].get(
+                "qualification_shutdown_reserve_seconds", study["budget"]["shutdown_reserve_seconds_per_stage"]
+            )
+            if stage == "qualify"
+            else study["budget"]["shutdown_reserve_seconds_per_stage"]
+        )
         self.lock = None
 
     def __enter__(self):
@@ -87,7 +100,7 @@ class StageBudget:
                 segment["conservative_recovery"] = not children or len(finishes) != len(children)
             spent = sum(s["ended"] - s["started"] for s in self.ledger["segments"] if s["stage"] == self.stage)
             remaining = self.cap - spent
-            if remaining <= self.study["budget"]["shutdown_reserve_seconds_per_stage"]:
+            if remaining <= self.reserve:
                 write_json(self.path, self.ledger)
                 raise RuntimeError("VALID_STOP: cumulative stage allowance exhausted")
             now = time.time()
@@ -103,7 +116,7 @@ class StageBudget:
             }
             self.ledger["segments"].append(self.segment)
             self.hard = time.monotonic() + remaining
-            self.soft = self.hard - self.study["budget"]["shutdown_reserve_seconds_per_stage"]
+            self.soft = self.hard - self.reserve
             self.flush()
             return self
         except BaseException:

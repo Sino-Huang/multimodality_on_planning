@@ -33,9 +33,24 @@ from .visual_bfs import VisualBFSSession
 class VisualTaskViews:
     """Reuse collected states; render new accepted states via supplied localhost paths."""
 
-    def __init__(self, root: Path, row: dict, view_manifest: str, output: Path, endpoint: str, *, read_only=False):
+    def __init__(
+        self,
+        root: Path,
+        row: dict,
+        view_manifest: str,
+        output: Path,
+        endpoint: str,
+        *,
+        read_only=False,
+        scene_views=None,
+    ):
         self.root, self.row, self.output, self.endpoint = root, row, output, endpoint
         self.read_only = read_only
+        self.scene_views = None
+        if scene_views is not None:
+            from .scene_only_views import SceneOnlyViews
+
+            self.scene_views = SceneOnlyViews.load(root, scene_views)
         self.manifest = read_json(root / view_manifest)
         self.catalog = read_json(root / self.manifest["scene_catalog"])
         self.states = list(self.catalog["states"])
@@ -186,6 +201,10 @@ class VisualTaskViews:
         if not (self.root / entry["scene_path"]).is_file():
             raise ValueError("missing bound observation scene")
         semantic = fact_blocks(self.catalog["task_context"], entry, self.manifest["source"])
+        if self.scene_views is not None:
+            return self.scene_views.observe(
+                self.row["task_id"], index, raw, algorithm, semantic, modality, pixels=pixels
+            )
         expected = [p.to_dict() for p in paginate("current-state", semantic["current-state"], entry["scene_path"])]
         if self.recipes[index] != json.loads(json.dumps(expected)):
             raise ValueError("live state recipe does not expose complete current facts")

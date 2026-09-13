@@ -177,19 +177,36 @@ class FrozenPageProcessor:
         grid = processed["image_grid_thw"][0]
         self.grid = [int(n) for n in grid]
         self.image_tokens = int(grid.prod()) // self.processor.image_processor.merge_size**2
+        self.image_token_counts = {PAGE_SIZE: self.image_tokens}
         self.cross_checked = False
 
-    def count(self, messages):
+    def image_tokens_for_size(self, size):
+        if size in self.image_token_counts:
+            return self.image_token_counts[size]
+        with Image.new("RGB", size, "white") as image:
+            processed = self.processor.image_processor(images=[image], return_tensors="pt")
+        grid = processed["image_grid_thw"][0]
+        count = int(grid.prod()) // self.processor.image_processor.merge_size**2
+        self.image_token_counts[size] = count
+        return count
+
+    def count(self, messages, *, image_sizes=None):
         processor = self.processor
         text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
         count = len(processor.tokenizer(text)["input_ids"])
-        count += text.count(processor.image_token) * (self.image_tokens - 1)
+        image_count = text.count(processor.image_token)
+        if image_sizes is None:
+            count += image_count * (self.image_tokens - 1)
+        else:
+            if len(image_sizes) != image_count:
+                raise ValueError("image shape/token marker count differs")
+            count += sum(self.image_tokens_for_size(tuple(size)) - 1 for size in image_sizes)
         return count
 
     def verify_complete(self, messages, images):
         text = self.processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
         actual = self.processor(text=[text], images=images or None, return_tensors="pt")
-        if len(actual["input_ids"][0]) != self.count(messages):
+        if len(actual["input_ids"][0]) != self.count(messages, image_sizes=[image.size for image in images]):
             raise ValueError("complete processor input disagrees with measured image-grid token expansion")
         self.cross_checked = True
 

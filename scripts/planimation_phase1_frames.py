@@ -47,6 +47,39 @@ def _sprite_rgba(sprite: dict[str, object]) -> tuple[int, int, int, int]:
     )
 
 
+def layout_scene_labels(draw, labels, font, canvas_size):
+    """Keep complete object names separate and visibly attached to their sprites."""
+    placed = []
+    for preferred_x, preferred_y, text, anchor in labels:
+        bounds = draw.textbbox((0, 0), text, font=font)
+        width, height = bounds[2] - bounds[0], bounds[3] - bounds[1]
+        if width + 8 > canvas_size or height + 8 > canvas_size:
+            raise ValueError("complete scene object label exceeds canvas")
+        offsets = [(0, 0)]
+        for radius in range(1, 9):
+            x, y = radius * (width + 8), radius * (height + 8)
+            offsets.extend([(0, -y), (0, y), (x, 0), (-x, 0), (x, -y), (-x, -y), (x, y), (-x, y)])
+        for dx, dy in offsets:
+            x = min(max(preferred_x + dx, 4 - bounds[0]), canvas_size - 4 - bounds[2])
+            y = min(max(preferred_y + dy, 4 - bounds[1]), canvas_size - 4 - bounds[3])
+            box = draw.textbbox((x, y), text, font=font)
+            if any(
+                box[0] < p["box"][2] + 4
+                and box[2] + 4 > p["box"][0]
+                and box[1] < p["box"][3] + 4
+                and box[3] + 4 > p["box"][1]
+                for p in placed
+            ):
+                continue
+            placed.append(
+                {"text": text, "xy": (x, y), "box": box, "anchor": anchor, "moved": (x, y) != (preferred_x, preferred_y)}
+            )
+            break
+        else:
+            raise ValueError("scene object labels cannot be placed without overlap")
+    return placed
+
+
 def render_vfg_to_local_png_frames(
     vfg_bytes: bytes,
     output_dir: Path,
@@ -106,13 +139,17 @@ def render_vfg_to_local_png_frames(
                 )
                 if label:
                     if object_names:
-                        labels.append((left + 4, top + 4, str(label)))
+                        labels.append((left + 4, top + 4, str(label), ((left + right) // 2, (top + bottom) // 2)))
                     else:
                         draw.text((left + 4, top + 4), str(label), fill=(0, 0, 0, 255), font=label_font)
-        for x, y, label in labels:
-            box = draw.textbbox((x, y), label, font=label_font)
-            draw.rectangle(box, fill="white")
-            draw.text((x, y), label, fill="black", font=label_font)
+        placed = layout_scene_labels(draw, labels, label_font, canvas_size)
+        for label in placed:
+            if label["moved"]:
+                box = label["box"]
+                draw.line([((box[0] + box[2]) // 2, (box[1] + box[3]) // 2), label["anchor"]], fill="black", width=1)
+        for label in placed:
+            draw.rectangle(label["box"], fill="white")
+            draw.text(label["xy"], label["text"], fill="black", font=label_font)
         canvas.save(output_dir / f"frame_{index:03d}.png")
     if not selected_stages:
         raise RuntimeError("Local VFG rendering produced zero PNG frames")

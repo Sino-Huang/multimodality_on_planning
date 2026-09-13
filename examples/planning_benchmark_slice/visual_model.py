@@ -56,8 +56,10 @@ class VisualPolicy(BatchedPolicyAdapter):
 
 
 class VisualDataset(Dataset):
-    def __init__(self, root, report, algorithm, split="train", record_ids=None, modality="visual-state"):
-        self.corpus = ModalityCorpus(root, report)
+    def __init__(
+        self, root, report, algorithm, split="train", record_ids=None, modality="visual-state", scene_views=None
+    ):
+        self.corpus = ModalityCorpus(root, report, scene_views=scene_views)
         self.modality = modality
         self.records = list(self.corpus.records(algorithm=algorithm, split=split))
         if record_ids is not None:
@@ -86,7 +88,9 @@ class VisualCollator:
         encoded = processor(text=texts, images=images or None, padding=True, return_tensors="pt")
         labels = encoded["input_ids"].clone()
         for i, example in enumerate(examples):
-            length = frozen_processor().count(example["messages"][:-1])
+            length = frozen_processor().count(
+                example["messages"][:-1], image_sizes=[image.size for image in example["images"]]
+            )
             if length + 384 > 32768 or encoded["input_ids"].shape[1] > 32768:
                 raise RuntimeError("VALID_STOP: training example exceeds context")
             padding = (
@@ -149,6 +153,7 @@ def train_visual(config, root, algorithm, output, *, deadline, progress, resume=
         algorithm,
         record_ids=pilot["training_record_ids"][algorithm] if pilot else None,
         modality=config["modality"],
+        scene_views=config.get("scene_views"),
     )
     diagnostics = VisualDataset(
         root,
@@ -157,6 +162,7 @@ def train_visual(config, root, algorithm, output, *, deadline, progress, resume=
         split="dev",
         record_ids=pilot["diagnostic_record_ids"][algorithm] if pilot else None,
         modality=config["modality"],
+        scene_views=config.get("scene_views"),
     )
     training = config["training"]
     total = math.ceil(len(dataset) / training["global_batch_size"]) * training["epochs"]

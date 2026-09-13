@@ -60,6 +60,30 @@ def test_scene_robot_contrasts_with_same_colour_cell(tmp_path):
         assert image.getpixel((45, 80)) == (0, 0, 0, 255)
 
 
+def test_scene_labels_do_not_cover_other_names_or_leave_canvas():
+    from PIL import Image, ImageDraw, ImageFont
+
+    from scripts.planimation_phase1_frames import layout_scene_labels
+
+    draw = ImageDraw.Draw(Image.new("RGB", (256, 256), "white"))
+    font = ImageFont.truetype("DejaVuSans.ttf", 24)
+    labels = [
+        (8, 8, "home", (30, 40)),
+        (8, 12, "c0", (35, 50)),
+        (250, 240, "truck1", (240, 240)),
+        (250, 240, "package1", (240, 240)),
+    ]
+    placed = layout_scene_labels(draw, labels, font, 256)
+    assert [p["text"] for p in placed] == [p[2] for p in labels]
+    assert any(p["moved"] for p in placed)
+    for i, entry in enumerate(placed):
+        box = entry["box"]
+        assert 0 <= box[0] < box[2] <= 256 and 0 <= box[1] < box[3] <= 256
+        for previous in placed[:i]:
+            other = previous["box"]
+            assert box[2] <= other[0] or other[2] <= box[0] or box[3] <= other[1] or other[3] <= box[1]
+
+
 def _request(
     tmp_path: Path,
     *,

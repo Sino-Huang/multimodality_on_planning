@@ -347,8 +347,9 @@ def audit_release(root: Path, results: list[dict], progress=None) -> dict:
 class ModalityCorpus:
     """Load authorized matched training examples with on-demand page composition."""
 
-    def __init__(self, root: Path, report_path: Path):
+    def __init__(self, root: Path, report_path: Path, *, scene_views: Path | None = None):
         self.root = root
+        self.scene_views = None
         report = read_json(report_path)
         self.contract = report["contract"]
         permission = release_permission(root, self.contract, report["authorization"], report["gate"], report_path.parent)
@@ -375,6 +376,10 @@ class ModalityCorpus:
             source = read_json(root / self.contract["source_release"])
             if report["results"] != source["results"]:
                 raise ValueError("matched release must reference the exact source task shards")
+        if scene_views is not None:
+            from .scene_only_views import SceneOnlyViews
+
+            self.scene_views = SceneOnlyViews.load(root, scene_views)
 
     def records(self, *, algorithm: str, split: str):
         if split not in ("train", "dev"):
@@ -386,8 +391,14 @@ class ModalityCorpus:
         )
         for result in ordered:
             if result["split"] == split:
+                if self.scene_views and result["task_id"] not in self.scene_views.tasks:
+                    continue
                 for record in iter_shard(self.root / result["path"]):
                     if record["algorithm"] == algorithm:
+                        if self.scene_views:
+                            if record["record_id"] not in self.scene_views.measurements:
+                                continue
+                            record["tokens"] = self.scene_views.measurements[record["record_id"]]
                         yield record
 
     def training_example(self, record: dict, modality: str = "visual-state") -> dict:
@@ -396,6 +407,8 @@ class ModalityCorpus:
         result = self.results[record["task_id"]]
         if record["view_manifest"] != result["view_manifest"] or record["split"] != result["split"]:
             raise ValueError("record provenance differs from released task")
+        if self.scene_views is not None:
+            return self.scene_views.training_example(self, record, modality)
         manifest = read_json(self.root / result["view_manifest"])
         catalog = read_json(self.root / manifest["scene_catalog"])
         project_record(record, manifest, catalog, modality)
