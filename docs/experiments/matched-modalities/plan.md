@@ -1,3 +1,5 @@
+> **Active successor:** The user approved the smaller cost-qualified final panel and agent-executed training. See [v3 execution](v3.md) and `study-v3.json`. V2 hardware qualification and spent time are retained; historical scope below is preserved.
+
 # Matched modalities under a twelve-hour experiment budget
 
 > Current successor: [v2 completion scope](v2.md), authorized by the user's

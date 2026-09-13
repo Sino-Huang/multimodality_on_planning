@@ -136,7 +136,7 @@ def validate_settings(study, devices, ports):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("stage", choices=("prepare", "verify", "qualify", "train", "decide", "evaluate", "_worker"))
-    parser.add_argument("--study", type=Path, default=ROOT / "configs/experiments/matched-modalities/study-v2.json")
+    parser.add_argument("--study", type=Path, default=ROOT / "configs/experiments/matched-modalities/study-v3.json")
     parser.add_argument("--job", type=Path)
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--devices", nargs="+", default=["0", "1"])
@@ -155,7 +155,7 @@ def main(argv=None):
         try:
             study = read_json(args.study)
             validate_settings(study, args.devices, args.master_ports)
-            if study["study_id"] == "matched-modalities-v2":
+            if study["study_id"] in {"matched-modalities-v2", "matched-modalities-v3"}:
                 if (
                     list(map(str, study["launch"]["devices"])) != args.devices
                     or study["launch"]["master_ports"] != args.master_ports

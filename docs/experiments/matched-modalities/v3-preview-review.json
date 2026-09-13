@@ -1,0 +1,12 @@
+{
+  "study_id": "matched-modalities-v3",
+  "reviewer": "Codex",
+  "processed_previews_inspected": 11,
+  "task_ids": [
+    "matched-final/storage-760000",
+    "matched-final/blocksworld-730060",
+    "matched-final/ferry-780004"
+  ],
+  "outcome": "PASS",
+  "findings": "24px labels remain readable; no clipping; ordered arguments, goal associations and page continuation labels preserved. Original 128px scenes remain illustrative."
+}

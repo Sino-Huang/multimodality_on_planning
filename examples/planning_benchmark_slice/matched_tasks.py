@@ -248,6 +248,9 @@ def prepare_candidate(root, study, domain, seed, exclusions):
             a: {"decisions": len(r["events"]), "expansions": r["result"]["expansion_count"]}
             for a, r in references.items()
         }
+        ceiling = study["final"].get("max_summed_reference_decisions_per_domain", {}).get(domain)
+        if ceiling is not None and sum(v["decisions"] for v in row["reference_costs"].values()) > ceiling:
+            raise RuntimeError("reference_cost_ceiling")
         # Repeat with the actual final episode budgets; otherwise the binding
         # might describe a different observation/call-limit contract.
         references = {a: exact_reference(root, row, a, study) for a in study["algorithms"]}

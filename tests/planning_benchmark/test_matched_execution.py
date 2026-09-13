@@ -62,6 +62,30 @@ def test_hard_deadline_kills_only_owned_process_group(tmp_path):
         other.wait()
 
 
+def test_successor_carries_budget_and_refuses_changed_training(tmp_path):
+    previous = small_study()
+    previous.update(study_id="v2", final={}, training={"epochs": 1})
+    (tmp_path / "previous.json").write_text(json.dumps(previous))
+    current = {
+        **previous,
+        "study_id": "v3",
+        "output_root": "successor",
+        "predecessor_study": "v2",
+        "qualification_predecessor": "previous.json",
+    }
+    with StageBudget(tmp_path, previous, "qualify"):
+        time.sleep(0.02)
+    with StageBudget(tmp_path, current, "qualify") as clock:
+        assert clock.segment["prior_spent"] >= 0.02
+        assert clock.path == tmp_path / "run/budget.json"
+        with pytest.raises(RuntimeError, match="live"):
+            with StageBudget(tmp_path, previous, "train"):
+                pass
+    current["training"] = {"epochs": 2}
+    with pytest.raises(ValueError, match="identical training"):
+        StageBudget(tmp_path, current, "qualify")
+
+
 def test_missing_matched_checkpoint_never_passes(tmp_path):
     study = read_json(ROOT / "configs/experiments/matched-modalities/study-v2.json")
     with pytest.raises(FileNotFoundError):

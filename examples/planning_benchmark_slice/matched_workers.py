@@ -11,10 +11,11 @@ import time
 from types import SimpleNamespace
 from typing import Any
 
+from .matched_scheduler import qualification_predecessor
 from .matched_tasks import Progress
 from .matched_views import final_view_store
 from .modality_corpus import ModalityCorpus
-from .modality_view_preparation import write_json
+from .modality_view_preparation import frozen_processor, write_json
 from .scene_assets import read_json
 from .visual_episode import VisualSession, replay_visual_episode
 from .visual_jobs import SemanticProbe, make_policy, probe_examples, qualify_batch, qualify_device
@@ -73,6 +74,11 @@ def qualifying_examples(root, study, modality):
 def qualify_worker(root, study, worker, deadline, progress):
     import torch
 
+    previous = qualification_predecessor(root, study)
+    prior_path = root / previous["output_root"] / "qualification" / f"gpu-{worker}.json" if previous else None
+    prior = read_json(prior_path) if prior_path else None
+    if prior and (prior["study"] != previous or prior["outcome"] != "PASS"):
+        raise ValueError("predecessor hardware qualification is incomplete or mismatched")
     results = {}
     for modality in study["modalities"]:
 
@@ -83,7 +89,41 @@ def qualify_worker(root, study, worker, deadline, progress):
         output = root / study["output_root"] / "qualification" / modality
         ex = experiment(root, study, modality, output, deadline)
         examples = qualifying_examples(root, study, modality)
-        results[modality] = qualify_device(ex, worker, tagged, examples)
+        if prior:
+            assert prior_path is not None
+            # Membership, model, processor and training settings were checked above.
+            # Re-measure every new final input on this GPU; retain the slower timings.
+            tagged("model_loading", completed=0, total=len(examples))
+            then = time.monotonic()
+            policy = make_policy(ex)
+            load_seconds = time.monotonic() - then
+            policy.stop_at = deadline
+            measurements = []
+            for example in examples:
+                tagged("final_input_timing_probe", completed=len(measurements), total=len(examples))
+                torch.cuda.synchronize()
+                then = time.monotonic()
+                policy.generate([example], force_full_output=True)
+                torch.cuda.synchronize()
+                measurements.append(
+                    {
+                        "input_tokens": frozen_processor().count(example["messages"]),
+                        "seconds_per_call": time.monotonic() - then,
+                        "output_tokens": 384,
+                    }
+                )
+            saved = prior["modalities"][modality]
+            results[modality] = {
+                **saved,
+                "contract_id": study["study_id"],
+                "reused_source_qualification": str(prior_path.relative_to(root)),
+                "inference_load_seconds": max(saved["inference_load_seconds"], load_seconds),
+                "seconds_per_call": max(saved["seconds_per_call"], *(m["seconds_per_call"] for m in measurements)),
+                "final_input_timing_probes": measurements,
+            }
+            del policy
+        else:
+            results[modality] = qualify_device(ex, worker, tagged, examples)
         for example in examples:
             for image in example["images"]:
                 image.close()

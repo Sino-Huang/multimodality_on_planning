@@ -15,6 +15,21 @@ from .modality_view_preparation import write_json
 from .scene_assets import read_json
 
 
+def qualification_predecessor(root, study):
+    if "qualification_predecessor" not in study:
+        return None
+    previous = read_json(root / study["qualification_predecessor"])
+    changed = {"study_id", "output_root", "predecessor_study", "revision_basis", "qualification_predecessor", "final"}
+    if {k: v for k, v in study.items() if k not in changed} != {k: v for k, v in previous.items() if k not in changed}:
+        raise ValueError("qualification reuse requires identical training, processor, model and budget settings")
+    final_changes = {"candidate_profiles", "max_summed_reference_decisions_per_domain"}
+    if study["predecessor_study"] != previous["study_id"] or {
+        k: v for k, v in study["final"].items() if k not in final_changes
+    } != {k: v for k, v in previous["final"].items() if k not in final_changes}:
+        raise ValueError("qualification predecessor or final execution settings differ")
+    return previous
+
+
 def process_identity(pid):
     try:
         with open(f"/proc/{pid}/stat") as stream:
@@ -26,7 +41,8 @@ def process_identity(pid):
 class StageBudget:
     def __init__(self, root, study, stage):
         self.root, self.study, self.stage = root, study, stage
-        self.output = root / study["output_root"]
+        self.budget_study = qualification_predecessor(root, study) or study
+        self.output = root / self.budget_study["output_root"]
         self.path = self.output / "budget.json"
         self.cap = study["budget"][
             {
@@ -46,8 +62,10 @@ class StageBudget:
             self.lock.close()
             raise RuntimeError("another matched-study GPU stage is live") from None
         try:
+            if self.budget_study != self.study and not self.path.exists():
+                raise ValueError("missing predecessor budget ledger; cannot reset spent qualification")
             self.ledger = read_json(self.path) if self.path.exists() else {"study": self.study, "segments": []}
-            if self.ledger["study"] != self.study:
+            if self.ledger["study"] != self.budget_study:
                 raise ValueError("budget ledger settings differ; no reset or budget borrowing")
             for segment in self.ledger["segments"]:
                 if segment.get("ended") is not None:
@@ -74,6 +92,7 @@ class StageBudget:
                 raise RuntimeError("VALID_STOP: cumulative stage allowance exhausted")
             now = time.time()
             self.segment = {
+                "study_id": self.study.get("study_id"),
                 "stage": self.stage,
                 "started": now,
                 "ended": None,
