@@ -1,0 +1,36 @@
+{
+  "goal_branch": "verified terminal budget/failure report",
+  "verified": true,
+  "report_commit": "94a7478",
+  "report": "docs/experiments/matched-modalities/training-admission.json",
+  "successor_updates": {
+    "112": {
+      "state": "OPEN",
+      "comment": "https://github.com/Sino-Huang/multimodality_on_planning/issues/112#issuecomment-5653106432"
+    },
+    "113": {
+      "state": "OPEN",
+      "comment": "https://github.com/Sino-Huang/multimodality_on_planning/issues/113#issuecomment-5653106521"
+    },
+    "114": {
+      "state": "OPEN",
+      "comment": "https://github.com/Sino-Huang/multimodality_on_planning/issues/114#issuecomment-5653106622"
+    }
+  },
+  "checks": {
+    "fresh_preparation_semantic_verification_exit_code": 0,
+    "verified_source_records": 2156,
+    "verified_exhausted_storage_candidates": 64,
+    "train_guard_exit_code": 2,
+    "gpu_training_started": false,
+    "completed_training_cells": 0,
+    "expected_training_cells": 12,
+    "new_checkpoint_files": 0,
+    "training_gpu_stage_seconds": 0,
+    "shared_training_cap_seconds": 18000,
+    "scientific_settings_changed": false,
+    "historical_checkpoints_substituted": false,
+    "final_model_outcomes_accessed": false
+  },
+  "unfulfilled": "Training and development results remain unfulfilled; #92 prerequisite and #112/#113/#114 stay OPEN. Completion applies only to the expressly permitted terminal failure-report alternative."
+}
