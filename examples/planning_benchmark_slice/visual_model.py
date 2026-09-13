@@ -21,7 +21,9 @@ class VisualPolicy(BatchedPolicyAdapter):
     def generate(self, examples, adapter_id=None, *, force_full_output=False):
         if time.monotonic() >= getattr(self, "stop_at", float("inf")):
             raise RuntimeError("VALID_STOP: no new model calls after cutoff")
-        lengths = [frozen_processor().count(e["messages"]) for e in examples]
+        lengths = [
+            frozen_processor().count(e["messages"], image_sizes=[image.size for image in e["images"]]) for e in examples
+        ]
         if (
             len(examples) > self.max_batch_size
             or max(lengths) * len(lengths) > self.max_batch_input_tokens

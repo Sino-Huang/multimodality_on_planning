@@ -154,3 +154,48 @@ def test_native_training_masks_every_image_token_and_matches_text_targets(tmp_pa
             image.close()
     assert supervised[0] == supervised[1] == supervised[2]
     assert 0 < len(supervised[0]) < 100
+
+
+def test_real_visual_inference_wrapper_counts_native_images_on_cpu(tmp_path):
+    from contextlib import nullcontext
+    from types import SimpleNamespace
+
+    import torch
+
+    from examples.planning_benchmark_slice.visual_model import VisualPolicy
+
+    views = fixture_views(tmp_path)
+    raw = {
+        "observation": {"state_atoms": ["at(b)"], "state_id": "s1"},
+        "task_context": {},
+        "goal_atoms": ["at(b)"],
+        "search_memory": {},
+    }
+    example = views.observe("task", 1, raw, "bfs", semantic(), "visual-state")
+    policy = object.__new__(VisualPolicy)
+    policy.processor = frozen_processor().processor
+    policy.device = "cpu"
+    policy.max_batch_size = 2
+    policy.max_batch_input_tokens = 24000
+    policy.max_context_tokens = 32768
+    policy.max_new_tokens = 384
+    policy._torch = torch
+    policy._adapter_context = lambda _adapter: nullcontext()
+    suffix = policy.processor.tokenizer.encode("ok", add_special_tokens=False)
+    policy.model = SimpleNamespace(
+        generate=lambda **inputs: torch.cat(
+            [inputs["input_ids"], torch.tensor([suffix] * inputs["input_ids"].shape[0], dtype=torch.long)], dim=1
+        )
+    )
+    assert policy.generate([example]) == ["ok"]
+    views.tasks["other"] = {
+        **views.tasks["task"],
+        "view_id": "native/other",
+        "static_pages": views.tasks["task"]["static_pages"] * 2,
+    }
+    other = views.observe("other", 1, raw, "bfs", semantic(), "visual-state")
+    assert policy.generate([example, other]) == ["ok", "ok"]
+    for image in example["images"]:
+        image.close()
+    for image in other["images"]:
+        image.close()
