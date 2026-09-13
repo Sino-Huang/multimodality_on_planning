@@ -140,7 +140,7 @@ def qualify_batch(policy, records, examples, semantics, progress, adapter=None):
     progress("qualification_call", completed=total, total=total, operation="semantic_check_complete")
 
 
-def qualify_device(experiment, worker, progress):
+def qualify_device(experiment, worker, progress, extra_examples=()):
     import torch
 
     c = experiment.config
@@ -150,6 +150,7 @@ def qualify_device(experiment, worker, progress):
     free_bytes, total_bytes = torch.cuda.mem_get_info()
     progress("model_loading", completed=0, total=len(records), gpu_free_bytes=free_bytes, gpu_total_bytes=total_bytes)
     policy = make_policy(experiment)
+    inference_load_seconds = time.monotonic() - started
     policy.stop_at = deadline
     timings = []
     semantics = SemanticProbe(experiment)
@@ -195,10 +196,29 @@ def qualify_device(experiment, worker, progress):
             total=len(records),
             eta_seconds=(time.monotonic() - started) / (i + 1) * (len(records) - i - 1),
         )
+    extra_measurements = []
+    for example in extra_examples:
+        progress("final_input_timing_probe", completed=len(extra_measurements), total=len(extra_examples))
+        torch.cuda.synchronize()
+        then = time.monotonic()
+        # Output is deliberately discarded: this is timing, not final evaluation.
+        policy.generate([example], force_full_output=True)
+        torch.cuda.synchronize()
+        elapsed = time.monotonic() - then
+        timings.append(elapsed)
+        extra_measurements.append(
+            {
+                "input_tokens": frozen_processor().count(example["messages"]),
+                "seconds_per_call": elapsed,
+                "output_tokens": 384,
+            }
+        )
     del policy
     gc.collect()
     torch.cuda.empty_cache()
+    then = time.monotonic()
     model = load_training_model(c)
+    training_load_seconds = time.monotonic() - then
     optimizer = torch.optim.AdamW((p for p in model.parameters() if p.requires_grad), lr=0.0)
     collator = VisualCollator(frozen_processor().processor)
     training_times = []
@@ -225,8 +245,8 @@ def qualify_device(experiment, worker, progress):
         )
         if time.monotonic() >= deadline:
             raise RuntimeError("VALID_STOP: qualification clock exhausted before training probe")
-        batch = {k: v.to("cuda:0") for k, v in collator([dataset[index]]).items()}
         then = time.monotonic()
+        batch = {k: v.to("cuda:0") for k, v in collator([dataset[index]]).items()}
         optimizer.zero_grad(set_to_none=True)
         if time.monotonic() >= deadline:
             raise RuntimeError("VALID_STOP: cutoff before hardware training probe")
@@ -238,6 +258,11 @@ def qualify_device(experiment, worker, progress):
         training_times.append(time.monotonic() - then)
         progress("training_hardware_probe", completed=len(training_times), total=4, algorithm=algorithm)
         del dataset, batch, loss
+    save_seconds = 0.0
+    if extra_examples:
+        then = time.monotonic()
+        model.save_pretrained(experiment.output / "qualification" / f"disposable-adapter-{worker}")
+        save_seconds = time.monotonic() - then
     return {
         "contract_id": c["contract_id"],
         "worker": worker,
@@ -252,6 +277,10 @@ def qualify_device(experiment, worker, progress):
         "peak_allocated_bytes": torch.cuda.max_memory_allocated(),
         "elapsed_seconds": time.monotonic() - started,
         "timing_output_tokens": 384,
+        "inference_load_seconds": inference_load_seconds,
+        "training_load_seconds": training_load_seconds,
+        "adapter_save_seconds": save_seconds,
+        "final_input_timing_probes": extra_measurements,
     }
 
 

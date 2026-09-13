@@ -1,5 +1,10 @@
 # Matched modalities under a twelve-hour experiment budget
 
+> Current successor: [v2 completion scope](v2.md), authorized by the user's
+> request to finish #92 and execute training. It changes only the prospective
+> Storage profile/seed range, with no learned-outcome selection or new GPU budget.
+> The v1 protocol and stop below remain historical; use `study-v2.json` for v2.
+
 > Execution update: bounded candidate preparation reached a verified Storage
 > resource stop. See [the preparation result and unfulfilled prerequisites](preparation-stop.md).
 > The frozen protocol below remains unchanged. CPU preparation/verification and

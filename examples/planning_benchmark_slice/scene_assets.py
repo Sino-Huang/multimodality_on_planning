@@ -229,10 +229,13 @@ def collect_task_scenes(
     timeout: int,
     preflight: bool,
     progress: Callable[[dict[str, Any]], None],
+    catalog: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Persist only small scene PNGs, compressed VFG evidence and exact semantic metadata."""
     domain, problem, traces = load_scene_task(root, row)
-    catalog = build_scene_catalog(domain, problem, traces)
+    catalog = build_scene_catalog(domain, problem, traces) if catalog is None else catalog
+    if catalog["task_context"] != PDDLStateAuthority.from_pddl(domain, problem).task_context():
+        raise ValueError("scene catalog belongs to another authoritative task")
     expected = {algorithm: cost["decisions"] for algorithm, cost in row["reference_costs"].items()}
     if Counter(decision["algorithm"] for decision in catalog["decisions"]) != expected:
         raise ValueError("replayed decision coverage differs from the frozen task costs")

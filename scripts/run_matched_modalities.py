@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
-"""Prepare/verify matched inputs and expose the fixed study's resource admission stop.
-
-The v1 candidate pool is exhausted for Storage. GPU execution remains blocked;
-this entry point does not pretend the unfulfilled #92 GPU scheduler is implemented.
-"""
+"""Prepare, qualify, train and verify matched modalities with cumulative stage budgets."""
 
 import argparse
 import sys
@@ -13,9 +9,104 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from examples.planning_benchmark_slice.matched_preparation import audit_training, verify_candidate_stop  # noqa: E402
-from examples.planning_benchmark_slice.matched_tasks import DEFAULT_STUDY, Progress, prepare_candidates  # noqa: E402
+from examples.planning_benchmark_slice.matched_tasks import Progress, prepare_candidates  # noqa: E402
 from examples.planning_benchmark_slice.modality_view_preparation import write_json  # noqa: E402
 from examples.planning_benchmark_slice.scene_assets import read_json  # noqa: E402
+
+
+def execute_v2(args, study, progress):
+    from examples.planning_benchmark_slice import matched_execution as execution
+    from examples.planning_benchmark_slice.matched_scheduler import run_gpu_jobs
+    from examples.planning_benchmark_slice.matched_views import check_final_task, prepare_final_panel
+
+    output = ROOT / study["output_root"]
+    if args.dry_run:
+        progress(
+            f"{args.stage}:dry_run",
+            completed=1,
+            total=1,
+            outcome="PASS",
+            writes=0,
+            model_calls=0,
+            training_cells=12,
+            implemented=True,
+            gpu_cap_seconds=study["budget"],
+            preparation_exists=(output / "preparation/report.json").exists(),
+            qualification_exists=(output / "qualification.json").exists(),
+        )
+        return 0
+    if args.stage in ("prepare", "verify"):
+        pool = (
+            read_json(output / "preparation/candidates.json")
+            if (output / "preparation/candidates.json").exists()
+            else None
+        )
+        if pool is None:
+            if args.stage == "verify":
+                raise ValueError("missing candidate preparation")
+            pool = prepare_candidates(ROOT, study, args.workers, progress)
+        training = audit_training(ROOT, study, progress)
+        if args.stage == "prepare":
+            tasks = prepare_final_panel(ROOT, study, pool, progress)
+            write_json(output / "preparation/final-panel.json", {"study": study, "tasks": tasks, "outcome": "PASS"})
+            report = {
+                "study": study,
+                "outcome": "PASS",
+                "model_input_ready": True,
+                "training": training,
+                "final_tasks": [t["row"]["task_id"] for t in tasks],
+                "final_states": sum(t["states"] for t in tasks),
+                "gpu_throughput_qualified": False,
+            }
+            write_json(output / "preparation/report.json", report)
+        else:
+            report, panel = execution.require_preparation(ROOT, study)
+            if report["training"] != training:
+                raise ValueError("source input audit differs")
+            for task in panel["tasks"]:
+                if check_final_task(ROOT, study, task, progress) != task["measurements"]:
+                    raise ValueError("final input measurements differ")
+            if (output / "training").exists():
+                for job in execution.training_jobs(ROOT, study):
+                    execution.verify_training_cell(ROOT, study, job)
+            if (output / "evaluation").exists():
+                if execution.verify_evaluations(ROOT, study, panel) != 144:
+                    raise ValueError("partial final episode coverage")
+        progress(f"{args.stage}:complete", completed=2156, total=2156, outcome="PASS", model_input_ready=True)
+        return 0
+    if args.stage == "qualify":
+        report = execution.qualification(ROOT, study, progress, args.resume)
+    elif args.stage == "train":
+        report = execution.train(ROOT, study, progress, args.resume)
+    elif args.stage == "decide":
+        report = execution.decide(ROOT, study)
+    elif args.stage == "evaluate":
+        decision = read_json(output / "decision.json")
+        if decision["study"] != study or decision["decision"] != "CONTINUE":
+            raise ValueError("technical continuation decision required")
+        if not args.modality:
+            raise ValueError("--modality is required for evaluation")
+        jobs = [
+            {
+                "modality": args.modality,
+                "assigned_worker": i,
+                "result_path": str((output / "evaluation" / args.modality / f"gpu-{i}.json").relative_to(ROOT)),
+            }
+            for i in range(2)
+        ]
+        run_gpu_jobs(ROOT, study, "evaluate", jobs, progress, resume=args.resume)
+        report = {
+            "study": study,
+            "outcome": "PASS",
+            "modality": args.modality,
+            "worker_reports": [j["result_path"] for j in jobs],
+        }
+        write_json(output / "evaluation" / f"{args.modality}.json", report)
+    else:
+        raise ValueError("unknown stage")
+    progress(f"{args.stage}:complete", completed=1, total=1, **report)
+    return 0 if report["outcome"] == "PASS" else 2
+
 
 UNFULFILLED = [
     "eligible Storage task under the frozen candidate/profile/reference limits",
@@ -44,8 +135,9 @@ def validate_settings(study, devices, ports):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("stage", choices=("prepare", "verify", "qualify", "train", "decide", "evaluate"))
-    parser.add_argument("--study", type=Path, default=DEFAULT_STUDY)
+    parser.add_argument("stage", choices=("prepare", "verify", "qualify", "train", "decide", "evaluate", "_worker"))
+    parser.add_argument("--study", type=Path, default=ROOT / "configs/experiments/matched-modalities/study-v2.json")
+    parser.add_argument("--job", type=Path)
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--devices", nargs="+", default=["0", "1"])
     parser.add_argument("--master-ports", nargs="+", type=int, default=[18775, 18776])
@@ -53,12 +145,23 @@ def main(argv=None):
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--resume", action="store_true")
     args = parser.parse_args(argv)
+    if args.stage == "_worker":
+        from examples.planning_benchmark_slice.matched_workers import worker_main
+
+        return worker_main(ROOT, read_json(args.job))
     if args.workers < 1:
         parser.error("--workers must be positive")
     with Progress() as progress:
         try:
             study = read_json(args.study)
             validate_settings(study, args.devices, args.master_ports)
+            if study["study_id"] == "matched-modalities-v2":
+                if (
+                    list(map(str, study["launch"]["devices"])) != args.devices
+                    or study["launch"]["master_ports"] != args.master_ports
+                ):
+                    raise ValueError("GPU/port arguments must match the recorded study launch mapping")
+                return execute_v2(args, study, progress)
             output = ROOT / study["output_root"] / "preparation"
             pool_path, report_path = output / "candidates.json", output / "report.json"
             pool = read_json(pool_path) if pool_path.exists() else None
@@ -146,7 +249,7 @@ def main(argv=None):
                 unfulfilled_prerequisites=UNFULFILLED,
             )
             return 0 if args.stage == "verify" else 2
-        except (ValueError, OSError) as error:
+        except (ValueError, OSError, RuntimeError) as error:
             progress(f"{args.stage}:stopped", outcome="INVALID", model_input_ready=False, reason=str(error))
             return 2
 

@@ -226,6 +226,9 @@ def train_visual(config, root, algorithm, output, *, deadline, progress, resume=
         lr_scheduler_type=training["lr_scheduler"],
         optim=training["optimizer"],
         max_grad_norm=training["max_grad_norm"],
+        adam_beta1=training.get("adam_beta1", 0.9),
+        adam_beta2=training.get("adam_beta2", 0.999),
+        adam_epsilon=training.get("adam_epsilon", 1e-8),
         bf16=True,
         gradient_checkpointing=True,
         gradient_checkpointing_kwargs={"use_reentrant": False},
@@ -250,6 +253,7 @@ def train_visual(config, root, algorithm, output, *, deadline, progress, resume=
     if trainer.state.global_step != total:
         raise RuntimeError("VALID_STOP: training clock expired before final checkpoint")
     trainer.save_model(str(output / "final"))
+    trainer.state.save_to_json(str(output / "training_state.json"))
     return {
         "algorithm": algorithm,
         "seed": 17,
@@ -257,4 +261,6 @@ def train_visual(config, root, algorithm, output, *, deadline, progress, resume=
         "final_checkpoint": str((output / "final").relative_to(root)),
         "train_records": len(dataset),
         "outcome": "PASS",
+        "diagnostics": [r for r in trainer.state.log_history if "eval_loss" in r],
+        "training_record_ids": [r["record_id"] for r in dataset.records],
     }
