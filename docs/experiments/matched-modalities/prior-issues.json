@@ -1,0 +1,452 @@
+{
+  "38": {
+    "body": "# Spec: Teach VLMs executable search processes across modalities\n\n## Problem Statement\n\nThe companion paper (arXiv:2607.11197) reports that planning-related behavior in open-weight text LLMs is better explained by two noncompensatory abilities: operational reasoning (local tasks such as applicability, progression, and validation) and structural enumeration (reachability, landmarks, and related search-structure tasks). Scaling, chain-of-thought, and scratchpad-style prompting improved operational reasoning more than structural enumeration; generic prompting and scaffolding did not comparably improve structural enumeration.\n\nThis project is an intervention study, not a pure analysis. The open question is whether task-specific training can teach a vision-language model to execute specific search processes, producing observable algorithm-conditioned search behavior, and whether observation modality changes what is learned. No training, fine-tuning, or comparative efficacy result currently exists in this project; nothing in this spec claims one.\n\nCurrent repository work (the CGAS program) is stepwise action-and-certificate policy learning over replayed planner transitions, evaluated by Verified Joint Step rate, with Adaptive Scaffolding over Support Routes. That target does not require the model to own any search decision. The scientific target confirmed for this spec is different: model-owned execution of named search algorithms under a trusted runtime, evaluated on full-episode budgeted search success and mechanically checkable algorithm invariants.\n\n## Solution\n\nTrain a vision-language model to execute specific search processes and algorithms, so that its search behavior is observable, algorithm-conditioned, and checkable.\n\n### Core algorithm conditions\n\n1. BFS, as a positive control: queue behavior is mechanically checkable and failure here indicates harness or learning failure rather than a hard search problem.\n2. IW (iterative width), as novelty-guided search.\n3. A* with h_max.\n4. A* with landmark-count.\n\nThe two A* arms are the same A* controller with different heuristic representations; they form a heuristic-representation comparison, not two orthogonal algorithm families. Learned BFS is not required to beat exact classical BFS; the gap to the classical reference is measured and reported, not assumed away.\n\n### Canonical planner-derived ReAct records\n\nTraining and evaluation records follow a deterministic cycle: observation, canonical rationale, typed search operation, runtime result. The prose rationale is non-authoritative. The typed search operation and its state effects are the checked content. The terms \"Search Process Policy\", \"typed search operation\", and \"search-trace segment\" are proposed terminology for this target; they are not canonical project terminology until CONTEXT.md is revised through project governance.\n\n### Responsibility split\n\nThe model owns all search-policy decisions: which node to expand, which operation to request, and how to update its search state. A trusted deterministic PDDL runtime stores canonical state and search memory, validates requested operations, applies trusted transitions, and returns modality-specific next observations. During evaluation the runtime may not select, rank, repair, or replace a model decision. Invalid operations are charged against the episode budget; there is no silent repair.\n\nThe primary structural-isolation evaluation uses trusted successors, so structural search behavior is measured separately from successor prediction. A separate end-to-end arm requires model-generated successors or full-state prediction, and is reported separately.\n\n### State and context contract\n\nFull replayable episodes are retained. Training uses atomic-event-aligned search-trace segments with typed, Markov-sufficient snapshots. Rolling context keeps prior accepted deltas plus the latest canonical compact snapshot. There are no opaque-only state handles: the model has fixed typed access to node, frontier, visited, novelty, and heuristic state.\n\n### Modalities\n\nSeparate matched checkpoints or adapters are trained per modality: text-state, visual-state, and multimodal-state. Both state and goal vary by modality under state-plus-goal semantic parity, and the search-memory interface and capacity are fixed across modalities. Text uses a compact relational serialization; visual uses a rendered state plus a partial-goal constraint image; multimodal receives both. The PDDL tracker is authoritative for state and progress. Planimation serves Render Production only, under the retained no-hosted-solver constraints of the accepted ADR: plans are generated locally and submitted as supplied plans.\n\n### Training arms\n\n1. Base model with no task-specific tuning.\n2. Offline search-process SFT on canonical planner-derived records.\n3. Search-process SFT plus DAgger.\n\nOperational transition/action SFT is not planned under the time-bounded scope. This is a prioritization decision, not empirical evidence that operational SFT cannot affect search. Claims compare learned search policies with the pretrained base, random-valid policy, and exact classical reference; they do not claim a matched operational-SFT causal contrast.\n\nDAgger collection rejects invalid student operations during collection, queries the algorithmic expert at the last valid state, and aggregates the corrections. Evaluation never repairs: invalid operations are charged, and no expert intervention occurs during evaluation episodes. Experience Distillation (arXiv:2607.21051) is optional and gated: it may be considered only after an in-context gain is established, it has no official code release, and it does not address student-distribution drift, so it is not a headline arm.\n\n### Curriculum\n\nStaged curriculum: typed tool and search primitives, then short low-branching complete searches, then independently increasing horizon, branching factor, and object count, then DAgger. A matched shuffled/mixed-ordering control is run in representative cells so curriculum effects are not confounded with data content.\n\n### Evaluation\n\nThe primary planned outcome is full-episode budgeted search success plus mechanically checkable algorithm invariants. Training targets use canonical tie-breaking; evaluation accepts any algorithm-valid tie or path. Budgets are frozen by development difficulty strata before testing. The primary comparison is family-normalized; a common-budget secondary efficiency comparison is also reported. References are a random valid policy and the exact classical algorithm.\n\nGeneralization evaluation covers longer horizons and object counts, changed branching regimes, novel landmark and dependency structures, and name-obfuscation and render-perturbation robustness, plus a frozen operational-versus-structural diagnostic battery. The whole problem instance is the split and uncertainty unit. Headline cells use five seeds. Exact thresholds and statistical methods are frozen before any test run; all such values are TBD.\n\n### Secondary gated transfer\n\nFOLIO, HumanEval, and GSM8K transfer evaluations are secondary and gated behind the headline evidence gates. They use prespecified behavioral and error signatures; aggregate accuracy alone cannot establish transferred search capability.\n\n### Staging and evidence gates\n\nGate order: text BFS sanity, then text IW structural gate, then A* variants, then the modality matrix, then DAgger, then frozen evaluation, then targeted second-backbone replication, then transfer. One primary open VLM is used; a second architecture runs only key cells, only after positive gates.\n\n### Relationship to existing CGAS work\n\nPlanning Certificate as a headline mechanism, Joint Action-and-Certificate SFT, Adaptive Scaffolding, Support Route, Live Memory, Route Label, Verified Joint Step as the primary outcome, and CGAS efficacy are demoted from the headline of this target. Reusable scientific behavior is retained: Plan Submission, Plan Interpretation, Action Sequence normalization, Render Production, Render Validation, Plan Provenance, semantic replay, algorithm invariants, and state-frame pairing. Obsolete integrity receipts, legacy evidence codecs, publication chains, and CGAS-only artifact bundles are not part of the active target.\n\n## User Stories\n\n1. As a supervisor, I want one master spec that states the research target, the algorithm set, the modality design, and the gate order, so that I can approve or reject the entire direction in a single decision.\n2. As a supervisor, I want the spec to state explicitly which CGAS-era mechanisms are demoted from the headline, so that there is no ambiguity about what the project is no longer claiming.\n3. As a supervisor, I want the evidence gates ordered cheapest-first with explicit stop conditions, so that expensive modality and transfer work cannot begin before the cheap text gates pass.\n4. As a supervisor, I want a statement that no efficacy result currently exists, so that no reviewer or collaborator can mistake this spec for a results claim.\n5. As a researcher, I want a BFS positive-control condition whose queue behavior is mechanically checkable, so that a failure in the first gate is attributable to harness or learning failure rather than to a hard search problem.\n6. As a researcher, I want an IW novelty-guided condition, so that I can test whether learned search generalizes beyond the BFS positive control to a structurally different algorithm.\n7. As a researcher, I want the two A* arms implemented as one A* controller with two heuristic representations, so that the comparison isolates heuristic representation rather than algorithm family.\n8. As a researcher, I want canonical planner-derived records in observation-rationale-operation-result form, so that training targets are replayable and every decision step is individually checkable.\n9. As a researcher, I want the prose rationale treated as non-authoritative while the typed search operation and state effects are checked, so that fluent but wrong reasoning cannot masquerade as correct search.\n10. As a researcher, I want the evaluation to report the gap to exact classical BFS without requiring the learned policy to beat it, so that the result is interpretable even when the learned policy is weaker.\n11. As a data engineer, I want trace generation for all four algorithm conditions from canonical planner runs, so that every training record derives from a deterministic, replayable source.\n12. As a data engineer, I want atomic-event-aligned search-trace segments with typed, Markov-sufficient snapshots, so that each training example carries enough state for the decision it labels without leaking future information.\n13. As a data engineer, I want a rolling-context contract of prior accepted deltas plus the latest canonical compact snapshot, so that long episodes remain representable without opaque-only state handles.\n14. As a data engineer, I want fixed typed access to node, frontier, visited, novelty, and heuristic state, so that the model's information boundary is declared and auditable.\n15. As a data engineer, I want matched text-state, visual-state, and multimodal-state renderings of the same symbolic tasks under state-plus-goal semantic parity, so that modality comparisons are not confounded by task content.\n16. As a data engineer, I want the visual condition to pair the rendered state with a partial-goal constraint image, so that the visual arm carries goal information comparable to the text arm.\n17. As a data engineer, I want whole problem instances as the split unit, so that correlated states from one instance never appear in both training and evaluation.\n18. As a data engineer, I want the PDDL tracker authoritative for state and progress with Planimation restricted to Render Production of supplied plans, so that rendering can never silently become planning.\n19. As a model trainer, I want three clearly separated conditions (base, search-process SFT, search-process SFT plus DAgger), so that each added source of search-process supervision is explicit.\n20. As a supervisor, I want the operational-only SFT arm explicitly marked not planned under the time limit, so that its omission is not misreported as evidence that it cannot affect search.\n21. As a model trainer, I want DAgger collection that rejects invalid student operations during collection, queries the algorithmic expert at the last valid state, and aggregates corrections, so that correction data targets the student's actual error distribution.\n22. As a model trainer, I want evaluation episodes to run without any expert repair, so that measured behavior reflects the learned policy alone.\n23. As a model trainer, I want a staged curriculum from typed primitives through short low-branching searches to independently increased horizon, branching, and object count, so that difficulty factors can be attributed separately.\n24. As a model trainer, I want a matched shuffled/mixed-ordering control in representative cells, so that curriculum effects are separable from data-content effects.\n25. As a model trainer, I want canonical tie-breaking in training targets, so that the model learns one consistent resolution of otherwise-equivalent choices.\n26. As a model trainer, I want separate matched checkpoints or adapters per modality with a fixed search-memory interface and capacity, so that modality differences are not confounded with memory differences.\n27. As an evaluator, I want full-episode budgeted search success as the primary planned outcome, so that the headline measures complete executable search rather than per-step imitation.\n28. As an evaluator, I want mechanically checkable algorithm invariants alongside success, so that a solved episode by the wrong process is distinguishable from a solved episode by the target process.\n29. As an evaluator, I want any algorithm-valid tie or path accepted at evaluation time, so that the model is not penalized for diverging from a teacher trace on genuinely equivalent choices.\n30. As an evaluator, I want budgets frozen by development difficulty strata before testing, so that budget tuning cannot be fitted to test outcomes.\n31. As an evaluator, I want the primary comparison family-normalized with a common-budget secondary efficiency comparison, so that algorithms with different natural costs are compared fairly while absolute efficiency remains visible.\n32. As an evaluator, I want a random valid policy reference, so that every cell is located relative to chance-level legal behavior.\n33. As an evaluator, I want an exact classical algorithm reference, so that every cell is located relative to the available algorithmic upper reference.\n34. As an evaluator, I want invalid operations charged against the episode budget with no silent repair, so that the cost of model errors is visible in the primary outcome.\n35. As an evaluator, I want five seeds in every headline cell, so that seed variance is reported rather than hidden.\n36. As an evaluator, I want a frozen operational-versus-structural diagnostic battery, so that I can report which ability changed without refitting diagnostics to the results.\n37. As an evaluator, I want structural generalization shifts covering longer horizons, larger object counts, changed branching regimes, and novel landmark or dependency structures, so that structural learning is tested outside the training distribution.\n38. As an evaluator, I want name-obfuscation and render-perturbation robustness checks, so that success cannot be attributed to surface-name memorization or rendering artifacts.\n39. As an evaluator, I want a prespecified failure reporting taxonomy frozen before testing, so that failure modes are categorized by predeclared classes rather than post hoc labels.\n40. As a reviewer, I want every episode result to carry provenance sufficient for independent offline verification, so that claims do not depend on trusting the original runner.\n41. As a reviewer, I want the trusted-successor structural-isolation arm and the model-generated-successor end-to-end arm reported separately, so that structural search competence is not inflated by trusted machinery nor conflated with successor-prediction errors.\n42. As a reviewer, I want transfer to FOLIO, HumanEval, and GSM8K gated behind the headline gates and judged by prespecified behavioral and error signatures, so that aggregate accuracy alone cannot be read as transferred search capability.\n43. As a reviewer, I want retained CGAS-era certification evidence referenced as infrastructure validation only, so that prior Integration Certification results are neither overclaimed as model results nor discarded.\n44. As a reproducer, I want one high-level episode harness interface that accepts a formal task, algorithm condition, observation adapter, policy adapter, and frozen budget and returns a complete episode evidence result, so that I can rerun any reported episode through the same entry point the tests use.\n45. As a reproducer, I want deterministic regeneration and semantic replay of ordered canonical traces, so that training data behavior is independently checkable.\n46. As a reproducer, I want all thresholds, budgets, corpus sizes, and statistical methods frozen and recorded before testing, so that I can verify the analysis matched the preregistered plan.\n47. As an implementation agent, I want existing BFS and IW execution, trace verification, PDDL progression, rollout-gate, and Planimation state-frame pairing treated as internal adapters behind the episode harness seam, so that retained infrastructure is reused without changing its verified behavior.\n48. As an implementation agent, I want the two A* variants added as new algorithm adapters behind the same seam, so that new algorithms enter through the same contract as existing ones.\n49. As an implementation agent, I want random valid, exact classical, and learned policies all implemented as policy adapters behind the same interface, so that references and the learned model are evaluated through identical machinery.\n50. As an implementation agent, I want a rule that narrow supporting contract tests are added only for deterministic correctness that cannot be established at the full-episode seam, so that the test suite does not grow a web of overlapping seams.\n51. As a supervisor, I want gate failure at the text BFS or text IW stage to halt the A*, modality, DAgger, and transfer branches automatically, so that negative early evidence stops spend without a further decision round.\n52. As a researcher, I want the second backbone limited to targeted replication of key cells after positive gates, so that the architecture claim is bounded and the compute cost is controlled.\n\n## Implementation Decisions\n\n### Terminology\n\n- \"Search Process Policy\", \"typed search operation\", and \"search-trace segment\" are proposed terminology introduced by this spec. They must be marked as proposed in all documents until CONTEXT.md is revised through project governance.\n- Existing canonical terms retain their meanings: Plan Submission, Plan Interpretation, Action Sequence, Render Production, Render Validation, Plan Provenance, Integration Certification, Attempt, Evidence Bundle. Retained infrastructure is described only with these terms.\n- Planning Certificate, Joint Action-and-Certificate SFT, Adaptive Scaffolding, Support Route, Live Memory, Route Label, and Verified Joint Step remain valid descriptions of completed CGAS-era work but are demoted from the headline of this target. Completed scientific outcomes remain documented in issue history; superseded integrity metadata and obsolete artifact formats may be retired rather than carried into active interfaces.\n\n### Architecture: one deep module seam\n\n- Prefer one highest deep module seam: a Search Episode Harness. Its small interface accepts a formal task, a declared algorithm condition, a modality observation adapter, a policy adapter, and a frozen budget, and returns one complete episode evidence result containing typed search operations, validated transitions, algorithm-invariant verdicts, the terminal or goal result, budget usage, and provenance.\n- Tests and production callers use the same interface. No caller reaches around the seam to runtime internals.\n- Existing BFS and IW execution, trace verification, PDDL progression, rollout-gate, and Planimation state-frame pairing become internal adapters or implementation behind this seam, with their externally verified behavior unchanged.\n- A* with h_max and A* with landmark-count are new algorithm adapters behind the same seam, sharing one A* controller and differing only in heuristic representation.\n- Random valid policy, exact classical policy, and learned policy are all policy adapters behind the same interface, so references and learned models are exercised by identical machinery.\n- The trusted PDDL runtime sits behind the seam as the state authority: it stores canonical state and search memory, validates requested operations, applies trusted transitions, and returns modality-specific next observations. It exposes fixed typed access to node, frontier, visited, novelty, and heuristic state. There are no opaque-only state handles.\n- Planimation remains behind the seam as Render Production only, consuming locally generated supplied plans under the accepted no-hosted-solver ADR; the PDDL tracker remains authoritative for state and progress.\n\n### Data contracts\n\n- Canonical records follow the observation, canonical rationale, typed search operation, runtime result cycle. The rationale is stored for inspection but is non-authoritative; only the typed operation and its state effects are checked.\n- Training segments are atomic-event-aligned search-trace segments with typed, Markov-sufficient snapshots. Rolling context carries prior accepted deltas plus the latest canonical compact snapshot.\n- Modalities are matched at the symbolic task level: identical task content under state-plus-goal semantic parity, differing only in observation rendering. Text uses compact relational serialization; visual uses the rendered state plus a partial-goal constraint image; multimodal carries both. Search-memory interface and capacity are fixed across modalities.\n- The whole problem instance is the split and uncertainty unit. No state derived from one instance crosses split boundaries.\n\n### Training versus inference\n\n- Training targets use canonical tie-breaking so the model sees one consistent resolution of equivalent choices.\n- Training-time DAgger collection rejects invalid student operations during collection, resets queries to the algorithmic expert at the last valid state, and aggregates the corrections into the training set.\n- At inference and evaluation there is no expert in the loop: invalid operations are charged against the episode budget, no repair occurs, and the episode continues or terminates under the declared rules.\n- The three conditions (base, search-process SFT, search-process SFT plus DAgger) share observation rendering, action and operation vocabulary, split, and evaluation harness within each cell.\n\n### Invalid operation semantics\n\n- An operation that fails runtime validation is recorded as a typed invalid-operation event, charged to the episode budget, and never silently corrected, replaced, or re-issued by the runtime or the harness.\n- The evaluation-time handling of invalid operations is frozen before testing and identical across policy adapters.\n\n### No-oracle leakage\n\n- Policy adapters never receive teacher decisions, hidden planner ordering, future states, or gold search state beyond the declared typed observation boundary.\n- The runtime's responses contain no decision content: validation verdicts and state, never suggestions.\n- Leakage checks are part of the harness contract and run in every cell, including reference-policy cells.\n\n### Tie handling\n\n- Training: canonical tie-breaking, fixed and recorded.\n- Evaluation: any algorithm-valid tie or path is accepted; fidelity to the target algorithm is judged by the mechanically checkable invariants, not by token-level agreement with one teacher trace.\n\n### Budgets, splits, seeds, statistics\n\n- Episode budgets are set per development difficulty stratum and frozen before testing; values are TBD.\n- Headline cells run five fixed seeds; every seed is reported.\n- The primary comparison is family-normalized; a common-budget secondary efficiency comparison is reported alongside.\n- Exact effect thresholds and statistical methods are frozen before any test run; all values are TBD.\n\n### Gate ordering\n\n- Gates run in this order and each blocks the next: text BFS sanity, text IW structural gate, A* variants, modality matrix, DAgger, frozen evaluation, targeted second-backbone replication, gated transfer.\n- One primary open VLM carries the main line; a second architecture runs only key cells after positive gates. Backbone identities are TBD.\n- Experience Distillation is not a stage; it is an optional gated comparison that may be opened only after an in-context gain is established.\n\n## Testing Decisions\n\nGood tests verify external behavior through the high episode-harness seam, not implementation details. A test should ask the harness for an episode under a declared algorithm condition, modality adapter, policy adapter, and frozen budget, and assert on the returned evidence result: typed operations, validated transitions, invariant verdicts, terminal or goal result, budget usage, and provenance. Tests must not reach into runtime internals, adapter internals, or private state.\n\nExisting prior-art test types are retained conceptually and folded behind the seam: BFS reader and invariant tests, trace-contract verification, Planimation replay and state-frame pairing checks, rollout gates, and Integration Certification. These continue to validate the retained infrastructure that now sits behind the harness interface.\n\nNarrow supporting contract tests are allowed only where deterministic correctness cannot be established at the full-episode seam, and only for:\n\n1. Algorithm trace determinism and invariants for each algorithm adapter.\n2. Modality semantic parity and state-frame binding across text, visual, and multimodal observations.\n3. The no-policy-leakage runtime contract: runtime responses contain validation verdicts and state, never decision content.\n4. Search-trace segment snapshot sufficiency: each segment's typed snapshot is Markov-sufficient for the decision it labels.\n\nNo larger web of seams or per-adapter test hierarchies is proposed.\n\nDecisive falsification criteria:\n\n- If the BFS text sanity gate fails, the harness, data contract, or training pipeline is defective at the easiest condition; the program stops before any further spend.\n- If the text IW structural gate fails, learned search does not transfer beyond the positive control; the A*, modality, DAgger, and transfer branches do not open.\n- If learned policy behavior is statistically indistinguishable from the random valid policy reference under frozen budgets and seeds, no search capability claim can be made.\n- If successes occur without the target algorithm's mechanically checkable invariants holding, the result is reported as non-algorithmic success, not as learned search.\n\nEvidence boundaries: every current test and evaluation episode retains the ordered operations, typed state, runtime results, budgets, and provenance needed for independent semantic replay. CGAS-era scientific outcomes are cited only as historical infrastructure validation; obsolete integrity metadata and redundant artifact formats are not required by this target.\n\n## Out of Scope\n\n- An open-world natural-language verifier.\n- Any self-authored verifier: the evaluated model never authors or influences the checker that judges it.\n- An internal model-owned unbounded frontier or closed set (fully internal \"learn to search\" designs).\n- Claims of general planning ability beyond the trained formal domains and declared conditions.\n- Any requirement that learned policies beat exact classical planners; the gap is reported, not hidden.\n- FF and Graphplan as core algorithm conditions.\n- Planning Certificates, Joint Action-and-Certificate SFT, Adaptive Scaffolding, Support Routes, Live Memory, Route Labels, or CGAS efficacy as headline claims.\n- RLVR as a required component.\n- Experience Distillation as a required component; it is optional and gated.\n- Unseen-domain semantic parsing as a primary objective.\n- FOLIO, HumanEval, or GSM8K transfer work before the preceding evidence gates pass.\n- Issue-tracker or document migration mechanics; those are governed by a separate migration plan.\n- Any unapproved production run, large-scale render, training run, or evaluation; each requires its own authorization after this spec is accepted.\n\n## Further Notes\n\n- Publication: this spec is attempted first as a GitHub issue with the label `ready-for-agent`, per the project's issue-tracker conventions. A local fallback copy is retained only if the GitHub service fails.\n- The current issue tracker, including issue #1 (https://github.com/Sino-Huang/multimodality_on_planning/issues/1), and the current proposal, specification, and execution plan remain the historical and authoritative record of the CGAS-era program until this spec is accepted through project governance. Acceptance of this spec, not its publication, is the authority boundary.\n- No efficacy, training, or comparative result currently exists for this target. All unrun values are TBD: gate thresholds, corpus sizes, instance counts, split ratios, backbone model identities, hyperparameters, budgets, seed-level details beyond five seeds in headline cells, and statistical methods. None may be invented during implementation; each is fixed by its own gated decision before the corresponding run.\n\n",
+    "comments": [
+      {
+        "id": "IC_kwDOSsTIYM8AAAABPTaDTQ",
+        "author": {
+          "login": "Sino-Huang"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Issue #38 authority for the current program was ratified in CONTEXT.md under #39. Issue #38 remains open; its title, body, state, and labels were not modified.",
+        "createdAt": "2026-08-18T00:35:20Z",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/38#issuecomment-5321950029",
+        "viewerDidAuthor": true
+      },
+      {
+        "id": "IC_kwDOSsTIYM8AAAABP2CLbw",
+        "author": {
+          "login": "Sino-Huang"
+        },
+        "authorAssociation": "OWNER",
+        "body": "## Scope amendment \u2014 2026-08-21\n\nThe planned operational-only SFT arm has been removed to prioritize direct search-process learning under the available time.\n\n- Current learned conditions: process SFT and process SFT plus DAgger.\n- Comparators/references: pretrained base, random-valid policy, and exact classical algorithm.\n- Claim boundary: this omission is not empirical evidence that operational SFT cannot affect search, and no matched operational-SFT causal contrast will be claimed.\n- #53 is closed as NOT_PLANNED with its historical v1 ANCESTOR_STOP outcome.\n- #111 defines the expansion-qualified BFS successor pilot required before process SFT in #54.\n- The v1 scientific inputs and governed outcomes remain documented in issue history. Retired integrity manifests, legacy codecs, and cryptographic receipts are not active replay or provenance requirements.\n\nDownstream IW, A*, modality, DAgger, headline-matrix, and budget-comparison ticket bodies were updated to remove the operational-SFT condition.",
+        "createdAt": "2026-08-20T15:44:00Z",
+        "includesCreatedEdit": true,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/38#issuecomment-5358259055",
+        "viewerDidAuthor": true
+      }
+    ],
+    "number": 38,
+    "state": "OPEN",
+    "stateReason": "",
+    "title": "Spec: Teach VLMs executable search processes across modalities",
+    "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/38"
+  },
+  "90": {
+    "body": "**Parent:** #38\n\n<!-- DEADLINE-SCOPE-V1 -->\nThis deadline scope supersedes the older full-matrix, five-seed and approval-manifest requirements for this ticket. Use one training/evaluation seed (17), retain raw evidence and never treat incomplete coverage as a completed experiment.\n\n## Deadline status\nRequired on the bounded primary path, subject to the #77 go/no-go decision.\n\n## Budget\nCPU planning only; no new sweeps.\n\n## What to do\nSpecify the final limited held-out comparison after the pilot decision, with optional #84 evidence only if that branch completed.\n\n## Acceptance criteria\n- Use seed 17 only. Retain the three pilot domains, four algorithms and base/SFT/exact/random controls; DAgger is an optional single-cell addition, never a 12-cell requirement.\n- Freeze one new held-out problem per domain, matched across algorithms/modalities, and select it solely by declared reference-cost/layout limits before model evaluation.\n- Use the pilot final adapters without retraining. Predeclare the same 512-record/one-epoch schedule for the matched text adapter trained in #93.\n- Cap #93 at 4 hours including text training; cap each of #94 and #95 at 2 hours. Freeze per-episode budgets, endpoints, model settings and one common-budget accounting rule.\n- Use descriptive and whole-instance uncertainty only; with three held-out problems, make no broad significance, training-seed variance or architecture-generalization claims.\n- No authorization document is required. Preserve frozen inputs and do not tune after inspecting final results.\n\n## Blocked by\n#77\n\n## Scheduling\nUse at most one model worker per GPU, with distinct MASTER_PORT values. The two-GPU #75/#76 and #93/#94/#95 jobs must be serialized on the available two A100s. Timeouts retain evidence and stop new work; no automatic budget extension or repeat-until-positive runs.\n\nThe deadline roadmap is documented in docs/experiments/deadline-plan/README.md. Terms retain their meanings from CONTEXT.md.\n",
+    "comments": [
+      {
+        "id": "IC_kwDOSsTIYM8AAAABRK29Sw",
+        "author": {
+          "login": "Sino-Huang"
+        },
+        "authorAssociation": "OWNER",
+        "body": "<!-- ISSUE54-LESSONS-V1 -->\nThe freeze/authorization for this family should inherit the corrected #54 protocol before any scientific run:\n\n- freeze the observable Search Memory schema and corpus/live byte-parity tests;\n- use five seeds but only the final checkpoint for rollouts; early/middle checkpoints receive teacher-forced diagnostics only;\n- set each model episode call limit to 2x its matching exact-reference decision count, independent of expansions;\n- freeze deterministic batched scheduling, adapter isolation/cache semantics, token limits, precision, and scalar/batch plus repeated-batch probes;\n- run an outcome-blind hardware qualification first, trying full coverage and then a preregistered exact-cost panel; coverage selection must never inspect model success;\n- start one gate clock, stop new calls at the frozen cutoff, require complete selected coverage, and classify replay/provenance mismatches as `INVALID` while ordinary threshold/resource failures are `VALID_STOP`.\n\nImportant: #54 found bf16 scalar/batch byte divergence on Qwen; precision and throughput must be measured on the actual hardware rather than assumed.",
+        "createdAt": "2026-08-28T01:22:10Z",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/90#issuecomment-5447204171",
+        "viewerDidAuthor": true
+      },
+      {
+        "id": "IC_kwDOSsTIYM8AAAABRfjaCA",
+        "author": {
+          "login": "Sino-Huang"
+        },
+        "authorAssociation": "OWNER",
+        "body": "<!-- SINGLE-TRAINING-SEED-BUDGET-V1 -->\nSupervisor time-budget clarification: this ticket must not require multiple independent training-seed replicates. For each distinct model/cell configuration, authorize exactly one training run using seed 17 and evaluate only the final checkpoint from that run.\n\nAny existing five-seeds requirement must be interpreted as rollout/reference/evaluation seeds applied to the single trained checkpoint where repeated evaluation is still useful, not as five separately trained checkpoints. Do not estimate or claim training-seed variance, and do not substitute rollout-seed variation for it; use whole-problem-instance uncertainty where applicable.\n\nIf a frozen scientific criterion truly requires independent training-seed replication, issue the appropriate governed VALID_STOP or gated-scope receipt instead of launching additional training runs.",
+        "createdAt": "2026-08-30T13:14:33Z",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/90#issuecomment-5468903944",
+        "viewerDidAuthor": true
+      },
+      {
+        "id": "IC_kwDOSsTIYM8AAAABUJhCGw",
+        "author": {
+          "login": "Sino-Huang"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Not selected for this deadline study after the verified **#77 NO_GO decision**. The complete #76 pilot failed the existing readiness thresholds in all four algorithms, and its training schedule is unmatched to visual v5.\n\nClosing this conditional/optional work as **not planned**, not as a completed experiment. No training, collection, held-out evaluation or claimed scientific result for this ticket was produced. The original specification and history remain available for a future prospective protocol and budget.\n\nThe selected route is #100 \u2192 #108, carrying development feasibility, negative findings and an explicit completion/skip/defer ledger. Decision evidence: https://github.com/Sino-Huang/multimodality_on_planning/blob/main/docs/experiments/issue77/decision.json\n",
+        "createdAt": "2026-09-12T16:20:22Z",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/90#issuecomment-5647122971",
+        "viewerDidAuthor": true
+      }
+    ],
+    "number": 90,
+    "state": "CLOSED",
+    "stateReason": "NOT_PLANNED",
+    "title": "T52: Fix the small single-seed final evaluation protocol",
+    "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/90"
+  },
+  "91": {
+    "body": "**Parent:** #38\n\n<!-- DEADLINE-SCOPE-V1 -->\nThis deadline scope supersedes the older full-matrix, five-seed and approval-manifest requirements for this ticket. Use one training/evaluation seed (17), retain raw evidence and never treat incomplete coverage as a completed experiment.\n\n## Deadline status\nRequired on the bounded primary path, subject to the #77 go/no-go decision.\n\n## Budget\nAt most 1 hour CPU/reference preparation.\n\n## What to do\nPrepare one held-out problem in each of storage, blocksworld and ferry, using a fixed generator configuration.\n\n## Acceptance criteria\n- Verify no normalized task overlap with training or development data.\n- Keep the same problems across all four algorithms and all three modalities; record exact-reference costs before model calls.\n- Reject excessive reference cost or page size only by the predeclared #90 rule; do not use model success to select instances.\n- Do not generate structural-shift grids or large benchmark suites. If the budget cannot produce valid held-out coverage, record the limitation before any test call.\n\n## Blocked by\n#90\n\n## Scheduling\nUse at most one model worker per GPU, with distinct MASTER_PORT values. The two-GPU #75/#76 and #93/#94/#95 jobs must be serialized on the available two A100s. Timeouts retain evidence and stop new work; no automatic budget extension or repeat-until-positive runs.\n\nThe deadline roadmap is documented in docs/experiments/deadline-plan/README.md. Terms retain their meanings from CONTEXT.md.\n",
+    "comments": [
+      {
+        "id": "IC_kwDOSsTIYM8AAAABRK29ww",
+        "author": {
+          "login": "Sino-Huang"
+        },
+        "authorAssociation": "OWNER",
+        "body": "<!-- ISSUE54-LESSONS-V1 -->\nWhen sealing final data, also retain the outcome-blind scheduling metadata learned from #54: matching exact-reference decision counts, difficulty/structural strata, canonical model-input token counts, and frozen representative input-size probes for every instance/cell. Preserve semantic identity across task, render, name variant, and perturbation manifests.\n\nThese fields must be available before model outcomes so #90 can certify full coverage or a preregistered cost-qualified panel without post-hoc success selection. Rendering/model-input parity must still expose all authoritative facts and exact candidate membership used by the teacher.",
+        "createdAt": "2026-08-28T01:22:11Z",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/91#issuecomment-5447204291",
+        "viewerDidAuthor": true
+      },
+      {
+        "id": "IC_kwDOSsTIYM8AAAABUJhDPg",
+        "author": {
+          "login": "Sino-Huang"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Not selected for this deadline study after the verified **#77 NO_GO decision**. The complete #76 pilot failed the existing readiness thresholds in all four algorithms, and its training schedule is unmatched to visual v5.\n\nClosing this conditional/optional work as **not planned**, not as a completed experiment. No training, collection, held-out evaluation or claimed scientific result for this ticket was produced. The original specification and history remain available for a future prospective protocol and budget.\n\nThe selected route is #100 \u2192 #108, carrying development feasibility, negative findings and an explicit completion/skip/defer ledger. Decision evidence: https://github.com/Sino-Huang/multimodality_on_planning/blob/main/docs/experiments/issue77/decision.json\n",
+        "createdAt": "2026-09-12T16:20:25Z",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/91#issuecomment-5647123262",
+        "viewerDidAuthor": true
+      }
+    ],
+    "number": 91,
+    "state": "CLOSED",
+    "stateReason": "NOT_PLANNED",
+    "title": "T53: Prepare three small unseen final problems",
+    "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/91"
+  },
+  "92": {
+    "body": "**Parent:** #38\n\n<!-- DEADLINE-SCOPE-V1 -->\nThis deadline scope supersedes the older full-matrix, five-seed and approval-manifest requirements for this ticket. Use one training/evaluation seed (17), retain raw evidence and never treat incomplete coverage as a completed experiment.\n\n## Deadline status\nRequired on the bounded primary path, subject to the #77 go/no-go decision.\n\n## Budget\nAt most 1 hour local rendering and CPU validation.\n\n## What to do\nBuild complete text, visual and multimodal observations for the three final problems.\n\n## Acceptance criteria\n- Reuse the existing renderer, goal-expression representation and page composer. Do not regenerate the old scene corpus.\n- Validate complete state/goal parity and model-facing bindings; preserve no-future-image leakage.\n- Do not create name variants or perturbation grids for the deadline path.\n- Retain the sealed final manifest; no model-based selection or post-result changes.\n\n## Blocked by\n#91\n\n## Scheduling\nUse at most one model worker per GPU, with distinct MASTER_PORT values. The two-GPU #75/#76 and #93/#94/#95 jobs must be serialized on the available two A100s. Timeouts retain evidence and stop new work; no automatic budget extension or repeat-until-positive runs.\n\nThe deadline roadmap is documented in docs/experiments/deadline-plan/README.md. Terms retain their meanings from CONTEXT.md.\n",
+    "comments": [
+      {
+        "id": "IC_kwDOSsTIYM8AAAABRK2-MQ",
+        "author": {
+          "login": "Sino-Huang"
+        },
+        "authorAssociation": "OWNER",
+        "body": "<!-- ISSUE54-LESSONS-V1 -->\nWhen sealing final data, also retain the outcome-blind scheduling metadata learned from #54: matching exact-reference decision counts, difficulty/structural strata, canonical model-input token counts, and frozen representative input-size probes for every instance/cell. Preserve semantic identity across task, render, name variant, and perturbation manifests.\n\nThese fields must be available before model outcomes so #90 can certify full coverage or a preregistered cost-qualified panel without post-hoc success selection. Rendering/model-input parity must still expose all authoritative facts and exact candidate membership used by the teacher.",
+        "createdAt": "2026-08-28T01:22:13Z",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/92#issuecomment-5447204401",
+        "viewerDidAuthor": true
+      },
+      {
+        "id": "IC_kwDOSsTIYM8AAAABUJhEPQ",
+        "author": {
+          "login": "Sino-Huang"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Not selected for this deadline study after the verified **#77 NO_GO decision**. The complete #76 pilot failed the existing readiness thresholds in all four algorithms, and its training schedule is unmatched to visual v5.\n\nClosing this conditional/optional work as **not planned**, not as a completed experiment. No training, collection, held-out evaluation or claimed scientific result for this ticket was produced. The original specification and history remain available for a future prospective protocol and budget.\n\nThe selected route is #100 \u2192 #108, carrying development feasibility, negative findings and an explicit completion/skip/defer ledger. Decision evidence: https://github.com/Sino-Huang/multimodality_on_planning/blob/main/docs/experiments/issue77/decision.json\n",
+        "createdAt": "2026-09-12T16:20:27Z",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/92#issuecomment-5647123517",
+        "viewerDidAuthor": true
+      }
+    ],
+    "number": 92,
+    "state": "CLOSED",
+    "stateReason": "NOT_PLANNED",
+    "title": "T54: Prepare only the matched final state/goal views",
+    "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/92"
+  },
+  "93": {
+    "body": "**Parent:** #38\n\n<!-- DEADLINE-SCOPE-V1 -->\nThis deadline scope supersedes the older full-matrix, five-seed and approval-manifest requirements for this ticket. Use one training/evaluation seed (17), retain raw evidence and never treat incomplete coverage as a completed experiment.\n\n## Deadline status\nRequired on the bounded primary path, subject to the #77 go/no-go decision.\n\n## Budget\n4 hours wall-clock maximum, including any required text training.\n\n## What to do\nTrain the matched short text SFT adapters if compatible checkpoints do not already exist, then evaluate the limited final text conditions.\n\n## Acceptance criteria\n- Use exactly the pilot's training IDs, one epoch / 16 updates per algorithm and seed 17. Do not reuse a text checkpoint from a different input or training contract as if it were matched.\n- Run base, SFT, exact and random controls on the predeclared three final problems and four algorithms; include only an already completed optional DAgger cell.\n- Freeze training before reading final model outcomes; no test-set checkpoint selection or retraining.\n- Retain every episode, actual runtime and missing coverage. No five-seed matrix and no extra sweeps.\n\n## Blocked by\n#92\n\n## Scheduling\nUse at most one model worker per GPU, with distinct MASTER_PORT values. The two-GPU #75/#76 and #93/#94/#95 jobs must be serialized on the available two A100s. Timeouts retain evidence and stop new work; no automatic budget extension or repeat-until-positive runs.\n\nThe deadline roadmap is documented in docs/experiments/deadline-plan/README.md. Terms retain their meanings from CONTEXT.md.\n",
+    "comments": [
+      {
+        "id": "IC_kwDOSsTIYM8AAAABRK2-ng",
+        "author": {
+          "login": "Sino-Huang"
+        },
+        "authorAssociation": "OWNER",
+        "body": "<!-- ISSUE54-LESSONS-V1 -->\nApply the resource-bounded evaluation protocol established by #54:\n\n- drive incremental episode sessions in deterministic rounds and use batched Transformers generation with one shared backbone per GPU, adapter switching, adapter-isolated caching, and at most one request per active episode per round;\n- freeze a 2x matching-reference decision-call limit separately from expansion limits; exhaustion is a valid unsuccessful episode;\n- evaluate only final checkpoints across five seeds, with base, learned, random-valid, and exact-reference conditions on the identical selected tasks;\n- qualify throughput without success outcomes before rollout, using the actual precision/batch settings and a cost-qualified fallback panel if full coverage cannot fit;\n- stop before new launches at the wall-clock cutoff, preserve completed episodes, replay every completed episode, and never let partial coverage satisfy the gate.\n\nReport invariant-valid success, invalid-operation rate, budget usage, and learned-vs-best-control gain separately. #54 reached 100% learned success on its reduced panel but still correctly `VALID_STOP` because random-valid also reached 100%; avoid interpreting panel success alone as structural advantage.",
+        "createdAt": "2026-08-28T01:22:14Z",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/93#issuecomment-5447204510",
+        "viewerDidAuthor": true
+      },
+      {
+        "id": "IC_kwDOSsTIYM8AAAABRfjaeQ",
+        "author": {
+          "login": "Sino-Huang"
+        },
+        "authorAssociation": "OWNER",
+        "body": "<!-- SINGLE-TRAINING-SEED-BUDGET-V1 -->\nSupervisor time-budget clarification: this ticket must not require multiple independent training-seed replicates. For each distinct model/cell configuration, authorize exactly one training run using seed 17 and evaluate only the final checkpoint from that run.\n\nAny existing five-seeds requirement must be interpreted as rollout/reference/evaluation seeds applied to the single trained checkpoint where repeated evaluation is still useful, not as five separately trained checkpoints. Do not estimate or claim training-seed variance, and do not substitute rollout-seed variation for it; use whole-problem-instance uncertainty where applicable.\n\nIf a frozen scientific criterion truly requires independent training-seed replication, issue the appropriate governed VALID_STOP or gated-scope receipt instead of launching additional training runs.",
+        "createdAt": "2026-08-30T13:14:34Z",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/93#issuecomment-5468904057",
+        "viewerDidAuthor": true
+      },
+      {
+        "id": "IC_kwDOSsTIYM8AAAABUJhFFA",
+        "author": {
+          "login": "Sino-Huang"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Not selected for this deadline study after the verified **#77 NO_GO decision**. The complete #76 pilot failed the existing readiness thresholds in all four algorithms, and its training schedule is unmatched to visual v5.\n\nClosing this conditional/optional work as **not planned**, not as a completed experiment. No training, collection, held-out evaluation or claimed scientific result for this ticket was produced. The original specification and history remain available for a future prospective protocol and budget.\n\nThe selected route is #100 \u2192 #108, carrying development feasibility, negative findings and an explicit completion/skip/defer ledger. Decision evidence: https://github.com/Sino-Huang/multimodality_on_planning/blob/main/docs/experiments/issue77/decision.json\n",
+        "createdAt": "2026-09-12T16:20:29Z",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/93#issuecomment-5647123732",
+        "viewerDidAuthor": true
+      }
+    ],
+    "number": 93,
+    "state": "CLOSED",
+    "stateReason": "NOT_PLANNED",
+    "title": "T55: Run the single-seed matched text comparison",
+    "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/93"
+  },
+  "94": {
+    "body": "**Parent:** #38\n\n<!-- DEADLINE-SCOPE-V1 -->\nThis deadline scope supersedes the older full-matrix, five-seed and approval-manifest requirements for this ticket. Use one training/evaluation seed (17), retain raw evidence and never treat incomplete coverage as a completed experiment.\n\n## Deadline status\nRequired on the bounded primary path, subject to the #77 go/no-go decision.\n\n## Budget\n2 hours wall-clock maximum; no retraining.\n\n## What to do\nEvaluate the final visual adapters from #75 on the small #90 final panel.\n\n## Acceptance criteria\n- Use seed 17, the same held-out problems and budgets as the other modalities, and base/SFT/exact/random controls.\n- Reuse reference computation where task, algorithm, seed and budget match, with correct visual observation bindings.\n- Use only the final pilot checkpoints. Preserve complete replay and report any unexecuted cells explicitly.\n- Do not run new training seeds, checkpoint sweeps or a full-domain expansion.\n\n## Blocked by\n#92, #75\n\n## Scheduling\nUse at most one model worker per GPU, with distinct MASTER_PORT values. The two-GPU #75/#76 and #93/#94/#95 jobs must be serialized on the available two A100s. Timeouts retain evidence and stop new work; no automatic budget extension or repeat-until-positive runs.\n\nThe deadline roadmap is documented in docs/experiments/deadline-plan/README.md. Terms retain their meanings from CONTEXT.md.\n",
+    "comments": [
+      {
+        "id": "IC_kwDOSsTIYM8AAAABRK2_GQ",
+        "author": {
+          "login": "Sino-Huang"
+        },
+        "authorAssociation": "OWNER",
+        "body": "<!-- ISSUE54-LESSONS-V1 -->\nApply the resource-bounded evaluation protocol established by #54:\n\n- drive incremental episode sessions in deterministic rounds and use batched Transformers generation with one shared backbone per GPU, adapter switching, adapter-isolated caching, and at most one request per active episode per round;\n- freeze a 2x matching-reference decision-call limit separately from expansion limits; exhaustion is a valid unsuccessful episode;\n- evaluate only final checkpoints across five seeds, with base, learned, random-valid, and exact-reference conditions on the identical selected tasks;\n- qualify throughput without success outcomes before rollout, using the actual precision/batch settings and a cost-qualified fallback panel if full coverage cannot fit;\n- stop before new launches at the wall-clock cutoff, preserve completed episodes, replay every completed episode, and never let partial coverage satisfy the gate.\n\nReport invariant-valid success, invalid-operation rate, budget usage, and learned-vs-best-control gain separately. #54 reached 100% learned success on its reduced panel but still correctly `VALID_STOP` because random-valid also reached 100%; avoid interpreting panel success alone as structural advantage.",
+        "createdAt": "2026-08-28T01:22:15Z",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/94#issuecomment-5447204633",
+        "viewerDidAuthor": true
+      },
+      {
+        "id": "IC_kwDOSsTIYM8AAAABRfja2g",
+        "author": {
+          "login": "Sino-Huang"
+        },
+        "authorAssociation": "OWNER",
+        "body": "<!-- SINGLE-TRAINING-SEED-BUDGET-V1 -->\nSupervisor time-budget clarification: this ticket must not require multiple independent training-seed replicates. For each distinct model/cell configuration, authorize exactly one training run using seed 17 and evaluate only the final checkpoint from that run.\n\nAny existing five-seeds requirement must be interpreted as rollout/reference/evaluation seeds applied to the single trained checkpoint where repeated evaluation is still useful, not as five separately trained checkpoints. Do not estimate or claim training-seed variance, and do not substitute rollout-seed variation for it; use whole-problem-instance uncertainty where applicable.\n\nIf a frozen scientific criterion truly requires independent training-seed replication, issue the appropriate governed VALID_STOP or gated-scope receipt instead of launching additional training runs.",
+        "createdAt": "2026-08-30T13:14:35Z",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/94#issuecomment-5468904154",
+        "viewerDidAuthor": true
+      },
+      {
+        "id": "IC_kwDOSsTIYM8AAAABUJhGBA",
+        "author": {
+          "login": "Sino-Huang"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Not selected for this deadline study after the verified **#77 NO_GO decision**. The complete #76 pilot failed the existing readiness thresholds in all four algorithms, and its training schedule is unmatched to visual v5.\n\nClosing this conditional/optional work as **not planned**, not as a completed experiment. No training, collection, held-out evaluation or claimed scientific result for this ticket was produced. The original specification and history remain available for a future prospective protocol and budget.\n\nThe selected route is #100 \u2192 #108, carrying development feasibility, negative findings and an explicit completion/skip/defer ledger. Decision evidence: https://github.com/Sino-Huang/multimodality_on_planning/blob/main/docs/experiments/issue77/decision.json\n",
+        "createdAt": "2026-09-12T16:20:31Z",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/94#issuecomment-5647123972",
+        "viewerDidAuthor": true
+      }
+    ],
+    "number": 94,
+    "state": "CLOSED",
+    "stateReason": "NOT_PLANNED",
+    "title": "T56: Run the single-seed final visual comparison",
+    "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/94"
+  },
+  "95": {
+    "body": "**Parent:** #38\n\n<!-- DEADLINE-SCOPE-V1 -->\nThis deadline scope supersedes the older full-matrix, five-seed and approval-manifest requirements for this ticket. Use one training/evaluation seed (17), retain raw evidence and never treat incomplete coverage as a completed experiment.\n\n## Deadline status\nRequired on the bounded primary path, subject to the #77 go/no-go decision.\n\n## Budget\n2 hours wall-clock maximum; no retraining.\n\n## What to do\nEvaluate the final multimodal adapters from #76 on the small #90 final panel.\n\n## Acceptance criteria\n- Use seed 17, the identical held-out problems and budgets, and base/SFT/exact/random controls.\n- Reuse matching reference computation while retaining complete text-image observation bindings.\n- Use only the final pilot checkpoints; retain replay, runtime and missing-cell accounting.\n- Do not expand the panel or repeat seeds after observing final results.\n\n## Blocked by\n#92, #76\n\n## Scheduling\nUse at most one model worker per GPU, with distinct MASTER_PORT values. The two-GPU #75/#76 and #93/#94/#95 jobs must be serialized on the available two A100s. Timeouts retain evidence and stop new work; no automatic budget extension or repeat-until-positive runs.\n\nThe deadline roadmap is documented in docs/experiments/deadline-plan/README.md. Terms retain their meanings from CONTEXT.md.\n",
+    "comments": [
+      {
+        "id": "IC_kwDOSsTIYM8AAAABRK3COQ",
+        "author": {
+          "login": "Sino-Huang"
+        },
+        "authorAssociation": "OWNER",
+        "body": "<!-- ISSUE54-LESSONS-V1 -->\nApply the resource-bounded evaluation protocol established by #54:\n\n- drive incremental episode sessions in deterministic rounds and use batched Transformers generation with one shared backbone per GPU, adapter switching, adapter-isolated caching, and at most one request per active episode per round;\n- freeze a 2x matching-reference decision-call limit separately from expansion limits; exhaustion is a valid unsuccessful episode;\n- evaluate only final checkpoints across five seeds, with base, learned, random-valid, and exact-reference conditions on the identical selected tasks;\n- qualify throughput without success outcomes before rollout, using the actual precision/batch settings and a cost-qualified fallback panel if full coverage cannot fit;\n- stop before new launches at the wall-clock cutoff, preserve completed episodes, replay every completed episode, and never let partial coverage satisfy the gate.\n\nReport invariant-valid success, invalid-operation rate, budget usage, and learned-vs-best-control gain separately. #54 reached 100% learned success on its reduced panel but still correctly `VALID_STOP` because random-valid also reached 100%; avoid interpreting panel success alone as structural advantage.",
+        "createdAt": "2026-08-28T01:22:21Z",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/95#issuecomment-5447205433",
+        "viewerDidAuthor": true
+      },
+      {
+        "id": "IC_kwDOSsTIYM8AAAABRfjbQQ",
+        "author": {
+          "login": "Sino-Huang"
+        },
+        "authorAssociation": "OWNER",
+        "body": "<!-- SINGLE-TRAINING-SEED-BUDGET-V1 -->\nSupervisor time-budget clarification: this ticket must not require multiple independent training-seed replicates. For each distinct model/cell configuration, authorize exactly one training run using seed 17 and evaluate only the final checkpoint from that run.\n\nAny existing five-seeds requirement must be interpreted as rollout/reference/evaluation seeds applied to the single trained checkpoint where repeated evaluation is still useful, not as five separately trained checkpoints. Do not estimate or claim training-seed variance, and do not substitute rollout-seed variation for it; use whole-problem-instance uncertainty where applicable.\n\nIf a frozen scientific criterion truly requires independent training-seed replication, issue the appropriate governed VALID_STOP or gated-scope receipt instead of launching additional training runs.",
+        "createdAt": "2026-08-30T13:14:36Z",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/95#issuecomment-5468904257",
+        "viewerDidAuthor": true
+      },
+      {
+        "id": "IC_kwDOSsTIYM8AAAABUJhHDQ",
+        "author": {
+          "login": "Sino-Huang"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Not selected for this deadline study after the verified **#77 NO_GO decision**. The complete #76 pilot failed the existing readiness thresholds in all four algorithms, and its training schedule is unmatched to visual v5.\n\nClosing this conditional/optional work as **not planned**, not as a completed experiment. No training, collection, held-out evaluation or claimed scientific result for this ticket was produced. The original specification and history remain available for a future prospective protocol and budget.\n\nThe selected route is #100 \u2192 #108, carrying development feasibility, negative findings and an explicit completion/skip/defer ledger. Decision evidence: https://github.com/Sino-Huang/multimodality_on_planning/blob/main/docs/experiments/issue77/decision.json\n",
+        "createdAt": "2026-09-12T16:20:34Z",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/95#issuecomment-5647124237",
+        "viewerDidAuthor": true
+      }
+    ],
+    "number": 95,
+    "state": "CLOSED",
+    "stateReason": "NOT_PLANNED",
+    "title": "T57: Run the single-seed final multimodal comparison",
+    "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/95"
+  },
+  "97": {
+    "body": "**Parent:** #38\n\n<!-- DEADLINE-SCOPE-V1 -->\nThis deadline scope supersedes the older full-matrix, five-seed and approval-manifest requirements for this ticket. Use one training/evaluation seed (17), retain raw evidence and never treat incomplete coverage as a completed experiment.\n\n## Deadline status\nRequired on the bounded primary path, subject to the #77 go/no-go decision.\n\n## Budget\nCPU analysis only; zero new model calls.\n\n## What to do\nAudit the retained final traces for operational validity versus structural/process behavior.\n\n## Acceptance criteria\n- Report applicability/effect failures, invariant violations, goal success, charged invalid operations and budget exhaustion separately.\n- Derive diagnostics from existing evidence; do not launch the original ability-change battery.\n- Use whole-problem summaries and explicitly state the small sample size and incomplete cells.\n\n## Blocked by\n#93, #94, #95\n\n## Scheduling\nUse at most one model worker per GPU, with distinct MASTER_PORT values. The two-GPU #75/#76 and #93/#94/#95 jobs must be serialized on the available two A100s. Timeouts retain evidence and stop new work; no automatic budget extension or repeat-until-positive runs.\n\nThe deadline roadmap is documented in docs/experiments/deadline-plan/README.md. Terms retain their meanings from CONTEXT.md.\n",
+    "comments": [
+      {
+        "id": "IC_kwDOSsTIYM8AAAABRK3Diw",
+        "author": {
+          "login": "Sino-Huang"
+        },
+        "authorAssociation": "OWNER",
+        "body": "<!-- ISSUE54-LESSONS-V1 -->\nApply the resource-bounded evaluation protocol established by #54:\n\n- drive incremental episode sessions in deterministic rounds and use batched Transformers generation with one shared backbone per GPU, adapter switching, adapter-isolated caching, and at most one request per active episode per round;\n- freeze a 2x matching-reference decision-call limit separately from expansion limits; exhaustion is a valid unsuccessful episode;\n- evaluate only final checkpoints across five seeds, with base, learned, random-valid, and exact-reference conditions on the identical selected tasks;\n- qualify throughput without success outcomes before rollout, using the actual precision/batch settings and a cost-qualified fallback panel if full coverage cannot fit;\n- stop before new launches at the wall-clock cutoff, preserve completed episodes, replay every completed episode, and never let partial coverage satisfy the gate.\n\nReport invariant-valid success, invalid-operation rate, budget usage, and learned-vs-best-control gain separately. #54 reached 100% learned success on its reduced panel but still correctly `VALID_STOP` because random-valid also reached 100%; avoid interpreting panel success alone as structural advantage.",
+        "createdAt": "2026-08-28T01:22:24Z",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/97#issuecomment-5447205771",
+        "viewerDidAuthor": true
+      },
+      {
+        "id": "IC_kwDOSsTIYM8AAAABRfjb8A",
+        "author": {
+          "login": "Sino-Huang"
+        },
+        "authorAssociation": "OWNER",
+        "body": "<!-- SINGLE-TRAINING-SEED-BUDGET-V1 -->\nSupervisor time-budget clarification: this ticket must not require multiple independent training-seed replicates. For each distinct model/cell configuration, authorize exactly one training run using seed 17 and evaluate only the final checkpoint from that run.\n\nAny existing five-seeds requirement must be interpreted as rollout/reference/evaluation seeds applied to the single trained checkpoint where repeated evaluation is still useful, not as five separately trained checkpoints. Do not estimate or claim training-seed variance, and do not substitute rollout-seed variation for it; use whole-problem-instance uncertainty where applicable.\n\nIf a frozen scientific criterion truly requires independent training-seed replication, issue the appropriate governed VALID_STOP or gated-scope receipt instead of launching additional training runs.",
+        "createdAt": "2026-08-30T13:14:38Z",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/97#issuecomment-5468904432",
+        "viewerDidAuthor": true
+      },
+      {
+        "id": "IC_kwDOSsTIYM8AAAABUJhIag",
+        "author": {
+          "login": "Sino-Huang"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Not selected for this deadline study after the verified **#77 NO_GO decision**. The complete #76 pilot failed the existing readiness thresholds in all four algorithms, and its training schedule is unmatched to visual v5.\n\nClosing this conditional/optional work as **not planned**, not as a completed experiment. No training, collection, held-out evaluation or claimed scientific result for this ticket was produced. The original specification and history remain available for a future prospective protocol and budget.\n\nThe selected route is #100 \u2192 #108, carrying development feasibility, negative findings and an explicit completion/skip/defer ledger. Decision evidence: https://github.com/Sino-Huang/multimodality_on_planning/blob/main/docs/experiments/issue77/decision.json\n",
+        "createdAt": "2026-09-12T16:20:36Z",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/97#issuecomment-5647124586",
+        "viewerDidAuthor": true
+      }
+    ],
+    "number": 97,
+    "state": "CLOSED",
+    "stateReason": "NOT_PLANNED",
+    "title": "T59: Derive operational and structural diagnostics from existing traces",
+    "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/97"
+  },
+  "109": {
+    "body": "**Parent:** #38\n\n<!-- DEADLINE-SCOPE-V1 -->\nThis deadline scope supersedes the older full-matrix, five-seed and approval-manifest requirements for this ticket. Use one training/evaluation seed (17), retain raw evidence and never treat incomplete coverage as a completed experiment.\n\n## Deadline status\nRequired on the bounded primary path, subject to the #77 go/no-go decision.\n\n## Budget\nCPU replay/accounting only; zero additional model rollouts.\n\n## What to do\nReport the primary predeclared budgets and a secondary common-cap analysis using retained episodes where mechanically valid.\n\n## Acceptance criteria\n- Use the same single-seed checkpoints, instances and observations; do not rerun a second full matrix.\n- Only derive common-cap results when the observed trajectory is valid for that accounting change. If behavior depends on the budget, mark that counterfactual unavailable instead of inventing it.\n- Report success, invariants, invalid charges, usage and the gap to exact references separately.\n- Keep the common-cap analysis secondary and report uncertainty only at whole-problem granularity.\n\n## Blocked by\n#90, #93, #94, #95\n\n## Scheduling\nUse at most one model worker per GPU, with distinct MASTER_PORT values. The two-GPU #75/#76 and #93/#94/#95 jobs must be serialized on the available two A100s. Timeouts retain evidence and stop new work; no automatic budget extension or repeat-until-positive runs.\n\nThe deadline roadmap is documented in docs/experiments/deadline-plan/README.md. Terms retain their meanings from CONTEXT.md.\n",
+    "comments": [
+      {
+        "id": "IC_kwDOSsTIYM8AAAABRK3Fsg",
+        "author": {
+          "login": "Sino-Huang"
+        },
+        "authorAssociation": "OWNER",
+        "body": "<!-- ISSUE54-LESSONS-V1 -->\nApply the resource-bounded evaluation protocol established by #54:\n\n- drive incremental episode sessions in deterministic rounds and use batched Transformers generation with one shared backbone per GPU, adapter switching, adapter-isolated caching, and at most one request per active episode per round;\n- freeze a 2x matching-reference decision-call limit separately from expansion limits; exhaustion is a valid unsuccessful episode;\n- evaluate only final checkpoints across five seeds, with base, learned, random-valid, and exact-reference conditions on the identical selected tasks;\n- qualify throughput without success outcomes before rollout, using the actual precision/batch settings and a cost-qualified fallback panel if full coverage cannot fit;\n- stop before new launches at the wall-clock cutoff, preserve completed episodes, replay every completed episode, and never let partial coverage satisfy the gate.\n\nReport invariant-valid success, invalid-operation rate, budget usage, and learned-vs-best-control gain separately. #54 reached 100% learned success on its reduced panel but still correctly `VALID_STOP` because random-valid also reached 100%; avoid interpreting panel success alone as structural advantage.",
+        "createdAt": "2026-08-28T01:22:29Z",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/109#issuecomment-5447206322",
+        "viewerDidAuthor": true
+      },
+      {
+        "id": "IC_kwDOSsTIYM8AAAABRfjeMQ",
+        "author": {
+          "login": "Sino-Huang"
+        },
+        "authorAssociation": "OWNER",
+        "body": "<!-- SINGLE-TRAINING-SEED-BUDGET-V1 -->\nSupervisor time-budget clarification: this ticket must not require multiple independent training-seed replicates. For each distinct model/cell configuration, authorize exactly one training run using seed 17 and evaluate only the final checkpoint from that run.\n\nAny existing five-seeds requirement must be interpreted as rollout/reference/evaluation seeds applied to the single trained checkpoint where repeated evaluation is still useful, not as five separately trained checkpoints. Do not estimate or claim training-seed variance, and do not substitute rollout-seed variation for it; use whole-problem-instance uncertainty where applicable.\n\nIf a frozen scientific criterion truly requires independent training-seed replication, issue the appropriate governed VALID_STOP or gated-scope receipt instead of launching additional training runs.",
+        "createdAt": "2026-08-30T13:14:45Z",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/109#issuecomment-5468905009",
+        "viewerDidAuthor": true
+      },
+      {
+        "id": "IC_kwDOSsTIYM8AAAABUJhJTA",
+        "author": {
+          "login": "Sino-Huang"
+        },
+        "authorAssociation": "OWNER",
+        "body": "Not selected for this deadline study after the verified **#77 NO_GO decision**. The complete #76 pilot failed the existing readiness thresholds in all four algorithms, and its training schedule is unmatched to visual v5.\n\nClosing this conditional/optional work as **not planned**, not as a completed experiment. No training, collection, held-out evaluation or claimed scientific result for this ticket was produced. The original specification and history remain available for a future prospective protocol and budget.\n\nThe selected route is #100 \u2192 #108, carrying development feasibility, negative findings and an explicit completion/skip/defer ledger. Decision evidence: https://github.com/Sino-Huang/multimodality_on_planning/blob/main/docs/experiments/issue77/decision.json\n",
+        "createdAt": "2026-09-12T16:20:38Z",
+        "includesCreatedEdit": false,
+        "isMinimized": false,
+        "minimizedReason": "",
+        "reactionGroups": [],
+        "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/109#issuecomment-5647124812",
+        "viewerDidAuthor": true
+      }
+    ],
+    "number": 109,
+    "state": "CLOSED",
+    "stateReason": "NOT_PLANNED",
+    "title": "T71: Derive bounded budget comparisons from retained episodes",
+    "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/109"
+  }
+}

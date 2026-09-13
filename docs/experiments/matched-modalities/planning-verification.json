@@ -1,0 +1,103 @@
+{
+  "study_id": "matched-modalities-v1",
+  "outcome": "PASS",
+  "scope": "planning/source-membership/dependency verification only; no implementation or hardware qualification claim",
+  "source_release": "outputs/modality_corpus/issue74-matched-32k-v1/release-001/report.json",
+  "source_records_resolved_uniquely": 2156,
+  "training_records": 2048,
+  "diagnostic_records": 108,
+  "training_task_id_overlap_with_diagnostics": 0,
+  "per_algorithm": {
+    "bfs": {
+      "train": 512,
+      "diagnostic": 28,
+      "order_verified": true,
+      "stored_maximum_training_input": {
+        "text-state": 2106,
+        "visual-state": 4096,
+        "multimodal-state": 5122
+      }
+    },
+    "best_first_width": {
+      "train": 512,
+      "diagnostic": 26,
+      "order_verified": true,
+      "stored_maximum_training_input": {
+        "text-state": 2366,
+        "visual-state": 4001,
+        "multimodal-state": 4716
+      }
+    },
+    "best_first_add_w3": {
+      "train": 512,
+      "diagnostic": 27,
+      "order_verified": true,
+      "stored_maximum_training_input": {
+        "text-state": 2330,
+        "visual-state": 4096,
+        "multimodal-state": 5431
+      }
+    },
+    "best_first_add_greedy": {
+      "train": 512,
+      "diagnostic": 27,
+      "order_verified": true,
+      "stored_maximum_training_input": {
+        "text-state": 2330,
+        "visual-state": 4096,
+        "multimodal-state": 5431
+      }
+    }
+  },
+  "source_semantic_split_audit": "retained #74 release; new selected/final semantic isolation remains #92 acceptance work",
+  "settings_arithmetic_and_source_bindings": "PASS",
+  "github_direct_dependencies_match": true,
+  "dependency_graph_acyclic": true,
+  "historical_completed_issue_bodies_unchanged": [
+    67,
+    72,
+    73,
+    74,
+    75,
+    76,
+    77,
+    100,
+    108
+  ],
+  "github_states": {
+    "38": "OPEN",
+    "90": "OPEN",
+    "91": "OPEN",
+    "92": "OPEN",
+    "112": "OPEN",
+    "113": "OPEN",
+    "114": "OPEN",
+    "115": "OPEN",
+    "93": "OPEN",
+    "94": "OPEN",
+    "95": "OPEN",
+    "97": "OPEN",
+    "109": "OPEN",
+    "67": "CLOSED",
+    "72": "CLOSED",
+    "73": "CLOSED",
+    "74": "CLOSED",
+    "75": "CLOSED",
+    "76": "CLOSED",
+    "77": "CLOSED",
+    "100": "CLOSED",
+    "108": "CLOSED"
+  },
+  "protocol_issue_closeout": "#90 open pending commit/push and closeout",
+  "new_training_runs": 0,
+  "new_final_model_calls": 0,
+  "gpu_qualification_performed": false,
+  "pending": [
+    "#91 candidate preparation",
+    "#92 runner/views/qualification",
+    "#112/#113/#114 matched training",
+    "#115 technical decision",
+    "#93/#94/#95 final evaluation",
+    "#97/#109 analysis"
+  ]
+}

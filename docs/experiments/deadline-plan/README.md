@@ -1,3 +1,7 @@
+> This file records the completed historical deadline study. The new prospective
+> [matched-modality successor](../matched-modalities/plan.md) has a separate
+> twelve-hour budget and ticket map; its experiments are not yet executed.
+
 # Deadline study execution record
 
 The selected route is **#76 → #77 (NO_GO) → #100 → #108**. The multimodal pilot

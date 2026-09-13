@@ -1,0 +1,83 @@
+{
+  "study_id": "matched-modalities-v1",
+  "dependency_representation": "issue body Blocked by sections; #38 is parent scope authority, not a completion blocker",
+  "historical_predecessors": {
+    "113": 75,
+    "114": 76,
+    "115": 77
+  },
+  "dependencies": {
+    "90": [],
+    "91": [
+      90
+    ],
+    "92": [
+      91,
+      72,
+      73,
+      74
+    ],
+    "112": [
+      92
+    ],
+    "113": [
+      92
+    ],
+    "114": [
+      92
+    ],
+    "115": [
+      112,
+      113,
+      114
+    ],
+    "93": [
+      115,
+      112
+    ],
+    "94": [
+      115,
+      113
+    ],
+    "95": [
+      115,
+      114
+    ],
+    "97": [
+      93,
+      94,
+      95
+    ],
+    "109": [
+      90,
+      93,
+      94,
+      95
+    ]
+  },
+  "completed_protocol_issue": 90,
+  "expected_open_issues": [
+    91,
+    92,
+    112,
+    113,
+    114,
+    115,
+    93,
+    94,
+    95,
+    97,
+    109
+  ],
+  "preserved_completed_issues": [
+    67,
+    72,
+    73,
+    74,
+    75,
+    76,
+    77,
+    100,
+    108
+  ]
+}
