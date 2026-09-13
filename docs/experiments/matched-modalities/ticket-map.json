@@ -1,5 +1,5 @@
 {
-  "study_id": "matched-modalities-v2",
+  "study_id": "matched-modalities-v3",
   "dependency_representation": "issue body Blocked by sections; #38 is parent scope authority, not a completion blocker",
   "historical_predecessors": {
     "113": 75,
@@ -82,5 +82,5 @@
   "completed_candidate_preparation_with_stop": [
     91
   ],
-  "preparation_status": "CPU and two-GPU hardware PASS; final evaluation budget admission fails (16.78h estimate / 6h cap); #92 remains open"
+  "preparation_status": "PASS: 152 final states, 2156 source records, processed previews, both-GPU qualification and shared-clock admission; 12-cell training running"
 }

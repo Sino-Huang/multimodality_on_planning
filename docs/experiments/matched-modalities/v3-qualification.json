@@ -1,0 +1,94 @@
+{
+  "outcome": "PASS",
+  "hardware_passed": true,
+  "estimate": {
+    "by_modality": {
+      "text-state": {
+        "training_seconds": 2669.9127047648653,
+        "evaluation_seconds": 4740.873146541417,
+        "training_microstep_seconds": 1.3901763502508402,
+        "seconds_per_call": 25.64570400863886
+      },
+      "visual-state": {
+        "training_seconds": 4973.135725790635,
+        "evaluation_seconds": 6777.1136646857485,
+        "training_microstep_seconds": 2.896019270643592,
+        "seconds_per_call": 37.10622555017471
+      },
+      "multimodal-state": {
+        "training_seconds": 5596.592109687626,
+        "evaluation_seconds": 7910.1260010153055,
+        "training_microstep_seconds": 3.242849553003907,
+        "seconds_per_call": 43.403307838365436
+      }
+    },
+    "training_seconds": 13239.640540243126,
+    "evaluation_seconds": 19428.11281224247,
+    "training_fits": true,
+    "evaluation_fits": true,
+    "fits": true
+  },
+  "worker_reports": [
+    "outputs/matched_modalities/v3/qualification/gpu-0.json",
+    "outputs/matched_modalities/v3/qualification/gpu-1.json"
+  ],
+  "model_outcomes_used_for_selection": false,
+  "study_id": "matched-modalities-v3",
+  "qualification_seconds": 3043.3645792007446,
+  "budget_ledger": "outputs/matched_modalities/v2/budget.json",
+  "qualification_segments": [
+    {
+      "stage": "qualify",
+      "started": 1789302449.360637,
+      "ended": 1789305003.5978928,
+      "prior_spent": 0,
+      "hard_deadline": 1789306049.360637,
+      "children": [
+        {
+          "pid": 276611,
+          "identity": "877384922",
+          "status": "outputs/matched_modalities/v2/launches/qualify-001/status-0.json",
+          "job": "outputs/matched_modalities/v2/launches/qualify-001/job-0.json",
+          "device": 0,
+          "master_port": "18775"
+        },
+        {
+          "pid": 276614,
+          "identity": "877384923",
+          "status": "outputs/matched_modalities/v2/launches/qualify-001/status-1.json",
+          "job": "outputs/matched_modalities/v2/launches/qualify-001/job-1.json",
+          "device": 1,
+          "master_port": "18776"
+        }
+      ],
+      "owner": 276582
+    },
+    {
+      "study_id": "matched-modalities-v3",
+      "stage": "qualify",
+      "started": 1789306487.5672815,
+      "ended": 1789306976.6946049,
+      "prior_spent": 2554.2372558116913,
+      "hard_deadline": 1789307533.3300257,
+      "children": [
+        {
+          "pid": 187937,
+          "identity": "877788745",
+          "status": "outputs/matched_modalities/v3/launches/qualify-002/status-0.json",
+          "job": "outputs/matched_modalities/v3/launches/qualify-002/job-0.json",
+          "device": 0,
+          "master_port": "18775"
+        },
+        {
+          "pid": 187957,
+          "identity": "877788755",
+          "status": "outputs/matched_modalities/v3/launches/qualify-002/status-1.json",
+          "job": "outputs/matched_modalities/v3/launches/qualify-002/job-1.json",
+          "device": 1,
+          "master_port": "18776"
+        }
+      ],
+      "owner": 187916
+    }
+  ]
+}
