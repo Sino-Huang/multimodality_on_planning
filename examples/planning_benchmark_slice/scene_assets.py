@@ -82,6 +82,9 @@ def read_json(path: Path) -> Any:
 
 def load_scene_task(root: Path, row: dict[str, Any]) -> tuple[str, str, dict[str, Any]]:
     traces = {algorithm: read_json(root / path) for algorithm, path in row["trace_paths"].items()}
+    if row.get("task_path"):
+        source = read_json(root / row["task_path"])
+        return source["domain_pddl"], source["problem_pddl"], traces
     if row["task_id"].startswith("astar-pair-"):
         source = read_json((root / next(iter(row["trace_paths"].values()))).parent / "task.json")
         return source["domain_pddl"], source["problem_pddl"], traces

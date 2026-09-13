@@ -1,0 +1,479 @@
+{
+  "study_id": "matched-modalities-v1",
+  "outcome": "VALID_STOP",
+  "preparation_stop_verified": true,
+  "model_input_ready": false,
+  "gpu_throughput_qualified": false,
+  "scientific_completion": false,
+  "source_report": "outputs/matched_modalities/v1/preparation/report.json",
+  "candidate_pool": "outputs/matched_modalities/v1/preparation/candidates.json",
+  "candidate_counts": {
+    "processed": 192,
+    "total": 192,
+    "reference_eligible_layout_pending": {
+      "blocksworld": 26,
+      "ferry": 36
+    },
+    "missing_domains": [
+      "storage"
+    ]
+  },
+  "resource_stop": {
+    "outcome": "VALID_STOP",
+    "resource_stop_verified": true,
+    "missing_domains": [
+      "storage"
+    ],
+    "scope": "all frozen candidates in exhausted required domains; other domains not fully replay-verified",
+    "verified_candidates": [
+      {
+        "domain": "storage",
+        "seed": 750000,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750000/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750001,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750001/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750002,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750002/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750003,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750003/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750004,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750004/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750005,
+        "reason": "exact_reference_failed:bfs:expansion_budget_exhausted",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750005/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750006,
+        "reason": "exact_reference_failed:bfs:expansion_budget_exhausted",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750006/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750007,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750007/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750008,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750008/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750009,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750009/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750010,
+        "reason": "exact_reference_failed:bfs:expansion_budget_exhausted",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750010/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750011,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750011/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750012,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750012/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750013,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750013/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750014,
+        "reason": "exact_reference_failed:bfs:expansion_budget_exhausted",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750014/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750015,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750015/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750016,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750016/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750017,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750017/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750018,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750018/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750019,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750019/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750020,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750020/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750021,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750021/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750022,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750022/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750023,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750023/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750024,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750024/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750025,
+        "reason": "exact_reference_failed:bfs:expansion_budget_exhausted",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750025/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750026,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750026/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750027,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750027/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750028,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750028/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750029,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750029/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750030,
+        "reason": "exact_reference_failed:bfs:expansion_budget_exhausted",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750030/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750031,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750031/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750032,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750032/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750033,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750033/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750034,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750034/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750035,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750035/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750036,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750036/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750037,
+        "reason": "exact_reference_failed:bfs:expansion_budget_exhausted",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750037/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750038,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750038/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750039,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750039/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750040,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750040/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750041,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750041/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750042,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750042/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750043,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750043/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750044,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750044/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750045,
+        "reason": "exact_reference_failed:bfs:expansion_budget_exhausted",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750045/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750046,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750046/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750047,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750047/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750048,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750048/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750049,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750049/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750050,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750050/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750051,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750051/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750052,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750052/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750053,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750053/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750054,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750054/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750055,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750055/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750056,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750056/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750057,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750057/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750058,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750058/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750059,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750059/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750060,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750060/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750061,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750061/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750062,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750062/task.json"
+      },
+      {
+        "domain": "storage",
+        "seed": 750063,
+        "reason": "retained_task_overlap",
+        "task_path": "outputs/matched_modalities/v1/preparation/candidates/storage-750063/task.json"
+      }
+    ],
+    "rejection_counts": {
+      "retained_task_overlap": 56,
+      "exact_reference_failed:bfs:expansion_budget_exhausted": 8
+    },
+    "gpu_calls": 0
+  },
+  "training": {
+    "outcome": "PASS",
+    "records": 2156,
+    "training_records": 2048,
+    "diagnostic_records": 108,
+    "modality_projections": 6468,
+    "maximum_input_tokens": {
+      "text-state": 2366,
+      "visual-state": 4096,
+      "multimodal-state": 5431
+    },
+    "semantic_task_split_isolation": true,
+    "shared_memory_and_candidates": true,
+    "drawing_text_semantic_parity": true,
+    "no_future_images": true,
+    "selected_goal_evaluations": 1418,
+    "record_order_source": "configs/experiments/matched-modalities/membership.json",
+    "gpu_calls": 0
+  },
+  "unfulfilled_prerequisites": [
+    "eligible Storage task under the frozen candidate/profile/reference limits",
+    "complete three-domain final state/goal views and processed preview inspection",
+    "final live-input processor qualification",
+    "GPU worker scheduler, cumulative deadline/resume enforcement and hardware throughput qualification",
+    "final adapter training, technical checkpoint decision and final evaluation (later goals)"
+  ],
+  "gpu_stage_seconds": {
+    "qualification": 0,
+    "training_development": 0,
+    "final_evaluation": 0
+  },
+  "new_model_calls": 0,
+  "invalid_preparation_attempt": {
+    "path": "outputs/matched_modalities/v1/preparation-invalid-storage-001",
+    "outcome": "INVALID",
+    "reason": "Storage curriculum adapter substituted its internal smaller variant for the fixed arguments; excluded from scientific evidence. Fixed with explicit frozen Storage command binding and regression coverage."
+  },
+  "verification": {
+    "independent_command": "python -u scripts/run_matched_modalities.py verify --workers 4",
+    "exit_code": 0,
+    "elapsed_seconds": 65.77,
+    "scope": "all 2156 selected records and all 64 Storage rejections; not full verification of other final candidate domains",
+    "focused_tests": 22,
+    "existing_seam_regression_tests": 36,
+    "teacher_target_token_limits_verified": true,
+    "ruff": "PASS",
+    "black": "PASS",
+    "basedpyright": "0 errors, 0 warnings"
+  },
+  "cpu_stage_elapsed_seconds": {
+    "invalid_candidate_attempt": 22.11,
+    "corrected_candidate_attempt": 46.07,
+    "prepare": 56.78,
+    "independent_verify": 56.63,
+    "final_verify_with_target_counts": 65.77
+  },
+  "implementation_scope": "CPU candidates, selected semantic projections and resource-stop verification",
+  "issue91": "pending closeout of bounded candidate-pool execution with eligibility stop",
+  "issue92": "OPEN; success acceptance unfulfilled"
+}

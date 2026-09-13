@@ -1,0 +1,41 @@
+{
+  "dry_run_modes": [
+    "prepare",
+    "verify",
+    "qualify",
+    "train",
+    "decide",
+    "evaluate"
+  ],
+  "dry_run_exit_codes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "dry_run_writes": 0,
+  "dry_run_model_calls": 0,
+  "qualify_command_exit_code": 2,
+  "qualify_command_result": {
+    "stage": "qualify:stopped",
+    "completed": 0,
+    "total": 0,
+    "elapsed_seconds": 0.01,
+    "eta_seconds": null,
+    "outcome": "VALID_STOP",
+    "model_input_ready": false,
+    "reason": "fixed final task set is not qualified; no GPU worker may start",
+    "unfulfilled_prerequisites": [
+      "eligible Storage task under the frozen candidate/profile/reference limits",
+      "complete three-domain final state/goal views and processed preview inspection",
+      "final live-input processor qualification",
+      "GPU worker scheduler, cumulative deadline/resume enforcement and hardware throughput qualification",
+      "final adapter training, technical checkpoint decision and final evaluation (later goals)"
+    ],
+    "gpu_stage_seconds": 0,
+    "model_calls": 0
+  },
+  "scope": "CPU preparation/preflight and no-launch guards only; no claim of implemented GPU scheduling"
+}

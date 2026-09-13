@@ -249,7 +249,7 @@ class VisualBFWSSession(BFWSModelSession):
 class VisualSession:
     """The family session remains authoritative; only its observation modality changes."""
 
-    def __init__(self, root, row, algorithm, arm, seed, output, contract_id, *, views=None):
+    def __init__(self, root, row, algorithm, arm, seed, output, contract_id, *, views=None, input_token_counter=None):
         self.row, self.algorithm, self.arm, self.seed, self.views = row, algorithm, arm, seed, views
         domain, problem, _ = load_scene_task(root, row)
         self.authority = PDDLStateAuthority.from_pddl(domain, problem)
@@ -265,7 +265,7 @@ class VisualSession:
                 row["task_id"],
                 row["domain"],
                 row["difficulty"],
-                root / next(iter(row["trace_paths"].values())),
+                root / (row["task_path"] if row.get("task_path") else next(iter(row["trace_paths"].values()))),
                 cost["decisions"],
                 cost["expansions"],
                 algorithm,
@@ -292,7 +292,7 @@ class VisualSession:
                 accepted_delta_limit=16,
                 max_input_bytes=3840,
                 max_input_tokens=7808,
-                input_token_counter=counter,
+                input_token_counter=input_token_counter or counter,
             )
         else:
             self.session = VisualBFSSession(self.authority, self.limit, cost["expansions"])

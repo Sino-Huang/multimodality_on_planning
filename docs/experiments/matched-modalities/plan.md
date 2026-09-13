@@ -1,5 +1,10 @@
 # Matched modalities under a twelve-hour experiment budget
 
+> Execution update: bounded candidate preparation reached a verified Storage
+> resource stop. See [the preparation result and unfulfilled prerequisites](preparation-stop.md).
+> The frozen protocol below remains unchanged. CPU preparation/verification and
+> no-launch guards exist; final views and the full GPU runner/qualification do not.
+
 Study: `matched-modalities-v1`. Status: **protocol fixed; implementation,
 qualification, training and final evaluation pending**. This plan is the
 user-requested successor to the completed deadline feasibility study. It does
