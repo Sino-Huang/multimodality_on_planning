@@ -1,0 +1,339 @@
+{
+  "study_id": "matched-modalities-v1",
+  "stage": "training_admission",
+  "report_state": "terminal_prerequisite_failure",
+  "outcome": "ANCESTOR_STOP",
+  "ancestor_outcome": "VALID_STOP",
+  "classification_note": "The existing generic train guard emits VALID_STOP; this report classifies downstream training as ANCESTOR_STOP because its prerequisite is independently verified stopped. The command output is retained verbatim.",
+  "training_execution_started": false,
+  "training_execution_complete": false,
+  "scientific_completion": false,
+  "goal_branch": "verified terminal failure report",
+  "source_code_commit": "f9ad551eace4b9766f08be303c7608212e8f0259",
+  "study_file": "configs/experiments/matched-modalities/study.json",
+  "source_preparation_report": "outputs/matched_modalities/v1/preparation/report.json",
+  "prerequisite_verification": {
+    "command": [
+      "python",
+      "-u",
+      "scripts/run_matched_modalities.py",
+      "verify",
+      "--workers",
+      "4"
+    ],
+    "exit_code": 0,
+    "result": {
+      "stage": "verify:complete",
+      "completed": 2156,
+      "total": 2156,
+      "elapsed_seconds": 59.78,
+      "eta_seconds": 0.0,
+      "outcome": "VALID_STOP",
+      "verification": "PASS",
+      "model_input_ready": false,
+      "missing_domains": [
+        "storage"
+      ],
+      "gpu_stage_seconds": 0,
+      "report": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/matched_modalities/v1/preparation/report.json",
+      "unfulfilled_prerequisites": [
+        "eligible Storage task under the frozen candidate/profile/reference limits",
+        "complete three-domain final state/goal views and processed preview inspection",
+        "final live-input processor qualification",
+        "GPU worker scheduler, cumulative deadline/resume enforcement and hardware throughput qualification",
+        "final adapter training, technical checkpoint decision and final evaluation (later goals)"
+      ]
+    },
+    "coverage": "all 2156 selected source records and all 64 exhausted Storage candidates, not trained adapters or final model episodes"
+  },
+  "training_commands": [
+    {
+      "command": [
+        "python",
+        "-u",
+        "scripts/run_matched_modalities.py",
+        "train",
+        "--study",
+        "configs/experiments/matched-modalities/study.json",
+        "--devices",
+        "0",
+        "1",
+        "--master-ports",
+        "18775",
+        "18776",
+        "--dry-run"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 0.699,
+      "result": {
+        "stage": "train:dry_run",
+        "completed": 1,
+        "total": 1,
+        "elapsed_seconds": 0.01,
+        "eta_seconds": 0.0,
+        "outcome": "PASS",
+        "writes": 0,
+        "model_calls": 0,
+        "execution_admitted": false,
+        "model_input_ready": false,
+        "missing_domains": [
+          "storage"
+        ],
+        "unfulfilled_prerequisites": [
+          "eligible Storage task under the frozen candidate/profile/reference limits",
+          "complete three-domain final state/goal views and processed preview inspection",
+          "final live-input processor qualification",
+          "GPU worker scheduler, cumulative deadline/resume enforcement and hardware throughput qualification",
+          "final adapter training, technical checkpoint decision and final evaluation (later goals)"
+        ],
+        "note": "command/preparation preflight only; GPU execution is unimplemented and blocked"
+      }
+    },
+    {
+      "command": [
+        "python",
+        "-u",
+        "scripts/run_matched_modalities.py",
+        "train",
+        "--study",
+        "configs/experiments/matched-modalities/study.json",
+        "--devices",
+        "0",
+        "1",
+        "--master-ports",
+        "18775",
+        "18776"
+      ],
+      "exit_code": 2,
+      "wall_seconds": 0.689,
+      "result": {
+        "stage": "train:stopped",
+        "completed": 0,
+        "total": 0,
+        "elapsed_seconds": 0.01,
+        "eta_seconds": null,
+        "outcome": "VALID_STOP",
+        "model_input_ready": false,
+        "reason": "fixed final task set is not qualified; no GPU worker may start",
+        "unfulfilled_prerequisites": [
+          "eligible Storage task under the frozen candidate/profile/reference limits",
+          "complete three-domain final state/goal views and processed preview inspection",
+          "final live-input processor qualification",
+          "GPU worker scheduler, cumulative deadline/resume enforcement and hardware throughput qualification",
+          "final adapter training, technical checkpoint decision and final evaluation (later goals)"
+        ],
+        "gpu_stage_seconds": 0,
+        "model_calls": 0
+      }
+    }
+  ],
+  "coverage": {
+    "expected_training_cells": 12,
+    "completed_training_cells": 0,
+    "training_records_presented": 0,
+    "optimizer_updates": 0,
+    "development_diagnostics_executed": 0,
+    "final_model_calls": 0
+  },
+  "cells": [
+    {
+      "modality": "text-state",
+      "algorithm": "bfs",
+      "status": "NOT_STARTED",
+      "checkpoint": null,
+      "expected_records": 512,
+      "records_presented": 0,
+      "expected_updates": 16,
+      "completed_updates": 0,
+      "seed": 17,
+      "development_results": null
+    },
+    {
+      "modality": "text-state",
+      "algorithm": "best_first_width",
+      "status": "NOT_STARTED",
+      "checkpoint": null,
+      "expected_records": 512,
+      "records_presented": 0,
+      "expected_updates": 16,
+      "completed_updates": 0,
+      "seed": 17,
+      "development_results": null
+    },
+    {
+      "modality": "text-state",
+      "algorithm": "best_first_add_w3",
+      "status": "NOT_STARTED",
+      "checkpoint": null,
+      "expected_records": 512,
+      "records_presented": 0,
+      "expected_updates": 16,
+      "completed_updates": 0,
+      "seed": 17,
+      "development_results": null
+    },
+    {
+      "modality": "text-state",
+      "algorithm": "best_first_add_greedy",
+      "status": "NOT_STARTED",
+      "checkpoint": null,
+      "expected_records": 512,
+      "records_presented": 0,
+      "expected_updates": 16,
+      "completed_updates": 0,
+      "seed": 17,
+      "development_results": null
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "bfs",
+      "status": "NOT_STARTED",
+      "checkpoint": null,
+      "expected_records": 512,
+      "records_presented": 0,
+      "expected_updates": 16,
+      "completed_updates": 0,
+      "seed": 17,
+      "development_results": null
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "best_first_width",
+      "status": "NOT_STARTED",
+      "checkpoint": null,
+      "expected_records": 512,
+      "records_presented": 0,
+      "expected_updates": 16,
+      "completed_updates": 0,
+      "seed": 17,
+      "development_results": null
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "best_first_add_w3",
+      "status": "NOT_STARTED",
+      "checkpoint": null,
+      "expected_records": 512,
+      "records_presented": 0,
+      "expected_updates": 16,
+      "completed_updates": 0,
+      "seed": 17,
+      "development_results": null
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "best_first_add_greedy",
+      "status": "NOT_STARTED",
+      "checkpoint": null,
+      "expected_records": 512,
+      "records_presented": 0,
+      "expected_updates": 16,
+      "completed_updates": 0,
+      "seed": 17,
+      "development_results": null
+    },
+    {
+      "modality": "multimodal-state",
+      "algorithm": "bfs",
+      "status": "NOT_STARTED",
+      "checkpoint": null,
+      "expected_records": 512,
+      "records_presented": 0,
+      "expected_updates": 16,
+      "completed_updates": 0,
+      "seed": 17,
+      "development_results": null
+    },
+    {
+      "modality": "multimodal-state",
+      "algorithm": "best_first_width",
+      "status": "NOT_STARTED",
+      "checkpoint": null,
+      "expected_records": 512,
+      "records_presented": 0,
+      "expected_updates": 16,
+      "completed_updates": 0,
+      "seed": 17,
+      "development_results": null
+    },
+    {
+      "modality": "multimodal-state",
+      "algorithm": "best_first_add_w3",
+      "status": "NOT_STARTED",
+      "checkpoint": null,
+      "expected_records": 512,
+      "records_presented": 0,
+      "expected_updates": 16,
+      "completed_updates": 0,
+      "seed": 17,
+      "development_results": null
+    },
+    {
+      "modality": "multimodal-state",
+      "algorithm": "best_first_add_greedy",
+      "status": "NOT_STARTED",
+      "checkpoint": null,
+      "expected_records": 512,
+      "records_presented": 0,
+      "expected_updates": 16,
+      "completed_updates": 0,
+      "seed": 17,
+      "development_results": null
+    }
+  ],
+  "resources": {
+    "gpu_stage_wall_seconds": {
+      "qualification": 0,
+      "training_development": 0,
+      "final_evaluation": 0
+    },
+    "training_development_cap_seconds": 18000,
+    "training_development_remaining_seconds": 18000,
+    "gpu_workers_launched": 0,
+    "gpu_hours_for_this_goal": 0,
+    "preflight_cpu_wall_seconds": 1.388,
+    "verification_cpu_wall_seconds": 59.78,
+    "configured_master_ports": [
+      18775,
+      18776
+    ],
+    "ports_opened": false,
+    "unrelated_processes_terminated": false
+  },
+  "prerequisite_failures": [
+    "eligible Storage task under the frozen candidate/profile/reference limits",
+    "complete three-domain final state/goal views and processed preview inspection",
+    "final live-input processor qualification",
+    "GPU worker scheduler, cumulative deadline/resume enforcement and hardware throughput qualification"
+  ],
+  "historical_checkpoint_reuse": false,
+  "frozen_scientific_settings_changed": false,
+  "github_states": {
+    "92": {
+      "state": "OPEN",
+      "title": "Matched modalities: Prepare views and qualify the shared runner",
+      "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/92"
+    },
+    "112": {
+      "state": "OPEN",
+      "title": "Matched modalities: Train fixed-exposure text-state adapters",
+      "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/112"
+    },
+    "113": {
+      "state": "OPEN",
+      "title": "Matched modalities: Train visual-state adapters following #75",
+      "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/113"
+    },
+    "114": {
+      "state": "OPEN",
+      "title": "Matched modalities: Train multimodal-state adapters following #76",
+      "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/114"
+    },
+    "115": {
+      "state": "OPEN",
+      "title": "Matched modalities: Verify comparability and decide continuation following #77",
+      "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/115"
+    }
+  },
+  "completion_boundary": "Only the requested terminal failure-report branch is complete. Training #112/#113/#114 and prerequisite #92 remain unfulfilled and OPEN; no new training, diagnostic or competence result is claimed."
+}
