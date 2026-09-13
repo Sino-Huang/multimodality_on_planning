@@ -76,7 +76,7 @@ def qualify_worker(root, study, worker, deadline, progress):
     results = {}
     for modality in study["modalities"]:
 
-        def tagged(stage, **fields):
+        def tagged(stage, modality=modality, **fields):
             progress(stage, **{"modality": modality, **fields})
 
         tagged("qualification:modality_started", completed=len(results), total=3)
