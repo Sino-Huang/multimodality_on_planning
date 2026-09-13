@@ -139,6 +139,10 @@ def train_worker(root, study, job, deadline, progress, resume):
     from .visual_pilot import probe_records_for_pilot
 
     modality, algorithm = job["modality"], job["algorithm"]
+    if study["study_id"] == "matched-modalities-v3" and modality != "text-state":
+        raise RuntimeError(
+            "VALID_STOP: v3 annotated-state visual training is on hold for the user's scene-only revision"
+        )
 
     def tagged(stage, **fields):
         progress(stage, **{"modality": modality, "algorithm": algorithm, **fields})
