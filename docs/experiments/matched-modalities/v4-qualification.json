@@ -1,0 +1,41 @@
+{
+  "outcome": "VALID_STOP",
+  "hardware_passed": true,
+  "estimate": {
+    "by_modality": {
+      "text-state": {
+        "training_seconds": 0.0,
+        "evaluation_seconds": 4740.873146541417,
+        "training_microstep_seconds": 1.3901763502508402,
+        "seconds_per_call": 25.64570400863886
+      },
+      "visual-state": {
+        "training_seconds": 10181.622768016532,
+        "evaluation_seconds": 9147.72308879532,
+        "training_microstep_seconds": 6.318123588338494,
+        "seconds_per_call": 49.973994513973594
+      },
+      "multimodal-state": {
+        "training_seconds": 11237.352139195427,
+        "evaluation_seconds": 10175.71143973153,
+        "training_microstep_seconds": 6.908452017232776,
+        "seconds_per_call": 55.32672624103725
+      }
+    },
+    "training_seconds": 22931.315068297088,
+    "remaining_training_seconds": 21418.97490721196,
+    "spent_training_seconds": 1512.3401610851288,
+    "evaluation_seconds": 24064.307675068267,
+    "training_fits": false,
+    "evaluation_fits": false,
+    "fits": false
+  },
+  "worker_reports": [
+    "outputs/matched_modalities/v4/qualification/gpu-0.json",
+    "outputs/matched_modalities/v4/qualification/gpu-1.json"
+  ],
+  "model_outcomes_used_for_selection": false,
+  "study_id": "matched-modalities-v4",
+  "complete_text_adapters": 4,
+  "complete_native_image_adapters": 0
+}
