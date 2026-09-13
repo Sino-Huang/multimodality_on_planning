@@ -58,7 +58,6 @@
   "completed_protocol_issue": 90,
   "expected_open_issues": [
     92,
-    112,
     113,
     114,
     115,
@@ -82,5 +81,8 @@
   "completed_candidate_preparation_with_stop": [
     91
   ],
-  "preparation_status": "PASS: 152 final states, 2156 source records, processed previews, both-GPU qualification and shared-clock admission; 12-cell training running"
+  "preparation_status": "Annotated v3 qualified; scene-only revision pending. Four text adapters complete; visual/multimodal held before model loading.",
+  "completed_text_training_issues": [
+    112
+  ]
 }

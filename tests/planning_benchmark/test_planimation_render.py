@@ -13,6 +13,53 @@ from examples.planning_benchmark_slice.planimation_render import (
 )
 
 
+def test_scene_object_labels_survive_later_sprites(tmp_path):
+    from PIL import Image
+
+    from scripts.planimation_phase1_frames import render_vfg_to_local_png_frames
+
+    sprite = {
+        "name": "ball1",
+        "minX": 0.1,
+        "maxX": 0.8,
+        "minY": 0.1,
+        "maxY": 0.8,
+        "color": {"r": 1, "g": 1, "b": 1, "a": 1},
+        "showname": False,
+    }
+    payload = json.dumps(
+        {"visualStages": [{"visualSprites": [sprite, {**sprite, "name": "cover", "depth": 1}]}]}
+    ).encode()
+    render_vfg_to_local_png_frames(payload, tmp_path / "legacy", 0, 0, canvas_size=128)
+    render_vfg_to_local_png_frames(
+        payload, tmp_path / "scene", 0, 0, canvas_size=128, label_font_size=24, object_names=frozenset({"ball1"})
+    )
+    with Image.open(tmp_path / "legacy/frame_000.png") as before, Image.open(tmp_path / "scene/frame_000.png") as after:
+        assert before.crop((16, 30, 90, 65)).convert("L").getextrema() == (255, 255)
+        assert after.crop((16, 30, 90, 65)).convert("L").getextrema()[0] == 0
+
+
+def test_scene_robot_contrasts_with_same_colour_cell(tmp_path):
+    from PIL import Image
+
+    from scripts.planimation_phase1_frames import render_vfg_to_local_png_frames
+
+    sprite = {
+        "name": "robot",
+        "minX": 0.2,
+        "maxX": 0.5,
+        "minY": 0.2,
+        "maxY": 0.5,
+        "color": {"r": 1, "g": 1, "b": 1, "a": 1},
+    }
+    payload = json.dumps({"visualStages": [{"visualSprites": [sprite]}]}).encode()
+    render_vfg_to_local_png_frames(
+        payload, tmp_path, 0, 0, canvas_size=128, label_font_size=24, object_names=frozenset({"cell0"})
+    )
+    with Image.open(tmp_path / "frame_000.png") as image:
+        assert image.getpixel((45, 80)) == (0, 0, 0, 255)
+
+
 def _request(
     tmp_path: Path,
     *,

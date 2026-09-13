@@ -53,9 +53,16 @@ def render_vfg_to_local_png_frames(
     start_step: int,
     stop_step: int,
     canvas_size: int = 1024,
+    label_font_size: int | None = None,
+    object_names: frozenset[str] = frozenset(),
 ) -> int:
     """Render selected VFG visual stages to readable local PNG frames."""
     Image, ImageDraw, ImageOps = _import_pillow()
+    label_font = None
+    if label_font_size is not None:
+        from PIL import ImageFont
+
+        label_font = ImageFont.truetype("DejaVuSans.ttf", label_font_size)
     payload = json.loads(vfg_bytes.decode("utf-8"))
     stages = payload.get("visualStages") or []
     if not stages:
@@ -63,17 +70,21 @@ def render_vfg_to_local_png_frames(
     image_table = payload.get("imageTable") or {}
     prefab_images = {
         key: Image.open(BytesIO(base64.b64decode(encoded))).convert("RGBA")
-        for key, encoded in zip(image_table.get("m_keys") or [], image_table.get("m_values") or [])
+        for key, encoded in zip(image_table.get("m_keys") or [], image_table.get("m_values") or [], strict=False)
     }
     selected_stages = stages[start_step : min(stop_step + 1, len(stages))]
     output_dir.mkdir(parents=True, exist_ok=True)
     for index, stage in enumerate(selected_stages):
         canvas = Image.new("RGBA", (canvas_size, canvas_size), (255, 255, 255, 255))
         draw = ImageDraw.Draw(canvas)
+        labels = []
         for sprite in sorted(stage.get("visualSprites") or [], key=lambda item: item.get("depth", 0)):
             left, top, right, bottom = _sprite_bounds(sprite, canvas_size)
             width, height = max(right - left, 1), max(bottom - top, 1)
             rgba = _sprite_rgba(sprite)
+            if object_names and sprite.get("name") == "robot":
+                # Some profiles tint the robot exactly like the visited cell.
+                rgba = (0, 0, 0, 255)
             prefab_image = prefab_images.get(sprite.get("prefabImage") or sprite.get("prefabimage"))
             if prefab_image is None:
                 draw.rectangle([left, top, right, bottom], fill=rgba, outline=(0, 0, 0, 255))
@@ -82,10 +93,26 @@ def render_vfg_to_local_png_frames(
                 tinted = Image.new("RGBA", (width, height), rgba)
                 tinted.putalpha(ImageOps.autocontrast(resized.split()[-1]))
                 canvas.alpha_composite(tinted, (left, top))
-            if sprite.get("showName") or sprite.get("showname") or sprite.get("showlabel"):
-                label = sprite.get("label") or sprite.get("name") or ""
+            if (
+                sprite.get("name") in object_names
+                or sprite.get("showName")
+                or sprite.get("showname")
+                or sprite.get("showlabel")
+            ):
+                label = (
+                    sprite.get("name")
+                    if sprite.get("name") in object_names
+                    else sprite.get("label") or sprite.get("name") or ""
+                )
                 if label:
-                    draw.text((left + 4, top + 4), str(label), fill=(0, 0, 0, 255))
+                    if object_names:
+                        labels.append((left + 4, top + 4, str(label)))
+                    else:
+                        draw.text((left + 4, top + 4), str(label), fill=(0, 0, 0, 255), font=label_font)
+        for x, y, label in labels:
+            box = draw.textbbox((x, y), label, font=label_font)
+            draw.rectangle(box, fill="white")
+            draw.text((x, y), label, fill="black", font=label_font)
         canvas.save(output_dir / f"frame_{index:03d}.png")
     if not selected_stages:
         raise RuntimeError("Local VFG rendering produced zero PNG frames")
