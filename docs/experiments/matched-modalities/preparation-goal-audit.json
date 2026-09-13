@@ -12,8 +12,8 @@
     "gpu_deadlines": "Static 1h/5h/6h and distinct-port validation/no-launch guards tested; running worker deadlines and GPU resume scheduling remain unfulfilled #92 work. No claim these runtime checks passed.",
     "tests": "22 focused tests + 36 existing regression tests; complete selected-record and exhausted-domain live CPU verification; actual generator-command regression catches wrong Storage variant.",
     "science_boundary": "No new final adapters, final model outcomes, profile tuning or replacements; preliminary wrong-profile attempt retained INVALID.",
-    "ticket_boundary": "#91 eligible for closure as completed bounded candidate-pool execution with VALID_STOP; #92 stays open.",
-    "git": "Commit and push required before goal completion."
+    "ticket_boundary": "#91 CLOSED COMPLETED for bounded candidate preparation with eligibility stop; #92 and all training/evaluation successors OPEN, verified by gh read-back.",
+    "git": "Implementation and evidence committed/pushed in c259dad; final ticket-state bookkeeping follows in the closeout commit."
   },
   "unfulfilled_prerequisites": [
     "eligible Storage task under the frozen candidate/profile/reference limits",
@@ -22,5 +22,6 @@
     "GPU worker scheduler, cumulative deadline/resume enforcement and hardware throughput qualification",
     "final adapter training, technical checkpoint decision and final evaluation (later goals)"
   ],
-  "goal_completion_requires_remaining_gpu_work": false
+  "goal_completion_requires_remaining_gpu_work": false,
+  "goal_stop_branch_verified": true
 }

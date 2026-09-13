@@ -474,6 +474,71 @@
     "final_verify_with_target_counts": 65.77
   },
   "implementation_scope": "CPU candidates, selected semantic projections and resource-stop verification",
-  "issue91": "pending closeout of bounded candidate-pool execution with eligibility stop",
-  "issue92": "OPEN; success acceptance unfulfilled"
+  "issue91": {
+    "state": "CLOSED",
+    "reason": "completed bounded candidate-pool execution with VALID_STOP, not qualified final tasks",
+    "comment": "https://github.com/Sino-Huang/multimodality_on_planning/issues/91#issuecomment-5652281437"
+  },
+  "issue92": {
+    "state": "OPEN",
+    "reason": "final task/view/worker/qualification prerequisites unfulfilled",
+    "comment": "https://github.com/Sino-Huang/multimodality_on_planning/issues/92#issuecomment-5652281642"
+  },
+  "github_states": {
+    "91": {
+      "closedAt": "2026-09-13T08:43:14Z",
+      "number": 91,
+      "state": "CLOSED",
+      "stateReason": "COMPLETED"
+    },
+    "92": {
+      "closedAt": null,
+      "number": 92,
+      "state": "OPEN",
+      "stateReason": "REOPENED"
+    },
+    "112": {
+      "closedAt": null,
+      "number": 112,
+      "state": "OPEN",
+      "stateReason": ""
+    },
+    "113": {
+      "closedAt": null,
+      "number": 113,
+      "state": "OPEN",
+      "stateReason": ""
+    },
+    "114": {
+      "closedAt": null,
+      "number": 114,
+      "state": "OPEN",
+      "stateReason": ""
+    },
+    "115": {
+      "closedAt": null,
+      "number": 115,
+      "state": "OPEN",
+      "stateReason": ""
+    },
+    "93": {
+      "closedAt": null,
+      "number": 93,
+      "state": "OPEN",
+      "stateReason": "REOPENED"
+    },
+    "94": {
+      "closedAt": null,
+      "number": 94,
+      "state": "OPEN",
+      "stateReason": "REOPENED"
+    },
+    "95": {
+      "closedAt": null,
+      "number": 95,
+      "state": "OPEN",
+      "stateReason": "REOPENED"
+    }
+  },
+  "implementation_commit": "c259dad"
 }

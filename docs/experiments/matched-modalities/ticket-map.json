@@ -57,7 +57,6 @@
   },
   "completed_protocol_issue": 90,
   "expected_open_issues": [
-    91,
     92,
     112,
     113,
@@ -79,5 +78,9 @@
     77,
     100,
     108
-  ]
+  ],
+  "completed_candidate_preparation_with_stop": [
+    91
+  ],
+  "preparation_status": "VALID_STOP: exhausted required Storage pool; #92 unqualified"
 }
