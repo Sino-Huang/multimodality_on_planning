@@ -164,9 +164,12 @@ UNFULFILLED = [
 
 def validate_settings(study, devices, ports):
     budget = study["budget"]
+    allocations = [[3600, 18000, 21600]]
+    if study.get("study_id") == "matched-modalities-v4":
+        allocations.append([4500, 17100, 21600])
     if (
         [budget[k] for k in ("qualification_seconds", "training_development_seconds", "final_evaluation_seconds")]
-        != [3600, 18000, 21600]
+        not in allocations
         or budget["total_seconds"] != 43200
         or budget["borrowing"]
         or budget["reset_on_resume"]

@@ -44,6 +44,11 @@ class StageBudget:
         if study.get("budget_predecessor"):
             self.budget_study = read_json(root / study["budget_predecessor"])
             comparable = {k: v for k, v in study["budget"].items() if k != "qualification_shutdown_reserve_seconds"}
+            # User-approved prospective transfer; retain the original ledger and
+            # all spending. This does not permit automatic stage borrowing.
+            approved = dict(self.budget_study["budget"], qualification_seconds=4500, training_development_seconds=17100)
+            if study.get("study_id") == "matched-modalities-v4" and comparable == approved:
+                comparable = self.budget_study["budget"]
             if self.budget_study["budget"] != comparable:
                 raise ValueError("successor cannot change the shared stage budgets")
         else:

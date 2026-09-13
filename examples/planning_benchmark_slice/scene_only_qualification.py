@@ -44,7 +44,10 @@ def qualify_scene_worker(root, study, worker, deadline, progress):
         path = output / f"{modality}-gpu-{worker}.json"
         if path.exists():
             saved = read_json(path)
-            if saved["study"] != study or saved["outcome"] != "PASS":
+            # Time allocation does not change a measured model input or call.
+            if {k: v for k, v in saved["study"].items() if k != "budget"} != {
+                k: v for k, v in study.items() if k != "budget"
+            } or saved["outcome"] != "PASS":
                 raise ValueError("retained native qualification differs")
             results[modality] = saved
             continue
