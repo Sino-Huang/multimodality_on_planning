@@ -66,7 +66,7 @@
   ],
   "github_states": {
     "38": "OPEN",
-    "90": "OPEN",
+    "90": "CLOSED",
     "91": "OPEN",
     "92": "OPEN",
     "112": "OPEN",
@@ -88,7 +88,14 @@
     "100": "CLOSED",
     "108": "CLOSED"
   },
-  "protocol_issue_closeout": "#90 open pending commit/push and closeout",
+  "protocol_issue_closeout": {
+    "issue": 90,
+    "state": "CLOSED",
+    "reason": "COMPLETED",
+    "closed_at": "2026-09-13T04:59:53Z",
+    "protocol_commit": "f4963d5",
+    "comment": "https://github.com/Sino-Huang/multimodality_on_planning/issues/90#issuecomment-5651267323"
+  },
   "new_training_runs": 0,
   "new_final_model_calls": 0,
   "gpu_qualification_performed": false,
@@ -99,5 +106,43 @@
     "#115 technical decision",
     "#93/#94/#95 final evaluation",
     "#97/#109 analysis"
-  ]
+  ],
+  "deferred_dispositions_verified": {
+    "78": "NOT_PLANNED",
+    "79": "NOT_PLANNED",
+    "80": "NOT_PLANNED",
+    "81": "NOT_PLANNED",
+    "82": "NOT_PLANNED",
+    "83": "NOT_PLANNED",
+    "84": "NOT_PLANNED",
+    "85": "",
+    "86": "",
+    "87": "",
+    "88": "",
+    "89": "",
+    "96": "",
+    "98": "",
+    "99": "",
+    "101": "",
+    "102": "",
+    "103": "",
+    "104": "",
+    "105": "",
+    "106": "",
+    "107": ""
+  },
+  "requirements_audit": {
+    "requested_issue_inspection": "Inspected #38/#67/#72\u2013#77/#90\u2013#109 bodies and relevant completion/deadline comments; original modified bodies/comments retained in prior-issues.json.",
+    "preserve_completed_experiments": "Original #75/#76 result.json retain VALID_STOP/scientific_completion=false; #77 decision.json remains NO_GO route [100,108]; no source corpus/scene/experiment output edits.",
+    "successor_tickets": "#112 text, #113 visual predecessor #75, #114 multimodal predecessor #76, #115 synthesis predecessor #77; all OPEN.",
+    "revised_dependencies": "All 12 active/protocol issue bodies read back and matched ticket-map.json; acyclic, #93\u2013#95 fixed-checkpoint evaluation only.",
+    "fixed_membership_and_exposure": "2,048 train / 108 diagnostic unique IDs resolved from all 238 source shards; fixed order/splits, 512 records, seed17, batch32, 16 updates per cell.",
+    "fixed_model_observations_and_memory": "study.json/plan.md pin model and processor revision, optimizer/LoRA schedule, 32K input/output limits, complete #72/#74 semantic projection and fixed memory.",
+    "fixed_final_protocol": "plan.md/study.json specify three candidate profiles/ordered seed sets, outcome-independent eligibility, four algorithms/three modalities/four controls, 144 logical bindings and paired whole-problem analysis; physical final tasks are a future #91/#92 deliverable.",
+    "cumulative_budget_and_stops": "3,600 + 18,000 + 21,600 =43,200 seconds; failed attempts/resume included; no borrowing or positive-score gate; incomplete coverage not complete science.",
+    "curriculum_and_deferrals": "#67 separately reported; DAgger/end-to-end/generalization/robustness/replication/transfer states retained and zero new budget.",
+    "commands_and_acceptance": "Independent #91 candidate CLI and #92 shared stage CLI specified explicitly as unimplemented; tests/progress/resume/verification acceptance attached to future tickets.",
+    "planning_only": "No new training, final evaluation, generation, rendering or GPU qualification run in this goal; app code and original scientific outputs untouched."
+  },
+  "planning_goal_requirements_verified": true
 }
