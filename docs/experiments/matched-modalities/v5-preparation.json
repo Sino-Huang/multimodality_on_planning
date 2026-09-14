@@ -28,6 +28,10 @@
     "visual-state": 3968,
     "multimodal-state": 5176
   },
-  "gpu_qualification": "pending",
-  "image_training_complete": false
+  "gpu_qualification": "VALID_STOP: cumulative qualification cutoff during multimodal checks",
+  "image_training_complete": false,
+  "independent_verification": "PASS",
+  "focused_tests_passed": 29,
+  "visual_gpu_qualification": "PASS on both A100s",
+  "visual_training_microstep_seconds": 2.826968999579549
 }
