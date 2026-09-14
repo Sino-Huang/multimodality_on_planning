@@ -1,0 +1,15 @@
+{
+  "job_id": "readiness-checkpoints",
+  "branch": "expanded_baseline",
+  "gpus": [],
+  "max_seconds": 120,
+  "total": 12,
+  "command": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/check_expanded_readiness.py"
+  ],
+  "completion_hook": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/audit_expanded_readiness.py"
+  ]
+}
