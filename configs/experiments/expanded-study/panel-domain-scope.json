@@ -29,6 +29,7 @@
   "issue_comment": "https://github.com/Sino-Huang/multimodality_on_planning/issues/62#issuecomment-5494022517",
   "historical_exclusion_reason": "200,000 Cartesian grounding estimate ceiling and declared positive-STRIPS adapter contract; all prior Freecell, Snake and Sokoban candidates excluded, plus oversized instances in other domains.",
   "scope_limitation": "Historical computational/adapter eligibility decision, not evidence of globally bad domains or present-day impossibility.",
-  "selection_profiles_frozen": false,
-  "hardware_qualified": false
+  "selection_profiles_frozen": true,
+  "hardware_qualified": false,
+  "profile_protocol": "configs/experiments/expanded-study/panel-protocol.json"
 }
