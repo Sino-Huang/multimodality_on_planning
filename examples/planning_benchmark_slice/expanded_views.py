@@ -82,6 +82,8 @@ class ExpandedTaskViews(VisualTaskViews):
         self.root, self.row, self.output, self.endpoint = root, task["row"], output, endpoint
         self.read_only = read_only
         native = copy.deepcopy(task["native_views"])
+        # New-state indices are local to an episode; isolate their image cache.
+        native["view_id"] = f"{native['view_id']}:live:{output.resolve()}"
         self.source_manifest = native["source_manifest"]
         self.manifest = read_json(root / self.source_manifest)
         self.catalog = read_json(root / self.manifest["scene_catalog"])

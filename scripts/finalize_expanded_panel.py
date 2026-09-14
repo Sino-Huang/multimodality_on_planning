@@ -10,6 +10,8 @@ from examples.planning_benchmark_slice.expanded_scheduler import ROOT, read, wri
 
 
 def main():
+    if (ROOT / "configs/experiments/expanded-study/final-panel.json").exists():
+        raise ValueError("panel already frozen; verify it without rewriting its freeze time")
     ledger = read(ROOT / "outputs/expanded-study/v1/budget.json")
     views = read(ROOT / "outputs/expanded-study/v1/panel-v2/reference-views.json")
     audit = read(ROOT / "docs/experiments/expanded-study/panel-independent-audit.json")

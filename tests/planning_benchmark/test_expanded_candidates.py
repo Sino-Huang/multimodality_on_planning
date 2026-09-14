@@ -101,7 +101,7 @@ def test_live_view_restore_replays_reference_states_into_authority(tmp_path, mon
     write(tmp_path / "manifest.json", {"scene_catalog": "catalog.json"})
     prepared = {
         "row": result["row"],
-        "native_views": {"source_manifest": "manifest.json", "scenes": {}, "scene_bindings": {}},
+        "native_views": {"view_id": "fixture", "source_manifest": "manifest.json", "scenes": {}, "scene_bindings": {}},
     }
     views = ExpandedTaskViews(tmp_path, prepared, tmp_path / "live", "http://127.0.0.1:18092")
     views.save()
@@ -110,3 +110,65 @@ def test_live_view_restore_replays_reference_states_into_authority(tmp_path, mon
     for entry in restored.states:
         state = restored.authority.canonical_state(tuple(entry["atoms"]), tuple(entry["fluents"]))
         assert isinstance(restored.authority.is_goal(state), bool)
+
+
+def test_distinct_episodes_cannot_share_a_new_state_image_cache(tmp_path, monkeypatch):
+    from PIL import Image
+    from examples.planning_benchmark_slice.expanded_views import ExpandedTaskViews
+    from examples.planning_benchmark_slice.expanded_scheduler import write
+
+    source = read(ROOT / "tests/fixtures/planning/blocksworld_nontrivial.json")
+    write(tmp_path / "task.json", source)
+    authority = PDDLStateAuthority.from_pddl(source["domain_pddl"], source["problem_pddl"])
+    initial = authority.initial_state
+    write(
+        tmp_path / "catalog.json",
+        {
+            "task_context": authority.task_context(),
+            "states": [
+                {
+                    "index": 0,
+                    "atoms": list(initial.atoms),
+                    "fluents": list(initial.fluents),
+                    "parent": None,
+                    "scene_path": "initial.png",
+                }
+            ],
+        },
+    )
+    write(tmp_path / "manifest.json", {"scene_catalog": "catalog.json"})
+    Image.new("RGB", (128, 128), "white").save(tmp_path / "initial.png")
+    task = {
+        "row": {"task_id": "same-task", "task_path": "task.json"},
+        "native_views": {
+            "view_id": "shared-reference",
+            "source_manifest": "manifest.json",
+            "static_pages": [],
+            "goal_pages": [],
+            "scenes": {"0": "initial.png"},
+            "scene_bindings": {},
+        },
+    }
+
+    def render(views, index):
+        views.output.mkdir(parents=True)
+        path = views.output / "new.png"
+        colour = "red" if views.output.name == "episode-a" else "blue"
+        Image.new("RGB", (128, 128), colour).save(path)
+        views.states[index].update(scene_path=str(path.relative_to(tmp_path)), vfg="unused-test-vector.json")
+        views._bind_native(index)
+
+    monkeypatch.setattr(ExpandedTaskViews, "_render", render)
+    actions = authority.applicable_actions(initial)
+    assert len(actions) >= 2
+    observed = []
+    for number, name in enumerate(("episode-a", "episode-b")):
+        views = ExpandedTaskViews(tmp_path, task, tmp_path / name, "http://127.0.0.1:18092")
+        action = actions[number]
+        index = views.register(views.authority.initial_state, {"name": action.name, "args": list(action.args)})
+        assert index == 1
+        pages, _ = views.scene_views.pages("same-task", index)
+        observed.append(pages[1][1].getpixel((0, 0)))
+        for _, image in pages:
+            image.close()
+    assert observed == [(255, 0, 0), (0, 0, 255)]

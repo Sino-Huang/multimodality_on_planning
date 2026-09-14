@@ -1,123 +1,106 @@
-# Expanded panel preparation (#117)
+# Qualified expanded panel (#117)
 
-All 24 provisional tasks are selected and their reference views are prepared.
-Hardware qualification and final freezing remain in progress; no new baseline
-planning episode has been evaluated.
+Goal 2 has prepared and frozen **24 new tasks across twelve domains**, with two
+structural strata per domain. The final binding is
+[`final-panel.json`](../../../configs/experiments/expanded-study/final-panel.json).
+Hardware and input qualification passed. Cost admission is explicitly conditional
+on historical workload behaviour; maximum-allowance completion is not guaranteed.
 
-The twelve-domain scope is resolved from the earlier #62/#64 decision. The
-paired heuristic source freeze excluded all Freecell, Snake and Sokoban tasks
-under its 200,000 Cartesian-grounding estimate ceiling and positive-STRIPS
-compatibility rule. Its retained source manifest contains exactly these domains:
+## Scope and selection
 
-15puzzle, blocksworld, depot, driverlog, elevators, ferry, grid, gripper,
-logistics, storage, towers_of_hanoi, visitall.
+The twelve domains are 15puzzle, blocksworld, depot, driverlog, elevators, ferry,
+grid, gripper, logistics, storage, towers_of_hanoi and visitall. This carries
+forward #62/#64's paired-heuristic scope, excluding Freecell, Snake and Sokoban;
+the later fifteen-domain modality corpus also contains BFS/BFWS-only sources.
+The recovered decision and source manifest are in `panel-domain-scope.json`.
 
-`panel-domain-scope.json` in the expanded-study configuration directory records
-the source manifest and issue-comment evidence. The target remains two problems
-per domain, 24 total. This is historical computational/adapter eligibility, not
-a claim that the excluded domains are intrinsically unsuitable.
+Structural profiles and seed ranges were fixed before candidate screening.
+All 384 candidate dispositions are retained. Whole-task comparison covers 4,970
+historical contexts, including prior matched-study candidates, and rejects object
+renamings as new instances. The independent audit also checks within-panel
+separation and source-goal/walk provenance. Only new-task assets were generated;
+old corpora, scenes, ledgers and all twelve v5 adapters remain intact.
 
-The later modality panel and release contain fifteen domains because they also
-include BFS/BFWS-only source tasks. That union is not the twelve-domain paired
-heuristic scope. The user recalled the earlier exclusion decision and requested
-checking the records; no new domain-count amendment is needed. Structural profiles and reference rules are now frozen in `panel-protocol-v2.json`;
-final input-qualified membership remains to be frozen.
+V1 rejected Storage using the historical Cartesian grounding estimate. The
+prospective v2 correction uses the current additive runtime's actual type-pruned
+operator count, retaining all profiles, seeds, source tasks and ceilings. Both
+Storage strata then passed; no domain or stratum was dropped. See
+[the correction record](panel-grounding-correction.md).
 
-Independent work: `scripts/prepare_expanded_panel.py inventory` inventories
-historical tasks across all source domains, including all earlier matched-study
-candidates. The old `retained_tasks` helper only covers historical source data;
-the new inventory also includes selected, rejected and unselected matched final
-candidates, so a new seed cannot bypass canonical-task overlap checks.
-Object-renaming equivalence is explicitly not certified by this inventory.
+## Evidence
 
-The CPU inventory runs through the shared scheduler with the checked-in
-`panel-inventory-job.json` configuration. Attempt 1 stopped on the incorrect
-assumption that the source panel itself contained twelve domains. Attempt 2
-corrects that assumption and inventories all historical domains, retaining the
-first failure and its CPU accounting. No GPU allocation is consumed.
+- [Independent audit](panel-independent-audit.json): all 24 source/profile/split,
+  object-renaming, goal and reference/view bindings. Source PDDL snapshots and
+  generating walks are committed under `configs/experiments/expanded-study/tasks/`.
+- [Reference views](panel-reference-views.json): 1,866 states and 4,310 decisions,
+  separate complete source-goal/context pages, and unlabelled 128px scenes.
+  Maximum observed reference inputs are 4,421 text, 5,908 visual and 7,659
+  multimodal tokens. These observed maxima are not claimed as off-policy bounds.
+- [Live views](panel-live-views.json): all tasks exercise a newly accepted state
+  or verify closure of the reference catalog. `ExpandedTaskViews` renders only
+  after the producing operation, preserves unlabelled rasterization, and replays
+  saved parent paths when restoring its PDDL authority. Failed first-attempt
+  evidence remains in the shared ledger.
+- [Common memory](panel-common-memory.json): all 4,310 decisions retain identical
+  common input across modalities, at most sixteen accepted deltas and at most
+  5,189 observed common-input bytes. Standard-runtime token-counter replay passed.
+- [GPU qualification](panel-gpu-qualification.json): both A100s passed twelve
+  probes each, with four fixed v5 adapters loaded per modality. Probes cover
+  32,384-token single inputs, 24,000-token padded batches, the largest page
+  geometry, and full 384-token outputs. Ports were 18800 and 18801. Raw unscored
+  probe outputs, timings, memory measurements and terminal hooks are retained.
+- [Requirement audit](goal2-completion-audit.json) maps the deliverables to evidence.
 
-Authoritative status and logs:
-`outputs/expanded-study/v1/jobs/panel-historical-inventory/2/` and the shared
-`outputs/expanded-study/v1/budget.json`. The worker has an 1,800-second bound and a
-completion audit hook. Do not relaunch because a heartbeat or observation times
-out: inspect the same process handles and terminal state first. The completed
-inventory will be at `outputs/expanded-study/v1/panel/historical-inventory.json`,
-with a compact summary in `panel-inventory.json` beside this document.
+The complete projected-input guard and model-policy guard reject oversized
+requests without truncation. Static/goal page counts are fixed per task; every
+new initial/current state uses the same 128px geometry. The reference catalog is
+not full reachability closure: off-reference images are supplied on demand under
+the tested accepted-operation boundary. Unlabelled scenes can lose identities;
+semantic information equality with text is not claimed.
 
-The inventory completed successfully: 5,410 historical source bindings and
-1,120 prior matched candidates, yielding 4,970 distinct canonical task contexts.
-Its completion hook passed; `panel-inventory.json` records the summary. The
-initial count-discrepancy metadata predates the recovered #62/#64 decision.
+## Cost admission
 
-## Current preparation state
+The measured full-call/full-output allowance projection is **574.08 GPU-hours**,
+which does not fit this branch's 56 hours. It remains reported as infeasible.
 
-All 384 candidates in the frozen 24 strata have reference-screen dispositions.
-The v1 screen and object-renaming audit selected 22 tasks; Storage was rejected by
-an obsolete Cartesian grounding estimate. The prospectively recorded correction
-in `panel-grounding-correction.md` uses the existing additive runtime's actual
-type-pruned assignments. It preserves all profiles, seeds, raw tasks and ceilings.
+The separately declared [historical-consumption method](panel-cost-admission.md)
+projects **35.01 GPU-hours**, plus **0.733 GPU-hours already spent** on shared
+readiness and qualification. It scales actual v5 worker time by reference-work
+complexity, current measured slowdown and a 1.25 margin. V5 had only three final
+problems and many early invalid-operation stops, so this extrapolation is
+conditional. It does not promise every maximum allowance can be consumed.
 
-V2 screening and object-renaming isolation now select all 24 provisional tasks,
-two in each intended domain, with no missing stratum. Source PDDL is reused from
-v1; neither the old corpus nor these raw candidates were regenerated. Reports:
-`panel-reference-screen-expanded-panel-v2.json` and
-`panel-structural-selection-expanded-panel-v2.json`. Both completion hooks passed.
-The object-renaming comparison preserves initial facts, argument order, numeric
-values and quantified goal scope, and checks the 4,970 historical contexts plus
-previously selected candidates.
+All 24 tasks and all 1,152 logical bindings remain fixed. Goal 3 must enforce the
+original shared cap and report every missing binding if it is exhausted. No
+additional allocation, easier replacement tasks or favourable retries are
+introduced. The original calendar cutoffs remain unchanged.
 
-The view-preparation job `panel-reference-views` completed successfully through the
-shared scheduler using `panel-views-job.json`. It independently replays all four
-algorithm references into a source/accepted-successor catalog, renders new-task
-paths through the existing localhost backends, derives unlabelled 128px scenes,
-and measures complete projected reference inputs with separate source-goal pages.
-All 24 task results and its completion hook passed. The compact evidence is
-`panel-reference-views.json`. Existing reference/view outputs remain available
-for reuse; no historical corpus or scene assets were regenerated.
+## Commands and Goal 3 handoff
 
-The reference catalog is explicitly **not full reachability closure**. Remaining
-work includes coverage of live off-reference state rendering, complete live-input
-bounds under shared Search Memory, bounded actual GPU qualification on both A100s,
-and measured cost admission. Those are required before freezing the final panel
-or closing #117. No new model outcome, training or final evaluation has run.
+Read-only verification, from the repository root:
 
-## Live-view and capacity qualification progress
+```bash
+source ~/cd_vlaplan
+python scripts/verify_expanded_panel.py
+python scripts/run_expanded_study.py status
+```
 
-`ExpandedTaskViews` now renders an off-reference state only after its producing
-operation is accepted, uses unlabelled 128px rasterization, and restores saved
-states by replaying their parent paths into the PDDL authority. The first live
-qualification attempt exposed the missing restore replay; attempt 2 passed all
-24 tasks while preserving attempt 1 and its rendered state. The report is
-`panel-live-views.json`.
+The finalizer has already run; it refuses to overwrite the existing freeze time.
+Reproduction jobs and their completion hooks are under
+`configs/experiments/expanded-study/`; successful job IDs intentionally refuse
+duplicate launches. The retained local outputs are required for full verification.
 
-Independent source/profile/split, object-renaming, reference replay and image
-binding checks passed for all 24 tasks. Their source PDDL snapshots are committed
-under `configs/experiments/expanded-study/tasks/`. The common-input audit checked
-all 4,310 reference decisions across three modalities: maximum common input
-5,189 bytes, maximum accepted-delta count 16, and identical common payloads.
-A stricter replay audit using the standard runtime token counter is running as
-`panel-runtime-parity`; it must pass before finalization.
+Goal 3 consumes `final-panel.json`, loads task view records from its `view_report`,
+and constructs `ExpandedTaskViews(root, task_record, attempt_output, endpoint)`.
+Use the standard `VisualSession` token counter and unchanged family semantics,
+the frozen 384-token output allowance, qualified single/batch limits, and the
+shared scheduler. Each episode needs its own persistent live-view output directory.
+Restore/replay uses `read_only=True`; it must never generate missing replay images.
 
-The two actual GPU jobs are `panel-gpu-0` and `panel-gpu-1`, on MASTER_PORT 18800
-and 18801. Each has twelve probes covering all three modalities, complete
-32,384-token single inputs, 24,000-token padded batches, full 384-token outputs,
-and each modality's four-adapter bank. Source pages and 128px scene geometry are
-preserved. Synthetic padding/output probes are unscored and are not baseline
-planning episodes. All logs, raw probe outputs and timing/VRAM receipts remain
-in the shared scheduler's attempt directories.
-
-The full-call/full-output cost projection exceeds 56 GPU-hours. The separate,
-prospectively recorded historical-consumption estimate in
-`panel-cost-admission-v2.json` starts at 33.79 GPU-hours before current slowdown
-adjustments and actual qualification spending. It assumes prior v5 termination
-and output-length behaviour transfers; v5 had only three final problems. This is
-a conditional admission estimate, not a worst-case completion guarantee. Both
-estimates remain visible; the 24-task scope and hard allocation stay unchanged.
-See `panel-cost-admission.md`.
-
-After both GPU jobs and the standard-runtime replay audit pass, run
-`source ~/cd_vlaplan` and `python scripts/finalize_expanded_panel.py`. The command
-refuses incomplete qualification and writes the final panel only if the declared
-conditional cost estimate fits. Review its report, verify all final bindings,
-commit/push, and close #117 only after that gate passes. Goal 3 still owns the
-actual 1,152-binding evaluation runner and execution.
+The matrix is four algorithms × three modalities × 24 tasks × base/SFT/random/exact
+= 1,152 logical bindings, including 576 model episodes. Retain all logical control
+bindings even if physical reference traces are shared under identical contracts.
+Random-valid is oracle-assisted. Use only the fixed v5 adapters and seed 17; no
+retraining is authorized by this goal. Goal 3 owns its actual episode runner,
+execution and independent result replay. This goal has run no expanded baseline
+planning episode and makes no efficacy claim.

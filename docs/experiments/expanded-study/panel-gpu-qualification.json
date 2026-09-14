@@ -1,0 +1,740 @@
+{
+  "outcome": "QUALIFIED_WITH_CONDITIONAL_COST_ADMISSION",
+  "verified_at": 1789393414.7427793,
+  "tasks": 24,
+  "hardware_capacity_passed": true,
+  "budget_branch": "expanded_baseline",
+  "branch_cap_gpu_hours": 56,
+  "spent_gpu_hours": 0.7331397665871514,
+  "reference_proxy_gpu_hours": 574.0759083540217,
+  "reference_allowance_proxy_fits": false,
+  "historical_consumption_proxy_gpu_hours": 35.00976941105303,
+  "admission_protocol": "configs/experiments/expanded-study/panel-cost-admission-v2.json",
+  "historical_estimate_limitation": "Assumes v5 termination/output-length behaviour remains a usable workload proxy on larger tasks. This does not guarantee full completion at all maximum allowances; the original 56-GPU-hour branch cap governs, and every missing binding must be reported if it is exhausted.",
+  "full_capacity_proxy_gpu_hours": 3000.638513210738,
+  "estimates": [
+    {
+      "modality": "text-state",
+      "maximum_model_calls": 17240,
+      "reference_envelope_seconds_per_call": 26.2027242295444,
+      "full_capacity_seconds_per_call": 167.06938738375902,
+      "model_loading_gpu_seconds": 136.57367604970932,
+      "reference_proxy_gpu_hours": 156.8998400671511,
+      "full_capacity_proxy_gpu_hours": 1000.1433375597414,
+      "historical_slowdown_factor": 1.0217198256954814,
+      "historical_consumption_proxy_gpu_hours": 8.75253274285623
+    },
+    {
+      "modality": "visual-state",
+      "maximum_model_calls": 17240,
+      "reference_envelope_seconds_per_call": 32.05149422772229,
+      "full_capacity_seconds_per_call": 168.78331901319325,
+      "model_loading_gpu_seconds": 77.535700365901,
+      "reference_proxy_gpu_hours": 191.89072784246463,
+      "full_capacity_proxy_gpu_hours": 1010.3826234332699,
+      "historical_slowdown_factor": 1.0227776104668806,
+      "historical_consumption_proxy_gpu_hours": 12.136639293593975
+    },
+    {
+      "modality": "multimodal-state",
+      "maximum_model_calls": 17240,
+      "reference_envelope_seconds_per_call": 37.62999921571463,
+      "full_capacity_seconds_per_call": 165.396958027035,
+      "model_loading_gpu_seconds": 80.59400096908212,
+      "reference_proxy_gpu_hours": 225.28534044440602,
+      "full_capacity_proxy_gpu_hours": 990.1125522177265,
+      "historical_slowdown_factor": 1.0572465979991077,
+      "historical_consumption_proxy_gpu_hours": 14.120597374602825
+    }
+  ],
+  "workers": [
+    {
+      "attempt": {
+        "job_id": "panel-gpu-0",
+        "branch": "expanded_baseline",
+        "gpus": [
+          0
+        ],
+        "max_seconds": 1800,
+        "total": 12,
+        "command": [
+          "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+          "scripts/qualify_expanded_gpu.py",
+          "run"
+        ],
+        "completion_hook": [
+          "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+          "scripts/qualify_expanded_gpu.py",
+          "audit"
+        ],
+        "attempt": 1,
+        "status": "succeeded",
+        "master_port": 18800,
+        "admitted": 1789391977.537168,
+        "gpu_hours": 0.37173072583145567,
+        "directory": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/expanded-study/v1/jobs/panel-gpu-0/1",
+        "supervisor": {
+          "pid": 270524,
+          "start_ticks": "886337739"
+        },
+        "started": 1789391977.9611318,
+        "available_vram_at_launch_csv": "index, uuid, name, memory.total [MiB], memory.free [MiB]\n0, GPU-f285a104-a0c2-92f5-e068-ec248f5bc798, NVIDIA A100 80GB PCIe, 81920 MiB, 71614 MiB\n1, GPU-496a5706-19b9-5d01-07ad-d819ccd18348, NVIDIA A100 80GB PCIe, 81920 MiB, 79601 MiB\n",
+        "worker": {
+          "pid": 270551,
+          "start_ticks": "886337786"
+        },
+        "ended": 1789393316.1917448,
+        "elapsed_seconds": 1338.2306129932404,
+        "cpu_seconds": 1295.1879450000001,
+        "returncode": 0,
+        "error": null
+      },
+      "qualification": {
+        "modalities": [
+          {
+            "modality": "text-state",
+            "source_task": "expanded-final/storage-expanded-919100",
+            "image_sizes": [],
+            "reference_envelope_tokens": 4453,
+            "adapters": {
+              "bfs": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/matched_modalities/v3/training/text-state/bfs/final",
+              "best_first_width": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/matched_modalities/v3/training/text-state/best_first_width/final",
+              "best_first_add_w3": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/matched_modalities/v3/training/text-state/best_first_add_w3/final",
+              "best_first_add_greedy": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/matched_modalities/v3/training/text-state/best_first_add_greedy/final"
+            },
+            "load_seconds": 68.28683802485466,
+            "cases": [
+              {
+                "name": "single_limit",
+                "seconds": 167.06938738375902,
+                "input_tokens": [
+                  32384
+                ],
+                "generated_tokens": 384,
+                "batch_size": 1,
+                "peak_allocated_bytes": 54380178432,
+                "peak_reserved_bytes": 56931385344,
+                "raw_capacity_outputs": [
+                  "{\"canonical_rationale\":\"BFS step: retire frontier head, append successors\",\"typed_operation\":{\"operation_type\":\"retire_frontier\",\"state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"clear(container-0-0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-0-0,container0)\\\",\\\"in(container-0-1,container0)\\\",\\\"in(crate1,depot48)\\\",\\\"in(depot48-1-1,depot48)\\\",\\\"in(depot48-1-2,depot48)\\\",\\\"in(depot48-1-3,depot48)\\\",\\\"in(depot48-2-1,depot48)\\\",\\\"in(depot48-2-2,depot48)\\\",\\\"lifting(hoist0,crate0)\\\",\\\"on(crate1,depot48-1-2)\\\"]\"},\"runtime_result\":null}"
+                ],
+                "scored": false
+              },
+              {
+                "name": "batch_limit",
+                "seconds": 100.51403044350445,
+                "input_tokens": [
+                  12000,
+                  12000
+                ],
+                "generated_tokens": 384,
+                "batch_size": 2,
+                "peak_allocated_bytes": 51292542976,
+                "peak_reserved_bytes": 56931385344,
+                "raw_capacity_outputs": [
+                  "{\"canonical_rationale\":\"exact_bfs_canonical_successor\",\"runtime_result\":null,\"typed_operation\":{\"action\":{\"args\":[\"hoist0\",\"crate0\",\"depot48-2-2\",\"loadarea\",\"depot48\"],\"name\":\"drop\"},\"evaluate_target\":false,\"frontier_intent\":{\"retire_source\":true,\"target_position\":30},\"source_state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"available(hoist0)\\\",\\\"clear(container-0-0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-0-0,container0)\\\",\\\"in(container-0-1,container0)\\\",\\\"in(crate0,container0)\\\",\\\"in(crate1,depot48)\\\",\\\"in(depot48-1-1,depot48)\\\",\\\"in(depot48-1-2,depot48)\\\",\\\"in(depot48-1-3,depot48)\\\",\\\"in(depot48-2-1,depot48)\\\",\\\"in(depot48-2-2,depot48)\\\",\\\"on(crate0,container-0-0)\\\",\\\"on(crate1,depot48-1-2)\\\"]\",\"visit_target\":true}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}",
+                  "{\"canonical_rationale\":\"exact_bfs_canonical_successor\",\"runtime_result\":null,\"typed_operation\":{\"action\":{\"args\":[\"hoist0\",\"crate0\",\"depot48-2-2\",\"loadarea\",\"depot48\"],\"name\":\"drop\"},\"evaluate_target\":false,\"frontier_intent\":{\"retire_source\":true,\"target_position\":30},\"source_state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"available(hoist0)\\\",\\\"clear(container-0-0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-0-0,container0)\\\",\\\"in(container-0-1,container0)\\\",\\\"in(crate0,container0)\\\",\\\"in(crate1,depot48)\\\",\\\"in(depot48-1-1,depot48)\\\",\\\"in(depot48-1-2,depot48)\\\",\\\"in(depot48-1-3,depot48)\\\",\\\"in(depot48-2-1,depot48)\\\",\\\"in(depot48-2-2,depot48)\\\",\\\"on(crate0,container-0-0)\\\",\\\"on(crate1,depot48-1-2)\\\"]\",\"visit_target\":true}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}"
+                ],
+                "scored": false
+              },
+              {
+                "name": "reference_envelope_base",
+                "seconds": 46.08957357518375,
+                "input_tokens": [
+                  4453,
+                  4453
+                ],
+                "generated_tokens": 384,
+                "batch_size": 2,
+                "peak_allocated_bytes": 42431046144,
+                "peak_reserved_bytes": 56931385344,
+                "raw_capacity_outputs": [
+                  "{\"canonical_rationale\":\"BFS frontier head retirement and tail successor appending\",\"typed_operation\":{\"operation_type\":\"retire_frontier\",\"state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"clear(container-0-0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-0-0,container0)\\\",\\\"in(container-0-1,container0)\\\",\\\"in(crate0,container0)\\\",\\\"in(crate1,depot48)\\\",\\\"in(depot48-1-1,depot48)\\\",\\\"in(depot48-1-2,depot48)\\\",\\\"in(depot48-1-3,depot48)\\\",\\\"in(depot48-2-1,depot48)\\\",\\\"in(depot48-2-2,depot48)\\\",\\\"on(crate0,container-0-0)\\\",\\\"on(crate1,depot48-1-2)\\\"]\"},\"runtime_result\":null}\n\n{\"canonical_rationale\":\"BFS frontier head retirement and tail successor appending\",\"typed_operation\":{\"operation_type\":\"retire_frontier\",\"state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"clear(container-0-0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-",
+                  "{\"canonical_rationale\":\"BFS frontier head retirement and tail successor appending\",\"typed_operation\":{\"operation_type\":\"retire_frontier\",\"state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"clear(container-0-0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-0-0,container0)\\\",\\\"in(container-0-1,container0)\\\",\\\"in(crate0,container0)\\\",\\\"in(crate1,depot48)\\\",\\\"in(depot48-1-1,depot48)\\\",\\\"in(depot48-1-2,depot48)\\\",\\\"in(depot48-1-3,depot48)\\\",\\\"in(depot48-2-1,depot48)\\\",\\\"in(depot48-2-2,depot48)\\\",\\\"on(crate0,container-0-0)\\\",\\\"on(crate1,depot48-1-2)\\\"]\"},\"runtime_result\":null}\n\n{\"canonical_rationale\":\"BFS frontier head retirement and tail successor appending\",\"typed_operation\":{\"operation_type\":\"retire_frontier\",\"state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"clear(container-0-0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-"
+                ],
+                "scored": false
+              },
+              {
+                "name": "reference_envelope_sft",
+                "seconds": 52.4054484590888,
+                "input_tokens": [
+                  4453,
+                  4453
+                ],
+                "generated_tokens": 384,
+                "batch_size": 2,
+                "peak_allocated_bytes": 42868793856,
+                "peak_reserved_bytes": 56931385344,
+                "raw_capacity_outputs": [
+                  "{\"canonical_rationale\":\"exact_bfs_canonical_successor\",\"runtime_result\":null,\"typed_operation\":{\"action\":{\"args\":[\"hoist0\",\"crate0\",\"depot48-2-2\",\"loadarea\",\"depot48\"],\"name\":\"drop\"},\"evaluate_target\":false,\"frontier_intent\":{\"retire_source\":true,\"target_position\":30},\"source_state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"available(hoist0)\\\",\\\"clear(container-0-0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"in(container-0-0,container0)\\\",\\\"in(container-0-1,container0)\\\",\\\"in(crate0,container0)\\\",\\\"in(crate1,depot48)\\\",\\\"in(depot48-1-1,depot48)\\\",\\\"in(depot48-1-2,depot48)\\\",\\\"in(depot48-1-3,depot48)\\\",\\\"in(depot48-2-1,depot48)\\\",\\\"in(depot48-2-2,depot48)\\\",\\\"on(crate0,container-0-0)\\\",\\\"on(crate1,depot48-1-2)\\\"]\",\"visit_target\":true}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}",
+                  "{\"canonical_rationale\":\"exact_bfs_canonical_successor\",\"runtime_result\":null,\"typed_operation\":{\"action\":{\"args\":[\"hoist0\",\"crate0\",\"depot48-2-2\",\"loadarea\",\"depot48\"],\"name\":\"drop\"},\"evaluate_target\":false,\"frontier_intent\":{\"retire_source\":true,\"target_position\":30},\"source_state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"available(hoist0)\\\",\\\"clear(container-0-0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"in(container-0-0,container0)\\\",\\\"in(container-0-1,container0)\\\",\\\"in(crate0,container0)\\\",\\\"in(crate1,depot48)\\\",\\\"in(depot48-1-1,depot48)\\\",\\\"in(depot48-1-2,depot48)\\\",\\\"in(depot48-1-3,depot48)\\\",\\\"in(depot48-2-1,depot48)\\\",\\\"in(depot48-2-2,depot48)\\\",\\\"on(crate0,container-0-0)\\\",\\\"on(crate1,depot48-1-2)\\\"]\",\"visit_target\":true}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}"
+                ],
+                "scored": false
+              }
+            ]
+          },
+          {
+            "modality": "visual-state",
+            "source_task": "expanded-final/storage-expanded-919100",
+            "image_sizes": [
+              [
+                768,
+                1024
+              ],
+              [
+                768,
+                1024
+              ],
+              [
+                768,
+                1024
+              ],
+              [
+                128,
+                128
+              ],
+              [
+                128,
+                128
+              ],
+              [
+                768,
+                1024
+              ]
+            ],
+            "reference_envelope_tokens": 5940,
+            "adapters": {
+              "bfs": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/matched_modalities/v5/training/visual-state/bfs/final",
+              "best_first_width": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/matched_modalities/v5/training/visual-state/best_first_width/final",
+              "best_first_add_w3": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/matched_modalities/v5/training/visual-state/best_first_add_w3/final",
+              "best_first_add_greedy": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/matched_modalities/v5/training/visual-state/best_first_add_greedy/final"
+            },
+            "load_seconds": 36.98073227517307,
+            "cases": [
+              {
+                "name": "single_limit",
+                "seconds": 168.78331901319325,
+                "input_tokens": [
+                  32384
+                ],
+                "generated_tokens": 384,
+                "batch_size": 1,
+                "peak_allocated_bytes": 54672004608,
+                "peak_reserved_bytes": 57864617984,
+                "raw_capacity_outputs": [
+                  "{\"canonical_rationale\":\"BFS frontier head retirement with target state ID from search memory\",\"typed_operation\":{\"operation_type\":\"retire_frontier\",\"state_id\":\"[\\\"at(hoist0,depot48-1-1)\\\",\\\"available(hoist0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-0-0,container0)\\\",\\\"in(container-0-1,container0)\\\",\\\"in(crate0,container0)\\\",\\\"in(crate1,depot48)\\\",\\\"in(depot48-1-1,depot48)\\\",\\\"in(depot48-1-2,depot48)\\\",\\\"in(depot48-1-3,depot48)\\\",\\\"in(depot48-2-1,depot48)\\\",\\\"in(depot48-2-2,depot48)\\\",\\\"on(crate0,container-0-0)\\\",\\\"on(crate1,depot48-1-2)\\\"]\"},\"runtime_result\":null}"
+                ],
+                "scored": false
+              },
+              {
+                "name": "batch_limit",
+                "seconds": 102.79468470066786,
+                "input_tokens": [
+                  12000,
+                  12000
+                ],
+                "generated_tokens": 384,
+                "batch_size": 2,
+                "peak_allocated_bytes": 51871527424,
+                "peak_reserved_bytes": 57864617984,
+                "raw_capacity_outputs": [
+                  "{\"canonical_rationale\":\"exact_bfs_canonical_successor\",\"runtime_result\":null,\"typed_operation\":{\"action\":{\"args\":[\"hoist0\",\"crate0\",\"depot48-2-2\",\"loadarea\",\"depot48\"],\"name\":\"drop\"},\"evaluate_target\":false,\"frontier_intent\":{\"retire_source\":true,\"target_position\":30},\"source_state_id\":\"[\\\"at(hoist0,depot48-1-1)\\\",\\\"available(hoist0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-0-0,container0)\\\",\\\"in(container-0-1,container0)\\\",\\\"in(crate0,container0)\\\",\\\"in(crate1,depot48)\\\",\\\"in(depot48-1-1,depot48)\\\",\\\"in(depot48-1-2,depot48)\\\",\\\"in(depot48-1-3,depot48)\\\",\\\"in(depot48-2-1,depot48)\\\",\\\"in(depot48-2-2,depot48)\\\",\\\"on(crate0,container-0-0)\\\",\\\"on(crate1,depot48-1-2)\\\"]\",\"visit_target\":true}}\n\n{\"canonical_rationale\":\"exact_bfs_canonical_successor\",\"runtime_result\":null,\"typed_operation\":{\"action\":{\"args\":[\"hoist0\",\"crate0\",\"depot48-2-2\",\"loadarea\",\"depot48\"],\"name\":\"drop\"},\"evaluate_target\":false,\"frontier_intent\":{\"retire_source\":true,\"target",
+                  "{\"canonical_rationale\":\"exact_bfs_canonical_successor\",\"runtime_result\":null,\"typed_operation\":{\"action\":{\"args\":[\"hoist0\",\"crate0\",\"depot48-2-2\",\"loadarea\",\"depot48\"],\"name\":\"drop\"},\"evaluate_target\":false,\"frontier_intent\":{\"retire_source\":true,\"target_position\":30},\"source_state_id\":\"[\\\"at(hoist0,depot48-1-1)\\\",\\\"available(hoist0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-0-0,container0)\\\",\\\"in(container-0-1,container0)\\\",\\\"in(crate0,container0)\\\",\\\"in(crate1,depot48)\\\",\\\"in(depot48-1-1,depot48)\\\",\\\"in(depot48-1-2,depot48)\\\",\\\"in(depot48-1-3,depot48)\\\",\\\"in(depot48-2-1,depot48)\\\",\\\"in(depot48-2-2,depot48)\\\",\\\"on(crate0,container-0-0)\\\",\\\"on(crate1,depot48-1-2)\\\"]\",\"visit_target\":true}}\n\n{\"canonical_rationale\":\"exact_bfs_canonical_successor\",\"runtime_result\":null,\"typed_operation\":{\"action\":{\"args\":[\"hoist0\",\"crate0\",\"depot48-2-2\",\"loadarea\",\"depot48\"],\"name\":\"drop\"},\"evaluate_target\":false,\"frontier_intent\":{\"retire_source\":true,\"target"
+                ],
+                "scored": false
+              },
+              {
+                "name": "reference_envelope_base",
+                "seconds": 57.010557847097516,
+                "input_tokens": [
+                  5940,
+                  5940
+                ],
+                "generated_tokens": 384,
+                "batch_size": 2,
+                "peak_allocated_bytes": 44523018752,
+                "peak_reserved_bytes": 57864617984,
+                "raw_capacity_outputs": [
+                  "{\"canonical_rationale\":\"BFS frontier head retirement and tail successor enqueue\",\"typed_operation\":{\"operation_type\":\"retire_frontier\",\"state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"clear(container-0-0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-0-0,container0)\\\",\\\"in(container-0-1,container0)\\\",\\\"in(crate0,container0)\\\",\\\"in(crate1,depot48)\\\",\\\"in(depot48-1-1,depot48)\\\",\\\"in(depot48-1-2,depot48)\\\",\\\"in(depot48-1-3,depot48)\\\",\\\"in(depot48-2-1,depot48)\\\",\\\"in(depot48-2-2,depot48)\\\",\\\"lifting(hoist0,crate0)\\\",\\\"on(crate1,depot48-1-2)\\\"]\"},\"runtime_result\":null}\n\n{\"canonical_rationale\":\"BFS frontier head retirement and tail successor enqueue\",\"typed_operation\":{\"operation_type\":\"retire_frontier\",\"state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"clear(container-0-0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-0",
+                  "{\"canonical_rationale\":\"BFS frontier head retirement and tail successor enqueue\",\"typed_operation\":{\"operation_type\":\"retire_frontier\",\"state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"clear(container-0-0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-0-0,container0)\\\",\\\"in(container-0-1,container0)\\\",\\\"in(crate0,container0)\\\",\\\"in(crate1,depot48)\\\",\\\"in(depot48-1-1,depot48)\\\",\\\"in(depot48-1-2,depot48)\\\",\\\"in(depot48-1-3,depot48)\\\",\\\"in(depot48-2-1,depot48)\\\",\\\"in(depot48-2-2,depot48)\\\",\\\"lifting(hoist0,crate0)\\\",\\\"on(crate1,depot48-1-2)\\\"]\"},\"runtime_result\":null}\n\n{\"canonical_rationale\":\"BFS frontier head retirement and tail successor enqueue\",\"typed_operation\":{\"operation_type\":\"retire_frontier\",\"state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"clear(container-0-0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-0"
+                ],
+                "scored": false
+              },
+              {
+                "name": "reference_envelope_sft",
+                "seconds": 64.10298845544457,
+                "input_tokens": [
+                  5940,
+                  5940
+                ],
+                "generated_tokens": 384,
+                "batch_size": 2,
+                "peak_allocated_bytes": 45106944512,
+                "peak_reserved_bytes": 57864617984,
+                "raw_capacity_outputs": [
+                  "{\"canonical_rationale\":\"exact_bfs_canonical_successor\",\"runtime_result\":null,\"typed_operation\":{\"action\":{\"args\":[\"hoist0\",\"crate0\",\"depot48-2-2\",\"loadarea\",\"depot48\"],\"name\":\"drop\"},\"evaluate_target\":false,\"frontier_intent\":{\"retire_source\":true,\"target_position\":30},\"source_state_id\":\"[\\\"at(hoist0,depot48-1-1)\\\",\\\"available(hoist0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-0-0,container0)\\\",\\\"in(container-0-1,container0)\\\",\\\"in(crate0,container0)\\\",\\\"in(crate1,depot48)\\\",\\\"in(depot48-1-1,depot48)\\\",\\\"in(depot48-1-2,depot48)\\\",\\\"in(depot48-1-3,depot48)\\\",\\\"in(depot48-2-1,depot48)\\\",\\\"in(depot48-2-2,depot48)\\\",\\\"on(crate0,container-0-0)\\\",\\\"on(crate1,depot48-1-2)\\\"]\",\"visit_target\":true}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}",
+                  "{\"canonical_rationale\":\"exact_bfs_canonical_successor\",\"runtime_result\":null,\"typed_operation\":{\"action\":{\"args\":[\"hoist0\",\"crate0\",\"depot48-2-2\",\"loadarea\",\"depot48\"],\"name\":\"drop\"},\"evaluate_target\":false,\"frontier_intent\":{\"retire_source\":true,\"target_position\":30},\"source_state_id\":\"[\\\"at(hoist0,depot48-1-1)\\\",\\\"available(hoist0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-0-0,container0)\\\",\\\"in(container-0-1,container0)\\\",\\\"in(crate0,container0)\\\",\\\"in(crate1,depot48)\\\",\\\"in(depot48-1-1,depot48)\\\",\\\"in(depot48-1-2,depot48)\\\",\\\"in(depot48-1-3,depot48)\\\",\\\"in(depot48-2-1,depot48)\\\",\\\"in(depot48-2-2,depot48)\\\",\\\"on(crate0,container-0-0)\\\",\\\"on(crate1,depot48-1-2)\\\"]\",\"visit_target\":true}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}"
+                ],
+                "scored": false
+              }
+            ]
+          },
+          {
+            "modality": "multimodal-state",
+            "source_task": "expanded-final/storage-expanded-919100",
+            "image_sizes": [
+              [
+                768,
+                1024
+              ],
+              [
+                768,
+                1024
+              ],
+              [
+                768,
+                1024
+              ],
+              [
+                128,
+                128
+              ],
+              [
+                128,
+                128
+              ],
+              [
+                768,
+                1024
+              ]
+            ],
+            "reference_envelope_tokens": 7691,
+            "adapters": {
+              "bfs": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/matched_modalities/v5/training/multimodal-state/bfs/final",
+              "best_first_width": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/matched_modalities/v5/training/multimodal-state/best_first_width/final",
+              "best_first_add_w3": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/matched_modalities/v5/training/multimodal-state/best_first_add_w3/final",
+              "best_first_add_greedy": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/matched_modalities/v5/training/multimodal-state/best_first_add_greedy/final"
+            },
+            "load_seconds": 35.25375689007342,
+            "cases": [
+              {
+                "name": "single_limit",
+                "seconds": 165.396958027035,
+                "input_tokens": [
+                  32384
+                ],
+                "generated_tokens": 384,
+                "batch_size": 1,
+                "peak_allocated_bytes": 54672004608,
+                "peak_reserved_bytes": 57864617984,
+                "raw_capacity_outputs": [
+                  "{\"canonical_rationale\":\"BFS frontier retirement and successor appending\",\"typed_operation\":{\"operation_type\":\"retire_frontier\",\"state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"available(hoist0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-0-0,container0)\\\",\\\"in(container-0-1,container0)\\\",\\\"in(crate0,container0)\\\",\\\"in(crate1,depot48)\\\",\\\"in(depot48-1-1,depot48)\\\",\\\"in(depot48-1-2,depot48)\\\",\\\"in(depot48-1-3,depot48)\\\",\\\"in(depot48-2-1,depot48)\\\",\\\"in(depot48-2-2,depot48)\\\",\\\"on(crate0,container-0-0)\\\",\\\"on(crate1,depot48-1-2)\\\"]\"},\"runtime_result\":null}"
+                ],
+                "scored": false
+              },
+              {
+                "name": "batch_limit",
+                "seconds": 102.89281821250916,
+                "input_tokens": [
+                  12000,
+                  12000
+                ],
+                "generated_tokens": 384,
+                "batch_size": 2,
+                "peak_allocated_bytes": 51871527424,
+                "peak_reserved_bytes": 57864617984,
+                "raw_capacity_outputs": [
+                  "{\"canonical_rationale\":\"exact_bfs_canonical_successor\",\"runtime_result\":null,\"typed_operation\":{\"action\":{\"args\":[\"hoist0\",\"crate0\",\"depot48-2-2\",\"loadarea\",\"depot48\"],\"name\":\"drop\"},\"evaluate_target\":false,\"frontier_intent\":{\"retire_source\":true,\"target_position\":30},\"source_state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"available(hoist0)\\\",\\\"clear(container-0-0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-0-0,container0)\\\",\\\"in(container-0-1,container0)\\\",\\\"in(crate0,container0)\\\",\\\"in(crate1,depot48)\\\",\\\"in(depot48-1-1,depot48)\\\",\\\"in(depot48-1-2,depot48)\\\",\\\"in(depot48-1-3,depot48)\\\",\\\"in(depot48-2-1,depot48)\\\",\\\"in(depot48-2-2,depot48)\\\",\\\"on(crate0,container-0-0)\\\",\\\"on(crate1,depot48-1-2)\\\"]\",\"visit_target\":true}}}}]}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}",
+                  "{\"canonical_rationale\":\"exact_bfs_canonical_successor\",\"runtime_result\":null,\"typed_operation\":{\"action\":{\"args\":[\"hoist0\",\"crate0\",\"depot48-2-2\",\"loadarea\",\"depot48\"],\"name\":\"drop\"},\"evaluate_target\":false,\"frontier_intent\":{\"retire_source\":true,\"target_position\":30},\"source_state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"available(hoist0)\\\",\\\"clear(container-0-0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-0-0,container0)\\\",\\\"in(container-0-1,container0)\\\",\\\"in(crate0,container0)\\\",\\\"in(crate1,depot48)\\\",\\\"in(depot48-1-1,depot48)\\\",\\\"in(depot48-1-2,depot48)\\\",\\\"in(depot48-1-3,depot48)\\\",\\\"in(depot48-2-1,depot48)\\\",\\\"in(depot48-2-2,depot48)\\\",\\\"on(crate0,container-0-0)\\\",\\\"on(crate1,depot48-1-2)\\\"]\",\"visit_target\":true}}}}]}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}"
+                ],
+                "scored": false
+              },
+              {
+                "name": "reference_envelope_base",
+                "seconds": 68.26764675416052,
+                "input_tokens": [
+                  7691,
+                  7691
+                ],
+                "generated_tokens": 384,
+                "batch_size": 2,
+                "peak_allocated_bytes": 46305475072,
+                "peak_reserved_bytes": 57864617984,
+                "raw_capacity_outputs": [
+                  "{\"canonical_rationale\":\"BFS frontier retirement and successor appending\",\"typed_operation\":{\"operation_type\":\"retire_frontier\",\"state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"available(hoist0)\\\",\\\"clear(container-0-0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-0-0,container0)\\\",\\\"in(container-0-1,container0)\\\",\\\"in(crate0,container0)\\\",\\\"in(crate1,depot48)\\\",\\\"in(depot48-1-1,depot48)\\\",\\\"in(depot48-1-2,depot48)\\\",\\\"in(depot48-1-3,depot48)\\\",\\\"in(depot48-2-1,depot48)\\\",\\\"in(depot48-2-2,depot48)\\\",\\\"on(crate0,container-0-0)\\\",\\\"on(crate1,depot48-1-2)\\\"]\"},\"runtime_result\":null}\n\n{\"canonical_rationale\":\"BFS frontier retirement and successor appending\",\"typed_operation\":{\"operation_type\":\"retire_frontier\",\"state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"available(hoist0)\\\",\\\"clear(container-0-0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot",
+                  "{\"canonical_rationale\":\"BFS frontier retirement and successor appending\",\"typed_operation\":{\"operation_type\":\"retire_frontier\",\"state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"available(hoist0)\\\",\\\"clear(container-0-0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-0-0,container0)\\\",\\\"in(container-0-1,container0)\\\",\\\"in(crate0,container0)\\\",\\\"in(crate1,depot48)\\\",\\\"in(depot48-1-1,depot48)\\\",\\\"in(depot48-1-2,depot48)\\\",\\\"in(depot48-1-3,depot48)\\\",\\\"in(depot48-2-1,depot48)\\\",\\\"in(depot48-2-2,depot48)\\\",\\\"on(crate0,container-0-0)\\\",\\\"on(crate1,depot48-1-2)\\\"]\"},\"runtime_result\":null}\n\n{\"canonical_rationale\":\"BFS frontier retirement and successor appending\",\"typed_operation\":{\"operation_type\":\"retire_frontier\",\"state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"available(hoist0)\\\",\\\"clear(container-0-0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot"
+                ],
+                "scored": false
+              },
+              {
+                "name": "reference_envelope_sft",
+                "seconds": 75.25999843142927,
+                "input_tokens": [
+                  7691,
+                  7691
+                ],
+                "generated_tokens": 384,
+                "batch_size": 2,
+                "peak_allocated_bytes": 47061531136,
+                "peak_reserved_bytes": 57864617984,
+                "raw_capacity_outputs": [
+                  "{\"canonical_rationale\":\"exact_bfs_canonical_successor\",\"runtime_result\":null,\"typed_operation\":{\"action\":{\"args\":[\"hoist0\",\"crate0\",\"depot48-2-2\",\"loadarea\",\"depot48\"],\"name\":\"drop\"},\"evaluate_target\":false,\"frontier_intent\":{\"retire_source\":true,\"target_position\":30},\"source_state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"available(hoist0)\\\",\\\"clear(container-0-0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-0-0,container0)\\\",\\\"in(container-0-1,container0)\\\",\\\"in(crate0,container0)\\\",\\\"in(crate1,depot48)\\\",\\\"in(depot48-1-1,depot48)\\\",\\\"in(depot48-1-2,depot48)\\\",\\\"in(depot48-1-3,depot48)\\\",\\\"in(depot48-2-1,depot48)\\\",\\\"in(depot48-2-2,depot48)\\\",\\\"on(crate0,container-0-0)\\\",\\\"on(crate1,depot48-1-2)\\\"]\",\"visit_target\":true}}}```json\n{\"canonical_rationale\":\"exact_bfs_canonical_successor\",\"runtime_result\":null,\"typed_operation\":{\"action\":{\"args\":[\"hoist0\",\"crate0\",\"depot48-2-2\",\"loadarea\",\"depot48\"],\"name\":\"drop\"},\"evaluate",
+                  "{\"canonical_rationale\":\"exact_bfs_canonical_successor\",\"runtime_result\":null,\"typed_operation\":{\"action\":{\"args\":[\"hoist0\",\"crate0\",\"depot48-2-2\",\"loadarea\",\"depot48\"],\"name\":\"drop\"},\"evaluate_target\":false,\"frontier_intent\":{\"retire_source\":true,\"target_position\":30},\"source_state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"available(hoist0)\\\",\\\"clear(container-0-0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-0-0,container0)\\\",\\\"in(container-0-1,container0)\\\",\\\"in(crate0,container0)\\\",\\\"in(crate1,depot48)\\\",\\\"in(depot48-1-1,depot48)\\\",\\\"in(depot48-1-2,depot48)\\\",\\\"in(depot48-1-3,depot48)\\\",\\\"in(depot48-2-1,depot48)\\\",\\\"in(depot48-2-2,depot48)\\\",\\\"on(crate0,container-0-0)\\\",\\\"on(crate1,depot48-1-2)\\\"]\",\"visit_target\":true}}}```json\n{\"canonical_rationale\":\"exact_bfs_canonical_successor\",\"runtime_result\":null,\"typed_operation\":{\"action\":{\"args\":[\"hoist0\",\"crate0\",\"depot48-2-2\",\"loadarea\",\"depot48\"],\"name\":\"drop\"},\"evaluate"
+                ],
+                "scored": false
+              }
+            ]
+          }
+        ],
+        "outcome": "PASS",
+        "scored_model_episodes": 0,
+        "cuda_visible_devices": "0",
+        "master_port": "18800"
+      }
+    },
+    {
+      "attempt": {
+        "job_id": "panel-gpu-1",
+        "branch": "expanded_baseline",
+        "gpus": [
+          1
+        ],
+        "max_seconds": 1800,
+        "total": 12,
+        "command": [
+          "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+          "scripts/qualify_expanded_gpu.py",
+          "run"
+        ],
+        "completion_hook": [
+          "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+          "scripts/qualify_expanded_gpu.py",
+          "audit"
+        ],
+        "attempt": 1,
+        "status": "succeeded",
+        "master_port": 18801,
+        "admitted": 1789391977.9368334,
+        "gpu_hours": 0.3586005381743113,
+        "directory": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/expanded-study/v1/jobs/panel-gpu-1/1",
+        "supervisor": {
+          "pid": 270546,
+          "start_ticks": "886337779"
+        },
+        "started": 1789391978.3347185,
+        "available_vram_at_launch_csv": "index, uuid, name, memory.total [MiB], memory.free [MiB]\n0, GPU-f285a104-a0c2-92f5-e068-ec248f5bc798, NVIDIA A100 80GB PCIe, 81920 MiB, 71614 MiB\n1, GPU-496a5706-19b9-5d01-07ad-d819ccd18348, NVIDIA A100 80GB PCIe, 81920 MiB, 79601 MiB\n",
+        "worker": {
+          "pid": 270557,
+          "start_ticks": "886337822"
+        },
+        "ended": 1789393269.296656,
+        "elapsed_seconds": 1290.9619374275208,
+        "cpu_seconds": 1238.500698,
+        "returncode": 0,
+        "error": null
+      },
+      "qualification": {
+        "modalities": [
+          {
+            "modality": "text-state",
+            "source_task": "expanded-final/storage-expanded-919100",
+            "image_sizes": [],
+            "reference_envelope_tokens": 4453,
+            "adapters": {
+              "bfs": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/matched_modalities/v3/training/text-state/bfs/final",
+              "best_first_width": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/matched_modalities/v3/training/text-state/best_first_width/final",
+              "best_first_add_w3": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/matched_modalities/v3/training/text-state/best_first_add_w3/final",
+              "best_first_add_greedy": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/matched_modalities/v3/training/text-state/best_first_add_greedy/final"
+            },
+            "load_seconds": 68.26028582639992,
+            "cases": [
+              {
+                "name": "single_limit",
+                "seconds": 156.7363146673888,
+                "input_tokens": [
+                  32384
+                ],
+                "generated_tokens": 384,
+                "batch_size": 1,
+                "peak_allocated_bytes": 54380178432,
+                "peak_reserved_bytes": 56931385344,
+                "raw_capacity_outputs": [
+                  "{\"canonical_rationale\":\"BFS step: retire frontier head, append successors\",\"typed_operation\":{\"operation_type\":\"retire_frontier\",\"state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"clear(container-0-0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-0-0,container0)\\\",\\\"in(container-0-1,container0)\\\",\\\"in(crate1,depot48)\\\",\\\"in(depot48-1-1,depot48)\\\",\\\"in(depot48-1-2,depot48)\\\",\\\"in(depot48-1-3,depot48)\\\",\\\"in(depot48-2-1,depot48)\\\",\\\"in(depot48-2-2,depot48)\\\",\\\"lifting(hoist0,crate0)\\\",\\\"on(crate1,depot48-1-2)\\\"]\"},\"runtime_result\":null}"
+                ],
+                "scored": false
+              },
+              {
+                "name": "batch_limit",
+                "seconds": 95.98463317938149,
+                "input_tokens": [
+                  12000,
+                  12000
+                ],
+                "generated_tokens": 384,
+                "batch_size": 2,
+                "peak_allocated_bytes": 51292542976,
+                "peak_reserved_bytes": 56931385344,
+                "raw_capacity_outputs": [
+                  "{\"canonical_rationale\":\"exact_bfs_canonical_successor\",\"runtime_result\":null,\"typed_operation\":{\"action\":{\"args\":[\"hoist0\",\"crate0\",\"depot48-2-2\",\"loadarea\",\"depot48\"],\"name\":\"drop\"},\"evaluate_target\":false,\"frontier_intent\":{\"retire_source\":true,\"target_position\":30},\"source_state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"available(hoist0)\\\",\\\"clear(container-0-0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-0-0,container0)\\\",\\\"in(container-0-1,container0)\\\",\\\"in(crate0,container0)\\\",\\\"in(crate1,depot48)\\\",\\\"in(depot48-1-1,depot48)\\\",\\\"in(depot48-1-2,depot48)\\\",\\\"in(depot48-1-3,depot48)\\\",\\\"in(depot48-2-1,depot48)\\\",\\\"in(depot48-2-2,depot48)\\\",\\\"on(crate0,container-0-0)\\\",\\\"on(crate1,depot48-1-2)\\\"]\",\"visit_target\":true}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}",
+                  "{\"canonical_rationale\":\"exact_bfs_canonical_successor\",\"runtime_result\":null,\"typed_operation\":{\"action\":{\"args\":[\"hoist0\",\"crate0\",\"depot48-2-2\",\"loadarea\",\"depot48\"],\"name\":\"drop\"},\"evaluate_target\":false,\"frontier_intent\":{\"retire_source\":true,\"target_position\":30},\"source_state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"available(hoist0)\\\",\\\"clear(container-0-0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-0-0,container0)\\\",\\\"in(container-0-1,container0)\\\",\\\"in(crate0,container0)\\\",\\\"in(crate1,depot48)\\\",\\\"in(depot48-1-1,depot48)\\\",\\\"in(depot48-1-2,depot48)\\\",\\\"in(depot48-1-3,depot48)\\\",\\\"in(depot48-2-1,depot48)\\\",\\\"in(depot48-2-2,depot48)\\\",\\\"on(crate0,container-0-0)\\\",\\\"on(crate1,depot48-1-2)\\\"]\",\"visit_target\":true}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}"
+                ],
+                "scored": false
+              },
+              {
+                "name": "reference_envelope_base",
+                "seconds": 44.09005170315504,
+                "input_tokens": [
+                  4453,
+                  4453
+                ],
+                "generated_tokens": 384,
+                "batch_size": 2,
+                "peak_allocated_bytes": 42431046144,
+                "peak_reserved_bytes": 56931385344,
+                "raw_capacity_outputs": [
+                  "{\"canonical_rationale\":\"BFS frontier head retirement and tail successor appending\",\"typed_operation\":{\"operation_type\":\"retire_frontier\",\"state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"clear(container-0-0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-0-0,container0)\\\",\\\"in(container-0-1,container0)\\\",\\\"in(crate0,container0)\\\",\\\"in(crate1,depot48)\\\",\\\"in(depot48-1-1,depot48)\\\",\\\"in(depot48-1-2,depot48)\\\",\\\"in(depot48-1-3,depot48)\\\",\\\"in(depot48-2-1,depot48)\\\",\\\"in(depot48-2-2,depot48)\\\",\\\"on(crate0,container-0-0)\\\",\\\"on(crate1,depot48-1-2)\\\"]\"},\"runtime_result\":null}\n\n{\"canonical_rationale\":\"BFS frontier head retirement and tail successor appending\",\"typed_operation\":{\"operation_type\":\"retire_frontier\",\"state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"clear(container-0-0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-",
+                  "{\"canonical_rationale\":\"BFS frontier head retirement and tail successor appending\",\"typed_operation\":{\"operation_type\":\"retire_frontier\",\"state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"clear(container-0-0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-0-0,container0)\\\",\\\"in(container-0-1,container0)\\\",\\\"in(crate0,container0)\\\",\\\"in(crate1,depot48)\\\",\\\"in(depot48-1-1,depot48)\\\",\\\"in(depot48-1-2,depot48)\\\",\\\"in(depot48-1-3,depot48)\\\",\\\"in(depot48-2-1,depot48)\\\",\\\"in(depot48-2-2,depot48)\\\",\\\"on(crate0,container-0-0)\\\",\\\"on(crate1,depot48-1-2)\\\"]\"},\"runtime_result\":null}\n\n{\"canonical_rationale\":\"BFS frontier head retirement and tail successor appending\",\"typed_operation\":{\"operation_type\":\"retire_frontier\",\"state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"clear(container-0-0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-"
+                ],
+                "scored": false
+              },
+              {
+                "name": "reference_envelope_sft",
+                "seconds": 50.33407599851489,
+                "input_tokens": [
+                  4453,
+                  4453
+                ],
+                "generated_tokens": 384,
+                "batch_size": 2,
+                "peak_allocated_bytes": 42868793856,
+                "peak_reserved_bytes": 56931385344,
+                "raw_capacity_outputs": [
+                  "{\"canonical_rationale\":\"exact_bfs_canonical_successor\",\"runtime_result\":null,\"typed_operation\":{\"action\":{\"args\":[\"hoist0\",\"crate0\",\"depot48-2-2\",\"loadarea\",\"depot48\"],\"name\":\"drop\"},\"evaluate_target\":false,\"frontier_intent\":{\"retire_source\":true,\"target_position\":30},\"source_state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"available(hoist0)\\\",\\\"clear(container-0-0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"in(container-0-0,container0)\\\",\\\"in(container-0-1,container0)\\\",\\\"in(crate0,container0)\\\",\\\"in(crate1,depot48)\\\",\\\"in(depot48-1-1,depot48)\\\",\\\"in(depot48-1-2,depot48)\\\",\\\"in(depot48-1-3,depot48)\\\",\\\"in(depot48-2-1,depot48)\\\",\\\"in(depot48-2-2,depot48)\\\",\\\"on(crate0,container-0-0)\\\",\\\"on(crate1,depot48-1-2)\\\"]\",\"visit_target\":true}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}",
+                  "{\"canonical_rationale\":\"exact_bfs_canonical_successor\",\"runtime_result\":null,\"typed_operation\":{\"action\":{\"args\":[\"hoist0\",\"crate0\",\"depot48-2-2\",\"loadarea\",\"depot48\"],\"name\":\"drop\"},\"evaluate_target\":false,\"frontier_intent\":{\"retire_source\":true,\"target_position\":30},\"source_state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"available(hoist0)\\\",\\\"clear(container-0-0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"in(container-0-0,container0)\\\",\\\"in(container-0-1,container0)\\\",\\\"in(crate0,container0)\\\",\\\"in(crate1,depot48)\\\",\\\"in(depot48-1-1,depot48)\\\",\\\"in(depot48-1-2,depot48)\\\",\\\"in(depot48-1-3,depot48)\\\",\\\"in(depot48-2-1,depot48)\\\",\\\"in(depot48-2-2,depot48)\\\",\\\"on(crate0,container-0-0)\\\",\\\"on(crate1,depot48-1-2)\\\"]\",\"visit_target\":true}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}"
+                ],
+                "scored": false
+              }
+            ]
+          },
+          {
+            "modality": "visual-state",
+            "source_task": "expanded-final/storage-expanded-919100",
+            "image_sizes": [
+              [
+                768,
+                1024
+              ],
+              [
+                768,
+                1024
+              ],
+              [
+                768,
+                1024
+              ],
+              [
+                128,
+                128
+              ],
+              [
+                128,
+                128
+              ],
+              [
+                768,
+                1024
+              ]
+            ],
+            "reference_envelope_tokens": 5940,
+            "adapters": {
+              "bfs": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/matched_modalities/v5/training/visual-state/bfs/final",
+              "best_first_width": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/matched_modalities/v5/training/visual-state/best_first_width/final",
+              "best_first_add_w3": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/matched_modalities/v5/training/visual-state/best_first_add_w3/final",
+              "best_first_add_greedy": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/matched_modalities/v5/training/visual-state/best_first_add_greedy/final"
+            },
+            "load_seconds": 38.7678501829505,
+            "cases": [
+              {
+                "name": "single_limit",
+                "seconds": 158.97970855236053,
+                "input_tokens": [
+                  32384
+                ],
+                "generated_tokens": 384,
+                "batch_size": 1,
+                "peak_allocated_bytes": 54672004608,
+                "peak_reserved_bytes": 57864617984,
+                "raw_capacity_outputs": [
+                  "{\"canonical_rationale\":\"BFS frontier head retirement with target state ID from search memory\",\"typed_operation\":{\"operation_type\":\"retire_frontier\",\"state_id\":\"[\\\"at(hoist0,depot48-1-1)\\\",\\\"available(hoist0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-0-0,container0)\\\",\\\"in(container-0-1,container0)\\\",\\\"in(crate0,container0)\\\",\\\"in(crate1,depot48)\\\",\\\"in(depot48-1-1,depot48)\\\",\\\"in(depot48-1-2,depot48)\\\",\\\"in(depot48-1-3,depot48)\\\",\\\"in(depot48-2-1,depot48)\\\",\\\"in(depot48-2-2,depot48)\\\",\\\"on(crate0,container-0-0)\\\",\\\"on(crate1,depot48-1-2)\\\"]\"},\"runtime_result\":null}"
+                ],
+                "scored": false
+              },
+              {
+                "name": "batch_limit",
+                "seconds": 98.7404145412147,
+                "input_tokens": [
+                  12000,
+                  12000
+                ],
+                "generated_tokens": 384,
+                "batch_size": 2,
+                "peak_allocated_bytes": 51871527424,
+                "peak_reserved_bytes": 57864617984,
+                "raw_capacity_outputs": [
+                  "{\"canonical_rationale\":\"exact_bfs_canonical_successor\",\"runtime_result\":null,\"typed_operation\":{\"action\":{\"args\":[\"hoist0\",\"crate0\",\"depot48-2-2\",\"loadarea\",\"depot48\"],\"name\":\"drop\"},\"evaluate_target\":false,\"frontier_intent\":{\"retire_source\":true,\"target_position\":30},\"source_state_id\":\"[\\\"at(hoist0,depot48-1-1)\\\",\\\"available(hoist0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-0-0,container0)\\\",\\\"in(container-0-1,container0)\\\",\\\"in(crate0,container0)\\\",\\\"in(crate1,depot48)\\\",\\\"in(depot48-1-1,depot48)\\\",\\\"in(depot48-1-2,depot48)\\\",\\\"in(depot48-1-3,depot48)\\\",\\\"in(depot48-2-1,depot48)\\\",\\\"in(depot48-2-2,depot48)\\\",\\\"on(crate0,container-0-0)\\\",\\\"on(crate1,depot48-1-2)\\\"]\",\"visit_target\":true}}\n\n{\"canonical_rationale\":\"exact_bfs_canonical_successor\",\"runtime_result\":null,\"typed_operation\":{\"action\":{\"args\":[\"hoist0\",\"crate0\",\"depot48-2-2\",\"loadarea\",\"depot48\"],\"name\":\"drop\"},\"evaluate_target\":false,\"frontier_intent\":{\"retire_source\":true,\"target",
+                  "{\"canonical_rationale\":\"exact_bfs_canonical_successor\",\"runtime_result\":null,\"typed_operation\":{\"action\":{\"args\":[\"hoist0\",\"crate0\",\"depot48-2-2\",\"loadarea\",\"depot48\"],\"name\":\"drop\"},\"evaluate_target\":false,\"frontier_intent\":{\"retire_source\":true,\"target_position\":30},\"source_state_id\":\"[\\\"at(hoist0,depot48-1-1)\\\",\\\"available(hoist0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-0-0,container0)\\\",\\\"in(container-0-1,container0)\\\",\\\"in(crate0,container0)\\\",\\\"in(crate1,depot48)\\\",\\\"in(depot48-1-1,depot48)\\\",\\\"in(depot48-1-2,depot48)\\\",\\\"in(depot48-1-3,depot48)\\\",\\\"in(depot48-2-1,depot48)\\\",\\\"in(depot48-2-2,depot48)\\\",\\\"on(crate0,container-0-0)\\\",\\\"on(crate1,depot48-1-2)\\\"]\",\"visit_target\":true}}\n\n{\"canonical_rationale\":\"exact_bfs_canonical_successor\",\"runtime_result\":null,\"typed_operation\":{\"action\":{\"args\":[\"hoist0\",\"crate0\",\"depot48-2-2\",\"loadarea\",\"depot48\"],\"name\":\"drop\"},\"evaluate_target\":false,\"frontier_intent\":{\"retire_source\":true,\"target"
+                ],
+                "scored": false
+              },
+              {
+                "name": "reference_envelope_base",
+                "seconds": 55.20038163289428,
+                "input_tokens": [
+                  5940,
+                  5940
+                ],
+                "generated_tokens": 384,
+                "batch_size": 2,
+                "peak_allocated_bytes": 44523018752,
+                "peak_reserved_bytes": 57864617984,
+                "raw_capacity_outputs": [
+                  "{\"canonical_rationale\":\"BFS frontier head retirement and tail successor enqueue\",\"typed_operation\":{\"operation_type\":\"retire_frontier\",\"state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"clear(container-0-0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-0-0,container0)\\\",\\\"in(container-0-1,container0)\\\",\\\"in(crate0,container0)\\\",\\\"in(crate1,depot48)\\\",\\\"in(depot48-1-1,depot48)\\\",\\\"in(depot48-1-2,depot48)\\\",\\\"in(depot48-1-3,depot48)\\\",\\\"in(depot48-2-1,depot48)\\\",\\\"in(depot48-2-2,depot48)\\\",\\\"lifting(hoist0,crate0)\\\",\\\"on(crate1,depot48-1-2)\\\"]\"},\"runtime_result\":null}\n\n{\"canonical_rationale\":\"BFS frontier head retirement and tail successor enqueue\",\"typed_operation\":{\"operation_type\":\"retire_frontier\",\"state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"clear(container-0-0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-0",
+                  "{\"canonical_rationale\":\"BFS frontier head retirement and tail successor enqueue\",\"typed_operation\":{\"operation_type\":\"retire_frontier\",\"state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"clear(container-0-0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-0-0,container0)\\\",\\\"in(container-0-1,container0)\\\",\\\"in(crate0,container0)\\\",\\\"in(crate1,depot48)\\\",\\\"in(depot48-1-1,depot48)\\\",\\\"in(depot48-1-2,depot48)\\\",\\\"in(depot48-1-3,depot48)\\\",\\\"in(depot48-2-1,depot48)\\\",\\\"in(depot48-2-2,depot48)\\\",\\\"lifting(hoist0,crate0)\\\",\\\"on(crate1,depot48-1-2)\\\"]\"},\"runtime_result\":null}\n\n{\"canonical_rationale\":\"BFS frontier head retirement and tail successor enqueue\",\"typed_operation\":{\"operation_type\":\"retire_frontier\",\"state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"clear(container-0-0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-0"
+                ],
+                "scored": false
+              },
+              {
+                "name": "reference_envelope_sft",
+                "seconds": 61.78378440439701,
+                "input_tokens": [
+                  5940,
+                  5940
+                ],
+                "generated_tokens": 384,
+                "batch_size": 2,
+                "peak_allocated_bytes": 45106944512,
+                "peak_reserved_bytes": 57864617984,
+                "raw_capacity_outputs": [
+                  "{\"canonical_rationale\":\"exact_bfs_canonical_successor\",\"runtime_result\":null,\"typed_operation\":{\"action\":{\"args\":[\"hoist0\",\"crate0\",\"depot48-2-2\",\"loadarea\",\"depot48\"],\"name\":\"drop\"},\"evaluate_target\":false,\"frontier_intent\":{\"retire_source\":true,\"target_position\":30},\"source_state_id\":\"[\\\"at(hoist0,depot48-1-1)\\\",\\\"available(hoist0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-0-0,container0)\\\",\\\"in(container-0-1,container0)\\\",\\\"in(crate0,container0)\\\",\\\"in(crate1,depot48)\\\",\\\"in(depot48-1-1,depot48)\\\",\\\"in(depot48-1-2,depot48)\\\",\\\"in(depot48-1-3,depot48)\\\",\\\"in(depot48-2-1,depot48)\\\",\\\"in(depot48-2-2,depot48)\\\",\\\"on(crate0,container-0-0)\\\",\\\"on(crate1,depot48-1-2)\\\"]\",\"visit_target\":true}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}",
+                  "{\"canonical_rationale\":\"exact_bfs_canonical_successor\",\"runtime_result\":null,\"typed_operation\":{\"action\":{\"args\":[\"hoist0\",\"crate0\",\"depot48-2-2\",\"loadarea\",\"depot48\"],\"name\":\"drop\"},\"evaluate_target\":false,\"frontier_intent\":{\"retire_source\":true,\"target_position\":30},\"source_state_id\":\"[\\\"at(hoist0,depot48-1-1)\\\",\\\"available(hoist0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-0-0,container0)\\\",\\\"in(container-0-1,container0)\\\",\\\"in(crate0,container0)\\\",\\\"in(crate1,depot48)\\\",\\\"in(depot48-1-1,depot48)\\\",\\\"in(depot48-1-2,depot48)\\\",\\\"in(depot48-1-3,depot48)\\\",\\\"in(depot48-2-1,depot48)\\\",\\\"in(depot48-2-2,depot48)\\\",\\\"on(crate0,container-0-0)\\\",\\\"on(crate1,depot48-1-2)\\\"]\",\"visit_target\":true}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}"
+                ],
+                "scored": false
+              }
+            ]
+          },
+          {
+            "modality": "multimodal-state",
+            "source_task": "expanded-final/storage-expanded-919100",
+            "image_sizes": [
+              [
+                768,
+                1024
+              ],
+              [
+                768,
+                1024
+              ],
+              [
+                768,
+                1024
+              ],
+              [
+                128,
+                128
+              ],
+              [
+                128,
+                128
+              ],
+              [
+                768,
+                1024
+              ]
+            ],
+            "reference_envelope_tokens": 7691,
+            "adapters": {
+              "bfs": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/matched_modalities/v5/training/multimodal-state/bfs/final",
+              "best_first_width": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/matched_modalities/v5/training/multimodal-state/best_first_width/final",
+              "best_first_add_w3": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/matched_modalities/v5/training/multimodal-state/best_first_add_w3/final",
+              "best_first_add_greedy": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/matched_modalities/v5/training/multimodal-state/best_first_add_greedy/final"
+            },
+            "load_seconds": 40.29700048454106,
+            "cases": [
+              {
+                "name": "single_limit",
+                "seconds": 158.92613885365427,
+                "input_tokens": [
+                  32384
+                ],
+                "generated_tokens": 384,
+                "batch_size": 1,
+                "peak_allocated_bytes": 54672004608,
+                "peak_reserved_bytes": 57864617984,
+                "raw_capacity_outputs": [
+                  "{\"canonical_rationale\":\"BFS frontier retirement and successor appending\",\"typed_operation\":{\"operation_type\":\"retire_frontier\",\"state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"available(hoist0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-0-0,container0)\\\",\\\"in(container-0-1,container0)\\\",\\\"in(crate0,container0)\\\",\\\"in(crate1,depot48)\\\",\\\"in(depot48-1-1,depot48)\\\",\\\"in(depot48-1-2,depot48)\\\",\\\"in(depot48-1-3,depot48)\\\",\\\"in(depot48-2-1,depot48)\\\",\\\"in(depot48-2-2,depot48)\\\",\\\"on(crate0,container-0-0)\\\",\\\"on(crate1,depot48-1-2)\\\"]\"},\"runtime_result\":null}"
+                ],
+                "scored": false
+              },
+              {
+                "name": "batch_limit",
+                "seconds": 98.46487885713577,
+                "input_tokens": [
+                  12000,
+                  12000
+                ],
+                "generated_tokens": 384,
+                "batch_size": 2,
+                "peak_allocated_bytes": 51871527424,
+                "peak_reserved_bytes": 57864617984,
+                "raw_capacity_outputs": [
+                  "{\"canonical_rationale\":\"exact_bfs_canonical_successor\",\"runtime_result\":null,\"typed_operation\":{\"action\":{\"args\":[\"hoist0\",\"crate0\",\"depot48-2-2\",\"loadarea\",\"depot48\"],\"name\":\"drop\"},\"evaluate_target\":false,\"frontier_intent\":{\"retire_source\":true,\"target_position\":30},\"source_state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"available(hoist0)\\\",\\\"clear(container-0-0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-0-0,container0)\\\",\\\"in(container-0-1,container0)\\\",\\\"in(crate0,container0)\\\",\\\"in(crate1,depot48)\\\",\\\"in(depot48-1-1,depot48)\\\",\\\"in(depot48-1-2,depot48)\\\",\\\"in(depot48-1-3,depot48)\\\",\\\"in(depot48-2-1,depot48)\\\",\\\"in(depot48-2-2,depot48)\\\",\\\"on(crate0,container-0-0)\\\",\\\"on(crate1,depot48-1-2)\\\"]\",\"visit_target\":true}}}}]}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}",
+                  "{\"canonical_rationale\":\"exact_bfs_canonical_successor\",\"runtime_result\":null,\"typed_operation\":{\"action\":{\"args\":[\"hoist0\",\"crate0\",\"depot48-2-2\",\"loadarea\",\"depot48\"],\"name\":\"drop\"},\"evaluate_target\":false,\"frontier_intent\":{\"retire_source\":true,\"target_position\":30},\"source_state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"available(hoist0)\\\",\\\"clear(container-0-0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-0-0,container0)\\\",\\\"in(container-0-1,container0)\\\",\\\"in(crate0,container0)\\\",\\\"in(crate1,depot48)\\\",\\\"in(depot48-1-1,depot48)\\\",\\\"in(depot48-1-2,depot48)\\\",\\\"in(depot48-1-3,depot48)\\\",\\\"in(depot48-2-1,depot48)\\\",\\\"in(depot48-2-2,depot48)\\\",\\\"on(crate0,container-0-0)\\\",\\\"on(crate1,depot48-1-2)\\\"]\",\"visit_target\":true}}}}]}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}"
+                ],
+                "scored": false
+              },
+              {
+                "name": "reference_envelope_base",
+                "seconds": 65.40488848276436,
+                "input_tokens": [
+                  7691,
+                  7691
+                ],
+                "generated_tokens": 384,
+                "batch_size": 2,
+                "peak_allocated_bytes": 46305475072,
+                "peak_reserved_bytes": 57864617984,
+                "raw_capacity_outputs": [
+                  "{\"canonical_rationale\":\"BFS frontier retirement and successor appending\",\"typed_operation\":{\"operation_type\":\"retire_frontier\",\"state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"available(hoist0)\\\",\\\"clear(container-0-0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-0-0,container0)\\\",\\\"in(container-0-1,container0)\\\",\\\"in(crate0,container0)\\\",\\\"in(crate1,depot48)\\\",\\\"in(depot48-1-1,depot48)\\\",\\\"in(depot48-1-2,depot48)\\\",\\\"in(depot48-1-3,depot48)\\\",\\\"in(depot48-2-1,depot48)\\\",\\\"in(depot48-2-2,depot48)\\\",\\\"on(crate0,container-0-0)\\\",\\\"on(crate1,depot48-1-2)\\\"]\"},\"runtime_result\":null}\n\n{\"canonical_rationale\":\"BFS frontier retirement and successor appending\",\"typed_operation\":{\"operation_type\":\"retire_frontier\",\"state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"available(hoist0)\\\",\\\"clear(container-0-0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot",
+                  "{\"canonical_rationale\":\"BFS frontier retirement and successor appending\",\"typed_operation\":{\"operation_type\":\"retire_frontier\",\"state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"available(hoist0)\\\",\\\"clear(container-0-0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-0-0,container0)\\\",\\\"in(container-0-1,container0)\\\",\\\"in(crate0,container0)\\\",\\\"in(crate1,depot48)\\\",\\\"in(depot48-1-1,depot48)\\\",\\\"in(depot48-1-2,depot48)\\\",\\\"in(depot48-1-3,depot48)\\\",\\\"in(depot48-2-1,depot48)\\\",\\\"in(depot48-2-2,depot48)\\\",\\\"on(crate0,container-0-0)\\\",\\\"on(crate1,depot48-1-2)\\\"]\"},\"runtime_result\":null}\n\n{\"canonical_rationale\":\"BFS frontier retirement and successor appending\",\"typed_operation\":{\"operation_type\":\"retire_frontier\",\"state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"available(hoist0)\\\",\\\"clear(container-0-0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot"
+                ],
+                "scored": false
+              },
+              {
+                "name": "reference_envelope_sft",
+                "seconds": 72.08374468237162,
+                "input_tokens": [
+                  7691,
+                  7691
+                ],
+                "generated_tokens": 384,
+                "batch_size": 2,
+                "peak_allocated_bytes": 47061531136,
+                "peak_reserved_bytes": 57864617984,
+                "raw_capacity_outputs": [
+                  "{\"canonical_rationale\":\"exact_bfs_canonical_successor\",\"runtime_result\":null,\"typed_operation\":{\"action\":{\"args\":[\"hoist0\",\"crate0\",\"depot48-2-2\",\"loadarea\",\"depot48\"],\"name\":\"drop\"},\"evaluate_target\":false,\"frontier_intent\":{\"retire_source\":true,\"target_position\":30},\"source_state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"available(hoist0)\\\",\\\"clear(container-0-0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-0-0,container0)\\\",\\\"in(container-0-1,container0)\\\",\\\"in(crate0,container0)\\\",\\\"in(crate1,depot48)\\\",\\\"in(depot48-1-1,depot48)\\\",\\\"in(depot48-1-2,depot48)\\\",\\\"in(depot48-1-3,depot48)\\\",\\\"in(depot48-2-1,depot48)\\\",\\\"in(depot48-2-2,depot48)\\\",\\\"on(crate0,container-0-0)\\\",\\\"on(crate1,depot48-1-2)\\\"]\",\"visit_target\":true}}}```json\n{\"canonical_rationale\":\"exact_bfs_canonical_successor\",\"runtime_result\":null,\"typed_operation\":{\"action\":{\"args\":[\"hoist0\",\"crate0\",\"depot48-2-2\",\"loadarea\",\"depot48\"],\"name\":\"drop\"},\"evaluate",
+                  "{\"canonical_rationale\":\"exact_bfs_canonical_successor\",\"runtime_result\":null,\"typed_operation\":{\"action\":{\"args\":[\"hoist0\",\"crate0\",\"depot48-2-2\",\"loadarea\",\"depot48\"],\"name\":\"drop\"},\"evaluate_target\":false,\"frontier_intent\":{\"retire_source\":true,\"target_position\":30},\"source_state_id\":\"[\\\"at(hoist0,loadarea)\\\",\\\"available(hoist0)\\\",\\\"clear(container-0-0)\\\",\\\"clear(container-0-1)\\\",\\\"clear(depot48-1-1)\\\",\\\"clear(depot48-1-3)\\\",\\\"clear(depot48-2-1)\\\",\\\"clear(depot48-2-2)\\\",\\\"in(container-0-0,container0)\\\",\\\"in(container-0-1,container0)\\\",\\\"in(crate0,container0)\\\",\\\"in(crate1,depot48)\\\",\\\"in(depot48-1-1,depot48)\\\",\\\"in(depot48-1-2,depot48)\\\",\\\"in(depot48-1-3,depot48)\\\",\\\"in(depot48-2-1,depot48)\\\",\\\"in(depot48-2-2,depot48)\\\",\\\"on(crate0,container-0-0)\\\",\\\"on(crate1,depot48-1-2)\\\"]\",\"visit_target\":true}}}```json\n{\"canonical_rationale\":\"exact_bfs_canonical_successor\",\"runtime_result\":null,\"typed_operation\":{\"action\":{\"args\":[\"hoist0\",\"crate0\",\"depot48-2-2\",\"loadarea\",\"depot48\"],\"name\":\"drop\"},\"evaluate"
+                ],
+                "scored": false
+              }
+            ]
+          }
+        ],
+        "outcome": "PASS",
+        "scored_model_episodes": 0,
+        "cuda_visible_devices": "1",
+        "master_port": "18801"
+      }
+    }
+  ],
+  "estimate_limitations": "Full-capacity timing also reported. Reference-envelope projection is a cost proxy, not an assertion that all off-policy calls have reference lengths; scheduler caps still govern incomplete outcomes.",
+  "final_panel_frozen": true
+}

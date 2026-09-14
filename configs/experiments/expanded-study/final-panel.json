@@ -1,0 +1,884 @@
+{
+  "program_id": "expanded-nine-day-v1",
+  "panel_id": "expanded-panel-v2-qualified",
+  "frozen_at": 1789393414.74546,
+  "protocol": "configs/experiments/expanded-study/panel-protocol-v2.json",
+  "capacity_protocol": "configs/experiments/expanded-study/panel-capacity-protocol.json",
+  "cost_admission_protocol": "configs/experiments/expanded-study/panel-cost-admission-v2.json",
+  "algorithms": [
+    "bfs",
+    "best_first_width",
+    "best_first_add_w3",
+    "best_first_add_greedy"
+  ],
+  "modalities": [
+    "text-state",
+    "visual-state",
+    "multimodal-state"
+  ],
+  "conditions": [
+    "pretrained_base",
+    "process_sft",
+    "random_valid",
+    "exact_reference"
+  ],
+  "logical_bindings": 1152,
+  "model_episodes": 576,
+  "reference_decision_multiplier": 2,
+  "evaluation_seed": 17,
+  "view_report": "outputs/expanded-study/v1/panel-v2/reference-views.json",
+  "view_runtime": "examples.planning_benchmark_slice.expanded_views.ExpandedTaskViews",
+  "tasks": [
+    {
+      "row": {
+        "task_id": "expanded-final/15puzzle-compact-910000",
+        "domain": "15puzzle",
+        "difficulty": "compact",
+        "split": "test",
+        "task_path": "outputs/expanded-study/v1/panel/candidates/15puzzle-compact-910000/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 33,
+            "expansions": 18
+          },
+          "best_first_width": {
+            "decisions": 9,
+            "expansions": 4
+          },
+          "best_first_add_w3": {
+            "decisions": 12,
+            "expansions": 4
+          },
+          "best_first_add_greedy": {
+            "decisions": 12,
+            "expansions": 4
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/expanded-study/tasks/15puzzle-compact.json",
+      "reference_paths": {
+        "bfs": "outputs/expanded-study/v1/panel-v2/candidates/15puzzle-compact-910000/reference-bfs.json.gz",
+        "best_first_width": "outputs/expanded-study/v1/panel-v2/candidates/15puzzle-compact-910000/reference-best_first_width.json.gz",
+        "best_first_add_w3": "outputs/expanded-study/v1/panel-v2/candidates/15puzzle-compact-910000/reference-best_first_add_w3.json.gz",
+        "best_first_add_greedy": "outputs/expanded-study/v1/panel-v2/candidates/15puzzle-compact-910000/reference-best_first_add_greedy.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "expanded-final/15puzzle-expanded-910109",
+        "domain": "15puzzle",
+        "difficulty": "expanded",
+        "split": "test",
+        "task_path": "outputs/expanded-study/v1/panel/candidates/15puzzle-expanded-910109/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 135,
+            "expansions": 74
+          },
+          "best_first_width": {
+            "decisions": 17,
+            "expansions": 8
+          },
+          "best_first_add_w3": {
+            "decisions": 19,
+            "expansions": 6
+          },
+          "best_first_add_greedy": {
+            "decisions": 19,
+            "expansions": 6
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/expanded-study/tasks/15puzzle-expanded.json",
+      "reference_paths": {
+        "bfs": "outputs/expanded-study/v1/panel-v2/candidates/15puzzle-expanded-910109/reference-bfs.json.gz",
+        "best_first_width": "outputs/expanded-study/v1/panel-v2/candidates/15puzzle-expanded-910109/reference-best_first_width.json.gz",
+        "best_first_add_w3": "outputs/expanded-study/v1/panel-v2/candidates/15puzzle-expanded-910109/reference-best_first_add_w3.json.gz",
+        "best_first_add_greedy": "outputs/expanded-study/v1/panel-v2/candidates/15puzzle-expanded-910109/reference-best_first_add_greedy.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "expanded-final/blocksworld-compact-911000",
+        "domain": "blocksworld",
+        "difficulty": "compact",
+        "split": "test",
+        "task_path": "outputs/expanded-study/v1/panel/candidates/blocksworld-compact-911000/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 156,
+            "expansions": 123
+          },
+          "best_first_width": {
+            "decisions": 124,
+            "expansions": 93
+          },
+          "best_first_add_w3": {
+            "decisions": 49,
+            "expansions": 17
+          },
+          "best_first_add_greedy": {
+            "decisions": 44,
+            "expansions": 15
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/expanded-study/tasks/blocksworld-compact.json",
+      "reference_paths": {
+        "bfs": "outputs/expanded-study/v1/panel-v2/candidates/blocksworld-compact-911000/reference-bfs.json.gz",
+        "best_first_width": "outputs/expanded-study/v1/panel-v2/candidates/blocksworld-compact-911000/reference-best_first_width.json.gz",
+        "best_first_add_w3": "outputs/expanded-study/v1/panel-v2/candidates/blocksworld-compact-911000/reference-best_first_add_w3.json.gz",
+        "best_first_add_greedy": "outputs/expanded-study/v1/panel-v2/candidates/blocksworld-compact-911000/reference-best_first_add_greedy.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "expanded-final/blocksworld-expanded-911101",
+        "domain": "blocksworld",
+        "difficulty": "expanded",
+        "split": "test",
+        "task_path": "outputs/expanded-study/v1/panel/candidates/blocksworld-expanded-911101/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 143,
+            "expansions": 77
+          },
+          "best_first_width": {
+            "decisions": 16,
+            "expansions": 8
+          },
+          "best_first_add_w3": {
+            "decisions": 18,
+            "expansions": 6
+          },
+          "best_first_add_greedy": {
+            "decisions": 18,
+            "expansions": 6
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/expanded-study/tasks/blocksworld-expanded.json",
+      "reference_paths": {
+        "bfs": "outputs/expanded-study/v1/panel-v2/candidates/blocksworld-expanded-911101/reference-bfs.json.gz",
+        "best_first_width": "outputs/expanded-study/v1/panel-v2/candidates/blocksworld-expanded-911101/reference-best_first_width.json.gz",
+        "best_first_add_w3": "outputs/expanded-study/v1/panel-v2/candidates/blocksworld-expanded-911101/reference-best_first_add_w3.json.gz",
+        "best_first_add_greedy": "outputs/expanded-study/v1/panel-v2/candidates/blocksworld-expanded-911101/reference-best_first_add_greedy.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "expanded-final/depot-compact-912000",
+        "domain": "depot",
+        "difficulty": "compact",
+        "split": "test",
+        "task_path": "outputs/expanded-study/v1/panel/candidates/depot-compact-912000/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 10,
+            "expansions": 8
+          },
+          "best_first_width": {
+            "decisions": 9,
+            "expansions": 7
+          },
+          "best_first_add_w3": {
+            "decisions": 17,
+            "expansions": 5
+          },
+          "best_first_add_greedy": {
+            "decisions": 17,
+            "expansions": 5
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/expanded-study/tasks/depot-compact.json",
+      "reference_paths": {
+        "bfs": "outputs/expanded-study/v1/panel-v2/candidates/depot-compact-912000/reference-bfs.json.gz",
+        "best_first_width": "outputs/expanded-study/v1/panel-v2/candidates/depot-compact-912000/reference-best_first_width.json.gz",
+        "best_first_add_w3": "outputs/expanded-study/v1/panel-v2/candidates/depot-compact-912000/reference-best_first_add_w3.json.gz",
+        "best_first_add_greedy": "outputs/expanded-study/v1/panel-v2/candidates/depot-compact-912000/reference-best_first_add_greedy.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "expanded-final/depot-expanded-912100",
+        "domain": "depot",
+        "difficulty": "expanded",
+        "split": "test",
+        "task_path": "outputs/expanded-study/v1/panel/candidates/depot-expanded-912100/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 18,
+            "expansions": 12
+          },
+          "best_first_width": {
+            "decisions": 17,
+            "expansions": 10
+          },
+          "best_first_add_w3": {
+            "decisions": 23,
+            "expansions": 6
+          },
+          "best_first_add_greedy": {
+            "decisions": 23,
+            "expansions": 6
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/expanded-study/tasks/depot-expanded.json",
+      "reference_paths": {
+        "bfs": "outputs/expanded-study/v1/panel-v2/candidates/depot-expanded-912100/reference-bfs.json.gz",
+        "best_first_width": "outputs/expanded-study/v1/panel-v2/candidates/depot-expanded-912100/reference-best_first_width.json.gz",
+        "best_first_add_w3": "outputs/expanded-study/v1/panel-v2/candidates/depot-expanded-912100/reference-best_first_add_w3.json.gz",
+        "best_first_add_greedy": "outputs/expanded-study/v1/panel-v2/candidates/depot-expanded-912100/reference-best_first_add_greedy.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "expanded-final/driverlog-compact-913001",
+        "domain": "driverlog",
+        "difficulty": "compact",
+        "split": "test",
+        "task_path": "outputs/expanded-study/v1/panel/candidates/driverlog-compact-913001/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 98,
+            "expansions": 75
+          },
+          "best_first_width": {
+            "decisions": 68,
+            "expansions": 46
+          },
+          "best_first_add_w3": {
+            "decisions": 43,
+            "expansions": 14
+          },
+          "best_first_add_greedy": {
+            "decisions": 43,
+            "expansions": 14
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/expanded-study/tasks/driverlog-compact.json",
+      "reference_paths": {
+        "bfs": "outputs/expanded-study/v1/panel-v2/candidates/driverlog-compact-913001/reference-bfs.json.gz",
+        "best_first_width": "outputs/expanded-study/v1/panel-v2/candidates/driverlog-compact-913001/reference-best_first_width.json.gz",
+        "best_first_add_w3": "outputs/expanded-study/v1/panel-v2/candidates/driverlog-compact-913001/reference-best_first_add_w3.json.gz",
+        "best_first_add_greedy": "outputs/expanded-study/v1/panel-v2/candidates/driverlog-compact-913001/reference-best_first_add_greedy.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "expanded-final/driverlog-expanded-913103",
+        "domain": "driverlog",
+        "difficulty": "expanded",
+        "split": "test",
+        "task_path": "outputs/expanded-study/v1/panel/candidates/driverlog-expanded-913103/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 94,
+            "expansions": 52
+          },
+          "best_first_width": {
+            "decisions": 164,
+            "expansions": 82
+          },
+          "best_first_add_w3": {
+            "decisions": 29,
+            "expansions": 7
+          },
+          "best_first_add_greedy": {
+            "decisions": 29,
+            "expansions": 7
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/expanded-study/tasks/driverlog-expanded.json",
+      "reference_paths": {
+        "bfs": "outputs/expanded-study/v1/panel-v2/candidates/driverlog-expanded-913103/reference-bfs.json.gz",
+        "best_first_width": "outputs/expanded-study/v1/panel-v2/candidates/driverlog-expanded-913103/reference-best_first_width.json.gz",
+        "best_first_add_w3": "outputs/expanded-study/v1/panel-v2/candidates/driverlog-expanded-913103/reference-best_first_add_w3.json.gz",
+        "best_first_add_greedy": "outputs/expanded-study/v1/panel-v2/candidates/driverlog-expanded-913103/reference-best_first_add_greedy.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "expanded-final/elevators-compact-914002",
+        "domain": "elevators",
+        "difficulty": "compact",
+        "split": "test",
+        "task_path": "outputs/expanded-study/v1/panel/candidates/elevators-compact-914002/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 8,
+            "expansions": 6
+          },
+          "best_first_width": {
+            "decisions": 7,
+            "expansions": 5
+          },
+          "best_first_add_w3": {
+            "decisions": 11,
+            "expansions": 4
+          },
+          "best_first_add_greedy": {
+            "decisions": 11,
+            "expansions": 4
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/expanded-study/tasks/elevators-compact.json",
+      "reference_paths": {
+        "bfs": "outputs/expanded-study/v1/panel-v2/candidates/elevators-compact-914002/reference-bfs.json.gz",
+        "best_first_width": "outputs/expanded-study/v1/panel-v2/candidates/elevators-compact-914002/reference-best_first_width.json.gz",
+        "best_first_add_w3": "outputs/expanded-study/v1/panel-v2/candidates/elevators-compact-914002/reference-best_first_add_w3.json.gz",
+        "best_first_add_greedy": "outputs/expanded-study/v1/panel-v2/candidates/elevators-compact-914002/reference-best_first_add_greedy.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "expanded-final/elevators-expanded-914105",
+        "domain": "elevators",
+        "difficulty": "expanded",
+        "split": "test",
+        "task_path": "outputs/expanded-study/v1/panel/candidates/elevators-expanded-914105/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 53,
+            "expansions": 35
+          },
+          "best_first_width": {
+            "decisions": 31,
+            "expansions": 19
+          },
+          "best_first_add_w3": {
+            "decisions": 33,
+            "expansions": 9
+          },
+          "best_first_add_greedy": {
+            "decisions": 33,
+            "expansions": 9
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/expanded-study/tasks/elevators-expanded.json",
+      "reference_paths": {
+        "bfs": "outputs/expanded-study/v1/panel-v2/candidates/elevators-expanded-914105/reference-bfs.json.gz",
+        "best_first_width": "outputs/expanded-study/v1/panel-v2/candidates/elevators-expanded-914105/reference-best_first_width.json.gz",
+        "best_first_add_w3": "outputs/expanded-study/v1/panel-v2/candidates/elevators-expanded-914105/reference-best_first_add_w3.json.gz",
+        "best_first_add_greedy": "outputs/expanded-study/v1/panel-v2/candidates/elevators-expanded-914105/reference-best_first_add_greedy.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "expanded-final/ferry-compact-915000",
+        "domain": "ferry",
+        "difficulty": "compact",
+        "split": "test",
+        "task_path": "outputs/expanded-study/v1/panel/candidates/ferry-compact-915000/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 10,
+            "expansions": 7
+          },
+          "best_first_width": {
+            "decisions": 10,
+            "expansions": 7
+          },
+          "best_first_add_w3": {
+            "decisions": 11,
+            "expansions": 4
+          },
+          "best_first_add_greedy": {
+            "decisions": 11,
+            "expansions": 4
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/expanded-study/tasks/ferry-compact.json",
+      "reference_paths": {
+        "bfs": "outputs/expanded-study/v1/panel-v2/candidates/ferry-compact-915000/reference-bfs.json.gz",
+        "best_first_width": "outputs/expanded-study/v1/panel-v2/candidates/ferry-compact-915000/reference-best_first_width.json.gz",
+        "best_first_add_w3": "outputs/expanded-study/v1/panel-v2/candidates/ferry-compact-915000/reference-best_first_add_w3.json.gz",
+        "best_first_add_greedy": "outputs/expanded-study/v1/panel-v2/candidates/ferry-compact-915000/reference-best_first_add_greedy.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "expanded-final/ferry-expanded-915109",
+        "domain": "ferry",
+        "difficulty": "expanded",
+        "split": "test",
+        "task_path": "outputs/expanded-study/v1/panel/candidates/ferry-expanded-915109/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 48,
+            "expansions": 34
+          },
+          "best_first_width": {
+            "decisions": 24,
+            "expansions": 14
+          },
+          "best_first_add_w3": {
+            "decisions": 25,
+            "expansions": 8
+          },
+          "best_first_add_greedy": {
+            "decisions": 25,
+            "expansions": 8
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/expanded-study/tasks/ferry-expanded.json",
+      "reference_paths": {
+        "bfs": "outputs/expanded-study/v1/panel-v2/candidates/ferry-expanded-915109/reference-bfs.json.gz",
+        "best_first_width": "outputs/expanded-study/v1/panel-v2/candidates/ferry-expanded-915109/reference-best_first_width.json.gz",
+        "best_first_add_w3": "outputs/expanded-study/v1/panel-v2/candidates/ferry-expanded-915109/reference-best_first_add_w3.json.gz",
+        "best_first_add_greedy": "outputs/expanded-study/v1/panel-v2/candidates/ferry-expanded-915109/reference-best_first_add_greedy.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "expanded-final/grid-compact-916000",
+        "domain": "grid",
+        "difficulty": "compact",
+        "split": "test",
+        "task_path": "outputs/expanded-study/v1/panel/candidates/grid-compact-916000/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 75,
+            "expansions": 45
+          },
+          "best_first_width": {
+            "decisions": 57,
+            "expansions": 31
+          },
+          "best_first_add_w3": {
+            "decisions": 23,
+            "expansions": 8
+          },
+          "best_first_add_greedy": {
+            "decisions": 23,
+            "expansions": 8
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/expanded-study/tasks/grid-compact.json",
+      "reference_paths": {
+        "bfs": "outputs/expanded-study/v1/panel-v2/candidates/grid-compact-916000/reference-bfs.json.gz",
+        "best_first_width": "outputs/expanded-study/v1/panel-v2/candidates/grid-compact-916000/reference-best_first_width.json.gz",
+        "best_first_add_w3": "outputs/expanded-study/v1/panel-v2/candidates/grid-compact-916000/reference-best_first_add_w3.json.gz",
+        "best_first_add_greedy": "outputs/expanded-study/v1/panel-v2/candidates/grid-compact-916000/reference-best_first_add_greedy.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "expanded-final/grid-expanded-916100",
+        "domain": "grid",
+        "difficulty": "expanded",
+        "split": "test",
+        "task_path": "outputs/expanded-study/v1/panel/candidates/grid-expanded-916100/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 110,
+            "expansions": 60
+          },
+          "best_first_width": {
+            "decisions": 100,
+            "expansions": 51
+          },
+          "best_first_add_w3": {
+            "decisions": 33,
+            "expansions": 12
+          },
+          "best_first_add_greedy": {
+            "decisions": 33,
+            "expansions": 12
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/expanded-study/tasks/grid-expanded.json",
+      "reference_paths": {
+        "bfs": "outputs/expanded-study/v1/panel-v2/candidates/grid-expanded-916100/reference-bfs.json.gz",
+        "best_first_width": "outputs/expanded-study/v1/panel-v2/candidates/grid-expanded-916100/reference-best_first_width.json.gz",
+        "best_first_add_w3": "outputs/expanded-study/v1/panel-v2/candidates/grid-expanded-916100/reference-best_first_add_w3.json.gz",
+        "best_first_add_greedy": "outputs/expanded-study/v1/panel-v2/candidates/grid-expanded-916100/reference-best_first_add_greedy.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "expanded-final/gripper-compact-917000",
+        "domain": "gripper",
+        "difficulty": "compact",
+        "split": "test",
+        "task_path": "outputs/expanded-study/v1/panel/candidates/gripper-compact-917000/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 110,
+            "expansions": 82
+          },
+          "best_first_width": {
+            "decisions": 37,
+            "expansions": 20
+          },
+          "best_first_add_w3": {
+            "decisions": 30,
+            "expansions": 7
+          },
+          "best_first_add_greedy": {
+            "decisions": 30,
+            "expansions": 7
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/expanded-study/tasks/gripper-compact.json",
+      "reference_paths": {
+        "bfs": "outputs/expanded-study/v1/panel-v2/candidates/gripper-compact-917000/reference-bfs.json.gz",
+        "best_first_width": "outputs/expanded-study/v1/panel-v2/candidates/gripper-compact-917000/reference-best_first_width.json.gz",
+        "best_first_add_w3": "outputs/expanded-study/v1/panel-v2/candidates/gripper-compact-917000/reference-best_first_add_w3.json.gz",
+        "best_first_add_greedy": "outputs/expanded-study/v1/panel-v2/candidates/gripper-compact-917000/reference-best_first_add_greedy.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "expanded-final/gripper-expanded-917101",
+        "domain": "gripper",
+        "difficulty": "expanded",
+        "split": "test",
+        "task_path": "outputs/expanded-study/v1/panel/candidates/gripper-expanded-917101/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 182,
+            "expansions": 107
+          },
+          "best_first_width": {
+            "decisions": 77,
+            "expansions": 36
+          },
+          "best_first_add_w3": {
+            "decisions": 42,
+            "expansions": 8
+          },
+          "best_first_add_greedy": {
+            "decisions": 42,
+            "expansions": 8
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/expanded-study/tasks/gripper-expanded.json",
+      "reference_paths": {
+        "bfs": "outputs/expanded-study/v1/panel-v2/candidates/gripper-expanded-917101/reference-bfs.json.gz",
+        "best_first_width": "outputs/expanded-study/v1/panel-v2/candidates/gripper-expanded-917101/reference-best_first_width.json.gz",
+        "best_first_add_w3": "outputs/expanded-study/v1/panel-v2/candidates/gripper-expanded-917101/reference-best_first_add_w3.json.gz",
+        "best_first_add_greedy": "outputs/expanded-study/v1/panel-v2/candidates/gripper-expanded-917101/reference-best_first_add_greedy.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "expanded-final/logistics-compact-918000",
+        "domain": "logistics",
+        "difficulty": "compact",
+        "split": "test",
+        "task_path": "outputs/expanded-study/v1/panel/candidates/logistics-compact-918000/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 8,
+            "expansions": 6
+          },
+          "best_first_width": {
+            "decisions": 8,
+            "expansions": 6
+          },
+          "best_first_add_w3": {
+            "decisions": 21,
+            "expansions": 4
+          },
+          "best_first_add_greedy": {
+            "decisions": 21,
+            "expansions": 4
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/expanded-study/tasks/logistics-compact.json",
+      "reference_paths": {
+        "bfs": "outputs/expanded-study/v1/panel-v2/candidates/logistics-compact-918000/reference-bfs.json.gz",
+        "best_first_width": "outputs/expanded-study/v1/panel-v2/candidates/logistics-compact-918000/reference-best_first_width.json.gz",
+        "best_first_add_w3": "outputs/expanded-study/v1/panel-v2/candidates/logistics-compact-918000/reference-best_first_add_w3.json.gz",
+        "best_first_add_greedy": "outputs/expanded-study/v1/panel-v2/candidates/logistics-compact-918000/reference-best_first_add_greedy.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "expanded-final/logistics-expanded-918100",
+        "domain": "logistics",
+        "difficulty": "expanded",
+        "split": "test",
+        "task_path": "outputs/expanded-study/v1/panel/candidates/logistics-expanded-918100/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 20,
+            "expansions": 15
+          },
+          "best_first_width": {
+            "decisions": 18,
+            "expansions": 10
+          },
+          "best_first_add_w3": {
+            "decisions": 33,
+            "expansions": 5
+          },
+          "best_first_add_greedy": {
+            "decisions": 33,
+            "expansions": 5
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/expanded-study/tasks/logistics-expanded.json",
+      "reference_paths": {
+        "bfs": "outputs/expanded-study/v1/panel-v2/candidates/logistics-expanded-918100/reference-bfs.json.gz",
+        "best_first_width": "outputs/expanded-study/v1/panel-v2/candidates/logistics-expanded-918100/reference-best_first_width.json.gz",
+        "best_first_add_w3": "outputs/expanded-study/v1/panel-v2/candidates/logistics-expanded-918100/reference-best_first_add_w3.json.gz",
+        "best_first_add_greedy": "outputs/expanded-study/v1/panel-v2/candidates/logistics-expanded-918100/reference-best_first_add_greedy.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "expanded-final/storage-compact-919000",
+        "domain": "storage",
+        "difficulty": "compact",
+        "split": "test",
+        "task_path": "outputs/expanded-study/v1/panel/candidates/storage-compact-919000/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 10,
+            "expansions": 6
+          },
+          "best_first_width": {
+            "decisions": 7,
+            "expansions": 5
+          },
+          "best_first_add_w3": {
+            "decisions": 9,
+            "expansions": 3
+          },
+          "best_first_add_greedy": {
+            "decisions": 9,
+            "expansions": 3
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/expanded-study/tasks/storage-compact.json",
+      "reference_paths": {
+        "bfs": "outputs/expanded-study/v1/panel-v2/candidates/storage-compact-919000/reference-bfs.json.gz",
+        "best_first_width": "outputs/expanded-study/v1/panel-v2/candidates/storage-compact-919000/reference-best_first_width.json.gz",
+        "best_first_add_w3": "outputs/expanded-study/v1/panel-v2/candidates/storage-compact-919000/reference-best_first_add_w3.json.gz",
+        "best_first_add_greedy": "outputs/expanded-study/v1/panel-v2/candidates/storage-compact-919000/reference-best_first_add_greedy.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "expanded-final/storage-expanded-919100",
+        "domain": "storage",
+        "difficulty": "expanded",
+        "split": "test",
+        "task_path": "outputs/expanded-study/v1/panel/candidates/storage-expanded-919100/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 160,
+            "expansions": 90
+          },
+          "best_first_width": {
+            "decisions": 65,
+            "expansions": 37
+          },
+          "best_first_add_w3": {
+            "decisions": 51,
+            "expansions": 14
+          },
+          "best_first_add_greedy": {
+            "decisions": 62,
+            "expansions": 17
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/expanded-study/tasks/storage-expanded.json",
+      "reference_paths": {
+        "bfs": "outputs/expanded-study/v1/panel-v2/candidates/storage-expanded-919100/reference-bfs.json.gz",
+        "best_first_width": "outputs/expanded-study/v1/panel-v2/candidates/storage-expanded-919100/reference-best_first_width.json.gz",
+        "best_first_add_w3": "outputs/expanded-study/v1/panel-v2/candidates/storage-expanded-919100/reference-best_first_add_w3.json.gz",
+        "best_first_add_greedy": "outputs/expanded-study/v1/panel-v2/candidates/storage-expanded-919100/reference-best_first_add_greedy.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "expanded-final/towers_of_hanoi-compact-920000",
+        "domain": "towers_of_hanoi",
+        "difficulty": "compact",
+        "split": "test",
+        "task_path": "outputs/expanded-study/v1/panel/candidates/towers_of_hanoi-compact-920000/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 27,
+            "expansions": 19
+          },
+          "best_first_width": {
+            "decisions": 9,
+            "expansions": 6
+          },
+          "best_first_add_w3": {
+            "decisions": 15,
+            "expansions": 5
+          },
+          "best_first_add_greedy": {
+            "decisions": 15,
+            "expansions": 5
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/expanded-study/tasks/towers_of_hanoi-compact.json",
+      "reference_paths": {
+        "bfs": "outputs/expanded-study/v1/panel-v2/candidates/towers_of_hanoi-compact-920000/reference-bfs.json.gz",
+        "best_first_width": "outputs/expanded-study/v1/panel-v2/candidates/towers_of_hanoi-compact-920000/reference-best_first_width.json.gz",
+        "best_first_add_w3": "outputs/expanded-study/v1/panel-v2/candidates/towers_of_hanoi-compact-920000/reference-best_first_add_w3.json.gz",
+        "best_first_add_greedy": "outputs/expanded-study/v1/panel-v2/candidates/towers_of_hanoi-compact-920000/reference-best_first_add_greedy.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "expanded-final/towers_of_hanoi-expanded-920100",
+        "domain": "towers_of_hanoi",
+        "difficulty": "expanded",
+        "split": "test",
+        "task_path": "outputs/expanded-study/v1/panel/candidates/towers_of_hanoi-expanded-920100/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 104,
+            "expansions": 78
+          },
+          "best_first_width": {
+            "decisions": 67,
+            "expansions": 50
+          },
+          "best_first_add_w3": {
+            "decisions": 98,
+            "expansions": 33
+          },
+          "best_first_add_greedy": {
+            "decisions": 71,
+            "expansions": 24
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/expanded-study/tasks/towers_of_hanoi-expanded.json",
+      "reference_paths": {
+        "bfs": "outputs/expanded-study/v1/panel-v2/candidates/towers_of_hanoi-expanded-920100/reference-bfs.json.gz",
+        "best_first_width": "outputs/expanded-study/v1/panel-v2/candidates/towers_of_hanoi-expanded-920100/reference-best_first_width.json.gz",
+        "best_first_add_w3": "outputs/expanded-study/v1/panel-v2/candidates/towers_of_hanoi-expanded-920100/reference-best_first_add_w3.json.gz",
+        "best_first_add_greedy": "outputs/expanded-study/v1/panel-v2/candidates/towers_of_hanoi-expanded-920100/reference-best_first_add_greedy.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "expanded-final/visitall-compact-921000",
+        "domain": "visitall",
+        "difficulty": "compact",
+        "split": "test",
+        "task_path": "outputs/expanded-study/v1/panel/candidates/visitall-compact-921000/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 132,
+            "expansions": 64
+          },
+          "best_first_width": {
+            "decisions": 18,
+            "expansions": 7
+          },
+          "best_first_add_w3": {
+            "decisions": 16,
+            "expansions": 5
+          },
+          "best_first_add_greedy": {
+            "decisions": 16,
+            "expansions": 5
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/expanded-study/tasks/visitall-compact.json",
+      "reference_paths": {
+        "bfs": "outputs/expanded-study/v1/panel-v2/candidates/visitall-compact-921000/reference-bfs.json.gz",
+        "best_first_width": "outputs/expanded-study/v1/panel-v2/candidates/visitall-compact-921000/reference-best_first_width.json.gz",
+        "best_first_add_w3": "outputs/expanded-study/v1/panel-v2/candidates/visitall-compact-921000/reference-best_first_add_w3.json.gz",
+        "best_first_add_greedy": "outputs/expanded-study/v1/panel-v2/candidates/visitall-compact-921000/reference-best_first_add_greedy.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "expanded-final/visitall-expanded-921100",
+        "domain": "visitall",
+        "difficulty": "expanded",
+        "split": "test",
+        "task_path": "outputs/expanded-study/v1/panel/candidates/visitall-expanded-921100/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 225,
+            "expansions": 117
+          },
+          "best_first_width": {
+            "decisions": 15,
+            "expansions": 6
+          },
+          "best_first_add_w3": {
+            "decisions": 33,
+            "expansions": 12
+          },
+          "best_first_add_greedy": {
+            "decisions": 33,
+            "expansions": 12
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/expanded-study/tasks/visitall-expanded.json",
+      "reference_paths": {
+        "bfs": "outputs/expanded-study/v1/panel-v2/candidates/visitall-expanded-921100/reference-bfs.json.gz",
+        "best_first_width": "outputs/expanded-study/v1/panel-v2/candidates/visitall-expanded-921100/reference-best_first_width.json.gz",
+        "best_first_add_w3": "outputs/expanded-study/v1/panel-v2/candidates/visitall-expanded-921100/reference-best_first_add_w3.json.gz",
+        "best_first_add_greedy": "outputs/expanded-study/v1/panel-v2/candidates/visitall-expanded-921100/reference-best_first_add_greedy.json.gz"
+      }
+    }
+  ],
+  "evidence": [
+    "docs/experiments/expanded-study/panel-independent-audit.json",
+    "docs/experiments/expanded-study/panel-live-views.json",
+    "docs/experiments/expanded-study/panel-gpu-qualification.json"
+  ],
+  "bounded_input_failure": "Preserve complete oversized requests as explicit failures; no truncation or task removal",
+  "cost_basis": "historical worker consumption scaled by reference complexity and measured slowdown, with 1.25 margin; full-allowance projections do not fit; all 24 tasks retained under the shared hard cap",
+  "completion_within_budget_guaranteed": false,
+  "checkpoint_source": "docs/experiments/expanded-study/readiness.json",
+  "new_training": false,
+  "episode_runner_implemented_by_goal2": false
+}
