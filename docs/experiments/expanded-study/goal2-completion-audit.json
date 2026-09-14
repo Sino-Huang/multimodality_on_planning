@@ -1,5 +1,5 @@
 {
-  "status": "technical_requirements_verified_publication_pending",
+  "status": "complete",
   "requirements": {
     "24_tasks_12_domains_two_strata": "final-panel.json; verify_expanded_panel.py checks the exact domain/stratum Cartesian product and 1152/576 binding counts",
     "frozen_structural_reference_rules": "panel-protocol.json and panel-protocol-v2.json; all 384 original seeds retained; typed-grounding correction documented before new final outcomes",
@@ -21,5 +21,13 @@
   "focused_tests": "14 capacity/candidate/isomorphism tests passed on final code, including standard token-counter replay, parent-state restore and cross-episode live-image cache isolation.",
   "cost_admission": "QUALIFIED_WITH_CONDITIONAL_COST_ADMISSION",
   "worst_allowance_completion_guaranteed": false,
-  "publication": "Commit/push final artifacts, then close #117 only; tracked separately from technical verification."
+  "publication": {
+    "source_commit": "0754579",
+    "issue": {
+      "closedAt": "2026-09-14T13:55:16Z",
+      "state": "CLOSED",
+      "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/117"
+    },
+    "closeout": "https://github.com/Sino-Huang/multimodality_on_planning/issues/117#issuecomment-5665111120"
+  }
 }
