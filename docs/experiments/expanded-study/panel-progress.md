@@ -19,8 +19,8 @@ a claim that the excluded domains are intrinsically unsuitable.
 The later modality panel and release contain fifteen domains because they also
 include BFS/BFWS-only source tasks. That union is not the twelve-domain paired
 heuristic scope. The user recalled the earlier exclusion decision and requested
-checking the records; no new domain-count amendment is needed. Generator
-profiles, reference-cost strata and final membership remain to be frozen.
+checking the records; no new domain-count amendment is needed. Structural profiles and reference rules are now frozen in `panel-protocol-v2.json`;
+final input-qualified membership remains to be frozen.
 
 Independent work: `scripts/prepare_expanded_panel.py inventory` inventories
 historical tasks across all source domains, including all earlier matched-study
@@ -48,9 +48,34 @@ The inventory completed successfully: 5,410 historical source bindings and
 Its completion hook passed; `panel-inventory.json` records the summary. The
 initial count-discrepancy metadata predates the recovered #62/#64 decision.
 
-Next: freeze structural generator/reference criteria,
-prepare only new-task assets, validate source goals and scene/runtime bindings,
-measure complete input bounds and common Search Memory, run bounded hardware
-qualification through the scheduler, and freeze the measured feasible panel
-before new model outcomes. Infeasible strata must remain explicit. #117 remains
-open until qualified coverage is verified and published.
+## Current preparation state
+
+All 384 candidates in the frozen 24 strata have reference-screen dispositions.
+The v1 screen and object-renaming audit selected 22 tasks; Storage was rejected by
+an obsolete Cartesian grounding estimate. The prospectively recorded correction
+in `panel-grounding-correction.md` uses the existing additive runtime's actual
+type-pruned assignments. It preserves all profiles, seeds, raw tasks and ceilings.
+
+V2 screening and object-renaming isolation now select all 24 provisional tasks,
+two in each intended domain, with no missing stratum. Source PDDL is reused from
+v1; neither the old corpus nor these raw candidates were regenerated. Reports:
+`panel-reference-screen-expanded-panel-v2.json` and
+`panel-structural-selection-expanded-panel-v2.json`. Both completion hooks passed.
+The object-renaming comparison preserves initial facts, argument order, numeric
+values and quantified goal scope, and checks the 4,970 historical contexts plus
+previously selected candidates.
+
+The view-preparation job `panel-reference-views` completed successfully through the
+shared scheduler using `panel-views-job.json`. It independently replays all four
+algorithm references into a source/accepted-successor catalog, renders new-task
+paths through the existing localhost backends, derives unlabelled 128px scenes,
+and measures complete projected reference inputs with separate source-goal pages.
+All 24 task results and its completion hook passed. The compact evidence is
+`panel-reference-views.json`. Existing reference/view outputs remain available
+for reuse; no historical corpus or scene assets were regenerated.
+
+The reference catalog is explicitly **not full reachability closure**. Remaining
+work includes coverage of live off-reference state rendering, complete live-input
+bounds under shared Search Memory, bounded actual GPU qualification on both A100s,
+and measured cost admission. Those are required before freezing the final panel
+or closing #117. No new model outcome, training or final evaluation has run.

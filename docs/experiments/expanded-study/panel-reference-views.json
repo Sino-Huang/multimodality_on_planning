@@ -1,0 +1,281 @@
+{
+  "outcome": "REFERENCE_VIEWS_PASS",
+  "tasks": 24,
+  "domains": [
+    "15puzzle",
+    "blocksworld",
+    "depot",
+    "driverlog",
+    "elevators",
+    "ferry",
+    "grid",
+    "gripper",
+    "logistics",
+    "storage",
+    "towers_of_hanoi",
+    "visitall"
+  ],
+  "states": 1866,
+  "reference_decisions": 4310,
+  "maximum_reference_input_tokens": {
+    "text-state": 4421,
+    "visual-state": 5908,
+    "multimodal-state": 7659
+  },
+  "task_counts": [
+    {
+      "task_id": "expanded-final/15puzzle-compact-910000",
+      "states": 34,
+      "reference_decisions": 66,
+      "input_maxima": {
+        "text-state": 3010,
+        "visual-state": 4137,
+        "multimodal-state": 5473
+      }
+    },
+    {
+      "task_id": "expanded-final/15puzzle-expanded-910109",
+      "states": 135,
+      "reference_decisions": 190,
+      "input_maxima": {
+        "text-state": 3017,
+        "visual-state": 4144,
+        "multimodal-state": 5480
+      }
+    },
+    {
+      "task_id": "expanded-final/blocksworld-compact-911000",
+      "states": 125,
+      "reference_decisions": 373,
+      "input_maxima": {
+        "text-state": 1828,
+        "visual-state": 3143,
+        "multimodal-state": 3516
+      }
+    },
+    {
+      "task_id": "expanded-final/blocksworld-expanded-911101",
+      "states": 137,
+      "reference_decisions": 195,
+      "input_maxima": {
+        "text-state": 1879,
+        "visual-state": 3170,
+        "multimodal-state": 3567
+      }
+    },
+    {
+      "task_id": "expanded-final/depot-compact-912000",
+      "states": 10,
+      "reference_decisions": 53,
+      "input_maxima": {
+        "text-state": 2053,
+        "visual-state": 3651,
+        "multimodal-state": 4516
+      }
+    },
+    {
+      "task_id": "expanded-final/depot-expanded-912100",
+      "states": 18,
+      "reference_decisions": 81,
+      "input_maxima": {
+        "text-state": 2409,
+        "visual-state": 3899,
+        "multimodal-state": 4872
+      }
+    },
+    {
+      "task_id": "expanded-final/driverlog-compact-913001",
+      "states": 81,
+      "reference_decisions": 252,
+      "input_maxima": {
+        "text-state": 2037,
+        "visual-state": 3738,
+        "multimodal-state": 4500
+      }
+    },
+    {
+      "task_id": "expanded-final/driverlog-expanded-913103",
+      "states": 172,
+      "reference_decisions": 316,
+      "input_maxima": {
+        "text-state": 2183,
+        "visual-state": 3742,
+        "multimodal-state": 4646
+      }
+    },
+    {
+      "task_id": "expanded-final/elevators-compact-914002",
+      "states": 7,
+      "reference_decisions": 37,
+      "input_maxima": {
+        "text-state": 1621,
+        "visual-state": 2946,
+        "multimodal-state": 3309
+      }
+    },
+    {
+      "task_id": "expanded-final/elevators-expanded-914105",
+      "states": 43,
+      "reference_decisions": 150,
+      "input_maxima": {
+        "text-state": 1772,
+        "visual-state": 2983,
+        "multimodal-state": 3460
+      }
+    },
+    {
+      "task_id": "expanded-final/ferry-compact-915000",
+      "states": 10,
+      "reference_decisions": 42,
+      "input_maxima": {
+        "text-state": 1667,
+        "visual-state": 2978,
+        "multimodal-state": 3355
+      }
+    },
+    {
+      "task_id": "expanded-final/ferry-expanded-915109",
+      "states": 41,
+      "reference_decisions": 122,
+      "input_maxima": {
+        "text-state": 1835,
+        "visual-state": 3099,
+        "multimodal-state": 3523
+      }
+    },
+    {
+      "task_id": "expanded-final/grid-compact-916000",
+      "states": 78,
+      "reference_decisions": 178,
+      "input_maxima": {
+        "text-state": 2340,
+        "visual-state": 3847,
+        "multimodal-state": 4803
+      }
+    },
+    {
+      "task_id": "expanded-final/grid-expanded-916100",
+      "states": 122,
+      "reference_decisions": 276,
+      "input_maxima": {
+        "text-state": 2680,
+        "visual-state": 3980,
+        "multimodal-state": 5143
+      }
+    },
+    {
+      "task_id": "expanded-final/gripper-compact-917000",
+      "states": 86,
+      "reference_decisions": 207,
+      "input_maxima": {
+        "text-state": 1771,
+        "visual-state": 3006,
+        "multimodal-state": 3459
+      }
+    },
+    {
+      "task_id": "expanded-final/gripper-expanded-917101",
+      "states": 153,
+      "reference_decisions": 343,
+      "input_maxima": {
+        "text-state": 1875,
+        "visual-state": 3043,
+        "multimodal-state": 3563
+      }
+    },
+    {
+      "task_id": "expanded-final/logistics-compact-918000",
+      "states": 7,
+      "reference_decisions": 58,
+      "input_maxima": {
+        "text-state": 2029,
+        "visual-state": 3241,
+        "multimodal-state": 3717
+      }
+    },
+    {
+      "task_id": "expanded-final/logistics-expanded-918100",
+      "states": 19,
+      "reference_decisions": 104,
+      "input_maxima": {
+        "text-state": 2047,
+        "visual-state": 3210,
+        "multimodal-state": 3735
+      }
+    },
+    {
+      "task_id": "expanded-final/storage-compact-919000",
+      "states": 9,
+      "reference_decisions": 35,
+      "input_maxima": {
+        "text-state": 3091,
+        "visual-state": 4930,
+        "multimodal-state": 6329
+      }
+    },
+    {
+      "task_id": "expanded-final/storage-expanded-919100",
+      "states": 123,
+      "reference_decisions": 338,
+      "input_maxima": {
+        "text-state": 4421,
+        "visual-state": 5908,
+        "multimodal-state": 7659
+      }
+    },
+    {
+      "task_id": "expanded-final/towers_of_hanoi-compact-920000",
+      "states": 24,
+      "reference_decisions": 66,
+      "input_maxima": {
+        "text-state": 1814,
+        "visual-state": 3064,
+        "multimodal-state": 3502
+      }
+    },
+    {
+      "task_id": "expanded-final/towers_of_hanoi-expanded-920100",
+      "states": 81,
+      "reference_decisions": 340,
+      "input_maxima": {
+        "text-state": 1993,
+        "visual-state": 3154,
+        "multimodal-state": 3681
+      }
+    },
+    {
+      "task_id": "expanded-final/visitall-compact-921000",
+      "states": 127,
+      "reference_decisions": 182,
+      "input_maxima": {
+        "text-state": 2229,
+        "visual-state": 3808,
+        "multimodal-state": 4692
+      }
+    },
+    {
+      "task_id": "expanded-final/visitall-expanded-921100",
+      "states": 224,
+      "reference_decisions": 306,
+      "input_maxima": {
+        "text-state": 2310,
+        "visual-state": 3801,
+        "multimodal-state": 4773
+      }
+    }
+  ],
+  "report": "outputs/expanded-study/v1/panel-v2/reference-views.json",
+  "elapsed_seconds": 126.22599625587463,
+  "cpu_seconds": 275.27540600000003,
+  "gpu_hours": 0.0,
+  "completion_hook": {
+    "returncode": 0
+  },
+  "visual_inspection": {
+    "task_id": "expanded-final/storage-expanded-919100",
+    "observations": "128px state has no text annotations; separate goal page visibly contains both crate goals in explicit ALL scope"
+  },
+  "complete_live_input_bounds": false,
+  "hardware_qualified": false,
+  "final_membership_frozen": false
+}
