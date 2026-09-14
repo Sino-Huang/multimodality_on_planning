@@ -1,0 +1,9 @@
+{
+  "job_id": "baseline-models-1",
+  "branch": "expanded_baseline",
+  "gpus": [1],
+  "max_seconds": 99000,
+  "total": 288,
+  "command": ["/home/sukaih/miniconda3/envs/ada_vla/bin/python", "scripts/run_expanded_baseline.py", "run", "--worker", "1", "--kind", "models"],
+  "completion_hook": ["/home/sukaih/miniconda3/envs/ada_vla/bin/python", "scripts/audit_expanded_baseline.py", "worker", "--worker", "1", "--kind", "models"]
+}
