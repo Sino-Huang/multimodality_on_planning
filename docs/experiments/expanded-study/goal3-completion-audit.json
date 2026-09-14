@@ -1,5 +1,5 @@
 {
-  "status": "ready_for_issue_closeout",
+  "status": "complete",
   "requirements": {
     "qualified_goal2_panel_consumed": "baseline-protocol.json pins expanded-panel-v2-qualified; final-panel.json contains 24 tasks across the twelve frozen domains and evaluation artifacts retain that panel ID",
     "twelve_verified_adapters_reused": "readiness.json contains twelve verified modality/algorithm checkpoints; baseline-evaluation.json reports new_training=false and the process-SFT episode provenance binds those checkpoint paths",
@@ -38,9 +38,10 @@
     "source_commit": "4d29c28f2898b567710137f9f919808677d85f24",
     "issue": {
       "number": 118,
-      "state": "OPEN",
+      "state": "CLOSED",
+      "closedAt": "2026-09-14T18:20:44Z",
       "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/118"
     },
-    "closeout": null
+    "closeout": "https://github.com/Sino-Huang/multimodality_on_planning/issues/118#issuecomment-5668639406"
   }
 }
