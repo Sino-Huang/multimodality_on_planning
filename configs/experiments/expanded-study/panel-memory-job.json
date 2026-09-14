@@ -1,0 +1,16 @@
+{
+  "job_id": "panel-common-memory",
+  "branch": "expanded_baseline",
+  "gpus": [],
+  "max_seconds": 300,
+  "total": 4310,
+  "command": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/audit_expanded_memory.py"
+  ],
+  "completion_hook": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/audit_expanded_memory.py",
+    "audit"
+  ]
+}

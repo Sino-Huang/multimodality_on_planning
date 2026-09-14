@@ -51,9 +51,7 @@ def reference_catalog(root, row, reference_paths, study_id):
     decisions = []
     for algorithm, path in reference_paths.items():
         reference = read_json(root / path)
-        session = VisualSession(
-            root, row, algorithm, "exact_reference", 17, root, study_id, views=views, input_token_counter=lambda raw: 0
-        )
+        session = VisualSession(root, row, algorithm, "exact_reference", 17, root, study_id, views=views)
         for index, event in enumerate(reference["events"]):
             request = session.next_request()
             if request is None or dict(request.model_input) != event["input"]:

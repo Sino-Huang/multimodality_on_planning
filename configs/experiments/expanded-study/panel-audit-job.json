@@ -1,0 +1,16 @@
+{
+  "job_id": "panel-independent-audit",
+  "branch": "expanded_baseline",
+  "gpus": [],
+  "max_seconds": 900,
+  "total": 24,
+  "command": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/audit_expanded_panel.py"
+  ],
+  "completion_hook": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/audit_expanded_panel.py",
+    "hook"
+  ]
+}

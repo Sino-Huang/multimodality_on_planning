@@ -1,0 +1,41 @@
+{
+  "frozen_utc": "2026-09-14T13:28:45.129496+00:00",
+  "predecessor": "configs/experiments/expanded-study/panel-capacity-protocol.json",
+  "basis": "Measured v5 allocated worker duration, scaled per modality by total exact-reference decisions; multiply by max(1,current reference-envelope seconds per call / historical forced-output seconds per call) and 1.25 safety factor.",
+  "historical_evaluation": "docs/experiments/matched-modalities/v5-final-evaluation.json",
+  "historical_qualification": "docs/experiments/matched-modalities/v5-qualification.json",
+  "historical_scaling": [
+    {
+      "modality": "text-state",
+      "old_reference_decisions": 72,
+      "new_reference_decisions": 4310,
+      "old_gpu_worker_seconds": 412.1446223258972,
+      "reference_work_scale": 59.861111111111114,
+      "unadjusted_historical_proxy_gpu_hours": 8.566470496839395
+    },
+    {
+      "modality": "visual-state",
+      "old_reference_decisions": 72,
+      "new_reference_decisions": 4310,
+      "old_gpu_worker_seconds": 570.9064457416534,
+      "reference_work_scale": 59.861111111111114,
+      "unadjusted_historical_proxy_gpu_hours": 11.866352146732861
+    },
+    {
+      "modality": "multimodal-state",
+      "old_reference_decisions": 72,
+      "new_reference_decisions": 4310,
+      "old_gpu_worker_seconds": 642.5759806632996,
+      "reference_work_scale": 59.861111111111114,
+      "unadjusted_historical_proxy_gpu_hours": 13.356011172158667
+    }
+  ],
+  "retain_full_allowance_proxy": true,
+  "retain_full_capacity_proxy": true,
+  "limitation": "Assumes v5 termination/output-length behaviour remains a usable workload proxy on larger tasks. This does not guarantee full completion at all maximum allowances; the original 56-GPU-hour branch cap governs, and every missing binding must be reported if it is exhausted.",
+  "reason": "The maximum-call/full-384-output projection is not feasible in 56 GPU-hours. The unchanged full panel has a separate measured historical-consumption estimate; no easier tasks, smaller matrix, score-selected reruns or additional allocation are introduced.",
+  "scope_changed": false,
+  "new_model_scores_used": false,
+  "all_24_tasks_retained": true,
+  "baseline_gpu_hours_cap": 56
+}
