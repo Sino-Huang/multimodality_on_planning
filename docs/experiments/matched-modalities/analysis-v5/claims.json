@@ -1,0 +1,27 @@
+[
+  {
+    "id": "coverage",
+    "text": "All 144 available episodes were independently replayed; 0 declared bindings are missing and 0 evaluation infrastructure stops are recorded.",
+    "evidence": "analysis.json: coverage, infrastructure_stops; source episode paths are in each row"
+  },
+  {
+    "id": "validity",
+    "text": "SFT has 19 invalid operations across 36 episodes. On this panel, every unsuccessful SFT episode terminates on an invalid operation; this does not identify what a corrected policy would do afterward.",
+    "evidence": "episodes.csv: arm=process_sft, invalid_operations and termination; rejections.csv"
+  },
+  {
+    "id": "prefix",
+    "text": "The reference-derived common caps are Storage 12, Blocksworld 6 and Ferry 8 decisions. 0 observed traces extend beyond these caps, so all observed terminal outcomes remain unchanged here.",
+    "evidence": "common-prefixes.csv: common_cap, observed_decisions, censored_at_common_cap"
+  },
+  {
+    "id": "curriculum",
+    "text": "The separate #67 development experiment reports staged, shuffled and mixed-order success of 60/60 each, with zero invalid operations. Random-valid and exact controls also reach 100%; the three paired curriculum success intervals are [0,0].",
+    "evidence": "data/best_first_paired_phase_v3/issue67-terminal/result.json: condition_results, curriculum_conclusion, training, coverage"
+  },
+  {
+    "id": "cost",
+    "text": "Cumulative recorded evaluation stage wall time is 1221.82 seconds. Episode/call timings and token counts are measured separately; early invalid termination reduces consumed work and is not search efficiency.",
+    "evidence": "analysis.json: cumulative_stage_seconds; episodes.csv; outputs/matched_modalities/v2/budget.json"
+  }
+]

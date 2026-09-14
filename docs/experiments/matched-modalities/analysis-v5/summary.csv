@@ -1,0 +1,13 @@
+modality,arm,observed,expected,successes,valid_operation_episodes,decisions,invalid_operations,expansions,model_input_tokens,model_output_tokens,call_wall_seconds
+text-state,pretrained_base,12,12,0,0,12,12,0,13517,980,60.00171745941043
+text-state,process_sft,12,12,5,5,46,7,18,59566,2535,207.17659892328084
+text-state,random_valid,12,12,10,12,73,0,43,0,0,0.001980796456336975
+text-state,exact_reference,12,12,12,12,72,0,43,0,0,0.0015437323600053787
+visual-state,pretrained_base,12,12,0,0,12,12,0,29349,745,83.25831857323647
+visual-state,process_sft,12,12,6,6,51,6,23,129483,3221,382.13717661798
+visual-state,random_valid,12,12,10,12,73,0,43,0,0,0.002228841185569763
+visual-state,exact_reference,12,12,12,12,72,0,43,0,0,0.0017176959663629532
+multimodal-state,pretrained_base,12,12,0,0,12,12,0,36873,858,101.8382433988154
+multimodal-state,process_sft,12,12,6,6,52,6,22,169481,3001,436.67208884842694
+multimodal-state,random_valid,12,12,10,12,73,0,43,0,0,0.002313891425728798
+multimodal-state,exact_reference,12,12,12,12,72,0,43,0,0,0.0017557460814714432
