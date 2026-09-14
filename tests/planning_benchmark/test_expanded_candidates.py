@@ -80,3 +80,33 @@ def test_reference_catalog_preserves_producing_operation_paths(tmp_path, monkeyp
             authority.apply(states[parent["state"]], GroundedAction(words[0], tuple(words[1:]))).target_state
             == states[index]
         )
+
+
+def test_live_view_restore_replays_reference_states_into_authority(tmp_path, monkeypatch):
+    from examples.planning_benchmark_slice import expanded_candidates as candidates
+    from examples.planning_benchmark_slice.expanded_views import reference_catalog, ExpandedTaskViews
+    from examples.planning_benchmark_slice.expanded_scheduler import write
+
+    task = read(ROOT / "tests/fixtures/planning/blocksworld_nontrivial.json")
+    monkeypatch.setattr(candidates, "generate", lambda *args: task)
+    protocol = read(ROOT / "configs/experiments/expanded-study/panel-protocol.json")
+    protocol["output_root"] = "panel"
+    profile = next(p for p in protocol["strata"] if p["domain"] == "blocksworld")
+    result = candidates.screen(tmp_path, protocol, profile, 1, set())
+    refs = {
+        a: f"panel/candidates/blocksworld-compact-1/reference-{a}.json.gz" for a in protocol["reference"]["algorithms"]
+    }
+    catalog = reference_catalog(tmp_path, result["row"], refs, protocol["study_id"])
+    write(tmp_path / "catalog.json", catalog)
+    write(tmp_path / "manifest.json", {"scene_catalog": "catalog.json"})
+    prepared = {
+        "row": result["row"],
+        "native_views": {"source_manifest": "manifest.json", "scenes": {}, "scene_bindings": {}},
+    }
+    views = ExpandedTaskViews(tmp_path, prepared, tmp_path / "live", "http://127.0.0.1:18092")
+    views.save()
+    restored = ExpandedTaskViews(tmp_path, prepared, tmp_path / "live", "http://127.0.0.1:18092", read_only=True)
+    assert len(restored.states) > 1
+    for entry in restored.states:
+        state = restored.authority.canonical_state(tuple(entry["atoms"]), tuple(entry["fluents"]))
+        assert isinstance(restored.authority.is_goal(state), bool)
