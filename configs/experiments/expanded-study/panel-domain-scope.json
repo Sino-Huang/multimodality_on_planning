@@ -1,0 +1,34 @@
+{
+  "program_id": "expanded-nine-day-v1",
+  "issue": 117,
+  "problems_per_domain": 2,
+  "target_problems": 24,
+  "domains": [
+    "15puzzle",
+    "blocksworld",
+    "depot",
+    "driverlog",
+    "elevators",
+    "ferry",
+    "grid",
+    "gripper",
+    "logistics",
+    "storage",
+    "towers_of_hanoi",
+    "visitall"
+  ],
+  "excluded_domains": [
+    "freecell",
+    "snake",
+    "sokoban"
+  ],
+  "basis": "Carry forward the twelve-domain matched heuristic panel from #62/#64, rather than the union of BFS/BFWS/heuristic source domains.",
+  "source_manifest": "data/astar_paired_phase_v1/source-task-manifest.jsonl",
+  "decision_record": "docs/issue-62-astar-paired-freeze.md",
+  "continuation_record": "docs/issue-64-best-first-text-corpus.md",
+  "issue_comment": "https://github.com/Sino-Huang/multimodality_on_planning/issues/62#issuecomment-5494022517",
+  "historical_exclusion_reason": "200,000 Cartesian grounding estimate ceiling and declared positive-STRIPS adapter contract; all prior Freecell, Snake and Sokoban candidates excluded, plus oversized instances in other domains.",
+  "scope_limitation": "Historical computational/adapter eligibility decision, not evidence of globally bad domains or present-day impossibility.",
+  "selection_profiles_frozen": false,
+  "hardware_qualified": false
+}
