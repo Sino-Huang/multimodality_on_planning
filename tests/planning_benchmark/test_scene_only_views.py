@@ -89,7 +89,7 @@ def test_actual_mixed_size_processor_and_unchanged_text(tmp_path):
     assert "at(a)" not in user_text and "at(b)" not in user_text and "fuel=8" not in user_text
     assert "successor_candidates" in user_text
     processor = frozen_processor()
-    assert visual["binding"]["input_tokens"] > processor.count(visual["messages"])
+    assert visual["binding"]["input_tokens"] < processor.count(visual["messages"])
     processor.verify_complete(visual["messages"], visual["images"])
     with pytest.raises(ValueError, match="marker"):
         processor.count(visual["messages"], image_sizes=[])
@@ -199,3 +199,26 @@ def test_real_visual_inference_wrapper_counts_native_images_on_cpu(tmp_path):
         image.close()
     for image in other["images"]:
         image.close()
+
+
+def test_128_state_renderer_suppresses_all_text_labels(tmp_path, monkeypatch):
+    from PIL import ImageDraw
+
+    from scripts.planimation_phase1_frames import render_vfg_to_local_png_frames
+
+    def unexpected_text(*args, **kwargs):
+        pytest.fail("state renderer attempted text annotation")
+
+    monkeypatch.setattr(ImageDraw.ImageDraw, "text", unexpected_text)
+    payload = {"visualStages": [{"visualSprites": [
+        {"name": "object1", "label": "annotation", "showName": True,
+         "showlabel": True, "minX": 0.25, "maxX": 0.75, "minY": 0.25, "maxY": 0.75}
+    ]}]}
+    render_vfg_to_local_png_frames(
+        json.dumps(payload).encode(), tmp_path, 0, 0,
+        canvas_size=SCENE_SIZE, draw_labels=False, object_names=frozenset({"object1"}),
+    )
+    with Image.open(tmp_path / "frame_000.png") as image:
+        assert image.size == (128, 128)
+        assert image.getpixel((64, 64)) != image.getpixel((0, 0))
+    assert REPRESENTATION["object_label_size"] == 0

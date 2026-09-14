@@ -47,7 +47,7 @@ class StageBudget:
             # User-approved prospective transfer; retain the original ledger and
             # all spending. This does not permit automatic stage borrowing.
             approved = dict(self.budget_study["budget"], qualification_seconds=4500, training_development_seconds=17100)
-            if study.get("study_id") == "matched-modalities-v4" and comparable == approved:
+            if study.get("study_id") in {"matched-modalities-v4", "matched-modalities-v5"} and comparable == approved:
                 comparable = self.budget_study["budget"]
             if self.budget_study["budget"] != comparable:
                 raise ValueError("successor cannot change the shared stage budgets")

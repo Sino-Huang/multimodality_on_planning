@@ -165,7 +165,7 @@ UNFULFILLED = [
 def validate_settings(study, devices, ports):
     budget = study["budget"]
     allocations = [[3600, 18000, 21600]]
-    if study.get("study_id") == "matched-modalities-v4":
+    if study.get("study_id") in {"matched-modalities-v4", "matched-modalities-v5"}:
         allocations.append([4500, 17100, 21600])
     if (
         [budget[k] for k in ("qualification_seconds", "training_development_seconds", "final_evaluation_seconds")]
@@ -184,7 +184,7 @@ def validate_settings(study, devices, ports):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("stage", choices=("prepare", "verify", "qualify", "train", "decide", "evaluate", "_worker"))
-    parser.add_argument("--study", type=Path, default=ROOT / "configs/experiments/matched-modalities/study-v4.json")
+    parser.add_argument("--study", type=Path, default=ROOT / "configs/experiments/matched-modalities/study-v5.json")
     parser.add_argument("--job", type=Path)
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--devices", nargs="+", default=["0", "1"])
@@ -203,7 +203,7 @@ def main(argv=None):
         try:
             study = read_json(args.study)
             validate_settings(study, args.devices, args.master_ports)
-            if study["study_id"] in {"matched-modalities-v2", "matched-modalities-v3", "matched-modalities-v4"}:
+            if study["study_id"] in {"matched-modalities-v2", "matched-modalities-v3", "matched-modalities-v4", "matched-modalities-v5"}:
                 if (
                     list(map(str, study["launch"]["devices"])) != args.devices
                     or study["launch"]["master_ports"] != args.master_ports

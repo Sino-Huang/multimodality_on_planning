@@ -20,12 +20,12 @@ from .modality_pages import (
 from .modality_view_preparation import frozen_processor, validate_process_state, write_json
 from .scene_assets import read_json
 
-SCENE_SIZE = 1536
-RECIPE_ID = "scene-only-v2"
+SCENE_SIZE = 128
+RECIPE_ID = "scene-only-128-unlabelled-v1"
 REPRESENTATION = {
     "id": RECIPE_ID,
     "scene_size": SCENE_SIZE,
-    "object_label_size": 24,
+    "object_label_size": 0,
     "initial_state": "scene",
     "current_state": "scene",
     "context": "static-only",
@@ -33,8 +33,8 @@ REPRESENTATION = {
 }
 SCENE_LEGEND = (
     "Static task context, initial-state scene, current-state scene and partial-goal pages are attached. "
-    "Object labels identify the declared objects. Infer dynamic state from the scene; no symbolic "
-    "initial/current-state fact panels are included. Thin leader lines attach displaced labels to objects. "
+    "Initial/current states are unlabelled 128px scenes without text annotations. "
+    "Infer dynamic state from the scene; no symbolic initial/current-state fact panels are included. "
     "Black robot silhouettes identify the agent. "
     "Goal constraints do not describe a complete solved state: unspecified facts are unconstrained. "
     "Goal blocks ALL, ANY, NOT, FOR EVERY and THERE EXISTS retain their labelled variable scopes. "
@@ -68,7 +68,7 @@ def materialize_task(root, task_id, source_manifest, states, output, progress):
         "source_manifest": source_manifest,
         "states": sorted(wanted),
         "scene_size": SCENE_SIZE,
-        "label_size": 24,
+        "label_size": 0,
     }
     if recipe_path.exists() and read_json(recipe_path) != recipe_binding:
         raise ValueError("interrupted scene materialization uses a different recipe/binding")
@@ -100,7 +100,7 @@ def materialize_task(root, task_id, source_manifest, states, output, progress):
                     stage,
                     stage,
                     canvas_size=SCENE_SIZE,
-                    label_font_size=24,
+                    draw_labels=False,
                     object_names=objects,
                 )
                 (output / "frame_000.png").replace(path)

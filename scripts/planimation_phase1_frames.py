@@ -88,6 +88,7 @@ def render_vfg_to_local_png_frames(
     canvas_size: int = 1024,
     label_font_size: int | None = None,
     object_names: frozenset[str] = frozenset(),
+    draw_labels: bool = True,
 ) -> int:
     """Render selected VFG visual stages to readable local PNG frames."""
     Image, ImageDraw, ImageOps = _import_pillow()
@@ -126,7 +127,7 @@ def render_vfg_to_local_png_frames(
                 tinted = Image.new("RGBA", (width, height), rgba)
                 tinted.putalpha(ImageOps.autocontrast(resized.split()[-1]))
                 canvas.alpha_composite(tinted, (left, top))
-            if (
+            if draw_labels and (
                 sprite.get("name") in object_names
                 or sprite.get("showName")
                 or sprite.get("showname")
