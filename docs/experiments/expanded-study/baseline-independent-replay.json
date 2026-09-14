@@ -1,0 +1,9 @@
+{
+  "outcome": "PASS",
+  "protocol_id": "expanded-matched-baseline-v1",
+  "episodes_replayed": 1152,
+  "expected_episodes": 1152,
+  "every_episode_replayed": true,
+  "replay_used_read_only_persisted_views": true,
+  "missing_bindings": []
+}

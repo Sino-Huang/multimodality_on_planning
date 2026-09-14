@@ -124,13 +124,20 @@ def main(argv=None):
     }
     if dict(coverage) != expected_coverage:
         raise ValueError("expanded baseline cell coverage differs")
-    by_condition = defaultdict(lambda: {"episodes": 0, "successes": 0, "decisions": 0, "invalid_operations": 0})
+    def empty_metrics():
+        return {"episodes": 0, "successes": 0, "decisions": 0, "invalid_operations": 0}
+
+    by_condition = defaultdict(empty_metrics)
+    by_cell = defaultdict(empty_metrics)
     for report in verified:
-        row = by_condition[report["arm"]]
-        row["episodes"] += 1
-        row["successes"] += int(report["result"]["invariant_valid_success"])
-        row["decisions"] += report["result"]["decision_count"]
-        row["invalid_operations"] += report["result"]["invalid_operation_count"]
+        for row in (
+            by_condition[report["arm"]],
+            by_cell[(report["modality"], report["algorithm"], report["arm"])],
+        ):
+            row["episodes"] += 1
+            row["successes"] += int(report["result"]["invariant_valid_success"])
+            row["decisions"] += report["result"]["decision_count"]
+            row["invalid_operations"] += report["result"]["invalid_operation_count"]
     spent = sum(a["gpu_hours"] for a in ledger["attempts"] if a["branch"] == "expanded_baseline")
     evaluation = {
         "outcome": "PASS",
@@ -145,6 +152,15 @@ def main(argv=None):
             for (m, a, c), n in sorted(coverage.items())
         ],
         "by_condition": dict(by_condition),
+        "by_cell": [
+            {
+                "modality": modality,
+                "algorithm": algorithm,
+                "condition": condition,
+                **metrics,
+            }
+            for (modality, algorithm, condition), metrics in sorted(by_cell.items())
+        ],
         "random_valid_is_oracle_assisted": True,
         "new_training": False,
         "raw_invalid_outputs_preserved": sum(r["raw_invalid_outputs_preserved"] for r in verified),
