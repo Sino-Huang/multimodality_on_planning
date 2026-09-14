@@ -1,0 +1,46 @@
+{
+  "status": "ready_for_issue_closeout",
+  "requirements": {
+    "qualified_goal2_panel_consumed": "baseline-protocol.json pins expanded-panel-v2-qualified; final-panel.json contains 24 tasks across the twelve frozen domains and evaluation artifacts retain that panel ID",
+    "twelve_verified_adapters_reused": "readiness.json contains twelve verified modality/algorithm checkpoints; baseline-evaluation.json reports new_training=false and the process-SFT episode provenance binds those checkpoint paths",
+    "no_retraining": "baseline protocol has new_training=false; no training job belongs to Goal 3; published evaluation records new_training=false",
+    "complete_declared_matrix": "baseline-evaluation.json contains 1152 unique logical bindings, 576 model episodes and 48 modality/algorithm/condition coverage rows of 24 episodes each with no missing bindings",
+    "shared_background_scheduler": "terminal records exist for baseline-controls-0/1, baseline-models-0/1 and baseline-final-audit; all five attempts succeeded and the final completion hook returned zero",
+    "concurrent_port_isolation": "model workers used physical GPUs 0 and 1 with distinct MASTER_PORT values 18800 and 18801; both mappings are retained in terminal and evaluation evidence",
+    "fixed_inputs_and_safe_resume": "baseline-protocol.json freezes panel membership, seed 17, algorithms, modalities, conditions, views and binding assignment; the runner journals raw output before submission and replays persisted events or pending output on resume",
+    "raw_failures_preserved": "baseline-evaluation.json records 451 raw invalid outputs; the progress report publishes zero-result cells and does not replace, repair or rerun failed model outcomes",
+    "cumulative_costs": "baseline-evaluation.json records 6.52891837351852 cumulative expanded-baseline GPU-hours against the unchanged 56-hour branch ceiling, including readiness and panel qualification",
+    "worker_replay": "all four worker partitions have independent-audit.json outcome PASS with 288 verified episodes and zero missing bindings",
+    "retained_technical_failure": "baseline-controls-0 retains its original return-code-1 hook from the protocol_id/contract_id adapter defect; the unchanged reports subsequently passed the corrected 288-episode audit and the final 1152-episode replay",
+    "independent_full_replay": "baseline-independent-replay.json records PASS, 1152/1152 episodes, read-only persisted views and zero missing bindings; the scheduler final-audit terminal and hook both returned zero",
+    "random_control_distinguished": "protocol, episode reports, evaluation and progress documentation explicitly label random-valid as oracle-assisted valid-operation selection rather than learned operation generation",
+    "complete_results_published": "baseline-evaluation.json contains condition totals and all 48 cell-level episode, success, decision and invalid-operation counts; baseline-progress.md reports positive and negative results",
+    "focused_validation": "thirteen expanded-baseline and shared-scheduler tests passed on the publication code; artifact invariants and git diff checks passed"
+  },
+  "verification_commands": [
+    "source ~/cd_vlaplan && python scripts/audit_expanded_baseline.py final",
+    "source ~/cd_vlaplan && python scripts/audit_expanded_baseline.py hook",
+    "source ~/cd_vlaplan && python -m pytest tests/planning_benchmark/test_expanded_baseline.py tests/planning_benchmark/test_expanded_scheduler.py -q"
+  ],
+  "verification_results": {
+    "scheduler_final_replay": "PASS: independently replayed all 1152 expanded baseline bindings",
+    "completion_hook": "PASS: expanded baseline final completion hook",
+    "focused_tests": "13 passed",
+    "logical_bindings": 1152,
+    "model_episodes": 576,
+    "missing_bindings": 0,
+    "partial_reports": 0,
+    "raw_invalid_outputs_preserved": 451,
+    "expanded_baseline_gpu_hours_cumulative": 6.52891837351852,
+    "branch_cap_gpu_hours": 56
+  },
+  "publication": {
+    "source_commit": "4d29c28f2898b567710137f9f919808677d85f24",
+    "issue": {
+      "number": 118,
+      "state": "OPEN",
+      "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/118"
+    },
+    "closeout": null
+  }
+}
