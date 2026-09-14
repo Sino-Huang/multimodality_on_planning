@@ -20,6 +20,7 @@ def validate_protocol(root: Path, protocol: dict[str, Any]) -> tuple[dict[str, A
         protocol["program_id"] != panel["program_id"]
         or protocol["panel_id"] != panel["panel_id"]
         or protocol["source_panel_commit"] != "7235bbdf7027055ff11451aec46d2157e58499b8"
+        or protocol["runner_commit"] != "ffaf802ab0ad1f8c12aab17e100fc7d995f6ca4f"
         or protocol["algorithms"] != panel["algorithms"]
         or protocol["modalities"] != panel["modalities"]
         or protocol["conditions"] != panel["conditions"]

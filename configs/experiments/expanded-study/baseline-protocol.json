@@ -3,6 +3,7 @@
   "protocol_id": "expanded-matched-baseline-v1",
   "frozen_at": "2026-09-15T00:07:48+10:00",
   "source_panel_commit": "7235bbdf7027055ff11451aec46d2157e58499b8",
+  "runner_commit": "ffaf802ab0ad1f8c12aab17e100fc7d995f6ca4f",
   "panel": "configs/experiments/expanded-study/final-panel.json",
   "panel_id": "expanded-panel-v2-qualified",
   "checkpoint_study": "configs/experiments/matched-modalities/study-v5.json",
