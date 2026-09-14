@@ -3,6 +3,7 @@
 import random
 import re
 import signal
+import math
 
 from src.data_collect.adapters.base import GenerationSpec, GeneratorRejection
 from src.data_collect.adapters.registry import CurriculumCommandAdapter, PreparedCommand
@@ -12,7 +13,7 @@ from .expanded_scheduler import read, write
 from .matched_tasks import candidate_adapter, exact_reference, task_semantics
 from .pddl_state import PDDLStateAuthority
 from .source_goal import source_task
-from .strips_relaxation import estimated_grounded_operator_count
+from .strips_relaxation import estimated_grounded_operator_count, _parameter_objects, _positive_atoms
 from .modality_view_preparation import write_json
 
 
@@ -36,6 +37,25 @@ def pddl_facts(atoms):
         name, _, arguments = atom.partition("(")
         result.append("(" + name + (" " + arguments.rstrip(")").replace(",", " ") if arguments else "") + ")")
     return result
+
+
+def typed_grounding_count(authority):
+    """Count exactly the assignments instantiated by the current additive heuristic."""
+    objects = tuple(sorted({o for _, values in authority.objects_by_type for o in values}))
+    return sum(
+        math.prod(
+            len(
+                _parameter_objects(
+                    p.name,
+                    _positive_atoms(a.precondition, "action precondition"),
+                    objects,
+                    authority.static_initial_facts,
+                )
+            )
+            for p in a.parameters
+        )
+        for a in authority._domain.actions
+    )
 
 
 def walk_initial(domain, problem, profile, seed):
@@ -135,11 +155,21 @@ def screen(root, protocol, profile, seed, exclusions):
     previous_handler = signal.signal(signal.SIGALRM, timeout)
     signal.setitimer(signal.ITIMER_REAL, limits["seconds_per_candidate"])
     try:
-        task = generate(root, profile, seed, output / "generator")
-        write(output / "task.json", task)
+        task_path = output / "task.json"
+        if protocol.get("reuse_candidate_root"):
+            task_path = root / protocol["reuse_candidate_root"] / "candidates" / output.name / "task.json"
+            task = read(task_path)
+        else:
+            task = generate(root, profile, seed, output / "generator")
+            write(task_path, task)
         authority = PDDLStateAuthority.from_pddl(task["domain_pddl"], task["problem_pddl"])
-        report["task_path"] = str((output / "task.json").relative_to(root))
-        report["grounding_estimate"] = estimated_grounded_operator_count(authority)
+        report["task_path"] = str(task_path.relative_to(root))
+        report["cartesian_grounding_estimate"] = estimated_grounded_operator_count(authority)
+        report["grounding_estimate"] = (
+            typed_grounding_count(authority)
+            if limits.get("grounding_metric") == "current_additive_type_pruned_assignments"
+            else report["cartesian_grounding_estimate"]
+        )
         if report["grounding_estimate"] > limits["grounding_estimate_ceiling"]:
             raise RuntimeError("grounding_estimate_ceiling")
         if task_semantics(task["domain_pddl"], task["problem_pddl"]) in exclusions:

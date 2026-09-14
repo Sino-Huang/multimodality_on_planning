@@ -44,3 +44,13 @@ def test_reference_screen_preserves_four_algorithms_and_cached_candidate(tmp_pat
     assert candidates.screen(tmp_path, protocol, profile, 1, set()) == result
     overlap = {candidates.task_semantics(task["domain_pddl"], task["problem_pddl"])}
     assert candidates.screen(tmp_path, protocol, profile, 2, overlap)["reason"] == "historical_task_overlap"
+
+
+def test_type_pruned_count_matches_actual_additive_operator_construction():
+    from examples.planning_benchmark_slice.expanded_candidates import typed_grounding_count
+    from examples.planning_benchmark_slice.strips_relaxation import extract_grounded_positive_strips
+
+    task = read(ROOT / "tests/fixtures/planning/blocksworld_nontrivial.json")
+    authority = PDDLStateAuthority.from_pddl(task["domain_pddl"], task["problem_pddl"])
+    actual = extract_grounded_positive_strips(authority, prune_type_impossible_groundings=True)
+    assert typed_grounding_count(authority) == len(actual.operators)

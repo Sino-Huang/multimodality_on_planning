@@ -32,8 +32,9 @@ def screen_stratum(protocol, profile, exclusions):
 def main():
     parser = argparse.ArgumentParser(__doc__)
     parser.add_argument("stage", choices=("screen", "audit"))
+    parser.add_argument("--protocol", type=Path, default=PROTOCOL)
     args = parser.parse_args()
-    protocol = read(PROTOCOL)
+    protocol = read(args.protocol)
     path = ROOT / protocol["output_root"] / "reference-screen.json"
     if args.stage == "audit":
         terminal = read(os.environ["EXPANDED_TERMINAL_PATH"])
@@ -62,7 +63,7 @@ def main():
             model_calls=0,
             report=str(path.relative_to(ROOT)),
         )
-        write(ROOT / "docs/experiments/expanded-study/panel-reference-screen.json", compact)
+        write(ROOT / f"docs/experiments/expanded-study/panel-reference-screen-{protocol['study_id']}.json", compact)
         print("PASS: every frozen candidate has a reference-screen disposition; final panel not yet qualified")
         return
     exclusions = set(read(ROOT / protocol["historical_inventory"])["task_semantics"])

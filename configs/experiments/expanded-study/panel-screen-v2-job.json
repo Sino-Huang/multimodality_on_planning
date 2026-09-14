@@ -1,0 +1,21 @@
+{
+  "job_id": "panel-screen-v2",
+  "branch": "expanded_baseline",
+  "gpus": [],
+  "max_seconds": 7200,
+  "total": 384,
+  "command": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/screen_expanded_panel.py",
+    "screen",
+    "--protocol",
+    "configs/experiments/expanded-study/panel-protocol-v2.json"
+  ],
+  "completion_hook": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/screen_expanded_panel.py",
+    "audit",
+    "--protocol",
+    "configs/experiments/expanded-study/panel-protocol-v2.json"
+  ]
+}
