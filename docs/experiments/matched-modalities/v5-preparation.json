@@ -1,0 +1,33 @@
+{
+  "study_id": "matched-modalities-v5",
+  "outcome": "PASS",
+  "counts": {
+    "records": 2156,
+    "tasks": 81,
+    "states": 1588,
+    "final_states": 152
+  },
+  "text_inputs_unchanged": true,
+  "state_png_bytes": 1467156,
+  "state_png_size": [
+    128,
+    128
+  ],
+  "processed_state_size": [
+    256,
+    256
+  ],
+  "state_text_annotations": false,
+  "maximum_source_input_tokens": {
+    "text-state": 2366,
+    "visual-state": 3458,
+    "multimodal-state": 4793
+  },
+  "maximum_final_input_tokens": {
+    "text-state": 2713,
+    "visual-state": 3968,
+    "multimodal-state": 5176
+  },
+  "gpu_qualification": "pending",
+  "image_training_complete": false
+}
