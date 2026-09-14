@@ -167,6 +167,8 @@ def validate_settings(study, devices, ports):
     allocations = [[3600, 18000, 21600]]
     if study.get("study_id") in {"matched-modalities-v4", "matched-modalities-v5"}:
         allocations.append([4500, 17100, 21600])
+    if study.get("study_id") == "matched-modalities-v5":
+        allocations.append([5400, 16200, 21600])
     if (
         [budget[k] for k in ("qualification_seconds", "training_development_seconds", "final_evaluation_seconds")]
         not in allocations

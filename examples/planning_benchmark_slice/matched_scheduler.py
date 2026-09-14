@@ -49,6 +49,11 @@ class StageBudget:
             approved = dict(self.budget_study["budget"], qualification_seconds=4500, training_development_seconds=17100)
             if study.get("study_id") in {"matched-modalities-v4", "matched-modalities-v5"} and comparable == approved:
                 comparable = self.budget_study["budget"]
+            continuation = dict(
+                self.budget_study["budget"], qualification_seconds=5400, training_development_seconds=16200
+            )
+            if study.get("study_id") == "matched-modalities-v5" and comparable == continuation:
+                comparable = self.budget_study["budget"]
             if self.budget_study["budget"] != comparable:
                 raise ValueError("successor cannot change the shared stage budgets")
         else:

@@ -167,7 +167,11 @@ def test_native_qualification_reserve_does_not_reset_or_increase_cap(tmp_path):
         StageBudget(tmp_path, current, "qualify")
 
 
-def test_approved_native_transfer_preserves_spending_and_total(tmp_path):
+@pytest.mark.parametrize("study_id,qualification,training", [
+    ("matched-modalities-v4", 4500, 17100),
+    ("matched-modalities-v5", 5400, 16200),
+])
+def test_approved_native_transfer_preserves_spending_and_total(tmp_path, study_id, qualification, training):
     previous = small_study()
     previous["budget"].update(qualification_seconds=3600, training_development_seconds=18000)
     (tmp_path / "previous.json").write_text(json.dumps(previous))
@@ -175,15 +179,17 @@ def test_approved_native_transfer_preserves_spending_and_total(tmp_path):
         time.sleep(0.02)
     current = {
         **previous,
-        "study_id": "matched-modalities-v4",
+        "study_id": study_id,
         "budget_predecessor": "previous.json",
-        "budget": {**previous["budget"], "qualification_seconds": 4500, "training_development_seconds": 17100},
+        "budget": {
+            **previous["budget"], "qualification_seconds": qualification, "training_development_seconds": training
+        },
     }
     with StageBudget(tmp_path, current, "qualify") as clock:
-        assert clock.cap == 4500
+        assert clock.cap == qualification
         assert clock.segment["prior_spent"] >= 0.02
         assert clock.path == tmp_path / "run/budget.json"
-    assert StageBudget(tmp_path, current, "train").cap == 17100
+    assert StageBudget(tmp_path, current, "train").cap == training
     current["budget"]["training_development_seconds"] += 1
     with pytest.raises(ValueError, match="shared stage budgets"):
         StageBudget(tmp_path, current, "train")

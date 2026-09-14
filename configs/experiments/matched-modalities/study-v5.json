@@ -87,9 +87,9 @@
     "kv_cache": "per_call_only"
   },
   "budget": {
-    "qualification_seconds": 4500,
+    "qualification_seconds": 5400,
     "qualification_shutdown_reserve_seconds": 15,
-    "training_development_seconds": 17100,
+    "training_development_seconds": 16200,
     "final_evaluation_seconds": 21600,
     "total_seconds": 43200,
     "shutdown_reserve_seconds_per_stage": 120,
