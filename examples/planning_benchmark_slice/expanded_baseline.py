@@ -269,4 +269,5 @@ def run_binding(
 
 def independently_replay(root: Path, task: dict[str, Any], report: dict[str, Any], endpoint: str) -> dict[str, Any]:
     views = ExpandedTaskViews(root, task, root / report["view_output"], endpoint, read_only=True)
-    return replay_visual_episode(root, task["row"], report, views)
+    replay_report = dict(report, contract_id=report["protocol_id"])
+    return replay_visual_episode(root, task["row"], replay_report, views)

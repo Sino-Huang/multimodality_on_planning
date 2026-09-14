@@ -30,3 +30,9 @@ the 0.733140 GPU-hours already consumed by readiness and panel qualification,
 the maximum reservation is 55.733140 GPU-hours under the unchanged 56-hour
 branch cap. The historical-consumption estimate remains conditional, so full
 completion is not asserted until the terminal replay audit passes.
+
+The first control-worker completion hook exposed a report-schema adapter defect:
+expanded reports name the binding `protocol_id`, while the shared replay helper
+accepts the same value as `contract_id`. The retained reports and episode outputs
+were correct. The replay adapter now passes the frozen protocol ID under the
+shared helper's field name; the original failed hook evidence is retained.
