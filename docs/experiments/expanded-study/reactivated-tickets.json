@@ -59,7 +59,7 @@
     "previous_title": "T46: OPTIONAL train and evaluate one DAgger update",
     "new_state": "OPEN",
     "branch": "dagger",
-    "dependencies": "#83, #117, #118",
+    "dependencies": "#83 verified first-iteration artifacts (not ticket closure), #117, #118",
     "execution_complete": false
   },
   {

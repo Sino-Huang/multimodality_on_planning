@@ -88,7 +88,10 @@ do not generalize their effects to unmeasured algorithms.
   Search Memory and the producing-operation boundary for successor images.
 - DAgger collects from training tasks only, querying the expert from the last valid
   state. Default to per-modality on-policy data: equal quotas/updates are not equal
-  collected examples. Continued-SFT controls match extra update exposure. Fix
+  collected examples. Continued-SFT controls match extra update exposure. Alternate collection and updates: collect/verify iteration one, update the policy,
+  then collect/verify iteration two with the updated policy and update again.
+  Goal 5 prepares the first verified correction sets; Goal 6 owns the full loop
+  and closes remaining two-iteration collection/replay requirements. Fix
   treatment of unused correction quotas before collection, without duplicating
   records to pretend quotas were met or inventing expert corrections.
 - Successor prediction retains raw full-state predictions. Wrong states must not
@@ -161,8 +164,8 @@ Preserve incomplete branches explicitly if recovery could not complete them.
 | 2 Broader panel | 1 | #117 |
 | 3 Expanded baseline | 2 | #118 |
 | 4 DAgger interface/config | 1; fixed v5 starting checkpoints | #78–#79 |
-| 5 DAgger collection/replay | 4 | #80–#83 |
-| 6 DAgger training/evaluation | 5 and 3 | #84 |
+| 5 DAgger collectors and first-iteration replay | 4 | #80–#83; full iteration coverage closes with 6 |
+| 6 Interleaved DAgger updates/collection/evaluation | first verified sets from 5 and baseline 3 | #80–#84 |
 | 7 Successor interface/config | 1 | #85–#86 |
 | 8 Successor data/replay | 7 | #87–#88 |
 | 9 Successor training/final evaluation | 8 and 2 | #89, #99 |

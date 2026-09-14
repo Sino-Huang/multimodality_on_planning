@@ -5,7 +5,7 @@ Preparation documents and ticket reactivation are already done. Start with Goal 
 ## 1. Shared execution readiness — #116
 
 ```text
-/goal Complete #116 in Sino-Huang/multimodality_on_planning. Read AGENTS.md and docs/experiments/expanded-study/plan.md, schedule.json and linked comments. Implement and test shared GPU-hour accounting, absolute cutoffs, duplicate-launch refusal, port allocation, safe resume, background logs and completion hooks. Revalidate the twelve v5 checkpoints and available hardware without retraining. The documents already define the nine-day budget; do not restart its clock. Produce exact branch commands and readiness evidence, commit/push, and close only fulfilled #116 requirements. Do not launch every branch from this readiness goal.
+/goal Complete #116 in Sino-Huang/multimodality_on_planning. Read AGENTS.md and docs/experiments/expanded-study/plan.md, schedule.json and linked comments. Implement and test shared GPU-hour accounting, absolute cutoffs, duplicate-launch refusal, port allocation, safe resume, background logs and completion hooks. Revalidate the twelve v5 checkpoints and available hardware without retraining. The documents already define the nine-day budget; do not restart its clock. Produce the tested readiness/scheduler commands, branch integration contracts and readiness evidence; do not claim unimplemented branches runnable. Commit/push and close only fulfilled #116 requirements. Do not launch every branch from this readiness goal.
 ```
 
 ## 2. Prepare the broader panel — #117
@@ -29,13 +29,13 @@ Preparation documents and ticket reactivation are already done. Start with Goal 
 ## 5. Collect and verify DAgger data — #80–#83
 
 ```text
-/goal Complete #80, #81, #82 and #83 in Sino-Huang/multimodality_on_planning under docs/experiments/expanded-study/plan.md and the frozen #79 config; read AGENTS.md and comments. Automatically collect all three declared modality correction sets using training tasks only, preserving invalid attempts, expert queries and accepted-state links. Use the shared scheduler and completion hooks. Do not fill shortfalls with invented or duplicated corrections or expand quotas after outcomes. Independently replay every correction and verify aggregation, membership, splits and budgets. Publish datasets and coverage, commit/push and close only fulfilled tickets.
+/goal Complete the collectors and first-iteration collection/replay stage of #80, #81, #82 and #83 in Sino-Huang/multimodality_on_planning under docs/experiments/expanded-study/plan.md and the frozen #79 config; read AGENTS.md and comments. Implement the reusable collectors and automatically collect iteration-one correction sets for all three modalities using training tasks only, preserving invalid attempts, expert queries and accepted-state links. Use the shared scheduler and completion hooks. Do not fill shortfalls with invented or duplicated corrections or expand quotas after outcomes. Independently replay every correction and verify aggregation, membership, splits and budgets. Publish iteration-one datasets and coverage, commit/push, and keep any two-iteration coverage requirements open for Goal 6.
 ```
 
 ## 6. Run the DAgger comparison — #84
 
 ```text
-/goal Complete #84 in Sino-Huang/multimodality_on_planning under docs/experiments/expanded-study/plan.md and schedule.json; read AGENTS.md, comments and verified #83 evidence. Automatically train the frozen DAgger updates and continued-SFT controls, preserving checkpoints and cumulative accounting. Compare original SFT, continued SFT and DAgger on the same declared development and unseen panel contracts. Never collect corrections from final tasks or iterate until positive. Verify final checkpoints and independently replay evaluation. Separate validity, search quality, expert-query cost and training compute. Commit/push complete evidence and close only satisfied requirements.
+/goal Complete #84 in Sino-Huang/multimodality_on_planning under docs/experiments/expanded-study/plan.md and schedule.json; read AGENTS.md, comments and verified #83 evidence. Automatically train iteration one from its verified corrections, then collect iteration two using those updated policies, independently verify the new corrections through #83, and train iteration two. Run exposure-matched continued-SFT updates in the same declared schedule. Preserve checkpoints and cumulative accounting; do not collect both iterations with the original policy. Compare original SFT, continued SFT and DAgger on the same declared development and unseen panel contracts. Never collect corrections from final tasks or iterate until positive. Verify final checkpoints and independently replay evaluation. Separate validity, search quality, expert-query cost and training compute. Commit/push complete evidence and close #80–#84 only after all required iteration coverage is verified.
 ```
 
 ## 7. Successor prediction interface — #85–#86
