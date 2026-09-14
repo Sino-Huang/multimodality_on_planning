@@ -1,0 +1,50 @@
+{
+  "outcome": "PASS",
+  "hardware_passed": true,
+  "estimate": {
+    "by_modality": {
+      "text-state": {
+        "training_seconds": 0.0,
+        "evaluation_seconds": 4740.873146541417,
+        "training_microstep_seconds": 1.3901763502508402,
+        "seconds_per_call": 25.64570400863886
+      },
+      "visual-state": {
+        "training_seconds": 5005.191130475141,
+        "evaluation_seconds": 5876.273274361156,
+        "training_microstep_seconds": 2.826968999579549,
+        "seconds_per_call": 31.337696386501193
+      },
+      "multimodal-state": {
+        "training_seconds": 5309.294951930642,
+        "evaluation_seconds": 6538.3144929027185,
+        "training_microstep_seconds": 3.0951449312269688,
+        "seconds_per_call": 35.592452401295304
+      }
+    },
+    "training_seconds": 11826.826243490912,
+    "remaining_training_seconds": 10314.486082405783,
+    "spent_training_seconds": 1512.3401610851288,
+    "evaluation_seconds": 17155.46091380529,
+    "training_fits": true,
+    "evaluation_fits": true,
+    "fits": true
+  },
+  "worker_reports": [
+    "outputs/matched_modalities/v5/qualification/gpu-0.json",
+    "outputs/matched_modalities/v5/qualification/gpu-1.json"
+  ],
+  "model_outcomes_used_for_selection": false,
+  "study_id": "matched-modalities-v5",
+  "counts": {
+    "records": 2156,
+    "tasks": 81,
+    "states": 1588,
+    "final_states": 152
+  },
+  "source_and_final_inputs_verified": true,
+  "full_algorithm_modality_hardware_coverage": true,
+  "issue92_complete": true,
+  "image_training_complete": false,
+  "final_evaluation_run": false
+}
