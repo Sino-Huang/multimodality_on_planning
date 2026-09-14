@@ -188,6 +188,11 @@ def test_real_visual_inference_wrapper_counts_native_images_on_cpu(tmp_path):
         )
     )
     assert policy.generate([example]) == ["ok"]
+    assert policy.last_generation_usage == {
+        "input_tokens": [example["binding"]["input_tokens"]],
+        "generated_sequence_tokens": len(suffix),
+        "batch_size": 1,
+    }
     views.tasks["other"] = {
         **views.tasks["task"],
         "view_id": "native/other",

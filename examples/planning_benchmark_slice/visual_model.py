@@ -49,6 +49,11 @@ class VisualPolicy(BatchedPolicyAdapter):
                 use_cache=True,
                 min_new_tokens=self.max_new_tokens if force_full_output else 0,
             )
+        self.last_generation_usage = {
+            "input_tokens": lengths,
+            "generated_sequence_tokens": ids.shape[1] - width,
+            "batch_size": len(examples),
+        }
         return [
             s.strip()
             for s in self.processor.batch_decode(

@@ -225,14 +225,29 @@ def evaluate_worker(root, study, job, worker, deadline, progress, resume):
             results.append(str(path.relative_to(root)))
             continue
         session = VisualSession(root, row, algorithm, arm, 17, path, study["study_id"], views=views)
+        episode_started = time.monotonic()
+        call_measurements = []
         while (request := session.next_request()) is not None:
             example = views.observe(dict(request.model_input), algorithm, modality=modality)
+            call_started = time.monotonic()
             generated = (
                 session.reference_output()
                 if arm in ("exact_reference", "random_valid")
                 else policy.generate([example], algorithm if arm == "process_sft" else None)[0]
             )
+            call_measurements.append({
+                "event_index": len(session.events),
+                "model_call": arm in ("pretrained_base", "process_sft"),
+                "input_tokens": example["binding"]["input_tokens"],
+                "generated_sequence_tokens": (
+                    policy.last_generation_usage["generated_sequence_tokens"]
+                    if arm in ("pretrained_base", "process_sft") else None
+                ),
+                "call_wall_seconds": time.monotonic() - call_started,
+            })
             session.submit(generated, example["binding"])
+            for image in example["images"]:
+                image.close()
         report = {
             "contract_id": study["study_id"],
             "task_id": row["task_id"],
@@ -246,6 +261,8 @@ def evaluate_worker(root, study, job, worker, deadline, progress, resume):
             "checkpoint": str(Path(checkpoints[algorithm]).relative_to(root)) if arm == "process_sft" else None,
             "model_id": study["model_id"],
             "model_revision": study["model_revision"],
+            "call_measurements": call_measurements,
+            "episode_wall_seconds": time.monotonic() - episode_started,
         }
         replay_visual_episode(root, row, report, views)
         write_json(path, report)
