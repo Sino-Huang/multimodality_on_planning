@@ -54,3 +54,29 @@ def test_type_pruned_count_matches_actual_additive_operator_construction():
     authority = PDDLStateAuthority.from_pddl(task["domain_pddl"], task["problem_pddl"])
     actual = extract_grounded_positive_strips(authority, prune_type_impossible_groundings=True)
     assert typed_grounding_count(authority) == len(actual.operators)
+
+
+def test_reference_catalog_preserves_producing_operation_paths(tmp_path, monkeypatch):
+    from examples.planning_benchmark_slice import expanded_candidates as candidates
+    from examples.planning_benchmark_slice.expanded_views import reference_catalog
+
+    task = read(ROOT / "tests/fixtures/planning/blocksworld_nontrivial.json")
+    monkeypatch.setattr(candidates, "generate", lambda *args: task)
+    protocol = read(ROOT / "configs/experiments/expanded-study/panel-protocol.json")
+    protocol["output_root"] = "panel"
+    profile = next(p for p in protocol["strata"] if p["domain"] == "blocksworld")
+    result = candidates.screen(tmp_path, protocol, profile, 1, set())
+    paths = {
+        a: f"panel/candidates/blocksworld-compact-1/reference-{a}.json.gz" for a in protocol["reference"]["algorithms"]
+    }
+    catalog = reference_catalog(tmp_path, result["row"], paths, protocol["study_id"])
+    assert len(catalog["decisions"]) == sum(c["decisions"] for c in result["row"]["reference_costs"].values())
+    authority = PDDLStateAuthority.from_pddl(task["domain_pddl"], task["problem_pddl"])
+    states = [authority.canonical_state(tuple(s["atoms"]), tuple(s["fluents"])) for s in catalog["states"]]
+    for index, state in enumerate(catalog["states"][1:], 1):
+        parent = state["parent"]
+        words = parent["action"].strip("()").split()
+        assert (
+            authority.apply(states[parent["state"]], GroundedAction(words[0], tuple(words[1:]))).target_state
+            == states[index]
+        )
