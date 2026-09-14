@@ -1,10 +1,12 @@
-> **Active scene-only successor:** The user approved initial/current scenes with object labels and separate static-context/goal pages. See [v4](v4.md) and `study-v4.json`. Exact text inputs/checkpoints and cumulative spending are retained.
+> **Current completed scope — v5:** See [v5](v5.md), [qualification](v5-qualification.json), [training](v5-training.json), and [decision](v5-decision.json). Preparation, GPU qualification and all twelve matched adapters are complete; final evaluation has not run. Later user instructions replaced state annotations with unlabelled 128×128 scenes and authorized training and revised stage allocations within the twelve-hour total. This does **not** certify the original one-hour/no-training scope or lossless visual semantic parity: removing labels can remove object identity (for example, numbered puzzle tiles). The versioned history below preserves the original requirements and stops.
 
-> **Active successor:** The user approved the smaller cost-qualified final panel and agent-executed training. See [v3 execution](v3.md) and `study-v3.json`. V2 hardware qualification and spent time are retained; historical scope below is preserved.
+> **Historical v4 successor:** The user approved initial/current scenes with object labels and separate static-context/goal pages. See [v4](v4.md) and `study-v4.json`. Exact text inputs/checkpoints and cumulative spending are retained.
+
+> **Historical v3 successor:** The user approved the smaller cost-qualified final panel and agent-executed training. See [v3 execution](v3.md) and `study-v3.json`. V2 hardware qualification and spent time are retained; historical scope below is preserved.
 
 # Matched modalities under a twelve-hour experiment budget
 
-> Current successor: [v2 completion scope](v2.md), authorized by the user's
+> Historical v2 successor: [v2 completion scope](v2.md), authorized by the user's
 > request to finish #92 and execute training. It changes only the prospective
 > Storage profile/seed range, with no learned-outcome selection or new GPU budget.
 > The v1 protocol and stop below remain historical; use `study-v2.json` for v2.
