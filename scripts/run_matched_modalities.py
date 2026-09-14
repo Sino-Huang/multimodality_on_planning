@@ -203,7 +203,9 @@ def main(argv=None):
         try:
             study = read_json(args.study)
             validate_settings(study, args.devices, args.master_ports)
-            if study["study_id"] in {"matched-modalities-v2", "matched-modalities-v3", "matched-modalities-v4", "matched-modalities-v5"}:
+            if study["study_id"] in {
+                "matched-modalities-v2", "matched-modalities-v3", "matched-modalities-v4", "matched-modalities-v5"
+            }:
                 if (
                     list(map(str, study["launch"]["devices"])) != args.devices
                     or study["launch"]["master_ports"] != args.master_ports
