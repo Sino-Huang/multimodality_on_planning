@@ -29,7 +29,7 @@
     "multimodal-state": 5176
   },
   "gpu_qualification": "PASS: both A100s, all modalities and algorithm families, timing admission",
-  "image_training_complete": false,
+  "image_training_complete": true,
   "independent_verification": "PASS",
   "focused_tests_passed": 29,
   "visual_gpu_qualification": "PASS on both A100s",

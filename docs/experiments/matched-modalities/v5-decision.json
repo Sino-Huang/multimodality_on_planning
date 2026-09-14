@@ -1,0 +1,17 @@
+{
+  "outcome": "PASS",
+  "decision": "CONTINUE",
+  "training_cells": 12,
+  "positive_score_required": false,
+  "final_evaluation_executed": false,
+  "study_id": "matched-modalities-v5",
+  "training_evidence": "docs/experiments/matched-modalities/v5-training.json",
+  "qualification_evidence": "docs/experiments/matched-modalities/v5-qualification.json",
+  "cumulative_spent_seconds": {
+    "qualify": 4745.354118108749,
+    "train": 6744.416471004486,
+    "evaluate": 0
+  },
+  "final_evaluation_estimate_seconds": 17155.46091380529,
+  "final_evaluation_available_seconds": 21600
+}
