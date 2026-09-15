@@ -215,6 +215,7 @@ def test_repository_protocol_binds_real_bfs_membership_and_checkpoints():
     p = read(ROOT / "configs/experiments/expanded-study/dagger-protocol.json")
     context = validate_protocol(ROOT, p)
     assert len(context["source_records"]) == 512
+    assert all(row["trace_paths"]["bfs"] == row["source_trace_path"] for row in context["source_records"])
     assert len(p["collection"]["task_order"]) == 25
     assert p["collection"]["allowed_split"] == "train"
     assert p["training"]["arms"] == ["dagger", "continued_sft"]

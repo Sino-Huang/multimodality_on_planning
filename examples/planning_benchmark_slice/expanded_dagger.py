@@ -442,7 +442,21 @@ def validate_protocol(root: Path, protocol: Mapping[str, Any]) -> dict[str, Any]
         raise ValueError("expanded DAgger protocol differs from its inherited frozen contracts")
     corpus = ModalityCorpus(root, root / study["corpus_report"], scene_views=study["scene_views"])
     indexed = {row["record_id"]: row for row in corpus.records(algorithm="bfs", split="train")}
-    source_records = [indexed[record_id] for record_id in source_ids]
+    corpus_report = read_json(root / study["corpus_report"])
+    task_metadata = {row["task_id"]: row for row in corpus_report["results"]}
+    source_records = []
+    for record_id in source_ids:
+        row = dict(indexed[record_id])
+        metadata = task_metadata[row["task_id"]]
+        if (
+            metadata["split"] != "train"
+            or metadata["view_manifest"] != row["view_manifest"]
+            or metadata["source_trace_paths"]["bfs"] != row["source_trace_path"]
+        ):
+            raise ValueError("DAgger live task metadata differs from the frozen corpus record")
+        row["trace_paths"] = metadata["source_trace_paths"]
+        row["reference_costs"] = metadata["reference_costs"]
+        source_records.append(row)
     task_order = []
     for row in source_records:
         if row["task_id"] not in task_order:
