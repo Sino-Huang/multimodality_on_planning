@@ -12,7 +12,7 @@
     83,
     84
   ],
-  "goal4_runner_commit": null,
+  "goal4_runner_commit": "4ba554e535202dc1589a9c679128d4f116adeff8",
   "source_study": "configs/experiments/matched-modalities/study-v5.json",
   "source_membership": "configs/experiments/matched-modalities/membership.json",
   "source_corpus": "outputs/modality_corpus/issue74-matched-32k-v1/release-001/report.json",
@@ -719,9 +719,13 @@
       0,
       1
     ],
-    "master_ports": [
+    "master_port_pool": [
+      18800,
+      18801,
       18802,
-      18803
+      18803,
+      18804,
+      18805
     ],
     "backend_endpoints": [
       "http://127.0.0.1:18092",

@@ -1,0 +1,21 @@
+{
+  "job_id": "dagger-qualification-1",
+  "branch": "dagger",
+  "gpus": [1],
+  "max_seconds": 3600,
+  "total": 1,
+  "command": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/qualify_expanded_dagger.py",
+    "run",
+    "--worker",
+    "1"
+  ],
+  "completion_hook": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/qualify_expanded_dagger.py",
+    "audit-worker",
+    "--worker",
+    "1"
+  ]
+}

@@ -435,6 +435,7 @@ def validate_protocol(root: Path, protocol: Mapping[str, Any]) -> dict[str, Any]
         or protocol["collection"]["max_decisions_per_modality_iteration"] != 512
         or protocol["collection"]["max_corrections_per_modality_iteration"] != 128
         or schedule["allocations_gpu_hours"]["dagger"] != protocol["budget"]["gpu_hours"] != 48
+        or protocol["launch"]["master_port_pool"] != schedule["master_port_pool"]
     ):
         raise ValueError("expanded DAgger protocol differs from its inherited frozen contracts")
     corpus = ModalityCorpus(root, root / study["corpus_report"], scene_views=study["scene_views"])

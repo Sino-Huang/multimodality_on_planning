@@ -65,6 +65,8 @@ def _inference_probe(protocol, context, modality):
     checkpoint = ROOT / protocol["starting_checkpoints"][modality]
     small_row, small = _example(context, modality, largest=False)
     large_row, large = _example(context, modality, largest=True)
+    small = {**small, "messages": small["messages"][:-1]}
+    large = {**large, "messages": large["messages"][:-1]}
     started = time.monotonic()
     policy = VisualPolicy(
         model_id=protocol["model"]["id"],
@@ -196,7 +198,7 @@ def audit_worker(protocol, worker):
         report["outcome"] != "PASS"
         or report["protocol_id"] != protocol["protocol_id"]
         or [row["modality"] for row in report["modalities"]] != assigned
-        or report["master_port"] != protocol["launch"]["master_ports"][worker]
+        or report["master_port"] not in protocol["launch"]["master_port_pool"]
         or (report["collection_decisions"], report["corrections"], report["persistent_training_updates"])
         != (0, 0, 0)
     ):

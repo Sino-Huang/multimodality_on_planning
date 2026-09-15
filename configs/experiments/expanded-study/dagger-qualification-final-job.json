@@ -1,0 +1,17 @@
+{
+  "job_id": "dagger-qualification-final",
+  "branch": "dagger",
+  "gpus": [],
+  "max_seconds": 900,
+  "total": 3,
+  "command": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/qualify_expanded_dagger.py",
+    "final"
+  ],
+  "completion_hook": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/qualify_expanded_dagger.py",
+    "audit-final"
+  ]
+}
