@@ -1,0 +1,9 @@
+{
+  "job_id": "dagger-train-2-0",
+  "branch": "dagger",
+  "gpus": [0],
+  "max_seconds": 21600,
+  "total": 64,
+  "command": ["/home/sukaih/miniconda3/envs/ada_vla/bin/python", "scripts/run_expanded_dagger.py", "train", "--iteration", "2", "--worker", "0"],
+  "completion_hook": ["/home/sukaih/miniconda3/envs/ada_vla/bin/python", "scripts/run_expanded_dagger.py", "audit-training-worker", "--iteration", "2", "--worker", "0"]
+}

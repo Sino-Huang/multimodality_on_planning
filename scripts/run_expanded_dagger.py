@@ -21,6 +21,16 @@ from examples.planning_benchmark_slice.expanded_dagger_collection import (
     collect_cell,
     verify_cell,
 )
+from examples.planning_benchmark_slice.expanded_dagger_evaluation import (
+    ARMS,
+    COMPARATORS,
+    paired_rows,
+    panels,
+    run_cell,
+    summarize,
+    verify_comparator,
+    verify_episode,
+)
 from examples.planning_benchmark_slice.expanded_dagger_training import (
     prepare_membership,
     train_cell,
@@ -464,6 +474,267 @@ def audit_collection_final(protocol, context):
     print("PASS: all three DAgger iteration-two correction sets independently replayed and aggregated")
 
 
+def prepare_evaluation(protocol):
+    training = read(ROOT / protocol["output_root"] / "training" / "iteration-2.json")
+    loaded = panels(ROOT, protocol)
+    if training.get("outcome") != "PASS":
+        raise ValueError("final DAgger and continued-SFT checkpoints are not verified")
+    report = {
+        "outcome": "PASS",
+        "protocol_id": protocol["protocol_id"],
+        "panels": {name: len(tasks) for name, tasks in loaded.items()},
+        "modalities": protocol["modalities"],
+        "new_arms": list(ARMS),
+        "reused_comparators": list(COMPARATORS),
+        "evaluation_seed": protocol["evaluation"]["seed"],
+        "logical_episodes": sum(len(tasks) for tasks in loaded.values())
+        * len(protocol["modalities"])
+        * (len(ARMS) + len(COMPARATORS)),
+    }
+    print(json.dumps(report, indent=2))
+
+
+def run_evaluation(protocol, worker):
+    port = require_worker_environment(protocol, worker)
+    loaded_panels = panels(ROOT, protocol)
+    modalities = assigned(protocol, worker)
+    worker_total = sum(len(tasks) for tasks in loaded_panels.values()) * len(ARMS) * len(modalities)
+    completed_before = 0
+    rows = []
+    started = time.monotonic()
+    progress_path = Path(os.environ["EXPANDED_PROGRESS_PATH"])
+    for modality in modalities:
+        from transformers import set_seed
+
+        from examples.planning_benchmark_slice.visual_attention import configure_visual_attention
+        from examples.planning_benchmark_slice.visual_model import VisualPolicy
+
+        set_seed(protocol["evaluation"]["seed"])
+        adapter_paths = {
+            arm: ROOT / protocol["checkpoint_lineage"][arm].format(modality=modality) for arm in ARMS
+        }
+        policy = VisualPolicy(
+            model_id=protocol["model"]["id"],
+            revision=protocol["model"]["revision"],
+            adapter_paths=adapter_paths,
+            device="cuda:0",
+            max_context_tokens=protocol["model"]["context_tokens"],
+            max_new_tokens=protocol["model"]["output_tokens"],
+            max_batch_size=2,
+            max_batch_input_tokens=24000,
+            inference_dtype=protocol["model"]["inference_dtype"],
+        )
+        configure_visual_attention(policy.model, protocol["model"]["attention"])
+        policy.identity.update(memoize_identical_inputs=False)
+        for panel_name, tasks in loaded_panels.items():
+            for arm in ARMS:
+
+                def generate(examples, arm=arm, policy=policy):
+                    outputs = policy.generate(examples, arm)
+                    tokens = policy.last_generation_usage["generated_sequence_tokens"]
+                    return outputs, [tokens] * len(outputs)
+
+                def progress(
+                    *,
+                    completed,
+                    total,
+                    task_id,
+                    retained,
+                    base=completed_before,
+                    panel_name=panel_name,
+                    modality=modality,
+                    arm=arm,
+                ):
+                    overall = base + completed
+                    elapsed = time.monotonic() - started
+                    write(
+                        progress_path,
+                        {
+                            "completed": overall,
+                            "total": worker_total,
+                            "panel": panel_name,
+                            "modality": modality,
+                            "arm": arm,
+                            "task_id": task_id,
+                            "retained": retained,
+                            "eta_seconds": elapsed * (worker_total - overall) / overall if overall else None,
+                        },
+                    )
+
+                reports = run_cell(
+                    ROOT,
+                    protocol,
+                    panel=panel_name,
+                    modality=modality,
+                    arm=arm,
+                    tasks=tasks,
+                    endpoint=protocol["launch"]["backend_endpoints"][worker],
+                    generate=generate,
+                    progress=progress,
+                )
+                rows.append(
+                    {
+                        "panel": panel_name,
+                        "modality": modality,
+                        "arm": arm,
+                        "episodes": len(reports),
+                        "decisions": sum(report["result"]["decision_count"] for report in reports),
+                        "paths": [report["output"] for report in reports],
+                    }
+                )
+                completed_before += len(tasks)
+        del policy
+        gc.collect()
+        import torch
+
+        torch.cuda.empty_cache()
+    report = {
+        "schema_version": "expanded_dagger_evaluation_worker_v1",
+        "outcome": "PASS",
+        "protocol_id": protocol["protocol_id"],
+        "worker": worker,
+        "modalities": modalities,
+        "cells": rows,
+        "episodes": sum(row["episodes"] for row in rows),
+        "cuda_visible_devices": os.environ["CUDA_VISIBLE_DEVICES"],
+        "master_port": port,
+        "runtime_head": head(),
+        "elapsed_seconds": time.monotonic() - started,
+    }
+    write(Path(os.environ["EXPANDED_ATTEMPT_DIR"]) / "worker-result.json", report)
+    write(progress_path, {"completed": worker_total, "total": worker_total, "terminal": True})
+
+
+def _fresh_evaluation_reports(protocol, worker=None):
+    loaded = panels(ROOT, protocol)
+    reports = []
+    modalities = protocol["modalities"] if worker is None else assigned(protocol, worker)
+    for modality in modalities:
+        owner = next(index for index in range(2) if modality in assigned(protocol, index))
+        endpoint = protocol["launch"]["backend_endpoints"][owner]
+        for panel_name, tasks in loaded.items():
+            for arm in ARMS:
+                for task in tasks:
+                    reports.append(
+                        verify_episode(ROOT, protocol, panel_name, modality, task, arm, endpoint)
+                    )
+    return reports
+
+
+def audit_evaluation_worker(protocol, worker):
+    terminal = read(os.environ["EXPANDED_TERMINAL_PATH"])
+    if terminal["status"] != "succeeded":
+        raise RuntimeError(f"DAgger evaluation worker stopped: inspect {terminal['directory']}/worker.log")
+    report = read(Path(terminal["directory"]) / "worker-result.json")
+    if (
+        report.get("outcome") != "PASS"
+        or report.get("worker") != worker
+        or report.get("modalities") != assigned(protocol, worker)
+        or report.get("master_port") != terminal["master_port"]
+        or terminal["gpus"] != [protocol["launch"]["devices"][worker]]
+    ):
+        raise ValueError("DAgger evaluation worker provenance differs")
+    reports = _fresh_evaluation_reports(protocol, worker)
+    result = {"outcome": "PASS", "worker": worker, "episodes_replayed": len(reports)}
+    write(Path(terminal["directory"]) / "independent-replay.json", result)
+    print(json.dumps(result, indent=2))
+
+
+def _all_comparison_reports(protocol):
+    loaded = panels(ROOT, protocol)
+    reports = []
+    for report in _fresh_evaluation_reports(protocol):
+        reports.append({**report, "comparison_arm": report["arm"]})
+    comparator_conditions = {
+        "original_process_sft": "process_sft",
+        "random_valid": "random_valid",
+        "exact_reference": "exact_reference",
+    }
+    for modality in protocol["modalities"]:
+        owner = next(index for index in range(2) if modality in assigned(protocol, index))
+        endpoint = protocol["launch"]["backend_endpoints"][owner]
+        for panel_name, tasks in loaded.items():
+            for comparison_arm, condition in comparator_conditions.items():
+                for task in tasks:
+                    report = verify_comparator(
+                        ROOT,
+                        protocol,
+                        panel_name,
+                        modality,
+                        task,
+                        condition,
+                        endpoint,
+                    )
+                    reports.append({**report, "panel": panel_name, "comparison_arm": comparison_arm})
+    return reports
+
+
+def _evaluation_evidence(protocol, attempts):
+    reports = _all_comparison_reports(protocol)
+    ledger = read(ROOT / "outputs/expanded-study/v1/budget.json")
+    dagger_attempts = [row for row in ledger["attempts"] if row["branch"] == "dagger"]
+    by_stage = {
+        "qualification_and_iteration_one_collection": sum(
+            row["gpu_hours"]
+            for row in dagger_attempts
+            if not row["job_id"].startswith(("dagger-train-", "dagger-collection-2-", "dagger-evaluate-"))
+        ),
+        "training": sum(row["gpu_hours"] for row in dagger_attempts if row["job_id"].startswith("dagger-train-")),
+        "iteration_two_collection": sum(
+            row["gpu_hours"] for row in dagger_attempts if row["job_id"].startswith("dagger-collection-2-")
+        ),
+        "evaluation": sum(
+            row["gpu_hours"] for row in dagger_attempts if row["job_id"].startswith("dagger-evaluate-")
+        ),
+    }
+    return {
+        "schema_version": "expanded_dagger_evaluation_evidence_v1",
+        "outcome": "PASS",
+        "protocol_id": protocol["protocol_id"],
+        "evaluation_seed": protocol["evaluation"]["seed"],
+        "panels": {name: len(tasks) for name, tasks in panels(ROOT, protocol).items()},
+        "arms": [*ARMS, *COMPARATORS],
+        "episodes_replayed": len(reports),
+        "cells": summarize(reports),
+        "paired_whole_problem_rows": paired_rows(reports),
+        "compute_gpu_hours": by_stage,
+        "cumulative_dagger_gpu_hours": sum(by_stage.values()),
+        "branch_cap_gpu_hours": protocol["budget"]["gpu_hours"],
+        "jobs": [
+            {key: row[key] for key in ("job_id", "attempt", "gpus", "master_port", "gpu_hours")}
+            for row in attempts
+        ],
+    }
+
+
+def finalize_evaluation(protocol):
+    ledger = read(ROOT / "outputs/expanded-study/v1/budget.json")
+    attempts = [latest_attempt(ledger, f"dagger-evaluate-{worker}") for worker in range(2)]
+    if any(row["status"] != "succeeded" for row in attempts) or any(
+        read(Path(row["directory"]) / "hook-result.json").get("returncode") != 0 for row in attempts
+    ):
+        raise ValueError("DAgger evaluation workers or replay hooks are incomplete")
+    report = _evaluation_evidence(protocol, attempts)
+    if report["episodes_replayed"] != 405 or report["cumulative_dagger_gpu_hours"] > report["branch_cap_gpu_hours"]:
+        raise ValueError("DAgger evaluation coverage or branch budget is incomplete")
+    path = ROOT / protocol["output_root"] / "evaluation" / "evidence.json"
+    write(path, report)
+    write(os.environ["EXPANDED_PROGRESS_PATH"], {"completed": 405, "total": 405})
+    print(json.dumps(report, indent=2))
+
+
+def audit_evaluation_final(protocol):
+    terminal = read(os.environ["EXPANDED_TERMINAL_PATH"])
+    path = ROOT / protocol["output_root"] / "evaluation" / "evidence.json"
+    report = read(path)
+    ledger = read(ROOT / "outputs/expanded-study/v1/budget.json")
+    attempts = [latest_attempt(ledger, f"dagger-evaluate-{worker}") for worker in range(2)]
+    actual = _evaluation_evidence(protocol, attempts)
+    if terminal["status"] != "succeeded" or report != actual:
+        raise ValueError("published DAgger evaluation differs from independent replay and accounting")
+    print("PASS: all 405 DAgger comparison episodes independently replayed")
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(__doc__)
     parser.add_argument(
@@ -478,6 +749,11 @@ def main(argv=None):
             "audit-collection-worker",
             "finalize-collection",
             "audit-collection-final",
+            "prepare-evaluation",
+            "evaluate",
+            "audit-evaluation-worker",
+            "finalize-evaluation",
+            "audit-evaluation-final",
         ),
     )
     parser.add_argument("--protocol", type=Path, default=PROTOCOL)
@@ -494,7 +770,14 @@ def main(argv=None):
         "audit-training-final",
     } and args.iteration is None:
         parser.error(f"{args.stage} requires --iteration")
-    worker_stages = {"train", "audit-training-worker", "collect-iteration-two", "audit-collection-worker"}
+    worker_stages = {
+        "train",
+        "audit-training-worker",
+        "collect-iteration-two",
+        "audit-collection-worker",
+        "evaluate",
+        "audit-evaluation-worker",
+    }
     if args.stage in worker_stages and args.worker is None:
         parser.error(f"{args.stage} requires --worker")
     functions = {
@@ -507,6 +790,11 @@ def main(argv=None):
         "audit-collection-worker": lambda: audit_collection_worker(protocol, context, args.worker),
         "finalize-collection": lambda: finalize_collection(protocol, context),
         "audit-collection-final": lambda: audit_collection_final(protocol, context),
+        "prepare-evaluation": lambda: prepare_evaluation(protocol),
+        "evaluate": lambda: run_evaluation(protocol, args.worker),
+        "audit-evaluation-worker": lambda: audit_evaluation_worker(protocol, args.worker),
+        "finalize-evaluation": lambda: finalize_evaluation(protocol),
+        "audit-evaluation-final": lambda: audit_evaluation_final(protocol),
     }
     functions[args.stage]()
 

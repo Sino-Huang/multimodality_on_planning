@@ -1,0 +1,9 @@
+{
+  "job_id": "dagger-evaluate-final",
+  "branch": "dagger",
+  "gpus": [],
+  "max_seconds": 21600,
+  "total": 405,
+  "command": ["/home/sukaih/miniconda3/envs/ada_vla/bin/python", "scripts/run_expanded_dagger.py", "finalize-evaluation"],
+  "completion_hook": ["/home/sukaih/miniconda3/envs/ada_vla/bin/python", "scripts/run_expanded_dagger.py", "audit-evaluation-final"]
+}
