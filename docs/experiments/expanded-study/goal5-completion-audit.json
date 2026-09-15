@@ -200,6 +200,7 @@
     "ruff": "All checks passed"
   },
   "publication": {
+    "evidence_commit": "48f51d30a62ea90f3dee42a6af60676305ed95c0",
     "implementation_commits": [
       "f338b17589ce4454d255b68a4ef75b7eacedf772",
       "72180e1",
@@ -231,6 +232,12 @@
         "state": "OPEN",
         "reason": "iteration-two replay remains Goal 6"
       }
+    ],
+    "progress_comments": [
+      "https://github.com/Sino-Huang/multimodality_on_planning/issues/80#issuecomment-5679300575",
+      "https://github.com/Sino-Huang/multimodality_on_planning/issues/81#issuecomment-5679302460",
+      "https://github.com/Sino-Huang/multimodality_on_planning/issues/82#issuecomment-5679304059",
+      "https://github.com/Sino-Huang/multimodality_on_planning/issues/83#issuecomment-5679305744"
     ]
   }
 }
