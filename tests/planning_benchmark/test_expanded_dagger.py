@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from examples.planning_benchmark_slice import expanded_dagger_collection as collection
 from examples.planning_benchmark_slice.expanded_dagger import (
     DaggerBFSSession,
     aggregate_update,
@@ -16,7 +17,6 @@ from examples.planning_benchmark_slice.expanded_dagger import (
 from examples.planning_benchmark_slice.expanded_scheduler import ROOT, read
 from examples.planning_benchmark_slice.modality_corpus_replay import canonical
 from examples.planning_benchmark_slice.visual_episode import VisualSession
-
 
 DOMAIN = """(define (domain rooms) (:requirements :strips) (:predicates (at ?x) (link ?x ?y))
 (:action move :parameters (?x ?y) :precondition (and (at ?x) (link ?x ?y))
@@ -251,3 +251,101 @@ def test_training_loader_continues_existing_adapter_weights(monkeypatch):
     assert load_training_model(config, "checkpoint/final") is model
     assert loaded == {"base": model, "path": "checkpoint/final", "is_trainable": True}
     assert model.training and not model.config.use_cache
+
+
+def test_collection_journal_resumes_and_preserves_correction_quota_stop(tmp_path, monkeypatch):
+    p = protocol()
+    p["algorithm"] = "bfs"
+    p["output_root"] = "dagger-output"
+    p["collection"].update(
+        allowed_split="train",
+        seed=17,
+        max_decisions_per_modality_iteration=10,
+        max_corrections_per_modality_iteration=2,
+    )
+    p["views"]["source"] = "unused-scene-views.json"
+    p["model"] = {"id": "model", "revision": "revision", "output_tokens": 384}
+    row = {
+        "task_id": "tiny/train-task",
+        "domain": "rooms",
+        "difficulty": "easy",
+        "view_manifest": "unused-view-manifest.json",
+    }
+
+    class Views:
+        def __init__(self, *args, read_only=False, **kwargs):
+            self.read_only = read_only
+
+        def observe(self, raw, algorithm, *, modality, pixels=True):
+            return {
+                "messages": [],
+                "images": [],
+                "binding": {"state": raw["observation"]["state_id"], "input_pages": [], "input_tokens": 1},
+            }
+
+        def save(self):
+            pass
+
+    monkeypatch.setattr(collection, "VisualTaskViews", Views)
+    monkeypatch.setattr(collection, "VisualSession", lambda *args, **kwargs: session(tmp_path))
+    calls = 0
+
+    def interrupted(_example):
+        nonlocal calls
+        calls += 1
+        if calls == 2:
+            raise RuntimeError("simulated collector interruption")
+        return "not json", 2
+
+    with pytest.raises(RuntimeError, match="simulated"):
+        collection._collect_episode(
+            tmp_path,
+            p,
+            row,
+            modality="text-state",
+            iteration=1,
+            checkpoint="start",
+            endpoint="unused",
+            collection_offset=0,
+            corrections_before=0,
+            generate=interrupted,
+            progress=lambda **values: None,
+        )
+    base = collection.cell_root(tmp_path, p, "text-state", 1)
+    episode_path, journal_path, _ = collection._episode_paths(base, row["task_id"])
+    assert journal_path.exists() and not episode_path.exists()
+    assert len(collection.read_json(journal_path)["decisions"]) == 1
+
+    report, retained = collection._collect_episode(
+        tmp_path,
+        p,
+        row,
+        modality="text-state",
+        iteration=1,
+        checkpoint="start",
+        endpoint="unused",
+        collection_offset=0,
+        corrections_before=0,
+        generate=lambda _example: ("not json", 2),
+        progress=lambda **values: None,
+    )
+    assert not retained and not journal_path.exists()
+    assert report["result"]["stop_reason"] == "correction_quota"
+    assert [decision["collection_decision_index"] for decision in report["decisions"]] == [0, 1, 2]
+    assert sum(decision["correction"] is not None for decision in report["decisions"]) == 2
+    assert report["decisions"][-1]["correction"] is None
+
+    replayed, retained = collection._collect_episode(
+        tmp_path,
+        p,
+        row,
+        modality="text-state",
+        iteration=1,
+        checkpoint="start",
+        endpoint="unused",
+        collection_offset=0,
+        corrections_before=0,
+        generate=lambda _example: pytest.fail("retained episode made a new model call"),
+        progress=lambda **values: None,
+    )
+    assert retained and replayed == report
