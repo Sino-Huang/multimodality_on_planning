@@ -84,8 +84,8 @@ def test_reference_catalog_preserves_producing_operation_paths(tmp_path, monkeyp
 
 def test_live_view_restore_replays_reference_states_into_authority(tmp_path, monkeypatch):
     from examples.planning_benchmark_slice import expanded_candidates as candidates
-    from examples.planning_benchmark_slice.expanded_views import reference_catalog, ExpandedTaskViews
     from examples.planning_benchmark_slice.expanded_scheduler import write
+    from examples.planning_benchmark_slice.expanded_views import ExpandedTaskViews, reference_catalog
 
     task = read(ROOT / "tests/fixtures/planning/blocksworld_nontrivial.json")
     monkeypatch.setattr(candidates, "generate", lambda *args: task)
@@ -114,8 +114,9 @@ def test_live_view_restore_replays_reference_states_into_authority(tmp_path, mon
 
 def test_distinct_episodes_cannot_share_a_new_state_image_cache(tmp_path, monkeypatch):
     from PIL import Image
-    from examples.planning_benchmark_slice.expanded_views import ExpandedTaskViews
+
     from examples.planning_benchmark_slice.expanded_scheduler import write
+    from examples.planning_benchmark_slice.expanded_views import ExpandedTaskViews
 
     source = read(ROOT / "tests/fixtures/planning/blocksworld_nontrivial.json")
     write(tmp_path / "task.json", source)

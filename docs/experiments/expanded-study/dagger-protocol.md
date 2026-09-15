@@ -115,3 +115,52 @@ The final job is launched only after both GPU jobs and their hooks finish.
 Goal 5 performs no parameter update. Issues #80–#83 remain open until Goal 6
 uses the verified iteration-one data, collects iteration two from the updated
 DAgger policies, and verifies the complete two-iteration coverage.
+
+## Goal 6 execution and result
+
+Goal 6 followed the frozen alternating order. The first training round consumed
+the verified iteration-one aggregations and the unchanged original-SFT control
+membership. Iteration-two collection then loaded each modality's DAgger
+iteration-one final adapter. The final training round loaded the matching
+DAgger or continued-SFT iteration-one adapter with a new optimizer and scheduler.
+All twelve training cells used 512 records, seed 17, one epoch and 16 optimizer
+updates; independent hooks verified every final checkpoint and its lineage.
+
+Iteration two collected 128 expert corrections per modality from training tasks
+only. Text used 307 student decisions, visual used 357, and multimodal used 290.
+Each cell retained 129 invalid student operations, including the final rejection
+after correction-quota exhaustion. Independent replay verified all 384 new
+corrections and 37 completed episodes. Deduplication across both genuine
+on-policy rounds left 201 cumulative text corrections, 203 visual corrections
+and 181 multimodal corrections in the three final 512-record DAgger
+aggregations. No quota was transferred or filled.
+
+Evaluation used only the final iteration-two checkpoints. The fixed comparison
+contains five arms on all three modalities over the same three development and
+24 unseen tasks, for 405 episodes and 81 whole-problem modality-task rows.
+Original process SFT, random-valid and exact-reference records were reused and
+verified under the same contracts. Both the scheduled completion hook and a
+standalone audit independently replayed all 405 episodes.
+
+The result does not support a DAgger advantage. On the 72 unseen
+modality-task rows, DAgger and exposure-matched continued SFT each achieved one
+invariant-valid success, with one paired DAgger win, one paired loss and 70
+ties. Original SFT achieved zero successes, random-valid achieved 45, and exact
+reference achieved 72. DAgger made 71 invalid operations in 225 decisions
+(31.56%); continued SFT made 71 in 406 (17.49%). Development results were 3/9
+for DAgger, 2/9 for continued SFT, 1/9 for original SFT, 6/9 for random-valid,
+and 9/9 for exact reference. These are single-training-seed results and do not
+estimate training-seed variance.
+
+The branch consumed 10.909219 GPU-hours of its unchanged 48-GPU-hour cap:
+2.220535 for qualification and iteration-one collection, 3.197716 for training,
+2.898848 for iteration-two collection, and 2.592120 for evaluation. This total
+includes 0.316394 GPU-hours from retained technical failures. The evaluation
+retry repaired missing expanded-view persistence fields in `a0b8d53` and resumed
+the frozen completed episodes and pending journals; it did not replace or select
+outcomes.
+
+The tracked comparison is `dagger-comparison.json`, including every paired row,
+separate validity/search, expert-query and compute fields. The complete
+requirements, artifact digests, scheduler attempts and replay results are in
+`goal6-completion-audit.json`.
