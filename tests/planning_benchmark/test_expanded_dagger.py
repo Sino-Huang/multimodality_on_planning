@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 
 from examples.planning_benchmark_slice import expanded_dagger_collection as collection
+from examples.planning_benchmark_slice import expanded_dagger_training as training
 from examples.planning_benchmark_slice.expanded_dagger import (
     DaggerBFSSession,
     aggregate_update,
@@ -227,6 +228,16 @@ def test_aggregation_matches_512_record_continued_sft_exposure_and_never_duplica
     assert dagger["original_sft_records"] == 511 and dagger["unique_corrections"] == 1
     assert dagger["records"][-1]["record_id"] == correction["correction_id"]
     assert continued["optimizer_updates"] == dagger["optimizer_updates"] == 16
+    through_empty_second_iteration = aggregate_update(
+        source,
+        [correction],
+        p,
+        modality="text-state",
+        through_iteration=2,
+        arm="dagger",
+        target_token_counter=lambda _: 1,
+    )
+    assert through_empty_second_iteration["records"] == dagger["records"]
 
 
 def test_repository_protocol_binds_real_bfs_membership_and_checkpoints():
@@ -271,6 +282,103 @@ def test_training_loader_continues_existing_adapter_weights(monkeypatch):
     assert load_training_model(config, "checkpoint/final") is model
     assert loaded == {"base": model, "path": "checkpoint/final", "is_trainable": True}
     assert model.training and not model.config.use_cache
+
+
+def test_iteration_two_aggregation_includes_prior_corrections(tmp_path):
+    p = protocol()
+    p["output_root"] = "dagger-output"
+    prior = [{"correction_id": "iteration-1"}]
+    current = [{"correction_id": "iteration-2"}]
+    collection.write_json(
+        collection.cell_root(tmp_path, p, "text-state", 1) / "corrections.json.gz",
+        {"corrections": prior},
+    )
+    assert collection.cumulative_corrections(tmp_path, p, "text-state", 2, current) == [*prior, *current]
+
+
+def test_continued_sft_membership_and_training_lineage_are_frozen(tmp_path):
+    source = [
+        {
+            "record_id": f"source-{i}",
+            "task_id": "tiny/train-task",
+            "split": "train",
+            "authoritative_input": {"i": i},
+            "view_manifest": "view.json",
+            "state": i,
+            "input_pages": [],
+            "target": {"target": i},
+        }
+        for i in range(512)
+    ]
+    p = protocol(source_ids=[row["record_id"] for row in source])
+    p["output_root"] = "dagger-output"
+    p["training"].update(arms=["dagger", "continued_sft"], epochs=1)
+    p["checkpoint_lineage"]["continued_sft_iteration_1"] = "continued/{modality}/iteration-1"
+    path, membership = training.prepare_membership(
+        tmp_path,
+        p,
+        source,
+        modality="text-state",
+        arm="continued_sft",
+        iteration=2,
+        target_token_counter=lambda _: 1,
+    )
+    assert path.is_file()
+    assert membership["record_count"] == membership["original_sft_records"] == 512
+    assert membership["unique_corrections"] == 0
+    assert training.training_checkpoint(p, "text-state", "continued_sft", 1) == "start"
+    assert training.training_checkpoint(p, "text-state", "continued_sft", 2) == "continued/text-state/iteration-1"
+
+
+def test_training_dataset_reuses_exact_persisted_correction_view(tmp_path, monkeypatch):
+    p = protocol()
+    p.update(output_root="dagger-output")
+    p["views"]["source"] = "scene-views.json"
+    row = {"record_id": "source", "task_id": "tiny/train-task", "view_manifest": "view.json"}
+
+    class Corpus:
+        def training_example(self, source, modality):
+            return {"messages": [{"role": "user", "content": "source"}], "images": []}
+
+    observed = {}
+
+    class Views:
+        def __init__(self, *args, **kwargs):
+            observed["constructor"] = (args, kwargs)
+
+        def observe(self, raw, algorithm, *, modality):
+            observed.update(raw=raw, algorithm=algorithm, modality=modality)
+            return {
+                "messages": [{"role": "user", "content": "correction"}],
+                "images": [],
+                "binding": {"state": 2},
+            }
+
+    monkeypatch.setattr(training, "VisualTaskViews", Views)
+    membership = {
+        "modality": "text-state",
+        "records": [
+            {
+                "source_kind": "dagger_correction",
+                "record_id": "test-dagger:text-state:iteration-1:decision-3",
+                "task_id": "tiny/train-task",
+                "input": {"observable": True},
+                "view": {"state": 2},
+                "target": {"answer": 1},
+            }
+        ],
+    }
+    dataset = training.DaggerTrainingDataset(
+        tmp_path,
+        p,
+        {"corpus": Corpus(), "source_records": [row]},
+        membership,
+        endpoint="unused",
+    )
+    example = dataset[0]
+    assert observed["raw"] == {"observable": True}
+    assert observed["algorithm"] == "bfs" and observed["modality"] == "text-state"
+    assert example["messages"][-1] == {"role": "assistant", "content": canonical({"answer": 1})}
 
 
 def test_collection_journal_resumes_and_preserves_correction_quota_stop(tmp_path, monkeypatch):

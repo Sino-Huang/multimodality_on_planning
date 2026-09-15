@@ -394,6 +394,21 @@ def _target_token_count(target: Mapping[str, Any]) -> int:
     return len(tokenizer(canonical(target), add_special_tokens=False)["input_ids"])
 
 
+def cumulative_corrections(
+    root: Path,
+    protocol: Mapping[str, Any],
+    modality: str,
+    iteration: int,
+    current: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    corrections = []
+    for prior_iteration in range(1, iteration):
+        prior = read_json(cell_root(root, protocol, modality, prior_iteration) / "corrections.json.gz")
+        corrections.extend(prior["corrections"])
+    corrections.extend(current)
+    return corrections
+
+
 def verify_cell(
     root: Path,
     protocol: Mapping[str, Any],
@@ -478,9 +493,10 @@ def verify_cell(
         iteration=iteration,
         target_token_counter=_target_token_count,
     )
+    aggregate_corrections = cumulative_corrections(root, protocol, modality, iteration, corrections)
     aggregate = aggregate_update(
         source_records,
-        corrections,
+        aggregate_corrections,
         protocol,
         modality=modality,
         through_iteration=iteration,

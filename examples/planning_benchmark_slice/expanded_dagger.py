@@ -348,7 +348,7 @@ def aggregate_update(
         seen_inputs = set()
         for iteration in range(1, through_iteration + 1):
             certified = certify_corrections(
-                grouped[iteration],
+                grouped.get(iteration, []),
                 protocol,
                 modality=modality,
                 iteration=iteration,
