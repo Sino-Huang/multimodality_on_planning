@@ -250,6 +250,8 @@ def replay_dagger_episode(
         )
         if actual != expected:
             raise ValueError("DAgger replay decision or correction differs")
+    if report["result"]["stop_reason"] == "session_complete" and wrapper.next_request(views, pixels=False) is not None:
+        raise ValueError("DAgger replay retained another request after reported session completion")
     replayed = wrapper.finish(report["result"]["stop_reason"])
     if replayed != report:
         raise ValueError("DAgger replay episode result differs")

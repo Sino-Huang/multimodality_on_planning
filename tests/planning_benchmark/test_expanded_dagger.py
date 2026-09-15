@@ -119,6 +119,24 @@ def test_exhausted_correction_quota_retains_rejection_without_applying_it(tmp_pa
     assert replay_dagger_episode(report, p, session(tmp_path)) == report
 
 
+def test_complete_episode_replay_advances_trusted_session_to_termination(tmp_path):
+    p = protocol()
+    wrapper = DaggerBFSSession(
+        session(tmp_path),
+        p,
+        task_id="tiny/train-task",
+        split="train",
+        modality="text-state",
+        iteration=1,
+        starting_checkpoint="start",
+    )
+    while wrapper.next_request() is not None:
+        wrapper.submit_student(wrapper.session.reference_output())
+    report = wrapper.finish("session_complete")
+    assert report["result"]["trusted_session_termination_reason"] is not None
+    assert replay_dagger_episode(report, p, session(tmp_path)) == report
+
+
 def test_certification_rejects_split_drift_and_conflicting_identical_inputs(tmp_path):
     p = protocol()
     wrapper = DaggerBFSSession(
