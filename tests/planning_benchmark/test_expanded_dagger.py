@@ -86,6 +86,16 @@ def test_invalid_student_is_not_applied_and_expert_uses_exact_last_valid_input(t
 
     replayed = replay_dagger_episode(report, p, session(tmp_path))
     assert replayed == report
+    hidden_teacher = copy.deepcopy(report)
+    hidden_teacher["decisions"][0]["student_input"]["teacher_operation"] = {"hidden": True}
+    hidden_teacher["decisions"][0]["correction"]["student_input"] = hidden_teacher["decisions"][0][
+        "student_input"
+    ]
+    hidden_teacher["decisions"][0]["correction"]["expert_query"]["model_input"] = hidden_teacher["decisions"][
+        0
+    ]["student_input"]
+    with pytest.raises(ValueError, match="input differs"):
+        replay_dagger_episode(hidden_teacher, p, session(tmp_path))
 
 
 def test_exhausted_correction_quota_retains_rejection_without_applying_it(tmp_path):
@@ -128,6 +138,14 @@ def test_certification_rejects_split_drift_and_conflicting_identical_inputs(tmp_
     drift["split"] = "dev"
     with pytest.raises(ValueError, match="provenance"):
         certify_corrections([drift], p, modality="text-state", iteration=1, target_token_counter=lambda _: 1)
+
+    serializer = copy.deepcopy(correction)
+    serializer["view_serializer"] = "different"
+    with pytest.raises(ValueError, match="provenance"):
+        certify_corrections([serializer], p, modality="text-state", iteration=1, target_token_counter=lambda _: 1)
+
+    with pytest.raises(ValueError, match="output allowance"):
+        certify_corrections([correction], p, modality="text-state", iteration=1, target_token_counter=lambda _: 385)
 
     conflict = copy.deepcopy(correction)
     conflict["correction_id"] += ":conflict"

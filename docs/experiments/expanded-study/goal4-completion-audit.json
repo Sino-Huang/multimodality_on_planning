@@ -1,0 +1,60 @@
+{
+  "status": "ready_for_issue_closeout",
+  "requirements": {
+    "last_valid_training_state": "DaggerBFSSession validates student output without mutating Search Memory, stores the full last-valid memory and observable input, and queries the expert from the unchanged pending request",
+    "raw_student_provenance": "correction records preserve raw student text, strict parse result, trusted runtime result, invalid-operation charge, model input and view binding",
+    "rejected_student_not_applied": "pure BFS validation precedes mutation; invalid student operations never enter trusted rollout events; a separately recorded accepted expert operation may continue the rollout",
+    "expert_query_accounting": "each correction records expert_query_charge=1, invalid_operation_charge=1 and the accepted expert target/runtime result",
+    "rollout_correction_links": "correction IDs, global collection decision indices, last-valid accepted-event counts and applied rollout-event indices bind each correction to its episode",
+    "independent_replay": "replay_dagger_episode reconstructs every input, validation, correction, applied event and final Search Memory without model calls; tampered hidden teacher input is rejected",
+    "split_isolation": "the interface accepts only split=train and the frozen 25-task order is derived exactly from the original BFS training membership; development/final tasks are rejected",
+    "certification": "certify_corrections rejects provenance, task, checkpoint, modality, iteration, serializer, expert-input, output-budget and conflicting-identical-input drift",
+    "bfs_three_modalities": "dagger-protocol.json fixes BFS with text-state, visual-state and multimodal-state",
+    "two_sequential_iterations": "execution order requires iteration-1 collection/replay and update before iteration-2 collection from the DAgger iteration-1 checkpoint",
+    "bounded_collection": "each modality/iteration has at most 512 student decisions and 128 expert corrections, with per-task model calls fixed at twice matching exact-reference decisions",
+    "unused_quota": "quota expires within its modality/iteration; correction exhaustion retains the next rejected student output without repair and stops; no transfer, duplication or invention is allowed",
+    "aggregation": "all unique cumulative corrections replace the suffix of the fixed ordered original membership; repeated genuine inputs are retained as evidence but only the earliest trains; original records fill unused slots",
+    "matched_update_exposure": "DAgger and continued-SFT both use exactly 512 records, one epoch, global batch 32, seed 17, sequential no-shuffle sampling and 16 optimizer updates per iteration",
+    "continued_sft_controls": "continued-SFT uses the unchanged original 512 BFS records in both iterations and follows its own two-step checkpoint lineage from the same starting adapter",
+    "checkpoint_policy": "one training seed 17 per cell, new optimizer/scheduler per iteration, adapter weights only for continuation, final checkpoint only for evaluation and no training-seed variance claim",
+    "estimand": "the protocol states a within-modality DAgger-versus-continued-SFT effect; separately on-policy modality trajectories are not treated as paired modality evidence",
+    "hardware_qualification": "both A100 workers loaded all three BFS adapters, ran prompt-only full-output scalar and repeated-batch inference, and completed finite discarded trainable-adapter optimizer steps without changing checkpoints",
+    "scheduler_and_ports": "shared scheduler attempts dagger-qualification-0/1 and final audit succeeded with passing hooks; exact MASTER_PORT mapping is GPU0=18800 and GPU1=18801",
+    "cost_admission": "dagger-qualification.json records 0.14161082983016968 GPU-hours spent, 234.941909 full-allowance GPU-hours as infeasible, and 35.458081 conditional historical-consumption GPU-hours within the fixed 48-hour cap",
+    "no_outcome_selected_scope": "all declared tasks/panels remain; coverage_reduction is null and model outcomes were not used for coverage selection",
+    "no_scientific_execution": "qualification records zero collection decisions, corrections and persistent training updates; Goals 5 and 6 retain ownership of collection and scientific training",
+    "tests": "33 affected visual, multimodal, expanded-baseline and DAgger tests passed; the six focused DAgger tests include hidden-teacher, replay, split, serializer, budget, conflict, quota and aggregation checks"
+  },
+  "verification_commands": [
+    "source ~/cd_vlaplan && python scripts/qualify_expanded_dagger.py prepare",
+    "source ~/cd_vlaplan && EXPANDED_TERMINAL_PATH=outputs/expanded-study/v1/jobs/dagger-qualification-final/1/terminal.json python scripts/qualify_expanded_dagger.py audit-final",
+    "source ~/cd_vlaplan && python -m pytest tests/planning_benchmark/test_expanded_dagger.py tests/planning_benchmark/test_visual_development.py tests/planning_benchmark/test_multimodal_development.py tests/planning_benchmark/test_expanded_baseline.py -q"
+  ],
+  "verification_results": {
+    "protocol_prepare": "PASS: 512 source records, 25 training tasks, three modality envelopes, zero collection/training",
+    "hardware_and_cost_audit": "PASS: frozen DAgger protocol, hardware paths and conditional cost admission",
+    "affected_tests": "33 passed",
+    "qualification_gpu_hours": 0.14161082983016968,
+    "full_allowance_gpu_hours": 234.94190919820994,
+    "conditional_historical_consumption_gpu_hours": 35.45808053651954,
+    "branch_cap_gpu_hours": 48
+  },
+  "publication": {
+    "interface_commit": "4ba554e535202dc1589a9c679128d4f116adeff8",
+    "freeze_commit": "09aed2c7d3091c578512e4e1c913cc746e3490ce",
+    "evidence_commit": "622786e45e169f14cf752d3534070b7098eb6896",
+    "issues": [
+      {
+        "number": 78,
+        "state": "OPEN",
+        "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/78"
+      },
+      {
+        "number": 79,
+        "state": "OPEN",
+        "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/79"
+      }
+    ],
+    "closeouts": []
+  }
+}
