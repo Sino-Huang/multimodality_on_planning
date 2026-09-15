@@ -321,10 +321,28 @@ def final(protocol):
         raise RuntimeError("VALID_STOP: DAgger conditional cost admission exceeds the branch cap")
 
 
-def audit_final():
+def audit_final(protocol):
     terminal = read(os.environ["EXPANDED_TERMINAL_PATH"])
     report = read(ROOT / "docs/experiments/expanded-study/dagger-qualification.json")
-    if terminal["status"] != "succeeded" or report["outcome"] != "PASS" or not report["hardware_qualified"]:
+    ledger = read(ROOT / "outputs/expanded-study/v1/budget.json")
+    attempts = [_latest_attempt(ledger, f"dagger-qualification-{worker}") for worker in range(2)]
+    ports = [attempt["master_port"] for attempt in attempts]
+    if (
+        terminal["status"] != "succeeded"
+        or report["outcome"] != "PASS"
+        or not report["hardware_qualified"]
+        or any(attempt["status"] != "succeeded" for attempt in attempts)
+        or len(set(ports)) != 2
+        or any(port not in protocol["launch"]["master_port_pool"] for port in ports)
+        or any(read(Path(attempt["directory"]) / "hook-result.json")["returncode"] != 0 for attempt in attempts)
+        or report["qualification_gpu_hours_spent"] != sum(attempt["gpu_hours"] for attempt in attempts)
+        or report["full_allowance_completion_guaranteed"]
+        or not report["conditional_cost_admission"]
+        or report["coverage_reduction"] is not None
+        or report["collection_started"]
+        or report["persistent_training_updates"] != 0
+        or (ROOT / protocol["output_root"]).exists()
+    ):
         raise RuntimeError("DAgger protocol qualification did not pass")
     print("PASS: frozen DAgger protocol, hardware paths and conditional cost admission")
 
@@ -350,7 +368,7 @@ def main(argv=None):
     elif args.stage == "final":
         final(protocol)
     else:
-        audit_final()
+        audit_final(protocol)
 
 
 if __name__ == "__main__":
