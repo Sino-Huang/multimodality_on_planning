@@ -1,5 +1,5 @@
 {
-  "status": "ready_for_issue_closeout",
+  "status": "complete",
   "requirements": {
     "last_valid_training_state": "DaggerBFSSession validates student output without mutating Search Memory, stores the full last-valid memory and observable input, and queries the expert from the unchanged pending request",
     "raw_student_provenance": "correction records preserve raw student text, strict parse result, trusted runtime result, invalid-operation charge, model input and view binding",
@@ -46,15 +46,20 @@
     "issues": [
       {
         "number": 78,
-        "state": "OPEN",
+        "state": "CLOSED",
+        "closedAt": "2026-09-15T03:31:04Z",
         "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/78"
       },
       {
         "number": 79,
-        "state": "OPEN",
+        "state": "CLOSED",
+        "closedAt": "2026-09-15T03:31:05Z",
         "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/79"
       }
     ],
-    "closeouts": []
+    "closeouts": [
+      "https://github.com/Sino-Huang/multimodality_on_planning/issues/78#issuecomment-5674278155",
+      "https://github.com/Sino-Huang/multimodality_on_planning/issues/79#issuecomment-5674278486"
+    ]
   }
 }
