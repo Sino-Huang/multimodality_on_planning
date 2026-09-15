@@ -67,7 +67,10 @@ def reference_catalog(root, row, reference_paths, study_id):
         task_context=authority.task_context(),
         states=views.states,
         decisions=decisions,
-        scope="all source/current and accepted-successor states in frozen exact references; not full reachability closure",
+        scope=(
+            "all source/current and accepted-successor states in frozen exact references; "
+            "not full reachability closure"
+        ),
     )
 
 
@@ -76,6 +79,7 @@ class ExpandedTaskViews(VisualTaskViews):
 
     def __init__(self, root, task, output, endpoint, *, read_only=False):
         import copy
+
         from .modality_corpus_replay import canonical
         from .scene_only_views import SceneOnlyViews
 
@@ -90,11 +94,15 @@ class ExpandedTaskViews(VisualTaskViews):
         self.states = list(self.catalog["states"])
         self.original_count = len(self.states)
         self.dynamic_path = output / "views.json.gz"
+        self.scene_only_paths = {}
+        self.scene_only_bindings = {}
         if self.dynamic_path.exists():
             retained = read_json(self.dynamic_path)
             if retained["source_manifest"] != self.source_manifest or retained["task_id"] != self.row["task_id"]:
                 raise ValueError("retained expanded live-view binding differs")
             self.states.extend(retained["states"])
+            self.scene_only_paths = dict(retained.get("scene_only_paths", {}))
+            self.scene_only_bindings = dict(retained.get("scene_only_bindings", {}))
         self.recipes = [[] for _ in self.states]
         self.indices = {self.key(s["atoms"], s["fluents"]): i for i, s in enumerate(self.states)}
         self.symbols, self.symbol_states = None, {}
@@ -128,6 +136,7 @@ class ExpandedTaskViews(VisualTaskViews):
     def _render(self, index):
         import json
         import tempfile
+
         from scripts.planimation_phase1_frames import render_vfg_to_local_png_frames
 
         super()._render(index)
