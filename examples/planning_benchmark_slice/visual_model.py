@@ -113,9 +113,9 @@ class VisualCollator:
         return encoded
 
 
-def load_training_model(config):
+def load_training_model(config, adapter_path=None):
     import torch
-    from peft import LoraConfig, get_peft_model
+    from peft import LoraConfig, PeftModel, get_peft_model
     from transformers import Qwen3VLForConditionalGeneration, set_seed
 
     set_seed(config["training_seed"])
@@ -128,18 +128,21 @@ def load_training_model(config):
         local_files_only=True,
     )
     model.to("cuda:0")
-    model = get_peft_model(
-        model,
-        LoraConfig(
-            r=training["lora_rank"],
-            lora_alpha=training["lora_alpha"],
-            lora_dropout=training["lora_dropout"],
-            bias="none",
-            target_modules="all-linear",
-            exclude_modules=r".*visual.*",
-            task_type="CAUSAL_LM",
-        ),
-    )
+    if adapter_path is None:
+        model = get_peft_model(
+            model,
+            LoraConfig(
+                r=training["lora_rank"],
+                lora_alpha=training["lora_alpha"],
+                lora_dropout=training["lora_dropout"],
+                bias="none",
+                target_modules="all-linear",
+                exclude_modules=r".*visual.*",
+                task_type="CAUSAL_LM",
+            ),
+        )
+    else:
+        model = PeftModel.from_pretrained(model, adapter_path, is_trainable=True)
     model.config.use_cache = False
     model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
     model.enable_input_require_grads()

@@ -1,5 +1,6 @@
 """FIFO evaluation controller accepting algorithm-valid successor ties."""
 
+from dataclasses import dataclass
 from types import SimpleNamespace
 
 from .bfs_model_input import build_bounded_bfs_model_input_v4
@@ -8,12 +9,27 @@ from .search_context import IncrementalSearchContext
 from .search_memory import (
     AcceptedRetirement,
     AcceptedTransition,
+    RejectedTransition,
     SearchMemory,
+    SearchOperation,
     SearchRetireRequest,
+    SearchTransitionResult,
     apply_search_retirement,
     apply_search_transition,
 )
 from .search_trace import TraceSegmentLimits
+
+
+@dataclass(frozen=True, slots=True)
+class BFSOutputValidation:
+    operation: SearchOperation | None
+    result: SearchTransitionResult | None
+    parse_error: str | None
+    runtime_error: str | None
+
+    @property
+    def accepted(self) -> bool:
+        return isinstance(self.result, (AcceptedTransition, AcceptedRetirement))
 
 
 class VisualBFSSession:
@@ -77,34 +93,49 @@ class VisualBFSSession:
             return self.pending
         return None
 
-    def submit_output(self, output):
+    def validate_output(self, output):
         if self.pending is None:
-            raise ValueError("BFS has no pending decision")
-        parsed, error = _parse_model_output(output)
+            raise ValueError("BFS has no pending decision to validate")
+        parsed, parse_error = _parse_model_output(output)
         memory = self.context.memory
         operation = parsed["operation"] if parsed else None
         available = [c for c in self.pending.model_input["search_memory"]["successor_candidates"] if not c["visited"]]
         result = None
-        if operation is not None:
+        runtime_error = None
+        if parse_error is None and operation is not None:
             if isinstance(operation, SearchRetireRequest):
                 if not available and operation.state_id == self.active:
                     result = apply_search_retirement(memory, operation)
+                else:
+                    runtime_error = "BFS retirement requires an exhausted active frontier head"
             else:
                 retire = self.active in memory.frontier
-                if (
-                    operation.source_state_id == self.active
-                    and operation.visit_target
-                    and not operation.evaluate_target
-                    and operation.frontier_intent.retire_source == retire
-                    and operation.frontier_intent.target_position == len(memory.frontier) - int(retire)
-                    and any(
-                        c["grounded_action"] == {"name": operation.action.name, "args": list(operation.action.args)}
-                        for c in available
-                    )
+                if operation.source_state_id != self.active:
+                    runtime_error = "BFS operation source differs from the active frontier state"
+                elif not operation.visit_target or operation.evaluate_target:
+                    runtime_error = "BFS successor must be visited without heuristic evaluation"
+                elif operation.frontier_intent.retire_source != retire:
+                    runtime_error = "BFS operation has the wrong source-retirement intent"
+                elif operation.frontier_intent.target_position != len(memory.frontier) - int(retire):
+                    runtime_error = "BFS operation has the wrong FIFO target position"
+                elif not any(
+                    c["grounded_action"] == {"name": operation.action.name, "args": list(operation.action.args)}
+                    for c in available
                 ):
+                    runtime_error = "BFS operation is not an observable unvisited successor"
+                else:
                     result = apply_search_transition(memory, operation, evaluator=_no_evaluation)
+        if isinstance(result, RejectedTransition):
+            runtime_error = result.reason
+        if parse_error is None and not isinstance(result, (AcceptedTransition, AcceptedRetirement)):
+            result = RejectedTransition(memory, 1, runtime_error or "trusted BFS runtime rejected the operation")
+        return BFSOutputValidation(operation, result, parse_error, runtime_error)
+
+    def submit_output(self, output):
+        validation = self.validate_output(output)
+        operation, result = validation.operation, validation.result
         self.events.append({"raw_output": output})
-        if error or not isinstance(result, (AcceptedTransition, AcceptedRetirement)):
+        if not validation.accepted:
             self.invalid_operation_count += 1
             self.termination_reason = "deterministic_invalid_operation"
         else:
