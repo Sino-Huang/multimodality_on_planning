@@ -410,29 +410,45 @@
       "7062b2aad01d8a9bf069148c8b17caf92e3b9514",
       "a0b8d53"
     ],
-    "evidence_commit": null,
+    "evidence_commit": "5385748d38fd8af9c30264abdc8c40e35a298d6a",
     "issues": [
       {
         "number": 80,
-        "state": "OPEN"
+        "state": "CLOSED",
+        "closedAt": "2026-09-15T19:07:14Z",
+        "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/80"
       },
       {
         "number": 81,
-        "state": "OPEN"
+        "state": "CLOSED",
+        "closedAt": "2026-09-15T19:07:15Z",
+        "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/81"
       },
       {
         "number": 82,
-        "state": "OPEN"
+        "state": "CLOSED",
+        "closedAt": "2026-09-15T19:07:16Z",
+        "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/82"
       },
       {
         "number": 83,
-        "state": "OPEN"
+        "state": "CLOSED",
+        "closedAt": "2026-09-15T19:07:18Z",
+        "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/83"
       },
       {
         "number": 84,
-        "state": "OPEN"
+        "state": "CLOSED",
+        "closedAt": "2026-09-15T19:07:19Z",
+        "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/84"
       }
     ],
-    "closeouts": []
+    "closeouts": [
+      "https://github.com/Sino-Huang/multimodality_on_planning/issues/80#issuecomment-5686512961",
+      "https://github.com/Sino-Huang/multimodality_on_planning/issues/81#issuecomment-5686513239",
+      "https://github.com/Sino-Huang/multimodality_on_planning/issues/82#issuecomment-5686513523",
+      "https://github.com/Sino-Huang/multimodality_on_planning/issues/83#issuecomment-5686513833",
+      "https://github.com/Sino-Huang/multimodality_on_planning/issues/84#issuecomment-5686514242"
+    ]
   }
 }
