@@ -26,7 +26,7 @@ EVIDENCE = ROOT / "docs/experiments/expanded-study/dagger-iteration-1.json"
 
 
 def _assigned(protocol, worker):
-    return protocol["launch"]["qualification_worker_modalities"][str(worker)]
+    return protocol["launch"]["collection_worker_modalities"][str(worker)]
 
 
 def _head():
@@ -176,6 +176,8 @@ def audit_worker(protocol, context, worker):
         or worker_report["training_updates"] != 0
         or worker_report["master_port"] != terminal["master_port"]
         or terminal["master_port"] not in protocol["launch"]["master_port_pool"]
+        or terminal["gpus"] != [protocol["launch"]["devices"][worker]]
+        or terminal["max_seconds"] != protocol["launch"]["collection_worker_max_seconds"][str(worker)]
     ):
         raise ValueError("DAgger collection worker provenance differs")
     verified = [

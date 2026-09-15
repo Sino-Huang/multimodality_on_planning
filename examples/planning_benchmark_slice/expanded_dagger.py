@@ -2,21 +2,19 @@
 
 from __future__ import annotations
 
+import json
 from collections import defaultdict
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
-import json
 from pathlib import Path
 from typing import Any
 
 from .modality_corpus import ModalityCorpus
 from .modality_corpus_replay import canonical
 from .scene_assets import read_json
-from .search_memory import AcceptedRetirement, AcceptedTransition
 from .search_trace import _serialize_operation, _serialize_result
 from .visual_bfs import BFSOutputValidation
 from .visual_episode import VisualSession
-
 
 CORRECTION_SCHEMA = "expanded_dagger_correction_v1"
 DECISION_SCHEMA = "expanded_dagger_collection_decision_v1"
@@ -420,6 +418,7 @@ def validate_protocol(root: Path, protocol: Mapping[str, Any]) -> dict[str, Any]
     }
     if (
         protocol["protocol_id"] != "expanded-dagger-v1"
+        or protocol.get("goal5_runner_commit") != "f338b17589ce4454d255b68a4ef75b7eacedf772"
         or protocol["algorithm"] != "bfs"
         or protocol["modalities"] != ["text-state", "visual-state", "multimodal-state"]
         or protocol["iterations"] != [1, 2]
@@ -436,6 +435,9 @@ def validate_protocol(root: Path, protocol: Mapping[str, Any]) -> dict[str, Any]
         or protocol["collection"]["max_corrections_per_modality_iteration"] != 128
         or schedule["allocations_gpu_hours"]["dagger"] != protocol["budget"]["gpu_hours"] != 48
         or protocol["launch"]["master_port_pool"] != schedule["master_port_pool"]
+        or protocol["launch"]["collection_worker_modalities"]
+        != {"0": ["text-state", "multimodal-state"], "1": ["visual-state"]}
+        or protocol["launch"]["collection_worker_max_seconds"] != {"0": 32400, "1": 18000}
     ):
         raise ValueError("expanded DAgger protocol differs from its inherited frozen contracts")
     corpus = ModalityCorpus(root, root / study["corpus_report"], scene_views=study["scene_views"])

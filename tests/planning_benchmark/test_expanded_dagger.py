@@ -221,6 +221,7 @@ def test_repository_protocol_binds_real_bfs_membership_and_checkpoints():
     assert p["training"]["iterations"] == 2
     assert p["launch"]["master_port_pool"] == [18800, 18801, 18802, 18803, 18804, 18805]
     assert p["goal4_runner_commit"] == "4ba554e535202dc1589a9c679128d4f116adeff8"
+    assert p["goal5_runner_commit"] == "f338b17589ce4454d255b68a4ef75b7eacedf772"
     assert not p["collection"]["per_modality_trajectories_identical"]
     assert not p["budget"]["full_allowance_completion_guaranteed"]
 

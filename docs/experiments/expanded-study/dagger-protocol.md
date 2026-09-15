@@ -90,3 +90,28 @@ source ~/cd_vlaplan && python scripts/run_expanded_study.py launch --job configs
 `dagger-qualification.json` contains the retained measurements and cost
 admission. Raw unscored capacity outputs, scheduler terminals, heartbeats and
 hook results remain under the corresponding ignored job directories.
+
+## Iteration-one collection commands
+
+Goal 5 pins the resumable collector at commit
+`f338b17589ce4454d255b68a4ef75b7eacedf772`. Each episode journals the raw
+student output before applying it, then atomically records its validation,
+expert query when charged, accepted rollout link, and live-view provenance.
+Resume replays the journal to the exact pending state before another model
+call. GPU 0 collects text followed by multimodal with a 32,400-second ceiling;
+GPU 1 collects visual with an 18,000-second ceiling. Their completion hooks
+independently replay their correction sets on CPU. After both hooks pass, the
+final CPU job reconstructs all three 512-record aggregation memberships and
+publishes compact iteration-one evidence.
+
+```bash
+source ~/cd_vlaplan && python scripts/run_expanded_dagger_collection.py prepare
+source ~/cd_vlaplan && python scripts/run_expanded_study.py launch --job configs/experiments/expanded-study/dagger-collection-0-job.json
+source ~/cd_vlaplan && python scripts/run_expanded_study.py launch --job configs/experiments/expanded-study/dagger-collection-1-job.json
+source ~/cd_vlaplan && python scripts/run_expanded_study.py launch --job configs/experiments/expanded-study/dagger-collection-final-job.json
+```
+
+The final job is launched only after both GPU jobs and their hooks finish.
+Goal 5 performs no parameter update. Issues #80–#83 remain open until Goal 6
+uses the verified iteration-one data, collects iteration two from the updated
+DAgger policies, and verifies the complete two-iteration coverage.

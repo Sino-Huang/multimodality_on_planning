@@ -13,6 +13,7 @@
     84
   ],
   "goal4_runner_commit": "4ba554e535202dc1589a9c679128d4f116adeff8",
+  "goal5_runner_commit": "f338b17589ce4454d255b68a4ef75b7eacedf772",
   "source_study": "configs/experiments/matched-modalities/study-v5.json",
   "source_membership": "configs/experiments/matched-modalities/membership.json",
   "source_corpus": "outputs/modality_corpus/issue74-matched-32k-v1/release-001/report.json",
@@ -741,6 +742,19 @@
       "1": [
         "visual-state"
       ]
+    },
+    "collection_worker_modalities": {
+      "0": [
+        "text-state",
+        "multimodal-state"
+      ],
+      "1": [
+        "visual-state"
+      ]
+    },
+    "collection_worker_max_seconds": {
+      "0": 32400,
+      "1": 18000
     }
   },
   "output_root": "outputs/expanded-study/v1/dagger"
