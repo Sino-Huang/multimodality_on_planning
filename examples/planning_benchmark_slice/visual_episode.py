@@ -56,12 +56,16 @@ class VisualTaskViews:
         self.states = list(self.catalog["states"])
         self.recipes = list(self.manifest["state_recipes"])
         self.dynamic_path = output / "views.json.gz"
+        self.scene_only_paths = {}
+        self.scene_only_bindings = {}
         if self.dynamic_path.exists():
             retained = read_json(self.dynamic_path)
             if retained["source_manifest"] != view_manifest or retained["task_id"] != row["task_id"]:
                 raise ValueError("live view task binding differs")
             self.states.extend(retained["states"])
             self.recipes.extend(retained["recipes"])
+            self.scene_only_paths = dict(retained.get("scene_only_paths", {}))
+            self.scene_only_bindings = dict(retained.get("scene_only_bindings", {}))
         self.source_manifest = view_manifest
         self.original_count = len(self.catalog["states"])
         self.indices = {self.key(s["atoms"], s["fluents"]): i for i, s in enumerate(self.states)}
@@ -191,6 +195,51 @@ class VisualTaskViews:
             )
         )
 
+    def _scene_only_current(self, index):
+        from scripts.planimation_phase1_frames import render_vfg_to_local_png_frames
+
+        retained = self.scene_only_paths.get(str(index))
+        if retained is not None:
+            if not (self.root / retained).is_file():
+                raise ValueError("missing retained dynamic scene-only current-state image")
+            return retained
+        if self.read_only:
+            raise ValueError("replay lacks dynamic scene-only current-state provenance")
+        entry = self.states[index]
+        if entry.get("vfg"):
+            vfg = entry["vfg"]
+            stage = len(entry["supplied_actions"])
+        else:
+            binding = next((row for row in self.catalog["path_bindings"] if index in row["state_indices"]), None)
+            if binding is None:
+                raise ValueError("accepted state has no vector scene provenance")
+            vfg = binding["vfg"]
+            stage = binding["state_indices"].index(index)
+        objects = frozenset(
+            name for names in self.catalog["task_context"]["objects_by_type"].values() for name in names
+        )
+        self.output.mkdir(parents=True, exist_ok=True)
+        path = self.output / f"scene-only-state-{index:06d}.png"
+        if not path.exists():
+            with tempfile.TemporaryDirectory(dir=self.output, prefix="scene-only-") as temporary:
+                render_vfg_to_local_png_frames(
+                    json.dumps(read_json(self.root / vfg)).encode(),
+                    Path(temporary),
+                    stage,
+                    stage,
+                    canvas_size=128,
+                    draw_labels=False,
+                    object_names=objects,
+                )
+                (Path(temporary) / "frame_000.png").replace(path)
+        with Image.open(path) as image:
+            if image.size != (128, 128):
+                raise ValueError("dynamic scene-only current state is not 128px")
+        relative = str(path.relative_to(self.root))
+        self.scene_only_paths[str(index)] = relative
+        self.scene_only_bindings[str(index)] = {"vfg": vfg, "stage": stage}
+        return relative
+
     def observe(self, raw, algorithm, *, modality="visual-state", pixels=True):
         state = self.state(raw, algorithm)
         index = self.indices[self.key(state.atoms, state.fluents)]
@@ -202,8 +251,18 @@ class VisualTaskViews:
             raise ValueError("missing bound observation scene")
         semantic = fact_blocks(self.catalog["task_context"], entry, self.manifest["source"])
         if self.scene_views is not None:
+            current_scene = None
+            if str(index) not in self.scene_views.tasks[self.row["task_id"]]["scenes"]:
+                current_scene = entry["scene_path"] if modality == "text-state" else self._scene_only_current(index)
             return self.scene_views.observe(
-                self.row["task_id"], index, raw, algorithm, semantic, modality, pixels=pixels
+                self.row["task_id"],
+                index,
+                raw,
+                algorithm,
+                semantic,
+                modality,
+                pixels=pixels,
+                current_scene=current_scene,
             )
         expected = [p.to_dict() for p in paginate("current-state", semantic["current-state"], entry["scene_path"])]
         if self.recipes[index] != json.loads(json.dumps(expected)):
@@ -243,6 +302,8 @@ class VisualTaskViews:
                     "source_manifest": self.source_manifest,
                     "states": self.states[self.original_count :],
                     "recipes": self.recipes[self.original_count :],
+                    "scene_only_paths": self.scene_only_paths,
+                    "scene_only_bindings": self.scene_only_bindings,
                 },
             )
 

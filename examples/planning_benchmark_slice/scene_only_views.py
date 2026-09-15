@@ -163,10 +163,11 @@ class SceneOnlyViews:
             raise ValueError("scene-only selected coverage is incomplete")
         return cls(root, report["tasks"], report["measurements"], report["decision_bindings"])
 
-    def pages(self, task_id, state, pixels=True):
+    def pages(self, task_id, state, pixels=True, *, current_scene=None):
         task = self.tasks[task_id]
+        current_scene = current_scene or task["scenes"][str(state)]
         rows = [("task-context", None, i, p) for i, p in enumerate(task["static_pages"])]
-        rows += [("initial-state", 0, 0, task["scenes"]["0"]), ("current-state", state, 0, task["scenes"][str(state)])]
+        rows += [("initial-state", 0, 0, task["scenes"]["0"]), ("current-state", state, 0, current_scene)]
         rows += [("goal", None, i, p) for i, p in enumerate(task["goal_pages"])]
         images = []
         for role, bound, i, path in rows:
@@ -182,8 +183,13 @@ class SceneOnlyViews:
             images.append((role, image))
         return images, [[role, bound, i] for role, bound, i, _ in rows]
 
-    def observe(self, task_id, state, raw, algorithm, semantic, modality, *, pixels=True):
-        pages, bindings = self.pages(task_id, state, pixels=pixels and modality != "text-state")
+    def observe(self, task_id, state, raw, algorithm, semantic, modality, *, pixels=True, current_scene=None):
+        pages, bindings = self.pages(
+            task_id,
+            state,
+            pixels=pixels and modality != "text-state",
+            current_scene=current_scene,
+        )
         messages = project_messages(
             raw, algorithm, modality, semantic, pages, legend=LEGEND if modality == "text-state" else SCENE_LEGEND
         )

@@ -70,6 +70,11 @@ def test_native_roles_bind_initial_and_current_without_successor(tmp_path):
         image.close()
     with pytest.raises(KeyError):
         views.pages("task", 2)
+    pages, bindings = views.pages("task", 2, current_scene="current.png")
+    assert bindings[2] == ["current-state", 2, 0]
+    assert pages[2][1].getpixel((0, 0)) == (0, 0, 255)
+    for _, image in pages:
+        image.close()
     assert views.cache.bytes <= 64 * 1024 * 1024
 
 
