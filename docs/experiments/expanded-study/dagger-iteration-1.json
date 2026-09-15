@@ -1,0 +1,164 @@
+{
+  "schema_version": "expanded_dagger_iteration_one_evidence_v1",
+  "outcome": "PASS",
+  "protocol_id": "expanded-dagger-v1",
+  "goal": 5,
+  "iteration": 1,
+  "source_records": 512,
+  "training_tasks": 25,
+  "cells": [
+    {
+      "outcome": "PASS",
+      "modality": "text-state",
+      "iteration": 1,
+      "collection_decisions": 225,
+      "accepted_student_operations": 96,
+      "invalid_student_operations": 129,
+      "expert_queries": 128,
+      "corrections": 128,
+      "unused_decision_quota": 287,
+      "unused_correction_quota": 0,
+      "episodes_replayed": 12,
+      "corrections_replayed": 128,
+      "unique_corrections_for_training": 128,
+      "aggregation_records": 512,
+      "aggregation_optimizer_updates": 16,
+      "correction_dataset": "outputs/expanded-study/v1/dagger/collection/iteration-1/text-state/corrections.json.gz",
+      "aggregation_dataset": "outputs/expanded-study/v1/dagger/collection/iteration-1/text-state/aggregation.json.gz",
+      "stop_reason": "correction_quota",
+      "unstarted_tasks": [
+        "bfs/driverlog-train-medium-0000",
+        "bfs/elevators-train-medium-0000",
+        "bfs/ferry-train-medium-0000",
+        "bfs/gripper-train-medium-0000",
+        "bfs/logistics-train-medium-0000",
+        "bfs/towers_of_hanoi-train-medium-0000",
+        "bfs/visitall-train-medium-0000",
+        "bfs/driverlog-train-hard-0000",
+        "bfs/elevators-train-hard-0000",
+        "bfs/ferry-train-hard-0000",
+        "bfs/gripper-train-hard-0000",
+        "bfs/logistics-train-hard-0000",
+        "bfs/visitall-train-hard-0000"
+      ]
+    },
+    {
+      "outcome": "PASS",
+      "modality": "visual-state",
+      "iteration": 1,
+      "collection_decisions": 219,
+      "accepted_student_operations": 90,
+      "invalid_student_operations": 129,
+      "expert_queries": 128,
+      "corrections": 128,
+      "unused_decision_quota": 293,
+      "unused_correction_quota": 0,
+      "episodes_replayed": 12,
+      "corrections_replayed": 128,
+      "unique_corrections_for_training": 128,
+      "aggregation_records": 512,
+      "aggregation_optimizer_updates": 16,
+      "correction_dataset": "outputs/expanded-study/v1/dagger/collection/iteration-1/visual-state/corrections.json.gz",
+      "aggregation_dataset": "outputs/expanded-study/v1/dagger/collection/iteration-1/visual-state/aggregation.json.gz",
+      "stop_reason": "correction_quota",
+      "unstarted_tasks": [
+        "bfs/driverlog-train-medium-0000",
+        "bfs/elevators-train-medium-0000",
+        "bfs/ferry-train-medium-0000",
+        "bfs/gripper-train-medium-0000",
+        "bfs/logistics-train-medium-0000",
+        "bfs/towers_of_hanoi-train-medium-0000",
+        "bfs/visitall-train-medium-0000",
+        "bfs/driverlog-train-hard-0000",
+        "bfs/elevators-train-hard-0000",
+        "bfs/ferry-train-hard-0000",
+        "bfs/gripper-train-hard-0000",
+        "bfs/logistics-train-hard-0000",
+        "bfs/visitall-train-hard-0000"
+      ]
+    },
+    {
+      "outcome": "PASS",
+      "modality": "multimodal-state",
+      "iteration": 1,
+      "collection_decisions": 215,
+      "accepted_student_operations": 86,
+      "invalid_student_operations": 129,
+      "expert_queries": 128,
+      "corrections": 128,
+      "unused_decision_quota": 297,
+      "unused_correction_quota": 0,
+      "episodes_replayed": 12,
+      "corrections_replayed": 128,
+      "unique_corrections_for_training": 128,
+      "aggregation_records": 512,
+      "aggregation_optimizer_updates": 16,
+      "correction_dataset": "outputs/expanded-study/v1/dagger/collection/iteration-1/multimodal-state/corrections.json.gz",
+      "aggregation_dataset": "outputs/expanded-study/v1/dagger/collection/iteration-1/multimodal-state/aggregation.json.gz",
+      "stop_reason": "correction_quota",
+      "unstarted_tasks": [
+        "bfs/driverlog-train-medium-0000",
+        "bfs/elevators-train-medium-0000",
+        "bfs/ferry-train-medium-0000",
+        "bfs/gripper-train-medium-0000",
+        "bfs/logistics-train-medium-0000",
+        "bfs/towers_of_hanoi-train-medium-0000",
+        "bfs/visitall-train-medium-0000",
+        "bfs/driverlog-train-hard-0000",
+        "bfs/elevators-train-hard-0000",
+        "bfs/ferry-train-hard-0000",
+        "bfs/gripper-train-hard-0000",
+        "bfs/logistics-train-hard-0000",
+        "bfs/visitall-train-hard-0000"
+      ]
+    }
+  ],
+  "totals": {
+    "collection_decisions": 659,
+    "invalid_student_operations": 387,
+    "expert_queries": 384,
+    "corrections": 384,
+    "unique_corrections_for_training": 384,
+    "episodes_replayed": 36,
+    "corrections_replayed": 384,
+    "training_updates": 0
+  },
+  "aggregation": {
+    "records_per_modality": 512,
+    "optimizer_updates_per_future_update": 16,
+    "membership_verified": true,
+    "split_isolation_verified": true,
+    "invented_or_duplicated_corrections": 0
+  },
+  "execution": {
+    "jobs": [
+      "dagger-collection-0",
+      "dagger-collection-1"
+    ],
+    "attempts": [
+      3,
+      3
+    ],
+    "physical_gpus": [
+      [
+        0
+      ],
+      [
+        1
+      ]
+    ],
+    "master_ports": [
+      18800,
+      18801
+    ],
+    "collection_gpu_hours": 1.9632636097404692,
+    "cumulative_dagger_gpu_hours": 2.220535196661949,
+    "branch_cap_gpu_hours": 48
+  },
+  "scope": {
+    "iteration_one_collection_and_replay_complete": true,
+    "iteration_two_complete": false,
+    "training_updates_run": false,
+    "issues_80_through_83_remain_open_for_goal_6": true
+  }
+}
