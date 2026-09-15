@@ -18,5 +18,5 @@
     "--worker",
     "1"
   ],
-  "resume_reason": "Commit 8e79670 adds persisted unlabelled views for on-policy states omitted from the frozen scene subset; replay and retain the attempt-1 journal."
+  "resume_reason": "Commits 8e79670 and 621dcaf add persisted unlabelled on-policy views and advance completed-episode replay to trusted termination; retain attempts 1-2 and resume their journals."
 }
