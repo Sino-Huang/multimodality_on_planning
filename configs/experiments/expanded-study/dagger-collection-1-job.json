@@ -17,5 +17,6 @@
     "audit-worker",
     "--worker",
     "1"
-  ]
+  ],
+  "resume_reason": "Commit 8e79670 adds persisted unlabelled views for on-policy states omitted from the frozen scene subset; replay and retain the attempt-1 journal."
 }
