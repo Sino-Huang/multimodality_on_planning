@@ -416,6 +416,7 @@ def verify_cell(
     rows = _rows_by_task(protocol, source_records)
     decisions = []
     corrections = []
+    episode_stops = []
     expected_offset = 0
     for task_id, relative in zip(report["completed_task_prefix"], report["episodes"], strict=True):
         episode = read_json(root / relative)
@@ -446,11 +447,29 @@ def verify_cell(
         replay_dagger_episode(_replay_payload(episode), protocol, session, views)
         decisions.extend(episode["decisions"])
         corrections.extend(d["correction"] for d in episode["decisions"] if d["correction"] is not None)
+        episode_stops.append(episode["result"]["stop_reason"])
+        if (
+            len(episode["call_measurements"]) != len(episode["decisions"])
+            or [row["collection_decision_index"] for row in episode["call_measurements"]]
+            != [row["collection_decision_index"] for row in episode["decisions"]]
+            or any(
+                row["input_tokens"] > protocol["model"]["maximum_input_tokens"]
+                or row["generated_sequence_tokens"] > protocol["model"]["output_tokens"]
+                for row in episode["call_measurements"]
+            )
+        ):
+            raise ValueError("DAgger model-call accounting differs from the frozen allowances")
         expected_offset += len(episode["decisions"])
     if [d["collection_decision_index"] for d in decisions] != list(range(len(decisions))):
         raise ValueError("DAgger decision identities are not contiguous")
     correction_set = read_json(root / report["correction_dataset"])
-    if correction_set["corrections"] != corrections:
+    if (
+        correction_set.get("schema_version") != "expanded_dagger_correction_set_v1"
+        or correction_set.get("protocol_id") != protocol["protocol_id"]
+        or correction_set.get("modality") != modality
+        or correction_set.get("iteration") != iteration
+        or correction_set.get("corrections") != corrections
+    ):
         raise ValueError("DAgger correction dataset differs from replayed episodes")
     unique = certify_corrections(
         corrections,
@@ -484,7 +503,9 @@ def verify_cell(
     if any(report.get(key) != value for key, value in expected_values.items()):
         raise ValueError("DAgger cell totals differ from episode evidence")
     if (
-        len(decisions) > protocol["collection"]["max_decisions_per_modality_iteration"]
+        report["scheduled_tasks"] != len(protocol["collection"]["task_order"])
+        or len(report["episodes"]) != len(report["completed_task_prefix"])
+        or len(decisions) > protocol["collection"]["max_decisions_per_modality_iteration"]
         or len(corrections) > protocol["collection"]["max_corrections_per_modality_iteration"]
         or report["completed_task_prefix"]
         != protocol["collection"]["task_order"][: len(report["completed_task_prefix"])]
@@ -492,6 +513,30 @@ def verify_cell(
         != protocol["collection"]["task_order"][len(report["completed_task_prefix"]):]
     ):
         raise ValueError("DAgger collection order, quota, or missingness differs")
+    if episode_stops[:-1] and any(reason != "session_complete" for reason in episode_stops[:-1]):
+        raise ValueError("DAgger collection continued after a terminal cell stop")
+    if not episode_stops or episode_stops[-1] not in {"session_complete", report["stop_reason"]}:
+        raise ValueError("DAgger collection cell stop differs from its final episode")
+    if report["stop_reason"] == "task_schedule_exhausted" and report["unstarted_tasks"]:
+        raise ValueError("DAgger task schedule was reported exhausted with unstarted tasks")
+    if report["stop_reason"] == "collection_decision_quota" and len(decisions) != protocol["collection"][
+        "max_decisions_per_modality_iteration"
+    ]:
+        raise ValueError("DAgger decision quota stop occurred below quota")
+    if report["stop_reason"] == "correction_quota" and (
+        len(corrections) != protocol["collection"]["max_corrections_per_modality_iteration"]
+        or not decisions
+        or decisions[-1]["invalid_operation_charge"] != 1
+        or decisions[-1]["correction"] is not None
+    ):
+        raise ValueError("DAgger correction quota stop lacks the retained uncorrected rejection")
+    provenance = report.get("runtime_provenance", {})
+    if (
+        provenance.get("goal5_runner_commit") != protocol["goal5_runner_commit"]
+        or provenance.get("master_port") not in protocol["launch"]["master_port_pool"]
+        or not provenance.get("runtime_head")
+    ):
+        raise ValueError("DAgger collection runtime provenance differs")
     return {
         "outcome": "PASS",
         "modality": modality,
