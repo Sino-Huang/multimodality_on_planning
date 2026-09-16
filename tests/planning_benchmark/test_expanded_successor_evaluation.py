@@ -1,6 +1,7 @@
 import copy
 import hashlib
 import json
+from pathlib import Path
 from types import SimpleNamespace
 from typing import ClassVar
 
@@ -74,6 +75,10 @@ def protocol():
         "launch": {
             "devices": [0, 1],
             "master_port_pool": [18800, 18801, 18802, 18803, 18804, 18805],
+            "qualification_worker_modalities": {
+                "0": ["text-state", "multimodal-state"],
+                "1": ["visual-state"],
+            },
         },
         "_successor_checkpoints": {
             modality: f"out/training/{modality}/successor_sft/final" for modality in modalities
@@ -685,6 +690,160 @@ def test_cutoff_during_active_episode_preserves_journal_and_prevents_model_call(
     assert resumed[0]["result"]["invariant_valid_success"] is True
 
 
+def evaluation_attempt_fixture(tmp_path, *, failed_hook_reaudit=True):
+    attempts = []
+    for worker, port in enumerate((18804, 18805)):
+        directory = (tmp_path / "jobs" / f"successor-evaluate-{worker}" / "1").resolve()
+        directory.mkdir(parents=True)
+        hook = {"returncode": 1 if worker == 0 else 0}
+        (directory / "hook-result.json").write_text(json.dumps(hook))
+        expected = 60 if worker == 0 else 30
+        (directory / "worker-result.json").write_text(
+            json.dumps(
+                {
+                    "worker": worker,
+                    "master_port": port,
+                    "outcome": "PASS",
+                    "expected_episodes": expected,
+                }
+            )
+        )
+        attempt = {
+            "job_id": f"successor-evaluate-{worker}",
+            "attempt": 1,
+            "status": "succeeded",
+            "directory": str(directory),
+            "gpus": [worker],
+            "master_port": port,
+            "gpu_hours": 1,
+            "total": expected,
+        }
+        attempts.append(attempt)
+        if worker == 0 and failed_hook_reaudit:
+            reaudit = {
+                "schema_version": runner.REAUDIT_SCHEMA,
+                "worker": worker,
+                "job_id": attempt["job_id"],
+                "attempt": attempt["attempt"],
+                "directory": attempt["directory"],
+                "runtime_head": "repair-head",
+                "timestamp": "2026-09-17T12:00:00Z",
+                "episodes_replayed": expected,
+                "missing_bindings": [],
+                "outcome": "PASS",
+                "original_hook_receipt": hook,
+            }
+            (directory / "reaudit-result.json").write_text(json.dumps(reaudit))
+    ledger = tmp_path / "outputs/expanded-study/v1/budget.json"
+    ledger.parent.mkdir(parents=True)
+    ledger.write_text(json.dumps({"attempts": attempts}))
+    return attempts
+
+
+def test_finalize_accepts_failed_hook_with_passing_reaudit_and_discloses_both(tmp_path, monkeypatch):
+    frozen = protocol()
+    monkeypatch.setattr(runner, "ROOT", tmp_path)
+    evaluation_attempt_fixture(tmp_path)
+    evidence = runner._evaluation_attempts(frozen, "PASS", [])
+    assert evidence[0]["hook_returncode"] == 1
+    assert evidence[0]["reaudit"] == {
+        "runtime_head": "repair-head",
+        "timestamp": "2026-09-17T12:00:00Z",
+        "outcome": "PASS",
+        "episodes_replayed": 60,
+    }
+    assert evidence[1]["hook_returncode"] == 0
+    assert "reaudit" not in evidence[1]
+
+
+def test_finalize_rejects_failed_hook_without_reaudit(tmp_path, monkeypatch):
+    frozen = protocol()
+    monkeypatch.setattr(runner, "ROOT", tmp_path)
+    evaluation_attempt_fixture(tmp_path, failed_hook_reaudit=False)
+    with pytest.raises(ValueError, match="no passing reaudit"):
+        runner._evaluation_attempts(frozen, "PASS", [])
+
+
+@pytest.mark.parametrize(
+    ("mutation", "message"),
+    [
+        (lambda row: row.update(attempt=2), "another attempt"),
+        (lambda row: row.update(episodes_replayed=59), "complete worker coverage"),
+        (lambda row: row.update(outcome="FAIL"), "complete worker coverage"),
+        (lambda row: row.pop("original_hook_receipt"), "malformed schema"),
+    ],
+)
+def test_finalize_rejects_invalid_reaudit(tmp_path, monkeypatch, mutation, message):
+    frozen = protocol()
+    monkeypatch.setattr(runner, "ROOT", tmp_path)
+    attempts = evaluation_attempt_fixture(tmp_path)
+    path = Path(attempts[0]["directory"]) / "reaudit-result.json"
+    reaudit = json.loads(path.read_text())
+    mutation(reaudit)
+    path.write_text(json.dumps(reaudit))
+    with pytest.raises(ValueError, match=message):
+        runner._evaluation_attempts(frozen, "PASS", [])
+
+
+def test_audit_worker_pass_writes_reaudit_and_failure_does_not_refresh(tmp_path, monkeypatch):
+    frozen = protocol()
+    directory = (tmp_path / "jobs/successor-evaluate-0/1").resolve()
+    directory.mkdir(parents=True)
+    producing = {
+        "job_id": "successor-evaluate-0",
+        "attempt": 1,
+        "directory": str(directory),
+    }
+    terminal = {
+        **producing,
+        "status": "succeeded",
+        "master_port": 18804,
+        "gpus": [0],
+    }
+    terminal_path = directory / "terminal.json"
+    terminal_path.write_text(json.dumps(terminal))
+    original_hook = {"returncode": 1}
+    (directory / "hook-result.json").write_text(json.dumps(original_hook))
+    (directory / "worker-result.json").write_text(
+        json.dumps(
+            {
+                "outcome": "PASS",
+                "worker": 0,
+                "modalities": frozen["launch"]["qualification_worker_modalities"]["0"],
+                "master_port": 18804,
+                "producing_attempt": producing,
+                "policy_identities": {
+                    modality: frozen["_successor_policy_identity"][modality]
+                    for modality in frozen["launch"]["qualification_worker_modalities"]["0"]
+                },
+                "runtime_head": frozen["_runtime_head"],
+            }
+        )
+    )
+    monkeypatch.setattr(runner, "ROOT", tmp_path)
+    monkeypatch.setattr(runner, "_bind_training_gate", lambda root, protocol: (frozen, {}))
+    monkeypatch.setattr(runner, "_recorded_attempts", lambda protocol: (frozen, {}))
+    monkeypatch.setattr(runner, "_worker_reports", lambda protocol, worker: ([{}] * 60, []))
+    monkeypatch.setattr(runner, "_head", lambda: "repair-runtime-head")
+    monkeypatch.setenv("EXPANDED_TERMINAL_PATH", str(terminal_path))
+    result = runner.audit_worker(frozen, 0)
+    assert result["outcome"] == "PASS"
+    reaudit_path = directory / "reaudit-result.json"
+    reaudit = json.loads(reaudit_path.read_text())
+    assert reaudit["schema_version"] == runner.REAUDIT_SCHEMA
+    assert reaudit["original_hook_receipt"] == original_hook
+    assert reaudit["episodes_replayed"] == 60
+    retained = reaudit_path.read_bytes()
+    monkeypatch.setattr(
+        runner,
+        "_worker_reports",
+        lambda protocol, worker: (_ for _ in ()).throw(ValueError("replay failed")),
+    )
+    with pytest.raises(ValueError, match="replay failed"):
+        runner.audit_worker(frozen, 0)
+    assert reaudit_path.read_bytes() == retained
+
+
 def test_scheduler_attempt_validation_binds_actual_ports_and_cutoff(tmp_path, monkeypatch):
     frozen = protocol()
     monkeypatch.setattr(runner, "ROOT", tmp_path)
@@ -694,7 +853,14 @@ def test_scheduler_attempt_validation_binds_actual_ports_and_cutoff(tmp_path, mo
         directory.mkdir(parents=True)
         (directory / "hook-result.json").write_text(json.dumps({"returncode": 0}))
         (directory / "worker-result.json").write_text(
-            json.dumps({"worker": worker, "master_port": port, "outcome": "PASS"})
+            json.dumps(
+                {
+                    "worker": worker,
+                    "master_port": port,
+                    "outcome": "PASS",
+                    "expected_episodes": 60 if worker == 0 else 30,
+                }
+            )
         )
         attempts.append(
             {
@@ -705,6 +871,7 @@ def test_scheduler_attempt_validation_binds_actual_ports_and_cutoff(tmp_path, mo
                 "gpus": [worker],
                 "master_port": port,
                 "gpu_hours": 1,
+                "total": 60 if worker == 0 else 30,
             }
         )
     ledger = tmp_path / "outputs/expanded-study/v1/budget.json"

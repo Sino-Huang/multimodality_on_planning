@@ -35,6 +35,20 @@ from examples.planning_benchmark_slice.expanded_successor_evaluation import (
 PROTOCOL = ROOT / "configs/experiments/expanded-study/successor-protocol.json"
 QUALIFICATION = ROOT / "docs/experiments/expanded-study/successor-qualification.json"
 TRAINING_REPORT = ROOT / "outputs/expanded-study/v1/successor/training/training-report.json"
+REAUDIT_SCHEMA = "expanded_successor_evaluation_reaudit_v1"
+REAUDIT_FIELDS = {
+    "schema_version",
+    "worker",
+    "job_id",
+    "attempt",
+    "directory",
+    "runtime_head",
+    "timestamp",
+    "episodes_replayed",
+    "missing_bindings",
+    "outcome",
+    "original_hook_receipt",
+}
 
 
 def assigned(protocol, worker):
@@ -522,7 +536,8 @@ def audit_worker(protocol, worker):
             modality: protocol["_successor_policy_identity"][modality]
             for modality in assigned(protocol, worker)
         }
-        or report.get("runtime_head") != protocol["_runtime_head"]
+        or not isinstance(report.get("runtime_head"), str)
+        or not report["runtime_head"]
     ):
         raise ValueError("successor evaluation worker result provenance differs")
     rows, missing = _worker_reports(protocol, worker)
@@ -537,7 +552,23 @@ def audit_worker(protocol, worker):
         "missing_bindings": missing,
         "independent_replay": True,
     }
-    write(Path(terminal["directory"]) / "independent-replay.json", result)
+    directory = Path(terminal["directory"])
+    write(directory / "independent-replay.json", result)
+    original_hook = read(directory / "hook-result.json")
+    reaudit = {
+        "schema_version": REAUDIT_SCHEMA,
+        "worker": worker,
+        "job_id": terminal["job_id"],
+        "attempt": terminal["attempt"],
+        "directory": str(directory.resolve()),
+        "runtime_head": _head(),
+        "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        "episodes_replayed": len(rows),
+        "missing_bindings": missing,
+        "outcome": result["outcome"],
+        "original_hook_receipt": original_hook,
+    }
+    write(directory / "reaudit-result.json", reaudit)
     print(json.dumps(result, indent=2))
     return result
 
@@ -559,6 +590,40 @@ def _latest_attempt(ledger, job_id):
     return attempts[-1]
 
 
+def _validated_reaudit(path, *, attempt, worker, hook, expected_episodes):
+    if not path.is_file():
+        return None
+    reaudit = read(path)
+    expected_directory = str(Path(attempt["directory"]).resolve())
+    if set(reaudit) != REAUDIT_FIELDS or reaudit.get("schema_version") != REAUDIT_SCHEMA:
+        raise ValueError("successor evaluation reaudit has a malformed schema")
+    timestamp = reaudit.get("timestamp")
+    try:
+        parsed_timestamp = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+    except (AttributeError, ValueError) as error:
+        raise ValueError("successor evaluation reaudit timestamp is invalid") from error
+    if parsed_timestamp.tzinfo is None or parsed_timestamp.utcoffset() != timezone.utc.utcoffset(None):
+        raise ValueError("successor evaluation reaudit timestamp is not UTC")
+    if (
+        reaudit.get("worker") != worker
+        or reaudit.get("job_id") != attempt["job_id"]
+        or reaudit.get("attempt") != attempt["attempt"]
+        or reaudit.get("directory") != expected_directory
+    ):
+        raise ValueError("successor evaluation reaudit belongs to another attempt")
+    if (
+        reaudit.get("outcome") != "PASS"
+        or reaudit.get("missing_bindings") != []
+        or reaudit.get("episodes_replayed") != expected_episodes
+        or not isinstance(reaudit.get("runtime_head"), str)
+        or not reaudit["runtime_head"]
+    ):
+        raise ValueError("successor evaluation reaudit did not prove complete worker coverage")
+    if reaudit.get("original_hook_receipt") != hook:
+        raise ValueError("successor evaluation reaudit does not embed the original hook receipt")
+    return reaudit
+
+
 def _evaluation_attempts(protocol, outcome, missing):
     ledger = read(ROOT / "outputs/expanded-study/v1/budget.json")
     attempts = [_latest_attempt(ledger, f"successor-evaluate-{worker}") for worker in range(2)]
@@ -567,8 +632,6 @@ def _evaluation_attempts(protocol, outcome, missing):
         directory = Path(attempt["directory"])
         hook = read(directory / "hook-result.json")
         status = attempt.get("status")
-        if hook.get("returncode") != 0:
-            raise ValueError("successor evaluation worker replay hook is incomplete")
         if outcome == "PASS":
             if status != "succeeded":
                 raise ValueError("complete successor evaluation requires succeeded worker attempts")
@@ -584,8 +647,26 @@ def _evaluation_attempts(protocol, outcome, missing):
         ):
             raise ValueError("successor evaluation scheduler GPU/port provenance differs")
         worker_result_path = directory / "worker-result.json"
+        worker_result = read(worker_result_path) if status == "succeeded" else None
+        expected_episodes = (
+            worker_result.get("expected_episodes")
+            if worker_result is not None
+            else attempt.get("total")
+        )
+        if not isinstance(expected_episodes, int) or expected_episodes <= 0:
+            raise ValueError("successor evaluation worker expected episode count is missing")
+        reaudit = _validated_reaudit(
+            directory / "reaudit-result.json",
+            attempt=attempt,
+            worker=worker,
+            hook=hook,
+            expected_episodes=expected_episodes,
+        )
+        if hook.get("returncode") != 0 and reaudit is None:
+            raise ValueError("successor evaluation worker replay hook is incomplete and has no passing reaudit")
         if status == "succeeded":
-            worker_result = read(worker_result_path)
+            if worker_result is None:
+                raise ValueError("successor evaluation succeeded attempt lacks a worker result")
             if (
                 worker_result.get("worker") != worker
                 or worker_result.get("master_port") != attempt["master_port"]
@@ -593,13 +674,16 @@ def _evaluation_attempts(protocol, outcome, missing):
                 or (outcome == "PASS" and worker_result.get("outcome") != "PASS")
             ):
                 raise ValueError("successor evaluation worker result differs from scheduler attempt")
-        evidence.append(
-            {
-                key: attempt[key]
-                for key in ("job_id", "attempt", "status", "directory", "gpus", "master_port", "gpu_hours")
+        attempt_evidence = {
+            key: attempt[key]
+            for key in ("job_id", "attempt", "status", "directory", "gpus", "master_port", "gpu_hours")
+        } | {"hook_returncode": hook.get("returncode")}
+        if reaudit is not None:
+            attempt_evidence["reaudit"] = {
+                key: reaudit[key]
+                for key in ("runtime_head", "timestamp", "outcome", "episodes_replayed")
             }
-            | {"hook_returncode": hook["returncode"]}
-        )
+        evidence.append(attempt_evidence)
     return evidence
 
 
