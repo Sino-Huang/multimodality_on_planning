@@ -84,7 +84,7 @@ def validate_protocol(root: Path, protocol: dict[str, Any], *, require_frozen: b
         or protocol["training"]["optimizer_updates"] != 16
         or protocol["training"]["seed"] != 17
         or schedule["allocations_gpu_hours"]["successor_prediction"] != protocol["budget"]["gpu_hours"] != 64
-        or protocol["launch"]["master_ports"] != {"0": 18802, "1": 18803}
+        or protocol["launch"]["master_port_pool"] != schedule["master_port_pool"]
         or protocol["launch"]["qualification_worker_modalities"]
         != {"0": ["text-state", "multimodal-state"], "1": ["visual-state"]}
         or (require_frozen and not frozen)

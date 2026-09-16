@@ -16,7 +16,6 @@
   ],
   "gpus": [1],
   "job_id": "successor-qualification-1",
-  "master_port": 18803,
   "max_seconds": 5400,
   "total": 1
 }

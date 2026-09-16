@@ -182,8 +182,10 @@ def run(protocol, context, worker):
     if not protocol.get("goal7_runner_commit"):
         raise ValueError("successor protocol must pin the implemented runner before GPU qualification")
     expected_device = str(protocol["launch"]["devices"][worker])
-    expected_port = protocol["launch"]["master_ports"][str(worker)]
-    if os.environ.get("CUDA_VISIBLE_DEVICES") != expected_device or int(os.environ["MASTER_PORT"]) != expected_port:
+    if (
+        os.environ.get("CUDA_VISIBLE_DEVICES") != expected_device
+        or int(os.environ["MASTER_PORT"]) not in protocol["launch"]["master_port_pool"]
+    ):
         raise ValueError("successor qualification worker differs from the frozen GPU/port mapping")
     views_report, views = load_views(ROOT, protocol, context)
     assigned = protocol["launch"]["qualification_worker_modalities"][str(worker)]
@@ -224,7 +226,7 @@ def audit_worker(protocol, worker):
         report["outcome"] != "PASS"
         or report["protocol_id"] != protocol["protocol_id"]
         or [row["modality"] for row in report["modalities"]] != assigned
-        or report["master_port"] != protocol["launch"]["master_ports"][str(worker)]
+        or report["master_port"] not in protocol["launch"]["master_port_pool"]
         or report["cuda_visible_devices"] != str(protocol["launch"]["devices"][worker])
         or (report["collection_decisions"], report["persistent_training_updates"]) != (0, 0)
     ):
@@ -359,7 +361,8 @@ def audit_final(protocol, context):
         or report["outcome"] != "PASS"
         or not report["hardware_qualified"]
         or any(attempt["status"] != "succeeded" for attempt in attempts)
-        or [attempt["master_port"] for attempt in attempts] != [18802, 18803]
+        or len({attempt["master_port"] for attempt in attempts}) != 2
+        or any(attempt["master_port"] not in protocol["launch"]["master_port_pool"] for attempt in attempts)
         or any(read(Path(attempt["directory"]) / "hook-result.json").get("returncode") != 0 for attempt in attempts)
         or report["qualification_gpu_hours_spent"]
         != sum(attempt["gpu_hours"] for attempt in ledger["attempts"] if attempt["branch"] == "successor_prediction")

@@ -707,10 +707,6 @@
       0,
       1
     ],
-    "master_ports": {
-      "0": 18802,
-      "1": 18803
-    },
     "backend_endpoints": [
       "http://127.0.0.1:18092",
       "http://127.0.0.1:18093"
@@ -725,7 +721,15 @@
       "1": [
         "visual-state"
       ]
-    }
+    },
+    "master_port_pool": [
+      18800,
+      18801,
+      18802,
+      18803,
+      18804,
+      18805
+    ]
   },
   "output_root": "outputs/expanded-study/v1/successor",
   "qualification": {
