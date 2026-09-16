@@ -291,6 +291,7 @@ outputs/
 # END oh-my-opencode-slim clonedeps
 
 .slim/
+.slim/deepwork/
 
 # Keep the 2026-08-18 CGAS-realignment cold archive Git-visible. This block is
 # deliberately last: the last matching pattern wins, so these negations override
