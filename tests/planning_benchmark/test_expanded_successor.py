@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from examples.planning_benchmark_slice import expanded_successor_collection as collection
 from examples.planning_benchmark_slice.expanded_successor import (
     SCHEMA_VERSION,
     accept_verified_prediction,
@@ -28,6 +29,7 @@ from examples.planning_benchmark_slice.pddl_state import (
     PDDLTransition,
     TransitionProvenance,
 )
+from examples.planning_benchmark_slice.scene_assets import read_json as read_scene_json
 
 FIXTURE = Path(__file__).resolve().parents[1] / "fixtures/planning/blocksworld_nontrivial.json"
 
@@ -325,3 +327,142 @@ def test_target_schema_preserves_complete_numeric_fluents() -> None:
     assert prediction["predicted_state"]["fluents"] == ["fuel=1", "score=3"]
     assert prediction["predicted_state"]["state_id"] == target.state_id
     assert prediction["static_context_id"] == static_context_id(context)
+
+
+def test_collection_replays_fixed_records_and_publishes_separate_labels(tmp_path, monkeypatch) -> None:
+    rows = []
+    contracts = []
+    for index in range(2):
+        authority = _authority()
+        row = _source_record(authority)
+        row["record_id"] = f"bfs/task:bfs:{index}"
+        row["decision_index"] = index
+        row["trace_paths"] = {"bfs": "trace.json.gz"}
+        contract = successor_contract(row)
+        contract["source_path"] = []
+        rows.append(row)
+        contracts.append(contract)
+    protocol = {
+        "protocol_id": "expanded-successor-v1",
+        "output_root": "successor",
+        "modalities": ["text-state"],
+        "source_record_ids": [row["record_id"] for row in rows],
+        "collection": {"records_per_modality": 2},
+        "model": {"id": "model", "revision": "revision", "context_tokens": 32768, "output_tokens": 512},
+        "starting_checkpoints": {"text-state": "checkpoint"},
+        "launch": {"master_port_pool": [18800]},
+    }
+    context = {
+        "records": rows,
+        "contracts": contracts,
+        "membership_id": "sha256:membership",
+    }
+
+    def example(_root, _protocol, _context, _views, index, modality, *, pixels=True):
+        return {
+            "messages": [
+                {"role": "system", "content": "system"},
+                {"role": "user", "content": "input"},
+                {"role": "assistant", "content": canonical(contracts[index]["target"])},
+            ],
+            "images": [],
+            "binding": {
+                "state": 0,
+                "input_pages": contracts[index]["input_pages"],
+                "input_tokens": 100 + index,
+                "state_representation": "scene-only-128-unlabelled-v1",
+            },
+        }
+
+    monkeypatch.setattr(collection, "training_example", example)
+    monkeypatch.setattr(collection, "_authority", lambda _root, _row: _authority())
+    calls = []
+
+    def generate(examples):
+        calls.append(len(examples))
+        return [canonical(contract["target"]) for contract in contracts], {
+            "batch_size": 2,
+            "input_tokens": [100, 101],
+            "generated_sequence_tokens": 200,
+        }
+
+    provenance = {
+        "runtime_head": "runner",
+        "master_port": 18800,
+        "checkpoint": "checkpoint",
+        "model_identity": {
+            "model_id": "model",
+            "revision": "revision",
+            "max_context_tokens": 32768,
+            "max_new_tokens": 512,
+            "max_batch_size": 2,
+            "max_batch_input_tokens": 24000,
+            "memoize_identical_inputs": False,
+        },
+    }
+    report, retained = collection.collect_cell(
+        tmp_path,
+        protocol,
+        context,
+        object(),
+        modality="text-state",
+        generate=generate,
+        progress=lambda **_values: None,
+        runtime_provenance=provenance,
+    )
+    assert calls == [2]
+    assert retained is False
+    assert report["records"] == 2
+    assert report["verification_outcomes"] == {"accepted": 2}
+
+    collection.cell_report_path(tmp_path, protocol, "text-state").unlink()
+    collection.record_path(tmp_path, protocol, "text-state", 1).unlink()
+    collection._write_gzip(
+        collection.cell_root(tmp_path, protocol, "text-state") / "pending-batch.json.gz",
+        {
+            "schema_version": collection.JOURNAL_SCHEMA,
+            "protocol_id": protocol["protocol_id"],
+            "modality": "text-state",
+            "indices": [0, 1],
+            "model_call_id": "text-state:batch-000000",
+            "raw_predictions": [canonical(contract["target"]) for contract in contracts],
+            "input_tokens": [100, 101],
+            "generated_sequence_tokens": 200,
+            "runtime_provenance": provenance,
+        },
+    )
+    resumed, retained = collection.collect_cell(
+        tmp_path,
+        protocol,
+        context,
+        object(),
+        modality="text-state",
+        generate=lambda _examples: pytest.fail("pending output generated again"),
+        progress=lambda **_values: None,
+        runtime_provenance=provenance,
+    )
+    assert retained is False
+    assert resumed == report
+
+    report_again, retained = collection.collect_cell(
+        tmp_path,
+        protocol,
+        context,
+        object(),
+        modality="text-state",
+        generate=lambda _examples: pytest.fail("completed cell generated again"),
+        progress=lambda **_values: None,
+        runtime_provenance=provenance,
+    )
+    assert retained is True
+    assert report_again == report
+
+    release = collection.publish_release(tmp_path, protocol, context, object())
+    assert collection.verify_release(tmp_path, protocol, context, object()) == release
+    interaction_set = read_scene_json(
+        tmp_path / release["artifacts"]["text-state"]["interactions"]["path"]
+    )
+    label_set = read_scene_json(tmp_path / release["artifacts"]["text-state"]["labels"]["path"])
+    assert "raw_prediction" in interaction_set["records"][0]
+    assert "raw_prediction" not in label_set["records"][0]
+    assert label_set["records"][0]["target"] == interaction_set["records"][0]["trusted_target"]
