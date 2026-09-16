@@ -7,7 +7,7 @@
     85,
     86
   ],
-  "goal7_runner_commit": "640ee8380ee934d19aaf3e0b7ceee6aa60a4d848",
+  "goal7_runner_commit": "2875a8d18bc29814eae1586383805a745c0f9cba",
   "source_study": "configs/experiments/matched-modalities/study-v5.json",
   "source_membership": "configs/experiments/matched-modalities/membership.json",
   "source_corpus": "outputs/modality_corpus/issue74-matched-32k-v1/release-001/report.json",
