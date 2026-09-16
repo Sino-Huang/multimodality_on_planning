@@ -1,0 +1,22 @@
+{
+  "branch": "successor_prediction",
+  "command": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/qualify_expanded_successor.py",
+    "run",
+    "--worker",
+    "1"
+  ],
+  "completion_hook": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/qualify_expanded_successor.py",
+    "audit-worker",
+    "--worker",
+    "1"
+  ],
+  "gpus": [1],
+  "job_id": "successor-qualification-1",
+  "master_port": 18803,
+  "max_seconds": 5400,
+  "total": 1
+}

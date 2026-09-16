@@ -1,0 +1,17 @@
+{
+  "branch": "successor_prediction",
+  "command": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/prepare_expanded_successor.py",
+    "prepare"
+  ],
+  "completion_hook": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/prepare_expanded_successor.py",
+    "audit"
+  ],
+  "gpus": [],
+  "job_id": "successor-prepare",
+  "max_seconds": 7200,
+  "total": 512
+}
