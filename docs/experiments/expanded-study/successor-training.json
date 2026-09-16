@@ -1,0 +1,148 @@
+{
+  "schema_version": "expanded_successor_training_evidence_v1",
+  "protocol_id": "expanded-successor-v1",
+  "status": "PASS",
+  "outcome": "PASS",
+  "runtime_head": "dd4818ac7f8ba370048198231332b360521b1359",
+  "cells": [
+    {
+      "modality": "text-state",
+      "records": 512,
+      "optimizer_updates": 16,
+      "epochs": 1,
+      "seed": 17,
+      "data_seed": 17,
+      "sampler": "sequential_frozen_membership_order",
+      "trainer_reshuffling": false,
+      "final_checkpoint": "outputs/expanded-study/v1/successor/training/text-state/successor_sft/final",
+      "final_checkpoint_sha256": "sha256:4a1b0e7d5f7eabb789bfdb8d8261cf1bd4af7d96d889e628127dcbe2fffa0e56",
+      "final_adapter_config_sha256": "sha256:fdb522b0e14b396bbf02cec1740df9e35302b48ed1b2b9249f115a5f7da84b86",
+      "completion_receipt_sha256": "sha256:5a412f511ad2110db382c7f5375ace720dbbef46ba65cf2a606c094b699b7377",
+      "teacher_labels_sha256": "sha256:d1979c52b75b96827933f4890d17e17785dfc6c396e5e989d6d0b17a1ca59a00",
+      "source_checkpoint": "outputs/matched_modalities/v3/training/text-state/bfs/final",
+      "source_checkpoint_unchanged": true,
+      "changed_parameter_tensors": 504,
+      "parameter_tensors": 504,
+      "recovered_without_retrain": false,
+      "loss_first": 0.0721,
+      "loss_last": 0.0107,
+      "loss_finite": true,
+      "receipt_completed_at": 1789575865.322023
+    },
+    {
+      "modality": "visual-state",
+      "records": 512,
+      "optimizer_updates": 16,
+      "epochs": 1,
+      "seed": 17,
+      "data_seed": 17,
+      "sampler": "sequential_frozen_membership_order",
+      "trainer_reshuffling": false,
+      "final_checkpoint": "outputs/expanded-study/v1/successor/training/visual-state/successor_sft/final",
+      "final_checkpoint_sha256": "sha256:4f1e70aca729262b5120e629e9bfe423f479e3590b5204ef39a90c2c4c490f8d",
+      "final_adapter_config_sha256": "sha256:7be39c3d9b3ef57cf89b9f9fd39ef6c0012658b31b2e31fa2c2a1084306e0e55",
+      "completion_receipt_sha256": "sha256:3b4bf16d395791fa2073be89535ff36a16ae49fac666380371f2b25ca985ea7e",
+      "teacher_labels_sha256": "sha256:d642595a4e3656e34fc9acebe7ea857d47e9055f7975747c6a1338fc57bac399",
+      "source_checkpoint": "outputs/matched_modalities/v5/training/visual-state/bfs/final",
+      "source_checkpoint_unchanged": true,
+      "changed_parameter_tensors": 504,
+      "parameter_tensors": 504,
+      "recovered_without_retrain": false,
+      "loss_first": 0.0774,
+      "loss_last": 0.0142,
+      "loss_finite": true,
+      "receipt_completed_at": 1789576234.8658788
+    },
+    {
+      "modality": "multimodal-state",
+      "records": 512,
+      "optimizer_updates": 16,
+      "epochs": 1,
+      "seed": 17,
+      "data_seed": 17,
+      "sampler": "sequential_frozen_membership_order",
+      "trainer_reshuffling": false,
+      "final_checkpoint": "outputs/expanded-study/v1/successor/training/multimodal-state/successor_sft/final",
+      "final_checkpoint_sha256": "sha256:8fc24776e692054a0c00503dbca90c36437aed1037db920bccf3184e26cf7771",
+      "final_adapter_config_sha256": "sha256:fdb522b0e14b396bbf02cec1740df9e35302b48ed1b2b9249f115a5f7da84b86",
+      "completion_receipt_sha256": "sha256:b1297df4584da8df882eabd48093c54c60ae1d2464846cffd6d9b2e50dd7b8b5",
+      "teacher_labels_sha256": "sha256:fad301fd22cd6a9eb7715f8391ffe135d949ceba905f38d776d646b6083cc7be",
+      "source_checkpoint": "outputs/matched_modalities/v5/training/multimodal-state/bfs/final",
+      "source_checkpoint_unchanged": true,
+      "changed_parameter_tensors": 504,
+      "parameter_tensors": 504,
+      "recovered_without_retrain": false,
+      "loss_first": 0.0719,
+      "loss_last": 0.0132,
+      "loss_finite": true,
+      "receipt_completed_at": 1789576883.1862884
+    }
+  ],
+  "totals": {
+    "records": 1536,
+    "optimizer_updates": 48,
+    "modalities": 3
+  },
+  "exposure_contract": {
+    "records_per_cell": 512,
+    "epochs": 1,
+    "optimizer_updates_per_cell": 16,
+    "seed": 17,
+    "final_checkpoint_only": true,
+    "single_run_per_cell": true
+  },
+  "development_diagnostics": "none declared, none run",
+  "goal8_interactions_preserved": {
+    "multimodal-state": {
+      "path": "outputs/expanded-study/v1/successor/dataset/release-001/multimodal-state/interactions.json.gz",
+      "sha256_matches_release": true
+    },
+    "text-state": {
+      "path": "outputs/expanded-study/v1/successor/dataset/release-001/text-state/interactions.json.gz",
+      "sha256_matches_release": true
+    },
+    "visual-state": {
+      "path": "outputs/expanded-study/v1/successor/dataset/release-001/visual-state/interactions.json.gz",
+      "sha256_matches_release": true
+    }
+  },
+  "scheduler_attempts": [
+    {
+      "job_id": "successor-train-0",
+      "attempt": 1,
+      "gpus": [
+        0
+      ],
+      "master_port": 18800,
+      "status": "succeeded",
+      "gpu_hours": 0.4370269571410285
+    },
+    {
+      "job_id": "successor-train-1",
+      "attempt": 1,
+      "gpus": [
+        1
+      ],
+      "master_port": 18801,
+      "status": "succeeded",
+      "gpu_hours": 0.2567525026533339
+    },
+    {
+      "job_id": "successor-train-final",
+      "attempt": 1,
+      "gpus": [],
+      "master_port": null,
+      "status": "succeeded",
+      "gpu_hours": 0.0
+    }
+  ],
+  "attempt_count_per_job": {
+    "successor-train-1": 1,
+    "successor-train-0": 1,
+    "successor-train-final": 1
+  },
+  "training_gpu_hours": 0.6937794597943624,
+  "successor_branch_gpu_hours_cumulative": 10.209686665203838,
+  "branch_cap_gpu_hours": 64,
+  "missing_coverage": 0
+}
