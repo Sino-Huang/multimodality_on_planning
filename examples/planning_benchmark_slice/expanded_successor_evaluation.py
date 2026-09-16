@@ -163,11 +163,24 @@ def _validate_producing_identity(protocol, report):
     if status not in {"succeeded", "failed", "cutoff", "interrupted"}:
         raise ValueError("successor episode producing attempt is unknown or non-terminal")
     modality = report.get("modality")
-    expected_policy = protocol.get("_successor_policy_identity", {}).get(modality)
+    worker_result_path = Path(producing["directory"]) / "worker-result.json"
+    worker_result = read_json(worker_result_path) if worker_result_path.is_file() else None
+    if worker_result is not None and worker_result.get("producing_attempt") != producing:
+        raise ValueError("successor episode differs from its producing worker receipt")
+    expected_policy = (
+        worker_result.get("policy_identities", {}).get(modality)
+        if worker_result is not None
+        else protocol.get("_successor_policy_identity", {}).get(modality)
+    )
+    expected_runtime_head = (
+        worker_result.get("runtime_head")
+        if worker_result is not None
+        else protocol.get("_runtime_head")
+    )
     if (
         report.get("policy_identity") != expected_policy
         or report.get("decoding") != protocol["model"]["decoding"]
-        or report.get("runtime_head") != protocol.get("_runtime_head")
+        or report.get("runtime_head") != expected_runtime_head
     ):
         raise ValueError("successor episode loaded-policy or runtime identity differs")
     return producing
@@ -466,6 +479,7 @@ def _initialize(
         prior_attempt = _validate_producing_identity(protocol, saved)
         prior_protocol = dict(protocol)
         prior_protocol["_producing_attempt"] = prior_attempt
+        prior_protocol["_runtime_head"] = saved["runtime_head"]
         prior_identity = _identity(
             root, prior_protocol, panel, modality, task, arm, output, view_output
         )
@@ -785,6 +799,7 @@ def verify_episode(
     producing_attempt = _validate_producing_identity(protocol, report)
     identity_protocol = dict(protocol)
     identity_protocol["_producing_attempt"] = producing_attempt
+    identity_protocol["_runtime_head"] = report["runtime_head"]
     view_output = None if report.get("view_output") is None else root / report["view_output"]
     expected_identity = _identity(
         root, identity_protocol, panel, modality, task, arm, path, view_output
@@ -885,6 +900,8 @@ def verify_episode(
         raise ValueError("successor evaluation model-call accounting differs")
     if report["result"]["termination_reason"] == "model_call_limit_exhausted":
         forced = "model_call_limit_exhausted"
+    if forced is None and session.next_request() is not None:
+        raise ValueError("successor evaluation recorded events are incomplete")
     state = {
         "session": session,
         "identity": expected_identity,

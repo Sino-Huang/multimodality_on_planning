@@ -139,11 +139,13 @@ class FakeSession:
         self.authority = PDDLStateAuthority.from_pddl(DOMAIN, PROBLEM)
         self.state = self.authority.initial_state
         self.actions = []
+        self.terminated = False
         self.views = views
         self.__class__.instances.append(self)
 
     def next_request(self):
         if self.authority.is_goal(self.state):
+            self.terminated = True
             return None
         destination = "b" if "at(a)" in self.state.atoms else "c"
         action = {"name": "move", "args": ["a" if destination == "b" else "b", destination]}
@@ -197,17 +199,39 @@ class FakeSession:
         self.actions.append(copy.deepcopy(action))
 
     def result(self):
-        goal = self.authority.is_goal(self.state)
+        goal = self.terminated and self.authority.is_goal(self.state)
         return {
             "invariant_valid_success": goal,
             "goal_reached": goal,
             "algorithm_invariants_hold": True,
             "decision_count": len(self.actions),
-            "expansion_count": len(self.actions),
+            "expansion_count": len(self.actions) if self.terminated else max(0, len(self.actions) - 1),
             "invalid_operation_count": 0,
             "invalid_operation_rate": 0,
             "model_call_limit": 4,
             "termination_reason": "goal_reached" if goal else None,
+        }
+
+
+class QueueExhaustionSession(FakeSession):
+    def next_request(self):
+        if "at(b)" in self.state.atoms:
+            self.terminated = True
+            return None
+        return super().next_request()
+
+    def result(self):
+        exhausted = self.terminated and "at(b)" in self.state.atoms
+        return {
+            "invariant_valid_success": False,
+            "goal_reached": False,
+            "algorithm_invariants_hold": True,
+            "decision_count": len(self.actions),
+            "expansion_count": len(self.actions) if self.terminated else 0,
+            "invalid_operation_count": 0,
+            "invalid_operation_rate": 0,
+            "model_call_limit": 4,
+            "termination_reason": "frontier_exhausted" if exhausted else None,
         }
 
 
@@ -239,7 +263,7 @@ def good_generate(examples):
     }
 
 
-def run_cell(tmp_path, arm, generate, *, decisions=2):
+def run_cell(tmp_path, arm, generate, *, decisions=2, session_factory=FakeSession):
     return evaluation.run_cell(
         tmp_path,
         protocol(),
@@ -250,7 +274,22 @@ def run_cell(tmp_path, arm, generate, *, decisions=2):
         endpoint="unused",
         generate=generate,
         progress=lambda **kwargs: None,
-        session_factory=FakeSession,
+        session_factory=session_factory,
+        views_factory=views_factory,
+        token_counter=token_counter,
+    )
+
+
+def verify_report(tmp_path, report, *, session_factory=FakeSession):
+    return evaluation.verify_episode(
+        tmp_path,
+        protocol(),
+        "development",
+        "text-state",
+        task(decisions=report["reference_decisions"]),
+        report["arm"],
+        "unused",
+        session_factory=session_factory,
         views_factory=views_factory,
         token_counter=token_counter,
     )
@@ -266,6 +305,32 @@ def test_canonical_action_order_is_shared_and_accepted_predictions_enter_search(
     assert all(event["accepted"] for event in generated["events"])
     assert all(event["verification"]["prediction_applied"] for event in generated["events"])
     assert generated["trusted_state_substitutions"] == 0
+
+
+def test_trusted_goal_episode_replays_identical_terminal_result(tmp_path):
+    report = run_cell(tmp_path, "trusted_successor", None)[0]
+    replayed = verify_report(tmp_path, report)
+    assert replayed["result"] == report["result"]
+    assert report["result"]["goal_reached"] is True
+
+
+def test_model_goal_episode_replays_identical_terminal_result(tmp_path):
+    report = run_cell(tmp_path, "model_generated_successor", good_generate)[0]
+    replayed = verify_report(tmp_path, report)
+    assert replayed["result"] == report["result"]
+    assert report["result"]["invariant_valid_success"] is True
+
+
+def test_natural_queue_exhaustion_replays_identical_terminal_result(tmp_path):
+    report = run_cell(
+        tmp_path,
+        "trusted_successor",
+        None,
+        session_factory=QueueExhaustionSession,
+    )[0]
+    replayed = verify_report(tmp_path, report, session_factory=QueueExhaustionSession)
+    assert replayed["result"] == report["result"]
+    assert report["result"]["termination_reason"] == "frontier_exhausted"
 
 
 def test_rejected_prediction_is_invalid_successor_without_trusted_substitution(tmp_path):
@@ -284,6 +349,7 @@ def test_rejected_prediction_is_invalid_successor_without_trusted_substitution(t
     assert report["events"][0]["verification"]["failure_kind"] == "schema"
     assert report["events"][0]["verification"]["trusted_state_substituted"] is False
     assert report["events"][0]["raw_prediction"] == "{}"
+    assert verify_report(tmp_path, report)["result"] == report["result"]
 
 
 def test_call_limit_exhaustion_is_a_valid_unsuccessful_episode(tmp_path):
@@ -297,6 +363,7 @@ def test_call_limit_exhaustion_is_a_valid_unsuccessful_episode(tmp_path):
     assert report["result"]["invariant_valid_success"] is False
     assert report["result"]["model_calls"] == 0
     assert report["events"] == []
+    assert verify_report(tmp_path, report)["result"] == report["result"]
 
 
 def test_strict_failure_kinds_are_classified_separately():
@@ -402,6 +469,72 @@ def test_independent_replay_catches_tampered_raw_prediction(tmp_path):
             views_factory=views_factory,
             token_counter=token_counter,
         )
+
+
+def test_truncated_natural_episode_fails_as_incomplete_events(tmp_path):
+    report = run_cell(tmp_path, "trusted_successor", None)[0]
+    path = tmp_path / report["output"]
+    truncated = read_json(path)
+    truncated["events"] = truncated["events"][:-1]
+    write_json(path, truncated)
+    with pytest.raises(ValueError, match="recorded events are incomplete"):
+        verify_report(tmp_path, truncated)
+
+
+def test_runtime_head_is_bound_to_producing_worker_not_replay_head(tmp_path):
+    producing_directory = (tmp_path / "jobs/successor-evaluate-0/3").resolve()
+    producing_directory.mkdir(parents=True)
+    producing = {
+        "job_id": "successor-evaluate-0",
+        "attempt": 3,
+        "directory": str(producing_directory),
+    }
+    runtime_head = "dd4818a000000000000000000000000000000000"
+    bound = protocol()
+    bound["_producing_attempt"] = producing
+    bound["_valid_producing_attempts"] = {
+        (producing["job_id"], producing["attempt"], producing["directory"]): "succeeded"
+    }
+    bound["_runtime_head"] = runtime_head
+    report = evaluation.run_cell(
+        tmp_path,
+        bound,
+        panel="development",
+        modality="text-state",
+        arm="trusted_successor",
+        tasks=[task()],
+        endpoint="unused",
+        generate=None,
+        progress=lambda **kwargs: None,
+        session_factory=FakeSession,
+        views_factory=views_factory,
+        token_counter=token_counter,
+    )[0]
+    assert report["runtime_head"] == runtime_head
+    (producing_directory / "worker-result.json").write_text(
+        json.dumps(
+            {
+                "producing_attempt": producing,
+                "runtime_head": runtime_head,
+                "policy_identities": bound["_successor_policy_identity"],
+            }
+        )
+    )
+    replay_protocol = copy.deepcopy(bound)
+    replay_protocol["_runtime_head"] = "ffffffffffffffffffffffffffffffffffffffff"
+    replayed = evaluation.verify_episode(
+        tmp_path,
+        replay_protocol,
+        "development",
+        "text-state",
+        task(),
+        "trusted_successor",
+        "unused",
+        session_factory=FakeSession,
+        views_factory=views_factory,
+        token_counter=token_counter,
+    )
+    assert replayed["runtime_head"] == runtime_head
 
 
 def test_summary_preserves_coverage_missingness(tmp_path):
