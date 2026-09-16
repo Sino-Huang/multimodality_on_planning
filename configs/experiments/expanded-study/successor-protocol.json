@@ -2,12 +2,12 @@
   "schema_version": "expanded_successor_protocol_v1",
   "protocol_id": "expanded-successor-v1",
   "program_id": "expanded-nine-day-v1",
-  "status": "draft_before_runner_pin_and_qualification",
+  "status": "frozen_before_collection_and_training",
   "issues": [
     85,
     86
   ],
-  "goal7_runner_commit": null,
+  "goal7_runner_commit": "1b8df2c50f0df791483dbc6549ef71242ba8c94c",
   "source_study": "configs/experiments/matched-modalities/study-v5.json",
   "source_membership": "configs/experiments/matched-modalities/membership.json",
   "source_corpus": "outputs/modality_corpus/issue74-matched-32k-v1/release-001/report.json",
