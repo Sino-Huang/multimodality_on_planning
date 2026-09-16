@@ -1,0 +1,264 @@
+{
+  "status": "complete",
+  "scope": {
+    "goal": 7,
+    "protocol_id": "expanded-successor-v1",
+    "issues": [
+      85,
+      86
+    ],
+    "algorithm": "bfs",
+    "modalities": [
+      "text-state",
+      "visual-state",
+      "multimodal-state"
+    ],
+    "scientific_collection_started": false,
+    "persistent_training_updates": 0
+  },
+  "requirements": {
+    "complete_dynamic_state": "The strict target predicts complete sorted dynamic atoms and numeric fluents plus their canonical state identity; no state is truncated.",
+    "static_context_separation": "Complete authoritative task context remains in the input and is checked through a separate immutable SHA-256 identity; static facts never enter predicted dynamic atoms.",
+    "trusted_verification": "The verifier separately classifies schema, static context, source identity, action identity, applicability, state identity and exact authoritative effects.",
+    "raw_prediction_and_no_repair": "Raw prediction text is retained. Rejected states are neither normalized nor applied, and trusted states are never substituted for incorrect predictions.",
+    "downstream_failure_separation": "Local successor verification and downstream search status occupy separate fields; Goal 9 must report them separately.",
+    "independent_replay": "A fresh authority registers each non-initial source through its complete retained producing-action path and recomputes verification from raw prediction without a model call.",
+    "shared_builder": "The same successor_contract, projection and prediction_target builders define corpus labels and live model inputs; candidate target-state/evaluation fields are removed before projection.",
+    "training_only_membership": "All 512 records come from the frozen 25-task BFS training order. The selection keeps 421 accepted original-membership transitions and fills 91 positions by fixed task-round-robin accepted-transition order.",
+    "complete_target_measurement": "All 512 targets were measured with the pinned tokenizer before qualification: 124\u2013383 tokens. The 512-token allowance is the 1.25-margin maximum rounded to 64, not the old 384-operation cap.",
+    "three_modality_freeze": "Text, visual and multimodal share identical record IDs, actions and targets. Visual inputs use unlabelled 128px initial/current scenes with complete context and goal pages.",
+    "training_freeze": "Each modality is fixed to 512 records, one epoch, seed 17, sequential no-shuffle sampling, global batch 32 and exactly 16 optimizer updates from its verified BFS adapter.",
+    "control_freeze": "Evaluation compares model-generated and trusted successors under identical deterministic canonical BFS actions; invalid predictions never receive trusted replacement.",
+    "outcome_blind_coverage": "Full 24-task coverage projects to 147.658902 GPU-hours and is infeasible. The preregistered minimum-exact-cost task per each of 12 domains plus all three development tasks projects to 62.333058/64 and was selected without model outcomes.",
+    "hardware_qualification": "Both A100 workers completed full 512-token scalar, batch and repeated-batch generation for all modalities; repeated batches and scalar/batch first items were byte-identical.",
+    "discarded_training_probe": "Every modality completed a finite discarded in-memory optimizer step over a full successor example; all 174,587,904 trainable adapter parameters were exercised and source checkpoints remained unchanged.",
+    "scheduler_and_budget": "Workers used distinct ports 18800 and 18801. All successor attempts, including failures, consumed 0.22095979399151272 GPU-hours against the unchanged 64-hour cap.",
+    "no_scientific_execution": "Qualification retained only unscored capacity outputs, made zero collection decisions and performed zero persistent training updates. Goals 8 and 9 own scientific execution."
+  },
+  "coverage": {
+    "membership": {
+      "records": 512,
+      "tasks": 25,
+      "original_membership_transitions": 421,
+      "round_robin_fill_transitions": 91,
+      "retirement_operations_excluded": 91,
+      "membership_id": "sha256:d742d2d4ddb3ec18391fc00a9c08f1df4c041097190ce4953c958593c0685bd0",
+      "noninitial_source_paths": 439,
+      "maximum_source_path_actions": 16
+    },
+    "views": {
+      "records": 512,
+      "tasks": 25,
+      "states": 439,
+      "processor_cross_checks": [
+        "multimodal-state",
+        "text-state",
+        "visual-state"
+      ]
+    },
+    "tokens": {
+      "targets": {
+        "records": 512,
+        "minimum": 124,
+        "maximum": 383,
+        "safety_factor": 1.25,
+        "allowance_rule": "ceil(measured maximum x 1.25) to the next 64-token boundary",
+        "median": 236,
+        "p90": 274,
+        "p95": 299,
+        "p99": 383
+      },
+      "inputs_and_supervised": {
+        "text-state_input": 2104,
+        "text-state_supervised": 2352,
+        "visual-state_input": 3671,
+        "visual-state_supervised": 3892,
+        "multimodal-state_input": 4535,
+        "multimodal-state_supervised": 4808
+      },
+      "output_allowance": 512,
+      "context_allowance": 32768
+    },
+    "evaluation": {
+      "selected_tier": "exact_cost_fallback",
+      "development_tasks": 3,
+      "unseen_tasks": 12,
+      "unseen_domains": [
+        "15puzzle",
+        "blocksworld",
+        "depot",
+        "driverlog",
+        "elevators",
+        "ferry",
+        "grid",
+        "gripper",
+        "logistics",
+        "storage",
+        "towers_of_hanoi",
+        "visitall"
+      ],
+      "unseen_task_ids": [
+        "expanded-final/15puzzle-compact-910000",
+        "expanded-final/blocksworld-expanded-911101",
+        "expanded-final/depot-compact-912000",
+        "expanded-final/driverlog-expanded-913103",
+        "expanded-final/elevators-compact-914002",
+        "expanded-final/ferry-compact-915000",
+        "expanded-final/grid-compact-916000",
+        "expanded-final/gripper-compact-917000",
+        "expanded-final/logistics-compact-918000",
+        "expanded-final/storage-compact-919000",
+        "expanded-final/towers_of_hanoi-compact-920000",
+        "expanded-final/visitall-compact-921000"
+      ],
+      "model_call_allowance": 4062
+    }
+  },
+  "qualification": {
+    "modalities": {
+      "text-state": {
+        "checkpoint": "outputs/matched_modalities/v3/training/text-state/bfs/final",
+        "load_seconds": 52.35688228905201,
+        "full_output_batch_two_seconds": 51.341433852910995,
+        "scalar_batch_byte_identical": true,
+        "repeated_batch_byte_identical": true,
+        "optimizer_microstep_seconds": 1.4236846938729286,
+        "loss": 0.03505139425396919,
+        "loss_finite": true,
+        "trainable_parameters": 174587904,
+        "peak_allocated_bytes": 23312335360,
+        "source_checkpoint_unchanged": true,
+        "discarded_in_memory_update": true
+      },
+      "multimodal-state": {
+        "checkpoint": "outputs/matched_modalities/v5/training/multimodal-state/bfs/final",
+        "load_seconds": 31.38562569208443,
+        "full_output_batch_two_seconds": 73.73988092504442,
+        "scalar_batch_byte_identical": true,
+        "repeated_batch_byte_identical": true,
+        "optimizer_microstep_seconds": 2.8497290164232254,
+        "loss": 0.14525535702705383,
+        "loss_finite": true,
+        "trainable_parameters": 174587904,
+        "peak_allocated_bytes": 28553496576,
+        "source_checkpoint_unchanged": true,
+        "discarded_in_memory_update": true
+      },
+      "visual-state": {
+        "checkpoint": "outputs/matched_modalities/v5/training/visual-state/bfs/final",
+        "load_seconds": 52.20166974328458,
+        "full_output_batch_two_seconds": 62.648578310385346,
+        "scalar_batch_byte_identical": true,
+        "repeated_batch_byte_identical": true,
+        "optimizer_microstep_seconds": 2.4205994121730328,
+        "loss": 0.13752780854701996,
+        "loss_finite": true,
+        "trainable_parameters": 174587904,
+        "peak_allocated_bytes": 26689837568,
+        "source_checkpoint_unchanged": true,
+        "discarded_in_memory_update": true
+      }
+    },
+    "full_coverage_projected_gpu_hours": 147.65890150469352,
+    "fallback_coverage_projected_gpu_hours": 62.33305773641642,
+    "selected_coverage": "exact_cost_fallback",
+    "qualification_gpu_hours_spent": 0.22095979399151272,
+    "retained_failed_attempt_gpu_hours": 0.01812982552581363,
+    "branch_cap_gpu_hours": 64
+  },
+  "published_artifacts": {
+    "protocol": {
+      "path": "configs/experiments/expanded-study/successor-protocol.json",
+      "canonical_json_sha256": "a9525f7c4bd4312a1ddca8a3e60b9b28a2d4a8a57702d1659070e568fe97a9e4"
+    },
+    "qualification": {
+      "path": "docs/experiments/expanded-study/successor-qualification.json",
+      "canonical_json_sha256": "66599246657af96b01ab056b9dbbfd01ce2489fb5dfcf67aa80f14a30fb934e5"
+    },
+    "prepared_views": {
+      "path": "outputs/expanded-study/v1/successor/preparation/scene-views.json",
+      "canonical_json_sha256": "28bc72719a12f0a3533969dc4ecba58e02274d44331f2d8ff7eb49edb0dcd322"
+    }
+  },
+  "execution": {
+    "runner_commit": "2875a8d18bc29814eae1586383805a745c0f9cba",
+    "successful_gpu_attempts": [
+      {
+        "job_id": "successor-qualification-0",
+        "attempt": 2,
+        "gpus": [
+          0
+        ],
+        "master_port": 18800,
+        "gpu_hours": 0.1302712692817052
+      },
+      {
+        "job_id": "successor-qualification-1",
+        "attempt": 2,
+        "gpus": [
+          1
+        ],
+        "master_port": 18801,
+        "gpu_hours": 0.07255869918399387
+      }
+    ],
+    "retained_technical_failures": [
+      {
+        "stage": "preparation",
+        "gpu_hours": 0,
+        "cause": "Visual projections contain page-role text parts in addition to the JSON semantic part; the projector was corrected to replace exactly the JSON payload while retaining every page part."
+      },
+      {
+        "stage": "qualification",
+        "gpu_hours": 0.01812982552581363,
+        "cause": "The shared scheduler assigns the first free explicit MASTER_PORT and ignores a job-level preferred port; validation was aligned with the frozen scheduler pool before any model loaded."
+      }
+    ],
+    "final_cpu_job": {
+      "job_id": "successor-qualification-final",
+      "attempt": 1,
+      "terminal_returncode": 0,
+      "hook_returncode": 0
+    }
+  },
+  "verification_commands": [
+    "source ~/cd_vlaplan && EXPANDED_TERMINAL_PATH=outputs/expanded-study/v1/jobs/successor-prepare/2/terminal.json python scripts/prepare_expanded_successor.py audit",
+    "source ~/cd_vlaplan && EXPANDED_TERMINAL_PATH=outputs/expanded-study/v1/jobs/successor-qualification-0/2/terminal.json python scripts/qualify_expanded_successor.py audit-worker --worker 0",
+    "source ~/cd_vlaplan && EXPANDED_TERMINAL_PATH=outputs/expanded-study/v1/jobs/successor-qualification-1/2/terminal.json python scripts/qualify_expanded_successor.py audit-worker --worker 1",
+    "source ~/cd_vlaplan && EXPANDED_TERMINAL_PATH=outputs/expanded-study/v1/jobs/successor-qualification-final/1/terminal.json python scripts/qualify_expanded_successor.py audit-final",
+    "source ~/cd_vlaplan && pytest -q tests/planning_benchmark/test_expanded_successor.py tests/planning_benchmark/test_pddl_state_authority.py tests/planning_benchmark/test_scene_only_views.py tests/planning_benchmark/test_visual_corpus.py tests/planning_benchmark/test_expanded_scheduler.py tests/planning_benchmark/test_visual_qualification.py tests/planning_benchmark/test_visual_attention.py",
+    "source ~/cd_vlaplan && ruff check examples/planning_benchmark_slice/expanded_successor.py examples/planning_benchmark_slice/expanded_successor_protocol.py scripts/prepare_expanded_successor.py scripts/qualify_expanded_successor.py tests/planning_benchmark/test_expanded_successor.py"
+  ],
+  "verification_results": {
+    "scheduled_preparation_hook": "PASS",
+    "standalone_preparation_replay": "PASS: all 512 successor targets and three modality projections independently replayed",
+    "scheduled_gpu_worker_hooks": "PASS",
+    "standalone_gpu_worker_audits": "PASS: text-state, visual-state and multimodal-state qualification evidence reproduced",
+    "scheduled_final_hook": "PASS",
+    "standalone_final_audit": "PASS: frozen successor protocol, hardware paths and exact_cost_fallback cost admission",
+    "direct_serialized_artifact_audit": "PASS: membership, 512 producing paths, views, token limits, fallback costs, worker probes, checkpoint immutability and complete ledger accounting",
+    "affected_tests": "76 passed in 40.81s",
+    "ruff": "All checks passed"
+  },
+  "publication": {
+    "implementation_commits": [
+      "1b8df2c50f0df791483dbc6549ef71242ba8c94c",
+      "efe7396",
+      "640ee83",
+      "2875a8d"
+    ],
+    "freeze_commit": "5aaa767",
+    "evidence_commit": null,
+    "issues": [
+      {
+        "number": 85,
+        "state": "OPEN"
+      },
+      {
+        "number": 86,
+        "state": "OPEN"
+      }
+    ],
+    "closeouts": []
+  }
+}

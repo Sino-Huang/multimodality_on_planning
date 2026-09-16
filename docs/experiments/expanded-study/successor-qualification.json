@@ -1,0 +1,101 @@
+{
+  "schema_version": "expanded_successor_qualification_v1",
+  "outcome": "PASS",
+  "protocol_id": "expanded-successor-v1",
+  "hardware_qualified": true,
+  "modalities": {
+    "text-state": {
+      "full_output_batch_two_seconds": 51.341433852910995,
+      "trainable_adapter_microstep_seconds": 1.4236846938729286,
+      "collection_projection_seconds": 13195.763948634267,
+      "training_projection_seconds": 739.539839733392,
+      "full_evaluation_projection_seconds": 102016.44451417029,
+      "fallback_evaluation_projection_seconds": 34810.507600709796
+    },
+    "multimodal-state": {
+      "full_output_batch_two_seconds": 73.73988092504442,
+      "trainable_adapter_microstep_seconds": 2.8497290164232254,
+      "collection_projection_seconds": 18908.795142503455,
+      "training_projection_seconds": 1469.5721264518797,
+      "full_evaluation_projection_seconds": 146478.7891428303,
+      "fallback_evaluation_projection_seconds": 49953.285011947155
+    },
+    "visual-state": {
+      "full_output_batch_two_seconds": 62.648578310385346,
+      "trainable_adapter_microstep_seconds": 2.4205994121730328,
+      "collection_projection_seconds": 16090.237717201933,
+      "training_projection_seconds": 1249.851501127705,
+      "full_evaluation_projection_seconds": 124472.27819416858,
+      "fallback_evaluation_projection_seconds": 42465.289185874164
+    }
+  },
+  "target_token_measurement": {
+    "records": 512,
+    "minimum": 124,
+    "maximum": 383,
+    "safety_factor": 1.25,
+    "allowance_rule": "ceil(measured maximum x 1.25) to the next 64-token boundary",
+    "median": 236,
+    "p90": 274,
+    "p95": 299,
+    "p99": 383
+  },
+  "input_token_maxima": {
+    "text-state_input": 2104,
+    "text-state_supervised": 2352,
+    "visual-state_input": 3671,
+    "visual-state_supervised": 3892,
+    "multimodal-state_input": 4535,
+    "multimodal-state_supervised": 4808
+  },
+  "qualification_gpu_hours_spent": 0.22095979399151272,
+  "full_coverage_projected_gpu_hours": 147.65890150469352,
+  "fallback_coverage_projected_gpu_hours": 62.33305773641642,
+  "branch_cap_gpu_hours": 64,
+  "selected_coverage": "exact_cost_fallback",
+  "selected_unseen_task_ids": [
+    "expanded-final/15puzzle-compact-910000",
+    "expanded-final/blocksworld-expanded-911101",
+    "expanded-final/depot-compact-912000",
+    "expanded-final/driverlog-expanded-913103",
+    "expanded-final/elevators-compact-914002",
+    "expanded-final/ferry-compact-915000",
+    "expanded-final/grid-compact-916000",
+    "expanded-final/gripper-compact-917000",
+    "expanded-final/logistics-compact-918000",
+    "expanded-final/storage-compact-919000",
+    "expanded-final/towers_of_hanoi-compact-920000",
+    "expanded-final/visitall-compact-921000"
+  ],
+  "selected_unseen_task_count": 12,
+  "selected_projected_gpu_hours": 62.33305773641642,
+  "minimum_coverage_retained": true,
+  "model_outcomes_used_for_coverage_selection": false,
+  "collection_started": false,
+  "persistent_training_updates": 0,
+  "scalar_batch_divergence_reported": {
+    "text-state": false,
+    "multimodal-state": false,
+    "visual-state": false
+  },
+  "jobs": [
+    {
+      "job_id": "successor-qualification-0",
+      "attempt": 2,
+      "gpus": [
+        0
+      ],
+      "master_port": 18800,
+      "gpu_hours": 0.1302712692817052
+    },
+    {
+      "job_id": "successor-qualification-1",
+      "attempt": 2,
+      "gpus": [
+        1
+      ],
+      "master_port": 18801,
+      "gpu_hours": 0.07255869918399387
+    }
+  ]
+}

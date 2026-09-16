@@ -96,3 +96,31 @@ The probes generate unscored scalar and repeated batches at the full 512-token
 allowance and perform one discarded in-memory optimizer step per modality.
 Source checkpoints must remain unchanged. Qualification collects zero scientific
 predictions and performs zero persistent updates; Goals 8 and 9 own those stages.
+
+## Qualification result
+
+All three modalities passed on the two A100 workers. GPU 0 used
+`MASTER_PORT=18800` for text then multimodal; GPU 1 used `MASTER_PORT=18801`
+for visual. Every scalar, two-item batch and repeated batch generated the full
+512-token allowance. Repeated batches were byte-identical, and the first
+scalar/batch output was also byte-identical for every modality. Maximum prepared
+input sizes were 2,104 text, 3,671 visual and 4,535 multimodal tokens; maximum
+supervised sizes were 2,352, 3,892 and 4,808 respectively.
+
+Each modality completed a finite discarded optimizer step over a full successor
+example. All 174,587,904 adapter parameters were trainable, peak allocations
+were 23.31 GB text, 26.69 GB visual and 28.55 GB multimodal, and source adapter
+files remained unchanged. Worker hooks, the CPU finalizer and a separate rerun
+of every audit passed.
+
+The full 24-unseen-task allowance projects to 147.658902 GPU-hours and therefore
+does not fit the 64-hour branch. The preregistered fallback projects to
+62.333058 GPU-hours and was selected: all three development tasks plus one
+minimum exact-reference-cost task from every one of the 12 unseen domains. No
+model output or success score entered that selection. The qualification itself,
+including retained technical failures, used 0.220960 GPU-hours. It made zero
+scientific collection decisions and zero persistent training updates.
+
+`successor-qualification.json` records the measurements, selected task IDs,
+cost projections and scheduler attempts. `goal7-completion-audit.json` records
+the complete requirement audit, ignored-view digest and verification results.
