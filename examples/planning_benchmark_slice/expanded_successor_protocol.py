@@ -203,7 +203,15 @@ def training_example(
     if example["binding"]["input_pages"] != binding["input_pages"]:
         raise ValueError("successor model-facing pages differ from preparation")
     example["messages"].append({"role": "assistant", "content": canonical(record["target"])})
-    return project_successor_example(example, contract)
+    projected = project_successor_example(example, contract)
+    input_tokens = frozen_processor().count(
+        projected["messages"][:-1], image_sizes=projected["image_sizes"]
+    )
+    expected = views.measurements[record["record_id"]]["tokens"][modality]["input"]
+    if input_tokens != expected:
+        raise ValueError("successor live input differs from its frozen processor measurement")
+    projected["binding"]["input_tokens"] = input_tokens
+    return projected
 
 
 def _materialize(args: tuple[Path, str, str, set[int], Path]) -> dict[str, Any]:

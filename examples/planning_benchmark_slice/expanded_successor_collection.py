@@ -144,9 +144,17 @@ def training_label(interaction: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
-def _expected_view(example: Mapping[str, Any], contract: Mapping[str, Any]) -> dict[str, Any]:
+def _expected_input_tokens(views: Any, record_id: str, modality: str) -> int:
+    return views.measurements[record_id]["tokens"][modality]["input"]
+
+
+def _expected_view(
+    example: Mapping[str, Any], contract: Mapping[str, Any], input_tokens: int
+) -> dict[str, Any]:
+    binding = copy.deepcopy(example["binding"])
+    binding["input_tokens"] = input_tokens
     return {
-        "binding": copy.deepcopy(example["binding"]),
+        "binding": binding,
         "view_manifest": contract["view_manifest"],
         "state": contract["state"],
         "input_pages": copy.deepcopy(contract["input_pages"]),
@@ -184,7 +192,7 @@ def _commit_journal(
             raise ValueError("successor journal index differs from frozen membership")
         example = training_example(root, dict(protocol), dict(context), views, index, modality, pixels=False)
         try:
-            expected_input = example["binding"]["input_tokens"]
+            expected_input = _expected_input_tokens(views, contract["record_id"], modality)
             if input_tokens != expected_input:
                 raise ValueError("successor model-call input accounting differs from the live example")
             if row["task_id"] not in authorities:
@@ -210,7 +218,7 @@ def _commit_journal(
                 contract,
                 raw_prediction,
                 modality=modality,
-                view=_expected_view(example, contract),
+                view=_expected_view(example, contract, expected_input),
                 collection_index=index,
                 measurement=measurement,
                 trajectory_links=trajectory,
@@ -321,7 +329,8 @@ def _verify_records(
         contract = context["contracts"][index]
         example = training_example(root, dict(protocol), dict(context), views, index, modality, pixels=False)
         try:
-            expected_view = _expected_view(example, contract)
+            expected_input = _expected_input_tokens(views, contract["record_id"], modality)
+            expected_view = _expected_view(example, contract, expected_input)
             measurement = interaction.get("measurement", {})
             provenance = interaction.get("runtime_provenance", {})
             model_identity = provenance.get("model_identity", {})
@@ -341,7 +350,7 @@ def _verify_records(
                 or measurement.get("model_call_id") != f"{modality}:batch-{index // 2:06d}"
                 or measurement.get("batch_position") != index % 2
                 or measurement.get("batch_size") != min(2, len(paths) - index + index % 2)
-                or measurement.get("input_tokens") != example["binding"]["input_tokens"]
+                or measurement.get("input_tokens") != expected_input
                 or not 0 < measurement.get("generated_sequence_tokens", 0) <= protocol["model"]["output_tokens"]
                 or provenance.get("checkpoint") != protocol["starting_checkpoints"][modality]
                 or provenance.get("master_port") not in protocol["launch"]["master_port_pool"]

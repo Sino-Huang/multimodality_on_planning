@@ -358,6 +358,15 @@ def test_collection_replays_fixed_records_and_publishes_separate_labels(tmp_path
         "membership_id": "sha256:membership",
     }
 
+    class Views:
+        def __init__(self):
+            self.measurements = {
+                row["record_id"]: {"tokens": {"text-state": {"input": 100 + index}}}
+                for index, row in enumerate(rows)
+            }
+
+    views = Views()
+
     def example(_root, _protocol, _context, _views, index, modality, *, pixels=True):
         return {
             "messages": [
@@ -369,7 +378,8 @@ def test_collection_replays_fixed_records_and_publishes_separate_labels(tmp_path
             "binding": {
                 "state": 0,
                 "input_pages": contracts[index]["input_pages"],
-                "input_tokens": 100 + index,
+                # SceneOnlyViews binds the source prompt before successor projection.
+                "input_tokens": 90 + index,
                 "state_representation": "scene-only-128-unlabelled-v1",
             },
         }
@@ -404,7 +414,7 @@ def test_collection_replays_fixed_records_and_publishes_separate_labels(tmp_path
         tmp_path,
         protocol,
         context,
-        object(),
+        views,
         modality="text-state",
         generate=generate,
         progress=lambda **_values: None,
@@ -435,7 +445,7 @@ def test_collection_replays_fixed_records_and_publishes_separate_labels(tmp_path
         tmp_path,
         protocol,
         context,
-        object(),
+        views,
         modality="text-state",
         generate=lambda _examples: pytest.fail("pending output generated again"),
         progress=lambda **_values: None,
@@ -448,7 +458,7 @@ def test_collection_replays_fixed_records_and_publishes_separate_labels(tmp_path
         tmp_path,
         protocol,
         context,
-        object(),
+        views,
         modality="text-state",
         generate=lambda _examples: pytest.fail("completed cell generated again"),
         progress=lambda **_values: None,
@@ -457,8 +467,8 @@ def test_collection_replays_fixed_records_and_publishes_separate_labels(tmp_path
     assert retained is True
     assert report_again == report
 
-    release = collection.publish_release(tmp_path, protocol, context, object())
-    assert collection.verify_release(tmp_path, protocol, context, object()) == release
+    release = collection.publish_release(tmp_path, protocol, context, views)
+    assert collection.verify_release(tmp_path, protocol, context, views) == release
     interaction_set = read_scene_json(
         tmp_path / release["artifacts"]["text-state"]["interactions"]["path"]
     )
