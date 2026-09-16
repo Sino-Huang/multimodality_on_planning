@@ -1,0 +1,10 @@
+{
+  "job_id": "successor-evaluate-1",
+  "branch": "successor_prediction",
+  "gpus": [1],
+  "master_port": 18801,
+  "max_seconds": 54000,
+  "total": 30,
+  "command": ["/home/sukaih/miniconda3/envs/ada_vla/bin/python", "scripts/run_expanded_successor_evaluation.py", "run", "--worker", "1"],
+  "completion_hook": ["/home/sukaih/miniconda3/envs/ada_vla/bin/python", "scripts/run_expanded_successor_evaluation.py", "audit-worker", "--worker", "1"]
+}
