@@ -39,7 +39,8 @@ EXPANDED_TERMINAL_PATH=outputs/expanded-study/v1/jobs/successor-train-0/1/termin
   python scripts/run_expanded_successor_training.py audit-training-worker --worker 0
 EXPANDED_TERMINAL_PATH=outputs/expanded-study/v1/jobs/successor-train-1/1/terminal.json \
   python scripts/run_expanded_successor_training.py audit-training-worker --worker 1
-python scripts/run_expanded_successor_training.py audit-training-final
+EXPANDED_TERMINAL_PATH=outputs/expanded-study/v1/jobs/successor-train-final/1/terminal.json \
+  python scripts/run_expanded_successor_training.py audit-training-final
 ```
 
 #89's deliverable is satisfied; the final held-out comparison is #99 (Goal 9

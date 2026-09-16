@@ -38,7 +38,7 @@ measured outcome, not reduced coverage.
 
 Compared with the untrained starting adapters' fixed-query collection (Goal 8:
 1,274/1,536 schema failures), the trained successor adapters rarely fail schema
-(15 schema failures of 109 predictions) but still fail exact whole-state
+(16 schema failures of 109 predictions) but still fail exact whole-state
 identity/effects often enough that downstream canonical BFS usually terminates
 before the goal. Per-check validity (schema, static context, source identity,
 action identity, applicability, state identity, effect), downstream search,
@@ -81,19 +81,24 @@ finalizer job succeeded with hook returncode 0.
 
 ## Verification
 
+Read-only verification of the published evidence (does not modify any
+artifact):
+
 ```bash
 source ~/cd_vlaplan
-EXPANDED_TERMINAL_PATH=outputs/expanded-study/v1/jobs/successor-evaluate-0/1/terminal.json \
-  python scripts/run_expanded_successor_evaluation.py audit-worker --worker 0
-EXPANDED_TERMINAL_PATH=outputs/expanded-study/v1/jobs/successor-evaluate-1/1/terminal.json \
-  python scripts/run_expanded_successor_evaluation.py audit-worker --worker 1
-python scripts/run_expanded_successor_evaluation.py finalize   # republish check
 EXPANDED_TERMINAL_PATH=outputs/expanded-study/v1/jobs/successor-evaluate-final/1/terminal.json \
   python scripts/run_expanded_successor_evaluation.py audit-final
 ```
 
 `audit-final` independently recomputes the complete evidence from retained
 episodes and requires byte equality with the published report.
+
+The following commands are mutating repair/republication operations, not
+read-only checks: `audit-worker` refreshes each attempt's
+`independent-replay.json` (and `reaudit-result.json` on pass) with the current
+runtime head and timestamp, and `finalize` republishes `evidence.json`. Running
+them after publication therefore produces artifacts that differ from this
+committed byte-identical copy; use them only for a deliberate republication.
 
 ## Limitations
 

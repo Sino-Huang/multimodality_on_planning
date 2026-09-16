@@ -12,7 +12,7 @@
     "separate_outcome_reporting": "successor-evaluation.json reports schema validity, static/source/action/applicability/state/effect validity, downstream search, model calls and compute separately per modality x arm x panel, plus 45 paired whole-problem rows.",
     "accounting_cutoff_ports": "evaluate-0 GPU0 port 18800 0.389697 GPUh; evaluate-1 GPU1 port 18801 0.251746 GPUh; CPU finalizer; one attempt per job; branch cumulative 10.851129/64; all GPU stages ended before the 2026-09-21T11:55:19Z cutoff; no transfer or extension.",
     "background_hooks_and_terminal_status": "Every attempt wrote terminal.json + completion.json + hook receipts; attempt-1 evaluate hook failures retained (rc=1 with defect traceback) and disclosed alongside the passing re-audits; final job hook rc=0.",
-    "publication_and_issue_closeout": "Code dd4818a/7456808/7f1f893 and evidence 59fb882 + this closeout committed/pushed; #89 closed with successor-training.md evidence; #99 closed with this audit."
+    "publication_and_issue_closeout": "Code dd4818a/7456808/7f1f893 and evidence 59fb882 + this closeout committed/pushed; #89 closed with successor-training.md evidence; #99 is closed alongside this publication."
   },
   "independent_audit": {
     "outcome": "PASS",
