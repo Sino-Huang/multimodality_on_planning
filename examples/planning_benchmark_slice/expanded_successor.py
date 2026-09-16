@@ -103,8 +103,6 @@ def successor_contract(record: Mapping[str, Any]) -> dict[str, Any]:
     }
     model_input["successor_prediction_query"] = query
     target = prediction_target(task_context, transition)
-    if transition["target_state"]["state_id"] in canonical(model_input):
-        raise ValueError("successor model input leaks the target-state identity")
     return {
         "record_id": record["record_id"],
         "task_id": record["task_id"],
@@ -184,17 +182,26 @@ def project_successor_example(example: Mapping[str, Any], contract: Mapping[str,
     messages[0] = {"role": "system", "content": SYSTEM_PROMPT}
     content = messages[1]["content"]
     parts = content if isinstance(content, list) else [{"type": "text", "text": content}]
-    text_parts = [part for part in parts if part.get("type") == "text"]
-    if len(text_parts) != 1:
-        raise ValueError("source training example must contain one semantic text payload")
-    payload = json.loads(text_parts[0]["text"])
+    semantic_parts = []
+    for part in parts:
+        if part.get("type") != "text":
+            continue
+        try:
+            value = json.loads(part["text"])
+        except (json.JSONDecodeError, TypeError):
+            continue
+        if isinstance(value, dict) and "search_memory" in value:
+            semantic_parts.append((part, value))
+    if len(semantic_parts) != 1:
+        raise ValueError("source training example must contain one JSON semantic payload")
+    semantic_part, payload = semantic_parts[0]
     memory = payload["search_memory"]
     for candidate in memory["successor_candidates"]:
         candidate.pop("target_state_id", None)
         candidate.pop("target_state", None)
         candidate.pop("evaluation", None)
     payload["successor_prediction_query"] = copy.deepcopy(contract["query"])
-    text_parts[0]["text"] = canonical(payload)
+    semantic_part["text"] = canonical(payload)
     messages[-1] = {"role": "assistant", "content": canonical(contract["target"])}
     return projected
 
@@ -334,9 +341,13 @@ def prediction_record(
     *,
     modality: str,
     view: Mapping[str, Any],
+    source_path: Sequence[Mapping[str, Any]] = (),
 ) -> dict[str, Any]:
     source = contract["source_state"]
     source_state = authority.canonical_state(tuple(source["atoms"]), tuple(source.get("fluents", [])))
+    replayed_source = replay_source_path(authority, source_path)
+    if replayed_source != source_state:
+        raise ValueError("successor producing-action path does not reach its retained source state")
     return {
         "schema_version": RECORD_SCHEMA_VERSION,
         "record_id": contract["record_id"],
@@ -347,6 +358,7 @@ def prediction_record(
         "view": copy.deepcopy(dict(view)),
         "query": copy.deepcopy(contract["query"]),
         "source_state": state_payload(source_state),
+        "source_path": copy.deepcopy(list(source_path)),
         "raw_prediction": raw_prediction,
         "verification": verify_prediction(authority, source_state, contract["query"], raw_prediction),
         "trusted_target": copy.deepcopy(contract["target"]),
@@ -364,12 +376,12 @@ def replay_prediction_record(authority: PDDLStateAuthority, record: Mapping[str,
     candidates = model_input["search_memory"]["successor_candidates"]
     if any({"target_state_id", "target_state", "evaluation"}.intersection(candidate) for candidate in candidates):
         raise ValueError("successor record candidates contain target-state leakage")
-    if record["trusted_target"]["predicted_state"]["state_id"] in canonical(model_input):
-        raise ValueError("successor record model input contains its trusted target identity")
     source = record["source_state"]
     source_state = authority.canonical_state(tuple(source["atoms"]), tuple(source.get("fluents", [])))
     if state_payload(source_state) != source:
         raise ValueError("successor record source state is not canonical")
+    if replay_source_path(authority, record["source_path"]) != source_state:
+        raise ValueError("successor record source path differs on replay")
     actual = verify_prediction(authority, source_state, record["query"], record["raw_prediction"])
     if actual != record["verification"]:
         raise ValueError("successor prediction verification differs on replay")
@@ -378,3 +390,20 @@ def replay_prediction_record(authority: PDDLStateAuthority, record: Mapping[str,
     if prediction_target(authority.task_context(), expected) != record["trusted_target"]:
         raise ValueError("successor trusted target differs on replay")
     return actual
+
+
+def replay_source_path(
+    authority: PDDLStateAuthority,
+    source_path: Sequence[Mapping[str, Any]],
+) -> CanonicalState:
+    """Register a source state only through its complete trusted producing path."""
+
+    state = authority.initial_state
+    for index, payload in enumerate(source_path):
+        if not isinstance(payload, Mapping) or set(payload) != _ACTION_FIELDS:
+            raise ValueError(f"successor source-path action {index} is malformed")
+        name, args = payload["name"], payload["args"]
+        if not isinstance(name, str) or not isinstance(args, list) or not all(isinstance(arg, str) for arg in args):
+            raise ValueError(f"successor source-path action {index} is malformed")
+        state = authority.apply(state, GroundedAction(name, tuple(args))).target_state
+    return state

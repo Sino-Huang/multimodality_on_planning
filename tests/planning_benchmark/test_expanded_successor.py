@@ -37,9 +37,14 @@ def _authority() -> PDDLStateAuthority:
     return PDDLStateAuthority.from_pddl(payload["domain_pddl"], payload["problem_pddl"])
 
 
-def _source_record(authority: PDDLStateAuthority, action: GroundedAction | None = None) -> dict:
-    action = action or authority.applicable_actions(authority.initial_state)[0]
-    transition = authority.preview_apply(authority.initial_state, action)
+def _source_record(
+    authority: PDDLStateAuthority,
+    action: GroundedAction | None = None,
+    source: CanonicalState | None = None,
+) -> dict:
+    source = source or authority.initial_state
+    action = action or authority.applicable_actions(source)[0]
+    transition = authority.preview_apply(source, action)
     serialized = {
         "source_state": state_payload(transition.source_state),
         "action": {"name": action.name, "args": list(action.args)},
@@ -56,8 +61,8 @@ def _source_record(authority: PDDLStateAuthority, action: GroundedAction | None 
         "input_pages": [["task-context", None, 0], ["current-state", 0, 0], ["goal", None, 0]],
         "authoritative_input": {
             "observation": {
-                "state_id": authority.initial_state.state_id,
-                "state_atoms": list(authority.initial_state.atoms),
+                "state_id": source.state_id,
+                "state_atoms": list(source.atoms),
             },
             "search_memory": {
                 "successor_candidates": [
@@ -225,6 +230,31 @@ def test_replay_supports_rejected_predictions_without_substituting_teacher_state
     replayed = replay_prediction_record(authority, retained)
     assert replayed["failure_kind"] == "schema"
     assert replayed["trusted_state_substituted"] is False
+
+
+def test_replay_registers_a_noninitial_source_only_through_its_complete_action_path() -> None:
+    authority = _authority()
+    first_action = authority.applicable_actions(authority.initial_state)[0]
+    source = authority.apply(authority.initial_state, first_action).target_state
+    second_action = authority.applicable_actions(source)[0]
+    contract = successor_contract(_source_record(authority, second_action, source))
+    source_path = [{"name": first_action.name, "args": list(first_action.args)}]
+    fresh = _authority()
+
+    retained = prediction_record(
+        fresh,
+        contract,
+        canonical(contract["target"]),
+        modality="multimodal-state",
+        view={"state": 1},
+        source_path=source_path,
+    )
+
+    assert retained["source_path"] == source_path
+    assert replay_prediction_record(_authority(), retained)["status"] == "accepted"
+    retained["source_path"] = []
+    with pytest.raises(ValueError, match="source path differs"):
+        replay_prediction_record(_authority(), retained)
 
 
 def test_projection_preserves_view_parts_but_replaces_prompt_target_and_leakage() -> None:
