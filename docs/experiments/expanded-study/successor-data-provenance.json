@@ -1,0 +1,409 @@
+{
+  "schema_version": "expanded_successor_data_provenance_v1",
+  "protocol_sha256": "7362bbaf157b05e28c4611816614de7b32e12329b538ed36df9bf707691280f3",
+  "source_report": "outputs/modality_corpus/issue74-matched-32k-v1/release-001/report.json",
+  "source_report_sha256": "ea62d83428b7528ee26f678e4d13434ba53cdfa6c018bfe9c1d17dc2c7afb4c2",
+  "tasks": {
+    "bfs/15puzzle-train-easy-0000": {
+      "split": "train",
+      "view_manifest": "outputs/modality_views/materialize-32k-v2-001/task-000152/manifest.json.gz",
+      "domain_pddl_sha256": "dcf7850c5263eb1158ef3ffc146bf3b90a495cee3b86ee99021b75e08e48955f",
+      "problem_pddl_sha256": "8cf82ddf8bbd885a0fa90ac0e2629fb854b78239de701db9cadadb80f4219914",
+      "source_trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/15puzzle/easy/15puzzle-train-easy-0000/search-trace.json"
+      },
+      "source_trace_sha256": "1c8fc06af27f9cceea64f3d5329ecf1fc8976c60acaef173d43444f398955fa4",
+      "reference_costs": {
+        "bfs": {
+          "decisions": 6,
+          "expansions": 5
+        }
+      }
+    },
+    "bfs/blocksworld-train-easy-0000": {
+      "split": "train",
+      "view_manifest": "outputs/modality_views/materialize-32k-v2-001/task-000158/manifest.json.gz",
+      "domain_pddl_sha256": "2eed94c5a8fdfe2ac608c45cdf8a68274d69c1920bb4f831529f7bfaaaf79d81",
+      "problem_pddl_sha256": "573ff8c19ee7a0a32d559f30c9635b41f8133c3048dcd28a40a6cb7a060f9d23",
+      "source_trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/blocksworld/easy/blocksworld-train-easy-0000/search-trace.json"
+      },
+      "source_trace_sha256": "2a235b48ff9933eb6e83481103ccb4b98277cf1f5c204e47fe5dd888ba6e9639",
+      "reference_costs": {
+        "bfs": {
+          "decisions": 14,
+          "expansions": 10
+        }
+      }
+    },
+    "bfs/driverlog-train-easy-0000": {
+      "split": "train",
+      "view_manifest": "outputs/modality_views/materialize-32k-v2-001/task-000169/manifest.json.gz",
+      "domain_pddl_sha256": "231bff6bc0d6af752a7590d65daa261982c1411882cc2bf848cfcda21c8544b5",
+      "problem_pddl_sha256": "ff6e1d28a68ecdd836195a9a30fd9d5292132f2e6c2f883de4cdd2765e8723a5",
+      "source_trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/driverlog/easy/driverlog-train-easy-0000/search-trace.json"
+      },
+      "source_trace_sha256": "f822685240f333c2d2593fe0a1ec24c54263fa7cd3a0f54e369d17bcc6d8a037",
+      "reference_costs": {
+        "bfs": {
+          "decisions": 44,
+          "expansions": 27
+        }
+      }
+    },
+    "bfs/elevators-train-easy-0000": {
+      "split": "train",
+      "view_manifest": "outputs/modality_views/materialize-32k-v2-001/task-000175/manifest.json.gz",
+      "domain_pddl_sha256": "460c0cdf8ccc2a39b4bace7f52fee948ea61be971466434f5444a884c69ebaff",
+      "problem_pddl_sha256": "f43add280c1d137698c0ff3729fe821384084aa5dedacfd68319998d5a60624d",
+      "source_trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/elevators/easy/elevators-train-easy-0000/search-trace.json"
+      },
+      "source_trace_sha256": "8c961121d3c55dc506c285739e6935b9e57f69cb77a330192fa4552ad1313c20",
+      "reference_costs": {
+        "bfs": {
+          "decisions": 9,
+          "expansions": 6
+        }
+      }
+    },
+    "bfs/ferry-train-easy-0000": {
+      "split": "train",
+      "view_manifest": "outputs/modality_views/materialize-32k-v2-001/task-000181/manifest.json.gz",
+      "domain_pddl_sha256": "39fe4e46a3f1a5362b7eebd2faf19d920c803833865ea78296da25f1dfcfb15e",
+      "problem_pddl_sha256": "0888252572f5610a023a955e33ab21532d59dd0fe9b37d22c0c01a9b8df7706d",
+      "source_trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/ferry/easy/ferry-train-easy-0000/search-trace.json"
+      },
+      "source_trace_sha256": "a786e16f8b7cd06dd435de7462bba7be28820030b18a60b264323591dc5bebc3",
+      "reference_costs": {
+        "bfs": {
+          "decisions": 4,
+          "expansions": 4
+        }
+      }
+    },
+    "bfs/freecell-train-easy-0000": {
+      "split": "train",
+      "view_manifest": "outputs/modality_views/materialize-32k-v2-001/task-000187/manifest.json.gz",
+      "domain_pddl_sha256": "4079d1d151d3f6f666ef159b335e12f8b5f52f7330e9cf5fb1503e53797a264a",
+      "problem_pddl_sha256": "e95c8dd559da78bed06ee0b64aa71cc2ecb4ac8156e286dae1b391fd8c6d8697",
+      "source_trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/freecell/easy/freecell-train-easy-0000/search-trace.json"
+      },
+      "source_trace_sha256": "e4edc217fce478b2f329ae06c0ba9b84909e2d595f0297afae910c607e46d500",
+      "reference_costs": {
+        "bfs": {
+          "decisions": 8,
+          "expansions": 6
+        }
+      }
+    },
+    "bfs/grid-train-easy-0000": {
+      "split": "train",
+      "view_manifest": "outputs/modality_views/materialize-32k-v2-001/task-000193/manifest.json.gz",
+      "domain_pddl_sha256": "cdfe105b11f6a47badca0c1b667631e4ef9d3132730aaf59d52d133eef1ac07a",
+      "problem_pddl_sha256": "627e9dd3e5f649ce4d9869aa15f5d1aba579aec621a6681cfe0123b29fc01dc6",
+      "source_trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/grid/easy/grid-train-easy-0000/search-trace.json"
+      },
+      "source_trace_sha256": "9948c832e2eee6ef650c1d57e75edff6f9bac1da8047d0d3cd0989f2516c6a8e",
+      "reference_costs": {
+        "bfs": {
+          "decisions": 44,
+          "expansions": 22
+        }
+      }
+    },
+    "bfs/gripper-train-easy-0000": {
+      "split": "train",
+      "view_manifest": "outputs/modality_views/materialize-32k-v2-001/task-000199/manifest.json.gz",
+      "domain_pddl_sha256": "894b97e04557b9dce4198a3fe85f20d8a946e2b2dff9ddd42b8bcffd0a95e27c",
+      "problem_pddl_sha256": "4b45a432d497f0523b019e897bd4f08bd64be4161b20d4d1c28362177254dca1",
+      "source_trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/gripper/easy/gripper-train-easy-0000/search-trace.json"
+      },
+      "source_trace_sha256": "832bebc5b45bef72eeb02ddb3f18fa14c6473b2f09989f0f3aca53059623e0f0",
+      "reference_costs": {
+        "bfs": {
+          "decisions": 33,
+          "expansions": 24
+        }
+      }
+    },
+    "bfs/logistics-train-easy-0000": {
+      "split": "train",
+      "view_manifest": "outputs/modality_views/materialize-32k-v2-001/task-000205/manifest.json.gz",
+      "domain_pddl_sha256": "1e53d7715105db947a91bdaf55c0027bccc3d037f3771cf9b5422b1fd6c58715",
+      "problem_pddl_sha256": "33f08f075bc62f2bc580102a93a26a8f8ae01760877875e9ddec7a904df036d6",
+      "source_trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/logistics/easy/logistics-train-easy-0000/search-trace.json"
+      },
+      "source_trace_sha256": "105ff137a571a5efe25a8c213a838443c79f64546f4ca54770784e44c585fe04",
+      "reference_costs": {
+        "bfs": {
+          "decisions": 4,
+          "expansions": 4
+        }
+      }
+    },
+    "bfs/towers_of_hanoi-train-easy-0000": {
+      "split": "train",
+      "view_manifest": "outputs/modality_views/materialize-32k-v2-001/task-000229/manifest.json.gz",
+      "domain_pddl_sha256": "ee914680502482172da7d09f2d88b9ef31f4bca324d26f28959550a24fc2ed12",
+      "problem_pddl_sha256": "6f09b5c4c006219e99d06ff9820b6e02c89df6a99370b74984920f0529972469",
+      "source_trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/towers_of_hanoi/easy/towers_of_hanoi-train-easy-0000/search-trace.json"
+      },
+      "source_trace_sha256": "286279623e319da393b9fa4d765799975304ae1bd6f33201f6f4f2727868a405",
+      "reference_costs": {
+        "bfs": {
+          "decisions": 34,
+          "expansions": 25
+        }
+      }
+    },
+    "bfs/visitall-train-easy-0000": {
+      "split": "train",
+      "view_manifest": "outputs/modality_views/materialize-32k-v2-001/task-000235/manifest.json.gz",
+      "domain_pddl_sha256": "137bab5fb939a47286e960e066556f891e7d286d7a6542e414d1cd24f92ec55d",
+      "problem_pddl_sha256": "a786cfe4a87b2312360eae789ed52b4e1c1ba7305af928a246c457d1fde8ea44",
+      "source_trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/visitall/easy/visitall-train-easy-0000/search-trace.json"
+      },
+      "source_trace_sha256": "911cf9d3e1ddce7ff4faa31411e5c9b04bdd0db06c52b70522642249f866c6b9",
+      "reference_costs": {
+        "bfs": {
+          "decisions": 12,
+          "expansions": 7
+        }
+      }
+    },
+    "bfs/blocksworld-train-medium-0000": {
+      "split": "train",
+      "view_manifest": "outputs/modality_views/materialize-32k-v2-001/task-000159/manifest.json.gz",
+      "domain_pddl_sha256": "2eed94c5a8fdfe2ac608c45cdf8a68274d69c1920bb4f831529f7bfaaaf79d81",
+      "problem_pddl_sha256": "f4448d975f167fc9d00b7424dcea34ef38c828d30903f74402b6c65a0d9983b6",
+      "source_trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/blocksworld/medium/blocksworld-train-medium-0000/search-trace.json"
+      },
+      "source_trace_sha256": "16c5ce6c62590a36c53f4cf3d50103c5474c91b86f542d56e3ab0fcf08d01f7b",
+      "reference_costs": {
+        "bfs": {
+          "decisions": 121,
+          "expansions": 88
+        }
+      }
+    },
+    "bfs/driverlog-train-medium-0000": {
+      "split": "train",
+      "view_manifest": "outputs/modality_views/materialize-32k-v2-001/task-000171/manifest.json.gz",
+      "domain_pddl_sha256": "231bff6bc0d6af752a7590d65daa261982c1411882cc2bf848cfcda21c8544b5",
+      "problem_pddl_sha256": "39212be727377fd0429688384eef02c5a548037339efb6f8711a817558d0d92b",
+      "source_trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/driverlog/medium/driverlog-train-medium-0000/search-trace.json"
+      },
+      "source_trace_sha256": "90daa9db80eac066d7669d30548b403b862711fd711c9883078715ae5d93e83f",
+      "reference_costs": {
+        "bfs": {
+          "decisions": 93,
+          "expansions": 71
+        }
+      }
+    },
+    "bfs/elevators-train-medium-0000": {
+      "split": "train",
+      "view_manifest": "outputs/modality_views/materialize-32k-v2-001/task-000177/manifest.json.gz",
+      "domain_pddl_sha256": "460c0cdf8ccc2a39b4bace7f52fee948ea61be971466434f5444a884c69ebaff",
+      "problem_pddl_sha256": "23a759149980bff3aa2953af424b2b505d001ed9b5c4d0c3d8701b882649da38",
+      "source_trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/elevators/medium/elevators-train-medium-0000/search-trace.json"
+      },
+      "source_trace_sha256": "c10d06dd457b2d7723fc8f04dd160de0354c5f76280d3de763cda6afd129e138",
+      "reference_costs": {
+        "bfs": {
+          "decisions": 382,
+          "expansions": 214
+        }
+      }
+    },
+    "bfs/ferry-train-medium-0000": {
+      "split": "train",
+      "view_manifest": "outputs/modality_views/materialize-32k-v2-001/task-000183/manifest.json.gz",
+      "domain_pddl_sha256": "39fe4e46a3f1a5362b7eebd2faf19d920c803833865ea78296da25f1dfcfb15e",
+      "problem_pddl_sha256": "867dedf8c3e8d5009720493823960b3fdea70c8ce69ea4fdc5b5e99c74ab7d59",
+      "source_trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/ferry/medium/ferry-train-medium-0000/search-trace.json"
+      },
+      "source_trace_sha256": "dd3f7e85e8ec3594e7ebe274f65634b848ac543f1ac13740497d8ec94953250f",
+      "reference_costs": {
+        "bfs": {
+          "decisions": 217,
+          "expansions": 126
+        }
+      }
+    },
+    "bfs/gripper-train-medium-0000": {
+      "split": "train",
+      "view_manifest": "outputs/modality_views/materialize-32k-v2-001/task-000201/manifest.json.gz",
+      "domain_pddl_sha256": "894b97e04557b9dce4198a3fe85f20d8a946e2b2dff9ddd42b8bcffd0a95e27c",
+      "problem_pddl_sha256": "1c8db44ebf4140c9bd1870c80cb38056e465c994513a98156a23be70a403299e",
+      "source_trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/gripper/medium/gripper-train-medium-0000/search-trace.json"
+      },
+      "source_trace_sha256": "f10f4390748b822bce3e7622d064eaa1fab645ae2f395f2f769af885535af01f",
+      "reference_costs": {
+        "bfs": {
+          "decisions": 113,
+          "expansions": 86
+        }
+      }
+    },
+    "bfs/logistics-train-medium-0000": {
+      "split": "train",
+      "view_manifest": "outputs/modality_views/materialize-32k-v2-001/task-000207/manifest.json.gz",
+      "domain_pddl_sha256": "1e53d7715105db947a91bdaf55c0027bccc3d037f3771cf9b5422b1fd6c58715",
+      "problem_pddl_sha256": "eb8911af3f5b46b4ca39b7f74b52490d3d24440b0fb1c53077dc86b70b0536c9",
+      "source_trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/logistics/medium/logistics-train-medium-0000/search-trace.json"
+      },
+      "source_trace_sha256": "474a437ea75d01791741b4f6d47565bd00f3d0cda7b24f7961f36825b43bef81",
+      "reference_costs": {
+        "bfs": {
+          "decisions": 157,
+          "expansions": 111
+        }
+      }
+    },
+    "bfs/towers_of_hanoi-train-medium-0000": {
+      "split": "train",
+      "view_manifest": "outputs/modality_views/materialize-32k-v2-001/task-000231/manifest.json.gz",
+      "domain_pddl_sha256": "ee914680502482172da7d09f2d88b9ef31f4bca324d26f28959550a24fc2ed12",
+      "problem_pddl_sha256": "f99d0dccc04d23b62fa6ab592d5d584421e3d4d18e1f1e24c9eb4d0bb1d1ba97",
+      "source_trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/towers_of_hanoi/medium/towers_of_hanoi-train-medium-0000/search-trace.json"
+      },
+      "source_trace_sha256": "9a8e7d3676a910ea043238c05ad42f55a9a290da4b9f9dbe1a9b68d5f692a915",
+      "reference_costs": {
+        "bfs": {
+          "decisions": 94,
+          "expansions": 67
+        }
+      }
+    },
+    "bfs/visitall-train-medium-0000": {
+      "split": "train",
+      "view_manifest": "outputs/modality_views/materialize-32k-v2-001/task-000237/manifest.json.gz",
+      "domain_pddl_sha256": "137bab5fb939a47286e960e066556f891e7d286d7a6542e414d1cd24f92ec55d",
+      "problem_pddl_sha256": "466d8088537224286731a3d4b287686cb0c2ff6433da8be04b66cb926ba94224",
+      "source_trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/visitall/medium/visitall-train-medium-0000/search-trace.json"
+      },
+      "source_trace_sha256": "ee350d14edde76101a1ff11024dd572f1848940410ea8ee550d1bebc12aa7f63",
+      "reference_costs": {
+        "bfs": {
+          "decisions": 383,
+          "expansions": 222
+        }
+      }
+    },
+    "bfs/driverlog-train-hard-0000": {
+      "split": "train",
+      "view_manifest": "outputs/modality_views/materialize-32k-v2-001/task-000170/manifest.json.gz",
+      "domain_pddl_sha256": "231bff6bc0d6af752a7590d65daa261982c1411882cc2bf848cfcda21c8544b5",
+      "problem_pddl_sha256": "b8db4e6a2cec2873a3c72935f54002b5192effe6757e13a033b58bc4b9bcd6ee",
+      "source_trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/driverlog/hard/driverlog-train-hard-0000/search-trace.json"
+      },
+      "source_trace_sha256": "cf8563e7df40cf8ad41f5d614be9cd6a107256411cc0684035f2780052138dd9",
+      "reference_costs": {
+        "bfs": {
+          "decisions": 540,
+          "expansions": 333
+        }
+      }
+    },
+    "bfs/elevators-train-hard-0000": {
+      "split": "train",
+      "view_manifest": "outputs/modality_views/materialize-32k-v2-001/task-000176/manifest.json.gz",
+      "domain_pddl_sha256": "460c0cdf8ccc2a39b4bace7f52fee948ea61be971466434f5444a884c69ebaff",
+      "problem_pddl_sha256": "65c533811bb4f5037ec4ba160d628916c0b0c129f192fd6c7140ad4d278325f2",
+      "source_trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/elevators/hard/elevators-train-hard-0000/search-trace.json"
+      },
+      "source_trace_sha256": "ec34b90360ab100e7294afe6de7756320df8f2ffdadbd0444ba93977f3c75401",
+      "reference_costs": {
+        "bfs": {
+          "decisions": 443,
+          "expansions": 260
+        }
+      }
+    },
+    "bfs/ferry-train-hard-0000": {
+      "split": "train",
+      "view_manifest": "outputs/modality_views/materialize-32k-v2-001/task-000182/manifest.json.gz",
+      "domain_pddl_sha256": "39fe4e46a3f1a5362b7eebd2faf19d920c803833865ea78296da25f1dfcfb15e",
+      "problem_pddl_sha256": "4e42bcc7fa46b9f121001d602cca5f22238f55bb8de8a016bb3d5dc7e7f35a07",
+      "source_trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/ferry/hard/ferry-train-hard-0000/search-trace.json"
+      },
+      "source_trace_sha256": "d86f7d850976b959c0e251673ddf598ca0de7dff218c928c7a746f8088604eb1",
+      "reference_costs": {
+        "bfs": {
+          "decisions": 599,
+          "expansions": 403
+        }
+      }
+    },
+    "bfs/gripper-train-hard-0000": {
+      "split": "train",
+      "view_manifest": "outputs/modality_views/materialize-32k-v2-001/task-000200/manifest.json.gz",
+      "domain_pddl_sha256": "894b97e04557b9dce4198a3fe85f20d8a946e2b2dff9ddd42b8bcffd0a95e27c",
+      "problem_pddl_sha256": "a4b8ff528056de1024fc8309226f9c0c534b726ffdc2c0a83e52c003a5570fea",
+      "source_trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/gripper/hard/gripper-train-hard-0000/search-trace.json"
+      },
+      "source_trace_sha256": "d6d96647b01ca1df556a7566b935a0ef0d008ca6ea5d6ea84934656430476f62",
+      "reference_costs": {
+        "bfs": {
+          "decisions": 935,
+          "expansions": 702
+        }
+      }
+    },
+    "bfs/logistics-train-hard-0000": {
+      "split": "train",
+      "view_manifest": "outputs/modality_views/materialize-32k-v2-001/task-000206/manifest.json.gz",
+      "domain_pddl_sha256": "1e53d7715105db947a91bdaf55c0027bccc3d037f3771cf9b5422b1fd6c58715",
+      "problem_pddl_sha256": "f97d23e42fa5bcf8f41f89f7477683e64d712ebb7836cad472e84b80faefe281",
+      "source_trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/logistics/hard/logistics-train-hard-0000/search-trace.json"
+      },
+      "source_trace_sha256": "2f00a9671eed67a746d900184885018c165c587e72916f58a8a9b0616399dd46",
+      "reference_costs": {
+        "bfs": {
+          "decisions": 466,
+          "expansions": 377
+        }
+      }
+    },
+    "bfs/visitall-train-hard-0000": {
+      "split": "train",
+      "view_manifest": "outputs/modality_views/materialize-32k-v2-001/task-000236/manifest.json.gz",
+      "domain_pddl_sha256": "137bab5fb939a47286e960e066556f891e7d286d7a6542e414d1cd24f92ec55d",
+      "problem_pddl_sha256": "fd2e3b2d83eb14c10d0147b03a06b510ad5c4b50aa51b5c8e4f4dd0ed0c141f6",
+      "source_trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/visitall/hard/visitall-train-hard-0000/search-trace.json"
+      },
+      "source_trace_sha256": "a48b2df52a10fa49501aef969d024200fc05796633423e21441482e152bf368d",
+      "reference_costs": {
+        "bfs": {
+          "decisions": 823,
+          "expansions": 559
+        }
+      }
+    }
+  },
+  "reference_cost_meaning": "Exact BFS source-episode decision costs, not collection decisions or predicted-state success."
+}
