@@ -341,9 +341,10 @@ def prediction_record(
     *,
     modality: str,
     view: Mapping[str, Any],
-    source_path: Sequence[Mapping[str, Any]] = (),
+    source_path: Sequence[Mapping[str, Any]] | None = None,
 ) -> dict[str, Any]:
     source = contract["source_state"]
+    source_path = contract.get("source_path", ()) if source_path is None else source_path
     source_state = authority.canonical_state(tuple(source["atoms"]), tuple(source.get("fluents", [])))
     replayed_source = replay_source_path(authority, source_path)
     if replayed_source != source_state:

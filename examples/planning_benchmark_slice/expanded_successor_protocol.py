@@ -4,23 +4,52 @@ from __future__ import annotations
 
 import hashlib
 import math
+import re
 from collections import Counter
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any
 
-from .expanded_successor import project_successor_example, select_transition_records, successor_contract
+from .expanded_successor import (
+    project_successor_example,
+    replay_source_path,
+    select_transition_records,
+    successor_contract,
+)
 from .modality_corpus import MODALITIES, ModalityCorpus, project_record
 from .modality_corpus_replay import canonical
 from .modality_pages import fact_blocks
 from .modality_view_preparation import frozen_processor, validate_process_state, write_json
-from .scene_assets import read_json
+from .pddl_state import PDDLStateAuthority
+from .scene_assets import load_scene_task, read_json
 from .scene_only_preparation import check_task
 from .scene_only_views import RECIPE_ID, SceneOnlyViews, materialize_task
 
 
 def membership_id(record_ids: list[str]) -> str:
     return "sha256:" + hashlib.sha256(canonical(record_ids).encode()).hexdigest()
+
+
+def source_path(root: Path, record: dict[str, Any]) -> list[dict[str, Any]]:
+    """Recover the complete retained producing path for one source-state view."""
+
+    manifest = read_json(root / record["view_manifest"])
+    catalog = read_json(root / manifest["scene_catalog"])
+    state = catalog["states"][record["state"]]
+    actions = []
+    while state["parent"] is not None:
+        parent = state["parent"]
+        match = re.fullmatch(r"\(([^\s()]+)(?:\s+([^()]*))?\)", parent["action"])
+        if match is None:
+            raise ValueError("successor source path contains a malformed retained action")
+        actions.append(
+            {
+                "name": match.group(1),
+                "args": [] if not match.group(2) else match.group(2).split(),
+            }
+        )
+        state = catalog["states"][parent["state"]]
+    return list(reversed(actions))
 
 
 def validate_protocol(root: Path, protocol: dict[str, Any], *, require_frozen: bool = True) -> dict[str, Any]:
@@ -77,6 +106,18 @@ def validate_protocol(root: Path, protocol: dict[str, Any], *, require_frozen: b
         row["trace_paths"] = task["source_trace_paths"]
         row["reference_costs"] = task["reference_costs"]
     contracts = [successor_contract(row) for row in selected]
+    authorities = {}
+    for row, contract in zip(selected, contracts, strict=True):
+        task_id = row["task_id"]
+        if task_id not in authorities:
+            domain, problem, _traces = load_scene_task(root, row)
+            authorities[task_id] = PDDLStateAuthority.from_pddl(domain, problem)
+        path = source_path(root, row)
+        expected = contract["source_state"]
+        actual = replay_source_path(authorities[task_id], path)
+        if list(actual.atoms) != expected["atoms"] or list(actual.fluents) != expected.get("fluents", []):
+            raise ValueError("successor source path differs from its retained source state")
+        contract["source_path"] = path
     tokenizer = frozen_processor().processor.tokenizer
     target_lengths = [
         len(tokenizer(canonical(contract["target"]), add_special_tokens=False)["input_ids"])
