@@ -1,0 +1,1560 @@
+{
+  "schema_version": "expanded_successor_evaluation_v1",
+  "outcome": "PASS",
+  "protocol_id": "expanded-successor-v1",
+  "training_report_schema": "expanded_successor_training_report_v1",
+  "training_status": "PASS",
+  "final_checkpoint_sha256": {
+    "text-state": "sha256:4a1b0e7d5f7eabb789bfdb8d8261cf1bd4af7d96d889e628127dcbe2fffa0e56",
+    "visual-state": "sha256:4f1e70aca729262b5120e629e9bfe423f479e3590b5204ef39a90c2c4c490f8d",
+    "multimodal-state": "sha256:8fc24776e692054a0c00503dbca90c36437aed1037db920bccf3184e26cf7771"
+  },
+  "final_adapter_config_sha256": {
+    "text-state": "sha256:fdb522b0e14b396bbf02cec1740df9e35302b48ed1b2b9249f115a5f7da84b86",
+    "visual-state": "sha256:7be39c3d9b3ef57cf89b9f9fd39ef6c0012658b31b2e31fa2c2a1084306e0e55",
+    "multimodal-state": "sha256:fdb522b0e14b396bbf02cec1740df9e35302b48ed1b2b9249f115a5f7da84b86"
+  },
+  "evaluation_seed": 17,
+  "coverage": {
+    "development": 3,
+    "unseen": 12
+  },
+  "expected_episodes": 90,
+  "episodes_replayed": 90,
+  "complete_coverage": true,
+  "missing_bindings": [],
+  "exact_reference": {
+    "source": "frozen panel row.reference_costs.bfs.decisions",
+    "by_panel": {
+      "development": {
+        "matched-final/storage-760000": 8,
+        "matched-final/blocksworld-730060": 5,
+        "matched-final/ferry-780004": 4
+      },
+      "unseen": {
+        "expanded-final/15puzzle-compact-910000": 33,
+        "expanded-final/blocksworld-expanded-911101": 143,
+        "expanded-final/depot-compact-912000": 10,
+        "expanded-final/driverlog-expanded-913103": 94,
+        "expanded-final/elevators-compact-914002": 8,
+        "expanded-final/ferry-compact-915000": 10,
+        "expanded-final/grid-compact-916000": 75,
+        "expanded-final/gripper-compact-917000": 110,
+        "expanded-final/logistics-compact-918000": 8,
+        "expanded-final/storage-compact-919000": 10,
+        "expanded-final/towers_of_hanoi-compact-920000": 27,
+        "expanded-final/visitall-compact-921000": 132
+      }
+    },
+    "per_modality_exact_reference_decisions": 677,
+    "model_call_allowance": 4062
+  },
+  "cells": [
+    {
+      "panel": "development",
+      "modality": "multimodal-state",
+      "arm": "model_generated_successor",
+      "expected_episodes": 3,
+      "episodes": 3,
+      "missing_episodes": 0,
+      "downstream_successes": 0,
+      "downstream_failures": 3,
+      "termination_reasons": {
+        "invalid_successor": 3
+      },
+      "prediction_outcomes": {
+        "accepted": 4,
+        "effect": 2,
+        "schema": 1
+      },
+      "validity_checks": {
+        "schema": {
+          "invalid": 1,
+          "valid": 6
+        },
+        "static_context": {
+          "not_evaluated": 1,
+          "valid": 6
+        },
+        "source_identity": {
+          "not_evaluated": 1,
+          "valid": 6
+        },
+        "action_identity": {
+          "not_evaluated": 1,
+          "valid": 6
+        },
+        "applicability": {
+          "not_evaluated": 1,
+          "valid": 6
+        },
+        "state_identity": {
+          "not_evaluated": 1,
+          "valid": 6
+        },
+        "effect": {
+          "invalid": 2,
+          "not_evaluated": 1,
+          "valid": 4
+        }
+      },
+      "model_calls": 7,
+      "model_call_allowance": 34,
+      "model_call_wall_seconds": 196.53340613655746,
+      "active_wall_seconds": 196.78125778213143
+    },
+    {
+      "panel": "development",
+      "modality": "multimodal-state",
+      "arm": "trusted_successor",
+      "expected_episodes": 3,
+      "episodes": 3,
+      "missing_episodes": 0,
+      "downstream_successes": 3,
+      "downstream_failures": 0,
+      "termination_reasons": {
+        "goal_reached": 3
+      },
+      "prediction_outcomes": {},
+      "validity_checks": {
+        "schema": {},
+        "static_context": {},
+        "source_identity": {},
+        "action_identity": {},
+        "applicability": {},
+        "state_identity": {},
+        "effect": {}
+      },
+      "model_calls": 0,
+      "model_call_allowance": 34,
+      "model_call_wall_seconds": 0.0,
+      "active_wall_seconds": 0.054759666323661804
+    },
+    {
+      "panel": "development",
+      "modality": "text-state",
+      "arm": "model_generated_successor",
+      "expected_episodes": 3,
+      "episodes": 3,
+      "missing_episodes": 0,
+      "downstream_successes": 0,
+      "downstream_failures": 3,
+      "termination_reasons": {
+        "invalid_successor": 3
+      },
+      "prediction_outcomes": {
+        "accepted": 4,
+        "effect": 2,
+        "schema": 1
+      },
+      "validity_checks": {
+        "schema": {
+          "invalid": 1,
+          "valid": 6
+        },
+        "static_context": {
+          "not_evaluated": 1,
+          "valid": 6
+        },
+        "source_identity": {
+          "not_evaluated": 1,
+          "valid": 6
+        },
+        "action_identity": {
+          "not_evaluated": 1,
+          "valid": 6
+        },
+        "applicability": {
+          "not_evaluated": 1,
+          "valid": 6
+        },
+        "state_identity": {
+          "not_evaluated": 1,
+          "valid": 6
+        },
+        "effect": {
+          "invalid": 2,
+          "not_evaluated": 1,
+          "valid": 4
+        }
+      },
+      "model_calls": 7,
+      "model_call_allowance": 34,
+      "model_call_wall_seconds": 149.47832471504807,
+      "active_wall_seconds": 150.88650141097605
+    },
+    {
+      "panel": "development",
+      "modality": "text-state",
+      "arm": "trusted_successor",
+      "expected_episodes": 3,
+      "episodes": 3,
+      "missing_episodes": 0,
+      "downstream_successes": 3,
+      "downstream_failures": 0,
+      "termination_reasons": {
+        "goal_reached": 3
+      },
+      "prediction_outcomes": {},
+      "validity_checks": {
+        "schema": {},
+        "static_context": {},
+        "source_identity": {},
+        "action_identity": {},
+        "applicability": {},
+        "state_identity": {},
+        "effect": {}
+      },
+      "model_calls": 0,
+      "model_call_allowance": 34,
+      "model_call_wall_seconds": 0.0,
+      "active_wall_seconds": 0.05708711966872215
+    },
+    {
+      "panel": "development",
+      "modality": "visual-state",
+      "arm": "model_generated_successor",
+      "expected_episodes": 3,
+      "episodes": 3,
+      "missing_episodes": 0,
+      "downstream_successes": 0,
+      "downstream_failures": 3,
+      "termination_reasons": {
+        "invalid_successor": 3
+      },
+      "prediction_outcomes": {
+        "accepted": 4,
+        "effect": 2,
+        "schema": 1
+      },
+      "validity_checks": {
+        "schema": {
+          "invalid": 1,
+          "valid": 6
+        },
+        "static_context": {
+          "not_evaluated": 1,
+          "valid": 6
+        },
+        "source_identity": {
+          "not_evaluated": 1,
+          "valid": 6
+        },
+        "action_identity": {
+          "not_evaluated": 1,
+          "valid": 6
+        },
+        "applicability": {
+          "not_evaluated": 1,
+          "valid": 6
+        },
+        "state_identity": {
+          "not_evaluated": 1,
+          "valid": 6
+        },
+        "effect": {
+          "invalid": 2,
+          "not_evaluated": 1,
+          "valid": 4
+        }
+      },
+      "model_calls": 7,
+      "model_call_allowance": 34,
+      "model_call_wall_seconds": 173.63674796558917,
+      "active_wall_seconds": 175.22221623174846
+    },
+    {
+      "panel": "development",
+      "modality": "visual-state",
+      "arm": "trusted_successor",
+      "expected_episodes": 3,
+      "episodes": 3,
+      "missing_episodes": 0,
+      "downstream_successes": 3,
+      "downstream_failures": 0,
+      "termination_reasons": {
+        "goal_reached": 3
+      },
+      "prediction_outcomes": {},
+      "validity_checks": {
+        "schema": {},
+        "static_context": {},
+        "source_identity": {},
+        "action_identity": {},
+        "applicability": {},
+        "state_identity": {},
+        "effect": {}
+      },
+      "model_calls": 0,
+      "model_call_allowance": 34,
+      "model_call_wall_seconds": 0.0,
+      "active_wall_seconds": 0.056815747171640396
+    },
+    {
+      "panel": "unseen",
+      "modality": "multimodal-state",
+      "arm": "model_generated_successor",
+      "expected_episodes": 12,
+      "episodes": 12,
+      "missing_episodes": 0,
+      "downstream_successes": 1,
+      "downstream_failures": 11,
+      "termination_reasons": {
+        "goal_reached": 1,
+        "invalid_successor": 11
+      },
+      "prediction_outcomes": {
+        "accepted": 15,
+        "effect": 6,
+        "schema": 4,
+        "static_context": 1
+      },
+      "validity_checks": {
+        "schema": {
+          "invalid": 4,
+          "valid": 22
+        },
+        "static_context": {
+          "invalid": 1,
+          "not_evaluated": 4,
+          "valid": 21
+        },
+        "source_identity": {
+          "not_evaluated": 4,
+          "valid": 22
+        },
+        "action_identity": {
+          "not_evaluated": 4,
+          "valid": 22
+        },
+        "applicability": {
+          "not_evaluated": 4,
+          "valid": 22
+        },
+        "state_identity": {
+          "not_evaluated": 4,
+          "valid": 22
+        },
+        "effect": {
+          "invalid": 6,
+          "not_evaluated": 4,
+          "valid": 16
+        }
+      },
+      "model_calls": 26,
+      "model_call_allowance": 1320,
+      "model_call_wall_seconds": 510.8030483108014,
+      "active_wall_seconds": 511.4371708165854
+    },
+    {
+      "panel": "unseen",
+      "modality": "multimodal-state",
+      "arm": "trusted_successor",
+      "expected_episodes": 12,
+      "episodes": 12,
+      "missing_episodes": 0,
+      "downstream_successes": 12,
+      "downstream_failures": 0,
+      "termination_reasons": {
+        "goal_reached": 12
+      },
+      "prediction_outcomes": {},
+      "validity_checks": {
+        "schema": {},
+        "static_context": {},
+        "source_identity": {},
+        "action_identity": {},
+        "applicability": {},
+        "state_identity": {},
+        "effect": {}
+      },
+      "model_calls": 0,
+      "model_call_allowance": 1320,
+      "model_call_wall_seconds": 0.0,
+      "active_wall_seconds": 22.059882251545787
+    },
+    {
+      "panel": "unseen",
+      "modality": "text-state",
+      "arm": "model_generated_successor",
+      "expected_episodes": 12,
+      "episodes": 12,
+      "missing_episodes": 0,
+      "downstream_successes": 0,
+      "downstream_failures": 12,
+      "termination_reasons": {
+        "invalid_successor": 12
+      },
+      "prediction_outcomes": {
+        "accepted": 17,
+        "effect": 10,
+        "schema": 2
+      },
+      "validity_checks": {
+        "schema": {
+          "invalid": 2,
+          "valid": 27
+        },
+        "static_context": {
+          "not_evaluated": 2,
+          "valid": 27
+        },
+        "source_identity": {
+          "not_evaluated": 2,
+          "valid": 27
+        },
+        "action_identity": {
+          "not_evaluated": 2,
+          "valid": 27
+        },
+        "applicability": {
+          "not_evaluated": 2,
+          "valid": 27
+        },
+        "state_identity": {
+          "not_evaluated": 2,
+          "valid": 27
+        },
+        "effect": {
+          "invalid": 10,
+          "not_evaluated": 2,
+          "valid": 17
+        }
+      },
+      "model_calls": 29,
+      "model_call_allowance": 1320,
+      "model_call_wall_seconds": 381.11418625712395,
+      "active_wall_seconds": 381.3356923274696
+    },
+    {
+      "panel": "unseen",
+      "modality": "text-state",
+      "arm": "trusted_successor",
+      "expected_episodes": 12,
+      "episodes": 12,
+      "missing_episodes": 0,
+      "downstream_successes": 12,
+      "downstream_failures": 0,
+      "termination_reasons": {
+        "goal_reached": 12
+      },
+      "prediction_outcomes": {},
+      "validity_checks": {
+        "schema": {},
+        "static_context": {},
+        "source_identity": {},
+        "action_identity": {},
+        "applicability": {},
+        "state_identity": {},
+        "effect": {}
+      },
+      "model_calls": 0,
+      "model_call_allowance": 1320,
+      "model_call_wall_seconds": 0.0,
+      "active_wall_seconds": 21.340147245675325
+    },
+    {
+      "panel": "unseen",
+      "modality": "visual-state",
+      "arm": "model_generated_successor",
+      "expected_episodes": 12,
+      "episodes": 12,
+      "missing_episodes": 0,
+      "downstream_successes": 0,
+      "downstream_failures": 12,
+      "termination_reasons": {
+        "invalid_successor": 12
+      },
+      "prediction_outcomes": {
+        "accepted": 21,
+        "effect": 5,
+        "schema": 7
+      },
+      "validity_checks": {
+        "schema": {
+          "invalid": 7,
+          "valid": 26
+        },
+        "static_context": {
+          "not_evaluated": 7,
+          "valid": 26
+        },
+        "source_identity": {
+          "not_evaluated": 7,
+          "valid": 26
+        },
+        "action_identity": {
+          "not_evaluated": 7,
+          "valid": 26
+        },
+        "applicability": {
+          "not_evaluated": 7,
+          "valid": 26
+        },
+        "state_identity": {
+          "not_evaluated": 7,
+          "valid": 26
+        },
+        "effect": {
+          "invalid": 5,
+          "not_evaluated": 7,
+          "valid": 21
+        }
+      },
+      "model_calls": 33,
+      "model_call_allowance": 1320,
+      "model_call_wall_seconds": 632.3563082683831,
+      "active_wall_seconds": 633.0599620621651
+    },
+    {
+      "panel": "unseen",
+      "modality": "visual-state",
+      "arm": "trusted_successor",
+      "expected_episodes": 12,
+      "episodes": 12,
+      "missing_episodes": 0,
+      "downstream_successes": 12,
+      "downstream_failures": 0,
+      "termination_reasons": {
+        "goal_reached": 12
+      },
+      "prediction_outcomes": {},
+      "validity_checks": {
+        "schema": {},
+        "static_context": {},
+        "source_identity": {},
+        "action_identity": {},
+        "applicability": {},
+        "state_identity": {},
+        "effect": {}
+      },
+      "model_calls": 0,
+      "model_call_allowance": 1320,
+      "model_call_wall_seconds": 0.0,
+      "active_wall_seconds": 21.398960649967194
+    }
+  ],
+  "paired_whole_problem_rows": [
+    {
+      "panel": "development",
+      "modality": "multimodal-state",
+      "task_id": "matched-final/blocksworld-730060",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 1,
+          "model_calls": 1,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 5,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "development",
+      "modality": "multimodal-state",
+      "task_id": "matched-final/ferry-780004",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 2,
+          "model_calls": 2,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 4,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "development",
+      "modality": "multimodal-state",
+      "task_id": "matched-final/storage-760000",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 5,
+          "model_calls": 4,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 8,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "development",
+      "modality": "text-state",
+      "task_id": "matched-final/blocksworld-730060",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 1,
+          "model_calls": 1,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 5,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "development",
+      "modality": "text-state",
+      "task_id": "matched-final/ferry-780004",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 2,
+          "model_calls": 2,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 4,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "development",
+      "modality": "text-state",
+      "task_id": "matched-final/storage-760000",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 5,
+          "model_calls": 4,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 8,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "development",
+      "modality": "visual-state",
+      "task_id": "matched-final/blocksworld-730060",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 1,
+          "model_calls": 1,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 5,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "development",
+      "modality": "visual-state",
+      "task_id": "matched-final/ferry-780004",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 2,
+          "model_calls": 2,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 4,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "development",
+      "modality": "visual-state",
+      "task_id": "matched-final/storage-760000",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 5,
+          "model_calls": 4,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 8,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "modality": "multimodal-state",
+      "task_id": "expanded-final/15puzzle-compact-910000",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 4,
+          "model_calls": 4,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 33,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "modality": "multimodal-state",
+      "task_id": "expanded-final/blocksworld-expanded-911101",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 1,
+          "model_calls": 1,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 143,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "modality": "multimodal-state",
+      "task_id": "expanded-final/depot-compact-912000",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 2,
+          "model_calls": 2,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 10,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "modality": "multimodal-state",
+      "task_id": "expanded-final/driverlog-expanded-913103",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 1,
+          "model_calls": 1,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 94,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "modality": "multimodal-state",
+      "task_id": "expanded-final/elevators-compact-914002",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 8,
+          "model_calls": 6,
+          "invalid_successors": 0
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 8,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "modality": "multimodal-state",
+      "task_id": "expanded-final/ferry-compact-915000",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 1,
+          "model_calls": 1,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 10,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "modality": "multimodal-state",
+      "task_id": "expanded-final/grid-compact-916000",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 1,
+          "model_calls": 1,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 75,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "modality": "multimodal-state",
+      "task_id": "expanded-final/gripper-compact-917000",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 1,
+          "model_calls": 1,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 110,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "modality": "multimodal-state",
+      "task_id": "expanded-final/logistics-compact-918000",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 2,
+          "model_calls": 2,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 8,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "modality": "multimodal-state",
+      "task_id": "expanded-final/storage-compact-919000",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 1,
+          "model_calls": 1,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 10,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "modality": "multimodal-state",
+      "task_id": "expanded-final/towers_of_hanoi-compact-920000",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 1,
+          "model_calls": 1,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 27,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "modality": "multimodal-state",
+      "task_id": "expanded-final/visitall-compact-921000",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 5,
+          "model_calls": 5,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 132,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "modality": "text-state",
+      "task_id": "expanded-final/15puzzle-compact-910000",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 4,
+          "model_calls": 4,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 33,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "modality": "text-state",
+      "task_id": "expanded-final/blocksworld-expanded-911101",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 1,
+          "model_calls": 1,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 143,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "modality": "text-state",
+      "task_id": "expanded-final/depot-compact-912000",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 2,
+          "model_calls": 2,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 10,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "modality": "text-state",
+      "task_id": "expanded-final/driverlog-expanded-913103",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 1,
+          "model_calls": 1,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 94,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "modality": "text-state",
+      "task_id": "expanded-final/elevators-compact-914002",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 3,
+          "model_calls": 3,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 8,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "modality": "text-state",
+      "task_id": "expanded-final/ferry-compact-915000",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 4,
+          "model_calls": 3,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 10,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "modality": "text-state",
+      "task_id": "expanded-final/grid-compact-916000",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 1,
+          "model_calls": 1,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 75,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "modality": "text-state",
+      "task_id": "expanded-final/gripper-compact-917000",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 1,
+          "model_calls": 1,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 110,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "modality": "text-state",
+      "task_id": "expanded-final/logistics-compact-918000",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 2,
+          "model_calls": 2,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 8,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "modality": "text-state",
+      "task_id": "expanded-final/storage-compact-919000",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 1,
+          "model_calls": 1,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 10,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "modality": "text-state",
+      "task_id": "expanded-final/towers_of_hanoi-compact-920000",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 5,
+          "model_calls": 5,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 27,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "modality": "text-state",
+      "task_id": "expanded-final/visitall-compact-921000",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 5,
+          "model_calls": 5,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 132,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "modality": "visual-state",
+      "task_id": "expanded-final/15puzzle-compact-910000",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 10,
+          "model_calls": 10,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 33,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "modality": "visual-state",
+      "task_id": "expanded-final/blocksworld-expanded-911101",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 1,
+          "model_calls": 1,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 143,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "modality": "visual-state",
+      "task_id": "expanded-final/depot-compact-912000",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 2,
+          "model_calls": 2,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 10,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "modality": "visual-state",
+      "task_id": "expanded-final/driverlog-expanded-913103",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 1,
+          "model_calls": 1,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 94,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "modality": "visual-state",
+      "task_id": "expanded-final/elevators-compact-914002",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 5,
+          "model_calls": 4,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 8,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "modality": "visual-state",
+      "task_id": "expanded-final/ferry-compact-915000",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 4,
+          "model_calls": 3,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 10,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "modality": "visual-state",
+      "task_id": "expanded-final/grid-compact-916000",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 1,
+          "model_calls": 1,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 75,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "modality": "visual-state",
+      "task_id": "expanded-final/gripper-compact-917000",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 1,
+          "model_calls": 1,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 110,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "modality": "visual-state",
+      "task_id": "expanded-final/logistics-compact-918000",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 2,
+          "model_calls": 2,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 8,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "modality": "visual-state",
+      "task_id": "expanded-final/storage-compact-919000",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 1,
+          "model_calls": 1,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 10,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "modality": "visual-state",
+      "task_id": "expanded-final/towers_of_hanoi-compact-920000",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 1,
+          "model_calls": 1,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 27,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "modality": "visual-state",
+      "task_id": "expanded-final/visitall-compact-921000",
+      "arms": {
+        "model_generated_successor": {
+          "downstream_success": false,
+          "termination_reason": "invalid_successor",
+          "decisions": 6,
+          "model_calls": 6,
+          "invalid_successors": 1
+        },
+        "trusted_successor": {
+          "downstream_success": true,
+          "termination_reason": "goal_reached",
+          "decisions": 132,
+          "model_calls": 0,
+          "invalid_successors": 0
+        }
+      }
+    }
+  ],
+  "compute": {
+    "active_wall_seconds": 2113.6904533114284,
+    "model_call_wall_seconds": 2043.9220216535032,
+    "model_calls": 109
+  },
+  "raw_predictions_retained": 109,
+  "trusted_state_substitutions": 0,
+  "independent_replay": true,
+  "jobs": [
+    {
+      "job_id": "successor-evaluate-0",
+      "attempt": 1,
+      "status": "succeeded",
+      "directory": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/expanded-study/v1/jobs/successor-evaluate-0/1",
+      "gpus": [
+        0
+      ],
+      "master_port": 18800,
+      "gpu_hours": 0.3896970014439689,
+      "hook_returncode": 1,
+      "reaudit": {
+        "runtime_head": "7f1f893a893d58da5935af4b147d0a4f9ef3a5b2",
+        "timestamp": "2026-09-16T17:59:30.313207Z",
+        "outcome": "PASS",
+        "episodes_replayed": 60
+      }
+    },
+    {
+      "job_id": "successor-evaluate-1",
+      "attempt": 1,
+      "status": "succeeded",
+      "directory": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/expanded-study/v1/jobs/successor-evaluate-1/1",
+      "gpus": [
+        1
+      ],
+      "master_port": 18801,
+      "gpu_hours": 0.25174582216474745,
+      "hook_returncode": 1,
+      "reaudit": {
+        "runtime_head": "7f1f893a893d58da5935af4b147d0a4f9ef3a5b2",
+        "timestamp": "2026-09-16T17:59:54.318488Z",
+        "outcome": "PASS",
+        "episodes_replayed": 30
+      }
+    }
+  ],
+  "producing_attempts": [
+    {
+      "job_id": "successor-evaluate-0",
+      "attempt": 1,
+      "status": "succeeded",
+      "directory": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/expanded-study/v1/jobs/successor-evaluate-0/1",
+      "gpus": [
+        0
+      ],
+      "master_port": 18800,
+      "gpu_hours": 0.3896970014439689,
+      "hook_receipt": {
+        "returncode": 1
+      }
+    },
+    {
+      "job_id": "successor-evaluate-1",
+      "attempt": 1,
+      "status": "succeeded",
+      "directory": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/expanded-study/v1/jobs/successor-evaluate-1/1",
+      "gpus": [
+        1
+      ],
+      "master_port": 18801,
+      "gpu_hours": 0.25174582216474745,
+      "hook_receipt": {
+        "returncode": 1
+      }
+    }
+  ]
+}
