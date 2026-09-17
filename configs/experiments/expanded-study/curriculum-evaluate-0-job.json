@@ -5,7 +5,7 @@
   "master_port": 18800,
   "max_seconds": 10800,
   "total": 162,
-  "resume_reason": "attempt 3 failed retained-episode replay because provenance validation required current-head runtime identity, which mixed-attempt retention cannot satisfy; fixed to policy-identity binding plus committed-lineage runtime check and validated against all 140 real retained episodes; zero new episodes were produced by attempt 3, attempt 4 resumes the remaining fixed-panel coverage",
+  "resume_reason": "attempt 4 completed 160/162 fixed-panel episodes then hit its 10800s wall-clock cap (SIGKILL rc -9, no code error) with 2 multimodal-state episodes remaining; attempt 5 replay-verifies the 160 retained episodes and produces only the 2 missing episodes; mixed-attempt evidence remains bound per episode to its producing attempt",
   "command": ["/home/sukaih/miniconda3/envs/ada_vla/bin/python", "scripts/run_expanded_curriculum_evaluation.py", "run", "--worker", "0"],
   "completion_hook": ["/home/sukaih/miniconda3/envs/ada_vla/bin/python", "scripts/run_expanded_curriculum_evaluation.py", "audit-worker", "--worker", "0"]
 }
