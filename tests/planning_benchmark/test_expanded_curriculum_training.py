@@ -284,6 +284,12 @@ def test_worker_mapping_and_repository_jobs(monkeypatch):
         243,
     )
     assert (evaluate["0"]["max_seconds"], evaluate["1"]["max_seconds"]) == (10800, 5400)
+    expected_resume = (
+        "attempt 1 crashed on BestFirstModelSession arm-name validation (curriculum arm names rejected by the "
+        "issue-75 guard); fixed by mapping curriculum arms to process_sft behavior arm with adapter_id identity; "
+        "zero episodes were produced by attempt 1, attempt 2 reruns the full fixed panel"
+    )
+    assert evaluate["0"]["resume_reason"] == evaluate["1"]["resume_reason"] == expected_resume
 
 
 def test_aggregate_requires_identical_fresh_lora_initialization():

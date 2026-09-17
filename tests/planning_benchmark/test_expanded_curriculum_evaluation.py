@@ -132,7 +132,16 @@ class Session:
         return None if self.step == 2 else SimpleNamespace(model_input={"step": self.step})
 
     def submit(self, output, binding):
-        self.events.append({"accepted": True})
+        self.events.append(
+            {
+                "index": len(self.events),
+                "input": {"step": self.step},
+                "raw_output": output,
+                "accepted": True,
+                "view": binding,
+                "successor_state": None,
+            }
+        )
         self.step += 1
 
     def result(self):
@@ -188,6 +197,72 @@ def test_run_cell_uses_deterministic_task_rounds(tmp_path, monkeypatch):
     evaluation.write_json(retained_path, retained)
     with pytest.raises(ValueError, match="accounting"):
         evaluation.verify_episode(tmp_path, p, "development", "text-state", tasks[0], arm, "unused")
+
+
+def test_real_best_first_session_maps_curriculum_arm_for_run_and_replay(tmp_path):
+    """Previous run-cell tests mocked VisualSession and missed the historical arm whitelist."""
+    p = protocol()
+    arm = "text-state__staged"
+    task_file = tmp_path / "task.json"
+    task_file.write_text(
+        json.dumps(
+            {
+                "domain_pddl": """(define (domain tiny) (:requirements :strips)
+                (:predicates (at ?x)) (:action stay :parameters (?x)
+                :precondition (at ?x) :effect (at ?x)))""",
+                "problem_pddl": """(define (problem tiny-p) (:domain tiny)
+                (:objects a) (:init (at a)) (:goal (at a)))""",
+            }
+        )
+    )
+    task = {
+        "row": {
+            "task_id": "tiny/task",
+            "domain": "tiny",
+            "difficulty": "easy",
+            "task_path": "task.json",
+            "trace_paths": {},
+            "reference_costs": {"best_first_add_greedy": {"decisions": 1, "expansions": 1}},
+        }
+    }
+    output = tmp_path / "episode.json"
+    session = evaluation._curriculum_session(tmp_path, p, task, arm, output)
+    assert session.arm == session.session.arm == "process_sft"
+    assert session.session.adapter_id == arm
+    assert session.session.session_id.startswith(f"process_sft:{arm}:17:")
+    assert session.next_request() is None
+    report = {
+        "output": "episode.json",
+        "algorithm": p["algorithm"],
+        "arm": arm,
+        "comparison_arm": arm,
+        "behavior_arm": "process_sft",
+        "adapter_id": arm,
+        "modality": "text-state",
+        "seed": 17,
+        "events": [],
+        "result": session.result(),
+    }
+    assert evaluation._replay_curriculum_episode(tmp_path, p, task, arm, report, None) == report["result"]
+    p["_curriculum_checkpoints"] = {arm: "checkpoint"}
+    p["_curriculum_fingerprints"] = {
+        arm: {"final_checkpoint_sha256": "sha256:a", "final_adapter_config_sha256": "sha256:b"}
+    }
+    p["_producing_attempt"] = {"job_id": "job", "attempt": 2, "directory": "attempt"}
+    p["_runtime_head"] = "head"
+    p["_curriculum_policy_identity"] = {arm: {"adapter_id": arm}}
+    identity = evaluation._identity(
+        tmp_path,
+        p,
+        "development",
+        "text-state",
+        task,
+        arm,
+        output,
+        tmp_path / "views",
+    )
+    assert identity["arm"] == identity["comparison_arm"] == identity["adapter_id"] == arm
+    assert identity["behavior_arm"] == "process_sft"
 
 
 def paired_rows(saturated=False):

@@ -97,6 +97,9 @@ def _identity(root, protocol, panel, modality, task, arm, output, view_output):
         "modality": modality,
         "algorithm": protocol["algorithm"],
         "arm": arm,
+        "comparison_arm": arm,
+        "behavior_arm": "process_sft",
+        "adapter_id": arm,
         "seed": protocol["evaluation"]["seed"],
         "output": str(output.relative_to(root)),
         "view_output": str(view_output.relative_to(root)),
@@ -108,6 +111,65 @@ def _identity(root, protocol, panel, modality, task, arm, output, view_output):
         "runtime_head": runtime_head,
         "policy_identity": policy_identity,
     }
+
+
+def _curriculum_session(root, protocol, task, arm, output, *, views=None):
+    """Map a curriculum comparison arm onto the historical process-SFT behavior contract."""
+    session = VisualSession(
+        root,
+        task["row"],
+        protocol["algorithm"],
+        "process_sft",
+        protocol["evaluation"]["seed"],
+        output,
+        protocol["protocol_id"],
+        views=views,
+    )
+    inner = getattr(session, "session", None)
+    if inner is not None and hasattr(inner, "adapter_id"):
+        inner.adapter_id = arm
+        inner.session_id = f"process_sft:{arm}:{protocol['evaluation']['seed']}:{task['row']['task_id']}"
+    return session
+
+
+def _replay_curriculum_episode(root, protocol, task, arm, report, views):
+    original_read_only = getattr(views, "read_only", False) if views is not None else False
+    if views is not None:
+        views.read_only = True
+    try:
+        session = _curriculum_session(
+            root,
+            protocol,
+            task,
+            arm,
+            root / report["output"],
+            views=views,
+        )
+        for event in report["events"]:
+            request = session.next_request()
+            if request is None or dict(request.model_input) != event["input"]:
+                raise ValueError("curriculum episode replay input differs")
+            binding = (
+                views.observe(
+                    dict(request.model_input),
+                    protocol["algorithm"],
+                    modality=report["modality"],
+                    pixels=False,
+                )["binding"]
+                if views is not None
+                else None
+            )
+            if binding != event["view"]:
+                raise ValueError("curriculum episode replay view binding differs")
+            session.submit(event["raw_output"], binding)
+            if session.events[-1] != event:
+                raise ValueError("curriculum episode replay operation/result differs")
+        if session.next_request() is not None or session.result() != report["result"]:
+            raise ValueError("curriculum episode replay completion differs")
+        return session.result()
+    finally:
+        if views is not None:
+            views.read_only = original_read_only
 
 
 def _validate_producing_identity(protocol, report):
@@ -174,7 +236,7 @@ def verify_episode(root, protocol, panel, modality, task, arm, endpoint):
     if any(report.get(key) != value for key, value in expected.items()):
         raise ValueError("curriculum evaluation episode identity differs")
     views = _views(root, protocol, panel, task, view_output, endpoint, read_only=True)
-    result = replay_visual_episode(root, task["row"], report, views)
+    result = _replay_curriculum_episode(root, protocol, task, arm, report, views)
     if (
         result != report["result"]
         or len(report["events"]) != len(report["call_measurements"])
@@ -226,16 +288,7 @@ def run_cell(
             progress(completed=len(finished), total=len(tasks), task_id=task_id, retained=True)
             continue
         views = _views(root, protocol, panel, task, view_output, endpoint)
-        session = VisualSession(
-            root,
-            task["row"],
-            protocol["algorithm"],
-            arm,
-            protocol["evaluation"]["seed"],
-            output,
-            protocol["protocol_id"],
-            views=views,
-        )
+        session = _curriculum_session(root, protocol, task, arm, output, views=views)
         saved = (
             read_json(journal)
             if journal.exists()
