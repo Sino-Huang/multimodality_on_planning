@@ -15,7 +15,7 @@
     "historical_issue67_separation": "analysis.json reports historical #67 separately under its unmatched historical schedule and records pooled=false; no old-study result enters the paired analysis.",
     "accounting_cutoff_and_ports": "The preserved ledger charges 2.224124 GPU-hours for training and 9.554465 for evaluation, including failures and cutoffs, for curriculum branch cumulative 11.778588/48. GPU 0 used port 18800, GPU 1 used port 18801, and the finalizers were CPU-only.",
     "attempt_anomaly_disclosure": "The ledger retains evaluate-0 attempts 1-5 and evaluate-1 attempts 1-4. Two code defects are disclosed: curriculum arms rejected by the behavior-arm guard, fixed in 2946e18, and retained mixed-attempt replay requiring current-head identity, fixed by policy identity plus committed lineage in 8c95077. Three launches ended at wall-clock caps. Gate 3 found that the original ancestor-or-equal runtime check could not prove exact attribution for cutoff attempts lacking worker-result.json and scheduler launch heads. Commit/launch ordering was used retrospectively to freeze the exact mapping: evaluate-0 attempt 2 -> 2946e18465e7a7724c65e4e29caf21118cc76db6, attempts 4/5 -> 8c950773a63e29864ad6e684e40d9475f3fe3a1b; evaluate-1 attempt 2 -> 2946e18465e7a7724c65e4e29caf21118cc76db6, attempt 4 -> 8c950773a63e29864ad6e684e40d9475f3fe3a1b. The remediated validator requires exact mapped-head equality with no ancestor fallback, the scheduler persists launch_head for future attempts, and audit-final still independently replayed all 243 real episodes.",
-    "publication_and_issue_closeout": "The tracked evidence copy, evaluation report, this completion audit and issue-119 closeout document are prepared. Per the current task constraint, no commit, push, GitHub comment or issue-state change was performed; #119 was observed OPEN before writing these files."
+    "publication_and_issue_closeout": "The evidence, reports, completion audit and issue-119 closeout were published at HEAD 363169d996a188500f4d984240a1d56b70f83c85, equal to origin/main. Issue #119 is CLOSED with evidence comment 5715451375; this audit amendment follows that published record."
   },
   "independent_audit": {
     "outcome": "PASS",
@@ -47,7 +47,22 @@
     "training_gpu_hours": 2.224123580323325,
     "evaluation_gpu_hours": 9.554464637239773,
     "cumulative_curriculum_gpu_hours": 11.778588217563097,
-    "branch_cap_gpu_hours": 48
+    "branch_cap_gpu_hours": 48,
+    "prospective_budget_qualification": {
+      "safety_factor": 1.25,
+      "training_raw_gpu_hours": 2.0817,
+      "training_qualified_gpu_hours": 2.602125,
+      "evaluation_raw_gpu_hours": 3.5870795803,
+      "evaluation_qualified_gpu_hours": 4.4838494754,
+      "total_raw_gpu_hours": 5.6687795803,
+      "total_qualified_gpu_hours": 7.0859744754,
+      "fits_branch_budget": true,
+      "frozen_gpu_cutoff_utc": "2026-09-21T11:55:19Z",
+      "all_gpu_attempts_terminated_before_cutoff": true,
+      "cutoff_verification_source": "outputs/expanded-study/v1/budget.json attempts[].ended",
+      "actual_cumulative_gpu_hours": 11.778588217563097,
+      "actual_branch_cap_gpu_hours": 48
+    }
   },
   "coverage": {
     "training": {
@@ -170,8 +185,7 @@
     "One training seed (17) per cell; no training-seed variance is claimed.",
     "The modality-matched design estimates ordering effects within modality and does not estimate cross-modality transfer.",
     "Several curriculum arms and comparator controls reach 27/27; the predeclared saturation conclusion directs interpretation to paired intervals rather than point-estimate ranking.",
-    "Runtime episode journals and checkpoints follow the local outputs convention; compact evidence paths and hashes are published.",
-    "Repository publication and GitHub issue closure remain pending because this task explicitly forbids commits and GitHub changes."
+    "Runtime episode journals and checkpoints follow the local outputs convention; compact evidence paths and hashes are published."
   ],
   "artifacts": {
     "protocol": {"path": "configs/experiments/expanded-study/curriculum-protocol.json", "sha256": "6d8552c57d92bd057e76aaa1ef0da91e110e187ad3bfb02f198de0961ba5b262"},
@@ -185,11 +199,12 @@
     "issue_closeout": {"path": "docs/experiments/expanded-study/issue-119-closeout.md"}
   },
   "publication": {
-    "issue": {"number": 119, "state_observed_before_artifact_write": "OPEN", "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/119"},
-    "repository_actions_performed": false,
-    "commit": null,
-    "push": false,
-    "github_comment": null,
-    "github_issue_closed": false
+    "issue": {"number": 119, "state_observed": "CLOSED", "closed_at": "2026-09-17T13:48:35Z", "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/119"},
+    "repository_actions_performed": true,
+    "commit": "363169d996a188500f4d984240a1d56b70f83c85",
+    "push": true,
+    "github_comment": "5715451375",
+    "github_issue_closed": true,
+    "audit_amendment": "This terminal-state amendment follows the published 363169d record."
   }
 }

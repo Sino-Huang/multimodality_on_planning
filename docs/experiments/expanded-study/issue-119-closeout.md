@@ -107,6 +107,7 @@ consumption is 11.7785882 / 48 GPU-hours
   `outputs/expanded-study/v1/curriculum/evaluation/analysis.json`
 - Requirement audit: [goal10-completion-audit.json](goal10-completion-audit.json)
 
-The experimental and audit deliverables of #119 are satisfied. Repository
-publication and GitHub issue closure were not performed by this artifact-only
-task.
+The experimental and audit deliverables of #119 are satisfied. Evidence comment
+[`5715451375`](https://github.com/Sino-Huang/multimodality_on_planning/issues/119#issuecomment-5715451375)
+and issue closure followed at HEAD `363169d`; this terminal-state amendment
+follows that published record.
