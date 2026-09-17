@@ -483,6 +483,153 @@ def test_scheduler_attempt_terminal_hook_gpu_and_port_provenance(tmp_path, monke
     assert runner._evaluation_attempts(p) == attempts
 
 
+def test_finalize_and_audit_accept_cutoff_and_succeeded_producing_attempts(tmp_path, monkeypatch):
+    p = protocol()
+    development = [{"row": {"task_id": f"dev-{index}"}} for index in range(3)]
+    unseen = [{"row": {"task_id": f"unseen-{index}"}} for index in range(24)]
+    loaded = {"development": development, "unseen": unseen}
+    monkeypatch.setattr(runner, "ROOT", tmp_path)
+    monkeypatch.setattr(runner, "panels", lambda root, protocol: loaded)
+    monkeypatch.setattr(runner, "require_training_gate", lambda root, protocol: (dict(protocol), {}))
+    monkeypatch.setattr(runner, "validate_comparator_sources", lambda root, protocol: {"status": "PASS"})
+
+    attempts = []
+    identities = {}
+    for worker in range(2):
+        job_id = f"curriculum-evaluate-{worker}"
+        for attempt_number, status in ((1, "failed"), (2, "cutoff"), (3, "succeeded")):
+            directory = tmp_path / "jobs" / job_id / str(attempt_number)
+            directory.mkdir(parents=True)
+            attempt = {
+                "job_id": job_id,
+                "attempt": attempt_number,
+                "branch": "curriculum_modality",
+                "status": status,
+                "directory": str(directory),
+                "gpus": [worker],
+                "master_port": 18800 + worker,
+                "gpu_hours": 0.1,
+                "command": [
+                    "python",
+                    "scripts/run_expanded_curriculum_evaluation.py",
+                    "run",
+                    "--worker",
+                    str(worker),
+                ],
+            }
+            attempts.append(attempt)
+            identities[(worker, attempt_number)] = {
+                "job_id": job_id,
+                "attempt": attempt_number,
+                "directory": str(directory.resolve()),
+            }
+            if attempt_number == 3:
+                policy_identities = {
+                    arm: {"adapter_id": arm} for arm in evaluation.matched_arms(p, p["modalities"][worker])
+                }
+                if worker == 0:
+                    policy_identities.update(
+                        {arm: {"adapter_id": arm} for arm in evaluation.matched_arms(p, "multimodal-state")}
+                    )
+                (directory / "worker-result.json").write_text(
+                    json.dumps(
+                        {
+                            "producing_attempt": identities[(worker, 3)],
+                            "runtime_head": "head",
+                            "policy_identities": policy_identities,
+                            "missing_bindings": [],
+                        }
+                    )
+                )
+                (directory / "terminal.json").write_text(
+                    json.dumps(
+                        {
+                            "status": "succeeded",
+                            "gpus": [worker],
+                            "master_port": 18800 + worker,
+                        }
+                    )
+                )
+                (directory / "hook-result.json").write_text(json.dumps({"returncode": 0}))
+                (directory / "independent-replay.json").write_text(json.dumps({"outcome": "PASS", "worker": worker}))
+    ledger = tmp_path / "outputs/expanded-study/v1/budget.json"
+    ledger.parent.mkdir(parents=True)
+    ledger.write_text(json.dumps({"attempts": attempts}))
+
+    expected_paths = []
+    for worker in range(2):
+        expected_paths.extend(runner._expected_paths(p, loaded, runner.assigned(p, worker)))
+    for relative in expected_paths:
+        path = tmp_path / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("retained")
+
+    unrecorded = {"enabled": False}
+
+    def fake_verify_episode(root, bound, panel, modality, task, arm, endpoint):
+        worker = 0 if modality in runner.assigned(p, 0) else 1
+        attempt_number = 2 if task["row"]["task_id"].endswith("-0") else 3
+        producing = identities[(worker, attempt_number)]
+        if unrecorded["enabled"] and worker == 0 and task["row"]["task_id"] == "dev-0":
+            producing = {**producing, "attempt": 4}
+        report = {
+            "panel": panel,
+            "modality": modality,
+            "task_id": task["row"]["task_id"],
+            "arm": arm,
+            "comparison_arm": arm,
+            "producing_attempt": producing,
+            "runtime_head": "head",
+            "policy_identity": {"adapter_id": arm},
+            "result": {
+                "invariant_valid_success": True,
+                "goal_reached": True,
+                "algorithm_invariants_hold": True,
+                "decision_count": 1,
+                "invalid_operation_count": 0,
+                "model_call_limit": 2,
+            },
+            "call_measurements": [],
+            "active_wall_seconds": 1.0,
+        }
+        evaluation._validate_producing_identity(bound, report)
+        return report
+
+    def fake_verify_comparator(root, bound, panel, modality, task, condition, endpoint):
+        return {
+            "modality": modality,
+            "task_id": task["row"]["task_id"],
+            "comparison_arm": f"{modality}__{condition}",
+            "comparator_source": f"source:{panel}:{modality}:{condition}",
+            "result": {
+                "invariant_valid_success": True,
+                "goal_reached": True,
+                "algorithm_invariants_hold": True,
+                "decision_count": 1,
+                "invalid_operation_count": 0,
+                "model_call_limit": 2,
+            },
+            "call_measurements": [],
+        }
+
+    monkeypatch.setattr(runner, "verify_episode", fake_verify_episode)
+    monkeypatch.setattr(runner, "verify_comparator", fake_verify_comparator)
+    monkeypatch.setenv("EXPANDED_PROGRESS_PATH", str(tmp_path / "progress.json"))
+    final_terminal = tmp_path / "final-terminal.json"
+    final_terminal.write_text(json.dumps({"status": "succeeded"}))
+    monkeypatch.setenv("EXPANDED_TERMINAL_PATH", str(final_terminal))
+
+    runner.finalize(p)
+    evidence = json.loads((tmp_path / p["output_root"] / "evaluation/evidence.json").read_text())
+    assert evidence["status"] == "PASS"
+    assert {row["attempt"] for row in evidence["producing_attempts"]} == {2, 3}
+    runner.audit_final(p)
+
+    unrecorded["enabled"] = True
+    with pytest.raises(ValueError, match="unknown or non-terminal"):
+        runner._evidence(p, runner._evaluation_attempts(p))
+
+
 def test_audit_final_requires_byte_equal_evidence(tmp_path, monkeypatch):
     p = protocol()
     evidence = {

@@ -480,6 +480,12 @@ def _evidence(protocol, attempts):
             "audit": bound["_comparator_audit"],
             "sources": sorted({row["comparator_source"] for row in comparators}),
         },
+        "producing_attempts": [
+            {"job_id": job_id, "attempt": attempt, "directory": directory}
+            for job_id, attempt, directory in sorted(
+                {tuple(row["producing_attempt"][key] for key in ("job_id", "attempt", "directory")) for row in fresh}
+            )
+        ],
         "jobs": [
             {key: row[key] for key in ("job_id", "attempt", "gpus", "master_port", "gpu_hours")} for row in attempts
         ],

@@ -283,13 +283,30 @@ def test_worker_mapping_and_repository_jobs(monkeypatch):
         81,
         243,
     )
-    assert (evaluate["0"]["max_seconds"], evaluate["1"]["max_seconds"]) == (10800, 5400)
-    expected_resume = (
-        "attempt 1 crashed on BestFirstModelSession arm-name validation (curriculum arm names rejected by the "
-        "issue-75 guard); fixed by mapping curriculum arms to process_sft behavior arm with adapter_id identity; "
-        "zero episodes were produced by attempt 1, attempt 2 reruns the full fixed panel"
-    )
-    assert evaluate["0"]["resume_reason"] == evaluate["1"]["resume_reason"] == expected_resume
+    assert (evaluate["0"]["max_seconds"], evaluate["1"]["max_seconds"]) == (10800, 10800)
+    for worker, expected_total in ((0, 162), (1, 81)):
+        job = evaluate[str(worker)]
+        assert {
+            "job_id",
+            "branch",
+            "gpus",
+            "total",
+            "command",
+            "completion_hook",
+            "resume_reason",
+        }.issubset(job)
+        assert job["job_id"] == f"curriculum-evaluate-{worker}"
+        assert job["branch"] == "curriculum_modality"
+        assert job["gpus"] == [worker]
+        assert job["total"] == expected_total
+        assert job["command"] == [
+            "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+            "scripts/run_expanded_curriculum_evaluation.py",
+            "run",
+            "--worker",
+            str(worker),
+        ]
+        assert isinstance(job["resume_reason"], str) and job["resume_reason"].strip()
 
 
 def test_aggregate_requires_identical_fresh_lora_initialization():

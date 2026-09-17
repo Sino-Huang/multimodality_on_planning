@@ -5,7 +5,7 @@
   "master_port": 18800,
   "max_seconds": 10800,
   "total": 162,
-  "resume_reason": "attempt 1 crashed on BestFirstModelSession arm-name validation (curriculum arm names rejected by the issue-75 guard); fixed by mapping curriculum arms to process_sft behavior arm with adapter_id identity; zero episodes were produced by attempt 1, attempt 2 reruns the full fixed panel",
+  "resume_reason": "attempt 2 reached its max_seconds wall cap (set from the DAgger-derived rate, too optimistic for greedy curriculum episodes) and was SIGKILLed with journals retaining 140 complete + 31 partial episodes; attempt 3 resumes the remaining fixed-panel coverage with a measured-rate bound",
   "command": ["/home/sukaih/miniconda3/envs/ada_vla/bin/python", "scripts/run_expanded_curriculum_evaluation.py", "run", "--worker", "0"],
   "completion_hook": ["/home/sukaih/miniconda3/envs/ada_vla/bin/python", "scripts/run_expanded_curriculum_evaluation.py", "audit-worker", "--worker", "0"]
 }
