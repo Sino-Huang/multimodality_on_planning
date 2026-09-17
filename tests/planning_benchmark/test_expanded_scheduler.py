@@ -1,9 +1,8 @@
 """Admission safety and real background-process lifecycle checks."""
 
-import json
-from pathlib import Path
 import sys
 import time
+from pathlib import Path
 
 import pytest
 
@@ -99,6 +98,17 @@ def test_background_exit_hook_and_resume(tmp_path):
     assert resumed["attempt"] == 2
     assert wait_terminal(Path(resumed["directory"]) / "terminal.json")["status"] == "succeeded"
     assert len(s.read(path)["attempts"]) == 3
+
+
+def test_launch_persists_repository_head_before_worker_starts(tmp_path, monkeypatch):
+    path = tmp_path / "budget.json"
+    expected = "a" * 40
+    monkeypatch.setattr(s, "repository_head", lambda: expected)
+    attempt = s.launch(path, s.read(s.SCHEDULE), job(gpus=[]))
+    assert attempt["launch_head"] == expected
+    assert s.read(path)["attempts"][0]["launch_head"] == expected
+    terminal = wait_terminal(Path(attempt["directory"]) / "terminal.json")
+    assert terminal["launch_head"] == expected
 
 
 def test_runtime_cutoff_kills_worker(tmp_path):

@@ -1,6 +1,6 @@
 # Curriculum-by-modality held-out evaluation closeout (#119, Goal 10)
 
-Goal 10 Phase 3/4 evaluated the frozen nine-cell curriculum matrix on the same
+Goal 10 Phase 3 evaluated the frozen nine-cell curriculum matrix on the same
 3 development and 24 unseen tasks used by the expanded study. Evaluation was
 modality-matched: each trained arm ran only in its own modality. Complete model
 coverage is therefore 27 tasks x 3 modalities x 3 orderings = 243 episodes;
@@ -96,15 +96,35 @@ behavior mapping), `dcaa4ba` (mixed-attempt evidence and resume bounds) and
 `8c95077` (policy-identity plus committed-lineage provenance). No episode is
 attributed only to the final successful process.
 
+Gate 3 found that the original validator accepted any ancestor runtime head,
+while cutoff attempts had neither `worker-result.json` nor a scheduler-recorded
+launch head. The exact producing-attempt heads were therefore reconciled
+retrospectively from commit and ledger launch ordering and frozen in
+`configs/experiments/expanded-study/curriculum-evaluation-attempt-heads.json`:
+
+| Job | Attempt | Required runtime head |
+| --- | ---: | --- |
+| curriculum-evaluate-0 | 2 | `2946e18465e7a7724c65e4e29caf21118cc76db6` |
+| curriculum-evaluate-0 | 4 | `8c950773a63e29864ad6e684e40d9475f3fe3a1b` |
+| curriculum-evaluate-0 | 5 | `8c950773a63e29864ad6e684e40d9475f3fe3a1b` |
+| curriculum-evaluate-1 | 2 | `2946e18465e7a7724c65e4e29caf21118cc76db6` |
+| curriculum-evaluate-1 | 4 | `8c950773a63e29864ad6e684e40d9475f3fe3a1b` |
+
+The validator now requires exact mapped-head equality for every producing
+attempt; there is no ancestor fallback. The scheduler now persists
+`git rev-parse HEAD` as `launch_head` before spawning future attempts. A
+post-remediation `audit-final` accepted all real frozen episodes without
+regenerating evidence.
+
 ## Accounting
 
 The ledger charges all launches, including failures and cutoffs:
-`curriculum-evaluate-0` (GPU 0, port 18800) consumed 6.171836 GPU-hours across
-five attempts; `curriculum-evaluate-1` (GPU 1, port 18801) consumed 3.382629
-GPU-hours across four attempts; `curriculum-evaluate-final` was CPU-only.
-Evaluation consumed 9.554465 GPU-hours. Together with the separately published
-2.224124 GPU-hours for training, the curriculum branch cumulative total is
-11.778588 / 48 GPU-hours. The 243 model episodes made 6,030 model calls and
+`curriculum-evaluate-0` used GPU 0 / port 18800 across five attempts;
+`curriculum-evaluate-1` used GPU 1 / port 18801 across four attempts;
+`curriculum-evaluate-final` was CPU-only. Evaluation consumed 9.5544646
+GPU-hours. Together with the separately published 2.2241236 GPU-hours for
+training, the curriculum branch cumulative total is 11.7785882 / 48 GPU-hours
+(9.5544646 + 2.2241236 = 11.7785882). The 243 model episodes made 6,030 model calls and
 recorded 33,105.8 seconds of active episode wall time. Comparator reuse added
 no GPU episodes.
 

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import subprocess
 import time
 from pathlib import Path
 from typing import Any
@@ -21,6 +20,7 @@ COMPARATOR_CONDITIONS = {
     "random_valid": "random_valid",
     "exact_reference": "exact_reference",
 }
+ATTEMPT_HEADS = Path("configs/experiments/expanded-study/curriculum-evaluation-attempt-heads.json")
 
 
 def arms(protocol):
@@ -193,26 +193,36 @@ def _scientific_policy_identity(protocol, arm):
     }
 
 
-def _runtime_head_is_ancestor(root, runtime_head):
-    if not isinstance(runtime_head, str) or not runtime_head:
-        return False
-    result = subprocess.run(
-        ["git", "merge-base", "--is-ancestor", runtime_head, "HEAD"],
-        cwd=root,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-        check=False,
-    )
-    return result.returncode == 0
+def _frozen_attempt_heads(root, protocol):
+    frozen = read_json(root / ATTEMPT_HEADS)
+    if (
+        frozen.get("schema_version") != "expanded_curriculum_evaluation_attempt_heads_v1"
+        or frozen.get("protocol_id") != protocol["protocol_id"]
+        or frozen.get("status") != "frozen_reconciled"
+        or not isinstance(frozen.get("attempt_heads"), list)
+    ):
+        raise ValueError("curriculum producing-attempt head mapping differs")
+    result = {}
+    for row in frozen["attempt_heads"]:
+        if not isinstance(row, dict) or set(row) != {"job_id", "attempt", "runtime_head"}:
+            raise ValueError("curriculum producing-attempt head mapping differs")
+        key = (row["job_id"], row["attempt"])
+        runtime_head = row["runtime_head"]
+        if (
+            key in result
+            or not isinstance(key[0], str)
+            or not isinstance(key[1], int)
+            or not isinstance(runtime_head, str)
+            or len(runtime_head) != 40
+            or any(character not in "0123456789abcdef" for character in runtime_head)
+        ):
+            raise ValueError("curriculum producing-attempt head mapping differs")
+        result[key] = runtime_head
+    return result
 
 
 def _validate_producing_identity(root, protocol, report):
-    """Bind retained evidence to a recorded attempt, pinned policy, and committed code lineage.
-
-    Cutoff/crashed attempts need not have a worker receipt. When one exists it is
-    authoritative; otherwise the ledger registry, training-gate fingerprints, and
-    git ancestor relation independently preserve mixed-attempt provenance.
-    """
+    """Bind retained evidence to its exact frozen attempt, policy, and runtime head."""
     producing = report.get("producing_attempt")
     if not isinstance(producing, dict) or set(producing) != {"job_id", "attempt", "directory"}:
         raise ValueError("curriculum episode lacks a scheduler producing attempt")
@@ -228,11 +238,13 @@ def _validate_producing_identity(root, protocol, report):
     modality = report.get("modality")
     policy_identity = report.get("policy_identity")
     expected_scientific = _scientific_policy_identity(protocol, arm)
+    expected_runtime_head = _frozen_attempt_heads(root, protocol).get((producing["job_id"], producing["attempt"]))
     if (
         producing["job_id"] != _expected_evaluation_job(protocol, modality)
+        or expected_runtime_head is None
         or not isinstance(policy_identity, dict)
         or {key: policy_identity.get(key) for key in expected_scientific} != expected_scientific
-        or not _runtime_head_is_ancestor(root, report.get("runtime_head"))
+        or report.get("runtime_head") != expected_runtime_head
     ):
         raise ValueError("curriculum episode policy/runtime provenance differs")
     worker_result_path = Path(producing["directory"]) / "worker-result.json"

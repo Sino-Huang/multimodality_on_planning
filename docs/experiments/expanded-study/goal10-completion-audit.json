@@ -1,0 +1,195 @@
+{
+  "status": "complete",
+  "goal": 10,
+  "issues": [119],
+  "requirements": {
+    "qualified_nine_cell_matrix": "The frozen expanded-curriculum-v1 contract declares staged, shuffled and mixed_order cells for text-state, visual-state and multimodal-state under best_first_add_greedy. curriculum-training.json reports PASS for all nine cells.",
+    "same_base_and_fresh_initialization": "Every cell starts fresh from Qwen/Qwen3-VL-8B-Instruct revision 0c351dd01ed87e9c1b53cbc748cba10e6187ff3b with no starting checkpoint. The training report records fresh_lora_init_identical_all_cells=true and the common 504-tensor initialization sha256:9530a9ed1578cacd57400c6defc6f85b7b6d0dcff1bc6cc9a4639b256294c64c.",
+    "exact_v5_exposure_contract": "The protocol freezes 512 unique matched-v5 best_first_add_greedy records per cell, seed/data_seed 17, one epoch, 16 optimizer updates, protocol-frozen sequential sampling and trainer_reshuffling=false. The training report records 4,608 exposures, 144 updates, same_record_set_all_cells=true and exact_protocol_orders_all_cells=true.",
+    "checkpoint_verification": "curriculum-training.json status/outcome PASS records 512 records, 16 optimizer updates, 504/504 changed adapter tensors and recovered_without_retrain=false for every cell; the CPU finalizer independently verified all nine checkpoints, exposure orders and fresh initialization equality.",
+    "fixed_modality_matched_evaluation": "curriculum-evaluation.json reports 243/243 model episodes: 27 tasks x 3 modalities x 3 orderings, with each arm evaluated only when its training modality equals the evaluation modality. missing_bindings is empty.",
+    "comparator_reuse_and_verification": "All 324/324 base, sequential-order SFT, random-valid and exact-reference bindings were replay-verified under the Goal 3 contracts and bound to audited evidence/checkpoint hashes; missing_comparator_bindings is empty and no new comparator GPU episodes ran.",
+    "independent_replay": "The final scheduler hook passed, and read-only audit-final independently reconstructed the frozen evidence and analysis with result: PASS: 243/243 curriculum episodes replayed.",
+    "predeclared_analysis": "analysis.json outcome PASS executes the whole-problem paired 3x3 modality-by-ordering analysis with 27 units, bootstrap seed 1729, 10,000 resamples, 95% confidence and materiality margin 0.05. All four modality-by-ordering interaction intervals include zero.",
+    "control_saturation": "The predeclared saturation report finds all_curriculum_arms_saturated=false and all_comparator_controls_saturated=false; its conclusion is: neither curriculum arms nor all comparator controls saturated; interpret paired intervals.",
+    "historical_issue67_separation": "analysis.json reports historical #67 separately under its unmatched historical schedule and records pooled=false; no old-study result enters the paired analysis.",
+    "accounting_cutoff_and_ports": "The preserved ledger charges 2.224124 GPU-hours for training and 9.554465 for evaluation, including failures and cutoffs, for curriculum branch cumulative 11.778588/48. GPU 0 used port 18800, GPU 1 used port 18801, and the finalizers were CPU-only.",
+    "attempt_anomaly_disclosure": "The ledger retains evaluate-0 attempts 1-5 and evaluate-1 attempts 1-4. Two code defects are disclosed: curriculum arms rejected by the behavior-arm guard, fixed in 2946e18, and retained mixed-attempt replay requiring current-head identity, fixed by policy identity plus committed lineage in 8c95077. Three launches ended at wall-clock caps. Gate 3 found that the original ancestor-or-equal runtime check could not prove exact attribution for cutoff attempts lacking worker-result.json and scheduler launch heads. Commit/launch ordering was used retrospectively to freeze the exact mapping: evaluate-0 attempt 2 -> 2946e18465e7a7724c65e4e29caf21118cc76db6, attempts 4/5 -> 8c950773a63e29864ad6e684e40d9475f3fe3a1b; evaluate-1 attempt 2 -> 2946e18465e7a7724c65e4e29caf21118cc76db6, attempt 4 -> 8c950773a63e29864ad6e684e40d9475f3fe3a1b. The remediated validator requires exact mapped-head equality with no ancestor fallback, the scheduler persists launch_head for future attempts, and audit-final still independently replayed all 243 real episodes.",
+    "publication_and_issue_closeout": "The tracked evidence copy, evaluation report, this completion audit and issue-119 closeout document are prepared. Per the current task constraint, no commit, push, GitHub comment or issue-state change was performed; #119 was observed OPEN before writing these files."
+  },
+  "independent_audit": {
+    "outcome": "PASS",
+    "goal": 10,
+    "protocol_id": "expanded-curriculum-v1",
+    "training_report_status": "PASS",
+    "training_cells_verified": 9,
+    "records_per_cell": 512,
+    "epochs_per_cell": 1,
+    "optimizer_updates_per_cell": 16,
+    "training_seed": 17,
+    "same_record_set_all_cells": true,
+    "exact_protocol_orders_all_cells": true,
+    "fresh_lora_init_identical_all_cells": true,
+    "evaluation_evidence_status": "PASS",
+    "model_episodes_replayed": 243,
+    "expected_model_episodes": 243,
+    "comparator_bindings_replayed": 324,
+    "expected_comparator_bindings": 324,
+    "missing_model_bindings": 0,
+    "missing_comparator_bindings": 0,
+    "analysis_outcome": "PASS",
+    "paired_units": 27,
+    "bootstrap_seed": 1729,
+    "bootstrap_resamples": 10000,
+    "confidence": 0.95,
+    "materiality_margin": 0.05,
+    "historical_issue67_pooled": false,
+    "training_gpu_hours": 2.224123580323325,
+    "evaluation_gpu_hours": 9.554464637239773,
+    "cumulative_curriculum_gpu_hours": 11.778588217563097,
+    "branch_cap_gpu_hours": 48
+  },
+  "coverage": {
+    "training": {
+      "modalities": ["text-state", "visual-state", "multimodal-state"],
+      "orderings": ["staged", "shuffled", "mixed_order"],
+      "cells": 9,
+      "records_per_cell": 512,
+      "records_total": 4608,
+      "optimizer_updates_per_cell": 16,
+      "optimizer_updates_total": 144
+    },
+    "evaluation": {
+      "panels": {"development": 3, "unseen": 24},
+      "paired_tasks": 27,
+      "modality_matching": "training_modality equals evaluation modality",
+      "curriculum_arms_per_modality": 3,
+      "model_episodes": 243,
+      "comparator_arms_per_modality": 4,
+      "comparator_bindings": 324,
+      "cell_aggregates": 42,
+      "paired_rows": 27
+    }
+  },
+  "results": {
+    "successes": {
+      "text-state__staged": 24,
+      "text-state__shuffled": 24,
+      "text-state__mixed_order": 25,
+      "visual-state__staged": 24,
+      "visual-state__shuffled": 27,
+      "visual-state__mixed_order": 26,
+      "multimodal-state__staged": 25,
+      "multimodal-state__shuffled": 27,
+      "multimodal-state__mixed_order": 27
+    },
+    "modality_x_ordering_interaction": [
+      {
+        "contrast": "(visual-state:staged-shuffled)-(text-state:staged-shuffled)",
+        "interval": {"lower": -0.25925925925925924, "point": -0.1111111111111111, "upper": 0.037037037037037035}
+      },
+      {
+        "contrast": "(multimodal-state:staged-shuffled)-(text-state:staged-shuffled)",
+        "interval": {"lower": -0.25925925925925924, "point": -0.07407407407407407, "upper": 0.07407407407407407}
+      },
+      {
+        "contrast": "(visual-state:mixed_order-shuffled)-(text-state:mixed_order-shuffled)",
+        "interval": {"lower": -0.25925925925925924, "point": -0.07407407407407407, "upper": 0.1111111111111111}
+      },
+      {
+        "contrast": "(multimodal-state:mixed_order-shuffled)-(text-state:mixed_order-shuffled)",
+        "interval": {"lower": -0.18518518518518517, "point": -0.037037037037037035, "upper": 0.1111111111111111}
+      }
+    ],
+    "all_interaction_intervals_include_zero": true,
+    "control_saturation": {
+      "all_curriculum_arms_saturated": false,
+      "all_comparator_controls_saturated": false,
+      "conclusion": "neither curriculum arms nor all comparator controls saturated; interpret paired intervals"
+    }
+  },
+  "execution": {
+    "training_jobs": [
+      {"job_id": "curriculum-train-0", "attempt": 1, "gpus": [0], "master_port": 18800, "gpu_hours": 1.426980606979794, "status": "succeeded"},
+      {"job_id": "curriculum-train-1", "attempt": 1, "gpus": [1], "master_port": 18801, "gpu_hours": 0.7971429733435312, "status": "succeeded"},
+      {"job_id": "curriculum-train-final", "attempt": 1, "gpus": [], "master_port": null, "gpu_hours": 0.0, "status": "succeeded"}
+    ],
+    "evaluation_attempt_history": [
+      {"job_id": "curriculum-evaluate-0", "attempt": 1, "status": "failed", "gpus": [0], "master_port": 18800, "gpu_hours": 0.02730520725250244, "elapsed_seconds": 98.29874610900879, "returncode": 1, "cause": "curriculum arm names rejected by the behavior-arm whitelist", "fix_commit": "2946e18", "new_episodes": 0},
+      {"job_id": "curriculum-evaluate-1", "attempt": 1, "status": "failed", "gpus": [1], "master_port": 18801, "gpu_hours": 0.027612012028694153, "elapsed_seconds": 99.40324330329895, "returncode": 1, "cause": "curriculum arm names rejected by the behavior-arm whitelist", "fix_commit": "2946e18", "new_episodes": 0},
+      {"job_id": "curriculum-evaluate-0", "attempt": 2, "status": "cutoff", "gpus": [0], "master_port": 18800, "gpu_hours": 2.9998422693543962, "elapsed_seconds": 10799.432169675827, "returncode": -9, "cause": "wall-clock cap reached; retained journals were resumed"},
+      {"job_id": "curriculum-evaluate-1", "attempt": 2, "status": "cutoff", "gpus": [1], "master_port": 18801, "gpu_hours": 1.4998025822639465, "elapsed_seconds": 5399.2892961502075, "returncode": -9, "cause": "wall-clock cap reached; retained journals were resumed"},
+      {"job_id": "curriculum-evaluate-0", "attempt": 3, "status": "failed", "gpus": [0], "master_port": 18800, "gpu_hours": 0.028169308768378365, "elapsed_seconds": 101.40951156616211, "returncode": 1, "cause": "retained-episode replay required current-head runtime identity", "fix_commit": "8c95077", "new_episodes": 0},
+      {"job_id": "curriculum-evaluate-1", "attempt": 3, "status": "failed", "gpus": [1], "master_port": 18801, "gpu_hours": 0.028994025190671284, "elapsed_seconds": 104.37849068641663, "returncode": 1, "cause": "retained-episode replay required current-head runtime identity", "fix_commit": "8c95077", "new_episodes": 0},
+      {"job_id": "curriculum-evaluate-0", "attempt": 4, "status": "cutoff", "gpus": [0], "master_port": 18800, "gpu_hours": 2.999796119199859, "elapsed_seconds": 10799.266029119492, "returncode": -9, "cause": "wall-clock cap reached after 160/162 fixed-panel episodes"},
+      {"job_id": "curriculum-evaluate-1", "attempt": 4, "status": "succeeded", "gpus": [1], "master_port": 18801, "gpu_hours": 1.8262199463446935, "elapsed_seconds": 6574.391806840897, "returncode": 0},
+      {"job_id": "curriculum-evaluate-0", "attempt": 5, "status": "succeeded", "gpus": [0], "master_port": 18800, "gpu_hours": 0.11672316683663263, "elapsed_seconds": 420.20340061187744, "returncode": 0}
+    ],
+    "evaluation_finalizer": {"job_id": "curriculum-evaluate-final", "attempt": 1, "status": "succeeded", "gpus": [], "master_port": null, "gpu_hours": 0.0, "elapsed_seconds": 192.46444296836853, "returncode": 0},
+    "anomaly_summary": {
+      "code_defect_classes": 2,
+      "failed_gpu_launches": 4,
+      "wall_clock_cutoffs": 3,
+      "successful_gpu_launches": 2,
+      "score_selected_retries": 0,
+      "producing_attempts": [
+        {"job_id": "curriculum-evaluate-0", "attempts": [2, 4, 5]},
+        {"job_id": "curriculum-evaluate-1", "attempts": [2, 4]}
+      ],
+      "binding": "Each retained episode records its actual producing attempt; the successful final process is not substituted as producer.",
+      "gate3_provenance_remediation": {
+        "finding": "Ancestor-or-equal runtime validation did not establish exact producing-attempt attribution when cutoff attempts lacked worker-result.json and scheduler launch heads.",
+        "reconciliation": "Exact heads were reconciled retrospectively from commit timestamps and preserved ledger admitted timestamps.",
+        "attempt_heads": [
+          {"job_id": "curriculum-evaluate-0", "attempt": 2, "runtime_head": "2946e18465e7a7724c65e4e29caf21118cc76db6"},
+          {"job_id": "curriculum-evaluate-0", "attempt": 4, "runtime_head": "8c950773a63e29864ad6e684e40d9475f3fe3a1b"},
+          {"job_id": "curriculum-evaluate-0", "attempt": 5, "runtime_head": "8c950773a63e29864ad6e684e40d9475f3fe3a1b"},
+          {"job_id": "curriculum-evaluate-1", "attempt": 2, "runtime_head": "2946e18465e7a7724c65e4e29caf21118cc76db6"},
+          {"job_id": "curriculum-evaluate-1", "attempt": 4, "runtime_head": "8c950773a63e29864ad6e684e40d9475f3fe3a1b"}
+        ],
+        "validator": "Exact mapped-head equality is required for every producing attempt; no ancestor fallback remains.",
+        "future_scheduler_attempts": "git rev-parse HEAD is persisted as launch_head before worker spawn.",
+        "post_remediation_audit_final": "PASS: 243/243 curriculum episodes replayed"
+      }
+    },
+    "compute_gpu_hours": {
+      "training": 2.224123580323325,
+      "evaluation_worker_0_all_attempts": 6.171836071411769,
+      "evaluation_worker_1_all_attempts": 3.3826285658280053,
+      "evaluation_all_attempts": 9.554464637239773,
+      "curriculum_branch_cumulative": 11.778588217563097,
+      "branch_cap": 48
+    }
+  },
+  "verification": {
+    "training_finalizer": "PASS: all nine curriculum checkpoints, receipts, exposure and initialization equality independently verified",
+    "evaluation_audit_final": "PASS: 243/243 curriculum episodes replayed",
+    "evaluation_command": "source ~/cd_vlaplan && EXPANDED_TERMINAL_PATH=outputs/expanded-study/v1/jobs/curriculum-evaluate-final/1/terminal.json python scripts/run_expanded_curriculum_evaluation.py audit-final"
+  },
+  "limitations": [
+    "One training seed (17) per cell; no training-seed variance is claimed.",
+    "The modality-matched design estimates ordering effects within modality and does not estimate cross-modality transfer.",
+    "Several curriculum arms and comparator controls reach 27/27; the predeclared saturation conclusion directs interpretation to paired intervals rather than point-estimate ranking.",
+    "Runtime episode journals and checkpoints follow the local outputs convention; compact evidence paths and hashes are published.",
+    "Repository publication and GitHub issue closure remain pending because this task explicitly forbids commits and GitHub changes."
+  ],
+  "artifacts": {
+    "protocol": {"path": "configs/experiments/expanded-study/curriculum-protocol.json", "sha256": "6d8552c57d92bd057e76aaa1ef0da91e110e187ad3bfb02f198de0961ba5b262"},
+    "attempt_head_mapping": {"path": "configs/experiments/expanded-study/curriculum-evaluation-attempt-heads.json", "sha256": "f4fc98bedbe8ecac07d825f3c2dc8da95c5af66e061984d939c42501f2913b6c"},
+    "training_evidence": {"path": "docs/experiments/expanded-study/curriculum-training.json", "sha256": "fa0374cb5117d4ae200f86c1723c6e135b9f531669064a45207e2904898cd88e"},
+    "training_report": {"path": "docs/experiments/expanded-study/curriculum-training.md", "sha256": "099ef3c9673d01c71c516cac933cfdb7c67764d05e8feea624ecae209cfc48f6"},
+    "evaluation_evidence": {"path": "docs/experiments/expanded-study/curriculum-evaluation.json", "sha256": "7c587d19bc252cdc4ad4ae4e65600fa1dbf238d3fd07122c5d69d950f7335a85", "byte_identical_runtime_path": "outputs/expanded-study/v1/curriculum/evaluation/evidence.json"},
+    "evaluation_report": {"path": "docs/experiments/expanded-study/curriculum-evaluation.md", "sha256": "40d2a70e5bc58d87f2d0d8ae3a42a8a710e249903e2aeda94f4e893030614bc0"},
+    "analysis": {"path": "outputs/expanded-study/v1/curriculum/evaluation/analysis.json", "sha256": "0d22019fc5c91cfbed4aa014842f01221dd6bcbedb99cb730dee9c3aa2c63040"},
+    "ledger": {"path": "outputs/expanded-study/v1/budget.json", "sha256": "308ef432f8e9b9b47e199beb5bae073a6aaf7589b5fdaffeaaaf12146f52cabc"},
+    "issue_closeout": {"path": "docs/experiments/expanded-study/issue-119-closeout.md"}
+  },
+  "publication": {
+    "issue": {"number": 119, "state_observed_before_artifact_write": "OPEN", "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/119"},
+    "repository_actions_performed": false,
+    "commit": null,
+    "push": false,
+    "github_comment": null,
+    "github_issue_closed": false
+  }
+}

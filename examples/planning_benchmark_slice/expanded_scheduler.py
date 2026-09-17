@@ -1,20 +1,20 @@
 """Single-host expanded-study admission and background worker supervision."""
 
 import argparse
-from contextlib import contextmanager
-from datetime import datetime
 import fcntl
 import json
 import math
 import os
-from pathlib import Path
-import resource
 import re
+import resource
 import signal
 import socket
 import subprocess
 import sys
 import time
+from contextlib import contextmanager
+from datetime import datetime
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SCHEDULE = ROOT / "docs/experiments/expanded-study/schedule.json"
@@ -35,6 +35,10 @@ def write(path, data):
 
 def timestamp(value):
     return datetime.fromisoformat(value.replace("Z", "+00:00")).timestamp()
+
+
+def repository_head():
+    return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
 
 
 def identity(pid):
@@ -154,6 +158,7 @@ def launch(path, schedule, job):
         raise ValueError("GPU launches must use the shared production ledger")
     with locked(path, schedule) as ledger:
         attempt = admit(ledger, job, time.time())
+        attempt["launch_head"] = repository_head()
         directory = Path(path).resolve().parent / "jobs" / job["job_id"] / str(attempt["attempt"])
         directory.mkdir(parents=True, exist_ok=False)
         attempt["directory"] = str(directory)
