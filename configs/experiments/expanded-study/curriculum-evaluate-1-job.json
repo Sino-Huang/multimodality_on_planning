@@ -5,7 +5,7 @@
   "master_port": 18801,
   "max_seconds": 10800,
   "total": 81,
-  "resume_reason": "attempt 2 reached its max_seconds wall cap (set from the DAgger-derived rate, too optimistic for greedy curriculum episodes) and was SIGKILLed with journals retaining 140 complete + 31 partial episodes; attempt 3 resumes the remaining fixed-panel coverage with a measured-rate bound",
+  "resume_reason": "attempt 3 failed retained-episode replay because provenance validation required current-head runtime identity, which mixed-attempt retention cannot satisfy; fixed to policy-identity binding plus committed-lineage runtime check and validated against all 140 real retained episodes; zero new episodes were produced by attempt 3, attempt 4 resumes the remaining fixed-panel coverage",
   "command": ["/home/sukaih/miniconda3/envs/ada_vla/bin/python", "scripts/run_expanded_curriculum_evaluation.py", "run", "--worker", "1"],
   "completion_hook": ["/home/sukaih/miniconda3/envs/ada_vla/bin/python", "scripts/run_expanded_curriculum_evaluation.py", "audit-worker", "--worker", "1"]
 }

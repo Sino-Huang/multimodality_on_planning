@@ -483,7 +483,14 @@ def _evidence(protocol, attempts):
         "producing_attempts": [
             {"job_id": job_id, "attempt": attempt, "directory": directory}
             for job_id, attempt, directory in sorted(
-                {tuple(row["producing_attempt"][key] for key in ("job_id", "attempt", "directory")) for row in fresh}
+                {
+                    tuple(identity[key] for key in ("job_id", "attempt", "directory"))
+                    for row in fresh
+                    for identity in [
+                        row["producing_attempt"],
+                        *(prior["producing_attempt"] for prior in row.get("resumed_from_attempts", [])),
+                    ]
+                }
             )
         ],
         "jobs": [

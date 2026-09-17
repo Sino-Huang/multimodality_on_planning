@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import subprocess
 import time
 from pathlib import Path
 from typing import Any
@@ -172,7 +173,46 @@ def _replay_curriculum_episode(root, protocol, task, arm, report, views):
             views.read_only = original_read_only
 
 
-def _validate_producing_identity(protocol, report):
+def _expected_evaluation_job(protocol, modality):
+    workers = [
+        int(worker)
+        for worker, modalities in protocol["launch"]["evaluation_worker_modalities"].items()
+        if modality in modalities
+    ]
+    if len(workers) != 1:
+        raise ValueError("curriculum episode modality has no unique evaluation worker")
+    return f"curriculum-evaluate-{workers[0]}"
+
+
+def _scientific_policy_identity(protocol, arm):
+    return {
+        "model_id": protocol["base_model"]["model_id"],
+        "revision": protocol["base_model"]["revision"],
+        "adapter_id": arm,
+        **protocol["_curriculum_fingerprints"][arm],
+    }
+
+
+def _runtime_head_is_ancestor(root, runtime_head):
+    if not isinstance(runtime_head, str) or not runtime_head:
+        return False
+    result = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", runtime_head, "HEAD"],
+        cwd=root,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        check=False,
+    )
+    return result.returncode == 0
+
+
+def _validate_producing_identity(root, protocol, report):
+    """Bind retained evidence to a recorded attempt, pinned policy, and committed code lineage.
+
+    Cutoff/crashed attempts need not have a worker receipt. When one exists it is
+    authoritative; otherwise the ledger registry, training-gate fingerprints, and
+    git ancestor relation independently preserve mixed-attempt provenance.
+    """
     producing = report.get("producing_attempt")
     if not isinstance(producing, dict) or set(producing) != {"job_id", "attempt", "directory"}:
         raise ValueError("curriculum episode lacks a scheduler producing attempt")
@@ -185,20 +225,36 @@ def _validate_producing_identity(protocol, report):
     }:
         raise ValueError("curriculum episode producing attempt is unknown or non-terminal")
     arm = report.get("arm")
-    worker_result_path = Path(producing["directory"]) / "worker-result.json"
-    worker_result = read_json(worker_result_path) if worker_result_path.is_file() else None
-    expected_runtime = worker_result.get("runtime_head") if worker_result is not None else protocol.get("_runtime_head")
-    expected_policy = (
-        worker_result.get("policy_identities", {}).get(arm)
-        if worker_result is not None
-        else protocol.get("_curriculum_policy_identity", {}).get(arm)
-    )
+    modality = report.get("modality")
+    policy_identity = report.get("policy_identity")
+    expected_scientific = _scientific_policy_identity(protocol, arm)
     if (
-        (worker_result is not None and worker_result.get("producing_attempt") != producing)
-        or report.get("runtime_head") != expected_runtime
-        or report.get("policy_identity") != expected_policy
+        producing["job_id"] != _expected_evaluation_job(protocol, modality)
+        or not isinstance(policy_identity, dict)
+        or {key: policy_identity.get(key) for key in expected_scientific} != expected_scientific
+        or not _runtime_head_is_ancestor(root, report.get("runtime_head"))
     ):
         raise ValueError("curriculum episode policy/runtime provenance differs")
+    worker_result_path = Path(producing["directory"]) / "worker-result.json"
+    worker_result = read_json(worker_result_path) if worker_result_path.is_file() else None
+    if worker_result is not None and (
+        worker_result.get("producing_attempt") != producing
+        or worker_result.get("runtime_head") != report.get("runtime_head")
+        or worker_result.get("policy_identities", {}).get(arm) != policy_identity
+    ):
+        raise ValueError("curriculum episode policy/runtime provenance differs")
+    return producing
+
+
+def _validate_retained_identity(root, protocol, panel, modality, task, arm, output, view_output, retained):
+    producing = _validate_producing_identity(root, protocol, retained)
+    identity_protocol = dict(protocol)
+    identity_protocol["_producing_attempt"] = producing
+    identity_protocol["_runtime_head"] = retained["runtime_head"]
+    identity_protocol["_curriculum_policy_identity"] = {arm: retained["policy_identity"]}
+    expected = _identity(root, identity_protocol, panel, modality, task, arm, output, view_output)
+    if any(retained.get(key) != value for key, value in expected.items()):
+        raise ValueError("curriculum evaluation retained identity differs")
     return producing
 
 
@@ -214,6 +270,7 @@ def _finalize(root, state):
         "finished": time.time(),
         "active_wall_seconds": saved["active_wall_seconds"],
         "raw_invalid_outputs_preserved": sum(not event["accepted"] for event in saved["events"]),
+        "resumed_from_attempts": saved.get("resumed_from_attempts", []),
     }
     views.save()
     write_json(state["episode"], report)
@@ -224,17 +281,12 @@ def _finalize(root, state):
 def verify_episode(root, protocol, panel, modality, task, arm, endpoint):
     path = episode_path(root, protocol, panel, modality, task["row"]["task_id"], arm)
     report = read_json(path)
-    producing_attempt = _validate_producing_identity(protocol, report)
-    identity_protocol = dict(protocol)
-    identity_protocol["_producing_attempt"] = producing_attempt
-    identity_protocol["_runtime_head"] = report["runtime_head"]
-    identity_protocol["_curriculum_policy_identity"] = {arm: report["policy_identity"]}
     view_output = Path(report["view_output"])
     if not view_output.is_absolute():
         view_output = root / view_output
-    expected = _identity(root, identity_protocol, panel, modality, task, arm, path, view_output)
-    if any(report.get(key) != value for key, value in expected.items()):
-        raise ValueError("curriculum evaluation episode identity differs")
+    _validate_retained_identity(root, protocol, panel, modality, task, arm, path, view_output, report)
+    for prior in report.get("resumed_from_attempts", []):
+        _validate_producing_identity(root, protocol, prior)
     views = _views(root, protocol, panel, task, view_output, endpoint, read_only=True)
     result = _replay_curriculum_episode(root, protocol, task, arm, report, views)
     if (
@@ -299,9 +351,33 @@ def run_cell(
                 "pending": None,
                 "started": time.time(),
                 "active_wall_seconds": 0.0,
+                "resumed_from_attempts": [],
             }
         )
-        if any(saved.get(key) != value for key, value in identity.items()):
+        if journal.exists():
+            _validate_retained_identity(
+                root,
+                protocol,
+                panel,
+                modality,
+                task,
+                arm,
+                output,
+                view_output,
+                saved,
+            )
+            prior = {
+                "arm": arm,
+                "modality": modality,
+                "producing_attempt": saved["producing_attempt"],
+                "runtime_head": saved["runtime_head"],
+                "policy_identity": saved["policy_identity"],
+            }
+            history = [*saved.get("resumed_from_attempts", []), prior]
+            for key, value in identity.items():
+                saved[key] = value
+            saved["resumed_from_attempts"] = history
+        elif any(saved.get(key) != value for key, value in identity.items()):
             raise ValueError("curriculum evaluation journal identity differs")
         restored = time.monotonic()
         _restore_events(session, views, saved)

@@ -1,6 +1,7 @@
 """CPU-only evaluation and analysis tests for expanded curriculum."""
 
 import json
+import subprocess
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -14,6 +15,21 @@ from examples.planning_benchmark_slice.expanded_successor_training import _sha25
 from scripts import run_expanded_curriculum_evaluation as runner
 
 ROOT = Path(__file__).resolve().parents[2]
+
+
+def git_lineage(path):
+    subprocess.run(["git", "init", "-q"], cwd=path, check=True)
+    subprocess.run(["git", "config", "user.email", "test@example.invalid"], cwd=path, check=True)
+    subprocess.run(["git", "config", "user.name", "Test"], cwd=path, check=True)
+    marker = path / "lineage.txt"
+    marker.write_text("ancestor\n")
+    subprocess.run(["git", "add", "lineage.txt"], cwd=path, check=True)
+    subprocess.run(["git", "commit", "-q", "-m", "ancestor"], cwd=path, check=True)
+    ancestor = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=path, text=True).strip()
+    marker.write_text("current\n")
+    subprocess.run(["git", "commit", "-q", "-am", "current"], cwd=path, check=True)
+    current = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=path, text=True).strip()
+    return ancestor, current
 
 
 def protocol(tmp_path=None):
@@ -157,6 +173,7 @@ class Session:
 
 def test_run_cell_uses_deterministic_task_rounds(tmp_path, monkeypatch):
     p = protocol()
+    _ancestor_head, current_head = git_lineage(tmp_path)
     arm = p["evaluation"]["arms"][0]["arm"]
     p["_curriculum_checkpoints"] = {arm: "checkpoint"}
     p["_curriculum_fingerprints"] = {
@@ -164,8 +181,15 @@ def test_run_cell_uses_deterministic_task_rounds(tmp_path, monkeypatch):
     }
     producing = {"job_id": "curriculum-evaluate-0", "attempt": 1, "directory": str(tmp_path / "attempt")}
     p["_producing_attempt"] = producing
-    p["_runtime_head"] = "head"
-    p["_curriculum_policy_identity"] = {arm: {"model_id": "model", "adapter_id": arm}}
+    p["_runtime_head"] = current_head
+    p["_curriculum_policy_identity"] = {
+        arm: {
+            "model_id": "model",
+            "revision": "rev",
+            "adapter_id": arm,
+            **p["_curriculum_fingerprints"][arm],
+        }
+    }
     p["_valid_producing_attempts"] = {(producing["job_id"], producing["attempt"], producing["directory"]): "succeeded"}
     tasks = [{"row": {"task_id": name}} for name in ("task/a", "task/b", "task/c")]
     monkeypatch.setattr(evaluation, "_views", lambda *args, **kwargs: Views())
@@ -263,6 +287,83 @@ def test_real_best_first_session_maps_curriculum_arm_for_run_and_replay(tmp_path
     )
     assert identity["arm"] == identity["comparison_arm"] == identity["adapter_id"] == arm
     assert identity["behavior_arm"] == "process_sft"
+
+
+def test_partial_journal_rebinds_to_current_attempt_and_retains_prior_provenance(tmp_path, monkeypatch):
+    p = protocol()
+    ancestor_head, current_head = git_lineage(tmp_path)
+    arm = "text-state__staged"
+    p["_curriculum_checkpoints"] = {arm: "checkpoint"}
+    p["_curriculum_fingerprints"] = {
+        arm: {"final_checkpoint_sha256": "sha256:a", "final_adapter_config_sha256": "sha256:b"}
+    }
+    policy = {
+        "model_id": "model",
+        "revision": "rev",
+        "adapter_id": arm,
+        **p["_curriculum_fingerprints"][arm],
+    }
+    old_attempt = {
+        "job_id": "curriculum-evaluate-0",
+        "attempt": 2,
+        "directory": str(tmp_path / "jobs/curriculum-evaluate-0/2"),
+    }
+    current_attempt = {
+        "job_id": "curriculum-evaluate-0",
+        "attempt": 4,
+        "directory": str(tmp_path / "jobs/curriculum-evaluate-0/4"),
+    }
+    p["_valid_producing_attempts"] = {
+        (old_attempt["job_id"], old_attempt["attempt"], old_attempt["directory"]): "cutoff",
+        (current_attempt["job_id"], current_attempt["attempt"], current_attempt["directory"]): "succeeded",
+    }
+    task = {"row": {"task_id": "task/a"}}
+    output = evaluation.episode_path(tmp_path, p, "development", "text-state", "task/a", arm)
+    view_output = output.parent / f"{arm}-views"
+    old_protocol = {
+        **p,
+        "_producing_attempt": old_attempt,
+        "_runtime_head": ancestor_head,
+        "_curriculum_policy_identity": {arm: policy},
+    }
+    saved = {
+        **evaluation._identity(
+            tmp_path,
+            old_protocol,
+            "development",
+            "text-state",
+            task,
+            arm,
+            output,
+            view_output,
+        ),
+        "events": [],
+        "call_measurements": [],
+        "pending": None,
+        "started": 1.0,
+        "active_wall_seconds": 0.0,
+    }
+    journal = output.with_name(output.name.removesuffix(".json.gz") + ".partial.json.gz")
+    evaluation.write_json(journal, saved)
+    p["_producing_attempt"] = current_attempt
+    p["_runtime_head"] = current_head
+    p["_curriculum_policy_identity"] = {arm: policy}
+    monkeypatch.setattr(evaluation, "_views", lambda *args, **kwargs: Views())
+    monkeypatch.setattr(evaluation, "VisualSession", Session)
+    reports = evaluation.run_cell(
+        tmp_path,
+        p,
+        panel="development",
+        modality="text-state",
+        arm=arm,
+        tasks=[task],
+        endpoint="unused",
+        generate=lambda examples: (["output"] * len(examples), [1] * len(examples)),
+        progress=lambda **kwargs: None,
+    )
+    assert reports[0]["producing_attempt"] == current_attempt
+    assert reports[0]["resumed_from_attempts"][0]["producing_attempt"] == old_attempt
+    assert reports[0]["resumed_from_attempts"][0]["runtime_head"] == ancestor_head
 
 
 def paired_rows(saturated=False):
@@ -483,8 +584,86 @@ def test_scheduler_attempt_terminal_hook_gpu_and_port_provenance(tmp_path, monke
     assert runner._evaluation_attempts(p) == attempts
 
 
+def test_producing_identity_accepts_ancestor_and_rejects_invalid_bindings(tmp_path):
+    p = protocol()
+    ancestor_head, _current_head = git_lineage(tmp_path)
+    arm = "text-state__staged"
+    fingerprints = {
+        "final_checkpoint_sha256": "sha256:model",
+        "final_adapter_config_sha256": "sha256:config",
+    }
+    p["_curriculum_fingerprints"] = {arm: fingerprints}
+    directory = tmp_path / "jobs/curriculum-evaluate-0/2"
+    directory.mkdir(parents=True)
+    producing = {
+        "job_id": "curriculum-evaluate-0",
+        "attempt": 2,
+        "directory": str(directory.resolve()),
+    }
+    registry_key = (producing["job_id"], producing["attempt"], producing["directory"])
+    p["_valid_producing_attempts"] = {registry_key: "cutoff"}
+    policy = {
+        "model_id": p["base_model"]["model_id"],
+        "revision": p["base_model"]["revision"],
+        "adapter_id": arm,
+        **fingerprints,
+    }
+    report = {
+        "arm": arm,
+        "modality": "text-state",
+        "producing_attempt": producing,
+        "runtime_head": ancestor_head,
+        "policy_identity": policy,
+    }
+    assert evaluation._validate_producing_identity(tmp_path, p, report) == producing
+
+    bogus_head = {**report, "runtime_head": "f" * 40}
+    with pytest.raises(ValueError, match="policy/runtime provenance"):
+        evaluation._validate_producing_identity(tmp_path, p, bogus_head)
+
+    unrecorded = {**report, "producing_attempt": {**producing, "attempt": 4}}
+    with pytest.raises(ValueError, match="unknown or non-terminal"):
+        evaluation._validate_producing_identity(tmp_path, p, unrecorded)
+
+    tampered_policy = {
+        **report,
+        "policy_identity": {**policy, "final_checkpoint_sha256": "sha256:tampered"},
+    }
+    with pytest.raises(ValueError, match="policy/runtime provenance"):
+        evaluation._validate_producing_identity(tmp_path, p, tampered_policy)
+
+    (directory / "worker-result.json").write_text(
+        json.dumps(
+            {
+                "producing_attempt": producing,
+                "runtime_head": ancestor_head,
+                "policy_identities": {arm: {**policy, "adapter_id": "wrong"}},
+            }
+        )
+    )
+    with pytest.raises(ValueError, match="policy/runtime provenance"):
+        evaluation._validate_producing_identity(tmp_path, p, report)
+
+
 def test_finalize_and_audit_accept_cutoff_and_succeeded_producing_attempts(tmp_path, monkeypatch):
     p = protocol()
+    ancestor_head, current_head = git_lineage(tmp_path)
+    p["_curriculum_fingerprints"] = {
+        row["arm"]: {
+            "final_checkpoint_sha256": f"sha256:model-{row['arm']}",
+            "final_adapter_config_sha256": f"sha256:config-{row['arm']}",
+        }
+        for row in p["evaluation"]["arms"]
+    }
+
+    def policy_identity(arm):
+        return {
+            "model_id": p["base_model"]["model_id"],
+            "revision": p["base_model"]["revision"],
+            "adapter_id": arm,
+            **p["_curriculum_fingerprints"][arm],
+        }
+
     development = [{"row": {"task_id": f"dev-{index}"}} for index in range(3)]
     unseen = [{"row": {"task_id": f"unseen-{index}"}} for index in range(24)]
     loaded = {"development": development, "unseen": unseen}
@@ -525,17 +704,17 @@ def test_finalize_and_audit_accept_cutoff_and_succeeded_producing_attempts(tmp_p
             }
             if attempt_number == 3:
                 policy_identities = {
-                    arm: {"adapter_id": arm} for arm in evaluation.matched_arms(p, p["modalities"][worker])
+                    arm: policy_identity(arm) for arm in evaluation.matched_arms(p, p["modalities"][worker])
                 }
                 if worker == 0:
                     policy_identities.update(
-                        {arm: {"adapter_id": arm} for arm in evaluation.matched_arms(p, "multimodal-state")}
+                        {arm: policy_identity(arm) for arm in evaluation.matched_arms(p, "multimodal-state")}
                     )
                 (directory / "worker-result.json").write_text(
                     json.dumps(
                         {
                             "producing_attempt": identities[(worker, 3)],
-                            "runtime_head": "head",
+                            "runtime_head": current_head,
                             "policy_identities": policy_identities,
                             "missing_bindings": [],
                         }
@@ -579,8 +758,8 @@ def test_finalize_and_audit_accept_cutoff_and_succeeded_producing_attempts(tmp_p
             "arm": arm,
             "comparison_arm": arm,
             "producing_attempt": producing,
-            "runtime_head": "head",
-            "policy_identity": {"adapter_id": arm},
+            "runtime_head": ancestor_head if attempt_number == 2 else current_head,
+            "policy_identity": policy_identity(arm),
             "result": {
                 "invariant_valid_success": True,
                 "goal_reached": True,
@@ -592,7 +771,7 @@ def test_finalize_and_audit_accept_cutoff_and_succeeded_producing_attempts(tmp_p
             "call_measurements": [],
             "active_wall_seconds": 1.0,
         }
-        evaluation._validate_producing_identity(bound, report)
+        evaluation._validate_producing_identity(root, bound, report)
         return report
 
     def fake_verify_comparator(root, bound, panel, modality, task, condition, endpoint):
