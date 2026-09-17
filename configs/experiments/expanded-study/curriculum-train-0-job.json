@@ -1,0 +1,10 @@
+{
+  "job_id": "curriculum-train-0",
+  "branch": "curriculum_modality",
+  "gpus": [0],
+  "master_port": 18800,
+  "max_seconds": 7200,
+  "total": 3072,
+  "command": ["/home/sukaih/miniconda3/envs/ada_vla/bin/python", "scripts/run_expanded_curriculum_training.py", "run", "--worker", "0"],
+  "completion_hook": ["/home/sukaih/miniconda3/envs/ada_vla/bin/python", "scripts/run_expanded_curriculum_training.py", "audit-training-worker", "--worker", "0"]
+}

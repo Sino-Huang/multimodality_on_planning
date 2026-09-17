@@ -1,0 +1,10 @@
+{
+  "job_id": "curriculum-evaluate-1",
+  "branch": "curriculum_modality",
+  "gpus": [1],
+  "master_port": 18801,
+  "max_seconds": 5400,
+  "total": 81,
+  "command": ["/home/sukaih/miniconda3/envs/ada_vla/bin/python", "scripts/run_expanded_curriculum_evaluation.py", "run", "--worker", "1"],
+  "completion_hook": ["/home/sukaih/miniconda3/envs/ada_vla/bin/python", "scripts/run_expanded_curriculum_evaluation.py", "audit-worker", "--worker", "1"]
+}

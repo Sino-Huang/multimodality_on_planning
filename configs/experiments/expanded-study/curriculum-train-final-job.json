@@ -1,0 +1,9 @@
+{
+  "job_id": "curriculum-train-final",
+  "branch": "curriculum_modality",
+  "gpus": [],
+  "max_seconds": 3600,
+  "total": 9,
+  "command": ["/home/sukaih/miniconda3/envs/ada_vla/bin/python", "scripts/run_expanded_curriculum_training.py", "finalize-training"],
+  "completion_hook": ["/home/sukaih/miniconda3/envs/ada_vla/bin/python", "scripts/run_expanded_curriculum_training.py", "audit-training-final"]
+}
