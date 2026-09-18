@@ -808,10 +808,9 @@ def probe_stage(
             "batch_size": batch_size,
             "byte_identical": scalar_outputs == batched_outputs,
         }
-        repeated = [
-            policy.generate(parity_examples[offset : offset + batch_size], force_full_output=True)
-            for offset in range(0, len(parity_examples), batch_size)
-        ]
+        repeated = []
+        for offset in range(0, len(parity_examples), batch_size):
+            repeated.extend(policy.generate(parity_examples[offset : offset + batch_size], force_full_output=True))
         determinism = {"byte_identical": repeated == batched_outputs}
     finally:
         for example in parity_examples:

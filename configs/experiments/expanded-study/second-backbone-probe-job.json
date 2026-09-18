@@ -17,5 +17,5 @@
     "scripts/run_expanded_second_backbone.py",
     "audit-probe"
   ],
-  "resume_reason": "attempt 1 fast-failed in 61s (0.017 GPU-h) on a KeyError iterating the qualification extrema sentinel key and would have double-wrapped LoRA in _save_probe_adapters; fixed in 05b21ac (modality-scoped extrema, add_adapter on the existing wrap); attempt 1 loaded the model but produced no probe evidence, attempt 2 reruns the full probe"
+  "resume_reason": "attempts 1-2 failed on probe-stage code bugs, not model behavior: attempt 1 KeyError on the qualification extrema sentinel plus a double LoRA wrap (fixed in 05b21ac); attempt 2 compared a nested repeated-output list against the flat batched list so the determinism gate could never pass — a dedicated debug job (second-backbone-debug-determinism attempt 1) proved visual_sdpa byte-identical across 3 repeats on all three extrema examples; the comparison is flattened in this change; attempts 1-2 produced no probe evidence, attempt 3 reruns the full probe"
 }
