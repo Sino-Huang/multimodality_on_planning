@@ -16,5 +16,6 @@
     "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
     "scripts/run_expanded_second_backbone.py",
     "audit-probe"
-  ]
+  ],
+  "resume_reason": "attempt 1 fast-failed in 61s (0.017 GPU-h) on a KeyError iterating the qualification extrema sentinel key and would have double-wrapped LoRA in _save_probe_adapters; fixed in 05b21ac (modality-scoped extrema, add_adapter on the existing wrap); attempt 1 loaded the model but produced no probe evidence, attempt 2 reruns the full probe"
 }
