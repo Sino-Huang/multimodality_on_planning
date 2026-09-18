@@ -142,14 +142,15 @@ def materialize_task(root, task_id, source_manifest, states, output, progress):
 
 
 class SceneOnlyViews:
-    def __init__(self, root, tasks, measurements=None, decision_bindings=None):
+    def __init__(self, root, tasks, measurements=None, decision_bindings=None, page_processor=None):
         self.root, self.tasks = root, tasks
         self.measurements = measurements or {}
         self.decision_bindings = decision_bindings or {}
+        self.page_processor = page_processor or frozen_processor()
         self.cache = shared_state_page_cache(root)
 
     @classmethod
-    def load(cls, root, report_path):
+    def load(cls, root, report_path, page_processor=None):
         report = read_json(root / report_path)
         if (
             report.get("outcome") != "PASS"
@@ -174,7 +175,7 @@ class SceneOnlyViews:
             or report["counts"]["states"] != sum(len(t["scenes"]) for t in report["tasks"].values())
         ):
             raise ValueError("scene-only selected coverage is incomplete")
-        return cls(root, report["tasks"], report["measurements"], report["decision_bindings"])
+        return cls(root, report["tasks"], report["measurements"], report["decision_bindings"], page_processor=page_processor)
 
     def pages(self, task_id, state, pixels=True, *, current_scene=None):
         task = self.tasks[task_id]
@@ -214,7 +215,7 @@ class SceneOnlyViews:
             if modality != "text-state"
             else []
         )
-        count = frozen_processor().count(messages, image_sizes=sizes)
+        count = (getattr(self, "page_processor", None) or frozen_processor()).count(messages, image_sizes=sizes)
         if count + 384 > 32768:
             raise RuntimeError("VALID_STOP: scene-only complete input exceeds 32K")
         return {

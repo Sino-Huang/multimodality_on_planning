@@ -43,14 +43,16 @@ class VisualTaskViews:
         *,
         read_only=False,
         scene_views=None,
+        page_processor=None,
     ):
         self.root, self.row, self.output, self.endpoint = root, row, output, endpoint
         self.read_only = read_only
+        self.page_processor = page_processor or frozen_processor()
         self.scene_views = None
         if scene_views is not None:
             from .scene_only_views import SceneOnlyViews
 
-            self.scene_views = SceneOnlyViews.load(root, scene_views)
+            self.scene_views = SceneOnlyViews.load(root, scene_views, page_processor=self.page_processor)
         self.manifest = read_json(root / view_manifest)
         self.catalog = read_json(root / self.manifest["scene_catalog"])
         self.states = list(self.catalog["states"])
@@ -284,7 +286,7 @@ class VisualTaskViews:
                             image = stored.convert("RGB")
                 pages.append((role, image))
         messages = project_messages(raw, algorithm, modality, semantic, pages)
-        count = frozen_processor().count(messages)
+        count = self.page_processor.count(messages)
         if count + 384 > 32768:
             raise RuntimeError("VALID_STOP: live input exceeds the approved 32K context")
         return {

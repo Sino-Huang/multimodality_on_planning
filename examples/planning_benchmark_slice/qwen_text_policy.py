@@ -222,6 +222,8 @@ class BatchedPolicyAdapter:
             qwen_text_policy_training_messages
         ),
         policy_message_builder: Callable[[Mapping[str, Any]], list[dict[str, Any]]] = qwen_text_policy_messages,
+        backbone: dict | None = None,
+        page_processor: Any = None,
     ) -> None:
         for name, value in (
             ("max_new_tokens", max_new_tokens),
@@ -241,6 +243,15 @@ class BatchedPolicyAdapter:
         import torch
         from transformers import AutoProcessor, Qwen3VLForConditionalGeneration
 
+        if backbone is not None:
+            from .backbone_port import model_class
+
+            if model_id != backbone["model_id"] or revision != backbone["model_revision"]:
+                raise ValueError("policy model identity differs from the pinned backbone")
+            loader = model_class(backbone["model_class"])
+        else:
+            loader = Qwen3VLForConditionalGeneration
+
         self._torch = torch
         self.device = device
         self.max_new_tokens = max_new_tokens
@@ -249,17 +260,20 @@ class BatchedPolicyAdapter:
         self.max_batch_input_tokens = max_batch_input_tokens
         self.training_message_builder = training_message_builder
         self.policy_message_builder = policy_message_builder
-        self.processor = AutoProcessor.from_pretrained(model_id, revision=revision)
+        self.backbone = backbone
+        self.page_processor = page_processor
+        self.processor = AutoProcessor.from_pretrained(model_id, revision=revision, local_files_only=True)
         tokenizer = getattr(self.processor, "tokenizer", None)
         if tokenizer is not None:
             tokenizer.padding_side = "left"
             if tokenizer.pad_token_id is None:
                 tokenizer.pad_token_id = tokenizer.eos_token_id
-        self.model = Qwen3VLForConditionalGeneration.from_pretrained(
+        self.model = loader.from_pretrained(
             model_id,
             revision=revision,
             dtype=torch.float32,
             low_cpu_mem_usage=True,
+            local_files_only=True,
         ).to(device)
         self.model.eval()
         self.adapter_paths = {name: str(Path(path).expanduser().resolve()) for name, path in adapter_paths.items()}

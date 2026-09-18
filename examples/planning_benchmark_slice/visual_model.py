@@ -21,8 +21,9 @@ class VisualPolicy(BatchedPolicyAdapter):
     def generate(self, examples, adapter_id=None, *, force_full_output=False):
         if time.monotonic() >= getattr(self, "stop_at", float("inf")):
             raise RuntimeError("VALID_STOP: no new model calls after cutoff")
+        counter = getattr(self, "page_processor", None) or frozen_processor()
         lengths = [
-            frozen_processor().count(e["messages"], image_sizes=[image.size for image in e["images"]]) for e in examples
+            counter.count(e["messages"], image_sizes=[image.size for image in e["images"]]) for e in examples
         ]
         if (
             len(examples) > self.max_batch_size
@@ -83,8 +84,9 @@ class VisualDataset(Dataset):
 class VisualCollator:
     """Mask all instruction/image tokens; supervise only the assistant target."""
 
-    def __init__(self, processor):
+    def __init__(self, processor, page_processor=None):
         self.processor = processor
+        self.page_processor = page_processor or frozen_processor()
 
     def __call__(self, examples):
         processor = self.processor
@@ -95,7 +97,7 @@ class VisualCollator:
         encoded = processor(text=texts, images=images or None, padding=True, return_tensors="pt")
         labels = encoded["input_ids"].clone()
         for i, example in enumerate(examples):
-            length = frozen_processor().count(
+            length = self.page_processor.count(
                 example["messages"][:-1], image_sizes=[image.size for image in example["images"]]
             )
             if length + 384 > 32768 or encoded["input_ids"].shape[1] > 32768:
@@ -116,11 +118,14 @@ class VisualCollator:
 def load_training_model(config, adapter_path=None):
     import torch
     from peft import LoraConfig, PeftModel, get_peft_model
-    from transformers import Qwen3VLForConditionalGeneration, set_seed
+    from transformers import set_seed
+
+    from .backbone_port import model_class
 
     set_seed(config["training_seed"])
     training = config["training"]
-    model: Any = Qwen3VLForConditionalGeneration.from_pretrained(
+    loader = model_class(config.get("model_class", "transformers.Qwen3VLForConditionalGeneration"))
+    model: Any = loader.from_pretrained(
         config["model_id"],
         revision=config["model_revision"],
         dtype=torch.bfloat16,
@@ -137,7 +142,7 @@ def load_training_model(config, adapter_path=None):
                 lora_dropout=training["lora_dropout"],
                 bias="none",
                 target_modules="all-linear",
-                exclude_modules=r".*visual.*",
+                exclude_modules=training.get("lora_exclude_modules", r".*visual.*"),
                 task_type="CAUSAL_LM",
             ),
         )

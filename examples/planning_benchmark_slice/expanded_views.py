@@ -4,6 +4,7 @@ import copy
 import json
 from typing import Any
 
+from .modality_view_preparation import frozen_processor
 from .pddl_state import GroundedAction, PDDLStateAuthority
 from .scene_assets import read_json
 from .visual_episode import VisualSession, VisualTaskViews
@@ -154,12 +155,13 @@ def reference_catalog(root, row, reference_paths, study_id):
 class ExpandedTaskViews(VisualTaskViews):
     """Use retained reference images and materialize new accepted states on demand."""
 
-    def __init__(self, root, task, output, endpoint, *, read_only=False):
+    def __init__(self, root, task, output, endpoint, *, read_only=False, page_processor=None):
         from .modality_corpus_replay import canonical
         from .scene_only_views import SceneOnlyViews
 
         self.root, self.row, self.output, self.endpoint = root, task["row"], output, endpoint
         self.read_only = read_only
+        self.page_processor = page_processor or frozen_processor()
         native = copy.deepcopy(task["native_views"])
         # New-state indices are local to an episode; isolate their image cache.
         native["view_id"] = f"{native['view_id']}:live:{output.resolve()}"
@@ -204,7 +206,7 @@ class ExpandedTaskViews(VisualTaskViews):
             if list(state.atoms) != entry["atoms"] or list(state.fluents) != entry["fluents"]:
                 raise ValueError("stored expanded view state does not replay from its parent")
             replayed.append(state)
-        self.scene_views = SceneOnlyViews(root, {self.row["task_id"]: native})
+        self.scene_views = SceneOnlyViews(root, {self.row["task_id"]: native}, page_processor=self.page_processor)
         for state in self.states[self.original_count :]:
             self._bind_native(state["index"])
 

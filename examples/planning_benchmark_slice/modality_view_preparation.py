@@ -161,32 +161,53 @@ def validate_process_state(raw: dict, algorithm: str, state: dict) -> None:
 class FrozenPageProcessor:
     """Exact chat token counts for fixed-size pages; no model weights or GPU calls.
 
-    Qwen expands each image marker to grid.prod()/merge_size**2 special tokens.
-    Measure that grid with the actual processor, then count complete templated text
-    at every decision. The first complete input is cross-checked by __call__.
+    The default Qwen backbone expands each image marker to grid.prod()/merge_size**2
+    special tokens. A passed backbone spec (backbone_port.BACKBONES) uses that
+    backbone's own processor and per-image expansion instead. Measure the expansion
+    with the actual processor, then count complete templated text at every decision.
+    The first complete input is cross-checked by __call__.
     """
 
-    def __init__(self):
+    def __init__(self, backbone: dict | None = None):
         from transformers import AutoProcessor
 
-        self.processor = AutoProcessor.from_pretrained(MODEL, revision=REVISION, local_files_only=True)
-        if type(self.processor).__name__ != "Qwen3VLProcessor":
-            raise ValueError("frozen processor class differs")
-        page = Image.new("RGB", PAGE_SIZE, "white")
-        processed = self.processor.image_processor(images=[page], return_tensors="pt")
-        grid = processed["image_grid_thw"][0]
-        self.grid = [int(n) for n in grid]
-        self.image_tokens = int(grid.prod()) // self.processor.image_processor.merge_size**2
-        self.image_token_counts = {PAGE_SIZE: self.image_tokens}
+        self.backbone = backbone
+        self.image_token_counts = {}
+        if backbone is None:
+            self.processor = AutoProcessor.from_pretrained(MODEL, revision=REVISION, local_files_only=True)
+            if type(self.processor).__name__ != "Qwen3VLProcessor":
+                raise ValueError("frozen processor class differs")
+            page = Image.new("RGB", PAGE_SIZE, "white")
+            processed = self.processor.image_processor(images=[page], return_tensors="pt")
+            grid = processed["image_grid_thw"][0]
+            self.grid = [int(n) for n in grid]
+            self.image_tokens = int(grid.prod()) // self.processor.image_processor.merge_size**2
+        else:
+            self.processor = AutoProcessor.from_pretrained(
+                backbone["model_id"], revision=backbone["model_revision"], local_files_only=True, **backbone["processor_overrides"]
+            )
+            if type(self.processor).__name__ != backbone["processor_class"]:
+                raise ValueError("second-backbone processor class differs from the pinned selection")
+            self.grid = None
+            self.image_tokens = self.image_tokens_for_size(PAGE_SIZE)
+        self.image_token_counts[PAGE_SIZE] = self.image_tokens
         self.cross_checked = False
 
     def image_tokens_for_size(self, size):
         if size in self.image_token_counts:
             return self.image_token_counts[size]
-        with Image.new("RGB", size, "white") as image:
-            processed = self.processor.image_processor(images=[image], return_tensors="pt")
-        grid = processed["image_grid_thw"][0]
-        count = int(grid.prod()) // self.processor.image_processor.merge_size**2
+        if self.backbone is None:
+            with Image.new("RGB", size, "white") as image:
+                processed = self.processor.image_processor(images=[image], return_tensors="pt")
+            grid = processed["image_grid_thw"][0]
+            count = int(grid.prod()) // self.processor.image_processor.merge_size**2
+        else:
+            with Image.new("RGB", size, "white") as image:
+                processed = self.processor.image_processor(images=[image], return_tensors="pt", crop_to_patches=True)
+            patches = processed.get("num_patches")
+            count = int(patches[0]) * int(self.processor.image_seq_length) + int(
+                self.backbone["image_wrapper_tokens"]
+            )
         self.image_token_counts[size] = count
         return count
 
@@ -216,6 +237,11 @@ class FrozenPageProcessor:
 
         ip = self.processor.image_processor
         batch = ip(images=[image], return_tensors="pt")
+        if self.backbone is not None:
+            # One or more 448x448 normalized tiles; show the first tile's pixels.
+            tile = batch["pixel_values"][0].cpu().numpy().transpose(1, 2, 0)
+            tile = (tile * np.asarray(ip.image_std) + np.asarray(ip.image_mean)) * 255
+            return Image.fromarray(np.clip(np.rint(tile), 0, 255).astype("uint8"))
         t, h, w = map(int, batch["image_grid_thw"][0])
         merge, patch, temporal = ip.merge_size, ip.patch_size, ip.temporal_patch_size
         pixels = (
@@ -233,6 +259,13 @@ class FrozenPageProcessor:
 @lru_cache(maxsize=1)
 def frozen_processor():
     return FrozenPageProcessor()
+
+
+@lru_cache(maxsize=None)
+def page_processor_for(backbone_key: str):
+    from .backbone_port import backbone_spec
+
+    return FrozenPageProcessor(backbone_spec(backbone_key))
 
 
 def _state_goal_checks(authority, catalog, source):
