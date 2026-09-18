@@ -368,6 +368,7 @@ def test_admission_arithmetic_l0_l1_and_valid_stop():
     protocol = fake_protocol(Path("."))
     qualification = {"outcome": "PASS", "complete": True}
     costs = [{"bfs": {"decisions": 10 + index, "expansions": 5}} for index in range(24)]
+    task_ids = [f"task/{index}" for index in range(24)]
 
     def probe(step_seconds, latency):
         return {
@@ -378,27 +379,37 @@ def test_admission_arithmetic_l0_l1_and_valid_stop():
         }
 
     result = branch.decide_admission(
-        protocol, qualification, probe(1.0, 0.1), branch_spent_gpu_hours=0.5, panel_task_costs=costs
+        protocol, qualification, probe(1.0, 0.1), branch_spent_gpu_hours=0.5, panel_task_costs=costs,
+        panel_task_ids=task_ids,
     )
     assert result["decision"] == "L0" and result["outcome"] == "PASS"
     assert result["ledger_mutated"] is False
     assert result["arithmetic"]["L0"]["fits_branch_remainder"] is True
     assert result["reduced_scope"] is None
+    assert result["authorized_scope"]["decision"] == "L0"
+    assert result["authorized_scope"]["task_ids"] == task_ids
+    assert result["authorized_scope"]["model_episodes"] == 144
+    assert result["authorized_scope"]["comparator_episodes"] == 144
     training_hours = 3 * 1.0 * 16 / 3600
     assert result["arithmetic"]["L0"]["training_gpu_hours"] == pytest.approx(training_hours)
 
     huge = branch.decide_admission(
-        protocol, qualification, probe(100.0, 50.0), branch_spent_gpu_hours=0.5, panel_task_costs=costs
+        protocol, qualification, probe(100.0, 50.0), branch_spent_gpu_hours=0.5, panel_task_costs=costs,
+        panel_task_ids=task_ids,
     )
     assert huge["arithmetic"]["L0"]["fits_branch_remainder"] is False
     if huge["arithmetic"]["L1"]["fits_branch_remainder"]:
         assert huge["decision"] == "L1"
         assert "reference bfs decision count" in huge["reduced_scope"]
+        assert huge["authorized_scope"]["decision"] == "L1"
+        assert huge["authorized_scope"]["task_ids"] == task_ids[:12]
+        assert huge["authorized_scope"]["model_episodes"] == 72
     else:
         assert huge["decision"] == "L2" and huge["outcome"] == "VALID_STOP"
+        assert huge["authorized_scope"] is None
 
 
-def test_admission_gate_requires_full_panel_pass(tmp_path):
+def test_admission_gate_admits_full_or_reduced_pass(tmp_path):
     protocol = fake_protocol(tmp_path)
     protocol["output_root"] = "out"
     root = tmp_path / "root"
@@ -412,18 +423,57 @@ def test_admission_gate_requires_full_panel_pass(tmp_path):
         "outcome": "PASS",
         "decision": "L0",
         "ledger_mutated": False,
+        "authorized_scope": {"decision": "L0", "task_ids": ["task/0"], "model_episodes": 6},
     }
     for mutation in (
         {"outcome": "VALID_STOP"},
-        {"decision": "L1"},
         {"decision": "L2"},
+        {"decision": "L1"},
         {"protocol_id": "other"},
+        {"authorized_scope": None},
+        {"authorized_scope": {"decision": "L1", "task_ids": ["task/0"], "model_episodes": 6}},
     ):
         (admission_dir / "admission.json").write_text(json.dumps({**base, **mutation}))
-        with pytest.raises(RuntimeError, match="did not authorize the full panel"):
+        with pytest.raises(RuntimeError, match="did not authorize execution"):
             branch.require_admission_gate(root, protocol)
     (admission_dir / "admission.json").write_text(json.dumps(base))
     assert branch.require_admission_gate(root, protocol)["decision"] == "L0"
+    reduced = {
+        **base,
+        "decision": "L1",
+        "authorized_scope": {"decision": "L1", "task_ids": ["task/0", "task/2"], "model_episodes": 12},
+    }
+    (admission_dir / "admission.json").write_text(json.dumps(reduced))
+    assert branch.require_admission_gate(root, protocol)["decision"] == "L1"
+
+
+def test_authorized_panel_tasks_filters_to_admission_scope(tmp_path):
+    protocol = fake_protocol(tmp_path)
+    protocol["output_root"] = "out"
+    root = tmp_path / "root"
+    admission_dir = root / protocol["output_root"]
+    admission_dir.mkdir(parents=True)
+    panel_tasks = [{"row": {"task_id": f"task/{index}"}} for index in range(4)]
+    admission = {
+        "schema_version": branch.ADMISSION_SCHEMA,
+        "protocol_id": protocol["protocol_id"],
+        "outcome": "PASS",
+        "decision": "L1",
+        "ledger_mutated": False,
+        "authorized_scope": {
+            "decision": "L1",
+            "task_ids": ["task/3", "task/1"],
+            "model_episodes": 12,
+            "comparator_episodes": 12,
+        },
+    }
+    (admission_dir / "admission.json").write_text(json.dumps(admission))
+    selected = branch.authorized_panel_tasks(root, protocol, panel_tasks)
+    assert [task["row"]["task_id"] for task in selected] == ["task/1", "task/3"]
+    admission["authorized_scope"]["model_episodes"] = 144
+    (admission_dir / "admission.json").write_text(json.dumps(admission))
+    with pytest.raises(ValueError, match="episode count differs"):
+        branch.authorized_panel_tasks(root, protocol, panel_tasks)
 
 
 def test_repository_job_configs_and_worker_environment(monkeypatch):

@@ -286,6 +286,7 @@ def evaluate(protocol, worker):
     bound["_runtime_head"] = _head()
     branch.validate_protocol(ROOT, protocol)
     _, panel_tasks = branch.load_panel(ROOT, protocol)
+    panel_tasks = branch.authorized_panel_tasks(ROOT, protocol, panel_tasks)
     selected = branch.assigned_bindings(protocol, panel_tasks, worker)
     modalities = branch.worker_modalities(protocol, selected)
     expected_paths = [
@@ -435,6 +436,7 @@ def audit_evaluation_worker(protocol, worker):
     if terminal.get("status") != "succeeded":
         raise RuntimeError("second-backbone evaluation worker did not terminate cleanly")
     _, panel_tasks = branch.load_panel(ROOT, protocol)
+    panel_tasks = branch.authorized_panel_tasks(ROOT, protocol, panel_tasks)
     bound, _report = branch.require_training_gate(ROOT, protocol)
     worker_result = read(Path(terminal["directory"]) / "worker-result.json")
     bound["_producing_attempt"] = worker_result["producing_attempt"]
@@ -498,7 +500,7 @@ def finalize_evaluation(protocol):
     write(branch.evaluation_root(ROOT, protocol) / "analysis.json", analysis)
     write(
         os.environ["EXPANDED_PROGRESS_PATH"],
-        {"completed": evidence["model_episodes"], "total": protocol["evaluation"]["model_episodes"]},
+        {"completed": evidence["model_episodes"], "total": evidence["expected_model_episodes"]},
     )
     print(json.dumps(evidence, indent=2))
 
@@ -526,7 +528,7 @@ def audit_final(protocol):
         or read(output / "analysis.json") != expected_analysis
     ):
         raise ValueError("second-backbone evaluation evidence differs from scheduler-bound replay")
-    print(f"{actual['status']}: {actual['model_episodes']}/144 second-backbone episodes replayed")
+    print(f"{actual['status']}: {actual['model_episodes']}/{actual['expected_model_episodes']} second-backbone episodes replayed")
 
 
 def analyze(protocol):

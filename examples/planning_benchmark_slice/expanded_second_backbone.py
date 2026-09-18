@@ -1046,6 +1046,7 @@ def decide_admission(
     *,
     branch_spent_gpu_hours: float,
     panel_task_costs: Sequence[Mapping[str, Any]],
+    panel_task_ids: Sequence[str],
 ) -> dict[str, Any]:
     training = protocol["training"]
     budget = protocol["budget"]
@@ -1057,6 +1058,8 @@ def decide_admission(
     training_seconds = sum(step_costs.values()) * training["optimizer_updates"]
     latency = {modality: probe["throughput"][modality]["latency_seconds"]["p95"] for modality in modalities}
     reference_decisions = [cost["bfs"]["decisions"] for cost in panel_task_costs]
+    if len(panel_task_ids) != len(reference_decisions) or len(set(panel_task_ids)) != len(panel_task_ids):
+        raise ValueError("second-backbone admission task identities differ from panel costs")
     tasks_by_cost = sorted(range(len(reference_decisions)), key=lambda index: reference_decisions[index])
 
     def level_arithmetic(task_indices: Sequence[int]) -> dict[str, Any]:
@@ -1097,6 +1100,22 @@ def decide_admission(
         )
     else:
         decision, outcome, reduced = "L2", "VALID_STOP", None
+    authorized_scope = None
+    if outcome == "PASS":
+        selected = set(range(len(reference_decisions))) if decision == "L0" else set(key_cell_indices)
+        scope_ids = [task_id for index, task_id in enumerate(panel_task_ids) if index in selected]
+        authorized_scope = {
+            "decision": decision,
+            "task_ids": scope_ids,
+            "task_id_order": "frozen panel order",
+            "model_episodes": len(scope_ids) * len(modalities) * len(MODEL_CONDITIONS),
+            "comparator_episodes": len(scope_ids) * len(modalities) * len(COMPARATOR_CONDITIONS),
+            "selection": (
+                "full qualified panel"
+                if decision == "L0"
+                else "lowest reference bfs decision count only, frozen before any model outcome"
+            ),
+        }
     return {
         "schema_version": ADMISSION_SCHEMA,
         "decision": decision,
@@ -1113,6 +1132,7 @@ def decide_admission(
             "probe_gpu_hours": probe["probe_gpu_hours"],
         },
         "reduced_scope": reduced,
+        "authorized_scope": authorized_scope,
         "ledger_mutated": False,
     }
 
@@ -1127,30 +1147,60 @@ def admit_stage(root: Path, protocol: Mapping[str, Any], context: Mapping[str, A
     ledger = read_json(root / LEDGER_PATH)
     spent = _branch_spent(ledger)
     costs = [task["row"]["reference_costs"] for task in context["panel_tasks"]]
-    result = decide_admission(protocol, qualification, probe, branch_spent_gpu_hours=spent, panel_task_costs=costs)
+    task_ids = [task["row"]["task_id"] for task in context["panel_tasks"]]
+    result = decide_admission(
+        protocol,
+        qualification,
+        probe,
+        branch_spent_gpu_hours=spent,
+        panel_task_costs=costs,
+        panel_task_ids=task_ids,
+    )
     write_json(root / protocol["output_root"] / "admission.json", result)
     return result
 
 
 def require_admission_gate(root: Path, protocol: Mapping[str, Any]) -> dict[str, Any]:
-    """GPU work is authorized only by a complete full-panel (L0) PASS admission."""
+    """GPU work is authorized only by a PASS admission: full panel (L0) or the
+    reference-cost-reduced key-cell panel (L1) frozen before any model outcome."""
     path = root / protocol["output_root"] / "admission.json"
     if not path.is_file():
         raise RuntimeError("VALID_STOP: second-backbone cost admission has not run")
     admission = read_json(path)
+    scope = admission.get("authorized_scope")
     if (
         admission.get("schema_version") != ADMISSION_SCHEMA
         or admission.get("protocol_id") != protocol["protocol_id"]
         or admission.get("outcome") != "PASS"
-        or admission.get("decision") != "L0"
+        or admission.get("decision") not in ("L0", "L1")
         or admission.get("ledger_mutated") is not False
+        or not isinstance(scope, dict)
+        or scope.get("decision") != admission.get("decision")
+        or not scope.get("task_ids")
     ):
         raise RuntimeError(
-            "VALID_STOP: second-backbone admission did not authorize the full panel "
+            "VALID_STOP: second-backbone admission did not authorize execution "
             f"(decision={admission.get('decision')}, outcome={admission.get('outcome')}); "
-            "reduced/VALID_STOP arithmetic is published in admission.json"
+            "arithmetic is published in admission.json"
         )
     return admission
+
+
+def authorized_panel_tasks(
+    root: Path, protocol: Mapping[str, Any], panel_tasks: Sequence[Mapping[str, Any]]
+) -> list[Mapping[str, Any]]:
+    """Filter the frozen panel to the admission-authorized tasks, preserving panel order."""
+    admission = require_admission_gate(root, protocol)
+    scope = admission["authorized_scope"]
+    scope_ids = list(scope["task_ids"])
+    panel_ids = [task["row"]["task_id"] for task in panel_tasks]
+    if len(set(scope_ids)) != len(scope_ids) or not set(scope_ids).issubset(panel_ids):
+        raise ValueError("second-backbone admission scope is not a subset of the frozen panel")
+    selected = [task for task in panel_tasks if task["row"]["task_id"] in set(scope_ids)]
+    episodes = len(selected) * len(protocol["modalities"]) * len(MODEL_CONDITIONS)
+    if episodes != scope.get("model_episodes"):
+        raise ValueError("second-backbone admission scope episode count differs")
+    return selected
 
 
 def training_arguments_kwargs(protocol: Mapping[str, Any], output: Path) -> dict[str, Any]:
@@ -2073,6 +2123,8 @@ def build_evidence(
     """Independently replay all model episodes, verify comparators, assemble evidence."""
     comparator_audit = validate_comparator_sources(root, protocol)
     _, panel_tasks = load_panel(root, protocol)
+    panel_tasks = authorized_panel_tasks(root, protocol, panel_tasks)
+    admission = read_json(root / protocol["output_root"] / "admission.json")
     tasks = {task["row"]["task_id"]: task for task in panel_tasks}
     bound, _training = require_training_gate(root, protocol)
     fresh, missing = [], []
@@ -2134,7 +2186,9 @@ def build_evidence(
             )
     missing = sorted(missing)
     comparator_missing = sorted(comparator_missing)
-    complete = not missing and not comparator_missing and len(fresh) == protocol["evaluation"]["model_episodes"]
+    expected_model = len(bindings(protocol, panel_tasks))
+    expected_comparators = len(panel_tasks) * len(protocol["modalities"]) * len(COMPARATOR_CONDITIONS)
+    complete = not missing and not comparator_missing and len(fresh) == expected_model
     reports = [*fresh, *comparators]
     by_condition: dict[str, dict[str, Any]] = {}
     for report in reports:
@@ -2176,9 +2230,12 @@ def build_evidence(
         "backbone_key": BACKBONE_KEY,
         "logical_bindings": protocol["evaluation"]["logical_bindings"],
         "model_episodes": len(fresh),
-        "expected_model_episodes": protocol["evaluation"]["model_episodes"],
+        "expected_model_episodes": expected_model,
         "comparator_episodes": len(comparators),
-        "expected_comparator_episodes": protocol["evaluation"]["comparator_episodes"],
+        "expected_comparator_episodes": expected_comparators,
+        "frozen_full_panel_model_episodes": protocol["evaluation"]["model_episodes"],
+        "authorized_scope": admission["authorized_scope"],
+        "reduced_scope": admission.get("reduced_scope"),
         "complete_coverage": complete,
         "missing_bindings": missing,
         "missing_comparator_bindings": comparator_missing,
@@ -2306,6 +2363,8 @@ def analyze_evidence(root: Path, protocol: Mapping[str, Any], evidence: Mapping[
         for row in baseline["by_cell"]
         if row["algorithm"] == protocol["algorithm"]
     }
+    scope = evidence.get("authorized_scope") or {}
+    reduced = scope.get("decision") == "L1"
     cross_backbone = []
     for modality in protocol["modalities"]:
         sft = _values(rows, f"{modality}__sft_sequential_order_control")
@@ -2323,6 +2382,12 @@ def analyze_evidence(root: Path, protocol: Mapping[str, Any], evidence: Mapping[
                     "paired interval conditions the Qwen per-task outcome at its pinned by_cell BFS success "
                     "rate (only aggregate baseline cells are pinned); interval width reflects InternVL "
                     "task-level variation around the Qwen rate"
+                )
+                + (
+                    "; the InternVL panel is the reference-cost-reduced key-cell subset while the Qwen rate "
+                    "remains the pinned full-panel aggregate, so this contrast is descriptive, not paired"
+                    if reduced
+                    else ""
                 ),
             }
         )
@@ -2344,6 +2409,8 @@ def analyze_evidence(root: Path, protocol: Mapping[str, Any], evidence: Mapping[
         "protocol_id": protocol["protocol_id"],
         "unit": analysis["unit"],
         "paired_units": len(rows),
+        "authorized_scope": evidence.get("authorized_scope"),
+        "reduced_scope": evidence.get("reduced_scope"),
         "bootstrap": {
             "seed": analysis["bootstrap_seed"],
             "resamples": analysis["bootstrap_resamples"],
@@ -2538,6 +2605,17 @@ def _publish_evaluation(root: Path, protocol: Mapping[str, Any]) -> Path:
         f"model episodes {report['model_episodes']}/{report['expected_model_episodes']}; comparator episodes "
         f"{report['comparator_episodes']}/{report['expected_comparator_episodes']}.",
         "",
+    ]
+    scope = report.get("authorized_scope") or {}
+    if scope.get("decision") == "L1":
+        lines += [
+            f"**Reduced scope (cost admission L1):** the executed panel is the {len(scope['task_ids'])} "
+            "reference-cost-selected key-cell tasks, frozen before any model outcome; the frozen full panel is "
+            f"{report['frozen_full_panel_model_episodes']} model episodes. Selection: {scope['selection']}. "
+            f"Admission rationale: {report.get('reduced_scope')}.",
+            "",
+        ]
+    lines += [
         "| Modality | Condition | Episodes | Successes | Decisions | Invalid ops | Model calls |",
         "| --- | --- | ---: | ---: | ---: | ---: | ---: |",
     ]
