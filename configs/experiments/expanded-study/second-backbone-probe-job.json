@@ -17,5 +17,5 @@
     "scripts/run_expanded_second_backbone.py",
     "audit-probe"
   ],
-  "resume_reason": "attempts 1-2 failed on probe-stage code bugs, not model behavior: attempt 1 KeyError on the qualification extrema sentinel plus a double LoRA wrap (fixed in 05b21ac); attempt 2 compared a nested repeated-output list against the flat batched list so the determinism gate could never pass — a dedicated debug job (second-backbone-debug-determinism attempt 1) proved visual_sdpa byte-identical across 3 repeats on all three extrema examples; the comparison is flattened in this change; attempts 1-2 produced no probe evidence, attempt 3 reruns the full probe"
+  "resume_reason": "attempts 1-3 each failed on probe-stage code bugs, not model behavior: attempt 1 extrema-sentinel KeyError and LoRA double-wrap (05b21ac); attempt 2 nested-vs-flat determinism comparison that could never pass (844b702, with a debug job proving visual_sdpa byte-identical x3 on all extrema); attempt 3 reached adapter isolation after all generation phases passed, then hit CUDA/CPU tensor mixing in _save_probe_adapters and a missing device move in the manual training-step loop (both fixed here); no attempt produced probe evidence, attempt 4 reruns the full probe"
 }

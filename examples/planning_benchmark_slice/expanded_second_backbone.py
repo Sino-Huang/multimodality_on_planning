@@ -707,6 +707,7 @@ def _save_probe_adapters(model: Any, protocol: Mapping[str, Any], output_dir: Pa
         generator = torch.Generator().manual_seed(seed)
         perturbed = {}
         for key, tensor in state.items():
+            tensor = tensor.detach().cpu()
             if key.endswith("lora_B.weight"):
                 noise = (torch.rand(tensor.shape, generator=generator, dtype=torch.float32) - 0.5) * 0.02
                 perturbed[key] = (tensor.float() + noise).to(tensor.dtype)
@@ -961,7 +962,10 @@ def probe_stage(
         try:
             optimizer.zero_grad(set_to_none=True)
             for example in examples:
-                batch = collator([example])
+                batch = {
+                    key: value.to("cuda:0") if torch.is_tensor(value) else value
+                    for key, value in collator([example]).items()
+                }
                 loss = training_model(**batch).loss / protocol["training"]["gradient_accumulation_steps"]
                 loss.backward()
             torch.nn.utils.clip_grad_norm_(trainable, protocol["training"]["max_grad_norm"])
