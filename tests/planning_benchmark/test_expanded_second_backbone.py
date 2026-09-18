@@ -92,6 +92,7 @@ def fake_protocol(tmp_path, ids=None):
             "model_episodes": 144,
             "comparator_episodes": 144,
             "random_valid_assistance": "oracle-assisted",
+            "inference": {"max_batch_size": 2, "max_padded_batch_input_tokens": 24000},
         },
         "analysis": {
             "unit": "whole_problem_paired",
@@ -571,7 +572,11 @@ def test_run_cell_deterministic_rounds_grouped_by_adapter(tmp_path, monkeypatch)
     monkeypatch.setattr(branch, "ExpandedTaskViews", _StubViews)
     monkeypatch.setattr(branch, "VisualSession", _StubSession)
     monkeypatch.setattr(branch, "replay_visual_episode", lambda *args, **kwargs: {})
-    monkeypatch.setattr(branch, "backbone_page_processor", lambda protocol: SimpleNamespace())
+    monkeypatch.setattr(
+        branch,
+        "backbone_page_processor",
+        lambda protocol: SimpleNamespace(count=lambda messages, *, image_sizes=None: 1),
+    )
     batches = []
 
     def generate(examples, adapter_id):
@@ -609,6 +614,64 @@ def test_run_cell_deterministic_rounds_grouped_by_adapter(tmp_path, monkeypatch)
     )
     assert episode_identity["checkpoint"] == "training/text-state/final"
     assert episode_identity["final_checkpoint_sha256"] == "sha256:model-text-state"
+
+
+def test_form_generation_batches_respects_size_and_token_caps():
+    items = ["a", "b", "c", "d"]
+    assert branch.form_generation_batches(items, [5, 5, 5, 5], max_batch_size=2, max_batch_input_tokens=10) == [
+        ["a", "b"],
+        ["c", "d"],
+    ]
+    assert branch.form_generation_batches(items, [7, 5, 5, 7], max_batch_size=2, max_batch_input_tokens=12) == [
+        ["a"],
+        ["b", "c"],
+        ["d"],
+    ]
+    assert branch.form_generation_batches(["x"], [13000], max_batch_size=2, max_batch_input_tokens=24000) == [["x"]]
+    assert branch.form_generation_batches([], [], max_batch_size=2, max_batch_input_tokens=24000) == []
+
+
+def test_run_cell_narrows_batches_to_padded_token_cap(tmp_path, monkeypatch):
+    protocol = fake_protocol(tmp_path)
+    producing = {"job_id": "second-backbone-evaluate-0", "attempt": 1, "directory": str(tmp_path / "attempt")}
+    bound = _bound(protocol, producing)
+    names = ("a", "b", "c", "d")
+    panel_tasks = [
+        {"row": {"task_id": f"task/{name}", "reference_costs": {"bfs": {"decisions": 2, "expansions": 2}}}}
+        for name in names
+    ]
+    selected = [
+        binding for binding in branch.assigned_bindings(protocol, panel_tasks, 0) if binding["modality"] == "text-state"
+    ]
+    pairs = [
+        (binding, next(t for t in panel_tasks if t["row"]["task_id"] == binding["task_id"])) for binding in selected
+    ]
+    monkeypatch.setattr(branch, "ExpandedTaskViews", _StubViews)
+    monkeypatch.setattr(branch, "VisualSession", _StubSession)
+    monkeypatch.setattr(branch, "replay_visual_episode", lambda *args, **kwargs: {})
+    monkeypatch.setattr(
+        branch,
+        "backbone_page_processor",
+        lambda protocol: SimpleNamespace(count=lambda messages, *, image_sizes=None: 13000),
+    )
+    batches = []
+
+    def generate(examples, adapter_id):
+        batches.append(len(examples))
+        return ["output"] * len(examples), [1] * len(examples)
+
+    reports = branch.run_cell(
+        tmp_path,
+        protocol,
+        bound,
+        modality="text-state",
+        task_bindings=pairs,
+        endpoint="unused",
+        generate=generate,
+        progress=lambda **kwargs: None,
+    )
+    assert len(reports) == len(selected)
+    assert batches and all(size == 1 for size in batches)
 
 
 def test_qualify_inputs_records_valid_stop_with_stub_processor(tmp_path, monkeypatch):

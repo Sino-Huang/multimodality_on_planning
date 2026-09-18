@@ -854,24 +854,40 @@ def probe_stage(
     for modality in protocol["modalities"]:
         task = live_task
         examples = _densest_live_examples(root, protocol, task, 4, modality)
-        latencies, tokens_per_second, input_tokens = [], [], []
+        latencies, tokens_per_second, input_tokens, batch_sizes = [], [], [], []
         try:
+            counts = [
+                processor.count(example["messages"], image_sizes=[image.size for image in example["images"]])
+                for example in examples
+            ]
+            batches = form_generation_batches(
+                examples,
+                counts,
+                max_batch_size=inference["max_batch_size"],
+                max_batch_input_tokens=inference["max_padded_batch_input_tokens"],
+            )
             torch.cuda.reset_peak_memory_stats()
             calls = 0
             while calls < 20:
-                for offset in range(0, len(examples) - 1, 2):
-                    batch = examples[offset : offset + 2]
+                for batch in batches:
+                    if calls >= 20:
+                        break
                     call_started = time.monotonic()
                     policy.generate(batch)
                     latencies.append(time.monotonic() - call_started)
                     usage = policy.last_generation_usage
                     tokens_per_second.append(usage["generated_sequence_tokens"] / max(latencies[-1], 1e-9))
                     input_tokens.extend(usage["input_tokens"])
+                    batch_sizes.append(len(batch))
                     calls += 1
             throughput[modality] = {
                 "task_id": task["row"]["task_id"],
                 "calls": calls,
-                "batch_size": 2,
+                "batch_sizes": {
+                    "min": min(batch_sizes),
+                    "max": max(batch_sizes),
+                    "mean": sum(batch_sizes) / len(batch_sizes),
+                },
                 "latency_seconds": _summary(latencies),
                 "tokens_per_second": {
                     "mean": sum(tokens_per_second) / len(tokens_per_second),
@@ -1745,7 +1761,7 @@ def run_cell(
     generate: Callable[[list[dict[str, Any]], str | None], tuple[list[str], list[int]]],
     progress: Callable[..., None],
 ) -> list[dict[str, Any]]:
-    """Deterministic rounds for one modality; batches of at most two per adapter."""
+    """Deterministic rounds for one modality; token-aware batches per adapter within the frozen caps."""
     processor = backbone_page_processor(protocol)
     finished = []
     active = []
@@ -1848,10 +1864,19 @@ def run_cell(
         for state, request, example in requests:
             adapter_id = state["binding"]["condition"] if state["binding"]["condition"] == "process_sft" else None
             grouped.setdefault(adapter_id, []).append((state, request, example))
+        inference = protocol["evaluation"]["inference"]
         for adapter_id in sorted(grouped, key=lambda value: (value is not None, value or "")):
             group = grouped[adapter_id]
-            for start in range(0, len(group), 2):
-                batch = group[start : start + 2]
+            counts = [
+                processor.count(row[2]["messages"], image_sizes=[image.size for image in row[2]["images"]])
+                for row in group
+            ]
+            for batch in form_generation_batches(
+                group,
+                counts,
+                max_batch_size=inference["max_batch_size"],
+                max_batch_input_tokens=inference["max_padded_batch_input_tokens"],
+            ):
                 examples = [row[2] for row in batch]
                 called = time.monotonic()
                 try:
@@ -1894,6 +1919,29 @@ def run_cell(
         )
         ordered.append(match)
     return ordered
+
+
+def form_generation_batches(
+    examples: Sequence[Any], counts: Sequence[int], *, max_batch_size: int, max_batch_input_tokens: int
+) -> list[list[Any]]:
+    """Deterministic order-preserving batches that always satisfy the frozen caps.
+
+    The policy guard charges padded width as max(lengths)*len(batch); pair only when
+    that fits. Qualified singles above the pair cap run alone (never truncated).
+    """
+    batches: list[list[Any]] = []
+    current: list[Any] = []
+    current_max = 0
+    for example, count in zip(examples, counts, strict=True):
+        proposed_max = max(current_max, count)
+        if current and (len(current) >= max_batch_size or proposed_max * (len(current) + 1) > max_batch_input_tokens):
+            batches.append(current)
+            current, current_max, proposed_max = [], 0, count
+        current.append(example)
+        current_max = proposed_max
+    if current:
+        batches.append(current)
+    return batches
 
 
 def validate_comparator_sources(root: Path, protocol: Mapping[str, Any]) -> dict[str, Any]:
