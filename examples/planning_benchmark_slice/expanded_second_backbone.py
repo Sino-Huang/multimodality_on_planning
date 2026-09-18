@@ -679,11 +679,13 @@ def _densest_live_examples(
 def _save_probe_adapters(model: Any, protocol: Mapping[str, Any], output_dir: Path) -> dict[str, str]:
     """Save two freshly initialized LoRA adapters (seeds 17/18) for isolation probes.
 
+    ``model`` arrives already LoRA-wrapped by ``load_training_model`` with a fresh
+    "default" adapter; a second fresh adapter ("probe_b", seed 18) is added here.
     Fresh LoRA inits have zero B, so a small deterministic B perturbation is added
     to each saved state; production adapters come from training, never from here.
     """
     import torch
-    from peft import LoraConfig, get_peft_model, get_peft_model_state_dict
+    from peft import LoraConfig, get_peft_model_state_dict
     from safetensors.torch import save_file
     from transformers import set_seed
 
@@ -697,13 +699,11 @@ def _save_probe_adapters(model: Any, protocol: Mapping[str, Any], output_dir: Pa
         exclude_modules=training["lora_exclude_modules"],
         task_type="CAUSAL_LM",
     )
-    set_seed(training["seed"])
-    wrapped = get_peft_model(model, config)
     set_seed(training["seed"] + 1)
-    wrapped.add_adapter("probe_b", config)
+    model.add_adapter("probe_b", config)
     directories = {}
     for name, seed in (("default", training["seed"]), ("probe_b", training["seed"] + 1)):
-        state = get_peft_model_state_dict(wrapped, adapter_name=name)
+        state = get_peft_model_state_dict(model, adapter_name=name)
         generator = torch.Generator().manual_seed(seed)
         perturbed = {}
         for key, tensor in state.items():
@@ -717,7 +717,7 @@ def _save_probe_adapters(model: Any, protocol: Mapping[str, Any], output_dir: Pa
         save_file(perturbed, str(directory / "adapter_model.safetensors"), metadata={"format": "pt"})
         config.save_pretrained(str(directory))
         directories[name] = str(directory)
-    wrapped.set_adapter("default")
+    model.set_adapter("default")
     return directories
 
 
@@ -781,7 +781,9 @@ def probe_stage(
             image.close()
 
     extrema = qualification["extrema"]
-    dense_modality = max(extrema, key=lambda modality: extrema[modality]["densest_full"]["full_tokens"])
+    dense_modality = max(
+        protocol["modalities"], key=lambda modality: extrema[modality]["densest_full"]["full_tokens"]
+    )
     smallest_id = extrema[dense_modality]["smallest_full"]["record_id"]
     densest_id = extrema[dense_modality]["densest_full"]["record_id"]
     parity_examples = [training_example(smallest_id, dense_modality), training_example(densest_id, dense_modality)]
