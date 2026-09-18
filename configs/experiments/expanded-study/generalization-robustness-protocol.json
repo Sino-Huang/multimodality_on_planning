@@ -1,0 +1,1968 @@
+{
+  "schema_version": "expanded_generalization_robustness_protocol_v1",
+  "protocol_id": "expanded-generalization-robustness-v1",
+  "program_id": "expanded-nine-day-v1",
+  "status": "frozen_before_suite_generation_and_model_outcomes",
+  "issues": [
+    96,
+    98
+  ],
+  "parent_issue": 38,
+  "panel": "configs/experiments/expanded-study/final-panel.json",
+  "panel_id": "expanded-panel-v2-qualified",
+  "panel_protocol": "configs/experiments/expanded-study/panel-protocol-v2.json",
+  "schedule": "docs/experiments/expanded-study/schedule.json",
+  "source_problems_expected": 24,
+  "domains_expected": 12,
+  "output_root": "outputs/expanded-study/v1/generalization-robustness",
+  "model_id": "Qwen/Qwen3-VL-8B-Instruct",
+  "model_revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+  "checkpoint_readiness": "docs/experiments/expanded-study/readiness.json",
+  "checkpoint_protocol": "configs/experiments/expanded-study/baseline-protocol.json",
+  "new_training": false,
+  "training_seed": 17,
+  "training_seed_variance_claimed": false,
+  "algorithms": [
+    "bfs",
+    "best_first_width",
+    "best_first_add_w3",
+    "best_first_add_greedy"
+  ],
+  "modalities": [
+    "text-state",
+    "visual-state",
+    "multimodal-state"
+  ],
+  "fixed_adapters": [
+    {
+      "modality": "text-state",
+      "algorithm": "bfs",
+      "checkpoint": "outputs/matched_modalities/v3/training/text-state/bfs/final",
+      "adapter_model_sha256": "sha256:a9b5e7f84f3003d1ff23b931c36a0c46f631b9a6c99ca5a16d2aaa1983114b63",
+      "adapter_config_sha256": "sha256:5cbd62139cdde23604d57f3f89a02e585f62ecdce2a87ddb72ffbeeb14740649",
+      "seed": 17,
+      "steps": 16,
+      "tensors": 504,
+      "parameters": 174587904,
+      "adapter_bytes": 698427288
+    },
+    {
+      "modality": "text-state",
+      "algorithm": "best_first_width",
+      "checkpoint": "outputs/matched_modalities/v3/training/text-state/best_first_width/final",
+      "adapter_model_sha256": "sha256:d89ffd25ef53e1ddf2dfbd6c025e1bf164dd0490485a1378ffa615fbb743deba",
+      "adapter_config_sha256": "sha256:0d85207ca0a9371974617dce4ef0fddd53b103001256561f500c33df2fd57732",
+      "seed": 17,
+      "steps": 16,
+      "tensors": 504,
+      "parameters": 174587904,
+      "adapter_bytes": 698427288
+    },
+    {
+      "modality": "text-state",
+      "algorithm": "best_first_add_w3",
+      "checkpoint": "outputs/matched_modalities/v3/training/text-state/best_first_add_w3/final",
+      "adapter_model_sha256": "sha256:9f11702d2d6c333b849edd8ad6c6465423691dd9240d91be945eeac125be6459",
+      "adapter_config_sha256": "sha256:32c10de5c2e8976f8009748fa826eb47de01c09ab004a4d05e52e4395a12b5d3",
+      "seed": 17,
+      "steps": 16,
+      "tensors": 504,
+      "parameters": 174587904,
+      "adapter_bytes": 698427288
+    },
+    {
+      "modality": "text-state",
+      "algorithm": "best_first_add_greedy",
+      "checkpoint": "outputs/matched_modalities/v3/training/text-state/best_first_add_greedy/final",
+      "adapter_model_sha256": "sha256:8a4f17eca2f76090f86e3b5c55ad831df30b9156234519ed3b0e8007ce77add1",
+      "adapter_config_sha256": "sha256:260d25e343183cb3abe5afa8a2498027b5fb6909a6a41217b901bb631b4019ca",
+      "seed": 17,
+      "steps": 16,
+      "tensors": 504,
+      "parameters": 174587904,
+      "adapter_bytes": 698427288
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "bfs",
+      "checkpoint": "outputs/matched_modalities/v5/training/visual-state/bfs/final",
+      "adapter_model_sha256": "sha256:b9661a9907ab435cf4ef69e26b2490bc4cb05164d257d569b1468c12cc8dcf58",
+      "adapter_config_sha256": "sha256:7e24bba7248c868810990bdf76bc97a08f2bf5b607d15d025b1394b4ba55fe1c",
+      "seed": 17,
+      "steps": 16,
+      "tensors": 504,
+      "parameters": 174587904,
+      "adapter_bytes": 698427288
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "best_first_width",
+      "checkpoint": "outputs/matched_modalities/v5/training/visual-state/best_first_width/final",
+      "adapter_model_sha256": "sha256:1a19c30db3756fc11c9cd0192d1d7d9896ccca36dcdef88a104bb0f28055bf8d",
+      "adapter_config_sha256": "sha256:68f2413cd048abee98f2e2187ca5d7afb89953be0c32dcf73a5b48d1977c29a9",
+      "seed": 17,
+      "steps": 16,
+      "tensors": 504,
+      "parameters": 174587904,
+      "adapter_bytes": 698427288
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "best_first_add_w3",
+      "checkpoint": "outputs/matched_modalities/v5/training/visual-state/best_first_add_w3/final",
+      "adapter_model_sha256": "sha256:f5cb900cc5cdc0a7cd1fdbde3e4dce02984525cf4b9f1c17a27a8fdaa6fb27cf",
+      "adapter_config_sha256": "sha256:66db0c7cf5fa5edf26e69067b699c8bf71ed4dda034a6c297f38faf64a7cf004",
+      "seed": 17,
+      "steps": 16,
+      "tensors": 504,
+      "parameters": 174587904,
+      "adapter_bytes": 698427288
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "best_first_add_greedy",
+      "checkpoint": "outputs/matched_modalities/v5/training/visual-state/best_first_add_greedy/final",
+      "adapter_model_sha256": "sha256:41dc46e74ed4d9fe70c7714474329a6fdee9b435060facecf2e49dc4edf8f2e2",
+      "adapter_config_sha256": "sha256:2078b82addbe45a9b1f90ee4a2ab8f646d0774bb17324a32a927eee13b9aac9c",
+      "seed": 17,
+      "steps": 16,
+      "tensors": 504,
+      "parameters": 174587904,
+      "adapter_bytes": 698427288
+    },
+    {
+      "modality": "multimodal-state",
+      "algorithm": "bfs",
+      "checkpoint": "outputs/matched_modalities/v5/training/multimodal-state/bfs/final",
+      "adapter_model_sha256": "sha256:d64837e4c121a9ddf260387a8cb6ec219da1c640ecb2c0f4bed92ab8375cebd6",
+      "adapter_config_sha256": "sha256:6a2b9d2526f4376a33b3497c2266897e41d06e229e43b3c05fda6729c4b30347",
+      "seed": 17,
+      "steps": 16,
+      "tensors": 504,
+      "parameters": 174587904,
+      "adapter_bytes": 698427288
+    },
+    {
+      "modality": "multimodal-state",
+      "algorithm": "best_first_width",
+      "checkpoint": "outputs/matched_modalities/v5/training/multimodal-state/best_first_width/final",
+      "adapter_model_sha256": "sha256:46d91e5e33848738649f0c9e62fd8212821e1364938d5d83be5418bc71544e17",
+      "adapter_config_sha256": "sha256:9be97a9370936c4cc1c5e9e4a9569d2e077eab9b02fd0e40b97949725e00dc1b",
+      "seed": 17,
+      "steps": 16,
+      "tensors": 504,
+      "parameters": 174587904,
+      "adapter_bytes": 698427288
+    },
+    {
+      "modality": "multimodal-state",
+      "algorithm": "best_first_add_w3",
+      "checkpoint": "outputs/matched_modalities/v5/training/multimodal-state/best_first_add_w3/final",
+      "adapter_model_sha256": "sha256:574b31378cf5e65e63ba621090cdddd20f502d52ea670010081dd2c431808b0b",
+      "adapter_config_sha256": "sha256:9e1a4a337f8ccbac48c14eb7986e3a3abb01fb35ae5a09264592f9dffc6619c8",
+      "seed": 17,
+      "steps": 16,
+      "tensors": 504,
+      "parameters": 174587904,
+      "adapter_bytes": 698427288
+    },
+    {
+      "modality": "multimodal-state",
+      "algorithm": "best_first_add_greedy",
+      "checkpoint": "outputs/matched_modalities/v5/training/multimodal-state/best_first_add_greedy/final",
+      "adapter_model_sha256": "sha256:c0a2a61eea1dec6102923976f744d5c8697b32c5e472ef7c387b7f68869dab2e",
+      "adapter_config_sha256": "sha256:61635ca264eb30c10c959591558c8edfab24bf5186c7dca4d852809d8ea84c45",
+      "seed": 17,
+      "steps": 16,
+      "tensors": 504,
+      "parameters": 174587904,
+      "adapter_bytes": 698427288
+    }
+  ],
+  "structural_variant_families": {
+    "scale-up": {
+      "id": "V1",
+      "description": "Extend the domain structural axis one compact-to-expanded delta beyond the expanded stratum.",
+      "seed_block": "93xxxx",
+      "semantics_audit": "reference screen plus whole-instance disjointness; no easier replacement"
+    },
+    "shifted-init": {
+      "id": "V2",
+      "description": "Use expanded-stratum arguments and a genuine fresh-seeded walk whose length equals the source problem's frozen BFS reference decisions.",
+      "seed_block": "94xxxx",
+      "generator": "examples.planning_benchmark_slice.expanded_candidates.walk_initial",
+      "require_goal_unchanged": true,
+      "require_static_context_unchanged": true,
+      "require_replayable_walk": true,
+      "require_initial_distinct_from_generated_origin": true,
+      "require_initial_distinct_from_source_task": true,
+      "solvability": "Empirically enforced by eligibility reference screening; failures are ineligible missing coverage and are never replaced."
+    }
+  },
+  "perturbation_families": {
+    "object-renaming": {
+      "id": "P1",
+      "seed_block": "95xxxx",
+      "expected_classification": "semantics-preserving",
+      "transform": "Deterministic bijective rename of every task object in PDDL, text pages and scene bindings.",
+      "audit": [
+        "task_isomorphism.same_instance",
+        "identical_reference_costs",
+        "complete_semantic_map"
+      ]
+    },
+    "render-restyle": {
+      "id": "P2",
+      "seed_block": "95xxxx",
+      "expected_classification": "semantics-preserving",
+      "transform": "Set canvas_size=160 and apply a seeded normalized layout_offset of +/-0.04 to VFG sprite bounds.",
+      "view_manifest_override": {
+        "canvas_size": 160,
+        "layout_offset": "seeded independent x/y choices from [-0.04, 0.04]"
+      },
+      "audit": [
+        "identical_task_context",
+        "identical_semantic_task_identity",
+        "same_visible_object_set_and_relations",
+        "rendered_bytes_sha256_differs",
+        "information_availability_preserved"
+      ]
+    },
+    "name-compression": {
+      "id": "P3",
+      "seed_block": "95xxxx",
+      "expected_classification_by_modality": {
+        "text-state": "lossy",
+        "visual-state": "semantics-preserving",
+        "multimodal-state": "semantics-preserving"
+      },
+      "transform": "Apply a seeded bijective o0001-style object rename and remove all textual type annotations plus the complete type inventory from text-state pages.",
+      "audit": [
+        "complete_semantic_map",
+        "information_availability",
+        "lossy_reported_separately"
+      ],
+      "reference_policy": "Semantic references remain valid under bijective renaming; model-side information loss is classified and reported separately."
+    }
+  },
+  "source_problems": [
+    {
+      "task_id": "expanded-final/15puzzle-compact-910000",
+      "task_path": "outputs/expanded-study/v1/panel/candidates/15puzzle-compact-910000/task.json",
+      "domain": "15puzzle",
+      "stratum_origin": "compact",
+      "structural_axis": "nonbacktracking legal scramble length on a 3x3 board",
+      "compact_snapshot": "configs/experiments/expanded-study/tasks/15puzzle-compact.json",
+      "expanded_snapshot": "configs/experiments/expanded-study/tasks/15puzzle-expanded.json",
+      "compact_arguments": [
+        "-n",
+        "3"
+      ],
+      "expanded_arguments": [
+        "-n",
+        "3"
+      ],
+      "structural_variants": {
+        "scale-up": {
+          "seed": 930000,
+          "arguments": [
+            "-n",
+            "3"
+          ],
+          "walk_steps": 12,
+          "walk_origin": "goal"
+        },
+        "shifted-init": {
+          "seed": 940000,
+          "arguments": [
+            "-n",
+            "3"
+          ],
+          "walk_steps": 33,
+          "walk_origin": "goal",
+          "audit_requirements": [
+            "replayable_walk_retained",
+            "goal_static_identity_unchanged",
+            "walked_initial_distinct_from_generated_origin",
+            "walked_initial_distinct_from_source"
+          ]
+        }
+      },
+      "perturbation_seeds": {
+        "object-renaming": 950000,
+        "render-restyle": 950001,
+        "name-compression": 950002
+      }
+    },
+    {
+      "task_id": "expanded-final/15puzzle-expanded-910109",
+      "task_path": "outputs/expanded-study/v1/panel/candidates/15puzzle-expanded-910109/task.json",
+      "domain": "15puzzle",
+      "stratum_origin": "expanded",
+      "structural_axis": "nonbacktracking legal scramble length on a 3x3 board",
+      "compact_snapshot": "configs/experiments/expanded-study/tasks/15puzzle-compact.json",
+      "expanded_snapshot": "configs/experiments/expanded-study/tasks/15puzzle-expanded.json",
+      "compact_arguments": [
+        "-n",
+        "3"
+      ],
+      "expanded_arguments": [
+        "-n",
+        "3"
+      ],
+      "structural_variants": {
+        "scale-up": {
+          "seed": 930001,
+          "arguments": [
+            "-n",
+            "3"
+          ],
+          "walk_steps": 12,
+          "walk_origin": "goal"
+        },
+        "shifted-init": {
+          "seed": 940001,
+          "arguments": [
+            "-n",
+            "3"
+          ],
+          "walk_steps": 135,
+          "walk_origin": "goal",
+          "audit_requirements": [
+            "replayable_walk_retained",
+            "goal_static_identity_unchanged",
+            "walked_initial_distinct_from_generated_origin",
+            "walked_initial_distinct_from_source"
+          ]
+        }
+      },
+      "perturbation_seeds": {
+        "object-renaming": 950003,
+        "render-restyle": 950004,
+        "name-compression": 950005
+      }
+    },
+    {
+      "task_id": "expanded-final/blocksworld-compact-911000",
+      "task_path": "outputs/expanded-study/v1/panel/candidates/blocksworld-compact-911000/task.json",
+      "domain": "blocksworld",
+      "stratum_origin": "compact",
+      "structural_axis": "block count",
+      "compact_snapshot": "configs/experiments/expanded-study/tasks/blocksworld-compact.json",
+      "expanded_snapshot": "configs/experiments/expanded-study/tasks/blocksworld-expanded.json",
+      "compact_arguments": [
+        "4",
+        "4"
+      ],
+      "expanded_arguments": [
+        "4",
+        "5"
+      ],
+      "structural_variants": {
+        "scale-up": {
+          "seed": 930002,
+          "arguments": [
+            "4",
+            "6"
+          ],
+          "walk_steps": 0,
+          "walk_origin": "initial"
+        },
+        "shifted-init": {
+          "seed": 940002,
+          "arguments": [
+            "4",
+            "5"
+          ],
+          "walk_steps": 156,
+          "walk_origin": "initial",
+          "audit_requirements": [
+            "replayable_walk_retained",
+            "goal_static_identity_unchanged",
+            "walked_initial_distinct_from_generated_origin",
+            "walked_initial_distinct_from_source"
+          ]
+        }
+      },
+      "perturbation_seeds": {
+        "object-renaming": 950006,
+        "render-restyle": 950007,
+        "name-compression": 950008
+      }
+    },
+    {
+      "task_id": "expanded-final/blocksworld-expanded-911101",
+      "task_path": "outputs/expanded-study/v1/panel/candidates/blocksworld-expanded-911101/task.json",
+      "domain": "blocksworld",
+      "stratum_origin": "expanded",
+      "structural_axis": "block count",
+      "compact_snapshot": "configs/experiments/expanded-study/tasks/blocksworld-compact.json",
+      "expanded_snapshot": "configs/experiments/expanded-study/tasks/blocksworld-expanded.json",
+      "compact_arguments": [
+        "4",
+        "4"
+      ],
+      "expanded_arguments": [
+        "4",
+        "5"
+      ],
+      "structural_variants": {
+        "scale-up": {
+          "seed": 930003,
+          "arguments": [
+            "4",
+            "6"
+          ],
+          "walk_steps": 0,
+          "walk_origin": "initial"
+        },
+        "shifted-init": {
+          "seed": 940003,
+          "arguments": [
+            "4",
+            "5"
+          ],
+          "walk_steps": 143,
+          "walk_origin": "initial",
+          "audit_requirements": [
+            "replayable_walk_retained",
+            "goal_static_identity_unchanged",
+            "walked_initial_distinct_from_generated_origin",
+            "walked_initial_distinct_from_source"
+          ]
+        }
+      },
+      "perturbation_seeds": {
+        "object-renaming": 950009,
+        "render-restyle": 950010,
+        "name-compression": 950011
+      }
+    },
+    {
+      "task_id": "expanded-final/depot-compact-912000",
+      "task_path": "outputs/expanded-study/v1/panel/candidates/depot-compact-912000/task.json",
+      "domain": "depot",
+      "stratum_origin": "compact",
+      "structural_axis": "crate count",
+      "compact_snapshot": "configs/experiments/expanded-study/tasks/depot-compact.json",
+      "expanded_snapshot": "configs/experiments/expanded-study/tasks/depot-expanded.json",
+      "compact_arguments": [
+        "-e",
+        "1",
+        "-i",
+        "1",
+        "-t",
+        "1",
+        "-p",
+        "2",
+        "-h",
+        "2",
+        "-c",
+        "1"
+      ],
+      "expanded_arguments": [
+        "-e",
+        "1",
+        "-i",
+        "1",
+        "-t",
+        "1",
+        "-p",
+        "2",
+        "-h",
+        "2",
+        "-c",
+        "2"
+      ],
+      "structural_variants": {
+        "scale-up": {
+          "seed": 930004,
+          "arguments": [
+            "-e",
+            "1",
+            "-i",
+            "1",
+            "-t",
+            "1",
+            "-p",
+            "2",
+            "-h",
+            "2",
+            "-c",
+            "3"
+          ],
+          "walk_steps": 0,
+          "walk_origin": "initial"
+        },
+        "shifted-init": {
+          "seed": 940004,
+          "arguments": [
+            "-e",
+            "1",
+            "-i",
+            "1",
+            "-t",
+            "1",
+            "-p",
+            "2",
+            "-h",
+            "2",
+            "-c",
+            "2"
+          ],
+          "walk_steps": 10,
+          "walk_origin": "initial",
+          "audit_requirements": [
+            "replayable_walk_retained",
+            "goal_static_identity_unchanged",
+            "walked_initial_distinct_from_generated_origin",
+            "walked_initial_distinct_from_source"
+          ]
+        }
+      },
+      "perturbation_seeds": {
+        "object-renaming": 950012,
+        "render-restyle": 950013,
+        "name-compression": 950014
+      }
+    },
+    {
+      "task_id": "expanded-final/depot-expanded-912100",
+      "task_path": "outputs/expanded-study/v1/panel/candidates/depot-expanded-912100/task.json",
+      "domain": "depot",
+      "stratum_origin": "expanded",
+      "structural_axis": "crate count",
+      "compact_snapshot": "configs/experiments/expanded-study/tasks/depot-compact.json",
+      "expanded_snapshot": "configs/experiments/expanded-study/tasks/depot-expanded.json",
+      "compact_arguments": [
+        "-e",
+        "1",
+        "-i",
+        "1",
+        "-t",
+        "1",
+        "-p",
+        "2",
+        "-h",
+        "2",
+        "-c",
+        "1"
+      ],
+      "expanded_arguments": [
+        "-e",
+        "1",
+        "-i",
+        "1",
+        "-t",
+        "1",
+        "-p",
+        "2",
+        "-h",
+        "2",
+        "-c",
+        "2"
+      ],
+      "structural_variants": {
+        "scale-up": {
+          "seed": 930005,
+          "arguments": [
+            "-e",
+            "1",
+            "-i",
+            "1",
+            "-t",
+            "1",
+            "-p",
+            "2",
+            "-h",
+            "2",
+            "-c",
+            "3"
+          ],
+          "walk_steps": 0,
+          "walk_origin": "initial"
+        },
+        "shifted-init": {
+          "seed": 940005,
+          "arguments": [
+            "-e",
+            "1",
+            "-i",
+            "1",
+            "-t",
+            "1",
+            "-p",
+            "2",
+            "-h",
+            "2",
+            "-c",
+            "2"
+          ],
+          "walk_steps": 18,
+          "walk_origin": "initial",
+          "audit_requirements": [
+            "replayable_walk_retained",
+            "goal_static_identity_unchanged",
+            "walked_initial_distinct_from_generated_origin",
+            "walked_initial_distinct_from_source"
+          ]
+        }
+      },
+      "perturbation_seeds": {
+        "object-renaming": 950015,
+        "render-restyle": 950016,
+        "name-compression": 950017
+      }
+    },
+    {
+      "task_id": "expanded-final/driverlog-compact-913001",
+      "task_path": "outputs/expanded-study/v1/panel/candidates/driverlog-compact-913001/task.json",
+      "domain": "driverlog",
+      "stratum_origin": "compact",
+      "structural_axis": "junction and package counts",
+      "compact_snapshot": "configs/experiments/expanded-study/tasks/driverlog-compact.json",
+      "expanded_snapshot": "configs/experiments/expanded-study/tasks/driverlog-expanded.json",
+      "compact_arguments": [
+        "3",
+        "1",
+        "1",
+        "1"
+      ],
+      "expanded_arguments": [
+        "4",
+        "1",
+        "2",
+        "1"
+      ],
+      "structural_variants": {
+        "scale-up": {
+          "seed": 930006,
+          "arguments": [
+            "5",
+            "1",
+            "3",
+            "1"
+          ],
+          "walk_steps": 0,
+          "walk_origin": "initial"
+        },
+        "shifted-init": {
+          "seed": 940006,
+          "arguments": [
+            "4",
+            "1",
+            "2",
+            "1"
+          ],
+          "walk_steps": 98,
+          "walk_origin": "initial",
+          "audit_requirements": [
+            "replayable_walk_retained",
+            "goal_static_identity_unchanged",
+            "walked_initial_distinct_from_generated_origin",
+            "walked_initial_distinct_from_source"
+          ]
+        }
+      },
+      "perturbation_seeds": {
+        "object-renaming": 950018,
+        "render-restyle": 950019,
+        "name-compression": 950020
+      }
+    },
+    {
+      "task_id": "expanded-final/driverlog-expanded-913103",
+      "task_path": "outputs/expanded-study/v1/panel/candidates/driverlog-expanded-913103/task.json",
+      "domain": "driverlog",
+      "stratum_origin": "expanded",
+      "structural_axis": "junction and package counts",
+      "compact_snapshot": "configs/experiments/expanded-study/tasks/driverlog-compact.json",
+      "expanded_snapshot": "configs/experiments/expanded-study/tasks/driverlog-expanded.json",
+      "compact_arguments": [
+        "3",
+        "1",
+        "1",
+        "1"
+      ],
+      "expanded_arguments": [
+        "4",
+        "1",
+        "2",
+        "1"
+      ],
+      "structural_variants": {
+        "scale-up": {
+          "seed": 930007,
+          "arguments": [
+            "5",
+            "1",
+            "3",
+            "1"
+          ],
+          "walk_steps": 0,
+          "walk_origin": "initial"
+        },
+        "shifted-init": {
+          "seed": 940007,
+          "arguments": [
+            "4",
+            "1",
+            "2",
+            "1"
+          ],
+          "walk_steps": 94,
+          "walk_origin": "initial",
+          "audit_requirements": [
+            "replayable_walk_retained",
+            "goal_static_identity_unchanged",
+            "walked_initial_distinct_from_generated_origin",
+            "walked_initial_distinct_from_source"
+          ]
+        }
+      },
+      "perturbation_seeds": {
+        "object-renaming": 950021,
+        "render-restyle": 950022,
+        "name-compression": 950023
+      }
+    },
+    {
+      "task_id": "expanded-final/elevators-compact-914002",
+      "task_path": "outputs/expanded-study/v1/panel/candidates/elevators-compact-914002/task.json",
+      "domain": "elevators",
+      "stratum_origin": "compact",
+      "structural_axis": "floor and passenger counts",
+      "compact_snapshot": "configs/experiments/expanded-study/tasks/elevators-compact.json",
+      "expanded_snapshot": "configs/experiments/expanded-study/tasks/elevators-expanded.json",
+      "compact_arguments": [
+        "-f",
+        "3",
+        "-p",
+        "1"
+      ],
+      "expanded_arguments": [
+        "-f",
+        "4",
+        "-p",
+        "2"
+      ],
+      "structural_variants": {
+        "scale-up": {
+          "seed": 930008,
+          "arguments": [
+            "-f",
+            "5",
+            "-p",
+            "3"
+          ],
+          "walk_steps": 0,
+          "walk_origin": "initial"
+        },
+        "shifted-init": {
+          "seed": 940008,
+          "arguments": [
+            "-f",
+            "4",
+            "-p",
+            "2"
+          ],
+          "walk_steps": 8,
+          "walk_origin": "initial",
+          "audit_requirements": [
+            "replayable_walk_retained",
+            "goal_static_identity_unchanged",
+            "walked_initial_distinct_from_generated_origin",
+            "walked_initial_distinct_from_source"
+          ]
+        }
+      },
+      "perturbation_seeds": {
+        "object-renaming": 950024,
+        "render-restyle": 950025,
+        "name-compression": 950026
+      }
+    },
+    {
+      "task_id": "expanded-final/elevators-expanded-914105",
+      "task_path": "outputs/expanded-study/v1/panel/candidates/elevators-expanded-914105/task.json",
+      "domain": "elevators",
+      "stratum_origin": "expanded",
+      "structural_axis": "floor and passenger counts",
+      "compact_snapshot": "configs/experiments/expanded-study/tasks/elevators-compact.json",
+      "expanded_snapshot": "configs/experiments/expanded-study/tasks/elevators-expanded.json",
+      "compact_arguments": [
+        "-f",
+        "3",
+        "-p",
+        "1"
+      ],
+      "expanded_arguments": [
+        "-f",
+        "4",
+        "-p",
+        "2"
+      ],
+      "structural_variants": {
+        "scale-up": {
+          "seed": 930009,
+          "arguments": [
+            "-f",
+            "5",
+            "-p",
+            "3"
+          ],
+          "walk_steps": 0,
+          "walk_origin": "initial"
+        },
+        "shifted-init": {
+          "seed": 940009,
+          "arguments": [
+            "-f",
+            "4",
+            "-p",
+            "2"
+          ],
+          "walk_steps": 53,
+          "walk_origin": "initial",
+          "audit_requirements": [
+            "replayable_walk_retained",
+            "goal_static_identity_unchanged",
+            "walked_initial_distinct_from_generated_origin",
+            "walked_initial_distinct_from_source"
+          ]
+        }
+      },
+      "perturbation_seeds": {
+        "object-renaming": 950027,
+        "render-restyle": 950028,
+        "name-compression": 950029
+      }
+    },
+    {
+      "task_id": "expanded-final/ferry-compact-915000",
+      "task_path": "outputs/expanded-study/v1/panel/candidates/ferry-compact-915000/task.json",
+      "domain": "ferry",
+      "stratum_origin": "compact",
+      "structural_axis": "car count",
+      "compact_snapshot": "configs/experiments/expanded-study/tasks/ferry-compact.json",
+      "expanded_snapshot": "configs/experiments/expanded-study/tasks/ferry-expanded.json",
+      "compact_arguments": [
+        "-l",
+        "3",
+        "-c",
+        "1"
+      ],
+      "expanded_arguments": [
+        "-l",
+        "3",
+        "-c",
+        "2"
+      ],
+      "structural_variants": {
+        "scale-up": {
+          "seed": 930010,
+          "arguments": [
+            "-l",
+            "3",
+            "-c",
+            "3"
+          ],
+          "walk_steps": 0,
+          "walk_origin": "initial"
+        },
+        "shifted-init": {
+          "seed": 940010,
+          "arguments": [
+            "-l",
+            "3",
+            "-c",
+            "2"
+          ],
+          "walk_steps": 10,
+          "walk_origin": "initial",
+          "audit_requirements": [
+            "replayable_walk_retained",
+            "goal_static_identity_unchanged",
+            "walked_initial_distinct_from_generated_origin",
+            "walked_initial_distinct_from_source"
+          ]
+        }
+      },
+      "perturbation_seeds": {
+        "object-renaming": 950030,
+        "render-restyle": 950031,
+        "name-compression": 950032
+      }
+    },
+    {
+      "task_id": "expanded-final/ferry-expanded-915109",
+      "task_path": "outputs/expanded-study/v1/panel/candidates/ferry-expanded-915109/task.json",
+      "domain": "ferry",
+      "stratum_origin": "expanded",
+      "structural_axis": "car count",
+      "compact_snapshot": "configs/experiments/expanded-study/tasks/ferry-compact.json",
+      "expanded_snapshot": "configs/experiments/expanded-study/tasks/ferry-expanded.json",
+      "compact_arguments": [
+        "-l",
+        "3",
+        "-c",
+        "1"
+      ],
+      "expanded_arguments": [
+        "-l",
+        "3",
+        "-c",
+        "2"
+      ],
+      "structural_variants": {
+        "scale-up": {
+          "seed": 930011,
+          "arguments": [
+            "-l",
+            "3",
+            "-c",
+            "3"
+          ],
+          "walk_steps": 0,
+          "walk_origin": "initial"
+        },
+        "shifted-init": {
+          "seed": 940011,
+          "arguments": [
+            "-l",
+            "3",
+            "-c",
+            "2"
+          ],
+          "walk_steps": 48,
+          "walk_origin": "initial",
+          "audit_requirements": [
+            "replayable_walk_retained",
+            "goal_static_identity_unchanged",
+            "walked_initial_distinct_from_generated_origin",
+            "walked_initial_distinct_from_source"
+          ]
+        }
+      },
+      "perturbation_seeds": {
+        "object-renaming": 950033,
+        "render-restyle": 950034,
+        "name-compression": 950035
+      }
+    },
+    {
+      "task_id": "expanded-final/grid-compact-916000",
+      "task_path": "outputs/expanded-study/v1/panel/candidates/grid-compact-916000/task.json",
+      "domain": "grid",
+      "stratum_origin": "compact",
+      "structural_axis": "grid width",
+      "compact_snapshot": "configs/experiments/expanded-study/tasks/grid-compact.json",
+      "expanded_snapshot": "configs/experiments/expanded-study/tasks/grid-expanded.json",
+      "compact_arguments": [
+        "3",
+        "3",
+        "--shapes",
+        "1",
+        "--keys",
+        "1",
+        "--locks",
+        "1",
+        "--prob-goal",
+        "1"
+      ],
+      "expanded_arguments": [
+        "4",
+        "3",
+        "--shapes",
+        "1",
+        "--keys",
+        "1",
+        "--locks",
+        "1",
+        "--prob-goal",
+        "1"
+      ],
+      "structural_variants": {
+        "scale-up": {
+          "seed": 930012,
+          "arguments": [
+            "5",
+            "3",
+            "--shapes",
+            "1",
+            "--keys",
+            "1",
+            "--locks",
+            "1",
+            "--prob-goal",
+            "1"
+          ],
+          "walk_steps": 0,
+          "walk_origin": "initial"
+        },
+        "shifted-init": {
+          "seed": 940012,
+          "arguments": [
+            "4",
+            "3",
+            "--shapes",
+            "1",
+            "--keys",
+            "1",
+            "--locks",
+            "1",
+            "--prob-goal",
+            "1"
+          ],
+          "walk_steps": 75,
+          "walk_origin": "initial",
+          "audit_requirements": [
+            "replayable_walk_retained",
+            "goal_static_identity_unchanged",
+            "walked_initial_distinct_from_generated_origin",
+            "walked_initial_distinct_from_source"
+          ]
+        }
+      },
+      "perturbation_seeds": {
+        "object-renaming": 950036,
+        "render-restyle": 950037,
+        "name-compression": 950038
+      }
+    },
+    {
+      "task_id": "expanded-final/grid-expanded-916100",
+      "task_path": "outputs/expanded-study/v1/panel/candidates/grid-expanded-916100/task.json",
+      "domain": "grid",
+      "stratum_origin": "expanded",
+      "structural_axis": "grid width",
+      "compact_snapshot": "configs/experiments/expanded-study/tasks/grid-compact.json",
+      "expanded_snapshot": "configs/experiments/expanded-study/tasks/grid-expanded.json",
+      "compact_arguments": [
+        "3",
+        "3",
+        "--shapes",
+        "1",
+        "--keys",
+        "1",
+        "--locks",
+        "1",
+        "--prob-goal",
+        "1"
+      ],
+      "expanded_arguments": [
+        "4",
+        "3",
+        "--shapes",
+        "1",
+        "--keys",
+        "1",
+        "--locks",
+        "1",
+        "--prob-goal",
+        "1"
+      ],
+      "structural_variants": {
+        "scale-up": {
+          "seed": 930013,
+          "arguments": [
+            "5",
+            "3",
+            "--shapes",
+            "1",
+            "--keys",
+            "1",
+            "--locks",
+            "1",
+            "--prob-goal",
+            "1"
+          ],
+          "walk_steps": 0,
+          "walk_origin": "initial"
+        },
+        "shifted-init": {
+          "seed": 940013,
+          "arguments": [
+            "4",
+            "3",
+            "--shapes",
+            "1",
+            "--keys",
+            "1",
+            "--locks",
+            "1",
+            "--prob-goal",
+            "1"
+          ],
+          "walk_steps": 110,
+          "walk_origin": "initial",
+          "audit_requirements": [
+            "replayable_walk_retained",
+            "goal_static_identity_unchanged",
+            "walked_initial_distinct_from_generated_origin",
+            "walked_initial_distinct_from_source"
+          ]
+        }
+      },
+      "perturbation_seeds": {
+        "object-renaming": 950039,
+        "render-restyle": 950040,
+        "name-compression": 950041
+      }
+    },
+    {
+      "task_id": "expanded-final/gripper-compact-917000",
+      "task_path": "outputs/expanded-study/v1/panel/candidates/gripper-compact-917000/task.json",
+      "domain": "gripper",
+      "stratum_origin": "compact",
+      "structural_axis": "ball count with seeded noncanonical initial placement",
+      "compact_snapshot": "configs/experiments/expanded-study/tasks/gripper-compact.json",
+      "expanded_snapshot": "configs/experiments/expanded-study/tasks/gripper-expanded.json",
+      "compact_arguments": [
+        "-n",
+        "3"
+      ],
+      "expanded_arguments": [
+        "-n",
+        "4"
+      ],
+      "structural_variants": {
+        "scale-up": {
+          "seed": 930014,
+          "arguments": [
+            "-n",
+            "5"
+          ],
+          "walk_steps": 9,
+          "walk_origin": "initial"
+        },
+        "shifted-init": {
+          "seed": 940014,
+          "arguments": [
+            "-n",
+            "4"
+          ],
+          "walk_steps": 110,
+          "walk_origin": "initial",
+          "audit_requirements": [
+            "replayable_walk_retained",
+            "goal_static_identity_unchanged",
+            "walked_initial_distinct_from_generated_origin",
+            "walked_initial_distinct_from_source"
+          ]
+        }
+      },
+      "perturbation_seeds": {
+        "object-renaming": 950042,
+        "render-restyle": 950043,
+        "name-compression": 950044
+      }
+    },
+    {
+      "task_id": "expanded-final/gripper-expanded-917101",
+      "task_path": "outputs/expanded-study/v1/panel/candidates/gripper-expanded-917101/task.json",
+      "domain": "gripper",
+      "stratum_origin": "expanded",
+      "structural_axis": "ball count with seeded noncanonical initial placement",
+      "compact_snapshot": "configs/experiments/expanded-study/tasks/gripper-compact.json",
+      "expanded_snapshot": "configs/experiments/expanded-study/tasks/gripper-expanded.json",
+      "compact_arguments": [
+        "-n",
+        "3"
+      ],
+      "expanded_arguments": [
+        "-n",
+        "4"
+      ],
+      "structural_variants": {
+        "scale-up": {
+          "seed": 930015,
+          "arguments": [
+            "-n",
+            "5"
+          ],
+          "walk_steps": 9,
+          "walk_origin": "initial"
+        },
+        "shifted-init": {
+          "seed": 940015,
+          "arguments": [
+            "-n",
+            "4"
+          ],
+          "walk_steps": 182,
+          "walk_origin": "initial",
+          "audit_requirements": [
+            "replayable_walk_retained",
+            "goal_static_identity_unchanged",
+            "walked_initial_distinct_from_generated_origin",
+            "walked_initial_distinct_from_source"
+          ]
+        }
+      },
+      "perturbation_seeds": {
+        "object-renaming": 950045,
+        "render-restyle": 950046,
+        "name-compression": 950047
+      }
+    },
+    {
+      "task_id": "expanded-final/logistics-compact-918000",
+      "task_path": "outputs/expanded-study/v1/panel/candidates/logistics-compact-918000/task.json",
+      "domain": "logistics",
+      "stratum_origin": "compact",
+      "structural_axis": "locations per city",
+      "compact_snapshot": "configs/experiments/expanded-study/tasks/logistics-compact.json",
+      "expanded_snapshot": "configs/experiments/expanded-study/tasks/logistics-expanded.json",
+      "compact_arguments": [
+        "-a",
+        "1",
+        "-c",
+        "2",
+        "-s",
+        "1",
+        "-p",
+        "1",
+        "-t",
+        "2"
+      ],
+      "expanded_arguments": [
+        "-a",
+        "1",
+        "-c",
+        "2",
+        "-s",
+        "2",
+        "-p",
+        "1",
+        "-t",
+        "2"
+      ],
+      "structural_variants": {
+        "scale-up": {
+          "seed": 930016,
+          "arguments": [
+            "-a",
+            "1",
+            "-c",
+            "2",
+            "-s",
+            "3",
+            "-p",
+            "1",
+            "-t",
+            "2"
+          ],
+          "walk_steps": 0,
+          "walk_origin": "initial"
+        },
+        "shifted-init": {
+          "seed": 940016,
+          "arguments": [
+            "-a",
+            "1",
+            "-c",
+            "2",
+            "-s",
+            "2",
+            "-p",
+            "1",
+            "-t",
+            "2"
+          ],
+          "walk_steps": 8,
+          "walk_origin": "initial",
+          "audit_requirements": [
+            "replayable_walk_retained",
+            "goal_static_identity_unchanged",
+            "walked_initial_distinct_from_generated_origin",
+            "walked_initial_distinct_from_source"
+          ]
+        }
+      },
+      "perturbation_seeds": {
+        "object-renaming": 950048,
+        "render-restyle": 950049,
+        "name-compression": 950050
+      }
+    },
+    {
+      "task_id": "expanded-final/logistics-expanded-918100",
+      "task_path": "outputs/expanded-study/v1/panel/candidates/logistics-expanded-918100/task.json",
+      "domain": "logistics",
+      "stratum_origin": "expanded",
+      "structural_axis": "locations per city",
+      "compact_snapshot": "configs/experiments/expanded-study/tasks/logistics-compact.json",
+      "expanded_snapshot": "configs/experiments/expanded-study/tasks/logistics-expanded.json",
+      "compact_arguments": [
+        "-a",
+        "1",
+        "-c",
+        "2",
+        "-s",
+        "1",
+        "-p",
+        "1",
+        "-t",
+        "2"
+      ],
+      "expanded_arguments": [
+        "-a",
+        "1",
+        "-c",
+        "2",
+        "-s",
+        "2",
+        "-p",
+        "1",
+        "-t",
+        "2"
+      ],
+      "structural_variants": {
+        "scale-up": {
+          "seed": 930017,
+          "arguments": [
+            "-a",
+            "1",
+            "-c",
+            "2",
+            "-s",
+            "3",
+            "-p",
+            "1",
+            "-t",
+            "2"
+          ],
+          "walk_steps": 0,
+          "walk_origin": "initial"
+        },
+        "shifted-init": {
+          "seed": 940017,
+          "arguments": [
+            "-a",
+            "1",
+            "-c",
+            "2",
+            "-s",
+            "2",
+            "-p",
+            "1",
+            "-t",
+            "2"
+          ],
+          "walk_steps": 20,
+          "walk_origin": "initial",
+          "audit_requirements": [
+            "replayable_walk_retained",
+            "goal_static_identity_unchanged",
+            "walked_initial_distinct_from_generated_origin",
+            "walked_initial_distinct_from_source"
+          ]
+        }
+      },
+      "perturbation_seeds": {
+        "object-renaming": 950051,
+        "render-restyle": 950052,
+        "name-compression": 950053
+      }
+    },
+    {
+      "task_id": "expanded-final/storage-compact-919000",
+      "task_path": "outputs/expanded-study/v1/panel/candidates/storage-compact-919000/task.json",
+      "domain": "storage",
+      "stratum_origin": "compact",
+      "structural_axis": "crate and store-area counts",
+      "compact_snapshot": "configs/experiments/expanded-study/tasks/storage-compact.json",
+      "expanded_snapshot": "configs/experiments/expanded-study/tasks/storage-expanded.json",
+      "compact_arguments": [
+        "-p",
+        "01",
+        "-o",
+        "1",
+        "-c",
+        "1",
+        "-n",
+        "1",
+        "-s",
+        "4",
+        "-d",
+        "1"
+      ],
+      "expanded_arguments": [
+        "-p",
+        "02",
+        "-o",
+        "1",
+        "-c",
+        "2",
+        "-n",
+        "1",
+        "-s",
+        "5",
+        "-d",
+        "1"
+      ],
+      "structural_variants": {
+        "scale-up": {
+          "seed": 930018,
+          "arguments": [
+            "-p",
+            "03",
+            "-o",
+            "1",
+            "-c",
+            "3",
+            "-n",
+            "1",
+            "-s",
+            "6",
+            "-d",
+            "1"
+          ],
+          "walk_steps": 0,
+          "walk_origin": "initial"
+        },
+        "shifted-init": {
+          "seed": 940018,
+          "arguments": [
+            "-p",
+            "02",
+            "-o",
+            "1",
+            "-c",
+            "2",
+            "-n",
+            "1",
+            "-s",
+            "5",
+            "-d",
+            "1"
+          ],
+          "walk_steps": 10,
+          "walk_origin": "initial",
+          "audit_requirements": [
+            "replayable_walk_retained",
+            "goal_static_identity_unchanged",
+            "walked_initial_distinct_from_generated_origin",
+            "walked_initial_distinct_from_source"
+          ]
+        }
+      },
+      "perturbation_seeds": {
+        "object-renaming": 950054,
+        "render-restyle": 950055,
+        "name-compression": 950056
+      }
+    },
+    {
+      "task_id": "expanded-final/storage-expanded-919100",
+      "task_path": "outputs/expanded-study/v1/panel/candidates/storage-expanded-919100/task.json",
+      "domain": "storage",
+      "stratum_origin": "expanded",
+      "structural_axis": "crate and store-area counts",
+      "compact_snapshot": "configs/experiments/expanded-study/tasks/storage-compact.json",
+      "expanded_snapshot": "configs/experiments/expanded-study/tasks/storage-expanded.json",
+      "compact_arguments": [
+        "-p",
+        "01",
+        "-o",
+        "1",
+        "-c",
+        "1",
+        "-n",
+        "1",
+        "-s",
+        "4",
+        "-d",
+        "1"
+      ],
+      "expanded_arguments": [
+        "-p",
+        "02",
+        "-o",
+        "1",
+        "-c",
+        "2",
+        "-n",
+        "1",
+        "-s",
+        "5",
+        "-d",
+        "1"
+      ],
+      "structural_variants": {
+        "scale-up": {
+          "seed": 930019,
+          "arguments": [
+            "-p",
+            "03",
+            "-o",
+            "1",
+            "-c",
+            "3",
+            "-n",
+            "1",
+            "-s",
+            "6",
+            "-d",
+            "1"
+          ],
+          "walk_steps": 0,
+          "walk_origin": "initial"
+        },
+        "shifted-init": {
+          "seed": 940019,
+          "arguments": [
+            "-p",
+            "02",
+            "-o",
+            "1",
+            "-c",
+            "2",
+            "-n",
+            "1",
+            "-s",
+            "5",
+            "-d",
+            "1"
+          ],
+          "walk_steps": 160,
+          "walk_origin": "initial",
+          "audit_requirements": [
+            "replayable_walk_retained",
+            "goal_static_identity_unchanged",
+            "walked_initial_distinct_from_generated_origin",
+            "walked_initial_distinct_from_source"
+          ]
+        }
+      },
+      "perturbation_seeds": {
+        "object-renaming": 950057,
+        "render-restyle": 950058,
+        "name-compression": 950059
+      }
+    },
+    {
+      "task_id": "expanded-final/towers_of_hanoi-compact-920000",
+      "task_path": "outputs/expanded-study/v1/panel/candidates/towers_of_hanoi-compact-920000/task.json",
+      "domain": "towers_of_hanoi",
+      "stratum_origin": "compact",
+      "structural_axis": "disc count with seeded noncanonical initial stack",
+      "compact_snapshot": "configs/experiments/expanded-study/tasks/towers_of_hanoi-compact.json",
+      "expanded_snapshot": "configs/experiments/expanded-study/tasks/towers_of_hanoi-expanded.json",
+      "compact_arguments": [
+        "-n",
+        "3"
+      ],
+      "expanded_arguments": [
+        "-n",
+        "4"
+      ],
+      "structural_variants": {
+        "scale-up": {
+          "seed": 930020,
+          "arguments": [
+            "-n",
+            "5"
+          ],
+          "walk_steps": 8,
+          "walk_origin": "initial"
+        },
+        "shifted-init": {
+          "seed": 940020,
+          "arguments": [
+            "-n",
+            "4"
+          ],
+          "walk_steps": 27,
+          "walk_origin": "initial",
+          "audit_requirements": [
+            "replayable_walk_retained",
+            "goal_static_identity_unchanged",
+            "walked_initial_distinct_from_generated_origin",
+            "walked_initial_distinct_from_source"
+          ]
+        }
+      },
+      "perturbation_seeds": {
+        "object-renaming": 950060,
+        "render-restyle": 950061,
+        "name-compression": 950062
+      }
+    },
+    {
+      "task_id": "expanded-final/towers_of_hanoi-expanded-920100",
+      "task_path": "outputs/expanded-study/v1/panel/candidates/towers_of_hanoi-expanded-920100/task.json",
+      "domain": "towers_of_hanoi",
+      "stratum_origin": "expanded",
+      "structural_axis": "disc count with seeded noncanonical initial stack",
+      "compact_snapshot": "configs/experiments/expanded-study/tasks/towers_of_hanoi-compact.json",
+      "expanded_snapshot": "configs/experiments/expanded-study/tasks/towers_of_hanoi-expanded.json",
+      "compact_arguments": [
+        "-n",
+        "3"
+      ],
+      "expanded_arguments": [
+        "-n",
+        "4"
+      ],
+      "structural_variants": {
+        "scale-up": {
+          "seed": 930021,
+          "arguments": [
+            "-n",
+            "5"
+          ],
+          "walk_steps": 8,
+          "walk_origin": "initial"
+        },
+        "shifted-init": {
+          "seed": 940021,
+          "arguments": [
+            "-n",
+            "4"
+          ],
+          "walk_steps": 104,
+          "walk_origin": "initial",
+          "audit_requirements": [
+            "replayable_walk_retained",
+            "goal_static_identity_unchanged",
+            "walked_initial_distinct_from_generated_origin",
+            "walked_initial_distinct_from_source"
+          ]
+        }
+      },
+      "perturbation_seeds": {
+        "object-renaming": 950063,
+        "render-restyle": 950064,
+        "name-compression": 950065
+      }
+    },
+    {
+      "task_id": "expanded-final/visitall-compact-921000",
+      "task_path": "outputs/expanded-study/v1/panel/candidates/visitall-compact-921000/task.json",
+      "domain": "visitall",
+      "stratum_origin": "compact",
+      "structural_axis": "goal-cell ratio on a fixed grid",
+      "compact_snapshot": "configs/experiments/expanded-study/tasks/visitall-compact.json",
+      "expanded_snapshot": "configs/experiments/expanded-study/tasks/visitall-expanded.json",
+      "compact_arguments": [
+        "-n",
+        "3",
+        "-r",
+        "0.3",
+        "-u",
+        "0"
+      ],
+      "expanded_arguments": [
+        "-n",
+        "3",
+        "-r",
+        "0.5",
+        "-u",
+        "0"
+      ],
+      "structural_variants": {
+        "scale-up": {
+          "seed": 930022,
+          "arguments": [
+            "-n",
+            "3",
+            "-r",
+            "0.7",
+            "-u",
+            "0"
+          ],
+          "walk_steps": 0,
+          "walk_origin": "initial"
+        },
+        "shifted-init": {
+          "seed": 940022,
+          "arguments": [
+            "-n",
+            "3",
+            "-r",
+            "0.5",
+            "-u",
+            "0"
+          ],
+          "walk_steps": 132,
+          "walk_origin": "initial",
+          "audit_requirements": [
+            "replayable_walk_retained",
+            "goal_static_identity_unchanged",
+            "walked_initial_distinct_from_generated_origin",
+            "walked_initial_distinct_from_source"
+          ]
+        }
+      },
+      "perturbation_seeds": {
+        "object-renaming": 950066,
+        "render-restyle": 950067,
+        "name-compression": 950068
+      }
+    },
+    {
+      "task_id": "expanded-final/visitall-expanded-921100",
+      "task_path": "outputs/expanded-study/v1/panel/candidates/visitall-expanded-921100/task.json",
+      "domain": "visitall",
+      "stratum_origin": "expanded",
+      "structural_axis": "goal-cell ratio on a fixed grid",
+      "compact_snapshot": "configs/experiments/expanded-study/tasks/visitall-compact.json",
+      "expanded_snapshot": "configs/experiments/expanded-study/tasks/visitall-expanded.json",
+      "compact_arguments": [
+        "-n",
+        "3",
+        "-r",
+        "0.3",
+        "-u",
+        "0"
+      ],
+      "expanded_arguments": [
+        "-n",
+        "3",
+        "-r",
+        "0.5",
+        "-u",
+        "0"
+      ],
+      "structural_variants": {
+        "scale-up": {
+          "seed": 930023,
+          "arguments": [
+            "-n",
+            "3",
+            "-r",
+            "0.7",
+            "-u",
+            "0"
+          ],
+          "walk_steps": 0,
+          "walk_origin": "initial"
+        },
+        "shifted-init": {
+          "seed": 940023,
+          "arguments": [
+            "-n",
+            "3",
+            "-r",
+            "0.5",
+            "-u",
+            "0"
+          ],
+          "walk_steps": 225,
+          "walk_origin": "initial",
+          "audit_requirements": [
+            "replayable_walk_retained",
+            "goal_static_identity_unchanged",
+            "walked_initial_distinct_from_generated_origin",
+            "walked_initial_distinct_from_source"
+          ]
+        }
+      },
+      "perturbation_seeds": {
+        "object-renaming": 950069,
+        "render-restyle": 950070,
+        "name-compression": 950071
+      }
+    }
+  ],
+  "eligibility": {
+    "grounding_estimate_ceiling": 200000,
+    "grounding_metric": "current_additive_type_pruned_assignments",
+    "max_decisions_per_algorithm": 256,
+    "max_expansions_per_algorithm": 128,
+    "max_summed_decisions": 512,
+    "max_input_tokens_per_call": 32384,
+    "input_token_bound_basis": "Frozen matched-v5/baseline 32768 context minus 384 output tokens.",
+    "algorithms": [
+      "bfs",
+      "best_first_width",
+      "best_first_add_w3",
+      "best_first_add_greedy"
+    ],
+    "render_view_integrity": {
+      "initial_view_renders": true,
+      "goal_view_renders": true,
+      "view_manifest_validates": true
+    },
+    "source_goal_checks": {
+      "initial_state_must_not_satisfy_goal": true,
+      "goal_must_be_non_empty": true
+    },
+    "ineligible_policy": "Report missing coverage and retain the failed profile; never replace it with an easier task.",
+    "whole_instance_disjointness": {
+      "method": "task_semantics inventory plus task_isomorphism.same_instance audit",
+      "against": [
+        "training",
+        "development",
+        "matched-v5-final",
+        "historical-corpus"
+      ]
+    }
+  },
+  "evaluation": {
+    "conditions": [
+      "learned_adapter",
+      "pretrained_base",
+      "random_valid",
+      "exact_reference"
+    ],
+    "learned_adapters": 12,
+    "matching_rule": "Use the fixed adapter matching each algorithm and modality.",
+    "reference_decision_multiplier": 2,
+    "expansion_limit_exhaustion": "A decision-call or expansion-limit exhaustion is retained as a valid unsuccessful episode, matching visual_episode result semantics.",
+    "decoding": {
+      "do_sample": false
+    },
+    "rollouts": {
+      "learned_adapter": 1,
+      "pretrained_base": 1,
+      "exact_reference": 1,
+      "random_valid": 5
+    },
+    "random_valid_rollout_seeds": [
+      17,
+      1013,
+      2027,
+      3041,
+      4001
+    ],
+    "identical_task_sets_across_conditions": true,
+    "structural_tasks_full": 48,
+    "perturbation_tasks_full": 72,
+    "derived_tasks_full": 120,
+    "gpu_model_episodes_per_task": 24,
+    "cpu_control_episodes_per_task": 72,
+    "gpu_model_episodes_full": 2880,
+    "cpu_control_episodes_full": 8640,
+    "logical_bindings_full": 11520,
+    "paired_analysis_strata": [
+      "domain",
+      "stratum-origin",
+      "variant-family"
+    ],
+    "report_separately": [
+      "invariant-valid success",
+      "invalid-operation rate",
+      "budget usage",
+      "learned-vs-best-control gain",
+      "lossy perturbations",
+      "missingness"
+    ]
+  },
+  "inference": {
+    "dtype": "float32",
+    "attention": "visual_sdpa",
+    "do_sample": false,
+    "max_batch_size": 2,
+    "max_padded_batch_input_tokens": 24000,
+    "allow_qualified_single_input_above_batch_cap": true,
+    "output_cache": "none",
+    "kv_cache": "per_call_only"
+  },
+  "execution_contract": {
+    "deterministic_rounds": true,
+    "batched_generation": true,
+    "shared_backbone_per_gpu": true,
+    "adapter_switching": true,
+    "isolated_caching": true,
+    "max_requests_per_active_episode_per_round": 1,
+    "resume": "Persist each raw output before trusted-runtime submission; replay committed events and pending output before continuing.",
+    "partial_coverage_satisfies_gate": false,
+    "independent_replay_every_completed_episode": true,
+    "gpu_cutoff_utc": "2026-09-21T11:55:19Z"
+  },
+  "throughput_probe": {
+    "phase": 2,
+    "kind": "outcome-free timing calls",
+    "selection": "After screening, choose the hardest eligible task in each of V1 scale-up, V2 shifted-init, P1 object-renaming, P2 render-restyle and P3 name-compression using summed reference decisions then task_id as the deterministic tie-break.",
+    "tasks_per_family": 1,
+    "families": [
+      "scale-up",
+      "shifted-init",
+      "object-renaming",
+      "render-restyle",
+      "name-compression"
+    ],
+    "modalities": [
+      "text-state",
+      "visual-state",
+      "multimodal-state"
+    ],
+    "algorithms": [
+      "bfs",
+      "best_first_width",
+      "best_first_add_w3",
+      "best_first_add_greedy"
+    ],
+    "calls_per_algorithm_modality_family": 3,
+    "unique_probe_inputs": 60,
+    "probe_inputs": 60,
+    "timing_calls": 180,
+    "timing_samples_per_probe_input": 3,
+    "batch_calibration_included": true,
+    "persist": [
+      "call_wall_seconds",
+      "input_tokens",
+      "output_tokens",
+      "algorithm",
+      "modality",
+      "family",
+      "batch_size",
+      "worker",
+      "model_load_wall_seconds",
+      "model_save_wall_seconds"
+    ],
+    "generation_outputs": "Mechanically discarded immediately; no episode outcome is produced or retained.",
+    "precision_and_batching": "Use the frozen inference contract at actual precision and batching.",
+    "per_combo_bound": "max(observed call time across the 3 repeated samples) × 1.5",
+    "call_time_margin": 1.5,
+    "worker_overhead_probe": "Measure model load and save wall time separately for every probe worker and record both values per worker.",
+    "estimate": "Use the frozen per-combo max-observed × 1.5 bounds without observing derived-task outcomes."
+  },
+  "admission": {
+    "branch_cap_gpu_hours": 32,
+    "safety_factor": 1.25,
+    "episode_bound": "decision_cap(task) × (max observed call time for algorithm/modality across 3 repeated samples × 1.5)",
+    "worker_overhead": "Measured model load wall time + measured save wall time per probe worker, added once per planned worker job.",
+    "rule": "(sum of decision_cap(task) × per-combo max-observed-call-time × 1.5 over the admitted matrix + measured load+save overhead per planned worker job) × 1.25 safety + probe spend already in the ledger <= branch remainder at admission time",
+    "fallback_ladder": [
+      "L0 full 120 tasks",
+      "L1 prospective documented recovery_reserve transfer to fit L0 (min sufficient, before launch)",
+      "L2 drop P3 model evaluation (generation+audit still run) => 96 tasks",
+      "L3 restrict to expanded-stratum-origin problems (S: 12x2=24, R-P1+P2: 12x2=24 => 48 tasks)",
+      "L4 VALID_STOP with partial-evidence report, no closure of unfulfilled requirements"
+    ],
+    "recheck": "Each level is rechecked with the same admission formula.",
+    "selection_timing": "Execute the ladder in order before model outcomes on derived tasks.",
+    "no_test_driven_retraining": true,
+    "no_outcome_selected_reruns": true,
+    "no_favourable_replacement_tasks": true
+  },
+  "analysis": {
+    "paired_unit": "whole task instance x algorithm x modality across conditions on identical tasks",
+    "primary_contrasts": {
+      "source_vs_shift_degradation": "Learned on derived versus learned on its source panel problem, paired by domain, stratum-origin and variant family.",
+      "learned_vs_best_control": "Learned versus max of pretrained_base and per-task random_valid success frequency; exact_reference is an oracle upper bound reported separately.",
+      "validity_and_cost": "Report invariant-valid success versus goal_reached, invalid-operation rate, decisions, expansions, model calls and wall time."
+    },
+    "missingness": "Report per family and stratum.",
+    "random_valid_aggregation": "Per-task success frequency over the five frozen rollout seeds.",
+    "bootstrap": {
+      "unit": "whole task instance within frozen domain x family strata",
+      "seed": 90717,
+      "resamples": 10000,
+      "confidence": 0.95,
+      "interval": "percentile",
+      "materiality": "interval excludes 0"
+    },
+    "tiny_subgroup_rule": "Strata with fewer than 8 paired instances are descriptive-only; no interval claims.",
+    "lossy_pooling": "Lossy variants are never pooled with semantics-preserving variants.",
+    "saturation_rule": "Per issue #54, when the best control is at ceiling, make no structural-advantage claim.",
+    "training_seed_variance_claimed": false
+  },
+  "budget_branch": "generalization_robustness",
+  "budget_gpu_hours": 32,
+  "phase1_execution": "CPU-only protocol and derivation design; no real suite generation, screening, model loading or GPU execution."
+}

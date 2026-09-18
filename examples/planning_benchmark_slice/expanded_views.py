@@ -1,8 +1,59 @@
 """Replay-bound new-task state catalogs for expanded panel views."""
 
+import copy
+import json
+
 from .pddl_state import GroundedAction, PDDLStateAuthority
 from .scene_assets import read_json
 from .visual_episode import VisualSession, VisualTaskViews
+
+_RENDER_OVERRIDE_KEYS = {"canvas_size", "layout_offset"}
+
+
+def apply_render_overrides(payload, overrides=None):
+    """Return renderer input/settings; preserve the original payload when unset."""
+
+    if not overrides:
+        return payload, {"canvas_size": 128}
+    if set(overrides) - _RENDER_OVERRIDE_KEYS:
+        raise ValueError("unsupported expanded-view render override")
+    canvas_size = overrides.get("canvas_size", 128)
+    offset = overrides.get("layout_offset", [0.0, 0.0])
+    if not isinstance(canvas_size, int) or canvas_size <= 0:
+        raise ValueError("render override canvas_size must be a positive integer")
+    if (
+        not isinstance(offset, list)
+        or len(offset) != 2
+        or any(not isinstance(value, (int, float)) or abs(value) > 0.1 for value in offset)
+    ):
+        raise ValueError("render override layout_offset must contain two bounded numbers")
+    shifted = copy.deepcopy(payload)
+    dx, dy = map(float, offset)
+    for stage in shifted.get("visualStages", []):
+        for sprite in stage.get("visualSprites", []):
+            for lower, upper, delta in (("minX", "maxX", dx), ("minY", "maxY", dy)):
+                minimum, maximum = float(sprite[lower]), float(sprite[upper])
+                bounded = min(max(delta, -minimum), 1.0 - maximum)
+                sprite[lower], sprite[upper] = minimum + bounded, maximum + bounded
+    return shifted, {"canvas_size": canvas_size}
+
+
+def render_unlabelled_vfg(vfg_bytes, output_dir, stage, object_names, overrides=None):
+    """Render one stage with optional additive per-task overrides."""
+
+    from scripts.planimation_phase1_frames import render_vfg_to_local_png_frames
+
+    payload = json.loads(vfg_bytes.decode())
+    payload, settings = apply_render_overrides(payload, overrides)
+    return render_vfg_to_local_png_frames(
+        json.dumps(payload).encode(),
+        output_dir,
+        stage,
+        stage,
+        canvas_size=settings["canvas_size"],
+        draw_labels=False,
+        object_names=frozenset(object_names),
+    )
 
 
 class ReferenceStateCatalog:
@@ -78,8 +129,6 @@ class ExpandedTaskViews(VisualTaskViews):
     """Use retained reference images and materialize new accepted states on demand."""
 
     def __init__(self, root, task, output, endpoint, *, read_only=False):
-        import copy
-
         from .modality_corpus_replay import canonical
         from .scene_only_views import SceneOnlyViews
 
@@ -89,7 +138,13 @@ class ExpandedTaskViews(VisualTaskViews):
         # New-state indices are local to an episode; isolate their image cache.
         native["view_id"] = f"{native['view_id']}:live:{output.resolve()}"
         self.source_manifest = native["source_manifest"]
-        self.manifest = read_json(root / self.source_manifest)
+        task_manifest = task.get("view_manifest")
+        self.manifest = (
+            copy.deepcopy(task_manifest)
+            if isinstance(task_manifest, dict)
+            else read_json(root / self.source_manifest)
+        )
+        self.render_overrides = copy.deepcopy(self.manifest.get("render_overrides"))
         self.catalog = read_json(root / self.manifest["scene_catalog"])
         self.states = list(self.catalog["states"])
         self.original_count = len(self.states)
@@ -134,10 +189,7 @@ class ExpandedTaskViews(VisualTaskViews):
         native["scene_bindings"][str(index)] = {"vfg": state["vfg"], "stage": len(self.path(index))}
 
     def _render(self, index):
-        import json
         import tempfile
-
-        from scripts.planimation_phase1_frames import render_vfg_to_local_png_frames
 
         super()._render(index)
         state = self.states[index]
@@ -147,14 +199,12 @@ class ExpandedTaskViews(VisualTaskViews):
             from pathlib import Path
 
             folder = Path(directory)
-            render_vfg_to_local_png_frames(
+            render_unlabelled_vfg(
                 json.dumps(payload).encode(),
                 folder,
                 stage,
-                stage,
-                canvas_size=128,
-                draw_labels=False,
-                object_names=frozenset(self.authority.objects),
+                self.authority.objects,
+                self.render_overrides,
             )
             (folder / "frame_000.png").replace(self.root / state["scene_path"])
         self._bind_native(index)
