@@ -1,0 +1,44 @@
+{
+  "schema_version": "expanded_second_backbone_admission_v1",
+  "decision": "L2",
+  "outcome": "VALID_STOP",
+  "protocol_id": "expanded-second-backbone-v1",
+  "branch_cap_gpu_hours": 40,
+  "branch_spent_gpu_hours": 3.957651311026679,
+  "branch_remainder_gpu_hours": 36.04234868897332,
+  "arithmetic": {
+    "L0": {
+      "episodes": 144,
+      "training_gpu_hours": 2.7018556889312135,
+      "evaluation_gpu_hours": 200.86710922713772,
+      "safety_factor": 1.25,
+      "required_gpu_hours_including_spent": 258.41885745611285,
+      "fits_branch_remainder": false
+    },
+    "L1": {
+      "episodes": 72,
+      "training_gpu_hours": 2.7018556889312135,
+      "evaluation_gpu_hours": 32.644730803800954,
+      "safety_factor": 1.25,
+      "required_gpu_hours_including_spent": 48.14088442694189,
+      "fits_branch_remainder": false
+    }
+  },
+  "calls_per_episode_basis": "2 x reference bfs decisions per task (the frozen decision-call allowance)",
+  "measured_inputs": {
+    "training_step_wall_seconds": {
+      "text-state": 46.13307274878025,
+      "visual-state": 268.25035825930536,
+      "multimodal-state": 293.5340990014374
+    },
+    "per_call_latency_p95_seconds": {
+      "text-state": 32.390238037891685,
+      "visual-state": 71.68267799653113,
+      "multimodal-state": 79.55369473695754
+    },
+    "probe_gpu_hours": 1.3135802797957634
+  },
+  "reduced_scope": null,
+  "authorized_scope": null,
+  "ledger_mutated": false
+}

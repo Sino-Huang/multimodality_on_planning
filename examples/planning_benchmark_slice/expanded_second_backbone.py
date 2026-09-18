@@ -300,7 +300,8 @@ def validate_protocol(root: Path, protocol: Mapping[str, Any]) -> dict[str, Any]
         or launch.get("backend_endpoints") != ["http://127.0.0.1:18092", "http://127.0.0.1:18093"]
         or launch.get("training_worker_cells")
         != {"0": [{"modality": "text-state"}, {"modality": "visual-state"}], "1": [{"modality": "multimodal-state"}]}
-        or launch.get("evaluation_worker_policy_load_order") != {"0": ["text-state", "multimodal-state"], "1": ["visual-state"]}
+        or launch.get("evaluation_worker_policy_load_order")
+        != {"0": ["text-state", "multimodal-state"], "1": ["visual-state"]}
         or launch.get("evaluation_worker_partition") != "task_index_modulo_two_within_every_modality_condition_cell"
         or budget.get("branch") != "second_backbone"
         or budget.get("gpu_hours") != 40
@@ -2686,15 +2687,127 @@ def _publish_analysis(root: Path, protocol: Mapping[str, Any]) -> Path:
     return target
 
 
+def _publish_valid_stop(root: Path, protocol: Mapping[str, Any]) -> Path:
+    qualification = read_json(qualification_root(root, protocol) / "qualification.json")
+    probe = read_json(root / protocol["output_root"] / "probe.json")
+    admission = read_json(root / protocol["output_root"] / "admission.json")
+    ledger = read_json(root / LEDGER_PATH)
+    cutoff = read_json(root / SCHEDULE_DOC)["gpu_cutoff_utc"]
+    attempts = [row for row in ledger.get("attempts", []) if row.get("branch") == "second_backbone"]
+    probe_attempts = [row for row in attempts if row.get("job_id") == "second-backbone-probe"]
+    program_cumulative = sum(
+        float(row.get("gpu_hours", 0.0))
+        for row in ledger.get("attempts", [])
+        if row.get("status") not in {"reserved", "running"}
+    )
+    arithmetic = admission["arithmetic"]
+    lines = [
+        f"The `second_backbone` branch is terminal **{admission['outcome']}** at the frozen cost-admission "
+        f"gate (decision **{admission['decision']}**). No adapter training and no panel evaluation were "
+        "launched; the only GPU work was the outcome-blind runtime probe plus one determinism debug job, "
+        "while input qualification ran CPU-only. This is a terminal evidence publication, not a "
+        "ticket-completion claim.",
+        "",
+        f"- Branch: `second_backbone`, {admission['branch_cap_gpu_hours']} GPU-h cap; spent "
+        f"{admission['branch_spent_gpu_hours']:.4f}; remainder {admission['branch_remainder_gpu_hours']:.4f}.",
+        f"- Protocol: `{protocol['protocol_id']}` "
+        f"(`configs/experiments/expanded-study/second-backbone-protocol.json`).",
+        f"- Backbone: `{protocol['base_model']['model_id']}` @ `{protocol['base_model']['revision']}`.",
+        f"- GPU cutoff: `{cutoff}`; ledger mutated by admission: {admission['ledger_mutated']}.",
+        "",
+        "## Admission arithmetic",
+        "",
+        f"Basis: {admission['calls_per_episode_basis']}; measured probe p95 per-call latency and measured "
+        f"training-step wall times, times safety factor {arithmetic['L0']['safety_factor']}.",
+        "",
+        "| Level | Episodes | Train GPU-h | Eval GPU-h | Required incl. spent | Fits remainder |",
+        "| --- | ---: | ---: | ---: | ---: | --- |",
+    ]
+    for level in ("L0", "L1"):
+        row = arithmetic[level]
+        lines.append(
+            f"| {level} | {row['episodes']} | {row['training_gpu_hours']:.2f} | "
+            f"{row['evaluation_gpu_hours']:.2f} | {row['required_gpu_hours_including_spent']:.2f} | "
+            f"{row['fits_branch_remainder']} |"
+        )
+    lines += [
+        "",
+        "Even the reference-cost-only reduced key-cell panel (L1: lowest reference BFS decision counts, "
+        "frozen before any model outcome) exceeds the branch remainder, so the frozen rule returns "
+        f"{admission['decision']} / {admission['outcome']}. The bound prices every model-condition episode "
+        "at the slowest measured p95 call for its full 2x reference decision-call allowance; realized "
+        "episodes can terminate earlier, but partial coverage cannot satisfy the gate and relaxing the "
+        "bound to obtain a runnable scope would be goalpost-moving.",
+        "",
+        "## Qualification milestone (#101, fulfilled)",
+        "",
+        f"Input qualification **{qualification['outcome']}** (complete: {qualification['complete']}): "
+        f"{qualification['records_measured']} training records, {qualification['tasks_measured']} panel tasks "
+        f"and {qualification['decisions_measured']} reference decisions measured; tokenizer identity with the "
+        f"Qwen templated ids: {qualification['tokenizer_identity']}; violations: "
+        f"{len(qualification['violations'])}.",
+        "",
+        "See [second-backbone-qualification.md](second-backbone-qualification.md).",
+        "",
+        "## Probe milestone (outcome-blind runtime gates, all PASS)",
+        "",
+        f"Probe **{probe['outcome']}** after {len(probe_attempts)} scheduler attempts "
+        f"({probe['probe_gpu_hours']:.2f} GPU-h on the final successful attempt): scalar/batch byte parity "
+        f"{probe['scalar_batch_parity']['byte_identical']}, repeated-batch determinism "
+        f"{probe['repeated_batch_determinism']['byte_identical']}, adapter isolation "
+        f"(disable restores base: {probe['adapter_isolation']['disable_restores_base']}), token-limit guards "
+        f"(near-limit {probe['token_limit_guards']['near_limit_input_tokens']} tokens succeeded; oversize "
+        "batch raises VALID_STOP), attention applied "
+        f"`{probe['attention']['applied']}` with fallback used: {probe['attention']['fallback_used']}.",
+        "",
+        "See [second-backbone-probe.md](second-backbone-probe.md).",
+        "",
+        "## Issue disposition",
+        "",
+        "- #101 (qualify and pin the second backbone): fulfilled by the pinned backbone, the complete PASS "
+        "qualification and the adapter-interface probe evidence above.",
+        "- #102 (train matched-exposure cells) and #103 (evaluate and verify): not executed; the frozen "
+        "admission rule produced this certified no-run instead. Both issues remain OPEN.",
+        "",
+        "## Budget accounting",
+        "",
+        f"The branch charged {admission['branch_spent_gpu_hours']:.4f} GPU-h of its "
+        f"{admission['branch_cap_gpu_hours']} GPU-h cap (qualification 0; probe attempts and one determinism "
+        f"debug job). Program cumulative after this branch: {program_cumulative:.4f} / 336 GPU-h.",
+        "",
+        "## Legitimate future path",
+        "",
+        "Any future run needs a new versioned protocol and admission artifact with a budget that fits the "
+        "measured costs above, keeping the reference-cost-only reduced-scope rule frozen before any model "
+        "outcome. No second-backbone model outcomes exist, so none can select a future scope.",
+        "",
+        "Compact evidence: [second-backbone-admission.json](second-backbone-admission.json), "
+        "[second-backbone-probe.json](second-backbone-probe.json) and "
+        "[second-backbone-qualification.json](second-backbone-qualification.json) (byte-identical copies).",
+    ]
+    _write_markdown(
+        root / DOCS_DIR / "second-backbone-valid-stop.md",
+        "Second-backbone terminal VALID_STOP (#101-#103)",
+        lines,
+    )
+    return root / DOCS_DIR / "second-backbone-valid-stop.md"
+
+
 def publish(root: Path, protocol: Mapping[str, Any]) -> dict[str, Any]:
     """Copy compact byte-identical evidence JSONs and render Markdown summaries."""
+    admission = read_json(root / protocol["output_root"] / "admission.json")
     targets = [
         str(_publish_qualification(root, protocol).relative_to(root)),
         *[str(path.relative_to(root)) for path in _publish_probe(root, protocol)],
-        str(_publish_training(root, protocol).relative_to(root)),
-        str(_publish_evaluation(root, protocol).relative_to(root)),
-        str(_publish_analysis(root, protocol).relative_to(root)),
     ]
+    if admission.get("outcome") == "PASS":
+        targets += [
+            str(_publish_training(root, protocol).relative_to(root)),
+            str(_publish_evaluation(root, protocol).relative_to(root)),
+            str(_publish_analysis(root, protocol).relative_to(root)),
+        ]
+    else:
+        targets.append(str(_publish_valid_stop(root, protocol).relative_to(root)))
     result = {
         "schema_version": "expanded_second_backbone_publish_v1",
         "outcome": "PASS",

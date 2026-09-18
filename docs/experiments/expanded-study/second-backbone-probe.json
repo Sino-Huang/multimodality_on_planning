@@ -1,0 +1,162 @@
+{
+  "schema_version": "expanded_second_backbone_probe_v1",
+  "outcome": "PASS",
+  "protocol_id": "expanded-second-backbone-v1",
+  "backbone_key": "internvl3_5-8b",
+  "gpu": {
+    "index": 0,
+    "name": "NVIDIA A100 80GB PCIe"
+  },
+  "load": {
+    "wall_seconds": 34.0973432417959,
+    "vram_bytes_after_load": 34113274368
+  },
+  "attention": {
+    "requested": "visual_sdpa",
+    "applied": "visual_sdpa",
+    "fallback_used": false
+  },
+  "scalar_batch_parity": {
+    "modality": "multimodal-state",
+    "smallest_full_tokens": 8141,
+    "densest_full_tokens": 12706,
+    "batch_size": 1,
+    "byte_identical": true
+  },
+  "repeated_batch_determinism": {
+    "byte_identical": true
+  },
+  "adapter_isolation": {
+    "adapters": [
+      "default",
+      "probe_b"
+    ],
+    "initialization": "fresh LoRA init (seeds 17/18) with a deterministic small B perturbation so adapters have nonzero effect; production adapters come from training only",
+    "base_vs_adapter_a": true,
+    "base_vs_adapter_b": true,
+    "adapter_a_vs_adapter_b": true,
+    "disable_restores_base": true
+  },
+  "token_limit_guards": {
+    "near_limit_input_tokens": 17514,
+    "near_limit_succeeded": true,
+    "oversize_batch_raises_valid_stop": true
+  },
+  "throughput": {
+    "text-state": {
+      "task_id": "expanded-final/storage-expanded-919100",
+      "calls": 20,
+      "batch_sizes": {
+        "min": 2,
+        "max": 2,
+        "mean": 2.0
+      },
+      "latency_seconds": {
+        "mean": 31.74397784685716,
+        "p05": 31.22780408440158,
+        "p50": 31.8049037726596,
+        "p95": 32.390238037891685,
+        "max": 32.40408123098314,
+        "calls": 20
+      },
+      "tokens_per_second": {
+        "mean": 8.19130023943048,
+        "lower_95": 8.06567534053423
+      },
+      "input_tokens": {
+        "mean": 3636.0,
+        "p05": 3626.0,
+        "p50": 3636.0,
+        "p95": 3646.0,
+        "max": 3646.0,
+        "calls": 40
+      },
+      "peak_vram_bytes": 37860141568
+    },
+    "visual-state": {
+      "task_id": "expanded-final/storage-expanded-919100",
+      "calls": 20,
+      "batch_sizes": {
+        "min": 1,
+        "max": 1,
+        "mean": 1.0
+      },
+      "latency_seconds": {
+        "mean": 66.04672276899218,
+        "p05": 62.80934213595465,
+        "p50": 64.75198879092932,
+        "p95": 71.68267799653113,
+        "max": 72.58370071090758,
+        "calls": 20
+      },
+      "tokens_per_second": {
+        "mean": 4.174227640388313,
+        "lower_95": 4.072034384071433
+      },
+      "input_tokens": {
+        "mean": 15749.75,
+        "p05": 15738.0,
+        "p50": 15749.5,
+        "p95": 15762.0,
+        "max": 15762.0,
+        "calls": 20
+      },
+      "peak_vram_bytes": 42500715520
+    },
+    "multimodal-state": {
+      "task_id": "expanded-final/storage-expanded-919100",
+      "calls": 20,
+      "batch_sizes": {
+        "min": 1,
+        "max": 1,
+        "mean": 1.0
+      },
+      "latency_seconds": {
+        "mean": 72.39858247283846,
+        "p05": 68.50115725127979,
+        "p50": 71.1193911479786,
+        "p95": 79.55369473695754,
+        "max": 79.7661782130599,
+        "calls": 20
+      },
+      "tokens_per_second": {
+        "mean": 3.808713399776289,
+        "lower_95": 3.698043783576
+      },
+      "input_tokens": {
+        "mean": 17504.0,
+        "p05": 17494.0,
+        "p50": 17504.0,
+        "p95": 17514.0,
+        "max": 17514.0,
+        "calls": 20
+      },
+      "peak_vram_bytes": 43392428544
+    }
+  },
+  "training_step": {
+    "text-state": {
+      "optimizer_steps": 1,
+      "microbatches": 32,
+      "wall_seconds": 46.13307274878025,
+      "peak_vram_bytes": 23604285952,
+      "max_full_tokens": 2240
+    },
+    "visual-state": {
+      "optimizer_steps": 1,
+      "microbatches": 32,
+      "wall_seconds": 268.25035825930536,
+      "peak_vram_bytes": 45345070080,
+      "max_full_tokens": 11673
+    },
+    "multimodal-state": {
+      "optimizer_steps": 1,
+      "microbatches": 32,
+      "wall_seconds": 293.5340990014374,
+      "peak_vram_bytes": 47505704960,
+      "max_full_tokens": 12706
+    }
+  },
+  "probe_gpu_hours": 1.3135802797957634,
+  "finished_at": 1789753866.13434
+}

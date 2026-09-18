@@ -986,3 +986,118 @@ def test_publish_copies_byte_identical_evidence(tmp_path):
     assert (docs / "second-backbone-evaluation.md").is_file()
     assert (docs / "second-backbone-analysis.md").is_file()
     assert len(result["published"]) == 6
+
+
+def test_publish_admission_valid_stop_terminal_receipt(tmp_path):
+    protocol = fake_protocol(tmp_path)
+    qual = {
+        "schema_version": branch.QUALIFICATION_SCHEMA,
+        "outcome": "PASS",
+        "backbone_key": "internvl3_5-8b",
+        "complete": True,
+        "context_tokens": 32768,
+        "output_tokens": 384,
+        "records_measured": 1536,
+        "tasks_measured": 24,
+        "decisions_measured": 100,
+        "tokenizer_identity": True,
+        "maxima": {"text-state": {"train_prefix": 1, "train_full": 2, "live": 3}},
+        "violations": [],
+        "cross_checks": [{"modality": "text-state"}],
+        "previews": [{"page": 0, "role": "goal", "path": "p.png"}],
+    }
+    branch.write_json(branch.qualification_root(tmp_path, protocol) / "qualification.json", qual)
+    probe = {
+        "schema_version": branch.PROBE_SCHEMA,
+        "outcome": "PASS",
+        "attention": {"requested": "visual_sdpa", "applied": "visual_sdpa", "fallback_used": False},
+        "load": {"wall_seconds": 1.0, "vram_bytes_after_load": 1},
+        "scalar_batch_parity": {"byte_identical": True},
+        "repeated_batch_determinism": {"byte_identical": True},
+        "adapter_isolation": {
+            "base_vs_adapter_a": True,
+            "base_vs_adapter_b": True,
+            "adapter_a_vs_adapter_b": True,
+            "disable_restores_base": True,
+        },
+        "token_limit_guards": {
+            "near_limit_input_tokens": 1,
+            "near_limit_succeeded": True,
+            "oversize_batch_raises_valid_stop": True,
+        },
+        "throughput": {
+            modality: {
+                "calls": 20,
+                "latency_seconds": {"mean": 1.0, "p05": 1.0, "p50": 1.0, "p95": 1.0, "max": 1.0},
+                "tokens_per_second": {"mean": 1.0, "lower_95": 1.0},
+                "peak_vram_bytes": 1,
+            }
+            for modality in protocol["modalities"]
+        },
+        "training_step": {
+            modality: {"wall_seconds": 1.0, "microbatches": 32, "peak_vram_bytes": 1}
+            for modality in protocol["modalities"]
+        },
+        "probe_gpu_hours": 1.0,
+    }
+    branch.write_json(tmp_path / protocol["output_root"] / "probe.json", probe)
+    admission = {
+        "schema_version": branch.ADMISSION_SCHEMA,
+        "decision": "L2",
+        "outcome": "VALID_STOP",
+        "protocol_id": protocol["protocol_id"],
+        "branch_cap_gpu_hours": 40,
+        "branch_spent_gpu_hours": 4.0,
+        "branch_remainder_gpu_hours": 36.0,
+        "arithmetic": {
+            "L0": {
+                "episodes": 144,
+                "training_gpu_hours": 2.7,
+                "evaluation_gpu_hours": 200.9,
+                "safety_factor": 1.25,
+                "required_gpu_hours_including_spent": 258.4,
+                "fits_branch_remainder": False,
+            },
+            "L1": {
+                "episodes": 72,
+                "training_gpu_hours": 2.7,
+                "evaluation_gpu_hours": 32.6,
+                "safety_factor": 1.25,
+                "required_gpu_hours_including_spent": 48.1,
+                "fits_branch_remainder": False,
+            },
+        },
+        "calls_per_episode_basis": "2 x reference bfs decisions per task (the frozen decision-call allowance)",
+        "reduced_scope": None,
+        "authorized_scope": None,
+        "ledger_mutated": False,
+    }
+    branch.write_json(tmp_path / protocol["output_root"] / "admission.json", admission)
+    branch.write_json(
+        tmp_path / branch.LEDGER_PATH,
+        {
+            "attempts": [
+                {
+                    "branch": "second_backbone",
+                    "job_id": "second-backbone-probe",
+                    "status": "succeeded",
+                    "gpu_hours": 4.0,
+                },
+                {"branch": "expanded_baseline", "job_id": "baseline-models-0", "status": "succeeded", "gpu_hours": 40.0},
+                {"branch": "transfer", "job_id": "transfer-probe", "status": "reserved", "gpu_hours": 0.0},
+            ]
+        },
+    )
+    branch.write_json(tmp_path / branch.SCHEDULE_DOC, {"gpu_cutoff_utc": "2026-09-21T11:55:19Z"})
+    result = branch.publish(tmp_path, protocol)
+    docs = tmp_path / branch.DOCS_DIR
+    assert len(result["published"]) == 4
+    receipt = docs / "second-backbone-valid-stop.md"
+    assert receipt.is_file()
+    text = receipt.read_text()
+    assert "VALID_STOP" in text and "L2" in text
+    assert "48.10" in text and "remainder 36.0000" in text  # values come from the fixture admission
+    assert "44.0000 / 336 GPU-h" in text  # reserved attempts excluded from the cumulative
+    assert not (docs / "second-backbone-training.md").exists()
+    assert not (docs / "second-backbone-evaluation.md").exists()
+    assert not (docs / "second-backbone-analysis.md").exists()
