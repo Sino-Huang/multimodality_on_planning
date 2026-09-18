@@ -478,10 +478,23 @@ class VisualSession:
         }
 
 
-def replay_visual_episode(root, row, report, views=None):
+def _page_processor_token_counter(page_processor):
+    def counter(raw):
+        return len(
+            page_processor.processor.tokenizer.apply_chat_template(
+                bfws_text_policy_training_messages(raw), tokenize=True, add_generation_prompt=True
+            )
+        )
+
+    return counter
+
+
+def replay_visual_episode(root, row, report, views=None, *, page_processor=None):
     original_read_only = views.read_only if views is not None else False
     if views is not None:
         views.read_only = True
+        if page_processor is not None:
+            views.page_processor = page_processor
     try:
         session = VisualSession(
             root,
@@ -492,6 +505,7 @@ def replay_visual_episode(root, row, report, views=None):
             root / report["output"],
             report["contract_id"],
             views=views,
+            input_token_counter=(_page_processor_token_counter(page_processor) if page_processor is not None else None),
         )
         for event in report["events"]:
             request = session.next_request()

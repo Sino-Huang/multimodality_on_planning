@@ -698,7 +698,11 @@
    ]
   },
   "evaluation_worker_partition": "task_index_modulo_two_within_every_modality_condition_cell",
-  "evaluation_worker_modalities": {
+  "backend_endpoints": [
+   "http://127.0.0.1:18092",
+   "http://127.0.0.1:18093"
+  ],
+  "evaluation_worker_policy_load_order": {
    "0": [
     "text-state",
     "multimodal-state"
@@ -706,11 +710,7 @@
    "1": [
     "visual-state"
    ]
-  },
-  "backend_endpoints": [
-   "http://127.0.0.1:18092",
-   "http://127.0.0.1:18093"
-  ]
+  }
  },
  "output_root": "outputs/expanded-study/v1/second-backbone"
 }

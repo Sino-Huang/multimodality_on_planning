@@ -1,0 +1,24 @@
+{
+  "job_id": "second-backbone-evaluate-1",
+  "branch": "second_backbone",
+  "gpus": [
+    1
+  ],
+  "master_port": 18801,
+  "max_seconds": 10800,
+  "total": 72,
+  "command": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/run_expanded_second_backbone.py",
+    "evaluate",
+    "--worker",
+    "1"
+  ],
+  "completion_hook": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/run_expanded_second_backbone.py",
+    "audit-evaluate-worker",
+    "--worker",
+    "1"
+  ]
+}
