@@ -237,9 +237,19 @@ def collect_task_scenes(
     if catalog["task_context"] != PDDLStateAuthority.from_pddl(domain, problem).task_context():
         raise ValueError("scene catalog belongs to another authoritative task")
     expected = {algorithm: cost["decisions"] for algorithm, cost in row["reference_costs"].items()}
-    if Counter(decision["algorithm"] for decision in catalog["decisions"]) != expected:
+    if Counter(decision["algorithm"] for decision in catalog["decisions"]) != Counter(expected):
         raise ValueError("replayed decision coverage differs from the frozen task costs")
-    paths = catalog_paths(catalog)
+    initial_only = not catalog["decisions"] and len(catalog["states"]) == 1
+    if initial_only:
+        authority = PDDLStateAuthority.from_pddl(domain, problem)
+        actions = authority.applicable_actions(authority.initial_state)
+        if not actions:
+            raise ValueError("initial-only scene task has no renderer probe action")
+        action = actions[0]
+        probe = f"({action.name} {' '.join(action.args)})".replace(" )", ")")
+        paths = [([0], (probe,))]
+    else:
+        paths = catalog_paths(catalog)
     if preflight:
         path, actions = paths[0]
         paths = [(path[:2], actions[:1])]
@@ -300,7 +310,8 @@ def collect_task_scenes(
                 actions
             ):
                 raise ValueError("backend interpretation differs from supplied actions")
-            if len(result.frame_paths) != len(indices):
+            expected_frames = len(indices) + int(initial_only)
+            if len(result.frame_paths) != expected_frames:
                 raise ValueError("backend stage count differs from replayed states")
             vfg_path = output / f"path-{position:06d}.vfg.json.gz"
             with result.trace_path.open("rb") as source, gzip.open(vfg_path, "wb") as destination:
@@ -308,7 +319,8 @@ def collect_task_scenes(
             require_resolved_scene_coordinates(stages)
             if row["domain"] == "grid":
                 require_grid_shape_icons(catalog["task_context"], stages)
-            for state_index, frame in zip(indices, result.frame_paths, strict=True):
+            retained_frames = result.frame_paths[: len(indices)]
+            for state_index, frame in zip(indices, retained_frames, strict=True):
                 if state_index not in rendered:
                     frame.replace(output / "frames" / f"state-{state_index:06d}.png")
                     rendered.add(state_index)
@@ -318,7 +330,11 @@ def collect_task_scenes(
                     "state_indices": indices,
                     "vfg": str(vfg_path.relative_to(root)),
                     "endpoint": result.used_endpoint,
-                    "semantic_validation": "supplied_actions_and_PDDL_state_sequence_match",
+                    "semantic_validation": (
+                        "initial_stage_from_deterministic_renderer_probe_action"
+                        if initial_only
+                        else "supplied_actions_and_PDDL_state_sequence_match"
+                    ),
                 }
             )
         progress({"stage": "path_complete", "path": position + 1, "paths": len(paths), "unique_frames": len(rendered)})

@@ -1,0 +1,2107 @@
+{
+ "schema_version": "expanded_generalization_robustness_published_v1",
+ "protocol_id": "expanded-generalization-robustness-v1",
+ "outcome": "PASS",
+ "eligible": 93,
+ "missing": 27,
+ "variants": [
+  {
+   "variant_id": "15puzzle-name-compression-950002",
+   "family": "name-compression",
+   "domain": "15puzzle",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 12,
+    "best_first_add_w3": 12,
+    "best_first_width": 9,
+    "bfs": 33
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "15puzzle-name-compression-950005",
+   "family": "name-compression",
+   "domain": "15puzzle",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 19,
+    "best_first_add_w3": 19,
+    "best_first_width": 17,
+    "bfs": 135
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "15puzzle-object-renaming-950000",
+   "family": "object-renaming",
+   "domain": "15puzzle",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 12,
+    "best_first_add_w3": 12,
+    "best_first_width": 9,
+    "bfs": 33
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "15puzzle-object-renaming-950003",
+   "family": "object-renaming",
+   "domain": "15puzzle",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 19,
+    "best_first_add_w3": 19,
+    "best_first_width": 17,
+    "bfs": 135
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "15puzzle-render-restyle-950001",
+   "family": "render-restyle",
+   "domain": "15puzzle",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 12,
+    "best_first_add_w3": 12,
+    "best_first_width": 9,
+    "bfs": 33
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "15puzzle-render-restyle-950004",
+   "family": "render-restyle",
+   "domain": "15puzzle",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 19,
+    "best_first_add_w3": 19,
+    "best_first_width": 17,
+    "bfs": 135
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "15puzzle-scale-up-930000",
+   "family": "scale-up",
+   "domain": "15puzzle",
+   "eligible": false,
+   "reason": "exact_reference_failed:bfs:expansion_budget_exhausted",
+   "audit_absence_reason": "exact_reference_failed:bfs:expansion_budget_exhausted"
+  },
+  {
+   "variant_id": "15puzzle-scale-up-930001",
+   "family": "scale-up",
+   "domain": "15puzzle",
+   "eligible": false,
+   "reason": "exact_reference_failed:bfs:expansion_budget_exhausted",
+   "audit_absence_reason": "exact_reference_failed:bfs:expansion_budget_exhausted"
+  },
+  {
+   "variant_id": "15puzzle-shifted-init-940000",
+   "family": "shifted-init",
+   "domain": "15puzzle",
+   "eligible": false,
+   "reason": "exact_reference_failed:bfs:expansion_budget_exhausted",
+   "audit_absence_reason": "exact_reference_failed:bfs:expansion_budget_exhausted"
+  },
+  {
+   "variant_id": "15puzzle-shifted-init-940001",
+   "family": "shifted-init",
+   "domain": "15puzzle",
+   "eligible": false,
+   "reason": "exact_reference_failed:bfs:expansion_budget_exhausted",
+   "audit_absence_reason": "exact_reference_failed:bfs:expansion_budget_exhausted"
+  },
+  {
+   "variant_id": "blocksworld-name-compression-950008",
+   "family": "name-compression",
+   "domain": "blocksworld",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 44,
+    "best_first_add_w3": 49,
+    "best_first_width": 124,
+    "bfs": 156
+   },
+   "measured_classifications": {
+    "multimodal-state": "lossy",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "blocksworld-name-compression-950011",
+   "family": "name-compression",
+   "domain": "blocksworld",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 18,
+    "best_first_add_w3": 18,
+    "best_first_width": 16,
+    "bfs": 143
+   },
+   "measured_classifications": {
+    "multimodal-state": "lossy",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "blocksworld-object-renaming-950006",
+   "family": "object-renaming",
+   "domain": "blocksworld",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 44,
+    "best_first_add_w3": 49,
+    "best_first_width": 124,
+    "bfs": 156
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "blocksworld-object-renaming-950009",
+   "family": "object-renaming",
+   "domain": "blocksworld",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 18,
+    "best_first_add_w3": 18,
+    "best_first_width": 16,
+    "bfs": 143
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "blocksworld-render-restyle-950007",
+   "family": "render-restyle",
+   "domain": "blocksworld",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 44,
+    "best_first_add_w3": 49,
+    "best_first_width": 124,
+    "bfs": 156
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "blocksworld-render-restyle-950010",
+   "family": "render-restyle",
+   "domain": "blocksworld",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 18,
+    "best_first_add_w3": 18,
+    "best_first_width": 16,
+    "bfs": 143
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "blocksworld-scale-up-930002",
+   "family": "scale-up",
+   "domain": "blocksworld",
+   "eligible": false,
+   "reason": "exact_reference_failed:bfs:expansion_budget_exhausted",
+   "audit_absence_reason": "exact_reference_failed:bfs:expansion_budget_exhausted"
+  },
+  {
+   "variant_id": "blocksworld-scale-up-930003",
+   "family": "scale-up",
+   "domain": "blocksworld",
+   "eligible": false,
+   "reason": "exact_reference_failed:bfs:expansion_budget_exhausted",
+   "audit_absence_reason": "exact_reference_failed:bfs:expansion_budget_exhausted"
+  },
+  {
+   "variant_id": "blocksworld-shifted-init-940002",
+   "family": "shifted-init",
+   "domain": "blocksworld",
+   "eligible": true,
+   "structural_disjoint": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 22,
+    "best_first_add_w3": 22,
+    "best_first_width": 74,
+    "bfs": 92
+   }
+  },
+  {
+   "variant_id": "blocksworld-shifted-init-940003",
+   "family": "shifted-init",
+   "domain": "blocksworld",
+   "eligible": false,
+   "reason": "exact_reference_failed:bfs:expansion_budget_exhausted",
+   "audit_absence_reason": "exact_reference_failed:bfs:expansion_budget_exhausted"
+  },
+  {
+   "variant_id": "depot-name-compression-950014",
+   "family": "name-compression",
+   "domain": "depot",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 17,
+    "best_first_add_w3": 17,
+    "best_first_width": 9,
+    "bfs": 10
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "depot-name-compression-950017",
+   "family": "name-compression",
+   "domain": "depot",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 23,
+    "best_first_add_w3": 23,
+    "best_first_width": 17,
+    "bfs": 18
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "depot-object-renaming-950012",
+   "family": "object-renaming",
+   "domain": "depot",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 17,
+    "best_first_add_w3": 17,
+    "best_first_width": 9,
+    "bfs": 10
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "depot-object-renaming-950015",
+   "family": "object-renaming",
+   "domain": "depot",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 23,
+    "best_first_add_w3": 23,
+    "best_first_width": 17,
+    "bfs": 18
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "depot-render-restyle-950013",
+   "family": "render-restyle",
+   "domain": "depot",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 17,
+    "best_first_add_w3": 17,
+    "best_first_width": 9,
+    "bfs": 10
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "depot-render-restyle-950016",
+   "family": "render-restyle",
+   "domain": "depot",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 23,
+    "best_first_add_w3": 23,
+    "best_first_width": 17,
+    "bfs": 18
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "depot-scale-up-930004",
+   "family": "scale-up",
+   "domain": "depot",
+   "eligible": false,
+   "reason": "exact_reference_failed:bfs:expansion_budget_exhausted",
+   "audit_absence_reason": "exact_reference_failed:bfs:expansion_budget_exhausted"
+  },
+  {
+   "variant_id": "depot-scale-up-930005",
+   "family": "scale-up",
+   "domain": "depot",
+   "eligible": true,
+   "structural_disjoint": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 76,
+    "best_first_add_w3": 67,
+    "best_first_width": 90,
+    "bfs": 136
+   }
+  },
+  {
+   "variant_id": "depot-shifted-init-940004",
+   "family": "shifted-init",
+   "domain": "depot",
+   "eligible": true,
+   "structural_disjoint": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 12,
+    "best_first_add_w3": 12,
+    "best_first_width": 10,
+    "bfs": 18
+   }
+  },
+  {
+   "variant_id": "depot-shifted-init-940005",
+   "family": "shifted-init",
+   "domain": "depot",
+   "eligible": true,
+   "structural_disjoint": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 51,
+    "best_first_add_w3": 51,
+    "best_first_width": 27,
+    "bfs": 59
+   }
+  },
+  {
+   "variant_id": "driverlog-name-compression-950020",
+   "family": "name-compression",
+   "domain": "driverlog",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 43,
+    "best_first_add_w3": 43,
+    "best_first_width": 68,
+    "bfs": 98
+   },
+   "measured_classifications": {
+    "multimodal-state": "lossy",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "driverlog-name-compression-950023",
+   "family": "name-compression",
+   "domain": "driverlog",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 29,
+    "best_first_add_w3": 29,
+    "best_first_width": 164,
+    "bfs": 94
+   },
+   "measured_classifications": {
+    "multimodal-state": "lossy",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "driverlog-object-renaming-950018",
+   "family": "object-renaming",
+   "domain": "driverlog",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 43,
+    "best_first_add_w3": 43,
+    "best_first_width": 68,
+    "bfs": 98
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "driverlog-object-renaming-950021",
+   "family": "object-renaming",
+   "domain": "driverlog",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 29,
+    "best_first_add_w3": 29,
+    "best_first_width": 164,
+    "bfs": 94
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "driverlog-render-restyle-950019",
+   "family": "render-restyle",
+   "domain": "driverlog",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 43,
+    "best_first_add_w3": 43,
+    "best_first_width": 68,
+    "bfs": 98
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "driverlog-render-restyle-950022",
+   "family": "render-restyle",
+   "domain": "driverlog",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 29,
+    "best_first_add_w3": 29,
+    "best_first_width": 164,
+    "bfs": 94
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "driverlog-scale-up-930006",
+   "family": "scale-up",
+   "domain": "driverlog",
+   "eligible": false,
+   "reason": "exact_reference_failed:bfs:expansion_budget_exhausted",
+   "audit_absence_reason": "exact_reference_failed:bfs:expansion_budget_exhausted"
+  },
+  {
+   "variant_id": "driverlog-scale-up-930007",
+   "family": "scale-up",
+   "domain": "driverlog",
+   "eligible": false,
+   "reason": "exact_reference_failed:bfs:expansion_budget_exhausted",
+   "audit_absence_reason": "exact_reference_failed:bfs:expansion_budget_exhausted"
+  },
+  {
+   "variant_id": "driverlog-shifted-init-940006",
+   "family": "shifted-init",
+   "domain": "driverlog",
+   "eligible": false,
+   "reason": "exact_reference_failed:bfs:expansion_budget_exhausted",
+   "audit_absence_reason": "exact_reference_failed:bfs:expansion_budget_exhausted"
+  },
+  {
+   "variant_id": "driverlog-shifted-init-940007",
+   "family": "shifted-init",
+   "domain": "driverlog",
+   "eligible": false,
+   "reason": "exact_reference_failed:bfs:expansion_budget_exhausted",
+   "audit_absence_reason": "exact_reference_failed:bfs:expansion_budget_exhausted"
+  },
+  {
+   "variant_id": "elevators-name-compression-950026",
+   "family": "name-compression",
+   "domain": "elevators",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 11,
+    "best_first_add_w3": 11,
+    "best_first_width": 7,
+    "bfs": 8
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "elevators-name-compression-950029",
+   "family": "name-compression",
+   "domain": "elevators",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 33,
+    "best_first_add_w3": 33,
+    "best_first_width": 31,
+    "bfs": 53
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "elevators-object-renaming-950024",
+   "family": "object-renaming",
+   "domain": "elevators",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 11,
+    "best_first_add_w3": 11,
+    "best_first_width": 7,
+    "bfs": 8
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "elevators-object-renaming-950027",
+   "family": "object-renaming",
+   "domain": "elevators",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 33,
+    "best_first_add_w3": 33,
+    "best_first_width": 31,
+    "bfs": 53
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "elevators-render-restyle-950025",
+   "family": "render-restyle",
+   "domain": "elevators",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 11,
+    "best_first_add_w3": 11,
+    "best_first_width": 7,
+    "bfs": 8
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "elevators-render-restyle-950028",
+   "family": "render-restyle",
+   "domain": "elevators",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 33,
+    "best_first_add_w3": 33,
+    "best_first_width": 31,
+    "bfs": 53
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "elevators-scale-up-930008",
+   "family": "scale-up",
+   "domain": "elevators",
+   "eligible": false,
+   "reason": "exact_reference_failed:bfs:expansion_budget_exhausted",
+   "audit_absence_reason": "exact_reference_failed:bfs:expansion_budget_exhausted"
+  },
+  {
+   "variant_id": "elevators-scale-up-930009",
+   "family": "scale-up",
+   "domain": "elevators",
+   "eligible": false,
+   "reason": "exact_reference_failed:bfs:expansion_budget_exhausted",
+   "audit_absence_reason": "exact_reference_failed:bfs:expansion_budget_exhausted"
+  },
+  {
+   "variant_id": "elevators-shifted-init-940008",
+   "family": "shifted-init",
+   "domain": "elevators",
+   "eligible": true,
+   "structural_disjoint": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 26,
+    "best_first_add_w3": 26,
+    "best_first_width": 26,
+    "bfs": 38
+   }
+  },
+  {
+   "variant_id": "elevators-shifted-init-940009",
+   "family": "shifted-init",
+   "domain": "elevators",
+   "eligible": true,
+   "structural_disjoint": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 9,
+    "best_first_add_w3": 9,
+    "best_first_width": 5,
+    "bfs": 6
+   }
+  },
+  {
+   "variant_id": "ferry-name-compression-950032",
+   "family": "name-compression",
+   "domain": "ferry",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 11,
+    "best_first_add_w3": 11,
+    "best_first_width": 10,
+    "bfs": 10
+   },
+   "measured_classifications": {
+    "multimodal-state": "lossy",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "ferry-name-compression-950035",
+   "family": "name-compression",
+   "domain": "ferry",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 25,
+    "best_first_add_w3": 25,
+    "best_first_width": 24,
+    "bfs": 48
+   },
+   "measured_classifications": {
+    "multimodal-state": "lossy",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "ferry-object-renaming-950030",
+   "family": "object-renaming",
+   "domain": "ferry",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 11,
+    "best_first_add_w3": 11,
+    "best_first_width": 10,
+    "bfs": 10
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "ferry-object-renaming-950033",
+   "family": "object-renaming",
+   "domain": "ferry",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 25,
+    "best_first_add_w3": 25,
+    "best_first_width": 24,
+    "bfs": 48
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "ferry-render-restyle-950031",
+   "family": "render-restyle",
+   "domain": "ferry",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 11,
+    "best_first_add_w3": 11,
+    "best_first_width": 10,
+    "bfs": 10
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "ferry-render-restyle-950034",
+   "family": "render-restyle",
+   "domain": "ferry",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 25,
+    "best_first_add_w3": 25,
+    "best_first_width": 24,
+    "bfs": 48
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "ferry-scale-up-930010",
+   "family": "scale-up",
+   "domain": "ferry",
+   "eligible": true,
+   "structural_disjoint": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 26,
+    "best_first_add_w3": 26,
+    "best_first_width": 35,
+    "bfs": 86
+   }
+  },
+  {
+   "variant_id": "ferry-scale-up-930011",
+   "family": "scale-up",
+   "domain": "ferry",
+   "eligible": true,
+   "structural_disjoint": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 13,
+    "best_first_add_w3": 13,
+    "best_first_width": 22,
+    "bfs": 28
+   }
+  },
+  {
+   "variant_id": "ferry-shifted-init-940010",
+   "family": "shifted-init",
+   "domain": "ferry",
+   "eligible": false,
+   "reason": "structural whole-instance overlap",
+   "audit_absence_reason": "structural whole-instance overlap"
+  },
+  {
+   "variant_id": "ferry-shifted-init-940011",
+   "family": "shifted-init",
+   "domain": "ferry",
+   "eligible": true,
+   "structural_disjoint": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 16,
+    "best_first_add_w3": 16,
+    "best_first_width": 17,
+    "bfs": 33
+   }
+  },
+  {
+   "variant_id": "grid-name-compression-950038",
+   "family": "name-compression",
+   "domain": "grid",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 23,
+    "best_first_add_w3": 23,
+    "best_first_width": 57,
+    "bfs": 75
+   },
+   "measured_classifications": {
+    "multimodal-state": "lossy",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "grid-name-compression-950041",
+   "family": "name-compression",
+   "domain": "grid",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 33,
+    "best_first_add_w3": 33,
+    "best_first_width": 100,
+    "bfs": 110
+   },
+   "measured_classifications": {
+    "multimodal-state": "lossy",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "grid-object-renaming-950036",
+   "family": "object-renaming",
+   "domain": "grid",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 23,
+    "best_first_add_w3": 23,
+    "best_first_width": 57,
+    "bfs": 75
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "grid-object-renaming-950039",
+   "family": "object-renaming",
+   "domain": "grid",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 33,
+    "best_first_add_w3": 33,
+    "best_first_width": 100,
+    "bfs": 110
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "grid-render-restyle-950037",
+   "family": "render-restyle",
+   "domain": "grid",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 23,
+    "best_first_add_w3": 23,
+    "best_first_width": 57,
+    "bfs": 75
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "grid-render-restyle-950040",
+   "family": "render-restyle",
+   "domain": "grid",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 33,
+    "best_first_add_w3": 33,
+    "best_first_width": 100,
+    "bfs": 110
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "grid-scale-up-930012",
+   "family": "scale-up",
+   "domain": "grid",
+   "eligible": true,
+   "structural_disjoint": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 41,
+    "best_first_add_w3": 41,
+    "best_first_width": 75,
+    "bfs": 160
+   }
+  },
+  {
+   "variant_id": "grid-scale-up-930013",
+   "family": "scale-up",
+   "domain": "grid",
+   "eligible": false,
+   "reason": "exact_reference_failed:bfs:expansion_budget_exhausted",
+   "audit_absence_reason": "exact_reference_failed:bfs:expansion_budget_exhausted"
+  },
+  {
+   "variant_id": "grid-shifted-init-940012",
+   "family": "shifted-init",
+   "domain": "grid",
+   "eligible": true,
+   "structural_disjoint": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 22,
+    "best_first_add_w3": 22,
+    "best_first_width": 101,
+    "bfs": 104
+   }
+  },
+  {
+   "variant_id": "grid-shifted-init-940013",
+   "family": "shifted-init",
+   "domain": "grid",
+   "eligible": true,
+   "structural_disjoint": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 35,
+    "best_first_add_w3": 35,
+    "best_first_width": 106,
+    "bfs": 120
+   }
+  },
+  {
+   "variant_id": "gripper-name-compression-950044",
+   "family": "name-compression",
+   "domain": "gripper",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 30,
+    "best_first_add_w3": 30,
+    "best_first_width": 37,
+    "bfs": 110
+   },
+   "measured_classifications": {
+    "multimodal-state": "lossy",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "gripper-name-compression-950047",
+   "family": "name-compression",
+   "domain": "gripper",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 42,
+    "best_first_add_w3": 42,
+    "best_first_width": 77,
+    "bfs": 182
+   },
+   "measured_classifications": {
+    "multimodal-state": "lossy",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "gripper-object-renaming-950042",
+   "family": "object-renaming",
+   "domain": "gripper",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 30,
+    "best_first_add_w3": 30,
+    "best_first_width": 37,
+    "bfs": 110
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "gripper-object-renaming-950045",
+   "family": "object-renaming",
+   "domain": "gripper",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 42,
+    "best_first_add_w3": 42,
+    "best_first_width": 77,
+    "bfs": 182
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "gripper-render-restyle-950043",
+   "family": "render-restyle",
+   "domain": "gripper",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 30,
+    "best_first_add_w3": 30,
+    "best_first_width": 37,
+    "bfs": 110
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "gripper-render-restyle-950046",
+   "family": "render-restyle",
+   "domain": "gripper",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 42,
+    "best_first_add_w3": 42,
+    "best_first_width": 77,
+    "bfs": 182
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "gripper-scale-up-930014",
+   "family": "scale-up",
+   "domain": "gripper",
+   "eligible": false,
+   "reason": "exact_reference_failed:bfs:expansion_budget_exhausted",
+   "audit_absence_reason": "exact_reference_failed:bfs:expansion_budget_exhausted"
+  },
+  {
+   "variant_id": "gripper-scale-up-930015",
+   "family": "scale-up",
+   "domain": "gripper",
+   "eligible": false,
+   "reason": "exact_reference_failed:bfs:expansion_budget_exhausted",
+   "audit_absence_reason": "exact_reference_failed:bfs:expansion_budget_exhausted"
+  },
+  {
+   "variant_id": "gripper-shifted-init-940014",
+   "family": "shifted-init",
+   "domain": "gripper",
+   "eligible": true,
+   "structural_disjoint": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 6,
+    "best_first_add_w3": 6,
+    "best_first_width": 1,
+    "bfs": 5
+   }
+  },
+  {
+   "variant_id": "gripper-shifted-init-940015",
+   "family": "shifted-init",
+   "domain": "gripper",
+   "eligible": false,
+   "reason": "exact_reference_failed:bfs:expansion_budget_exhausted",
+   "audit_absence_reason": "exact_reference_failed:bfs:expansion_budget_exhausted"
+  },
+  {
+   "variant_id": "logistics-name-compression-950050",
+   "family": "name-compression",
+   "domain": "logistics",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 21,
+    "best_first_add_w3": 21,
+    "best_first_width": 8,
+    "bfs": 8
+   },
+   "measured_classifications": {
+    "multimodal-state": "lossy",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "logistics-name-compression-950053",
+   "family": "name-compression",
+   "domain": "logistics",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 33,
+    "best_first_add_w3": 33,
+    "best_first_width": 18,
+    "bfs": 20
+   },
+   "measured_classifications": {
+    "multimodal-state": "lossy",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "logistics-object-renaming-950048",
+   "family": "object-renaming",
+   "domain": "logistics",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 21,
+    "best_first_add_w3": 21,
+    "best_first_width": 8,
+    "bfs": 8
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "logistics-object-renaming-950051",
+   "family": "object-renaming",
+   "domain": "logistics",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 33,
+    "best_first_add_w3": 33,
+    "best_first_width": 18,
+    "bfs": 20
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "logistics-render-restyle-950049",
+   "family": "render-restyle",
+   "domain": "logistics",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 21,
+    "best_first_add_w3": 21,
+    "best_first_width": 8,
+    "bfs": 8
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "logistics-render-restyle-950052",
+   "family": "render-restyle",
+   "domain": "logistics",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 33,
+    "best_first_add_w3": 33,
+    "best_first_width": 18,
+    "bfs": 20
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "logistics-scale-up-930016",
+   "family": "scale-up",
+   "domain": "logistics",
+   "eligible": true,
+   "structural_disjoint": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 43,
+    "best_first_add_w3": 43,
+    "best_first_width": 32,
+    "bfs": 49
+   }
+  },
+  {
+   "variant_id": "logistics-scale-up-930017",
+   "family": "scale-up",
+   "domain": "logistics",
+   "eligible": true,
+   "structural_disjoint": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 114,
+    "best_first_add_w3": 114,
+    "best_first_width": 81,
+    "bfs": 118
+   }
+  },
+  {
+   "variant_id": "logistics-shifted-init-940016",
+   "family": "shifted-init",
+   "domain": "logistics",
+   "eligible": true,
+   "structural_disjoint": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 69,
+    "best_first_add_w3": 69,
+    "best_first_width": 47,
+    "bfs": 56
+   }
+  },
+  {
+   "variant_id": "logistics-shifted-init-940017",
+   "family": "shifted-init",
+   "domain": "logistics",
+   "eligible": true,
+   "structural_disjoint": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 36,
+    "best_first_add_w3": 36,
+    "best_first_width": 36,
+    "bfs": 44
+   }
+  },
+  {
+   "variant_id": "storage-name-compression-950056",
+   "family": "name-compression",
+   "domain": "storage",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 9,
+    "best_first_add_w3": 9,
+    "best_first_width": 7,
+    "bfs": 10
+   },
+   "measured_classifications": {
+    "multimodal-state": "lossy",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "storage-name-compression-950059",
+   "family": "name-compression",
+   "domain": "storage",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 62,
+    "best_first_add_w3": 51,
+    "best_first_width": 65,
+    "bfs": 160
+   },
+   "measured_classifications": {
+    "multimodal-state": "lossy",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "storage-object-renaming-950054",
+   "family": "object-renaming",
+   "domain": "storage",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 9,
+    "best_first_add_w3": 9,
+    "best_first_width": 7,
+    "bfs": 10
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "storage-object-renaming-950057",
+   "family": "object-renaming",
+   "domain": "storage",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 62,
+    "best_first_add_w3": 51,
+    "best_first_width": 65,
+    "bfs": 160
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "storage-render-restyle-950055",
+   "family": "render-restyle",
+   "domain": "storage",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 9,
+    "best_first_add_w3": 9,
+    "best_first_width": 7,
+    "bfs": 10
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "storage-render-restyle-950058",
+   "family": "render-restyle",
+   "domain": "storage",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 62,
+    "best_first_add_w3": 51,
+    "best_first_width": 65,
+    "bfs": 160
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "storage-scale-up-930018",
+   "family": "scale-up",
+   "domain": "storage",
+   "eligible": false,
+   "reason": "exact_reference_failed:bfs:expansion_budget_exhausted",
+   "audit_absence_reason": "exact_reference_failed:bfs:expansion_budget_exhausted"
+  },
+  {
+   "variant_id": "storage-scale-up-930019",
+   "family": "scale-up",
+   "domain": "storage",
+   "eligible": false,
+   "reason": "exact_reference_failed:bfs:expansion_budget_exhausted",
+   "audit_absence_reason": "exact_reference_failed:bfs:expansion_budget_exhausted"
+  },
+  {
+   "variant_id": "storage-shifted-init-940018",
+   "family": "shifted-init",
+   "domain": "storage",
+   "eligible": true,
+   "structural_disjoint": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 60,
+    "best_first_add_w3": 60,
+    "best_first_width": 65,
+    "bfs": 163
+   }
+  },
+  {
+   "variant_id": "storage-shifted-init-940019",
+   "family": "shifted-init",
+   "domain": "storage",
+   "eligible": true,
+   "structural_disjoint": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 6,
+    "best_first_add_w3": 6,
+    "best_first_width": 3,
+    "bfs": 10
+   }
+  },
+  {
+   "variant_id": "towers_of_hanoi-name-compression-950062",
+   "family": "name-compression",
+   "domain": "towers_of_hanoi",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 15,
+    "best_first_add_w3": 15,
+    "best_first_width": 9,
+    "bfs": 27
+   },
+   "measured_classifications": {
+    "multimodal-state": "lossy",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "towers_of_hanoi-name-compression-950065",
+   "family": "name-compression",
+   "domain": "towers_of_hanoi",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 71,
+    "best_first_add_w3": 98,
+    "best_first_width": 67,
+    "bfs": 104
+   },
+   "measured_classifications": {
+    "multimodal-state": "lossy",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "towers_of_hanoi-object-renaming-950060",
+   "family": "object-renaming",
+   "domain": "towers_of_hanoi",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 15,
+    "best_first_add_w3": 15,
+    "best_first_width": 9,
+    "bfs": 27
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "towers_of_hanoi-object-renaming-950063",
+   "family": "object-renaming",
+   "domain": "towers_of_hanoi",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 71,
+    "best_first_add_w3": 98,
+    "best_first_width": 67,
+    "bfs": 104
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "towers_of_hanoi-render-restyle-950061",
+   "family": "render-restyle",
+   "domain": "towers_of_hanoi",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 15,
+    "best_first_add_w3": 15,
+    "best_first_width": 9,
+    "bfs": 27
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "towers_of_hanoi-render-restyle-950064",
+   "family": "render-restyle",
+   "domain": "towers_of_hanoi",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 71,
+    "best_first_add_w3": 98,
+    "best_first_width": 67,
+    "bfs": 104
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "towers_of_hanoi-scale-up-930020",
+   "family": "scale-up",
+   "domain": "towers_of_hanoi",
+   "eligible": false,
+   "reason": "exact_reference_failed:bfs:expansion_budget_exhausted",
+   "audit_absence_reason": "exact_reference_failed:bfs:expansion_budget_exhausted"
+  },
+  {
+   "variant_id": "towers_of_hanoi-scale-up-930021",
+   "family": "scale-up",
+   "domain": "towers_of_hanoi",
+   "eligible": false,
+   "reason": "exact_reference_failed:bfs:expansion_budget_exhausted",
+   "audit_absence_reason": "exact_reference_failed:bfs:expansion_budget_exhausted"
+  },
+  {
+   "variant_id": "towers_of_hanoi-shifted-init-940020",
+   "family": "shifted-init",
+   "domain": "towers_of_hanoi",
+   "eligible": true,
+   "structural_disjoint": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 30,
+    "best_first_add_w3": 30,
+    "best_first_width": 17,
+    "bfs": 69
+   }
+  },
+  {
+   "variant_id": "towers_of_hanoi-shifted-init-940021",
+   "family": "shifted-init",
+   "domain": "towers_of_hanoi",
+   "eligible": true,
+   "structural_disjoint": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 24,
+    "best_first_add_w3": 24,
+    "best_first_width": 15,
+    "bfs": 47
+   }
+  },
+  {
+   "variant_id": "visitall-name-compression-950068",
+   "family": "name-compression",
+   "domain": "visitall",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 16,
+    "best_first_add_w3": 16,
+    "best_first_width": 18,
+    "bfs": 132
+   },
+   "measured_classifications": {
+    "multimodal-state": "lossy",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "visitall-name-compression-950071",
+   "family": "name-compression",
+   "domain": "visitall",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 33,
+    "best_first_add_w3": 33,
+    "best_first_width": 15,
+    "bfs": 225
+   },
+   "measured_classifications": {
+    "multimodal-state": "lossy",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "lossy",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "visitall-object-renaming-950066",
+   "family": "object-renaming",
+   "domain": "visitall",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 16,
+    "best_first_add_w3": 16,
+    "best_first_width": 18,
+    "bfs": 132
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "visitall-object-renaming-950069",
+   "family": "object-renaming",
+   "domain": "visitall",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 33,
+    "best_first_add_w3": 33,
+    "best_first_width": 15,
+    "bfs": 225
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "visitall-render-restyle-950067",
+   "family": "render-restyle",
+   "domain": "visitall",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 16,
+    "best_first_add_w3": 16,
+    "best_first_width": 18,
+    "bfs": 132
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "visitall-render-restyle-950070",
+   "family": "render-restyle",
+   "domain": "visitall",
+   "eligible": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 33,
+    "best_first_add_w3": 33,
+    "best_first_width": 15,
+    "bfs": 225
+   },
+   "measured_classifications": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   },
+   "classification_priors": {
+    "multimodal-state": "semantics-preserving",
+    "text-state": "semantics-preserving",
+    "visual-state": "semantics-preserving"
+   }
+  },
+  {
+   "variant_id": "visitall-scale-up-930022",
+   "family": "scale-up",
+   "domain": "visitall",
+   "eligible": false,
+   "reason": "exact_reference_failed:bfs:expansion_budget_exhausted",
+   "audit_absence_reason": "exact_reference_failed:bfs:expansion_budget_exhausted"
+  },
+  {
+   "variant_id": "visitall-scale-up-930023",
+   "family": "scale-up",
+   "domain": "visitall",
+   "eligible": false,
+   "reason": "exact_reference_failed:bfs:expansion_budget_exhausted",
+   "audit_absence_reason": "exact_reference_failed:bfs:expansion_budget_exhausted"
+  },
+  {
+   "variant_id": "visitall-shifted-init-940022",
+   "family": "shifted-init",
+   "domain": "visitall",
+   "eligible": false,
+   "reason": "initial_goal",
+   "structural_disjoint": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 0,
+    "best_first_add_w3": 0,
+    "best_first_width": 0,
+    "bfs": 0
+   }
+  },
+  {
+   "variant_id": "visitall-shifted-init-940023",
+   "family": "shifted-init",
+   "domain": "visitall",
+   "eligible": false,
+   "reason": "initial_goal",
+   "structural_disjoint": true,
+   "reference_decisions": {
+    "best_first_add_greedy": 0,
+    "best_first_add_w3": 0,
+    "best_first_width": 0,
+    "bfs": 0
+   }
+  }
+ ],
+ "evidence_sha256": {
+  "outputs/expanded-study/v1/generalization-robustness/qualification.json": "cb5badf72543e351fff2a822b0cf4e2fc3b754405f7ef1d1369118891921118f",
+  "outputs/expanded-study/v1/generalization-robustness/suite.json": "a20c30cc7b57a784e955626b07e4eea28a956964c300b6404467d956e092a742",
+  "outputs/expanded-study/v1/generalization-robustness/probe.json": "a198d8cefe5cb28b70a433fed64927972f179451e6c17cd54d37e10315ece18e"
+ },
+ "probe_summary": {
+  "outcome": "PASS",
+  "timing_calls": 180,
+  "unique_inputs": 60,
+  "gpu_hours": 0.6272556656599044,
+  "worker_overhead_seconds": 112.25402885861695
+ },
+ "full_artifacts_note": "Full suite/qualification/probe artifacts are preserved under outputs/expanded-study/v1/generalization-robustness/ (local outputs convention); this file is the compact published evidence with per-variant outcomes and sha256 references."
+}

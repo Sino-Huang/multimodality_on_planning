@@ -27,6 +27,7 @@ from .task_isomorphism import same_instance
 PROTOCOL = Path("configs/experiments/expanded-study/generalization-robustness-protocol.json")
 SEMANTICS_PRESERVING = "semantics-preserving"
 LOSSY = "lossy"
+_RENDER_RELATION_EPSILON = 1e-9
 _FROZEN_SECTION_SHA256 = {
     "fixed_adapters": "fab9b9df125541e5e347454f94e38917c28bbad1a7ef0689fe4e214dbf9c074a",
     "structural_variant_families": "44f92d2e853da7329ed56d4d82ea11fb7cce3be20b2cf9ae6f6f016527618824",
@@ -315,7 +316,7 @@ def _scene_information(task: Mapping[str, Any]) -> dict[str, Any]:
     if not stages:
         raise ValueError("visual audit VFG has no rendered stage")
     sprites = stages[0].get("visualSprites") or []
-    source = manifest.get("source", {})
+    source = manifest.get("audit_source", manifest.get("source", {}))
     declared_types = {
         name: kind for kind, names in source.get("objects_by_type", {}).items() for name in names
     }
@@ -367,9 +368,9 @@ def _scene_information(task: Mapping[str, Any]) -> dict[str, Any]:
                 continue
             right_x = (float(right["minX"]) + float(right["maxX"])) / 2
             right_y = (float(right["minY"]) + float(right["maxY"])) / 2
-            if left_x < right_x:
+            if left_x + _RENDER_RELATION_EPSILON < right_x:
                 relations.add(f"left_of({left['name']},{right['name']})")
-            if left_y < right_y:
+            if left_y + _RENDER_RELATION_EPSILON < right_y:
                 relations.add(f"below({left['name']},{right['name']})")
     return {
         "object_identities": identities,
@@ -526,8 +527,12 @@ def classify_information_availability(
     source_items = _information_items(source_information)
     mapped_perturbed = _mapped_value(perturbed_information, reverse)
     perturbed_items = _information_items(mapped_perturbed)
-    unavailable = set(mapped_perturbed.get("unrecoverable_information", []))
-    missing = sorted((source_items - perturbed_items) | unavailable)
+    source_unavailable = set(source_information.get("unrecoverable_information", []))
+    perturbed_unavailable = set(mapped_perturbed.get("unrecoverable_information", []))
+    newly_unavailable = perturbed_unavailable - source_unavailable
+    missing = sorted((source_items - perturbed_items) | newly_unavailable)
+    source_injective = source_information.get("type_style_injective")
+    perturbed_injective = perturbed_information.get("type_style_injective")
     result = {
         "family": family,
         "modality": modality,
@@ -535,11 +540,17 @@ def classify_information_availability(
         "missing_information": missing,
         "source_information_items": len(source_items),
         "recoverable_information_items": len(source_items & perturbed_items),
+        "source_visual_type_style_injective": source_injective,
+        "perturbed_visual_type_style_injective": perturbed_injective,
     }
     if modality == "multimodal-state":
+        source_injective = source_information["visual_type_style_injective"]
+        perturbed_injective = perturbed_information["visual_type_style_injective"]
         result["visual_type_contribution_classification"] = (
-            SEMANTICS_PRESERVING if perturbed_information["visual_type_style_injective"] else LOSSY
+            LOSSY if source_injective and not perturbed_injective else SEMANTICS_PRESERVING
         )
+        result["source_visual_type_style_injective"] = source_injective
+        result["perturbed_visual_type_style_injective"] = perturbed_injective
     return result
 
 

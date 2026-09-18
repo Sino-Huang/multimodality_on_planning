@@ -2,6 +2,7 @@
 
 import copy
 import json
+from typing import Any
 
 from .pddl_state import GroundedAction, PDDLStateAuthority
 from .scene_assets import read_json
@@ -28,13 +29,23 @@ def apply_render_overrides(payload, overrides=None):
     ):
         raise ValueError("render override layout_offset must contain two bounded numbers")
     shifted = copy.deepcopy(payload)
-    dx, dy = map(float, offset)
+    requested_dx, requested_dy = map(float, offset)
     for stage in shifted.get("visualStages", []):
-        for sprite in stage.get("visualSprites", []):
+        sprites = stage.get("visualSprites", [])
+        if not sprites:
+            continue
+        dx = min(
+            max(requested_dx, max(-float(sprite["minX"]) for sprite in sprites)),
+            min(1.0 - float(sprite["maxX"]) for sprite in sprites),
+        )
+        dy = min(
+            max(requested_dy, max(-float(sprite["minY"]) for sprite in sprites)),
+            min(1.0 - float(sprite["maxY"]) for sprite in sprites),
+        )
+        for sprite in sprites:
             for lower, upper, delta in (("minX", "maxX", dx), ("minY", "maxY", dy)):
                 minimum, maximum = float(sprite[lower]), float(sprite[upper])
-                bounded = min(max(delta, -minimum), 1.0 - maximum)
-                sprite[lower], sprite[upper] = minimum + bounded, maximum + bounded
+                sprite[lower], sprite[upper] = minimum + delta, maximum + delta
     return shifted, {"canvas_size": canvas_size}
 
 
@@ -63,7 +74,7 @@ class ReferenceStateCatalog:
 
     def __init__(self, authority):
         self.authority = authority
-        self.states = [
+        self.states: list[dict[str, Any]] = [
             dict(
                 index=0,
                 atoms=list(authority.initial_state.atoms),
@@ -102,6 +113,21 @@ def reference_catalog(root, row, reference_paths, study_id):
     decisions = []
     for algorithm, path in reference_paths.items():
         reference = read_json(root / path)
+        if not reference["events"]:
+            expected = {
+                "algorithm_invariants_hold": True,
+                "decision_count": 0,
+                "expansion_count": 0,
+                "goal_reached": True,
+                "invalid_operation_count": 0,
+                "invalid_operation_rate": 0.0,
+                "invariant_valid_success": True,
+                "model_call_limit": 0,
+                "termination_reason": "goal_reached",
+            }
+            if not authority.is_goal(authority.initial_state) or reference["result"] != expected:
+                raise ValueError("zero-decision reference differs during independent state replay")
+            continue
         session = VisualSession(root, row, algorithm, "exact_reference", 17, root, study_id, views=views)
         for index, event in enumerate(reference["events"]):
             request = session.next_request()

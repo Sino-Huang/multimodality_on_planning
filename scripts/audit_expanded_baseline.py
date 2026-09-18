@@ -2,22 +2,34 @@
 """Independently replay expanded-baseline episodes and report complete coverage or missingness."""
 
 import argparse
-from collections import Counter, defaultdict
 import os
-from pathlib import Path
 import sys
-import time
+from collections import Counter, defaultdict
+from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from examples.planning_benchmark_slice.expanded_baseline import (  # noqa: E402
+from examples.planning_benchmark_slice.expanded_baseline import (
     assigned_bindings,
     binding_paths,
     bindings,
     independently_replay,
     validate_protocol,
 )
-from examples.planning_benchmark_slice.expanded_scheduler import ROOT, read, write  # noqa: E402
-from examples.planning_benchmark_slice.scene_assets import read_json  # noqa: E402
+from examples.planning_benchmark_slice.expanded_scheduler import ROOT, read, write
+from examples.planning_benchmark_slice.scene_assets import read_json
+
+PUBLISHED_EVALUATION = ROOT / "docs/experiments/expanded-study/baseline-evaluation.json"
+PUBLISHED_REPLAY = ROOT / "docs/experiments/expanded-study/baseline-independent-replay.json"
+
+
+def validate_published_reports(evaluation, replay, evaluation_path=PUBLISHED_EVALUATION, replay_path=PUBLISHED_REPLAY):
+    """Validate immutable Goal-3 evidence without refreshing timestamps or files."""
+
+    published_evaluation = read(evaluation_path)
+    published_replay = read(replay_path)
+    candidate_evaluation = {**evaluation, "finished": published_evaluation.get("finished")}
+    if candidate_evaluation != published_evaluation or replay != published_replay:
+        raise ValueError("expanded baseline replay differs from published Goal-3 evidence")
 
 
 def load_context(config):
@@ -78,15 +90,19 @@ def audit_subset(protocol, panel, tasks, selected, endpoint):
 def main(argv=None):
     parser = argparse.ArgumentParser(__doc__)
     parser.add_argument("stage", choices=("worker", "final", "hook"))
-    parser.add_argument("--config", type=Path, default=ROOT / "configs/experiments/expanded-study/baseline-protocol.json")
+    parser.add_argument(
+        "--config",
+        type=Path,
+        default=ROOT / "configs/experiments/expanded-study/baseline-protocol.json",
+    )
     parser.add_argument("--worker", type=int)
     parser.add_argument("--kind", choices=("controls", "models"))
     args = parser.parse_args(argv)
     protocol, panel, tasks = load_context(args.config)
     if args.stage == "hook":
         terminal = read(os.environ["EXPANDED_TERMINAL_PATH"])
-        report = read(ROOT / "docs/experiments/expanded-study/baseline-evaluation.json")
-        replay = read(ROOT / "docs/experiments/expanded-study/baseline-independent-replay.json")
+        report = read(PUBLISHED_EVALUATION)
+        replay = read(PUBLISHED_REPLAY)
         if terminal["status"] != "succeeded" or report["outcome"] != "PASS" or replay["outcome"] != "PASS":
             raise RuntimeError("expanded baseline final audit did not prove complete coverage")
         print("PASS: expanded baseline final completion hook")
@@ -167,7 +183,6 @@ def main(argv=None):
         "expanded_baseline_gpu_hours_cumulative": spent,
         "branch_cap_gpu_hours": ledger["allocations_gpu_hours"]["expanded_baseline"],
         "worker_attempts": attempts,
-        "finished": time.time(),
     }
     replay = {
         "outcome": "PASS",
@@ -178,8 +193,7 @@ def main(argv=None):
         "replay_used_read_only_persisted_views": True,
         "missing_bindings": [],
     }
-    write(ROOT / "docs/experiments/expanded-study/baseline-evaluation.json", evaluation)
-    write(ROOT / "docs/experiments/expanded-study/baseline-independent-replay.json", replay)
+    validate_published_reports(evaluation, replay)
     write(os.environ["EXPANDED_PROGRESS_PATH"], {"completed": len(verified), "total": len(all_bindings)})
     print(f"PASS: independently replayed all {len(verified)} expanded baseline bindings")
     return 0

@@ -333,6 +333,23 @@ class VisualSession:
         self.row, self.algorithm, self.arm, self.seed, self.views = row, algorithm, arm, seed, views
         domain, problem, _ = load_scene_task(root, row)
         self.authority = PDDLStateAuthority.from_pddl(domain, problem)
+        semantic_order = row.get("semantic_object_order", {})
+        if semantic_order:
+            inverse = {target: source for source, target in semantic_order.items()}
+            applicable_actions = self.authority.applicable_actions
+
+            def source_ordered_actions(state):
+                return tuple(
+                    sorted(
+                        applicable_actions(state),
+                        key=lambda action: (
+                            action.name,
+                            tuple(inverse.get(argument, argument) for argument in action.args),
+                        ),
+                    )
+                )
+
+            self.authority.applicable_actions = source_ordered_actions
         self.events = []
         self.random = random.Random(seed)
         cost = row["reference_costs"][algorithm]

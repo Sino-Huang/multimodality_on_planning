@@ -26,7 +26,11 @@ from examples.planning_benchmark_slice.expanded_generalization import (
     validate_protocol,
     view_information,
 )
-from examples.planning_benchmark_slice.expanded_views import ExpandedTaskViews, render_unlabelled_vfg
+from examples.planning_benchmark_slice.expanded_views import (
+    ExpandedTaskViews,
+    apply_render_overrides,
+    render_unlabelled_vfg,
+)
 from examples.planning_benchmark_slice.matched_tasks import task_semantics
 from examples.planning_benchmark_slice.pddl_state import PDDLStateAuthority
 from examples.planning_benchmark_slice.task_isomorphism import same_instance
@@ -233,7 +237,7 @@ def test_name_compression_materializes_strip_and_classifies_per_modality(tmp_pat
     assert multimodal["visual_type_contribution_classification"] == SEMANTICS_PRESERVING
 
 
-def test_visual_type_recovery_is_lossy_when_item_and_place_share_one_rectangle_style():
+def test_visual_type_recovery_is_differential_when_source_and_target_share_noninjective_styles():
     source = add_inline_visual_assets(task(), injective_types=False)
     renamed, semantic_map = derive_perturbed_task(source, "object-renaming", 950778)
     source_visual = view_information(source, "visual-state")
@@ -241,13 +245,15 @@ def test_visual_type_recovery_is_lossy_when_item_and_place_share_one_rectangle_s
     assert source_visual["object_types"] == {}
     audit = audit_perturbation(source, renamed, "object-renaming", semantic_map, "visual-state")
     assert audit["expected_classification_prior"] == SEMANTICS_PRESERVING
-    assert audit["measured_classification"] == LOSSY
+    assert audit["measured_classification"] == SEMANTICS_PRESERVING
     assert all(
         style[0] == "shape:rectangle"
         for styles in source_visual["rendered_type_styles"].values()
         for style in styles
     )
-    assert any(item.startswith("object_types:") for item in audit["information_availability"]["missing_information"])
+    assert audit["information_availability"]["missing_information"] == []
+    assert audit["information_availability"]["source_visual_type_style_injective"] is False
+    assert audit["information_availability"]["perturbed_visual_type_style_injective"] is False
 
 
 def test_visual_type_recovery_is_preserving_for_injective_rendered_styles():
@@ -263,6 +269,34 @@ def test_visual_type_recovery_is_preserving_for_injective_rendered_styles():
     assert audit["measured_classification"] == SEMANTICS_PRESERVING
 
 
+def test_visual_type_recovery_is_lossy_only_when_perturbation_removes_source_injectivity():
+    source = {
+        "object_identities": ["box"],
+        "object_types": {"box": "item"},
+        "atoms": [],
+        "fluents": [],
+        "type_style_injective": True,
+        "unrecoverable_information": [],
+    }
+    perturbed = {
+        "object_identities": ["renamed"],
+        "object_types": {},
+        "atoms": [],
+        "fluents": [],
+        "type_style_injective": False,
+        "unrecoverable_information": ["object_types:renamed=item"],
+    }
+    result = classify_information_availability(
+        "object-renaming",
+        source,
+        perturbed,
+        {"perturbed_to_source": {"renamed": "box"}},
+        "visual-state",
+    )
+    assert result["classification"] == LOSSY
+    assert result["missing_information"] == ["object_types:box=item"]
+
+
 def test_distinct_prefab_ids_with_identical_rendered_content_are_not_injective():
     source = add_inline_visual_assets(task(), injective_types=True, identical_prefab_bytes=True)
     renamed, semantic_map = derive_perturbed_task(source, "object-renaming", 950780)
@@ -274,9 +308,9 @@ def test_distinct_prefab_ids_with_identical_rendered_content_are_not_injective()
     assert next(iter(styles)).startswith("prefab-sha256:")
     visual = audit_perturbation(source, renamed, "object-renaming", semantic_map, "visual-state")
     multimodal = audit_perturbation(source, renamed, "object-renaming", semantic_map, "multimodal-state")
-    assert visual["measured_classification"] == LOSSY
-    assert visual["information_availability"]["classification"] == LOSSY
-    assert multimodal["information_availability"]["visual_type_contribution_classification"] == LOSSY
+    assert visual["measured_classification"] == SEMANTICS_PRESERVING
+    assert visual["information_availability"]["classification"] == SEMANTICS_PRESERVING
+    assert multimodal["information_availability"]["visual_type_contribution_classification"] == SEMANTICS_PRESERVING
 
 
 def test_invalid_prefab_payloads_fail_closed_to_shared_rectangle_style():
@@ -355,6 +389,26 @@ def test_render_override_manifest_bridges_through_expanded_task_views(tmp_path, 
     assert view_information(source, "visual-state") == view_information(derived, "visual-state")
     with Image.open(tmp_path / "derived-a.png") as image:
         assert image.size == (160, 160)
+
+
+def test_render_layout_override_uses_one_bounded_translation_for_all_sprites():
+    payload = {
+        "visualStages": [
+            {
+                "visualSprites": [
+                    {"name": "left", "minX": 0.01, "maxX": 0.11, "minY": 0.2, "maxY": 0.3},
+                    {"name": "right", "minX": 0.5, "maxX": 0.6, "minY": 0.4, "maxY": 0.5},
+                ]
+            }
+        ]
+    }
+    shifted, settings = apply_render_overrides(payload, {"canvas_size": 160, "layout_offset": [-0.04, -0.04]})
+    left, right = shifted["visualStages"][0]["visualSprites"]
+    assert settings == {"canvas_size": 160}
+    assert left["minX"] == pytest.approx(0.0)
+    assert right["minX"] == pytest.approx(0.49)
+    assert right["minX"] - left["minX"] == pytest.approx(0.49)
+    assert right["minY"] - left["minY"] == pytest.approx(0.2)
 
 
 def test_protocol_all_rows_v2_rules_deltas_seeds_and_matrix_are_consistent():

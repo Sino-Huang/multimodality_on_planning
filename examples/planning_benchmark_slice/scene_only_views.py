@@ -46,12 +46,20 @@ def static_blocks(blocks):
     return [b for b in blocks["task-context"] if b["id"].partition(":")[0] not in {"initial", "initial_fluent"}]
 
 
+def _declared_scene_size(manifest):
+    value = manifest.get("render_overrides", {}).get("canvas_size", SCENE_SIZE)
+    if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+        raise ValueError("scene-only canvas override must be a positive integer")
+    return value
+
+
 def materialize_task(root, task_id, source_manifest, states, output, progress):
     """Rasterize selected retained vector stages, never ask a planner for scenes."""
     manifest = read_json(root / source_manifest)
     if manifest["task_id"] != task_id:
         raise ValueError("scene-only task/source binding differs")
     catalog = read_json(root / manifest["scene_catalog"])
+    scene_size = _declared_scene_size(manifest)
     wanted = set(states) | {0}
     initial = catalog["states"][0]
     if (
@@ -67,11 +75,16 @@ def materialize_task(root, task_id, source_manifest, states, output, progress):
         "version": RECIPE_ID,
         "source_manifest": source_manifest,
         "states": sorted(wanted),
-        "scene_size": SCENE_SIZE,
+        "scene_size": scene_size,
         "label_size": 0,
     }
-    if recipe_path.exists() and read_json(recipe_path) != recipe_binding:
-        raise ValueError("interrupted scene materialization uses a different recipe/binding")
+    if recipe_path.exists():
+        retained_recipe = read_json(recipe_path)
+        legacy_recipe = {**recipe_binding, "scene_size": SCENE_SIZE}
+        if retained_recipe == legacy_recipe and scene_size != SCENE_SIZE:
+            write_json(recipe_path, recipe_binding)
+        elif retained_recipe != recipe_binding:
+            raise ValueError("interrupted scene materialization uses a different recipe/binding")
     write_json(recipe_path, recipe_binding)
     context_paths = []
     for recipe in recipes:
@@ -99,13 +112,13 @@ def materialize_task(root, task_id, source_manifest, states, output, progress):
                     output,
                     stage,
                     stage,
-                    canvas_size=SCENE_SIZE,
+                    canvas_size=scene_size,
                     draw_labels=False,
                     object_names=objects,
                 )
                 (output / "frame_000.png").replace(path)
             with Image.open(path) as image:
-                if image.size != (SCENE_SIZE, SCENE_SIZE):
+                if image.size != (scene_size, scene_size):
                     raise ValueError("scene-only native resolution differs")
             scenes[str(state)] = str(path.relative_to(root))
             scene_bindings[str(state)] = {"vfg": binding["vfg"], "stage": stage}
