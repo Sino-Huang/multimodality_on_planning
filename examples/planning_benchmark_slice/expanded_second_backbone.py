@@ -936,6 +936,13 @@ def probe_stage(
         for example in isolation_examples:
             close_example(example)
 
+    # The fp32 policy is no longer needed; production training runs without it resident.
+    del policy
+    import gc
+
+    gc.collect()
+    torch.cuda.empty_cache()
+
     training_step = {}
     collator = VisualCollator(processor.processor, page_processor=processor)
     distributions = read_json(qualification_root(root, protocol) / "decision-token-distributions.json.gz")
@@ -987,7 +994,7 @@ def probe_stage(
                 total=len(protocol["modalities"]),
                 stage="training_step_cost",
             )
-    del training_model, policy
+    del training_model
     import gc
 
     gc.collect()
