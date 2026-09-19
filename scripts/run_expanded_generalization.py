@@ -272,11 +272,7 @@ def evaluate_worker(root: Path, worker: int, kind: str, endpoint: str) -> dict:
             policy.identity.update(memoize_identical_inputs=False)
         for binding in modality_bindings:
             condition = binding["condition"]
-            checkpoint = (
-                str(Path(adapters[binding["algorithm"]]).relative_to(root))
-                if condition == "learned_adapter"
-                else None
-            )
+            checkpoint = str(adapters[binding["algorithm"]]) if condition == "learned_adapter" else None
 
             def generate(example, condition=condition, algorithm=binding["algorithm"], policy=policy):
                 nonlocal model_calls
