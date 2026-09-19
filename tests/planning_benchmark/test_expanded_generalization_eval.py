@@ -1,7 +1,13 @@
 """CPU-only smoke tests for the generalization-robustness-v2 evaluation stage (#124)."""
 
+import json
+from pathlib import Path
+
+import pytest
+
 from examples.planning_benchmark_slice import expanded_generalization_eval as gen_eval
 from examples.planning_benchmark_slice.expanded_scheduler import ROOT
+from scripts import run_expanded_generalization as cli
 
 SMOKE_VARIANT = "gripper-shifted-init-940014"
 ENDPOINT = "http://127.0.0.1:18092"
@@ -212,3 +218,131 @@ def test_summarize_reports_aggregates_by_condition_family_modality():
     assert summary["by_condition"]["random_valid"]["decisions"] == 6
     assert summary["by_family"]["shifted-init"]["invariant_valid_success"] == 2
     assert summary["by_modality"]["text-state"]["expansions"] == 8
+
+
+def _mini_context(tmp_path, monkeypatch):
+    """One fabricated admitted variant with tmp episode outputs and a patched context."""
+
+    protocol = gen_eval.load_protocol_v2(ROOT)
+    protocol["root"] = "/"
+    protocol["output_root"] = str(tmp_path / "audit-out")
+    admission = {"membership_sha256": protocol["membership_rule"]["membership_sha256"]}
+    task = {"variant_id": "tiny-scale-up-930000", "family": "scale-up", "task_index": 0}
+    rows = gen_eval.bindings([task], protocol)
+    monkeypatch.setattr(cli, "_evaluation_context", lambda root: (protocol, admission, [task], rows))
+    return protocol, admission, task, rows
+
+
+def _worker_audit_fixture(tmp_path, monkeypatch, *, worker=0, kind="models", completed=None, skip_episode=False):
+    protocol, _, _, rows = _mini_context(tmp_path, monkeypatch)
+    selected = gen_eval.assigned_bindings(rows, worker, kind)
+    attempt = tmp_path / f"generalization-v2-evaluate-{kind}-{worker}" / "1"
+    attempt.mkdir(parents=True)
+    (attempt / "terminal.json").write_text(json.dumps({"status": "succeeded"}))
+    if completed is None:
+        completed = len(selected)
+    (attempt / "worker-result.json").write_text(
+        json.dumps(
+            {
+                "schema_version": gen_eval.WORKER_SCHEMA,
+                "outcome": "PASS",
+                "protocol_id": protocol["protocol_id"],
+                "worker": worker,
+                "kind": kind,
+                "completed": completed,
+            }
+        )
+    )
+    for position, binding in enumerate(selected):
+        episode, _, _ = gen_eval.binding_paths(ROOT, protocol, binding)
+        episode.parent.mkdir(parents=True, exist_ok=True)
+        if not (skip_episode and position == len(selected) - 1):
+            episode.touch()
+    monkeypatch.setenv("EXPANDED_TERMINAL_PATH", str(attempt / "terminal.json"))
+    return selected
+
+
+def test_audit_evaluate_worker_passes_for_complete_attempt(tmp_path, monkeypatch, capsys):
+    selected = _worker_audit_fixture(tmp_path, monkeypatch)
+    summary = cli.audit_evaluate_worker(ROOT, 0, "models")
+    assert summary["completed"] == len(selected)
+    output = capsys.readouterr().out
+    assert "PASS" in output
+    assert f"completed {len(selected)}/{len(selected)}" in output
+
+
+def test_audit_evaluate_worker_fails_on_count_mismatch(tmp_path, monkeypatch):
+    _worker_audit_fixture(tmp_path, monkeypatch, completed=0)
+    with pytest.raises(ValueError, match="completed count differs"):
+        cli.audit_evaluate_worker(ROOT, 0, "models")
+
+
+def test_audit_evaluate_worker_fails_on_missing_episode_file(tmp_path, monkeypatch):
+    _worker_audit_fixture(tmp_path, monkeypatch, skip_episode=True)
+    with pytest.raises(ValueError, match="missing episode files"):
+        cli.audit_evaluate_worker(ROOT, 0, "models")
+
+
+def _final_audit_fixture(tmp_path, monkeypatch, *, outcome="PASS", missing=None, replayed=None):
+    protocol, admission, _, rows = _mini_context(tmp_path, monkeypatch)
+    if replayed is None:
+        replayed = len(rows)
+    if missing is None:
+        missing = [] if outcome == "PASS" else [1, 2]
+    evaluation = {
+        "schema_version": gen_eval.EVALUATION_SCHEMA,
+        "protocol_id": protocol["protocol_id"],
+        "membership_sha256": admission["membership_sha256"],
+        "outcome": outcome,
+        "bindings": len(rows),
+        "episodes_replayed": replayed,
+        "missing_bindings": missing,
+        "by_condition": {
+            "learned_adapter": {"episodes": 6},
+            "pretrained_base": {"episodes": 6},
+            "random_valid": {"episodes": 30},
+            "exact_reference": {"episodes": 6},
+        },
+    }
+    output_dir = Path(protocol["output_root"])
+    output_dir.mkdir(parents=True, exist_ok=True)
+    (output_dir / "evaluation.json").write_text(json.dumps(evaluation))
+    return rows
+
+
+def test_audit_evaluate_final_passes_for_complete_evaluation(tmp_path, monkeypatch, capsys):
+    rows = _final_audit_fixture(tmp_path, monkeypatch)
+    summary = cli.audit_evaluate_final(ROOT)
+    assert summary["episodes_replayed"] == len(rows)
+    output = capsys.readouterr().out
+    assert "PASS" in output
+    assert "12 model + 36 control" in output
+    assert f"{len(rows)}/{len(rows)} bindings" in output
+
+
+def test_audit_evaluate_final_fails_on_incomplete_evaluation(tmp_path, monkeypatch):
+    _final_audit_fixture(tmp_path, monkeypatch, outcome="INCOMPLETE")
+    with pytest.raises(ValueError, match="incomplete"):
+        cli.audit_evaluate_final(ROOT)
+
+
+def test_audit_evaluate_final_fails_on_membership_sha_mismatch(tmp_path, monkeypatch):
+    protocol, _, _, rows = _mini_context(tmp_path, monkeypatch)
+    output_dir = Path(protocol["output_root"])
+    output_dir.mkdir(parents=True, exist_ok=True)
+    (output_dir / "evaluation.json").write_text(
+        json.dumps(
+            {
+                "schema_version": gen_eval.EVALUATION_SCHEMA,
+                "protocol_id": protocol["protocol_id"],
+                "membership_sha256": "0" * 64,
+                "outcome": "PASS",
+                "bindings": len(rows),
+                "episodes_replayed": len(rows),
+                "missing_bindings": [],
+                "by_condition": {},
+            }
+        )
+    )
+    with pytest.raises(ValueError, match="provenance differs"):
+        cli.audit_evaluate_final(ROOT)

@@ -1,0 +1,16 @@
+{
+  "job_id": "v2-compute-chain",
+  "branch": "second_backbone",
+  "gpus": [],
+  "max_seconds": 216000,
+  "total": 1,
+  "command": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/expanded-study/v1/v2-chain/v2_chain.py"
+  ],
+  "completion_hook": [
+    "/usr/bin/test",
+    "-f",
+    "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/expanded-study/v1/v2-chain/complete.json"
+  ]
+}

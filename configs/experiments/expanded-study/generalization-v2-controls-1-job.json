@@ -1,0 +1,25 @@
+{
+  "job_id": "gr-v2-controls-1",
+  "branch": "generalization_robustness",
+  "gpus": [],
+  "max_seconds": 28800,
+  "total": 450,
+  "command": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/run_expanded_generalization.py",
+    "evaluate-worker",
+    "--worker",
+    "1",
+    "--kind",
+    "controls"
+  ],
+  "completion_hook": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/run_expanded_generalization.py",
+    "audit-evaluate-worker",
+    "--worker",
+    "1",
+    "--kind",
+    "controls"
+  ]
+}

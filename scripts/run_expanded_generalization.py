@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Generate, qualify, probe, and admit the frozen Goal 11 suites."""
+"""Generate, qualify, probe, admit, and evaluate the frozen Goal 11 suites."""
 
 from __future__ import annotations
 
@@ -381,6 +381,77 @@ def evaluate_finalize_stage(root: Path, endpoint: str) -> dict:
     return result
 
 
+def audit_evaluate_worker(root: Path, worker: int, kind: str) -> dict:
+    """Scheduler hook: verify one v2 evaluation worker attempt before accepting it."""
+
+    terminal = read(Path(os.environ["EXPANDED_TERMINAL_PATH"]))
+    if terminal.get("status") != "succeeded":
+        raise RuntimeError("generalization v2 evaluate worker did not terminate cleanly")
+    attempt_dir = Path(os.environ["EXPANDED_TERMINAL_PATH"]).parent
+    result = read(attempt_dir / "worker-result.json")
+    protocol, _, _, rows = _evaluation_context(root)
+    selected = gen_eval.assigned_bindings(rows, worker, kind)
+    if (
+        result.get("schema_version") != gen_eval.WORKER_SCHEMA
+        or result.get("protocol_id") != protocol["protocol_id"]
+        or result.get("worker") != worker
+        or result.get("kind") != kind
+    ):
+        raise ValueError("generalization v2 worker result provenance differs from the CLI audit arguments")
+    if result.get("outcome") != "PASS":
+        raise ValueError("generalization v2 worker outcome does not indicate completion")
+    if result.get("completed") != len(selected):
+        raise ValueError("generalization v2 worker completed count differs from the frozen partition")
+    missing_episodes = [
+        binding["index"]
+        for binding in selected
+        if not gen_eval.binding_paths(root, protocol, binding)[0].is_file()
+    ]
+    if missing_episodes:
+        raise ValueError(f"generalization v2 worker is missing episode files: {missing_episodes}")
+    summary = {
+        "outcome": "PASS",
+        "worker": worker,
+        "kind": kind,
+        "completed": result["completed"],
+        "partition": len(selected),
+    }
+    print(f"PASS: generalization v2 {kind} worker {worker} completed {summary['completed']}/{len(selected)} episodes")
+    return summary
+
+
+def audit_evaluate_final(root: Path) -> dict:
+    """Scheduler hook: verify the aggregated v2 evaluation before accepting the chain."""
+
+    protocol, admission, _, rows = _evaluation_context(root)
+    evaluation = read(output_root(root, protocol) / "evaluation.json")
+    if (
+        evaluation.get("schema_version") != gen_eval.EVALUATION_SCHEMA
+        or evaluation.get("protocol_id") != protocol["protocol_id"]
+        or evaluation.get("membership_sha256") != admission["membership_sha256"]
+    ):
+        raise ValueError("generalization v2 evaluation provenance differs from the frozen admission")
+    if evaluation.get("bindings") != len(rows) or evaluation.get("episodes_replayed") != len(rows):
+        raise ValueError("generalization v2 evaluation coverage differs from the frozen bindings")
+    if evaluation.get("outcome") != "PASS" or evaluation.get("missing_bindings"):
+        raise ValueError("generalization v2 evaluation is incomplete: missing bindings remain")
+    by_condition = evaluation.get("by_condition", {})
+    models = sum(by_condition[name]["episodes"] for name in gen_eval.GPU_CONDITIONS)
+    controls = sum(by_condition[name]["episodes"] for name in gen_eval.CPU_CONDITIONS)
+    summary = {
+        "outcome": "PASS",
+        "model_episodes": models,
+        "control_episodes": controls,
+        "episodes_replayed": evaluation["episodes_replayed"],
+        "bindings": len(rows),
+    }
+    print(
+        f"PASS: generalization v2 evaluation complete: {models} model + {controls} control "
+        f"episodes replayed ({evaluation['episodes_replayed']}/{len(rows)} bindings)"
+    )
+    return summary
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(__doc__)
     parser.add_argument(
@@ -398,6 +469,8 @@ def main(argv=None):
             "evaluate-inputs",
             "evaluate-worker",
             "evaluate-finalize",
+            "audit-evaluate-worker",
+            "audit-evaluate-final",
         ),
     )
     parser.add_argument("--worker", type=int, choices=(0, 1))
@@ -414,6 +487,11 @@ def main(argv=None):
             parser.error("evaluate-worker requires --worker")
         if args.kind is None:
             parser.error("evaluate-worker requires --kind")
+    if args.stage == "audit-evaluate-worker":
+        if args.worker is None:
+            parser.error("audit-evaluate-worker requires --worker")
+        if args.kind is None:
+            parser.error("audit-evaluate-worker requires --kind")
     actions = {
         "validate": lambda: validate_stage(ROOT),
         "generate": lambda: generate_stage(ROOT),
@@ -427,6 +505,8 @@ def main(argv=None):
         "evaluate-inputs": lambda: evaluate_inputs_stage(ROOT, only=args.only),
         "evaluate-worker": lambda: evaluate_worker(ROOT, args.worker, args.kind, args.endpoint),
         "evaluate-finalize": lambda: evaluate_finalize_stage(ROOT, args.endpoint),
+        "audit-evaluate-worker": lambda: audit_evaluate_worker(ROOT, args.worker, args.kind),
+        "audit-evaluate-final": lambda: audit_evaluate_final(ROOT),
     }
     result = actions[args.stage]()
     print(json.dumps(result, indent=2, sort_keys=True))

@@ -1,0 +1,17 @@
+{
+  "job_id": "gr-v2-evaluate-final",
+  "branch": "generalization_robustness",
+  "gpus": [],
+  "max_seconds": 21600,
+  "total": 1200,
+  "command": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/run_expanded_generalization.py",
+    "evaluate-finalize"
+  ],
+  "completion_hook": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/run_expanded_generalization.py",
+    "audit-evaluate-final"
+  ]
+}
