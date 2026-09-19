@@ -489,14 +489,16 @@ def _page_processor_token_counter(page_processor):
     return counter
 
 
-def replay_visual_episode(root, row, report, views=None, *, page_processor=None):
+def replay_visual_episode(root, row, report, views=None, *, page_processor=None, session_class=None):
+    if session_class is None:
+        session_class = VisualSession
     original_read_only = views.read_only if views is not None else False
     if views is not None:
         views.read_only = True
         if page_processor is not None:
             views.page_processor = page_processor
     try:
-        session = VisualSession(
+        session = session_class(
             root,
             row,
             report["algorithm"],

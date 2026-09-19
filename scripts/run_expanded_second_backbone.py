@@ -78,7 +78,7 @@ def qualify_inputs(protocol, context, args):
 
 
 def audit_qualify(protocol):
-    result = read(branch.qualification_root(ROOT, protocol) / "qualification.json")
+    result = read(branch.qualification_json_path(ROOT, protocol))
     if result.get("outcome") != "PASS" or result.get("complete") is not True:
         raise RuntimeError("second-backbone qualification did not pass completely")
     print("PASS: second-backbone qualification complete")
@@ -280,7 +280,7 @@ def evaluate(protocol, worker):
         or recorded[-1].get("gpus") != [protocol["launch"]["devices"][worker]]
     ):
         raise ValueError("second-backbone evaluation environment is not a live recorded attempt")
-    probe = read(ROOT / protocol["output_root"] / "probe.json")
+    probe = read(branch.probe_path(ROOT, protocol))
     attention_implementation = probe["attention"]["applied"] or protocol["evaluation"]["inference"]["attention"]
     bound["_producing_attempt"] = producing_attempt
     bound["_runtime_head"] = _head()

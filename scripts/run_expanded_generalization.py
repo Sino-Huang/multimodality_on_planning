@@ -13,6 +13,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from examples.planning_benchmark_slice import expanded_generalization_eval as gen_eval
 from examples.planning_benchmark_slice.expanded_generalization import load_protocol
 from examples.planning_benchmark_slice.expanded_generalization_run import (
     PROBE_PERSIST_FIELDS,
@@ -161,6 +162,225 @@ def probe_worker(root: Path, worker: int) -> dict:
     return result
 
 
+def evaluate_inputs_stage(root: Path, only: list[str] | None = None) -> dict:
+    """Materialize the frozen v2 evaluation bindings from the admission membership."""
+
+    protocol = gen_eval.load_protocol_v2(root)
+    admission = gen_eval.load_admission(root, protocol)
+    tasks = gen_eval.load_tasks(root, protocol, admission, only=only)
+    rows = gen_eval.bindings(tasks, protocol)
+    models = [row for row in rows if row["condition"] in gen_eval.GPU_CONDITIONS]
+    controls = [row for row in rows if row["condition"] in gen_eval.CPU_CONDITIONS]
+    manifest = {
+        "schema_version": gen_eval.EVALUATION_INPUTS_SCHEMA,
+        "protocol_id": protocol["protocol_id"],
+        "membership_sha256": admission["membership_sha256"],
+        "tasks": [
+            {
+                "variant_id": task["variant_id"],
+                "family": task["family"],
+                "task_index": task["task_index"],
+                "reference_costs": {
+                    algorithm: task["row"]["reference_costs"][algorithm]
+                    for algorithm in protocol["learned_algorithms"]
+                },
+            }
+            for task in tasks
+        ],
+        "bindings": rows,
+        "counts": {
+            "tasks": len(tasks),
+            "bindings": len(rows),
+            "model_bindings": len(models),
+            "control_bindings": len(controls),
+            "episodes_per_task": len(rows) // len(tasks),
+        },
+    }
+    write(output_root(root, protocol) / "evaluation-bindings.json", manifest)
+    return {
+        "schema_version": gen_eval.EVALUATION_INPUTS_SCHEMA,
+        "protocol_id": protocol["protocol_id"],
+        "membership_sha256": admission["membership_sha256"],
+        "counts": manifest["counts"],
+    }
+
+
+def _evaluation_context(root: Path) -> tuple[dict, dict, list, list]:
+    protocol = gen_eval.load_protocol_v2(root)
+    admission = gen_eval.load_admission(root, protocol)
+    manifest = read(output_root(root, protocol) / "evaluation-bindings.json")
+    if manifest.get("schema_version") != gen_eval.EVALUATION_INPUTS_SCHEMA:
+        raise ValueError("generalization v2 evaluation bindings are missing; run evaluate-inputs first")
+    tasks = gen_eval.load_tasks(root, protocol, admission)
+    rows = gen_eval.bindings(tasks, protocol)
+    if rows != manifest["bindings"]:
+        raise ValueError("materialized evaluation bindings differ from the frozen admission membership")
+    return protocol, admission, tasks, manifest["bindings"]
+
+
+def evaluate_worker(root: Path, worker: int, kind: str, endpoint: str) -> dict:
+    """Run one partition of the v2 evaluation (models on GPU, controls on CPU)."""
+
+    protocol, _, tasks, rows = _evaluation_context(root)
+    protocol["root"] = str(root)
+    selected = gen_eval.assigned_bindings(rows, worker, kind)
+    kind_conditions = set(gen_eval.GPU_CONDITIONS if kind == gen_eval.MODEL_KIND else gen_eval.CPU_CONDITIONS)
+    expected = sum(1 for row in rows if row["condition"] in kind_conditions) // gen_eval.WORKERS
+    if len(selected) != expected:
+        raise ValueError("generalization v2 worker partition differs from frozen equal coverage")
+    if kind == gen_eval.MODEL_KIND:
+        if os.environ.get("CUDA_VISIBLE_DEVICES") is None:
+            raise ValueError("generalization v2 model worker requires CUDA_VISIBLE_DEVICES isolation")
+        if not os.environ.get("MASTER_PORT"):
+            raise ValueError("generalization v2 model worker requires an explicit scheduler MASTER_PORT")
+    attempt_dir = Path(os.environ["EXPANDED_ATTEMPT_DIR"])
+    progress_path = Path(os.environ["EXPANDED_PROGRESS_PATH"])
+    task_by_id = {task["variant_id"]: task for task in tasks}
+    completed = 0
+    retained = 0
+    model_calls = 0
+    reports = []
+    started = time.monotonic()
+    for modality in protocol["modalities"]:
+        modality_bindings = [row for row in selected if row["modality"] == modality]
+        pending = [
+            row
+            for row in modality_bindings
+            if not gen_eval.binding_paths(root, protocol, row)[0].exists()
+        ]
+        policy = None
+        adapters = gen_eval.adapter_bank(protocol, modality)
+        if kind == gen_eval.MODEL_KIND and pending:
+            from transformers import set_seed
+
+            from examples.planning_benchmark_slice.visual_attention import configure_visual_attention
+            from examples.planning_benchmark_slice.visual_model import VisualPolicy
+
+            set_seed(int(protocol["training_seed"]))
+            policy = VisualPolicy(
+                model_id=protocol["model_id"],
+                revision=protocol["model_revision"],
+                adapter_paths={algorithm: root / path for algorithm, path in adapters.items()},
+                device="cuda:0",
+                max_context_tokens=32768,
+                max_new_tokens=384,
+                max_batch_size=protocol["inference"]["max_batch_size"],
+                max_batch_input_tokens=protocol["inference"]["max_padded_batch_input_tokens"],
+                inference_dtype=protocol["inference"]["dtype"],
+            )
+            configure_visual_attention(policy.model, protocol["inference"]["attention"])
+            policy.identity.update(memoize_identical_inputs=False)
+        for binding in modality_bindings:
+            condition = binding["condition"]
+            checkpoint = (
+                str(Path(adapters[binding["algorithm"]]).relative_to(root))
+                if condition == "learned_adapter"
+                else None
+            )
+
+            def generate(example, condition=condition, algorithm=binding["algorithm"], policy=policy):
+                nonlocal model_calls
+                if condition in gen_eval.CPU_CONDITIONS:
+                    raise AssertionError("control generation is supplied by the authoritative session")
+                assert policy is not None
+                adapter = algorithm if condition == "learned_adapter" else None
+                output = policy.generate([example], adapter)[0]
+                model_calls += 1
+                return output, policy.last_generation_usage["generated_sequence_tokens"]
+
+            generate_fn = None if kind == gen_eval.CONTROL_KIND else generate
+            report, was_retained = gen_eval.run_binding(
+                root,
+                protocol,
+                task_by_id[binding["variant_id"]],
+                binding,
+                checkpoint,
+                endpoint,
+                generate_fn,
+            )
+            retained += int(was_retained)
+            reports.append(report["output"])
+            completed += 1
+            write(
+                progress_path,
+                {
+                    "completed": completed,
+                    "total": len(selected),
+                    "retained": retained,
+                    "model_calls": model_calls,
+                    "modality": modality,
+                    "condition": condition,
+                },
+            )
+            print(
+                {
+                    "stage": "generalization_v2_episode",
+                    "worker": worker,
+                    "kind": kind,
+                    "completed": completed,
+                    "total": len(selected),
+                    "binding_index": binding["index"],
+                    "retained": was_retained,
+                    "result": report["result"]["termination_reason"],
+                },
+                flush=True,
+            )
+        if policy is not None:
+            del policy
+            gc.collect()
+            import torch
+
+            torch.cuda.empty_cache()
+    result = {
+        "schema_version": gen_eval.WORKER_SCHEMA,
+        "outcome": "PASS",
+        "protocol_id": protocol["protocol_id"],
+        "worker": worker,
+        "kind": kind,
+        "episodes": reports,
+        "completed": completed,
+        "retained": retained,
+        "model_calls": model_calls,
+        "cuda_visible_devices": os.environ.get("CUDA_VISIBLE_DEVICES"),
+        "master_port": os.environ.get("MASTER_PORT"),
+        "elapsed_seconds": time.monotonic() - started,
+    }
+    write(attempt_dir / "worker-result.json", result)
+    write(progress_path, {"completed": completed, "total": len(selected), "terminal": True})
+    return result
+
+
+def evaluate_finalize_stage(root: Path, endpoint: str) -> dict:
+    """Replay every completed v2 episode and publish the aggregate evaluation."""
+
+    protocol, admission, tasks, rows = _evaluation_context(root)
+    task_by_id = {task["variant_id"]: task for task in tasks}
+    reports = []
+    missing = []
+    replayed = 0
+    for binding in rows:
+        episode, _, _ = gen_eval.binding_paths(root, protocol, binding)
+        if not episode.exists():
+            missing.append(binding["index"])
+            continue
+        report = read(episode)
+        gen_eval.independently_replay(root, task_by_id[binding["variant_id"]], report, endpoint)
+        replayed += 1
+        reports.append(report)
+    result = {
+        "schema_version": gen_eval.EVALUATION_SCHEMA,
+        "protocol_id": protocol["protocol_id"],
+        "membership_sha256": admission["membership_sha256"],
+        "outcome": "PASS" if not missing else "INCOMPLETE",
+        "bindings": len(rows),
+        "episodes_replayed": replayed,
+        "missing_bindings": sorted(missing),
+        **gen_eval.summarize_reports(reports),
+    }
+    write(output_root(root, protocol) / "evaluation.json", result)
+    return result
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(__doc__)
     parser.add_argument(
@@ -175,14 +395,25 @@ def main(argv=None):
             "probe-worker",
             "probe-finalize",
             "admit",
+            "evaluate-inputs",
+            "evaluate-worker",
+            "evaluate-finalize",
         ),
     )
-    parser.add_argument("--worker", type=int, choices=(0,))
+    parser.add_argument("--worker", type=int, choices=(0, 1))
+    parser.add_argument("--kind", choices=("models", "controls"))
     parser.add_argument("--endpoint", default="http://127.0.0.1:18092")
     parser.add_argument("--only", nargs="+", default=None, metavar="VARIANT_ID")
     args = parser.parse_args(argv)
     if args.stage == "probe-worker" and args.worker is None:
         parser.error("probe-worker requires --worker")
+    if args.stage == "probe-worker" and args.worker != 0:
+        parser.error("probe-worker only supports the frozen probe GPU mapping (worker 0)")
+    if args.stage == "evaluate-worker":
+        if args.worker is None:
+            parser.error("evaluate-worker requires --worker")
+        if args.kind is None:
+            parser.error("evaluate-worker requires --kind")
     actions = {
         "validate": lambda: validate_stage(ROOT),
         "generate": lambda: generate_stage(ROOT),
@@ -193,6 +424,9 @@ def main(argv=None):
         "probe-worker": lambda: probe_worker(ROOT, args.worker),
         "probe-finalize": lambda: probe_finalize_stage(ROOT),
         "admit": lambda: admit_stage(ROOT),
+        "evaluate-inputs": lambda: evaluate_inputs_stage(ROOT, only=args.only),
+        "evaluate-worker": lambda: evaluate_worker(ROOT, args.worker, args.kind, args.endpoint),
+        "evaluate-finalize": lambda: evaluate_finalize_stage(ROOT, args.endpoint),
     }
     result = actions[args.stage]()
     print(json.dumps(result, indent=2, sort_keys=True))

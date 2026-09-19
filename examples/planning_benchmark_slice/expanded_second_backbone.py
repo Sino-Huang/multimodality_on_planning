@@ -57,11 +57,53 @@ SCHEDULE_DOC = "docs/experiments/expanded-study/schedule.json"
 LEDGER_PATH = "outputs/expanded-study/v1/budget.json"
 EXPECTED_ADAPTER_TENSORS = 504
 BASELINE_PANEL_ID = "expanded-panel-v2-qualified"
+PROTOCOL_IDENTITIES = {
+    "expanded-second-backbone-v1": {
+        "schema_version": "expanded_second_backbone_protocol_v1",
+        "status": "frozen_before_qualification",
+        "issues": [101, 102, 103],
+        "output_root": "outputs/expanded-study/v1/second-backbone",
+        "logical_bindings": 288,
+        "model_episodes": 144,
+        "comparator_episodes": 144,
+        "budget_gpu_hours": 40,
+        "cap_source": "schedule",
+    },
+    "expanded-second-backbone-v2": {
+        "schema_version": "expanded_second_backbone_protocol_v2",
+        "status": "frozen_before_training",
+        "issues": [123],
+        "output_root": "outputs/expanded-study/v1/second-backbone-v2",
+        "logical_bindings": 144,
+        "model_episodes": 72,
+        "comparator_episodes": 72,
+        "budget_gpu_hours": 52.11,
+        "cap_source": "ledger",
+    },
+}
 
 
 def _branch_spent(ledger: Mapping[str, Any], branch: str = "second_backbone") -> float:
     return sum(
         float(attempt.get("gpu_hours", 0.0)) for attempt in ledger.get("attempts", []) if attempt.get("branch") == branch
+    )
+
+
+def _transfer_adjusted_allocations(schedule: Mapping[str, Any], ledger: Mapping[str, Any]) -> dict[str, float]:
+    """Frozen schedule allocations adjusted by the ledger's documented prospective transfers."""
+    expected = {name: float(hours) for name, hours in schedule["allocations_gpu_hours"].items()}
+    for transfer in ledger.get("transfers", []):
+        hours = float(transfer["hours"])
+        expected[transfer["source"]] = expected.get(transfer["source"], 0.0) - hours
+        expected[transfer["target"]] = expected.get(transfer["target"], 0.0) + hours
+    return expected
+
+
+def _allocations_match(actual: Mapping[str, Any], expected: Mapping[str, float]) -> bool:
+    if set(actual) != set(expected):
+        return False
+    return all(
+        math.isclose(float(actual[name]), hours, rel_tol=0.0, abs_tol=1e-9) for name, hours in expected.items()
     )
 
 
@@ -87,6 +129,23 @@ def qualification_root(root: Path, protocol: Mapping[str, Any]) -> Path:
 
 def evaluation_root(root: Path, protocol: Mapping[str, Any]) -> Path:
     return root / protocol["output_root"] / "evaluation"
+
+
+def _reused_evidence_path(root: Path, protocol: Mapping[str, Any], kind: str) -> Path | None:
+    entry = protocol.get("prior_evidence_reuse", {}).get(kind)
+    return root / entry["path"] if entry else None
+
+
+def probe_path(root: Path, protocol: Mapping[str, Any]) -> Path:
+    """Probe artifact: produced under output_root, or reused pinned from the v1 evidence."""
+    reused = _reused_evidence_path(root, protocol, "probe")
+    return reused if reused is not None else root / protocol["output_root"] / "probe.json"
+
+
+def qualification_json_path(root: Path, protocol: Mapping[str, Any]) -> Path:
+    """Qualification artifact: produced under output_root, or reused pinned from the v1 evidence."""
+    reused = _reused_evidence_path(root, protocol, "qualification")
+    return reused if reused is not None else qualification_root(root, protocol) / "qualification.json"
 
 
 def _task_name(task_id: str) -> str:
@@ -243,18 +302,19 @@ def validate_protocol(root: Path, protocol: Mapping[str, Any]) -> dict[str, Any]
             "exactly one training run per cell; no training-seed variance is estimated or claimed"
         ),
     }
+    identity = PROTOCOL_IDENTITIES.get(protocol.get("protocol_id"))
     if (
-        protocol.get("schema_version") != "expanded_second_backbone_protocol_v1"
-        or protocol.get("protocol_id") != "expanded-second-backbone-v1"
-        or protocol.get("status") != "frozen_before_qualification"
-        or protocol.get("issues") != [101, 102, 103]
+        identity is None
+        or protocol.get("schema_version") != identity["schema_version"]
+        or protocol.get("status") != identity["status"]
+        or protocol.get("issues") != identity["issues"]
         or protocol.get("parent_issue") != 38
         or protocol.get("algorithm") != "bfs"
         or protocol.get("modalities") != ["text-state", "visual-state", "multimodal-state"]
         or protocol.get("source_study") != "configs/experiments/matched-modalities/study-v5.json"
         or protocol.get("source_membership") != "configs/experiments/matched-modalities/membership.json"
         or protocol.get("source_corpus") != "outputs/modality_corpus/issue74-matched-32k-v1/release-001/report.json"
-        or protocol.get("output_root") != "outputs/expanded-study/v1/second-backbone"
+        or protocol.get("output_root") != identity["output_root"]
         or protocol.get("source_record_ids") != membership["training_record_ids"][protocol["algorithm"]]
         or protocol.get("source_record_ids_sha256") != _ids_sha256(protocol["source_record_ids"])
         or len(protocol["source_record_ids"]) != 512
@@ -277,9 +337,9 @@ def validate_protocol(root: Path, protocol: Mapping[str, Any]) -> dict[str, Any]
         or evaluation.get("comparator_conditions") != list(COMPARATOR_CONDITIONS)
         or evaluation.get("reference_decision_multiplier") != 2
         or evaluation.get("expansion_cap") != "reference_expansions"
-        or evaluation.get("logical_bindings") != 288
-        or evaluation.get("model_episodes") != 144
-        or evaluation.get("comparator_episodes") != 144
+        or evaluation.get("logical_bindings") != identity["logical_bindings"]
+        or evaluation.get("model_episodes") != identity["model_episodes"]
+        or evaluation.get("comparator_episodes") != identity["comparator_episodes"]
         or evaluation.get("context_tokens") != 32768
         or evaluation.get("maximum_input_tokens") != 32384
         or evaluation.get("output_tokens") != 384
@@ -304,8 +364,11 @@ def validate_protocol(root: Path, protocol: Mapping[str, Any]) -> dict[str, Any]
         != {"0": ["text-state", "multimodal-state"], "1": ["visual-state"]}
         or launch.get("evaluation_worker_partition") != "task_index_modulo_two_within_every_modality_condition_cell"
         or budget.get("branch") != "second_backbone"
-        or budget.get("gpu_hours") != 40
-        or budget.get("gpu_hours") != schedule["allocations_gpu_hours"]["second_backbone"]
+        or budget.get("gpu_hours") != identity["budget_gpu_hours"]
+        or (
+            identity["cap_source"] == "schedule"
+            and budget.get("gpu_hours") != schedule["allocations_gpu_hours"]["second_backbone"]
+        )
         or budget.get("qualification_safety_factor") != 1.25
         or budget.get("qualification_safety_factor") != schedule["qualification_safety_factor"]
         or not study.get("model_id")
@@ -314,11 +377,16 @@ def validate_protocol(root: Path, protocol: Mapping[str, Any]) -> dict[str, Any]
     ledger_path = root / LEDGER_PATH
     if ledger_path.is_file():
         ledger = read_json(ledger_path)
-        if (
-            ledger.get("schedule") != schedule
-            or ledger.get("allocations_gpu_hours") != schedule["allocations_gpu_hours"]
+        ledger_allocations = ledger.get("allocations_gpu_hours") or {}
+        expected_allocations = _transfer_adjusted_allocations(schedule, ledger)
+        if ledger.get("schedule") != schedule or not _allocations_match(
+            ledger_allocations, expected_allocations
         ):
             raise ValueError("second-backbone scheduler ledger schedule block differs")
+        if identity["cap_source"] == "ledger" and budget.get("gpu_hours") != ledger_allocations.get(
+            "second_backbone"
+        ):
+            raise ValueError("second-backbone protocol differs from the frozen study")
     panel, panel_tasks = load_panel(root, protocol)
     corpus = ModalityCorpus(root, root / protocol["source_corpus"], scene_views=protocol["views"]["scene_views"])
     records = list(corpus.records(algorithm=protocol["algorithm"], split="train"))
@@ -348,6 +416,10 @@ def qualify_inputs(
     progress: Callable[..., None] | None = None,
 ) -> dict[str, Any]:
     """Re-measure every training and live input under the InternVL processor."""
+    if protocol.get("prior_evidence_reuse"):
+        raise RuntimeError(
+            "second-backbone v2 reuses the frozen v1 qualification; qualify-inputs must not regenerate it"
+        )
     started = time.monotonic()
     processor = backbone_page_processor(protocol)
     qwen = frozen_processor()
@@ -732,6 +804,8 @@ def probe_stage(
     progress: Callable[..., None] | None = None,
 ) -> dict[str, Any]:
     """GPU probe: parity, determinism, isolation, guards, throughput, step cost."""
+    if protocol.get("prior_evidence_reuse"):
+        raise RuntimeError("second-backbone v2 reuses the frozen v1 probe; the probe stage must not re-run")
     import torch
     from transformers import set_seed
 
@@ -1139,8 +1213,8 @@ def decide_admission(
 
 
 def admit_stage(root: Path, protocol: Mapping[str, Any], context: Mapping[str, Any]) -> dict[str, Any]:
-    qualification = read_json(qualification_root(root, protocol) / "qualification.json")
-    probe = read_json(root / protocol["output_root"] / "probe.json")
+    qualification = read_json(qualification_json_path(root, protocol))
+    probe = read_json(probe_path(root, protocol))
     if qualification.get("outcome") != "PASS" or not qualification.get("complete"):
         raise RuntimeError("second-backbone admission requires a complete PASS qualification")
     if probe.get("outcome") != "PASS":
@@ -2454,7 +2528,7 @@ def _copy_evidence(source: Path, root: Path, name: str) -> Path:
 
 
 def _publish_qualification(root: Path, protocol: Mapping[str, Any]) -> Path:
-    source = qualification_root(root, protocol) / "qualification.json"
+    source = qualification_json_path(root, protocol)
     target = _copy_evidence(source, root, "second-backbone-qualification.json")
     report = read_json(source)
     lines = [
@@ -2488,9 +2562,9 @@ def _publish_qualification(root: Path, protocol: Mapping[str, Any]) -> Path:
 
 
 def _publish_probe(root: Path, protocol: Mapping[str, Any]) -> list[Path]:
-    probe = read_json(root / protocol["output_root"] / "probe.json")
+    probe = read_json(probe_path(root, protocol))
     admission = read_json(root / protocol["output_root"] / "admission.json")
-    probe_target = _copy_evidence(root / protocol["output_root"] / "probe.json", root, "second-backbone-probe.json")
+    probe_target = _copy_evidence(probe_path(root, protocol), root, "second-backbone-probe.json")
     admission_target = _copy_evidence(
         root / protocol["output_root"] / "admission.json", root, "second-backbone-admission.json"
     )
@@ -2688,8 +2762,8 @@ def _publish_analysis(root: Path, protocol: Mapping[str, Any]) -> Path:
 
 
 def _publish_valid_stop(root: Path, protocol: Mapping[str, Any]) -> Path:
-    qualification = read_json(qualification_root(root, protocol) / "qualification.json")
-    probe = read_json(root / protocol["output_root"] / "probe.json")
+    qualification = read_json(qualification_json_path(root, protocol))
+    probe = read_json(probe_path(root, protocol))
     admission = read_json(root / protocol["output_root"] / "admission.json")
     ledger = read_json(root / LEDGER_PATH)
     cutoff = read_json(root / SCHEDULE_DOC)["gpu_cutoff_utc"]
