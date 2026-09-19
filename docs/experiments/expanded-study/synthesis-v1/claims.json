@@ -1,0 +1,68 @@
+[
+  {
+    "id": "coverage",
+    "text": "Every executed branch reconciles with zero missing evidence: 1,152/1,152 baseline episodes independently replayed, 405/405 DAgger episodes, 90/90 successor episodes, 243/243 curriculum model episodes with 324/324 comparator bindings, and 39/39 transfer cells (12 v1 + 27 v2).",
+    "evidence": "verification.json: BASELINE-RECOMPUTE, DAGGER, SUCCESSOR, CURRICULUM, TRANSFER; baseline-independent-replay.json",
+    "status": "supported"
+  },
+  {
+    "id": "baseline-validity",
+    "text": "The pretrained base never emits a schema/search-valid operation (0/288 successes; every episode terminates on an invalid operation). Process-SFT succeeds on 125/288 with 163 invalid operations, and SFT driving BFS or best-first-width search fails 0/24 in every modality.",
+    "evidence": "baseline-summary.csv: arm=pretrained_base/process_sft; baseline-paired.csv; verification.json: BASELINE-RECOMPUTE",
+    "status": "supported"
+  },
+  {
+    "id": "baseline-controls",
+    "text": "Random-valid, an oracle-assisted programmatic valid-operation control, reaches 240/288 (bfs 15/24, best_first_width 17/24, w3 24/24, greedy 24/24, identical across modalities); exact-reference reaches 288/288 with per-modality decisions of bfs 1969, bfw 974, w3 694, greedy 673. These are bounds and references, not model abilities.",
+    "evidence": "baseline-summary.csv: arm=random_valid/exact_reference; baseline-contrasts.csv: random_valid_minus_exact_reference",
+    "status": "boundary"
+  },
+  {
+    "id": "dagger-null",
+    "text": "DAgger is a null result on the 72 unseen modality-task pairs: 1 invariant-valid success, identical to exposure-matched continued SFT (1/72) and far below random-valid (45/72); one paired win, one paired loss and 70 ties vs continued SFT. Final cumulative unique training corrections: text 201, visual 203, multimodal 181 over 12 training cells x 512 records x 16 updates.",
+    "evidence": "dagger-summary.csv; dagger-comparison.json: paired_whole_problem, final_cumulative_unique_training_corrections, training_exposure",
+    "status": "negative"
+  },
+  {
+    "id": "successor-verification",
+    "text": "The untrained exact-successor verification accepts 119/1536 collection predictions (text 43, visual 52, multimodal 24). The trained successor is exact on 65/109 predictions (93 schema-valid, 66 effect-valid) and yields 1/45 downstream success vs 45/45 for the trusted-successor arm.",
+    "evidence": "successor-summary.csv; successor-data.json: coverage.verification_outcomes; successor-evaluation.json: cells, paired_whole_problem_rows",
+    "status": "negative"
+  },
+  {
+    "id": "curriculum-null",
+    "text": "No curriculum-ordering x modality interaction: staged/shuffled/mixed successes are text 24/24/25, visual 24/27/26, multimodal 25/27/27 out of 27, and all four bootstrap interaction intervals include zero. Random-valid and exact controls saturate at 27/27 in every modality while the base stays at 0/27.",
+    "evidence": "curriculum-summary.csv; curriculum runtime analysis.json: modality_x_ordering_interaction, control_saturation",
+    "status": "negative"
+  },
+  {
+    "id": "transfer-null",
+    "text": "No adapter shows statistically reliable transfer to FOLIO, GSM8K or HumanEval: 0/36 comparisons survive Holm correction (min adjusted p 0.8156; smallest raw p 0.0227 for folio/iw_text). Leakage screening finds 7/564 benchmark items sharing trivial numeric 8-grams and zero content overlap.",
+    "evidence": "transfer-paired.csv; transfer-paired-analysis.json; transfer/leakage.json",
+    "status": "negative"
+  },
+  {
+    "id": "incomplete-branches",
+    "text": "second_backbone and generalization_robustness are terminal VALID_STOP with no model outcomes: admission L2 requires 258.42 (L0) / 48.14 (L1) GPU-h against a 36.04 remainder, and admission L4 follows the Gate-2 rule after 93/120 variants qualified (27 missing, 0 replacements). The recovery reserve is untouched.",
+    "evidence": "second-backbone/admission.json; generalization-robustness/admission.json, audit.json; budget.json",
+    "status": "incomplete"
+  },
+  {
+    "id": "compute-accounting",
+    "text": "The program spent 48.25/336 GPU-h across 116 recorded attempts with no transfers; failed and cutoff attempts retain their hours in the ledger, every attempt ended before the 2026-09-21T11:55:19Z cutoff, and the recovery reserve was never touched.",
+    "evidence": "budget.csv; verification.json: LEDGER, LEDGER-VS-BRANCH",
+    "status": "supported"
+  },
+  {
+    "id": "historical-separation",
+    "text": "The v5 study (3 problems x 4 algorithms x 3 modalities = 144 bindings, 72 model episodes; SFT 5/12 text, 6/12 visual, 6/12 multimodal) and historical #67 (60/60 saturated under all orderings) remain separate studies on their own ledgers and are never pooled into the expanded panel.",
+    "evidence": "v5-final-evaluation.json; analysis-v5/analysis.json; data/best_first_paired_phase_v3/issue67-terminal/result.json",
+    "status": "boundary"
+  },
+  {
+    "id": "second-backbone-probe",
+    "text": "The second-backbone probe qualifies OpenGVLab/InternVL3_5-8B-HF @741a7d03020411e666c6109218ab71e08151ef86: visual_sdpa attention, byte-identical batched outputs, adapter isolation and token-limit guards all pass; only the cost admission stops the branch.",
+    "evidence": "second-backbone/probe.json, qualification/qualification.json",
+    "status": "supported"
+  }
+]

@@ -1,0 +1,9 @@
+branch,tickets,terminal_state,coverage_declared,coverage_actual,gpu_hours,gpu_hours_cap,audit_verdict,notes
+expanded_baseline,#116 #117 #118,complete,1152 logical bindings (576 model episodes),1152/1152 episodes; independent replay PASS,6.5289,56,PASS (goal3 audit),24 problems x 4 algorithms x 3 modalities x 4 arms
+dagger,#78-#84,complete,405 episodes + 81 paired whole-problem rows,405/405 episodes; missing 0,10.9092,48,PASS (goal6 audit),two DAgger iterations vs exposure-matched continued SFT; null result
+successor_prediction,#85-#89 #99,complete,90 episodes (15 modality x panel cells),90/90 episodes; missing 0,10.8511,64,PASS (goal9 audit),fallback 12-task unseen panel; full 24-task coverage missing by design
+curriculum_modality,#119,complete,243 model episodes + 324 comparator bindings,243/243 model + 324/324 comparator; missing none,11.7786,48,PASS (goal10 audit),3 modalities x 3 orderings under best_first_add_greedy + 4 controls
+transfer,#104-#107,complete,12 v1 cells + 27 v2 cells; 36 paired comparisons,39/39 cells; missing [] both protocols,3.5993,24,PASS (goal13 audit),FOLIO/GSM8K/HumanEval; no comparison survives Holm
+second_backbone,#101 #102 #103,VALID_STOP (L2),no model outcomes (cost admission),probe + CPU qualification only,3.9577,40,VALID_STOP (admission L2),L0 258.42 / L1 48.14 GPU-h required vs 36.04 remainder
+generalization_robustness,#96 #98,VALID_STOP (L4),120 generated variants,93 eligible / 27 missing; 0 replacements,0.6273,32,VALID_STOP (admission L4),no model outcomes; smallest scope L3 needs 1704.89 GPU-h
+recovery_reserve,-,untouched,-,-,0.0,24,-,no transfers requested

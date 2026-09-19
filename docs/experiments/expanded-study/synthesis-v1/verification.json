@@ -1,0 +1,1494 @@
+{
+  "schema_version": "expanded_study_verification_v1",
+  "program_id": "expanded-nine-day-v1",
+  "overall_outcome": "PASS",
+  "checks": [
+    {
+      "id": "LEDGER",
+      "outcome": "PASS",
+      "recomputed": {
+        "attempts": 116,
+        "per_branch_gpu_hours": {
+          "expanded_baseline": 6.52891837351852,
+          "dagger": 10.909218951265014,
+          "successor_prediction": 10.851129488812553,
+          "curriculum_modality": 11.778588217563097,
+          "generalization_robustness": 0.6272556656599044,
+          "second_backbone": 3.957651311026679,
+          "transfer": 3.599319179389212
+        },
+        "total_gpu_hours": 48.25208118723498,
+        "per_branch_status_split": {
+          "expanded_baseline": {
+            "succeeded": 20,
+            "failed": 2
+          },
+          "dagger": {
+            "succeeded": 21,
+            "failed": 7
+          },
+          "successor_prediction": {
+            "failed": 10,
+            "succeeded": 21
+          },
+          "curriculum_modality": {
+            "succeeded": 6,
+            "failed": 4,
+            "cutoff": 3
+          },
+          "generalization_robustness": {
+            "succeeded": 1
+          },
+          "second_backbone": {
+            "succeeded": 3,
+            "failed": 4
+          },
+          "transfer": {
+            "failed": 2,
+            "succeeded": 12
+          }
+        },
+        "per_branch_hours_by_status": {
+          "expanded_baseline": {
+            "succeeded": 6.52891837351852,
+            "failed": 0.0
+          },
+          "dagger": {
+            "succeeded": 10.592824930416212,
+            "failed": 0.3163940208488041
+          },
+          "successor_prediction": {
+            "failed": 0.08755454321702322,
+            "succeeded": 10.76357494559553
+          },
+          "curriculum_modality": {
+            "succeeded": 4.167066693504651,
+            "failed": 0.11208055324024624,
+            "cutoff": 7.499440970818202
+          },
+          "generalization_robustness": {
+            "succeeded": 0.6272556656599044
+          },
+          "second_backbone": {
+            "succeeded": 1.560328282184071,
+            "failed": 2.397323028842608
+          },
+          "transfer": {
+            "failed": 0.0,
+            "succeeded": 3.599319179389212
+          }
+        },
+        "transfers": [],
+        "max_attempt_ended_epoch": 1789804419.0599597
+      },
+      "recorded": {
+        "total_cap_gpu_hours": 336,
+        "per_branch_caps": {
+          "expanded_baseline": 56,
+          "dagger": 48,
+          "successor_prediction": 64,
+          "curriculum_modality": 48,
+          "generalization_robustness": 32,
+          "second_backbone": 40,
+          "transfer": 24,
+          "recovery_reserve": 24
+        },
+        "transfers": [],
+        "gpu_cutoff_utc": "2026-09-21T11:55:19Z",
+        "gpu_cutoff_epoch": 1789991719.0
+      },
+      "sources": [
+        "outputs/expanded-study/v1/budget.json"
+      ],
+      "notes": "All per-branch sums are within cap, total is within the 336 GPU-h program cap, no transfers were requested and every attempt ended before the absolute GPU cutoff."
+    },
+    {
+      "id": "LEDGER-VS-BRANCH",
+      "outcome": "PASS",
+      "recomputed": {
+        "expanded_baseline": 6.52891837351852,
+        "dagger": 10.909218951265014,
+        "successor_prediction": 10.851129488812553,
+        "curriculum_modality": 11.778588217563097,
+        "generalization_robustness": 0.6272556656599044,
+        "second_backbone": 3.957651311026679,
+        "transfer": 3.599319179389212
+      },
+      "recorded": {
+        "recorded": {
+          "expanded_baseline": 6.52891837351852,
+          "dagger": 10.909218951265014,
+          "successor_prediction": 10.851129,
+          "curriculum_modality": 11.778588217563097,
+          "transfer": 3.5993,
+          "second_backbone": 3.957651311026679,
+          "generalization_robustness": 0.6272556656599044
+        },
+        "ledger_minus_recorded": {
+          "expanded_baseline": 0.0,
+          "dagger": 0.0,
+          "successor_prediction": 4.888125531010701e-07,
+          "curriculum_modality": 0.0,
+          "generalization_robustness": 0.0,
+          "second_backbone": 0.0,
+          "transfer": 1.917938921192075e-05
+        },
+        "transfer_ledger_exact": 3.599319179389212,
+        "transfer_docs_components_note": "transfer docs components sum 3.5965 vs ledger 3.5993 (rounding)",
+        "second_backbone_note": "admission remainder arithmetic conservatively double-counts the 0.63 GPU-h probe window; ledger sum is authoritative"
+      },
+      "sources": [
+        "outputs/expanded-study/v1/budget.json",
+        "docs/experiments/expanded-study/baseline-evaluation.json",
+        "docs/experiments/expanded-study/dagger-comparison.json",
+        "docs/experiments/expanded-study/goal9-completion-audit.json",
+        "docs/experiments/expanded-study/goal10-completion-audit.json",
+        "docs/experiments/expanded-study/transfer-findings.md",
+        "outputs/expanded-study/v1/second-backbone/admission.json",
+        "outputs/expanded-study/v1/generalization-robustness/admission.json"
+      ],
+      "notes": "PASS within the 0.01 GPU-h tolerance; exact differences recorded per branch."
+    },
+    {
+      "id": "BASELINE-RECOMPUTE",
+      "outcome": "PASS",
+      "recomputed": {
+        "episodes_parsed": 1152,
+        "by_cell": [
+          {
+            "modality": "multimodal-state",
+            "algorithm": "best_first_add_greedy",
+            "condition": "pretrained_base",
+            "episodes": 24,
+            "successes": 0,
+            "decisions": 24,
+            "invalid_operations": 24
+          },
+          {
+            "modality": "multimodal-state",
+            "algorithm": "best_first_add_greedy",
+            "condition": "process_sft",
+            "episodes": 24,
+            "successes": 21,
+            "decisions": 617,
+            "invalid_operations": 3
+          },
+          {
+            "modality": "multimodal-state",
+            "algorithm": "best_first_add_greedy",
+            "condition": "random_valid",
+            "episodes": 24,
+            "successes": 24,
+            "decisions": 673,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "multimodal-state",
+            "algorithm": "best_first_add_greedy",
+            "condition": "exact_reference",
+            "episodes": 24,
+            "successes": 24,
+            "decisions": 673,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "multimodal-state",
+            "algorithm": "best_first_add_w3",
+            "condition": "pretrained_base",
+            "episodes": 24,
+            "successes": 0,
+            "decisions": 24,
+            "invalid_operations": 24
+          },
+          {
+            "modality": "multimodal-state",
+            "algorithm": "best_first_add_w3",
+            "condition": "process_sft",
+            "episodes": 24,
+            "successes": 22,
+            "decisions": 666,
+            "invalid_operations": 2
+          },
+          {
+            "modality": "multimodal-state",
+            "algorithm": "best_first_add_w3",
+            "condition": "random_valid",
+            "episodes": 24,
+            "successes": 24,
+            "decisions": 694,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "multimodal-state",
+            "algorithm": "best_first_add_w3",
+            "condition": "exact_reference",
+            "episodes": 24,
+            "successes": 24,
+            "decisions": 694,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "multimodal-state",
+            "algorithm": "best_first_width",
+            "condition": "pretrained_base",
+            "episodes": 24,
+            "successes": 0,
+            "decisions": 24,
+            "invalid_operations": 24
+          },
+          {
+            "modality": "multimodal-state",
+            "algorithm": "best_first_width",
+            "condition": "process_sft",
+            "episodes": 24,
+            "successes": 0,
+            "decisions": 24,
+            "invalid_operations": 24
+          },
+          {
+            "modality": "multimodal-state",
+            "algorithm": "best_first_width",
+            "condition": "random_valid",
+            "episodes": 24,
+            "successes": 17,
+            "decisions": 922,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "multimodal-state",
+            "algorithm": "best_first_width",
+            "condition": "exact_reference",
+            "episodes": 24,
+            "successes": 24,
+            "decisions": 974,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "multimodal-state",
+            "algorithm": "bfs",
+            "condition": "pretrained_base",
+            "episodes": 24,
+            "successes": 0,
+            "decisions": 24,
+            "invalid_operations": 24
+          },
+          {
+            "modality": "multimodal-state",
+            "algorithm": "bfs",
+            "condition": "process_sft",
+            "episodes": 24,
+            "successes": 0,
+            "decisions": 63,
+            "invalid_operations": 24
+          },
+          {
+            "modality": "multimodal-state",
+            "algorithm": "bfs",
+            "condition": "random_valid",
+            "episodes": 24,
+            "successes": 15,
+            "decisions": 1905,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "multimodal-state",
+            "algorithm": "bfs",
+            "condition": "exact_reference",
+            "episodes": 24,
+            "successes": 24,
+            "decisions": 1969,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "text-state",
+            "algorithm": "best_first_add_greedy",
+            "condition": "pretrained_base",
+            "episodes": 24,
+            "successes": 0,
+            "decisions": 24,
+            "invalid_operations": 24
+          },
+          {
+            "modality": "text-state",
+            "algorithm": "best_first_add_greedy",
+            "condition": "process_sft",
+            "episodes": 24,
+            "successes": 22,
+            "decisions": 614,
+            "invalid_operations": 2
+          },
+          {
+            "modality": "text-state",
+            "algorithm": "best_first_add_greedy",
+            "condition": "random_valid",
+            "episodes": 24,
+            "successes": 24,
+            "decisions": 673,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "text-state",
+            "algorithm": "best_first_add_greedy",
+            "condition": "exact_reference",
+            "episodes": 24,
+            "successes": 24,
+            "decisions": 673,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "text-state",
+            "algorithm": "best_first_add_w3",
+            "condition": "pretrained_base",
+            "episodes": 24,
+            "successes": 0,
+            "decisions": 24,
+            "invalid_operations": 24
+          },
+          {
+            "modality": "text-state",
+            "algorithm": "best_first_add_w3",
+            "condition": "process_sft",
+            "episodes": 24,
+            "successes": 20,
+            "decisions": 609,
+            "invalid_operations": 4
+          },
+          {
+            "modality": "text-state",
+            "algorithm": "best_first_add_w3",
+            "condition": "random_valid",
+            "episodes": 24,
+            "successes": 24,
+            "decisions": 694,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "text-state",
+            "algorithm": "best_first_add_w3",
+            "condition": "exact_reference",
+            "episodes": 24,
+            "successes": 24,
+            "decisions": 694,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "text-state",
+            "algorithm": "best_first_width",
+            "condition": "pretrained_base",
+            "episodes": 24,
+            "successes": 0,
+            "decisions": 24,
+            "invalid_operations": 24
+          },
+          {
+            "modality": "text-state",
+            "algorithm": "best_first_width",
+            "condition": "process_sft",
+            "episodes": 24,
+            "successes": 0,
+            "decisions": 24,
+            "invalid_operations": 24
+          },
+          {
+            "modality": "text-state",
+            "algorithm": "best_first_width",
+            "condition": "random_valid",
+            "episodes": 24,
+            "successes": 17,
+            "decisions": 922,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "text-state",
+            "algorithm": "best_first_width",
+            "condition": "exact_reference",
+            "episodes": 24,
+            "successes": 24,
+            "decisions": 974,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "text-state",
+            "algorithm": "bfs",
+            "condition": "pretrained_base",
+            "episodes": 24,
+            "successes": 0,
+            "decisions": 24,
+            "invalid_operations": 24
+          },
+          {
+            "modality": "text-state",
+            "algorithm": "bfs",
+            "condition": "process_sft",
+            "episodes": 24,
+            "successes": 0,
+            "decisions": 66,
+            "invalid_operations": 24
+          },
+          {
+            "modality": "text-state",
+            "algorithm": "bfs",
+            "condition": "random_valid",
+            "episodes": 24,
+            "successes": 15,
+            "decisions": 1905,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "text-state",
+            "algorithm": "bfs",
+            "condition": "exact_reference",
+            "episodes": 24,
+            "successes": 24,
+            "decisions": 1969,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "visual-state",
+            "algorithm": "best_first_add_greedy",
+            "condition": "pretrained_base",
+            "episodes": 24,
+            "successes": 0,
+            "decisions": 24,
+            "invalid_operations": 24
+          },
+          {
+            "modality": "visual-state",
+            "algorithm": "best_first_add_greedy",
+            "condition": "process_sft",
+            "episodes": 24,
+            "successes": 22,
+            "decisions": 643,
+            "invalid_operations": 2
+          },
+          {
+            "modality": "visual-state",
+            "algorithm": "best_first_add_greedy",
+            "condition": "random_valid",
+            "episodes": 24,
+            "successes": 24,
+            "decisions": 673,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "visual-state",
+            "algorithm": "best_first_add_greedy",
+            "condition": "exact_reference",
+            "episodes": 24,
+            "successes": 24,
+            "decisions": 673,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "visual-state",
+            "algorithm": "best_first_add_w3",
+            "condition": "pretrained_base",
+            "episodes": 24,
+            "successes": 0,
+            "decisions": 24,
+            "invalid_operations": 24
+          },
+          {
+            "modality": "visual-state",
+            "algorithm": "best_first_add_w3",
+            "condition": "process_sft",
+            "episodes": 24,
+            "successes": 18,
+            "decisions": 499,
+            "invalid_operations": 6
+          },
+          {
+            "modality": "visual-state",
+            "algorithm": "best_first_add_w3",
+            "condition": "random_valid",
+            "episodes": 24,
+            "successes": 24,
+            "decisions": 694,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "visual-state",
+            "algorithm": "best_first_add_w3",
+            "condition": "exact_reference",
+            "episodes": 24,
+            "successes": 24,
+            "decisions": 694,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "visual-state",
+            "algorithm": "best_first_width",
+            "condition": "pretrained_base",
+            "episodes": 24,
+            "successes": 0,
+            "decisions": 24,
+            "invalid_operations": 24
+          },
+          {
+            "modality": "visual-state",
+            "algorithm": "best_first_width",
+            "condition": "process_sft",
+            "episodes": 24,
+            "successes": 0,
+            "decisions": 24,
+            "invalid_operations": 24
+          },
+          {
+            "modality": "visual-state",
+            "algorithm": "best_first_width",
+            "condition": "random_valid",
+            "episodes": 24,
+            "successes": 17,
+            "decisions": 922,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "visual-state",
+            "algorithm": "best_first_width",
+            "condition": "exact_reference",
+            "episodes": 24,
+            "successes": 24,
+            "decisions": 974,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "visual-state",
+            "algorithm": "bfs",
+            "condition": "pretrained_base",
+            "episodes": 24,
+            "successes": 0,
+            "decisions": 24,
+            "invalid_operations": 24
+          },
+          {
+            "modality": "visual-state",
+            "algorithm": "bfs",
+            "condition": "process_sft",
+            "episodes": 24,
+            "successes": 0,
+            "decisions": 69,
+            "invalid_operations": 24
+          },
+          {
+            "modality": "visual-state",
+            "algorithm": "bfs",
+            "condition": "random_valid",
+            "episodes": 24,
+            "successes": 15,
+            "decisions": 1905,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "visual-state",
+            "algorithm": "bfs",
+            "condition": "exact_reference",
+            "episodes": 24,
+            "successes": 24,
+            "decisions": 1969,
+            "invalid_operations": 0
+          }
+        ],
+        "by_condition": {
+          "pretrained_base": {
+            "episodes": 288,
+            "successes": 0,
+            "decisions": 288,
+            "invalid_operations": 288
+          },
+          "process_sft": {
+            "episodes": 288,
+            "successes": 125,
+            "decisions": 3918,
+            "invalid_operations": 163
+          },
+          "random_valid": {
+            "episodes": 288,
+            "successes": 240,
+            "decisions": 12582,
+            "invalid_operations": 0
+          },
+          "exact_reference": {
+            "episodes": 288,
+            "successes": 288,
+            "decisions": 12930,
+            "invalid_operations": 0
+          }
+        },
+        "replay_outcome": "PASS",
+        "episodes_replayed": 1152
+      },
+      "recorded": {
+        "by_cell": [
+          {
+            "modality": "multimodal-state",
+            "algorithm": "best_first_add_greedy",
+            "condition": "exact_reference",
+            "episodes": 24,
+            "successes": 24,
+            "decisions": 673,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "multimodal-state",
+            "algorithm": "best_first_add_greedy",
+            "condition": "pretrained_base",
+            "episodes": 24,
+            "successes": 0,
+            "decisions": 24,
+            "invalid_operations": 24
+          },
+          {
+            "modality": "multimodal-state",
+            "algorithm": "best_first_add_greedy",
+            "condition": "process_sft",
+            "episodes": 24,
+            "successes": 21,
+            "decisions": 617,
+            "invalid_operations": 3
+          },
+          {
+            "modality": "multimodal-state",
+            "algorithm": "best_first_add_greedy",
+            "condition": "random_valid",
+            "episodes": 24,
+            "successes": 24,
+            "decisions": 673,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "multimodal-state",
+            "algorithm": "best_first_add_w3",
+            "condition": "exact_reference",
+            "episodes": 24,
+            "successes": 24,
+            "decisions": 694,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "multimodal-state",
+            "algorithm": "best_first_add_w3",
+            "condition": "pretrained_base",
+            "episodes": 24,
+            "successes": 0,
+            "decisions": 24,
+            "invalid_operations": 24
+          },
+          {
+            "modality": "multimodal-state",
+            "algorithm": "best_first_add_w3",
+            "condition": "process_sft",
+            "episodes": 24,
+            "successes": 22,
+            "decisions": 666,
+            "invalid_operations": 2
+          },
+          {
+            "modality": "multimodal-state",
+            "algorithm": "best_first_add_w3",
+            "condition": "random_valid",
+            "episodes": 24,
+            "successes": 24,
+            "decisions": 694,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "multimodal-state",
+            "algorithm": "best_first_width",
+            "condition": "exact_reference",
+            "episodes": 24,
+            "successes": 24,
+            "decisions": 974,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "multimodal-state",
+            "algorithm": "best_first_width",
+            "condition": "pretrained_base",
+            "episodes": 24,
+            "successes": 0,
+            "decisions": 24,
+            "invalid_operations": 24
+          },
+          {
+            "modality": "multimodal-state",
+            "algorithm": "best_first_width",
+            "condition": "process_sft",
+            "episodes": 24,
+            "successes": 0,
+            "decisions": 24,
+            "invalid_operations": 24
+          },
+          {
+            "modality": "multimodal-state",
+            "algorithm": "best_first_width",
+            "condition": "random_valid",
+            "episodes": 24,
+            "successes": 17,
+            "decisions": 922,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "multimodal-state",
+            "algorithm": "bfs",
+            "condition": "exact_reference",
+            "episodes": 24,
+            "successes": 24,
+            "decisions": 1969,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "multimodal-state",
+            "algorithm": "bfs",
+            "condition": "pretrained_base",
+            "episodes": 24,
+            "successes": 0,
+            "decisions": 24,
+            "invalid_operations": 24
+          },
+          {
+            "modality": "multimodal-state",
+            "algorithm": "bfs",
+            "condition": "process_sft",
+            "episodes": 24,
+            "successes": 0,
+            "decisions": 63,
+            "invalid_operations": 24
+          },
+          {
+            "modality": "multimodal-state",
+            "algorithm": "bfs",
+            "condition": "random_valid",
+            "episodes": 24,
+            "successes": 15,
+            "decisions": 1905,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "text-state",
+            "algorithm": "best_first_add_greedy",
+            "condition": "exact_reference",
+            "episodes": 24,
+            "successes": 24,
+            "decisions": 673,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "text-state",
+            "algorithm": "best_first_add_greedy",
+            "condition": "pretrained_base",
+            "episodes": 24,
+            "successes": 0,
+            "decisions": 24,
+            "invalid_operations": 24
+          },
+          {
+            "modality": "text-state",
+            "algorithm": "best_first_add_greedy",
+            "condition": "process_sft",
+            "episodes": 24,
+            "successes": 22,
+            "decisions": 614,
+            "invalid_operations": 2
+          },
+          {
+            "modality": "text-state",
+            "algorithm": "best_first_add_greedy",
+            "condition": "random_valid",
+            "episodes": 24,
+            "successes": 24,
+            "decisions": 673,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "text-state",
+            "algorithm": "best_first_add_w3",
+            "condition": "exact_reference",
+            "episodes": 24,
+            "successes": 24,
+            "decisions": 694,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "text-state",
+            "algorithm": "best_first_add_w3",
+            "condition": "pretrained_base",
+            "episodes": 24,
+            "successes": 0,
+            "decisions": 24,
+            "invalid_operations": 24
+          },
+          {
+            "modality": "text-state",
+            "algorithm": "best_first_add_w3",
+            "condition": "process_sft",
+            "episodes": 24,
+            "successes": 20,
+            "decisions": 609,
+            "invalid_operations": 4
+          },
+          {
+            "modality": "text-state",
+            "algorithm": "best_first_add_w3",
+            "condition": "random_valid",
+            "episodes": 24,
+            "successes": 24,
+            "decisions": 694,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "text-state",
+            "algorithm": "best_first_width",
+            "condition": "exact_reference",
+            "episodes": 24,
+            "successes": 24,
+            "decisions": 974,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "text-state",
+            "algorithm": "best_first_width",
+            "condition": "pretrained_base",
+            "episodes": 24,
+            "successes": 0,
+            "decisions": 24,
+            "invalid_operations": 24
+          },
+          {
+            "modality": "text-state",
+            "algorithm": "best_first_width",
+            "condition": "process_sft",
+            "episodes": 24,
+            "successes": 0,
+            "decisions": 24,
+            "invalid_operations": 24
+          },
+          {
+            "modality": "text-state",
+            "algorithm": "best_first_width",
+            "condition": "random_valid",
+            "episodes": 24,
+            "successes": 17,
+            "decisions": 922,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "text-state",
+            "algorithm": "bfs",
+            "condition": "exact_reference",
+            "episodes": 24,
+            "successes": 24,
+            "decisions": 1969,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "text-state",
+            "algorithm": "bfs",
+            "condition": "pretrained_base",
+            "episodes": 24,
+            "successes": 0,
+            "decisions": 24,
+            "invalid_operations": 24
+          },
+          {
+            "modality": "text-state",
+            "algorithm": "bfs",
+            "condition": "process_sft",
+            "episodes": 24,
+            "successes": 0,
+            "decisions": 66,
+            "invalid_operations": 24
+          },
+          {
+            "modality": "text-state",
+            "algorithm": "bfs",
+            "condition": "random_valid",
+            "episodes": 24,
+            "successes": 15,
+            "decisions": 1905,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "visual-state",
+            "algorithm": "best_first_add_greedy",
+            "condition": "exact_reference",
+            "episodes": 24,
+            "successes": 24,
+            "decisions": 673,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "visual-state",
+            "algorithm": "best_first_add_greedy",
+            "condition": "pretrained_base",
+            "episodes": 24,
+            "successes": 0,
+            "decisions": 24,
+            "invalid_operations": 24
+          },
+          {
+            "modality": "visual-state",
+            "algorithm": "best_first_add_greedy",
+            "condition": "process_sft",
+            "episodes": 24,
+            "successes": 22,
+            "decisions": 643,
+            "invalid_operations": 2
+          },
+          {
+            "modality": "visual-state",
+            "algorithm": "best_first_add_greedy",
+            "condition": "random_valid",
+            "episodes": 24,
+            "successes": 24,
+            "decisions": 673,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "visual-state",
+            "algorithm": "best_first_add_w3",
+            "condition": "exact_reference",
+            "episodes": 24,
+            "successes": 24,
+            "decisions": 694,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "visual-state",
+            "algorithm": "best_first_add_w3",
+            "condition": "pretrained_base",
+            "episodes": 24,
+            "successes": 0,
+            "decisions": 24,
+            "invalid_operations": 24
+          },
+          {
+            "modality": "visual-state",
+            "algorithm": "best_first_add_w3",
+            "condition": "process_sft",
+            "episodes": 24,
+            "successes": 18,
+            "decisions": 499,
+            "invalid_operations": 6
+          },
+          {
+            "modality": "visual-state",
+            "algorithm": "best_first_add_w3",
+            "condition": "random_valid",
+            "episodes": 24,
+            "successes": 24,
+            "decisions": 694,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "visual-state",
+            "algorithm": "best_first_width",
+            "condition": "exact_reference",
+            "episodes": 24,
+            "successes": 24,
+            "decisions": 974,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "visual-state",
+            "algorithm": "best_first_width",
+            "condition": "pretrained_base",
+            "episodes": 24,
+            "successes": 0,
+            "decisions": 24,
+            "invalid_operations": 24
+          },
+          {
+            "modality": "visual-state",
+            "algorithm": "best_first_width",
+            "condition": "process_sft",
+            "episodes": 24,
+            "successes": 0,
+            "decisions": 24,
+            "invalid_operations": 24
+          },
+          {
+            "modality": "visual-state",
+            "algorithm": "best_first_width",
+            "condition": "random_valid",
+            "episodes": 24,
+            "successes": 17,
+            "decisions": 922,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "visual-state",
+            "algorithm": "bfs",
+            "condition": "exact_reference",
+            "episodes": 24,
+            "successes": 24,
+            "decisions": 1969,
+            "invalid_operations": 0
+          },
+          {
+            "modality": "visual-state",
+            "algorithm": "bfs",
+            "condition": "pretrained_base",
+            "episodes": 24,
+            "successes": 0,
+            "decisions": 24,
+            "invalid_operations": 24
+          },
+          {
+            "modality": "visual-state",
+            "algorithm": "bfs",
+            "condition": "process_sft",
+            "episodes": 24,
+            "successes": 0,
+            "decisions": 69,
+            "invalid_operations": 24
+          },
+          {
+            "modality": "visual-state",
+            "algorithm": "bfs",
+            "condition": "random_valid",
+            "episodes": 24,
+            "successes": 15,
+            "decisions": 1905,
+            "invalid_operations": 0
+          }
+        ],
+        "by_condition": {
+          "pretrained_base": {
+            "episodes": 288,
+            "successes": 0,
+            "decisions": 288,
+            "invalid_operations": 288
+          },
+          "process_sft": {
+            "episodes": 288,
+            "successes": 125,
+            "decisions": 3918,
+            "invalid_operations": 163
+          },
+          "random_valid": {
+            "episodes": 288,
+            "successes": 240,
+            "decisions": 12582,
+            "invalid_operations": 0
+          },
+          "exact_reference": {
+            "episodes": 288,
+            "successes": 288,
+            "decisions": 12930,
+            "invalid_operations": 0
+          }
+        },
+        "logical_bindings": 1152,
+        "model_episodes": 576,
+        "replay_outcome": "PASS",
+        "expected_episodes": 1152
+      },
+      "sources": [
+        "outputs/expanded-study/v1/baseline/episodes/**/*.json.gz",
+        "docs/experiments/expanded-study/baseline-evaluation.json",
+        "docs/experiments/expanded-study/baseline-independent-replay.json"
+      ],
+      "notes": "Per-modality x algorithm x arm successes, decisions, invalid operations and expansions were recomputed from all 1,152 episode reports and match the published evaluation exactly."
+    },
+    {
+      "id": "DAGGER",
+      "outcome": "PASS",
+      "recomputed": {
+        "coverage": {
+          "episodes_replayed": 405,
+          "expected_episodes": 405,
+          "paired_modality_task_rows": 81,
+          "missing_episodes": 0,
+          "full_declared_panels_retained": true
+        },
+        "paired_rows": 81,
+        "unseen_aggregates_recomputed_from_cells": {
+          "dagger_iteration_2": {
+            "episodes": 72,
+            "invariant_valid_successes": 1,
+            "decisions": 225,
+            "invalid_operations": 71
+          },
+          "continued_sft_iteration_2": {
+            "episodes": 72,
+            "invariant_valid_successes": 1,
+            "decisions": 406,
+            "invalid_operations": 71
+          },
+          "original_process_sft": {
+            "episodes": 72,
+            "invariant_valid_successes": 0,
+            "decisions": 198,
+            "invalid_operations": 72
+          },
+          "random_valid": {
+            "episodes": 72,
+            "invariant_valid_successes": 45,
+            "decisions": 5715,
+            "invalid_operations": 0
+          },
+          "exact_reference": {
+            "episodes": 72,
+            "invariant_valid_successes": 72,
+            "decisions": 5907,
+            "invalid_operations": 0
+          }
+        },
+        "development_aggregates_recomputed_from_cells": {
+          "dagger_iteration_2": {
+            "episodes": 9,
+            "invariant_valid_successes": 3
+          },
+          "continued_sft_iteration_2": {
+            "episodes": 9,
+            "invariant_valid_successes": 2
+          },
+          "original_process_sft": {
+            "episodes": 9,
+            "invariant_valid_successes": 1
+          },
+          "random_valid": {
+            "episodes": 9,
+            "invariant_valid_successes": 6
+          },
+          "exact_reference": {
+            "episodes": 9,
+            "invariant_valid_successes": 9
+          }
+        }
+      },
+      "recorded": {
+        "unseen_aggregates": {
+          "dagger_iteration_2": {
+            "episodes": 72,
+            "invariant_valid_successes": 1,
+            "success_rate": 0.013888888888888888,
+            "decisions": 225,
+            "invalid_operations": 71,
+            "invalid_operation_rate": 0.31555555555555553
+          },
+          "continued_sft_iteration_2": {
+            "episodes": 72,
+            "invariant_valid_successes": 1,
+            "success_rate": 0.013888888888888888,
+            "decisions": 406,
+            "invalid_operations": 71,
+            "invalid_operation_rate": 0.1748768472906404
+          },
+          "original_process_sft": {
+            "episodes": 72,
+            "invariant_valid_successes": 0,
+            "success_rate": 0.0,
+            "decisions": 198,
+            "invalid_operations": 72,
+            "invalid_operation_rate": 0.36363636363636365
+          },
+          "random_valid": {
+            "episodes": 72,
+            "invariant_valid_successes": 45,
+            "success_rate": 0.625,
+            "decisions": 5715,
+            "invalid_operations": 0,
+            "invalid_operation_rate": 0.0
+          },
+          "exact_reference": {
+            "episodes": 72,
+            "invariant_valid_successes": 72,
+            "success_rate": 1.0,
+            "decisions": 5907,
+            "invalid_operations": 0,
+            "invalid_operation_rate": 0.0
+          }
+        },
+        "development_aggregates": {
+          "dagger_iteration_2": {
+            "episodes": 9,
+            "invariant_valid_successes": 3,
+            "success_rate": 0.3333333333333333,
+            "decisions": 29,
+            "invalid_operations": 6,
+            "invalid_operation_rate": 0.20689655172413793
+          },
+          "continued_sft_iteration_2": {
+            "episodes": 9,
+            "invariant_valid_successes": 2,
+            "success_rate": 0.2222222222222222,
+            "decisions": 39,
+            "invalid_operations": 7,
+            "invalid_operation_rate": 0.1794871794871795
+          },
+          "original_process_sft": {
+            "episodes": 9,
+            "invariant_valid_successes": 1,
+            "success_rate": 0.1111111111111111,
+            "decisions": 22,
+            "invalid_operations": 8,
+            "invalid_operation_rate": 0.36363636363636365
+          },
+          "random_valid": {
+            "episodes": 9,
+            "invariant_valid_successes": 6,
+            "success_rate": 0.6666666666666666,
+            "decisions": 51,
+            "invalid_operations": 0,
+            "invalid_operation_rate": 0.0
+          },
+          "exact_reference": {
+            "episodes": 9,
+            "invariant_valid_successes": 9,
+            "success_rate": 1.0,
+            "decisions": 51,
+            "invalid_operations": 0,
+            "invalid_operation_rate": 0.0
+          }
+        },
+        "independent_replay": "PASS: all 405 DAgger comparison episodes independently replayed",
+        "scientific_result": "On the 72 unseen modality-task pairs, DAgger and exposure-matched continued SFT each achieved 1 invariant-valid success; DAgger had one paired win, one paired loss and 70 ties. DAgger did not outperform the random-valid control, which achieved 45 successes."
+      },
+      "sources": [
+        "docs/experiments/expanded-study/dagger-comparison.json",
+        "outputs/expanded-study/v1/dagger/evaluation/evidence.json"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "SUCCESSOR",
+      "outcome": "PASS",
+      "recomputed": {
+        "model_arm_downstream_successes": 1,
+        "model_arm_episodes": 45,
+        "trusted_arm_downstream_successes": 45,
+        "predictions_total": 109,
+        "schema_valid": 93,
+        "effect_valid": 66,
+        "accepted_exact": 65
+      },
+      "recorded": {
+        "expected_episodes": 90,
+        "episodes_replayed": 90,
+        "missing_bindings": [],
+        "trusted_state_substitutions": 0,
+        "independent_replay": true,
+        "model_arm_successes_expected": "1/45",
+        "trusted_arm_successes_expected": "45/45",
+        "predictions_expected": "109 total, 93 schema-valid, 66 effect-valid, 65 exact"
+      },
+      "sources": [
+        "docs/experiments/expanded-study/successor-evaluation.json",
+        "docs/experiments/expanded-study/successor-data.json",
+        "docs/experiments/expanded-study/successor-training.json"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "CURRICULUM",
+      "outcome": "PASS",
+      "recomputed": {
+        "coverage": {
+          "model_episodes": 243,
+          "expected_model_episodes": 243,
+          "comparator_bindings": 324,
+          "expected_comparator_bindings": 324,
+          "missing_bindings": [],
+          "missing_comparator_bindings": []
+        },
+        "interaction_intervals": [
+          {
+            "contrast": "(visual-state:staged-shuffled)-(text-state:staged-shuffled)",
+            "interval": {
+              "lower": -0.25925925925925924,
+              "point": -0.1111111111111111,
+              "upper": 0.037037037037037035
+            }
+          },
+          {
+            "contrast": "(multimodal-state:staged-shuffled)-(text-state:staged-shuffled)",
+            "interval": {
+              "lower": -0.25925925925925924,
+              "point": -0.07407407407407407,
+              "upper": 0.07407407407407407
+            }
+          },
+          {
+            "contrast": "(visual-state:mixed_order-shuffled)-(text-state:mixed_order-shuffled)",
+            "interval": {
+              "lower": -0.25925925925925924,
+              "point": -0.07407407407407407,
+              "upper": 0.1111111111111111
+            }
+          },
+          {
+            "contrast": "(multimodal-state:mixed_order-shuffled)-(text-state:mixed_order-shuffled)",
+            "interval": {
+              "lower": -0.18518518518518517,
+              "point": -0.037037037037037035,
+              "upper": 0.1111111111111111
+            }
+          }
+        ],
+        "all_interaction_intervals_include_zero": true,
+        "historical_issue67_pooled": false
+      },
+      "recorded": {
+        "model_episodes": "243/243",
+        "comparator_bindings": "324/324",
+        "interaction_intervals_expected": "all four include zero",
+        "historical_issue67_pooled": false
+      },
+      "sources": [
+        "docs/experiments/expanded-study/curriculum-evaluation.json",
+        "outputs/expanded-study/v1/curriculum/evaluation/analysis.json"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "TRANSFER",
+      "outcome": "PASS",
+      "recomputed": {
+        "v1_cells": 12,
+        "v2_cells": 27,
+        "comparisons": 36,
+        "min_holm_p": 0.815610408782959,
+        "min_raw_p": 0.022655844688415527,
+        "min_raw_comparison": {
+          "benchmark": "folio",
+          "cell": "iw_text",
+          "delta": 12
+        },
+        "leakage_items_with_shared_ngrams": 7,
+        "leakage_benchmark_inputs": 564,
+        "v1_admission_decision": "L0",
+        "v2_admission_decision": "L0"
+      },
+      "recorded": {
+        "min_holm_p_recorded": 0.815610408782959,
+        "min_raw_p_recorded": 0.022655844688415527,
+        "holm_threshold": 0.05,
+        "anchor_min_holm_p": 0.8156,
+        "anchor_min_raw": "0.0227 folio/iw_text"
+      },
+      "sources": [
+        "docs/experiments/expanded-study/transfer-scores.json",
+        "docs/experiments/expanded-study/transfer-v2-scores.json",
+        "docs/experiments/expanded-study/transfer-paired-analysis.json",
+        "outputs/expanded-study/v1/transfer/leakage.json"
+      ],
+      "notes": "Anchor min Holm-adjusted p is 0.8156; the recomputed minimum exceeds the 0.05 threshold so no comparison survives correction."
+    },
+    {
+      "id": "INCOMPLETE-BRANCHES",
+      "outcome": "PASS",
+      "recomputed": {
+        "second_backbone": {
+          "decision": "L2",
+          "outcome": "VALID_STOP",
+          "ledger_mutated": false
+        },
+        "generalization_robustness": {
+          "decision": "L4",
+          "outcome": "VALID_STOP",
+          "ledger_mutated": false,
+          "variants_generated": 120,
+          "eligible": 93,
+          "missing": 27,
+          "missing_reasons": {
+            "exact_reference_failed:bfs:expansion_budget_exhausted": 24,
+            "structural whole-instance overlap": 1,
+            "initial_goal": 2
+          },
+          "replacements": 0
+        }
+      },
+      "recorded": {
+        "second_backbone_expected": "L2 VALID_STOP, ledger_mutated False",
+        "generalization_robustness_expected": "L4 VALID_STOP, ledger_mutated False",
+        "qualification_expected": "93 eligible / 27 missing / 0 replacements"
+      },
+      "sources": [
+        "outputs/expanded-study/v1/second-backbone/admission.json",
+        "outputs/expanded-study/v1/generalization-robustness/admission.json",
+        "outputs/expanded-study/v1/generalization-robustness/audit.json",
+        "outputs/expanded-study/v1/generalization-robustness/screening.json"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "PROVENANCE",
+      "outcome": "PASS",
+      "recomputed": {
+        "docs/experiments/expanded-study/successor-evaluation.json": {
+          "runtime_copy": "outputs/expanded-study/v1/successor/evaluation/evidence.json",
+          "sha256_byte_identical": true
+        },
+        "docs/experiments/expanded-study/curriculum-evaluation.json": {
+          "runtime_copy": "outputs/expanded-study/v1/curriculum/evaluation/evidence.json",
+          "sha256_byte_identical": true
+        },
+        "docs/experiments/expanded-study/transfer-scores.json": {
+          "runtime_copy": "outputs/expanded-study/v1/transfer/scores.json",
+          "sha256_byte_identical": true
+        },
+        "docs/experiments/expanded-study/transfer-v2-scores.json": {
+          "runtime_copy": "outputs/expanded-study/v1/transfer-v2/scores.json",
+          "sha256_byte_identical": true
+        },
+        "docs/experiments/expanded-study/transfer-paired-analysis.json": {
+          "runtime_copy": "outputs/expanded-study/v1/transfer-paired-analysis.json",
+          "sha256_byte_identical": true
+        }
+      },
+      "recorded": {
+        "expected": "docs published copies byte-identical to runtime evidence (sha256)"
+      },
+      "sources": [
+        "docs/experiments/expanded-study/successor-evaluation.json",
+        "outputs/expanded-study/v1/successor/evaluation/evidence.json",
+        "docs/experiments/expanded-study/curriculum-evaluation.json",
+        "outputs/expanded-study/v1/curriculum/evaluation/evidence.json",
+        "docs/experiments/expanded-study/transfer-scores.json",
+        "outputs/expanded-study/v1/transfer/scores.json",
+        "docs/experiments/expanded-study/transfer-v2-scores.json",
+        "outputs/expanded-study/v1/transfer-v2/scores.json",
+        "docs/experiments/expanded-study/transfer-paired-analysis.json",
+        "outputs/expanded-study/v1/transfer-paired-analysis.json"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "GOAL-AUDITS",
+      "outcome": "PASS",
+      "recomputed": {
+        "goal_audits": {
+          "goal2": "complete",
+          "goal3": "complete",
+          "goal4": "complete",
+          "goal5": "complete",
+          "goal6": "complete",
+          "goal7": "complete",
+          "goal8": "complete",
+          "goal9": "complete",
+          "goal10": "complete",
+          "goal13": "complete"
+        },
+        "readiness_outcome": "PASS"
+      },
+      "recorded": {
+        "expected": "goal2..goal10 and goal13 status complete; readiness (goal 1) outcome PASS"
+      },
+      "sources": [
+        "docs/experiments/expanded-study/goal2-completion-audit.json",
+        "docs/experiments/expanded-study/goal3-completion-audit.json",
+        "docs/experiments/expanded-study/goal4-completion-audit.json",
+        "docs/experiments/expanded-study/goal5-completion-audit.json",
+        "docs/experiments/expanded-study/goal6-completion-audit.json",
+        "docs/experiments/expanded-study/goal7-completion-audit.json",
+        "docs/experiments/expanded-study/goal8-completion-audit.json",
+        "docs/experiments/expanded-study/goal9-completion-audit.json",
+        "docs/experiments/expanded-study/goal10-completion-audit.json",
+        "docs/experiments/expanded-study/goal13-completion-audit.json",
+        "docs/experiments/expanded-study/readiness.json"
+      ],
+      "notes": ""
+    }
+  ]
+}

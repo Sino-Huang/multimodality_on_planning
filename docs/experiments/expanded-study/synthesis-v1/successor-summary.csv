@@ -1,0 +1,13 @@
+panel,modality,arm,episodes,downstream_successes,downstream_failures,predictions_accepted,predictions_rejected_schema,predictions_rejected_effect,predictions_rejected_other,validity_schema_valid,validity_schema_invalid,validity_effect_valid,validity_effect_invalid,model_calls
+development,multimodal-state,model_generated_successor,3,0,3,4,1,2,0,6,1,4,2,7
+development,multimodal-state,trusted_successor,3,3,0,0,0,0,0,0,0,0,0,0
+development,text-state,model_generated_successor,3,0,3,4,1,2,0,6,1,4,2,7
+development,text-state,trusted_successor,3,3,0,0,0,0,0,0,0,0,0,0
+development,visual-state,model_generated_successor,3,0,3,4,1,2,0,6,1,4,2,7
+development,visual-state,trusted_successor,3,3,0,0,0,0,0,0,0,0,0,0
+unseen,multimodal-state,model_generated_successor,12,1,11,15,4,6,1,22,4,16,6,26
+unseen,multimodal-state,trusted_successor,12,12,0,0,0,0,0,0,0,0,0,0
+unseen,text-state,model_generated_successor,12,0,12,17,2,10,0,27,2,17,10,29
+unseen,text-state,trusted_successor,12,12,0,0,0,0,0,0,0,0,0,0
+unseen,visual-state,model_generated_successor,12,0,12,21,7,5,0,26,7,21,5,33
+unseen,visual-state,trusted_successor,12,12,0,0,0,0,0,0,0,0,0,0

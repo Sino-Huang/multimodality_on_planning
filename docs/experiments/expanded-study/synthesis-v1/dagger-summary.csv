@@ -1,0 +1,11 @@
+panel,arm,episodes,invariant_valid_successes,success_rate,decisions,invalid_operations,invalid_operation_rate
+development,dagger_iteration_2,9,3,0.3333333333333333,29,6,0.20689655172413793
+development,continued_sft_iteration_2,9,2,0.2222222222222222,39,7,0.1794871794871795
+development,original_process_sft,9,1,0.1111111111111111,22,8,0.36363636363636365
+development,random_valid,9,6,0.6666666666666666,51,0,0.0
+development,exact_reference,9,9,1.0,51,0,0.0
+unseen,dagger_iteration_2,72,1,0.013888888888888888,225,71,0.31555555555555553
+unseen,continued_sft_iteration_2,72,1,0.013888888888888888,406,71,0.1748768472906404
+unseen,original_process_sft,72,0,0.0,198,72,0.36363636363636365
+unseen,random_valid,72,45,0.625,5715,0,0.0
+unseen,exact_reference,72,72,1.0,5907,0,0.0
