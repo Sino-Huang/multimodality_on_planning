@@ -1,0 +1,19 @@
+{
+  "job_id": "transfer-probe",
+  "branch": "transfer",
+  "gpus": [
+    0
+  ],
+  "max_seconds": 7200,
+  "total": 12,
+  "command": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/run_expanded_transfer.py",
+    "probe"
+  ],
+  "completion_hook": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/run_expanded_transfer.py",
+    "audit-probe"
+  ]
+}

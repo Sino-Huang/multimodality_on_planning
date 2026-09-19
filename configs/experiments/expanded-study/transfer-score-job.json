@@ -1,0 +1,17 @@
+{
+  "job_id": "transfer-score",
+  "branch": "transfer",
+  "gpus": [],
+  "max_seconds": 10800,
+  "total": 2256,
+  "command": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/run_expanded_transfer.py",
+    "score"
+  ],
+  "completion_hook": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/run_expanded_transfer.py",
+    "audit-score"
+  ]
+}

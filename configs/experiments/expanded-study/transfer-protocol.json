@@ -1,0 +1,179 @@
+{
+  "schema": "expanded_transfer_protocol_v1",
+  "protocol_id": "transfer-folio-humaneval-gsm8k-v1",
+  "program": "expanded-nine-day-v1",
+  "issues": [104, 105, 106, 107],
+  "branch": "transfer",
+  "allocation_gpu_hours": 24,
+  "frozen_before_any_model_output": true,
+  "frozen_at_utc": "2026-09-19T00:00:00Z",
+  "purpose": "Zero-shot transfer of planning-trained BFS adapters to FOLIO, HumanEval and GSM8K. This is a resource- and protocol-frozen comparison; no adapter is selected or rerun by transfer-test success.",
+  "cells": {
+    "base": {
+      "adapter_id": null,
+      "description": "Qwen/Qwen3-VL-8B-Instruct base model, no adapter"
+    },
+    "bfs_text": {
+      "adapter_id": "bfs_text",
+      "checkpoint": "outputs/matched_modalities/v3/training/text-state/bfs/final",
+      "source": "docs/experiments/expanded-study/readiness.json checkpoint bank (text-state bfs, provenance_passed, all_tensors_finite)"
+    },
+    "bfs_visual": {
+      "adapter_id": "bfs_visual",
+      "checkpoint": "outputs/matched_modalities/v5/training/visual-state/bfs/final",
+      "source": "docs/experiments/expanded-study/readiness.json checkpoint bank (visual-state bfs)"
+    },
+    "bfs_multimodal": {
+      "adapter_id": "bfs_multimodal",
+      "checkpoint": "outputs/matched_modalities/v5/training/multimodal-state/bfs/final",
+      "source": "docs/experiments/expanded-study/readiness.json checkpoint bank (multimodal-state bfs)"
+    }
+  },
+  "base_model": {
+    "model_id": "Qwen/Qwen3-VL-8B-Instruct",
+    "revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+    "note": "identical pin to configs/experiments/matched-modalities/study-v5.json; all benchmarks are text-only, so every cell receives identical text prompts (matched-prompt contract)"
+  },
+  "benchmarks": {
+    "folio": {
+      "official_source": {
+        "kind": "github",
+        "repo": "Yale-LILY/FOLIO",
+        "commit": "5d7bb84c7edab3fb358e057d2807f19cf5cf5e2d",
+        "path": "data/v0.0/folio-validation.jsonl",
+        "sha256": "6922c988ef10987bd6545568ee8e63e897af80994591fa20539767da58f8e3d1",
+        "examples": 204,
+        "version_note": "FOLIO v0.0 validation split, the official public evaluation set (test labels are unreleased). The HF yale-nlp/FOLIO v2 update is access-gated and was unreachable without credentials; v0.0 is the official GitHub release, pinned by commit and file hash.",
+        "paper": "Han et al. 2022, arXiv:2209.00840"
+      },
+      "label_set": ["True", "Uncertain", "False"],
+      "subset_rule": "204 examples exceed the 200-example cap. Strata = gold label. Hamilton apportionment of 200 seats over strata (True 72 -> 70, Uncertain 69 -> 68, False 63 -> 62); within each stratum take the first k examples in original file order. Selection uses label strata and file order only, never model outcomes.",
+      "subset_size": 200,
+      "prompt": {
+        "system": "You are a careful logical reasoner.",
+        "user_template": "Premises:\n{premises}\n\nConclusion: {conclusion}\n\nBased solely on the premises, is the conclusion True, False, or Uncertain? Answer with exactly one word: True, False, or Uncertain.",
+        "premises_join": "\n"
+      },
+      "parsing": {
+        "rule": "first case-insensitive whole-word regex match of True|False|Uncertain in the raw output; if none, the prediction is malformed and scored incorrect",
+        "regex": "\\b(True|False|Uncertain)\\b",
+        "malformed_counts_as": "incorrect, reported separately"
+      },
+      "metric": "accuracy over the frozen subset; malformed reported separately",
+      "max_new_tokens": 64
+    },
+    "gsm8k": {
+      "official_source": {
+        "kind": "huggingface",
+        "dataset": "openai/gsm8k",
+        "revision": "740312add88f781978c0658806c59bc2815b9866",
+        "config": "main",
+        "split": "test",
+        "file": "main/test-00000-of-00001.parquet",
+        "sha256": "ee7b8da9e381df27b9e3f7758a159ab2bdaa4dbaa910546cbbc47e0cb44e4f59",
+        "examples": 1319,
+        "paper": "Cobbe et al. 2021, arXiv:2110.14168"
+      },
+      "subset_rule": "1319 test examples exceed the 200-example cap. Strata = quartiles of reasoning-step count over the full test set, where step count = number of calculator annotations '<<' in the gold answer (fallback: number of non-empty lines before '####'). Quartile boundaries computed on all 1319 examples; Hamilton apportionment of 200 seats across the four strata; within each stratum take the first k examples in original file order. Selection uses cost/strata only, never model outcomes.",
+      "subset_size": 200,
+      "prompt": {
+        "system": "You are a careful mathematical reasoner.",
+        "user_template": "Solve the following grade-school math word problem. Show your reasoning briefly, then give the final answer on a new line in the form '#### <number>'.\n\nProblem: {question}"
+      },
+      "parsing": {
+        "rule": "official-style: take the text after the last '####' occurrence in the raw output and parse the first number (commas, $ and trailing punctuation stripped); fallback if no '####': the last number appearing anywhere in the output; compare with the gold final number by exact string equality after normalization, else float equality with tolerance 1e-6",
+        "gold_rule": "gold answer = number after '####' in the official answer field",
+        "malformed_counts_as": "no parseable number anywhere -> incorrect, reported separately"
+      },
+      "metric": "accuracy over the frozen subset; malformed reported separately",
+      "max_new_tokens": 512
+    },
+    "humaneval": {
+      "official_source": {
+        "kind": "huggingface",
+        "dataset": "openai/openai_humaneval",
+        "revision": "7dce6050a7d6d172f3cc5c32aa97f52fa1a2e544",
+        "file": "openai_humaneval/test-00000-of-00001.parquet",
+        "sha256": "2f2871a15fbc95b6c683043359f4ed8e144c5a1c4f24f25f66bc51f598dfcfb6",
+        "examples": 164,
+        "upstream": "github.com/openai/human-eval",
+        "paper": "Chen et al. 2021, arXiv:2107.03374"
+      },
+      "subset_rule": "164 problems is below the 200-example cap, so the complete official evaluation set is used (all task_ids HumanEval/0..163 in file order).",
+      "subset_size": 164,
+      "prompt": {
+        "system": "You are an expert Python programmer.",
+        "user_template": "Complete the following Python function. Respond with the complete function definition only, without explanations, examples, or tests.\n\n```python\n{prompt}```"
+      },
+      "extraction": {
+        "rule": "if the raw output contains a fenced code block, take the first ```python/``` block; else take the raw output. Strip leading/trailing blank lines. The extracted text must define the entry_point function; the scored program is the extracted text plus the official test field plus check(entry_point), exactly as in the official human-eval harness. Empty extraction or a program missing the entry point counts as failed and is reported malformed."
+      },
+      "sandbox": {
+        "executor": "python -I subprocess per task, cwd = fresh temporary directory",
+        "wall_timeout_seconds_per_task": 15,
+        "rlimit_cpu_seconds": 10,
+        "rlimit_as_bytes": 4294967296,
+        "rlimit_nofile": 256,
+        "network": "none: executed under 'unshare -n' when available, otherwise a sitecustomize shim that makes socket.socket raise; CUDA_VISIBLE_DEVICES emptied; environment scrubbed to a minimal PATH/HOME",
+        "imports": "stdlib only as required by the official prompts/tests; no package installation at scoring time"
+      },
+      "metric": "pass@1 with a single greedy sample (exact pass rate over the frozen subset); execution errors and timeouts are failures and are reported by category",
+      "max_new_tokens": 768
+    }
+  },
+  "decoding": {
+    "do_sample": false,
+    "temperature": null,
+    "seed": 17,
+    "dtype": "float32",
+    "attention": "model default (sdpa)",
+    "batching": "left-padded batches via BatchedPolicyAdapter; per-benchmark max_new_tokens from the benchmarks block; max_batch_size 8; max_batch_input_tokens 48000; max_context_tokens 8192; generation stops at EOS regardless of allowance",
+    "cache": "identical (adapter, canonical prompt) pairs memoized within one worker process only; no cross-run cache"
+  },
+  "resource_gate": {
+    "cost_unit": "generated tokens (frozen per-benchmark max_new_tokens allowance) plus, for humaneval, one sandboxed test execution per (problem, cell) with the frozen limits",
+    "probe_examples": "per benchmark, the p50 and p95 input-token-length examples of the frozen L0 subset (6 probes total), plus the minimum-length example for the token-limit guard; probe outputs are retained but are never scored and evaluation re-runs every example fresh",
+    "measurements_required": [
+      "model loading wall time per worker",
+      "scalar vs batched byte-identical parity for base and each adapter on the probe set",
+      "repeated-batch determinism: two uncached runs byte-identical",
+      "token-limit guard: input tokens + allowance <= max_context_tokens enforced",
+      "adapter isolation: disabling adapters restores byte-identical base outputs",
+      "lower-95% throughput (generated tokens/second) per benchmark on the probe set"
+    ],
+    "admission_rule": {
+      "L0": "sum over benchmarks of p95_probe_seconds_per_example x subset_size x 4 cells, plus measured model-load time once per worker, times safety factor 1.25, fits within 24 GPU-hours per-GPU and within the absolute GPU cutoff 2026-09-21T11:55:19Z",
+      "L1": "if L0 does not fit but the frozen reduced panel does: folio 100 / gsm8k 100 / humaneval 82, obtained by taking even-numbered positions of each frozen L0 ordered subset (halving every stratum proportionally); L1 is frozen here before outcomes and is never re-derived from results",
+      "L2": "otherwise VALID_STOP: resource failure, no transfer evaluation runs"
+    },
+    "safety_factor": 1.25
+  },
+  "leakage_prevention": {
+    "adapter_corpora": "the three BFS adapters were trained only on 512 planning-search records per cell (seed 17) from outputs/modality_corpus/issue74-matched-32k-v1 (see each cell report.json training_record_ids); benchmark content is not planning data",
+    "check": "normalized-token 8-gram containment between every frozen benchmark input (premises+conclusion / question / prompt) and the full text of the issue74-matched-32k-v1 corpus records; any shared 8-gram is reported per benchmark item",
+    "base_model_note": "Qwen3-VL-8B-Instruct pretraining data is not auditable by this project; possible benchmark contamination of the base model is disclosed as a limitation, not measured here",
+    "test_use": "frozen subsets, prompts and decoding are fixed before any evaluation output; no test-driven adapter selection, reruns, or prompt changes"
+  },
+  "execution_topology": {
+    "workers": {
+      "transfer-run-0": {"gpu": 0, "benchmarks": ["gsm8k"]},
+      "transfer-run-1": {"gpu": 1, "benchmarks": ["folio", "humaneval"]}
+    },
+    "cell_order_per_benchmark": ["base", "bfs_text", "bfs_visual", "bfs_multimodal"],
+    "note": "one backbone per worker in fp32 with hot-swapped PEFT adapters; cell order fixed; approximately balanced by expected generated tokens (gsm8k ~200x4 long generations vs folio short + humaneval medium)",
+    "master_port_pool": [18800, 18801, 18802, 18803, 18804, 18805],
+    "scheduler": "scripts/run_expanded_study.py; per-stage logs, heartbeats, terminal status, completion hooks and duplicate-launch refusal per the #116 contract"
+  },
+  "evidence": {
+    "output_root": "outputs/expanded-study/v1/transfer",
+    "retained": [
+      "frozen raw benchmark files with sha256 and subset manifests",
+      "raw model outputs for every (benchmark, cell, example) including malformed ones",
+      "parsed predictions, scoring details and humaneval execution logs",
+      "probe measurements and the admission decision",
+      "ledger accounting for every attempt"
+    ],
+    "publication": "compact JSON + markdown narrative under docs/experiments/expanded-study/",
+    "valid_stop_contract": "VALID_STOP for resource or ordinary threshold failure; INVALID for provenance, replay or execution mismatch; partial coverage is reported as missingness, never silently dropped"
+  }
+}

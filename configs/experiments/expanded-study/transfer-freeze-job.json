@@ -1,0 +1,17 @@
+{
+  "job_id": "transfer-freeze",
+  "branch": "transfer",
+  "gpus": [],
+  "max_seconds": 7200,
+  "total": 6,
+  "command": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/run_expanded_transfer.py",
+    "freeze"
+  ],
+  "completion_hook": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/run_expanded_transfer.py",
+    "audit-freeze"
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "job_id": "transfer-run-0",
+  "branch": "transfer",
+  "gpus": [
+    0
+  ],
+  "max_seconds": 21600,
+  "total": 800,
+  "command": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/run_expanded_transfer.py",
+    "run",
+    "--worker",
+    "0"
+  ],
+  "completion_hook": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/run_expanded_transfer.py",
+    "audit-run-worker",
+    "--worker",
+    "0"
+  ]
+}
