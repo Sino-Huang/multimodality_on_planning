@@ -7,7 +7,6 @@ from typing import Any, Iterable, Sequence
 
 from .zero_shot import ALGORITHMS, normalize_algorithm
 
-
 SCHEMA_VERSION = "planning_expert_trajectory_v1"
 SUPPORTED_SUFFIXES = (".json", ".jsonl")
 
@@ -35,25 +34,12 @@ ALGORITHM_REQUIRED_FIELDS: dict[str, tuple[str, ...]] = {
         "dequeued_state_id",
         "successors",
     ),
-    "fast_forward": (
-        "heuristic_value",
-        "successor_heuristics",
-        "selected_successor_id",
-        "tie_break_rule",
-        "relaxed_plan_metadata",
-    ),
     "iterated_width": (
         "width",
         "novelty_table_before",
         "novelty_table_after",
         "novel_item",
         "decision",
-    ),
-    "graphplan": (
-        "proposition_layers",
-        "action_layers",
-        "mutex_pairs",
-        "extraction",
     ),
 }
 
@@ -92,18 +78,6 @@ def canonical_novelty_table(value: Any) -> list[Any]:
     return sorted(entries, key=_json_sort_key)
 
 
-def canonical_mutex_pairs(value: Any) -> list[list[str]]:
-    if not isinstance(value, (list, tuple, set, frozenset)):
-        return []
-    pairs: list[list[str]] = []
-    for pair in value:
-        if not isinstance(pair, (list, tuple, set, frozenset)):
-            pairs.append([str(pair)])
-            continue
-        pairs.append(sorted(str(item) for item in pair))
-    return sorted(pairs, key=_json_sort_key)
-
-
 def canonicalize_trajectory_step(step: dict[str, Any]) -> dict[str, Any]:
     canonical = {str(key): _canonicalize_json_value(value) for key, value in step.items()}
     for field in ("state_atoms", "goal_atoms", "legal_actions"):
@@ -115,12 +89,8 @@ def canonicalize_trajectory_step(step: dict[str, Any]) -> dict[str, Any]:
         canonical["algorithm"] = algorithm
     if algorithm == "bfs" and isinstance(step.get("bfs"), dict):
         canonical["bfs"] = _canonicalize_bfs(step["bfs"])
-    elif algorithm == "fast_forward" and isinstance(step.get("fast_forward"), dict):
-        canonical["fast_forward"] = _canonicalize_fast_forward(step["fast_forward"])
     elif algorithm == "iterated_width" and isinstance(step.get("iterated_width"), dict):
         canonical["iterated_width"] = _canonicalize_iterated_width(step["iterated_width"])
-    elif algorithm == "graphplan" and isinstance(step.get("graphplan"), dict):
-        canonical["graphplan"] = _canonicalize_graphplan(step["graphplan"])
     return dict(sorted(canonical.items()))
 
 
@@ -290,12 +260,8 @@ def _validate_algorithm_fields(step: dict[str, Any], *, algorithm: str, source: 
             errors.append(_missing(source, f"{algorithm}.{field}"))
     if algorithm == "bfs":
         _validate_bfs_types(algorithm_payload, source, errors)
-    elif algorithm == "fast_forward":
-        _validate_fast_forward_types(algorithm_payload, source, errors)
     elif algorithm == "iterated_width":
         _validate_iterated_width_types(algorithm_payload, source, errors)
-    elif algorithm == "graphplan":
-        _validate_graphplan_types(algorithm_payload, source, errors)
     return errors
 
 
@@ -306,44 +272,50 @@ def _validate_bfs_types(payload: dict[str, Any], source: str, errors: list[Traje
     _require_list(payload, "successors", source, errors, prefix="bfs")
 
 
-def _validate_fast_forward_types(payload: dict[str, Any], source: str, errors: list[TrajectoryValidationError]) -> None:
-    _require_number(payload, "heuristic_value", source, errors, prefix="fast_forward")
-    _require_list(payload, "successor_heuristics", source, errors, prefix="fast_forward")
-    _require_string(payload, "selected_successor_id", source, errors, prefix="fast_forward")
-    _require_string(payload, "tie_break_rule", source, errors, prefix="fast_forward")
-    _require_object(payload, "relaxed_plan_metadata", source, errors, prefix="fast_forward")
-
-
-def _validate_iterated_width_types(payload: dict[str, Any], source: str, errors: list[TrajectoryValidationError]) -> None:
+def _validate_iterated_width_types(
+    payload: dict[str, Any], source: str, errors: list[TrajectoryValidationError]
+) -> None:
     _require_positive_int(payload, "width", source, errors, prefix="iterated_width")
     _require_list(payload, "novelty_table_before", source, errors, prefix="iterated_width")
     _require_list(payload, "novelty_table_after", source, errors, prefix="iterated_width")
     _require_string(payload, "decision", source, errors, prefix="iterated_width")
 
 
-def _validate_graphplan_types(payload: dict[str, Any], source: str, errors: list[TrajectoryValidationError]) -> None:
-    _require_list(payload, "proposition_layers", source, errors, prefix="graphplan")
-    _require_list(payload, "action_layers", source, errors, prefix="graphplan")
-    _require_list(payload, "mutex_pairs", source, errors, prefix="graphplan")
-    _require_object(payload, "extraction", source, errors, prefix="graphplan")
-
-
 def _require_string(
-    payload: dict[str, Any], path: str, source: str, errors: list[TrajectoryValidationError], *, prefix: str | None = None
+    payload: dict[str, Any],
+    path: str,
+    source: str,
+    errors: list[TrajectoryValidationError],
+    *,
+    prefix: str | None = None,
 ) -> None:
     if path in payload and (not isinstance(payload[path], str) or not payload[path].strip()):
         _type_error(source, _path(prefix, path), "must be a non-empty string", errors)
 
 
 def _require_string_or_null(
-    payload: dict[str, Any], path: str, source: str, errors: list[TrajectoryValidationError], *, prefix: str | None = None
+    payload: dict[str, Any],
+    path: str,
+    source: str,
+    errors: list[TrajectoryValidationError],
+    *,
+    prefix: str | None = None,
 ) -> None:
-    if path in payload and payload[path] is not None and (not isinstance(payload[path], str) or not payload[path].strip()):
+    if (
+        path in payload
+        and payload[path] is not None
+        and (not isinstance(payload[path], str) or not payload[path].strip())
+    ):
         _type_error(source, _path(prefix, path), "must be a non-empty string or null", errors)
 
 
 def _require_string_list(
-    payload: dict[str, Any], path: str, source: str, errors: list[TrajectoryValidationError], *, prefix: str | None = None
+    payload: dict[str, Any],
+    path: str,
+    source: str,
+    errors: list[TrajectoryValidationError],
+    *,
+    prefix: str | None = None,
 ) -> None:
     if path not in payload:
         return
@@ -353,42 +325,60 @@ def _require_string_list(
 
 
 def _require_list(
-    payload: dict[str, Any], path: str, source: str, errors: list[TrajectoryValidationError], *, prefix: str | None = None
+    payload: dict[str, Any],
+    path: str,
+    source: str,
+    errors: list[TrajectoryValidationError],
+    *,
+    prefix: str | None = None,
 ) -> None:
     if path in payload and not isinstance(payload[path], list):
         _type_error(source, _path(prefix, path), "must be a list", errors)
 
 
 def _require_object(
-    payload: dict[str, Any], path: str, source: str, errors: list[TrajectoryValidationError], *, prefix: str | None = None
+    payload: dict[str, Any],
+    path: str,
+    source: str,
+    errors: list[TrajectoryValidationError],
+    *,
+    prefix: str | None = None,
 ) -> None:
     if path in payload and not isinstance(payload[path], dict):
         _type_error(source, _path(prefix, path), "must be an object", errors)
 
 
 def _require_bool(
-    payload: dict[str, Any], path: str, source: str, errors: list[TrajectoryValidationError], *, prefix: str | None = None
+    payload: dict[str, Any],
+    path: str,
+    source: str,
+    errors: list[TrajectoryValidationError],
+    *,
+    prefix: str | None = None,
 ) -> None:
     if path in payload and not isinstance(payload[path], bool):
         _type_error(source, _path(prefix, path), "must be a boolean", errors)
 
 
-def _require_number(
-    payload: dict[str, Any], path: str, source: str, errors: list[TrajectoryValidationError], *, prefix: str | None = None
-) -> None:
-    if path in payload and (not isinstance(payload[path], (int, float)) or isinstance(payload[path], bool)):
-        _type_error(source, _path(prefix, path), "must be a number", errors)
-
-
 def _require_nonnegative_int(
-    payload: dict[str, Any], path: str, source: str, errors: list[TrajectoryValidationError], *, prefix: str | None = None
+    payload: dict[str, Any],
+    path: str,
+    source: str,
+    errors: list[TrajectoryValidationError],
+    *,
+    prefix: str | None = None,
 ) -> None:
     if path in payload and (not isinstance(payload[path], int) or isinstance(payload[path], bool) or payload[path] < 0):
         _type_error(source, _path(prefix, path), "must be a non-negative integer", errors)
 
 
 def _require_positive_int(
-    payload: dict[str, Any], path: str, source: str, errors: list[TrajectoryValidationError], *, prefix: str | None = None
+    payload: dict[str, Any],
+    path: str,
+    source: str,
+    errors: list[TrajectoryValidationError],
+    *,
+    prefix: str | None = None,
 ) -> None:
     if path in payload and (not isinstance(payload[path], int) or isinstance(payload[path], bool) or payload[path] <= 0):
         _type_error(source, _path(prefix, path), "must be a positive integer", errors)
@@ -438,13 +428,6 @@ def _canonicalize_bfs(payload: dict[str, Any]) -> dict[str, Any]:
     return canonical
 
 
-def _canonicalize_fast_forward(payload: dict[str, Any]) -> dict[str, Any]:
-    canonical = _canonicalize_json_value(payload)
-    if isinstance(canonical.get("successor_heuristics"), list):
-        canonical["successor_heuristics"] = sorted(canonical["successor_heuristics"], key=_heuristic_sort_key)
-    return canonical
-
-
 def _canonicalize_iterated_width(payload: dict[str, Any]) -> dict[str, Any]:
     canonical = _canonicalize_json_value(payload)
     for field in ("novelty_table_before", "novelty_table_after"):
@@ -452,29 +435,6 @@ def _canonicalize_iterated_width(payload: dict[str, Any]) -> dict[str, Any]:
             canonical[field] = canonical_novelty_table(canonical[field])
     if isinstance(canonical.get("novel_item"), (list, tuple, set, frozenset)):
         canonical["novel_item"] = _canonical_novelty_entry(canonical["novel_item"])
-    return canonical
-
-
-def _canonicalize_graphplan(payload: dict[str, Any]) -> dict[str, Any]:
-    canonical = _canonicalize_json_value(payload)
-    if isinstance(canonical.get("mutex_pairs"), list):
-        canonical["mutex_pairs"] = canonical_mutex_pairs(canonical["mutex_pairs"])
-    for layer_field in ("proposition_layers", "action_layers"):
-        if not isinstance(canonical.get(layer_field), list):
-            continue
-        layers = []
-        for layer in canonical[layer_field]:
-            if not isinstance(layer, dict):
-                layers.append(layer)
-                continue
-            layer = dict(layer)
-            for list_field in ("atoms", "actions", "propositions"):
-                if isinstance(layer.get(list_field), list):
-                    layer[list_field] = canonical_string_list(layer[list_field])
-            if isinstance(layer.get("mutex_pairs"), list):
-                layer["mutex_pairs"] = canonical_mutex_pairs(layer["mutex_pairs"])
-            layers.append(dict(sorted(layer.items())))
-        canonical[layer_field] = sorted(layers, key=_layer_sort_key)
     return canonical
 
 
@@ -494,22 +454,6 @@ def _successor_sort_key(value: Any) -> tuple[str, str, str]:
     return (str(value.get("action", "")), str(value.get("state_id", "")), _json_sort_key(value))
 
 
-def _heuristic_sort_key(value: Any) -> tuple[float, str, str, str]:
-    if not isinstance(value, dict):
-        return (float("inf"), "", "", _json_sort_key(value))
-    heuristic = value.get("heuristic_value")
-    numeric = float(heuristic) if isinstance(heuristic, (int, float)) and not isinstance(heuristic, bool) else float("inf")
-    return (numeric, str(value.get("action", "")), str(value.get("state_id", "")), _json_sort_key(value))
-
-
-def _layer_sort_key(value: Any) -> tuple[int, str]:
-    if not isinstance(value, dict):
-        return (10**9, _json_sort_key(value))
-    index = value.get("layer_index", value.get("layer", 10**9))
-    numeric = index if isinstance(index, int) and not isinstance(index, bool) else 10**9
-    return (numeric, _json_sort_key(value))
-
-
 __all__ = [
     "ALGORITHM_REQUIRED_FIELDS",
     "SCHEMA_VERSION",
@@ -517,7 +461,6 @@ __all__ = [
     "TrajectorySchemaError",
     "TrajectoryValidationError",
     "canonical_json_text",
-    "canonical_mutex_pairs",
     "canonical_novelty_table",
     "canonical_string_list",
     "canonicalize_trajectory_step",

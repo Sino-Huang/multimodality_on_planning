@@ -1,0 +1,30 @@
+{
+  "issue": 75,
+  "cause": "Repeated scalar generation for duplicated batch inputs and qualification of three modalities in a visual-only experiment exceeded a separate one-hour cutoff.",
+  "probe_records": 31,
+  "old_generation_calls_per_gpu": 940,
+  "new_generation_calls_per_gpu": 151,
+  "generation_call_reduction_percent": 83.9,
+  "source_scan_seconds": 5.02,
+  "first_four_cpu_teacher_replay_seconds": 1.86,
+  "qualification_modalities": [
+    "visual-state"
+  ],
+  "separate_qualification_timeout": false,
+  "approval_files_required": false,
+  "default_output": "outputs/visual_development/issue75-32k-v2/attempt-001",
+  "verification": {
+    "tests_passed": 24,
+    "test_seconds": 31.78,
+    "black": "PASS",
+    "ruff": "PASS",
+    "basedpyright": "PASS",
+    "dry_run": "PASS",
+    "simulated_one_hour_timeout_regression": "PASS",
+    "every_batch_position_semantically_checked": "PASS"
+  },
+  "new_gpu_run_started": false,
+  "revised_gpu_wall_time_measured": false,
+  "scientific_completion": false,
+  "preparation_evidence": "outputs/visual_development/issue75-fix-preparation-001"
+}

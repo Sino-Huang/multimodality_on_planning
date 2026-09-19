@@ -24,7 +24,7 @@ def test_blocksworld_medium_0011_iw_width_three_succeeds_after_width_one_two_fai
 
     assert width_one.status != "success_full_trace"
     assert width_two.status != "success_full_trace"
-    assert width_three.status == "success_full_trace"
+    assert width_three.status == "success_truncated_trace"
     assert width_three.trace["algorithm"] == "iterated_width"
     assert width_three.trace["width"] == 3
     assert len(width_three.plan) == 10

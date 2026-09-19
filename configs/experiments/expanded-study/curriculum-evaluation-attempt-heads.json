@@ -1,0 +1,91 @@
+{
+  "schema_version": "expanded_curriculum_evaluation_attempt_heads_v1",
+  "protocol_id": "expanded-curriculum-v1",
+  "status": "frozen_reconciled",
+  "attempt_heads": [
+    {
+      "job_id": "curriculum-evaluate-0",
+      "attempt": 2,
+      "runtime_head": "2946e18465e7a7724c65e4e29caf21118cc76db6"
+    },
+    {
+      "job_id": "curriculum-evaluate-0",
+      "attempt": 4,
+      "runtime_head": "8c950773a63e29864ad6e684e40d9475f3fe3a1b"
+    },
+    {
+      "job_id": "curriculum-evaluate-0",
+      "attempt": 5,
+      "runtime_head": "8c950773a63e29864ad6e684e40d9475f3fe3a1b"
+    },
+    {
+      "job_id": "curriculum-evaluate-1",
+      "attempt": 2,
+      "runtime_head": "2946e18465e7a7724c65e4e29caf21118cc76db6"
+    },
+    {
+      "job_id": "curriculum-evaluate-1",
+      "attempt": 4,
+      "runtime_head": "8c950773a63e29864ad6e684e40d9475f3fe3a1b"
+    }
+  ],
+  "reconciliation": {
+    "retrospective": true,
+    "disclosure": "Cutoff attempts recorded no worker-result.json or launch head. The producing-attempt mapping was reconciled retrospectively from committed fix ordering and the preserved scheduler admitted timestamps.",
+    "commit_order": [
+      {
+        "commit": "2946e18465e7a7724c65e4e29caf21118cc76db6",
+        "committed_at": "2026-09-17T15:39:43+10:00",
+        "role": "curriculum behavior-arm mapping used by attempts 2"
+      },
+      {
+        "commit": "dcaa4baf4a4fb738d8033fd4a34ad6a32afd4dd5",
+        "committed_at": "2026-09-17T18:56:06+10:00",
+        "role": "initial mixed-attempt support used by non-producing attempts 3"
+      },
+      {
+        "commit": "8c950773a63e29864ad6e684e40d9475f3fe3a1b",
+        "committed_at": "2026-09-17T19:27:13+10:00",
+        "role": "policy-identity and committed-lineage fix used by attempts 4 and 5"
+      }
+    ],
+    "launch_order": [
+      {
+        "job_id": "curriculum-evaluate-0",
+        "attempt": 2,
+        "admitted_at_utc": "2026-09-17T05:39:59.503235+00:00"
+      },
+      {
+        "job_id": "curriculum-evaluate-1",
+        "attempt": 2,
+        "admitted_at_utc": "2026-09-17T05:40:00.018660+00:00"
+      },
+      {
+        "job_id": "curriculum-evaluate-0",
+        "attempt": 3,
+        "admitted_at_utc": "2026-09-17T08:56:22.692399+00:00"
+      },
+      {
+        "job_id": "curriculum-evaluate-1",
+        "attempt": 3,
+        "admitted_at_utc": "2026-09-17T08:56:23.282371+00:00"
+      },
+      {
+        "job_id": "curriculum-evaluate-0",
+        "attempt": 4,
+        "admitted_at_utc": "2026-09-17T09:27:30.415397+00:00"
+      },
+      {
+        "job_id": "curriculum-evaluate-1",
+        "attempt": 4,
+        "admitted_at_utc": "2026-09-17T09:27:31.046940+00:00"
+      },
+      {
+        "job_id": "curriculum-evaluate-0",
+        "attempt": 5,
+        "admitted_at_utc": "2026-09-17T12:29:02.379104+00:00"
+      }
+    ],
+    "future_attempts": "The expanded scheduler now persists git rev-parse HEAD as launch_head in each attempt ledger entry before spawning the worker."
+  }
+}

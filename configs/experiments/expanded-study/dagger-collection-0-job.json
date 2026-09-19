@@ -1,0 +1,22 @@
+{
+  "job_id": "dagger-collection-0",
+  "branch": "dagger",
+  "gpus": [0],
+  "max_seconds": 32400,
+  "total": 1024,
+  "command": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/run_expanded_dagger_collection.py",
+    "run",
+    "--worker",
+    "0"
+  ],
+  "completion_hook": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/run_expanded_dagger_collection.py",
+    "audit-worker",
+    "--worker",
+    "0"
+  ],
+  "resume_reason": "Commits 8e79670 and 621dcaf add persisted unlabelled on-policy views and advance completed-episode replay to trusted termination; retain attempts 1-2 and resume their journals."
+}

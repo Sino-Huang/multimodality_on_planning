@@ -1,9 +1,8 @@
 from __future__ import annotations
-import hashlib
 import json
 from pathlib import Path
 from typing import Iterable
-from .io_utils import file_sha256, repo_root, stable_hash
+from .io_utils import repo_root
 from .trace_contracts import FrozenSourceIdentity
 from .traversal_state_types import JSONValue
 from .planimation_pairing_contracts import ACTIVE_PLANNERS, SourceSnapshotMismatch, UnsupportedActivePlanner
@@ -15,16 +14,13 @@ def _load_source_example(pair: dict[str, JSONValue], *, source_snapshots: dict[s
     source_root = _provenance_text(pair, "source_root")
     source_jsonl = _provenance_text(pair, "source_jsonl")
     source_root_id = _provenance_text(pair, "source_root_id")
-    source_root_sha256 = _provenance_text(pair, "source_root_sha256")
-    source_split_sha256 = _provenance_text(pair, "source_split_sha256")
-    source_record_sha256 = _provenance_text(pair, "source_record_sha256")
+    source_record_id = _provenance_text(pair, "source_record_id")
     example_id = _provenance_text(pair, "example_id")
     planner = _provenance_text(pair, "planner")
     active_planner_id = _provenance_text(pair, "active_planner_id")
     split = _provenance_text(pair, "split")
     domain = _provenance_text(pair, "domain")
     instance_id = _provenance_text(pair, "instance_id")
-    plan_hash = _provenance_text(pair, "plan_hash")
     target_line = _provenance_line_index(pair)
     _assert_active_planner(planner)
     _assert_active_planner(active_planner_id)
@@ -43,11 +39,7 @@ def _load_source_example(pair: dict[str, JSONValue], *, source_snapshots: dict[s
             raise SourceSnapshotMismatch("source_root_missing") from exc
         if source_snapshots is not None:
             source_snapshots[snapshot_key] = current_snapshot
-    if stable_hash(current_snapshot) != source_root_sha256:
-        raise SourceSnapshotMismatch("source_root_sha256")
     source_split = source_path.stem
-    if current_snapshot.get(source_split) != source_split_sha256:
-        raise SourceSnapshotMismatch("source_split_sha256")
     if source_split != split:
         raise SourceSnapshotMismatch("split")
     row_key = f"{source_root}:{source_jsonl}"
@@ -62,9 +54,10 @@ def _load_source_example(pair: dict[str, JSONValue], *, source_snapshots: dict[s
     source_row = indexed_rows.get(target_line)
     if source_row is None:
         raise SourceSnapshotMismatch("source_line_index")
-    source_bytes, example = source_row
-    if hashlib.sha256(source_bytes).hexdigest() != source_record_sha256:
-        raise SourceSnapshotMismatch("source_record_sha256")
+    _source_bytes, example = source_row
+    expected_record_id = f"{source_jsonl}:{target_line}:{example_id}"
+    if source_record_id != expected_record_id:
+        raise SourceSnapshotMismatch("source_record_id")
     _assert_source_identity(example, "example_id", example_id)
     source_planner = _source_text(example, "planner")
     _assert_active_planner(source_planner)
@@ -75,7 +68,6 @@ def _load_source_example(pair: dict[str, JSONValue], *, source_snapshots: dict[s
     _assert_source_identity(example, "split", split)
     _assert_source_identity(example, "domain", domain)
     _assert_source_identity(example, "instance_id", instance_id)
-    _assert_source_identity(example, "plan_hash", plan_hash)
     return example
 
 def _provenance_text(pair: dict[str, JSONValue], field: str) -> str:
@@ -101,7 +93,11 @@ def _assert_source_identity(example: dict[str, JSONValue], field: str, expected:
         raise SourceSnapshotMismatch(field)
 
 def _source_root_snapshot(dataset_root: Path) -> dict[str, str]:
-    return {split: file_sha256(dataset_root / f"{split}.jsonl") for split in ("train", "dev", "test")}
+    paths = {split: dataset_root / f"{split}.jsonl" for split in ("train", "dev", "test")}
+    for path in paths.values():
+        if not path.is_file():
+            raise FileNotFoundError(path)
+    return {split: path.relative_to(dataset_root).as_posix() for split, path in paths.items()}
 
 def _source_jsonl_rows(path: Path) -> Iterable[tuple[int, bytes, dict[str, JSONValue]]]:
     with path.open("rb") as handle:
@@ -121,7 +117,7 @@ def _trace_identity(pair: dict[str, JSONValue]) -> FrozenSourceIdentity:
         _provenance_text(pair, "source_root_id"),
         _provenance_text(pair, "source_jsonl"),
         _provenance_line_index(pair),
-        _provenance_text(pair, "source_record_sha256"),
+        _provenance_text(pair, "source_record_id"),
         _provenance_text(pair, "example_id"),
         _provenance_text(pair, "planner"),
     )

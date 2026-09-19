@@ -1,0 +1,142 @@
+{
+  "status": "complete",
+  "goal": 8,
+  "issues": [
+    87,
+    88
+  ],
+  "requirements": {
+    "full_declared_collection": "successor-data.json: exact 512-record frozen membership in all three modality cells; 1536 interactions and zero missing records.",
+    "training_only_and_source_splits": "audit_expanded_successor_data.py: every interaction/label is train; canonical task-context disjointness from source heldout partitions and both current final panels.",
+    "raw_predictions_distinct_from_labels": "Separate immutable interactions.json.gz and labels.json.gz; every teacher target is compared with trusted_target and every label excludes raw_prediction/verifier fields.",
+    "last_valid_state_and_trajectory_links": "Scheduled and standalone replay reconstruct each authority from source PDDL, replay complete producing actions, and verify source/query/decision/trace/view identities against the frozen record.",
+    "full_state_schema_static_identity_applicability_effect": "All 1536 raw predictions independently replay; all 1536 teacher labels strict-parse and match authority effects; dynamic atoms/fluents and immutable static context remain separate.",
+    "no_repair_or_trusted_substitution": "Every replayed prediction records prediction_applied=false and trusted_state_substituted=false; downstream_search=not_evaluated.",
+    "bounded_memory_and_declared_observations": "Same training_example builder for live/corpus, verified scene/page bindings, complete prompt measurements and <=16 accepted deltas.",
+    "fixed_calls_and_safe_resume": "One frozen query per record in batch-two order; four initial returned predictions recovered from journals without regeneration; completed cells replay instead of generating.",
+    "reference_costs": "successor-data-provenance.json: all 25 source costs retained, exact decision count checked against original trace record_count; source trace/PDDL/report hashes published.",
+    "versioned_release_preserves_history": "release-001 artifacts independently regenerate byte-identically; exact writer refuses conflicting retained artifacts; original corpora/checkpoints/ledgers remain source dependencies.",
+    "operational_and_structural_outcomes": "Scheduler retains two failed GPU attempts plus failed CPU orchestration; dataset separately records returned-output operational status and structural failure kind; 119 accepted/1417 rejected outcomes retained.",
+    "accounting_cutoff_and_ports": "Successful workers ports18800/18801; all attempts retained; Goal8 9.294947 GPUh and cumulative successor9.515907/64; no active successor reservations; all GPU stages ended before fixed cutoff.",
+    "background_hooks": "Chain attempt3 and both worker attempt2 records succeeded with hook returncode0; final CPU job and resume hook succeeded; complete.json terminal sentinel inspected.",
+    "publication_and_issue_closeout": "Code/configs already pushed in9a9fe12/beee360; compact evidence, audit script and dataset documentation published by this closeout; issue state verified after closure."
+  },
+  "independent_audit": {
+    "outcome": "PASS",
+    "goal": 8,
+    "interactions_replayed": 1536,
+    "teacher_targets_strictly_verified": 1536,
+    "tasks": 25,
+    "first_attempt_predictions_recovered_without_regeneration": 4,
+    "source_heldout_semantic_context_overlap": 0,
+    "whole_instance_scope": "Canonical task-context equality; preserves source corpus splits and compares both current final panels.",
+    "conflicting_identical_authoritative_inputs": 0,
+    "verification_outcomes": {
+      "accepted": 119,
+      "effect": 68,
+      "schema": 1274,
+      "state_identity": 75
+    },
+    "runtime_heads": [
+      "9a9fe12888b860076862140e73edd1ee7a6a8b3d",
+      "beee3604b646c04f30d2f60e86161eba342a609a"
+    ],
+    "cumulative_gpu_hours_including_qualification_failures_and_retries": 9.515907205409475,
+    "missing_records": 0,
+    "training_updates": 0
+  },
+  "coverage": {
+    "modalities": [
+      "text-state",
+      "visual-state",
+      "multimodal-state"
+    ],
+    "records_per_modality": 512,
+    "total_interactions": 1536,
+    "training_tasks": 25,
+    "split": "train",
+    "verification_outcomes": {
+      "accepted": 119,
+      "effect": 68,
+      "schema": 1274,
+      "state_identity": 75
+    },
+    "missing_records": 0
+  },
+  "execution": {
+    "jobs": [
+      "successor-collection-0",
+      "successor-collection-1"
+    ],
+    "attempts": [
+      2,
+      2
+    ],
+    "physical_gpus": [
+      [
+        0
+      ],
+      [
+        1
+      ]
+    ],
+    "master_ports": [
+      18800,
+      18801
+    ],
+    "collection_gpu_hours": 9.225522693726752,
+    "cumulative_successor_gpu_hours": 9.515907205409475,
+    "branch_cap_gpu_hours": 64,
+    "runtime_heads": [
+      "9a9fe12888b860076862140e73edd1ee7a6a8b3d",
+      "beee3604b646c04f30d2f60e86161eba342a609a"
+    ]
+  },
+  "goal8_gpu_hours_including_failures": 9.294947411417962,
+  "tests": "77 passed in39.65s",
+  "ruff": "All checks passed",
+  "limitations": [
+    "Results concern original process-SFT adapters under frozen successor queries; no downstream-search or trained-successor performance is claimed.",
+    "Source semantic split proof compares canonical task contexts, preserving the inherited contract; no new corpus-wide object-renaming-equivalence proof.",
+    "Dataset artifacts use the existing local outputs corpus-release convention; compact paths/hashes/provenance are committed."
+  ],
+  "artifacts": {
+    "successor-data.json": {
+      "path": "docs/experiments/expanded-study/successor-data.json",
+      "sha256": "033a37e4c2a3212b19b9bc105d3505f7025b168394d274f24daf9cc59f910102"
+    },
+    "successor-data-provenance.json": {
+      "path": "docs/experiments/expanded-study/successor-data-provenance.json",
+      "sha256": "cd532ba0f0db199973350d030b0bd945cb278ebb80b140e1e78220ac7720a5e7"
+    },
+    "successor-data-independent-audit.json": {
+      "path": "docs/experiments/expanded-study/successor-data-independent-audit.json",
+      "sha256": "beb339572538f22fe1c531f27574ff90863d947f2c28d927ef1ccf5b5585425f"
+    }
+  },
+  "publication": {
+    "implementation_commits": [
+      "9a9fe12888b860076862140e73edd1ee7a6a8b3d",
+      "beee3604b646c04f30d2f60e86161eba342a609a"
+    ],
+    "evidence_commit": "7754786",
+    "issues": [
+      {
+        "closedAt": "2026-09-16T12:27:36Z",
+        "number": 87,
+        "state": "CLOSED",
+        "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/87"
+      },
+      {
+        "closedAt": "2026-09-16T12:27:39Z",
+        "number": 88,
+        "state": "CLOSED",
+        "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/88"
+      }
+    ],
+    "closeout_comments": [
+      "https://github.com/Sino-Huang/multimodality_on_planning/issues/87#issuecomment-5697407772",
+      "https://github.com/Sino-Huang/multimodality_on_planning/issues/88#issuecomment-5697408364"
+    ]
+  }
+}

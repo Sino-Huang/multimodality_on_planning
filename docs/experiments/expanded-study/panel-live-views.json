@@ -1,0 +1,315 @@
+{
+  "tasks": [
+    {
+      "task_id": "expanded-final/15puzzle-compact-910000",
+      "outcome": "PASS",
+      "reference_closure": false,
+      "state": 34,
+      "source_state": 18,
+      "action": "move(t_8,p_3_2,p_3_3)",
+      "native_scene": "outputs/expanded-study/v1/panel-v2/live-view-qualification/expanded-final__15puzzle-compact-910000/state-000034.png",
+      "native_binding": {
+        "vfg": "outputs/expanded-study/v1/panel-v2/live-view-qualification/expanded-final__15puzzle-compact-910000/state-000034.vfg.json.gz",
+        "stage": 5
+      },
+      "restored_read_only": true
+    },
+    {
+      "task_id": "expanded-final/15puzzle-expanded-910109",
+      "outcome": "PASS",
+      "reference_closure": false,
+      "state": 135,
+      "source_state": 74,
+      "action": "move(t_8,p_3_2,p_3_3)",
+      "native_scene": "outputs/expanded-study/v1/panel-v2/live-view-qualification/expanded-final__15puzzle-expanded-910109/state-000135.png",
+      "native_binding": {
+        "vfg": "outputs/expanded-study/v1/panel-v2/live-view-qualification/expanded-final__15puzzle-expanded-910109/state-000135.vfg.json.gz",
+        "stage": 7
+      },
+      "restored_read_only": true
+    },
+    {
+      "task_id": "expanded-final/blocksworld-compact-911000",
+      "outcome": "PASS",
+      "reference_closure": true
+    },
+    {
+      "task_id": "expanded-final/blocksworld-expanded-911101",
+      "outcome": "PASS",
+      "reference_closure": false,
+      "state": 137,
+      "source_state": 77,
+      "action": "pickup(b1)",
+      "native_scene": "outputs/expanded-study/v1/panel-v2/live-view-qualification/expanded-final__blocksworld-expanded-911101/state-000137.png",
+      "native_binding": {
+        "vfg": "outputs/expanded-study/v1/panel-v2/live-view-qualification/expanded-final__blocksworld-expanded-911101/state-000137.vfg.json.gz",
+        "stage": 7
+      },
+      "restored_read_only": true
+    },
+    {
+      "task_id": "expanded-final/depot-compact-912000",
+      "outcome": "PASS",
+      "reference_closure": true
+    },
+    {
+      "task_id": "expanded-final/depot-expanded-912100",
+      "outcome": "PASS",
+      "reference_closure": false,
+      "state": 18,
+      "source_state": 13,
+      "action": "unload(hoist1,crate0,truck0,distributor0)",
+      "native_scene": "outputs/expanded-study/v1/panel-v2/live-view-qualification/expanded-final__depot-expanded-912100/state-000018.png",
+      "native_binding": {
+        "vfg": "outputs/expanded-study/v1/panel-v2/live-view-qualification/expanded-final__depot-expanded-912100/state-000018.vfg.json.gz",
+        "stage": 7
+      },
+      "restored_read_only": true
+    },
+    {
+      "task_id": "expanded-final/driverlog-compact-913001",
+      "outcome": "PASS",
+      "reference_closure": false,
+      "state": 81,
+      "source_state": 76,
+      "action": "walk(driver1,p0-1,s0)",
+      "native_scene": "outputs/expanded-study/v1/panel-v2/live-view-qualification/expanded-final__driverlog-compact-913001/state-000081.png",
+      "native_binding": {
+        "vfg": "outputs/expanded-study/v1/panel-v2/live-view-qualification/expanded-final__driverlog-compact-913001/state-000081.vfg.json.gz",
+        "stage": 12
+      },
+      "restored_read_only": true
+    },
+    {
+      "task_id": "expanded-final/driverlog-expanded-913103",
+      "outcome": "PASS",
+      "reference_closure": false,
+      "state": 172,
+      "source_state": 52,
+      "action": "disembark-truck(driver1,truck1,s2)",
+      "native_scene": "outputs/expanded-study/v1/panel-v2/live-view-qualification/expanded-final__driverlog-expanded-913103/state-000172.png",
+      "native_binding": {
+        "vfg": "outputs/expanded-study/v1/panel-v2/live-view-qualification/expanded-final__driverlog-expanded-913103/state-000172.vfg.json.gz",
+        "stage": 8
+      },
+      "restored_read_only": true
+    },
+    {
+      "task_id": "expanded-final/elevators-compact-914002",
+      "outcome": "PASS",
+      "reference_closure": false,
+      "state": 7,
+      "source_state": 6,
+      "action": "up(f0,f1)",
+      "native_scene": "outputs/expanded-study/v1/panel-v2/live-view-qualification/expanded-final__elevators-compact-914002/state-000007.png",
+      "native_binding": {
+        "vfg": "outputs/expanded-study/v1/panel-v2/live-view-qualification/expanded-final__elevators-compact-914002/state-000007.vfg.json.gz",
+        "stage": 5
+      },
+      "restored_read_only": true
+    },
+    {
+      "task_id": "expanded-final/elevators-expanded-914105",
+      "outcome": "PASS",
+      "reference_closure": false,
+      "state": 43,
+      "source_state": 35,
+      "action": "down(f1,f0)",
+      "native_scene": "outputs/expanded-study/v1/panel-v2/live-view-qualification/expanded-final__elevators-expanded-914105/state-000043.png",
+      "native_binding": {
+        "vfg": "outputs/expanded-study/v1/panel-v2/live-view-qualification/expanded-final__elevators-expanded-914105/state-000043.vfg.json.gz",
+        "stage": 8
+      },
+      "restored_read_only": true
+    },
+    {
+      "task_id": "expanded-final/ferry-compact-915000",
+      "outcome": "PASS",
+      "reference_closure": false,
+      "state": 10,
+      "source_state": 7,
+      "action": "sail(l1,l0)",
+      "native_scene": "outputs/expanded-study/v1/panel-v2/live-view-qualification/expanded-final__ferry-compact-915000/state-000010.png",
+      "native_binding": {
+        "vfg": "outputs/expanded-study/v1/panel-v2/live-view-qualification/expanded-final__ferry-compact-915000/state-000010.vfg.json.gz",
+        "stage": 5
+      },
+      "restored_read_only": true
+    },
+    {
+      "task_id": "expanded-final/ferry-expanded-915109",
+      "outcome": "PASS",
+      "reference_closure": false,
+      "state": 41,
+      "source_state": 34,
+      "action": "sail(l2,l0)",
+      "native_scene": "outputs/expanded-study/v1/panel-v2/live-view-qualification/expanded-final__ferry-expanded-915109/state-000041.png",
+      "native_binding": {
+        "vfg": "outputs/expanded-study/v1/panel-v2/live-view-qualification/expanded-final__ferry-expanded-915109/state-000041.vfg.json.gz",
+        "stage": 8
+      },
+      "restored_read_only": true
+    },
+    {
+      "task_id": "expanded-final/grid-compact-916000",
+      "outcome": "PASS",
+      "reference_closure": false,
+      "state": 78,
+      "source_state": 45,
+      "action": "move(pos2-1,pos2-0)",
+      "native_scene": "outputs/expanded-study/v1/panel-v2/live-view-qualification/expanded-final__grid-compact-916000/state-000078.png",
+      "native_binding": {
+        "vfg": "outputs/expanded-study/v1/panel-v2/live-view-qualification/expanded-final__grid-compact-916000/state-000078.vfg.json.gz",
+        "stage": 9
+      },
+      "restored_read_only": true
+    },
+    {
+      "task_id": "expanded-final/grid-expanded-916100",
+      "outcome": "PASS",
+      "reference_closure": false,
+      "state": 122,
+      "source_state": 60,
+      "action": "move(pos3-2,pos2-2)",
+      "native_scene": "outputs/expanded-study/v1/panel-v2/live-view-qualification/expanded-final__grid-expanded-916100/state-000122.png",
+      "native_binding": {
+        "vfg": "outputs/expanded-study/v1/panel-v2/live-view-qualification/expanded-final__grid-expanded-916100/state-000122.vfg.json.gz",
+        "stage": 10
+      },
+      "restored_read_only": true
+    },
+    {
+      "task_id": "expanded-final/gripper-compact-917000",
+      "outcome": "PASS",
+      "reference_closure": false,
+      "state": 86,
+      "source_state": 82,
+      "action": "move(roomb,rooma)",
+      "native_scene": "outputs/expanded-study/v1/panel-v2/live-view-qualification/expanded-final__gripper-compact-917000/state-000086.png",
+      "native_binding": {
+        "vfg": "outputs/expanded-study/v1/panel-v2/live-view-qualification/expanded-final__gripper-compact-917000/state-000086.vfg.json.gz",
+        "stage": 8
+      },
+      "restored_read_only": true
+    },
+    {
+      "task_id": "expanded-final/gripper-expanded-917101",
+      "outcome": "PASS",
+      "reference_closure": false,
+      "state": 153,
+      "source_state": 107,
+      "action": "move(roomb,rooma)",
+      "native_scene": "outputs/expanded-study/v1/panel-v2/live-view-qualification/expanded-final__gripper-expanded-917101/state-000153.png",
+      "native_binding": {
+        "vfg": "outputs/expanded-study/v1/panel-v2/live-view-qualification/expanded-final__gripper-expanded-917101/state-000153.vfg.json.gz",
+        "stage": 7
+      },
+      "restored_read_only": true
+    },
+    {
+      "task_id": "expanded-final/logistics-compact-918000",
+      "outcome": "PASS",
+      "reference_closure": false,
+      "state": 7,
+      "source_state": 6,
+      "action": "fly-airplane(a0,l1-0,l0-0)",
+      "native_scene": "outputs/expanded-study/v1/panel-v2/live-view-qualification/expanded-final__logistics-compact-918000/state-000007.png",
+      "native_binding": {
+        "vfg": "outputs/expanded-study/v1/panel-v2/live-view-qualification/expanded-final__logistics-compact-918000/state-000007.vfg.json.gz",
+        "stage": 5
+      },
+      "restored_read_only": true
+    },
+    {
+      "task_id": "expanded-final/logistics-expanded-918100",
+      "outcome": "PASS",
+      "reference_closure": false,
+      "state": 19,
+      "source_state": 15,
+      "action": "drive-truck(t1,l1-0,l1-1,c1)",
+      "native_scene": "outputs/expanded-study/v1/panel-v2/live-view-qualification/expanded-final__logistics-expanded-918100/state-000019.png",
+      "native_binding": {
+        "vfg": "outputs/expanded-study/v1/panel-v2/live-view-qualification/expanded-final__logistics-expanded-918100/state-000019.vfg.json.gz",
+        "stage": 5
+      },
+      "restored_read_only": true
+    },
+    {
+      "task_id": "expanded-final/storage-compact-919000",
+      "outcome": "PASS",
+      "reference_closure": false,
+      "state": 9,
+      "source_state": 6,
+      "action": "go-in(hoist0,loadarea,container-0-0)",
+      "native_scene": "outputs/expanded-study/v1/panel-v2/live-view-qualification/expanded-final__storage-compact-919000/state-000009.png",
+      "native_binding": {
+        "vfg": "outputs/expanded-study/v1/panel-v2/live-view-qualification/expanded-final__storage-compact-919000/state-000009.vfg.json.gz",
+        "stage": 4
+      },
+      "restored_read_only": true
+    },
+    {
+      "task_id": "expanded-final/storage-expanded-919100",
+      "outcome": "PASS",
+      "reference_closure": false,
+      "state": 123,
+      "source_state": 90,
+      "action": "go-in(hoist0,loadarea,container-0-0)",
+      "native_scene": "outputs/expanded-study/v1/panel-v2/live-view-qualification/expanded-final__storage-expanded-919100/state-000123.png",
+      "native_binding": {
+        "vfg": "outputs/expanded-study/v1/panel-v2/live-view-qualification/expanded-final__storage-expanded-919100/state-000123.vfg.json.gz",
+        "stage": 8
+      },
+      "restored_read_only": true
+    },
+    {
+      "task_id": "expanded-final/towers_of_hanoi-compact-920000",
+      "outcome": "PASS",
+      "reference_closure": false,
+      "state": 24,
+      "source_state": 21,
+      "action": "move(d1,d3,peg3)",
+      "native_scene": "outputs/expanded-study/v1/panel-v2/live-view-qualification/expanded-final__towers_of_hanoi-compact-920000/state-000024.png",
+      "native_binding": {
+        "vfg": "outputs/expanded-study/v1/panel-v2/live-view-qualification/expanded-final__towers_of_hanoi-compact-920000/state-000024.vfg.json.gz",
+        "stage": 6
+      },
+      "restored_read_only": true
+    },
+    {
+      "task_id": "expanded-final/towers_of_hanoi-expanded-920100",
+      "outcome": "PASS",
+      "reference_closure": true
+    },
+    {
+      "task_id": "expanded-final/visitall-compact-921000",
+      "outcome": "PASS",
+      "reference_closure": false,
+      "state": 127,
+      "source_state": 64,
+      "action": "move(loc-x2-y1,loc-x1-y1)",
+      "native_scene": "outputs/expanded-study/v1/panel-v2/live-view-qualification/expanded-final__visitall-compact-921000/state-000127.png",
+      "native_binding": {
+        "vfg": "outputs/expanded-study/v1/panel-v2/live-view-qualification/expanded-final__visitall-compact-921000/state-000127.vfg.json.gz",
+        "stage": 6
+      },
+      "restored_read_only": true
+    },
+    {
+      "task_id": "expanded-final/visitall-expanded-921100",
+      "outcome": "PASS",
+      "reference_closure": false,
+      "state": 224,
+      "source_state": 117,
+      "action": "move(loc-x2-y2,loc-x1-y2)",
+      "native_scene": "outputs/expanded-study/v1/panel-v2/live-view-qualification/expanded-final__visitall-expanded-921100/state-000224.png",
+      "native_binding": {
+        "vfg": "outputs/expanded-study/v1/panel-v2/live-view-qualification/expanded-final__visitall-expanded-921100/state-000224.vfg.json.gz",
+        "stage": 7
+      },
+      "restored_read_only": true
+    }
+  ],
+  "model_calls": 0,
+  "outcome": "PASS"
+}

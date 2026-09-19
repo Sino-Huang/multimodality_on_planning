@@ -1,0 +1,17 @@
+{
+  "job_id": "dagger-collection-final",
+  "branch": "dagger",
+  "gpus": [],
+  "max_seconds": 3600,
+  "total": 3,
+  "command": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/run_expanded_dagger_collection.py",
+    "final"
+  ],
+  "completion_hook": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/run_expanded_dagger_collection.py",
+    "audit-final"
+  ]
+}

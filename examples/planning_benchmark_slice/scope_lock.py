@@ -2,17 +2,23 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 from typing import Any, Sequence
 
+ACTIVE_ALGORITHMS = frozenset({"bfs", "iterated_width"})
 
 REQUIRED_DECISIONS: dict[str, tuple[str, ...]] = {
     "blocksworld_p0_scope_decision": ("blocksworld", "future-compatible", "Phase 1-3 acceptance scope"),
-    "algorithm_matrix_decision": ("bfs", "fast_forward", "iterated_width", "graphplan"),
+    "algorithm_matrix_decision": ("bfs", "iterated_width"),
     "modality_matrix_decision": ("vision", "language", "vision_language", "vision_language_tool"),
     "planimation_role_decision": ("Planimation", "offline rendering", "not environment authority"),
-    "frozen_world_model_decision": ("frozen world model v0", "deterministic symbolic representation", "No learned encoder"),
+    "frozen_world_model_decision": (
+        "frozen world model v0",
+        "deterministic symbolic representation",
+        "No learned encoder",
+    ),
     "artifact_policy_decision": ("artifact", "Raw PDDL", "expert demonstrations"),
     "zero_shot_gate_decision": ("zero shot", "go or no go", "parseable JSON", "action is legal"),
 }
@@ -20,6 +26,25 @@ REQUIRED_DECISIONS: dict[str, tuple[str, ...]] = {
 
 def _normalize(text: str) -> str:
     return " ".join(text.lower().replace("/", " ").split())
+
+
+def _decision_section(text: str, decision_id: str) -> str:
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if _normalize(decision_id) not in _normalize(line):
+            continue
+        section: list[str] = []
+        for candidate in lines[index + 1 :]:
+            if candidate.lstrip().startswith("#"):
+                break
+            section.append(candidate)
+        return "\n".join(section)
+    return ""
+
+
+def _declared_algorithms(text: str) -> frozenset[str]:
+    section = _decision_section(text, "algorithm_matrix_decision")
+    return frozenset(re.findall(r"`([a-z][a-z0-9_]*)`", section.lower()))
 
 
 def validate_scope_lock(path: Path) -> dict[str, Any]:
@@ -39,8 +64,19 @@ def validate_scope_lock(path: Path) -> dict[str, Any]:
             missing_decisions.append(decision_id)
             missing_terms[decision_id] = decision_missing_terms
 
+    declared_algorithms = _declared_algorithms(text)
+    algorithm_matrix_valid = declared_algorithms == ACTIVE_ALGORITHMS
+    if not algorithm_matrix_valid and "algorithm_matrix_decision" not in missing_decisions:
+        missing_decisions.append("algorithm_matrix_decision")
+        missing_terms["algorithm_matrix_decision"] = [
+            "exact active algorithm matrix: " + ", ".join(sorted(ACTIVE_ALGORITHMS))
+        ]
+
     required_decisions_present = not missing_decisions
     return {
+        "active_algorithms": sorted(ACTIVE_ALGORITHMS),
+        "algorithm_matrix_valid": algorithm_matrix_valid,
+        "declared_algorithms": sorted(declared_algorithms),
         "path": str(path),
         "valid": required_decisions_present,
         "required_decisions_present": required_decisions_present,
@@ -84,4 +120,4 @@ if __name__ == "__main__":
     raise SystemExit(main())
 
 
-__all__ = ["REQUIRED_DECISIONS", "build_parser", "main", "validate_scope_lock"]
+__all__ = ["ACTIVE_ALGORITHMS", "REQUIRED_DECISIONS", "build_parser", "main", "validate_scope_lock"]

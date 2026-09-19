@@ -1,0 +1,37 @@
+{
+  "authorization_id": "issue-63-best-first-paired-authorization-v3",
+  "authorized_stages": [
+    "qualification",
+    "trace_generation"
+  ],
+  "contract_id": "issue-63-best-first-paired-v3",
+  "design_manifest": {
+    "path": "configs/experiments/best-first-paired-design-v3.json",
+    "sha256": "c530997c954315bf7e97eb8ebe4f938884562736f29fe1b4b507d40688460431",
+    "size_bytes": 2863
+  },
+  "gate_receipt": {
+    "contract_id": "issue-63-best-first-paired-v3",
+    "outcome": "PASS",
+    "receipt_id": "gate:issue-63-best-first-paired-v3:PASS",
+    "schema_version": "best_first_phase_gate_v3",
+    "source_issue": 63
+  },
+  "generation_receipt_id": "generation:issue-63-best-first-paired-v3:attempt-001",
+  "outcome": "PASS",
+  "parent_issue": 38,
+  "predecessor_qualification_receipt": {
+    "path": "data/best_first_paired_phase_v2/qualification-v1/qualification-receipt.json",
+    "sha256": "781dc38d7ffc25e6a9e49f92404af9aa8cbafd75760500f3954d31ec4bbc96f6",
+    "size_bytes": 351
+  },
+  "schema_version": "best_first_paired_authorization_v3",
+  "qualification_receipt_id": "qualification:issue-63-best-first-paired-v3:attempt-001",
+  "scientific_completion": false,
+  "source_issue": 63,
+  "start_permitted": true,
+  "supersedes_algorithms": [
+    "best_first_add_w2"
+  ],
+  "supersedes_contract_id": "issue-63-best-first-paired-v2"
+}

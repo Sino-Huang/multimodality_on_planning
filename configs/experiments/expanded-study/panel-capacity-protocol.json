@@ -1,0 +1,27 @@
+{
+  "frozen_utc": "2026-09-14T13:19:25.064904+00:00",
+  "model_study": "configs/experiments/matched-modalities/study-v5.json",
+  "panel": "outputs/expanded-study/v1/panel-v2/reference-views.json",
+  "single_input_tokens": 32384,
+  "batch_size": 2,
+  "max_padded_batch_input_tokens": 24000,
+  "output_tokens": 384,
+  "maximum_page_geometry": "four 768x1024 static/goal pages plus two 128x128 unlabelled scenes; fixed per task and invariant to current state",
+  "observation_guard": "SceneOnlyViews.observe counts the complete projected messages with image geometry and rejects over-limit requests without truncation; VisualPolicy repeats the batch/context checks before generation.",
+  "limit_semantics": "Every admitted input fits the qualified envelope; oversized runtime requests remain explicit failures, not truncated/hidden inputs. Reference maxima alone are not claimed to bound off-policy requests.",
+  "probes_per_gpu": 12,
+  "modalities": [
+    "text-state",
+    "visual-state",
+    "multimodal-state"
+  ],
+  "adapter_bank": "all four retained v5 algorithm adapters per modality",
+  "synthetic_capacity_padding": true,
+  "score_probe_outputs": false,
+  "max_gpu_hours": 1,
+  "reference_envelope_projection": "maximum measured complete reference-input length per modality plus 32 synthetic probe tokens; force full output; worst of base/SFT and both GPU timings; batch-normalize by two",
+  "max_declared_model_calls": 51720,
+  "cost_safety_factor": 1.25,
+  "cost_scope": "aggregate worker GPU seconds, including readiness, qualification and model/adapter loading; baseline shares 56 GPU-hours",
+  "bound_vs_estimate": "Full-capacity timing also reported. Reference-envelope projection is a cost proxy, not an assertion that all off-policy calls have reference lengths; scheduler caps still govern incomplete outcomes."
+}

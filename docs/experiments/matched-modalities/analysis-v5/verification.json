@@ -1,0 +1,32 @@
+{
+  "outcome": "PASS",
+  "analysis_issues": [
+    97,
+    109
+  ],
+  "independently_replayed_episodes": 144,
+  "missing_bindings": 0,
+  "paired_contrasts": 192,
+  "analysis_unit": "whole problem instance",
+  "whole_problems": 3,
+  "focused_tests_passed": 5,
+  "read_only_check": "PASS",
+  "model_calls": 0,
+  "figure_inspected": "success-counts.png",
+  "outputs": [
+    "analysis.json",
+    "README.md",
+    "claims.json",
+    "coverage.csv",
+    "episodes.csv",
+    "summary.csv",
+    "control-gaps.csv",
+    "common-prefixes.csv",
+    "rejections.csv",
+    "paired-contrasts.csv",
+    "success-counts.png",
+    "success-counts.pdf"
+  ],
+  "curriculum_pooled": false,
+  "semantic_information_equivalence_claimed": false
+}

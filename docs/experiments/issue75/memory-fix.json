@@ -1,0 +1,123 @@
+{
+  "issue": 75,
+  "contract_id": "issue-75-visual-development-32k-v3",
+  "causes": [
+    "Batch size eight exceeded per-GPU headroom.",
+    "Float32 native GQA fell back to quadratic math attention; the largest selected probe requested a 33.63 GiB tensor even at batch one."
+  ],
+  "changes": {
+    "max_batch_size": 2,
+    "max_batch_input_tokens": 24000,
+    "inference_dtype": "float32",
+    "inference_attention": "visual_sdpa: explicit KV-head expansion, efficient CUDA SDPA, standard Transformers mask builder",
+    "largest_probes_first": true,
+    "per_probe_memory_metrics": true
+  },
+  "other_process": {
+    "pid": 49552,
+    "stopped_or_modified": false,
+    "gpu0_memory_gib": 9.31
+  },
+  "launch_mapping": [
+    {
+      "CUDA_VISIBLE_DEVICES": "0",
+      "MASTER_PORT": 18675,
+      "cases": [
+        "baseline",
+        "fixed",
+        "dense",
+        "dense-efficient"
+      ]
+    },
+    {
+      "CUDA_VISIBLE_DEVICES": "1",
+      "MASTER_PORT": 18676,
+      "cases": [
+        "semantics"
+      ]
+    }
+  ],
+  "measurements": {
+    "baseline": {
+      "record": "astar-pair-36f9d84cdc0c9b6047aecdfa:best_first_add_w3:98",
+      "input_tokens": 3272,
+      "batch_size": 8,
+      "weights_allocated_gib": 32.68541622161865,
+      "outcome": "OOM",
+      "reason": "CUDA out of memory. Tried to allocate 2.55 GiB. GPU 0 has a total capacity of 79.25 GiB of which 2.51 GiB is free. Process 49552 has 9.31 GiB memory in use. Including non-PyTorch memory, this process has 67.42 GiB memory in use. Of the allocated memory 63.32 GiB is allocated by PyTorch, and 3.62 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)",
+      "peak_allocated_gib": 65.67038249969482,
+      "elapsed_seconds": 80.07,
+      "attention": "sdpa"
+    },
+    "fixed": {
+      "record": "astar-pair-36f9d84cdc0c9b6047aecdfa:best_first_add_w3:98",
+      "input_tokens": 3272,
+      "batch_size": 2,
+      "weights_allocated_gib": 32.68541622161865,
+      "outcome": "PASS",
+      "outputs": 2,
+      "peak_allocated_gib": 41.368178367614746,
+      "peak_reserved_gib": 41.98046875,
+      "after_allocated_gib": 32.69335126876831,
+      "elapsed_seconds": 84.11,
+      "attention": "sdpa"
+    },
+    "dense": {
+      "record": "best_first_width/visitall-train-medium-0050:best_first_width:188",
+      "input_tokens": 16795,
+      "batch_size": 1,
+      "weights_allocated_gib": 32.68541622161865,
+      "outcome": "OOM",
+      "reason": "CUDA out of memory. Tried to allocate 33.63 GiB. GPU 0 has a total capacity of 79.25 GiB of which 30.89 GiB is free. Process 49552 has 9.31 GiB memory in use. Including non-PyTorch memory, this process has 39.04 GiB memory in use. Of the allocated memory 36.91 GiB is allocated by PyTorch, and 1.65 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)",
+      "peak_allocated_gib": 36.90772485733032,
+      "elapsed_seconds": 48.98,
+      "attention": "sdpa"
+    },
+    "dense-efficient": {
+      "record": "best_first_width/visitall-train-medium-0050:best_first_width:188",
+      "input_tokens": 16795,
+      "batch_size": 1,
+      "weights_allocated_gib": 32.68541622161865,
+      "outcome": "PASS",
+      "outputs": 1,
+      "peak_allocated_gib": 41.883604526519775,
+      "peak_reserved_gib": 44.177734375,
+      "after_allocated_gib": 32.69335126876831,
+      "elapsed_seconds": 133.99,
+      "attention": "visual_sdpa"
+    },
+    "semantics": {
+      "outcome": "PASS",
+      "records": [
+        "bfs/storage-dev-hard-0000:bfs:248",
+        "bfs/visitall-train-easy-0000:bfs:9"
+      ],
+      "input_tokens": [
+        7813,
+        3580
+      ],
+      "batch_size": 2,
+      "peak_allocated_gib": 40.729820251464844,
+      "peak_reserved_gib": 41.880859375,
+      "semantic_scalar_batch_repeated": "PASS",
+      "gpu": 1,
+      "MASTER_PORT": 18676,
+      "attention": "visual_sdpa"
+    }
+  },
+  "validation": {
+    "focused_tests_passed": 30,
+    "elapsed_seconds": 38.46,
+    "black": "PASS",
+    "ruff": "PASS",
+    "basedpyright": "PASS",
+    "dry_run": "PASS"
+  },
+  "evidence": "outputs/visual_development/issue75-memory-check-001",
+  "full_matrix_started": false,
+  "scientific_completion": false,
+  "external_references": [
+    "https://huggingface.co/docs/transformers/attention_interface",
+    "https://docs.pytorch.org/docs/2.14/notes/cuda.html"
+  ]
+}

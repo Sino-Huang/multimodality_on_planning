@@ -1,0 +1,282 @@
+{
+  "outcome": "PASS",
+  "verified_at": 1789388714.1271641,
+  "test_command": "source ~/cd_vlaplan && python -m pytest tests/planning_benchmark/test_expanded_scheduler.py -q",
+  "tests": {
+    "name": "pytest",
+    "errors": "0",
+    "failures": "0",
+    "skipped": "0",
+    "tests": "12",
+    "time": "9.244",
+    "timestamp": "2026-09-14T22:24:21.199424+10:00",
+    "hostname": "spartan-gpgpu138.hpc.unimelb.edu.au"
+  },
+  "test_cases": [
+    "test_admission_caps_ports_and_duplicates",
+    "test_resume_preserves_cost_and_success_is_not_repeated",
+    "test_background_exit_hook_and_resume",
+    "test_runtime_cutoff_kills_worker",
+    "test_reconcile_does_not_release_live_handle",
+    "test_transfers_preserve_total_and_committed_cost",
+    "test_supervisor_crash_worker_times_out_without_relaunch",
+    "test_two_gpu_reservation_and_occupied_ports",
+    "test_cpu_handoff_and_immutable_schedule",
+    "test_concurrent_duplicate_launch_is_atomic",
+    "test_gpu_ledger_cannot_be_forked",
+    "test_internal_worker_cannot_restart_terminal_attempt"
+  ],
+  "live_ledger": "outputs/expanded-study/v1/budget.json",
+  "schedule": {
+    "program_id": "expanded-nine-day-v1",
+    "status": "prepared_not_executed",
+    "start_utc": "2026-09-14T11:55:19Z",
+    "gpu_cutoff_utc": "2026-09-21T11:55:19Z",
+    "handoff_deadline_utc": "2026-09-23T11:55:19Z",
+    "deadline_kind": "internal project window; not an ICLR deadline",
+    "hardware": {
+      "gpus": 2,
+      "model": "NVIDIA A100 80GB",
+      "preserve_unrelated_processes": true,
+      "max_own_model_workers_per_gpu": 1
+    },
+    "experiment_gpu_hours_cap": 336,
+    "final_cpu_writing_hours_reserved": 48,
+    "allocations_gpu_hours": {
+      "expanded_baseline": 56,
+      "dagger": 48,
+      "successor_prediction": 64,
+      "curriculum_modality": 48,
+      "generalization_robustness": 32,
+      "second_backbone": 40,
+      "transfer": 24,
+      "recovery_reserve": 24
+    },
+    "accounting": {
+      "metric": "sum of own allocated model-worker GPU durations across devices; include model loading, saves, failures and retries",
+      "also_record": "elapsed wall time, CPU work and actual available VRAM",
+      "ledger": "outputs/expanded-study/v1/budget.json",
+      "preserve_prior_ledgers": true,
+      "reset_on_resume": false,
+      "automatic_total_extension": false,
+      "transfers": "document prospective branch transfers before execution, preserve total cap and absolute cutoff; do not silently delete coverage"
+    },
+    "master_port_pool": [
+      18800,
+      18801,
+      18802,
+      18803,
+      18804,
+      18805
+    ],
+    "default_training_seed": 17,
+    "qualification_safety_factor": 1.25,
+    "state_images": {
+      "size": [
+        128,
+        128
+      ],
+      "text_annotations": false,
+      "goal_context": "separate complete pages",
+      "semantic_information_equivalence_claimed": false
+    },
+    "execution_authorization": "This preparation does not start model jobs. Each copied execution goal authorizes its declared branch within this plan.",
+    "issues": {
+      "readiness": 116,
+      "panel": 117,
+      "baseline": 118,
+      "curriculum": 119,
+      "synthesis": 120,
+      "manuscript": 121,
+      "release": 122
+    }
+  },
+  "allocations_gpu_hours": {
+    "expanded_baseline": 56,
+    "dagger": 48,
+    "successor_prediction": 64,
+    "curriculum_modality": 48,
+    "generalization_robustness": 32,
+    "second_backbone": 40,
+    "transfer": 24,
+    "recovery_reserve": 24
+  },
+  "transfers": [],
+  "runs": [
+    {
+      "terminal": {
+        "job_id": "readiness-gpu-0",
+        "branch": "expanded_baseline",
+        "gpus": [
+          0
+        ],
+        "max_seconds": 60,
+        "total": 1,
+        "command": [
+          "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+          "scripts/probe_expanded_gpu.py"
+        ],
+        "completion_hook": [
+          "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+          "scripts/audit_expanded_gpu_probe.py"
+        ],
+        "attempt": 1,
+        "status": "succeeded",
+        "master_port": 18800,
+        "admitted": 1789388352.0578268,
+        "gpu_hours": 0.0014090705580181546,
+        "directory": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/expanded-study/v1/jobs/readiness-gpu-0/1",
+        "supervisor": {
+          "pid": 128250,
+          "start_ticks": "885975191"
+        },
+        "started": 1789388352.4718618,
+        "available_vram_at_launch_csv": "index, uuid, name, memory.total [MiB], memory.free [MiB]\n0, GPU-f285a104-a0c2-92f5-e068-ec248f5bc798, NVIDIA A100 80GB PCIe, 81920 MiB, 71614 MiB\n1, GPU-496a5706-19b9-5d01-07ad-d819ccd18348, NVIDIA A100 80GB PCIe, 81920 MiB, 79601 MiB\n",
+        "worker": {
+          "pid": 128255,
+          "start_ticks": "885975238"
+        },
+        "ended": 1789388357.5455217,
+        "elapsed_seconds": 5.0726540088653564,
+        "cpu_seconds": 2.169943,
+        "returncode": 0,
+        "error": null
+      },
+      "hook": {
+        "returncode": 0
+      },
+      "completion": {
+        "status": "succeeded",
+        "audit_required": true,
+        "terminal": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/expanded-study/v1/jobs/readiness-gpu-0/1/terminal.json"
+      },
+      "hardware": {
+        "outcome": "PASS",
+        "device": "NVIDIA A100 80GB PCIe",
+        "cuda_visible_devices": "0",
+        "master_port": "18800",
+        "free_bytes": 74654482432,
+        "total_bytes": 85095874560,
+        "elapsed_seconds": 0.39838099479675293,
+        "model_capacity_qualified": false
+      }
+    },
+    {
+      "terminal": {
+        "job_id": "readiness-gpu-1",
+        "branch": "expanded_baseline",
+        "gpus": [
+          1
+        ],
+        "max_seconds": 60,
+        "total": 1,
+        "command": [
+          "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+          "scripts/probe_expanded_gpu.py"
+        ],
+        "completion_hook": [
+          "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+          "scripts/audit_expanded_gpu_probe.py"
+        ],
+        "attempt": 1,
+        "status": "succeeded",
+        "master_port": 18801,
+        "admitted": 1789388352.466151,
+        "gpu_hours": 0.0013994320233662923,
+        "directory": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/expanded-study/v1/jobs/readiness-gpu-1/1",
+        "supervisor": {
+          "pid": 128252,
+          "start_ticks": "885975232"
+        },
+        "started": 1789388352.8820844,
+        "available_vram_at_launch_csv": "index, uuid, name, memory.total [MiB], memory.free [MiB]\n0, GPU-f285a104-a0c2-92f5-e068-ec248f5bc798, NVIDIA A100 80GB PCIe, 81920 MiB, 71614 MiB\n1, GPU-496a5706-19b9-5d01-07ad-d819ccd18348, NVIDIA A100 80GB PCIe, 81920 MiB, 79601 MiB\n",
+        "worker": {
+          "pid": 128283,
+          "start_ticks": "885975276"
+        },
+        "ended": 1789388357.9215226,
+        "elapsed_seconds": 5.037955284118652,
+        "cpu_seconds": 2.075671,
+        "returncode": 0,
+        "error": null
+      },
+      "hook": {
+        "returncode": 0
+      },
+      "completion": {
+        "status": "succeeded",
+        "audit_required": true,
+        "terminal": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/expanded-study/v1/jobs/readiness-gpu-1/1/terminal.json"
+      },
+      "hardware": {
+        "outcome": "PASS",
+        "device": "NVIDIA A100 80GB PCIe",
+        "cuda_visible_devices": "1",
+        "master_port": "18801",
+        "free_bytes": 83028934656,
+        "total_bytes": 85095874560,
+        "elapsed_seconds": 0.3893101215362549,
+        "model_capacity_qualified": false
+      }
+    },
+    {
+      "terminal": {
+        "job_id": "readiness-checkpoints",
+        "branch": "expanded_baseline",
+        "gpus": [],
+        "max_seconds": 120,
+        "total": 12,
+        "command": [
+          "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+          "scripts/check_expanded_readiness.py"
+        ],
+        "completion_hook": [
+          "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+          "scripts/audit_expanded_readiness.py"
+        ],
+        "attempt": 1,
+        "status": "succeeded",
+        "master_port": null,
+        "admitted": 1789388601.245866,
+        "gpu_hours": 0.0,
+        "directory": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/expanded-study/v1/jobs/readiness-checkpoints/1",
+        "supervisor": {
+          "pid": 138643,
+          "start_ticks": "886000110"
+        },
+        "started": 1789388601.607316,
+        "worker": {
+          "pid": 138644,
+          "start_ticks": "886000146"
+        },
+        "ended": 1789388611.6455424,
+        "elapsed_seconds": 10.0372953414917,
+        "cpu_seconds": 11.755090000000001,
+        "returncode": 0,
+        "error": null
+      },
+      "hook": {
+        "returncode": 0
+      },
+      "completion": {
+        "status": "succeeded",
+        "audit_required": true,
+        "terminal": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/expanded-study/v1/jobs/readiness-checkpoints/1/terminal.json"
+      }
+    }
+  ],
+  "total_gpu_hours": 0.0028085025813844467,
+  "scope": "Shared readiness only; no research branch/model workload qualified or launched",
+  "requirement_evidence": {
+    "shared_accounting_and_caps": "admission tests, immutable schedule test, production-ledger refusal, actual two-GPU receipts",
+    "absolute_cutoffs": "GPU and CPU admission tests; real process timeout and supervisor-kill test",
+    "duplicate_launch_refusal": "atomic simultaneous-launch test and internal-worker restart refusal",
+    "port_allocation": "occupied-port and two-device tests; probes 18800/18801",
+    "safe_resume": "failed-attempt resume with retained costs; live-orphan refusal and crash reconciliation",
+    "background_logs_progress_hooks": "three retained attempt directories, full progress and hook success; failure/cutoff integration tests",
+    "v5_checkpoints": "readiness.json: all twelve retained adapters, provenance and complete finite tensor reads",
+    "hardware": "both real CUDA probes; nvidia-smi inventory; unrelated process retained",
+    "commands_and_branch_contracts": "readiness.md and three executable job JSONs",
+    "no_retraining_or_independent_branch_launch": "ledger contains two small hardware diagnostics and one CPU checkpoint inspection only"
+  }
+}

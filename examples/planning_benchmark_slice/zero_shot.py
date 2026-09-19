@@ -8,8 +8,7 @@ from typing import Any, Iterable, Sequence
 from .blocksworld import BlocksworldAction, BlocksworldProblem, parse_blocksworld
 from .validate_instance import load_fixture, validate_fixture
 
-
-ALGORITHMS: tuple[str, ...] = ("bfs", "fast_forward", "iterated_width", "graphplan")
+ALGORITHMS: tuple[str, ...] = ("bfs", "iterated_width")
 MODALITIES: tuple[str, ...] = ("vision", "language", "vision_language", "vision_language_tool")
 OUTPUT_REQUIRED_FIELDS: tuple[str, ...] = ("algorithm", "next_action", "internal_state_update", "confidence")
 SCORE_LABEL_PASS = "Pass"
@@ -23,17 +22,9 @@ ALGORITHM_DEFINITIONS: dict[str, str] = {
         "Breadth First Search: maintain a FIFO queue of states. Dequeue the front state; "
         "if it satisfies the goal, return. Otherwise enqueue all valid successor states and repeat."
     ),
-    "fast_forward": (
-        "Fast Forward: compute a delete-relaxation heuristic by ignoring negative effects, "
-        "estimate distance to the goal, and greedily expand the most promising state."
-    ),
     "iterated_width": (
         "Iterated Width: maintain a novelty table. For width k, expand a state only if it "
         "introduces a new k-atom conjunction not seen before; increase k when needed."
-    ),
-    "graphplan": (
-        "Graphplan: build proposition layers from the initial layer, add action/proposition layers, "
-        "track mutex relations for incompatible propositions, and stop when non-mutex goals appear."
     ),
 }
 
@@ -44,20 +35,10 @@ ALGORITHM_CONTRACTS: dict[str, dict[str, Any]] = {
         "description": "The update must describe FIFO dequeue/enqueue behavior for the frontier queue.",
         "required_terms": ["fifo", "queue", "dequeue", "enqueue"],
     },
-    "fast_forward": {
-        "contract_id": "ff_delete_relaxation_heuristic_step",
-        "description": "The update must describe delete-relaxation heuristic estimation and greedy selection.",
-        "required_terms": ["delete-relaxation", "heuristic", "greedy"],
-    },
     "iterated_width": {
         "contract_id": "iw_novelty_width_step",
         "description": "The update must describe width-based novelty checking before expansion.",
         "required_terms": ["novelty", "width", "new"],
-    },
-    "graphplan": {
-        "contract_id": "graphplan_layer_mutex_step",
-        "description": "The update must describe proposition layers and mutex tracking.",
-        "required_terms": ["proposition", "layer", "mutex"],
     },
 }
 
@@ -71,7 +52,7 @@ class ZeroShotError(ValueError):
 
 def normalize_algorithm(value: str) -> str:
     normalized = value.strip().lower().replace("-", "_")
-    aliases = {"ff": "fast_forward", "fastforward": "fast_forward", "iw": "iterated_width"}
+    aliases = {"iw": "iterated_width"}
     return aliases.get(normalized, normalized)
 
 
@@ -131,7 +112,9 @@ def build_prompt_package(
         "domain": "blocksworld",
         "gold_scoring_metadata": gold_metadata,
         "instance_id": instance_id,
-        "modality_boundary_note": "Only model_facing is intended for model prompts; gold_scoring_metadata is evaluator-only.",
+        "modality_boundary_note": (
+            "Only model_facing is intended for model prompts; gold_scoring_metadata is evaluator-only."
+        ),
         "modality": modality,
         "model_facing": model_facing,
         "package_id": package_id,
@@ -235,7 +218,9 @@ def validate_model_output_payload(payload: Any) -> dict[str, Any]:
 
     missing = [field for field in OUTPUT_REQUIRED_FIELDS if field not in model_output]
     if missing:
-        return _schema_result(False, "missing_required_fields", "model output is missing required fields", {"missing": missing})
+        return _schema_result(
+            False, "missing_required_fields", "model output is missing required fields", {"missing": missing}
+        )
 
     field_errors: list[str] = []
     algorithm = model_output.get("algorithm")
@@ -243,9 +228,10 @@ def validate_model_output_payload(payload: Any) -> dict[str, Any]:
         field_errors.append("algorithm must be one of the locked zero-shot algorithms")
     if not isinstance(model_output.get("next_action"), str) or not model_output.get("next_action", "").strip():
         field_errors.append("next_action must be a non-empty string")
-    if not isinstance(model_output.get("internal_state_update"), str) or not model_output.get(
-        "internal_state_update", ""
-    ).strip():
+    if (
+        not isinstance(model_output.get("internal_state_update"), str)
+        or not model_output.get("internal_state_update", "").strip()
+    ):
         field_errors.append("internal_state_update must be a non-empty string")
     confidence = model_output.get("confidence")
     if not isinstance(confidence, (int, float)) or isinstance(confidence, bool) or confidence < 0 or confidence > 1:
@@ -432,11 +418,9 @@ def _scratchpad_state(problem: BlocksworldProblem, algorithm: str) -> dict[str, 
     current_id = problem.state_id(problem.initial_atoms)
     if algorithm == "bfs":
         return {"queue": [current_id], "visited": [current_id]}
-    if algorithm == "fast_forward":
-        return {"heuristic_values": {current_id: len(problem.goal_atoms)}, "selected_state_id": current_id}
     if algorithm == "iterated_width":
         return {"novelty_table": sorted(problem.initial_atoms), "width": 1}
-    return {"mutexes": [], "proposition_layers": [{"atoms": sorted(problem.initial_atoms), "layer": 0}]}
+    raise ZeroShotError("unknown_algorithm", f"unsupported algorithm: {algorithm}")
 
 
 def _schema_result(valid: bool, code: str, message: str, details: dict[str, Any]) -> dict[str, Any]:
@@ -484,7 +468,11 @@ def _algorithmic_fidelity(
 ) -> tuple[bool, dict[str, Any]]:
     output_algorithm = normalize_algorithm(str(model_output.get("algorithm", "")))
     if output_algorithm != expected_algorithm:
-        return False, {"expected_algorithm": expected_algorithm, "model_algorithm": output_algorithm, "reason": "algorithm mismatch"}
+        return False, {
+            "expected_algorithm": expected_algorithm,
+            "model_algorithm": output_algorithm,
+            "reason": "algorithm mismatch",
+        }
     update = str(model_output.get("internal_state_update", "")).lower()
     required_terms = [str(term).lower() for term in contract.get("required_terms", [])]
     missing_terms = [term for term in required_terms if term not in update]
@@ -492,9 +480,9 @@ def _algorithmic_fidelity(
 
 
 __all__ = [
+    "ALGORITHMS",
     "ALGORITHM_CONTRACTS",
     "ALGORITHM_DEFINITIONS",
-    "ALGORITHMS",
     "MODALITIES",
     "OUTPUT_REQUIRED_FIELDS",
     "SCORE_LABEL_ACTION_ERROR",

@@ -1,0 +1,25 @@
+{
+  "authorization_id": "issue-67-best-first-curriculum-authorization-v1",
+  "authorized_stages": [
+    "preflight",
+    "dataset_preparation",
+    "performance_qualification",
+    "process_sft_training",
+    "development_references",
+    "batched_evaluation",
+    "replay_and_adjudication"
+  ],
+  "contract_id": "issue-67-best-first-curriculum-comparison-v1",
+  "gate_receipt": {
+    "contract_id": "issue-67-best-first-curriculum-comparison-v1",
+    "outcome": "PASS",
+    "receipt_id": "gate:issue-67-best-first-curriculum-comparison-v1:PASS",
+    "source_issue": 67
+  },
+  "outcome": "PASS",
+  "parent_issue": 38,
+  "schema_version": "best_first_issue67_authorization_v1",
+  "scientific_completion": false,
+  "source_issue": 67,
+  "start_permitted": true
+}

@@ -1,0 +1,5 @@
+(define (problem matched-rooms-development)
+  (:domain matched-rooms)
+  (:objects a b c)
+  (:init (at a) (left a) (middle b) (right c) (link a b) (link b a) (link b c))
+  (:goal (at c)))

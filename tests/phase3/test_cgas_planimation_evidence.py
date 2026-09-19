@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import hashlib
 import json
 import math
 from pathlib import Path
@@ -19,10 +18,6 @@ from scripts.phase3.cgas_planimation_evidence import (
     parse_action_sequence,
     verify_attempt,
 )
-
-
-def _sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def _valid_attempt(tmp_path: Path) -> dict[str, Any]:
@@ -88,9 +83,7 @@ def _valid_attempt(tmp_path: Path) -> dict[str, Any]:
         "render": {
             "status": "success",
             "frame_path": frame_path.name,
-            "frame_sha256": _sha256(frame_path),
             "vfg_path": trace_path.name,
-            "vfg_sha256": _sha256(trace_path),
             "visualStages_count": 2,
             "semantic_receipt": receipt,
         },
@@ -274,9 +267,7 @@ def test_build_certification_passes_checked_in_production_smoke_fixtures(tmp_pat
     report["render"] = {
         "status": "success",
         "frame_path": frame_path.name,
-        "frame_sha256": _sha256(frame_path),
         "vfg_path": trace_path.name,
-        "vfg_sha256": _sha256(trace_path),
         "visualStages_count": len(expected_actions) + 1,
         "semantic_receipt": {
             "status": "success",
@@ -462,7 +453,6 @@ def test_build_certification_fails_wrong_vfg_action_order(tmp_path: Path) -> Non
     vfg["visualStages"][1]["stageName"] = "(stack b1 b2)"
     vfg["visualStages"].append({"stageName": "(pickup b1)", "visualSprites": []})
     trace_path.write_text(json.dumps(vfg), encoding="utf-8")
-    report["render"]["vfg_sha256"] = _sha256(trace_path)
     report["render"]["visualStages_count"] = 3
 
     result = build_certification(report, tmp_path)
@@ -479,7 +469,6 @@ def test_build_certification_fails_missing_or_extra_vfg_action_stages(tmp_path: 
     vfg = json.loads(trace_path.read_text(encoding="utf-8"))
     vfg["visualStages"] = [vfg["visualStages"][0], *({"stageName": action} for action in action_stages)]
     trace_path.write_text(json.dumps(vfg), encoding="utf-8")
-    report["render"]["vfg_sha256"] = _sha256(trace_path)
     report["render"]["visualStages_count"] = len(vfg["visualStages"])
 
     result = build_certification(report, tmp_path)

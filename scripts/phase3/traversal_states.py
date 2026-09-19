@@ -16,7 +16,7 @@ from .traversal_state_types import (
     TraversalStateCandidate,
     TraversalStateProjection,
     exclusion,
-    state_asset_hash,
+    state_asset_id,
 )
 
 
@@ -199,7 +199,7 @@ def _candidate(
         state_source,
         normalized_action,
         state_atoms,
-        state_asset_hash(state_atoms),
+        state_asset_id(state_atoms),
     )
 
 
@@ -208,7 +208,7 @@ def _exclusion(identity: FrozenSourceIdentity, planner: str, event_id: str, reas
 
 
 def _source_exclusion_id(identity: FrozenSourceIdentity) -> str:
-    return f"{identity.source_record_sha256}:source"
+    return f"{identity.source_record_id}:source"
 
 
 def _event_id(event: TraversalEvent, role: str) -> str:

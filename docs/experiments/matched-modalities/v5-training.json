@@ -1,0 +1,407 @@
+{
+  "study_id": "matched-modalities-v5",
+  "outcome": "PASS",
+  "new_image_adapters": 8,
+  "retained_text_adapters": 4,
+  "training_cells": [
+    {
+      "modality": "text-state",
+      "algorithm": "bfs",
+      "result_path": "outputs/matched_modalities/v3/training/text-state/bfs/report.json",
+      "checkpoint": "outputs/matched_modalities/v3/training/text-state/bfs/final",
+      "steps": 16,
+      "epoch": 1.0,
+      "seed": 17,
+      "training_records": 512,
+      "diagnostics": [
+        {
+          "eval_loss": 0.08005227893590927,
+          "eval_runtime": 8.6088,
+          "eval_samples_per_second": 3.252,
+          "eval_steps_per_second": 3.252,
+          "epoch": 0.3125,
+          "step": 5
+        },
+        {
+          "eval_loss": 0.02901265397667885,
+          "eval_runtime": 7.9582,
+          "eval_samples_per_second": 3.518,
+          "eval_steps_per_second": 3.518,
+          "epoch": 0.625,
+          "step": 10
+        }
+      ],
+      "adapter_isolation_passed": true,
+      "code_revision": "332d69dae6b144474da40e4d20c7f0832450358d",
+      "adapter_bytes": 698427288
+    },
+    {
+      "modality": "text-state",
+      "algorithm": "best_first_width",
+      "result_path": "outputs/matched_modalities/v3/training/text-state/best_first_width/report.json",
+      "checkpoint": "outputs/matched_modalities/v3/training/text-state/best_first_width/final",
+      "steps": 16,
+      "epoch": 1.0,
+      "seed": 17,
+      "training_records": 512,
+      "diagnostics": [
+        {
+          "eval_loss": 0.41243964433670044,
+          "eval_runtime": 7.7015,
+          "eval_samples_per_second": 3.376,
+          "eval_steps_per_second": 3.376,
+          "epoch": 0.3125,
+          "step": 5
+        },
+        {
+          "eval_loss": 0.09120343625545502,
+          "eval_runtime": 7.4371,
+          "eval_samples_per_second": 3.496,
+          "eval_steps_per_second": 3.496,
+          "epoch": 0.625,
+          "step": 10
+        }
+      ],
+      "adapter_isolation_passed": true,
+      "code_revision": "332d69dae6b144474da40e4d20c7f0832450358d",
+      "adapter_bytes": 698427288
+    },
+    {
+      "modality": "text-state",
+      "algorithm": "best_first_add_w3",
+      "result_path": "outputs/matched_modalities/v3/training/text-state/best_first_add_w3/report.json",
+      "checkpoint": "outputs/matched_modalities/v3/training/text-state/best_first_add_w3/final",
+      "steps": 16,
+      "epoch": 1.0,
+      "seed": 17,
+      "training_records": 512,
+      "diagnostics": [
+        {
+          "eval_loss": 0.039811208844184875,
+          "eval_runtime": 5.1836,
+          "eval_samples_per_second": 5.209,
+          "eval_steps_per_second": 5.209,
+          "epoch": 0.3125,
+          "step": 5
+        },
+        {
+          "eval_loss": 0.032545655965805054,
+          "eval_runtime": 5.4756,
+          "eval_samples_per_second": 4.931,
+          "eval_steps_per_second": 4.931,
+          "epoch": 0.625,
+          "step": 10
+        }
+      ],
+      "adapter_isolation_passed": true,
+      "code_revision": "23af1006f7e9bca12d6bc220a516c71d95a90d66",
+      "adapter_bytes": 698427288
+    },
+    {
+      "modality": "text-state",
+      "algorithm": "best_first_add_greedy",
+      "result_path": "outputs/matched_modalities/v3/training/text-state/best_first_add_greedy/report.json",
+      "checkpoint": "outputs/matched_modalities/v3/training/text-state/best_first_add_greedy/final",
+      "steps": 16,
+      "epoch": 1.0,
+      "seed": 17,
+      "training_records": 512,
+      "diagnostics": [
+        {
+          "eval_loss": 0.031611546874046326,
+          "eval_runtime": 5.2599,
+          "eval_samples_per_second": 5.133,
+          "eval_steps_per_second": 5.133,
+          "epoch": 0.3125,
+          "step": 5
+        },
+        {
+          "eval_loss": 0.0291376244276762,
+          "eval_runtime": 5.1988,
+          "eval_samples_per_second": 5.193,
+          "eval_steps_per_second": 5.193,
+          "epoch": 0.625,
+          "step": 10
+        }
+      ],
+      "adapter_isolation_passed": true,
+      "code_revision": "23af1006f7e9bca12d6bc220a516c71d95a90d66",
+      "adapter_bytes": 698427288
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "bfs",
+      "result_path": "outputs/matched_modalities/v5/training/visual-state/bfs/report.json",
+      "checkpoint": "outputs/matched_modalities/v5/training/visual-state/bfs/final",
+      "steps": 16,
+      "epoch": 1.0,
+      "seed": 17,
+      "training_records": 512,
+      "diagnostics": [
+        {
+          "eval_loss": 0.07462267577648163,
+          "eval_runtime": 18.4823,
+          "eval_samples_per_second": 1.515,
+          "eval_steps_per_second": 1.515,
+          "epoch": 0.3125,
+          "step": 5
+        },
+        {
+          "eval_loss": 0.02608528919517994,
+          "eval_runtime": 18.4172,
+          "eval_samples_per_second": 1.52,
+          "eval_steps_per_second": 1.52,
+          "epoch": 0.625,
+          "step": 10
+        }
+      ],
+      "adapter_isolation_passed": true,
+      "code_revision": "f7cbad7990b56095b512b065239c3e861f43069d",
+      "adapter_bytes": 698427288
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "best_first_width",
+      "result_path": "outputs/matched_modalities/v5/training/visual-state/best_first_width/report.json",
+      "checkpoint": "outputs/matched_modalities/v5/training/visual-state/best_first_width/final",
+      "steps": 16,
+      "epoch": 1.0,
+      "seed": 17,
+      "training_records": 512,
+      "diagnostics": [
+        {
+          "eval_loss": 0.4280986785888672,
+          "eval_runtime": 16.7639,
+          "eval_samples_per_second": 1.551,
+          "eval_steps_per_second": 1.551,
+          "epoch": 0.3125,
+          "step": 5
+        },
+        {
+          "eval_loss": 0.10741440206766129,
+          "eval_runtime": 17.0586,
+          "eval_samples_per_second": 1.524,
+          "eval_steps_per_second": 1.524,
+          "epoch": 0.625,
+          "step": 10
+        }
+      ],
+      "adapter_isolation_passed": true,
+      "code_revision": "f7cbad7990b56095b512b065239c3e861f43069d",
+      "adapter_bytes": 698427288
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "best_first_add_w3",
+      "result_path": "outputs/matched_modalities/v5/training/visual-state/best_first_add_w3/report.json",
+      "checkpoint": "outputs/matched_modalities/v5/training/visual-state/best_first_add_w3/final",
+      "steps": 16,
+      "epoch": 1.0,
+      "seed": 17,
+      "training_records": 512,
+      "diagnostics": [
+        {
+          "eval_loss": 0.06324361264705658,
+          "eval_runtime": 16.0219,
+          "eval_samples_per_second": 1.685,
+          "eval_steps_per_second": 1.685,
+          "epoch": 0.3125,
+          "step": 5
+        },
+        {
+          "eval_loss": 0.01292344182729721,
+          "eval_runtime": 15.6942,
+          "eval_samples_per_second": 1.72,
+          "eval_steps_per_second": 1.72,
+          "epoch": 0.625,
+          "step": 10
+        }
+      ],
+      "adapter_isolation_passed": true,
+      "code_revision": "0ee1d823b4bd753b6d5c7953edaf6de4ee74b094",
+      "adapter_bytes": 698427288
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "best_first_add_greedy",
+      "result_path": "outputs/matched_modalities/v5/training/visual-state/best_first_add_greedy/report.json",
+      "checkpoint": "outputs/matched_modalities/v5/training/visual-state/best_first_add_greedy/final",
+      "steps": 16,
+      "epoch": 1.0,
+      "seed": 17,
+      "training_records": 512,
+      "diagnostics": [
+        {
+          "eval_loss": 0.06329647451639175,
+          "eval_runtime": 16.2476,
+          "eval_samples_per_second": 1.662,
+          "eval_steps_per_second": 1.662,
+          "epoch": 0.3125,
+          "step": 5
+        },
+        {
+          "eval_loss": 0.012226046063005924,
+          "eval_runtime": 16.4349,
+          "eval_samples_per_second": 1.643,
+          "eval_steps_per_second": 1.643,
+          "epoch": 0.625,
+          "step": 10
+        }
+      ],
+      "adapter_isolation_passed": true,
+      "code_revision": "0ee1d823b4bd753b6d5c7953edaf6de4ee74b094",
+      "adapter_bytes": 698427288
+    },
+    {
+      "modality": "multimodal-state",
+      "algorithm": "bfs",
+      "result_path": "outputs/matched_modalities/v5/training/multimodal-state/bfs/report.json",
+      "checkpoint": "outputs/matched_modalities/v5/training/multimodal-state/bfs/final",
+      "steps": 16,
+      "epoch": 1.0,
+      "seed": 17,
+      "training_records": 512,
+      "diagnostics": [
+        {
+          "eval_loss": 0.07726152241230011,
+          "eval_runtime": 20.4591,
+          "eval_samples_per_second": 1.369,
+          "eval_steps_per_second": 1.369,
+          "epoch": 0.3125,
+          "step": 5
+        },
+        {
+          "eval_loss": 0.028202395886182785,
+          "eval_runtime": 20.0136,
+          "eval_samples_per_second": 1.399,
+          "eval_steps_per_second": 1.399,
+          "epoch": 0.625,
+          "step": 10
+        }
+      ],
+      "adapter_isolation_passed": true,
+      "code_revision": "0ee1d823b4bd753b6d5c7953edaf6de4ee74b094",
+      "adapter_bytes": 698427288
+    },
+    {
+      "modality": "multimodal-state",
+      "algorithm": "best_first_width",
+      "result_path": "outputs/matched_modalities/v5/training/multimodal-state/best_first_width/report.json",
+      "checkpoint": "outputs/matched_modalities/v5/training/multimodal-state/best_first_width/final",
+      "steps": 16,
+      "epoch": 1.0,
+      "seed": 17,
+      "training_records": 512,
+      "diagnostics": [
+        {
+          "eval_loss": 0.4541683793067932,
+          "eval_runtime": 19.8621,
+          "eval_samples_per_second": 1.309,
+          "eval_steps_per_second": 1.309,
+          "epoch": 0.3125,
+          "step": 5
+        },
+        {
+          "eval_loss": 0.10613631457090378,
+          "eval_runtime": 18.642,
+          "eval_samples_per_second": 1.395,
+          "eval_steps_per_second": 1.395,
+          "epoch": 0.625,
+          "step": 10
+        }
+      ],
+      "adapter_isolation_passed": true,
+      "code_revision": "0ee1d823b4bd753b6d5c7953edaf6de4ee74b094",
+      "adapter_bytes": 698427288
+    },
+    {
+      "modality": "multimodal-state",
+      "algorithm": "best_first_add_w3",
+      "result_path": "outputs/matched_modalities/v5/training/multimodal-state/best_first_add_w3/report.json",
+      "checkpoint": "outputs/matched_modalities/v5/training/multimodal-state/best_first_add_w3/final",
+      "steps": 16,
+      "epoch": 1.0,
+      "seed": 17,
+      "training_records": 512,
+      "diagnostics": [
+        {
+          "eval_loss": 0.05380230024456978,
+          "eval_runtime": 18.8729,
+          "eval_samples_per_second": 1.431,
+          "eval_steps_per_second": 1.431,
+          "epoch": 0.3125,
+          "step": 5
+        },
+        {
+          "eval_loss": 0.027903208509087563,
+          "eval_runtime": 18.1477,
+          "eval_samples_per_second": 1.488,
+          "eval_steps_per_second": 1.488,
+          "epoch": 0.625,
+          "step": 10
+        }
+      ],
+      "adapter_isolation_passed": true,
+      "code_revision": "0ee1d823b4bd753b6d5c7953edaf6de4ee74b094",
+      "adapter_bytes": 698427288
+    },
+    {
+      "modality": "multimodal-state",
+      "algorithm": "best_first_add_greedy",
+      "result_path": "outputs/matched_modalities/v5/training/multimodal-state/best_first_add_greedy/report.json",
+      "checkpoint": "outputs/matched_modalities/v5/training/multimodal-state/best_first_add_greedy/final",
+      "steps": 16,
+      "epoch": 1.0,
+      "seed": 17,
+      "training_records": 512,
+      "diagnostics": [
+        {
+          "eval_loss": 0.052551742643117905,
+          "eval_runtime": 18.7585,
+          "eval_samples_per_second": 1.439,
+          "eval_steps_per_second": 1.439,
+          "epoch": 0.3125,
+          "step": 5
+        },
+        {
+          "eval_loss": 0.034388601779937744,
+          "eval_runtime": 19.9824,
+          "eval_samples_per_second": 1.351,
+          "eval_steps_per_second": 1.351,
+          "epoch": 0.625,
+          "step": 10
+        }
+      ],
+      "adapter_isolation_passed": true,
+      "code_revision": "0ee1d823b4bd753b6d5c7953edaf6de4ee74b094",
+      "adapter_bytes": 698427288
+    }
+  ],
+  "ordered_membership_and_settings_verified": true,
+  "record_presentations": 6144,
+  "optimizer_updates": 192,
+  "all_final_epochs": 1.0,
+  "all_adapter_isolation_passed": true,
+  "cumulative_spent_seconds": {
+    "qualify": 4745.354118108749,
+    "train": 6744.416471004486,
+    "evaluate": 0
+  },
+  "training_stage_seconds": 5232.076309919357,
+  "runtime_package_versions": {
+    "torch": "2.7.1",
+    "transformers": "4.57.0",
+    "peft": "0.17.1",
+    "accelerate": "1.5.2",
+    "safetensors": "0.7.0",
+    "Pillow": "11.0.0"
+  },
+  "decision": "CONTINUE",
+  "final_evaluation_executed": false,
+  "completion_hook": {
+    "stage": "complete",
+    "exit_code": 0,
+    "finished_at": "2026-09-14T05:45:45Z"
+  },
+  "verification_log": "outputs/matched_modalities/v5/automatic-continuation/verify.log"
+}

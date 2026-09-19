@@ -1,0 +1,221 @@
+{
+  "status": "reference_screen_complete_selection_and_qualification_pending",
+  "strata": [
+    {
+      "domain": "15puzzle",
+      "stratum": "compact",
+      "reference_eligible": 16,
+      "reasons": {
+        "reference_eligible_alias_and_input_audits_pending": 16
+      }
+    },
+    {
+      "domain": "15puzzle",
+      "stratum": "expanded",
+      "reference_eligible": 3,
+      "reasons": {
+        "exact_reference_failed:bfs:expansion_budget_exhausted": 13,
+        "reference_eligible_alias_and_input_audits_pending": 3
+      }
+    },
+    {
+      "domain": "blocksworld",
+      "stratum": "compact",
+      "reference_eligible": 15,
+      "reasons": {
+        "reference_eligible_alias_and_input_audits_pending": 15,
+        "historical_task_overlap": 1
+      }
+    },
+    {
+      "domain": "blocksworld",
+      "stratum": "expanded",
+      "reference_eligible": 2,
+      "reasons": {
+        "exact_reference_failed:bfs:expansion_budget_exhausted": 14,
+        "reference_eligible_alias_and_input_audits_pending": 2
+      }
+    },
+    {
+      "domain": "depot",
+      "stratum": "compact",
+      "reference_eligible": 3,
+      "reasons": {
+        "reference_eligible_alias_and_input_audits_pending": 3,
+        "initial_goal": 8,
+        "historical_task_overlap": 5
+      }
+    },
+    {
+      "domain": "depot",
+      "stratum": "expanded",
+      "reference_eligible": 11,
+      "reasons": {
+        "reference_eligible_alias_and_input_audits_pending": 11,
+        "initial_goal": 4,
+        "historical_task_overlap": 1
+      }
+    },
+    {
+      "domain": "driverlog",
+      "stratum": "compact",
+      "reference_eligible": 14,
+      "reasons": {
+        "initial_goal": 2,
+        "reference_eligible_alias_and_input_audits_pending": 14
+      }
+    },
+    {
+      "domain": "driverlog",
+      "stratum": "expanded",
+      "reference_eligible": 5,
+      "reasons": {
+        "exact_reference_failed:bfs:expansion_budget_exhausted": 11,
+        "reference_eligible_alias_and_input_audits_pending": 5
+      }
+    },
+    {
+      "domain": "elevators",
+      "stratum": "compact",
+      "reference_eligible": 9,
+      "reasons": {
+        "historical_task_overlap": 7,
+        "reference_eligible_alias_and_input_audits_pending": 9
+      }
+    },
+    {
+      "domain": "elevators",
+      "stratum": "expanded",
+      "reference_eligible": 3,
+      "reasons": {
+        "historical_task_overlap": 13,
+        "reference_eligible_alias_and_input_audits_pending": 3
+      }
+    },
+    {
+      "domain": "ferry",
+      "stratum": "compact",
+      "reference_eligible": 11,
+      "reasons": {
+        "reference_eligible_alias_and_input_audits_pending": 11,
+        "initial_goal": 5
+      }
+    },
+    {
+      "domain": "ferry",
+      "stratum": "expanded",
+      "reference_eligible": 8,
+      "reasons": {
+        "reference_eligible_alias_and_input_audits_pending": 8,
+        "historical_task_overlap": 7,
+        "initial_goal": 1
+      }
+    },
+    {
+      "domain": "grid",
+      "stratum": "compact",
+      "reference_eligible": 16,
+      "reasons": {
+        "reference_eligible_alias_and_input_audits_pending": 16
+      }
+    },
+    {
+      "domain": "grid",
+      "stratum": "expanded",
+      "reference_eligible": 16,
+      "reasons": {
+        "reference_eligible_alias_and_input_audits_pending": 16
+      }
+    },
+    {
+      "domain": "gripper",
+      "stratum": "compact",
+      "reference_eligible": 15,
+      "reasons": {
+        "reference_eligible_alias_and_input_audits_pending": 15,
+        "historical_task_overlap": 1
+      }
+    },
+    {
+      "domain": "gripper",
+      "stratum": "expanded",
+      "reference_eligible": 2,
+      "reasons": {
+        "exact_reference_failed:bfs:expansion_budget_exhausted": 14,
+        "reference_eligible_alias_and_input_audits_pending": 2
+      }
+    },
+    {
+      "domain": "logistics",
+      "stratum": "compact",
+      "reference_eligible": 10,
+      "reasons": {
+        "reference_eligible_alias_and_input_audits_pending": 10,
+        "initial_goal": 6
+      }
+    },
+    {
+      "domain": "logistics",
+      "stratum": "expanded",
+      "reference_eligible": 10,
+      "reasons": {
+        "reference_eligible_alias_and_input_audits_pending": 10,
+        "initial_goal": 6
+      }
+    },
+    {
+      "domain": "storage",
+      "stratum": "compact",
+      "reference_eligible": 0,
+      "reasons": {
+        "grounding_estimate_ceiling": 16
+      }
+    },
+    {
+      "domain": "storage",
+      "stratum": "expanded",
+      "reference_eligible": 0,
+      "reasons": {
+        "grounding_estimate_ceiling": 16
+      }
+    },
+    {
+      "domain": "towers_of_hanoi",
+      "stratum": "compact",
+      "reference_eligible": 16,
+      "reasons": {
+        "reference_eligible_alias_and_input_audits_pending": 16
+      }
+    },
+    {
+      "domain": "towers_of_hanoi",
+      "stratum": "expanded",
+      "reference_eligible": 14,
+      "reasons": {
+        "reference_eligible_alias_and_input_audits_pending": 14,
+        "historical_task_overlap": 2
+      }
+    },
+    {
+      "domain": "visitall",
+      "stratum": "compact",
+      "reference_eligible": 13,
+      "reasons": {
+        "reference_eligible_alias_and_input_audits_pending": 13,
+        "exact_reference_failed:bfs:expansion_budget_exhausted": 2,
+        "initial_goal": 1
+      }
+    },
+    {
+      "domain": "visitall",
+      "stratum": "expanded",
+      "reference_eligible": 8,
+      "reasons": {
+        "reference_eligible_alias_and_input_audits_pending": 8,
+        "exact_reference_failed:bfs:expansion_budget_exhausted": 8
+      }
+    }
+  ],
+  "model_calls": 0,
+  "report": "outputs/expanded-study/v1/panel/reference-screen.json"
+}

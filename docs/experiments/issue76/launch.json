@@ -1,0 +1,22 @@
+{
+  "command": "source ~/cd_vlaplan && python -u scripts/run_multimodal_issue76.py all",
+  "implementation_commit": "ad6dcef",
+  "output_root": "outputs/multimodal_development/issue76-feasibility-v1/attempt-001",
+  "tool_session_id": 27149,
+  "parent_pid": 110565,
+  "started_unix": 1789222754.1860404,
+  "started_monotonic": 8694154.040658025,
+  "gate_seconds": 14400,
+  "devices": [
+    "0",
+    "1"
+  ],
+  "master_ports": [
+    18675,
+    18676
+  ],
+  "parent_log_during_execution": "/tmp/issue76-live.log",
+  "worker_logs": "outputs/multimodal_development/issue76-feasibility-v1/attempt-001/launches",
+  "state_at_recording": "live qualification workers confirmed by ps and nvidia-smi",
+  "note": "This launch evidence is historical; inspect processes and terminal reports before assuming the run is still live."
+}

@@ -8,7 +8,7 @@ The Phase 1-3 P0 acceptance scope is `blocksworld` only. The 15 domain curriculu
 
 ### algorithm_matrix_decision
 
-The algorithm set names `bfs`, `fast_forward`, `iterated_width`, and `graphplan`.
+The exact active algorithm set is `bfs` and `iterated_width`.
 
 ### modality_matrix_decision
 

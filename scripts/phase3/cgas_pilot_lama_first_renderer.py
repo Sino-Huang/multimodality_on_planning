@@ -12,9 +12,8 @@ from pathlib import Path
 from typing import Any, Final, cast
 from urllib.parse import urlsplit
 
-from .cgas_pilot_planimation_adapter import _planimation_compat_problem_path
 from .cgas_planimation_evidence import EvidenceMalformedError, extract_vfg_action_sequence
-from .pddl import PDDLError, normalize_action_string
+from .pddl import PDDLError, PDDLTask, canonical_atom, normalize_action_string, parse_task
 from .planimation_pairing_contracts import RenderConfig, RendererResult
 from .planimation_pairing_rendering import render_state_with_planimation
 from .traversal_state_types import JSONValue
@@ -25,6 +24,41 @@ LAMA_FIRST_ALIAS: Final = "lama-first"
 PLAN_FILENAME: Final = "sas_plan"
 _ACTION_LINE: Final = re.compile(r"^\s*(\([^()\r\n]+\))\s*$")
 _COST_FOOTER: Final = re.compile(r"^\s*;\s*cost\s*=\s*(\d+(?:\.\d+)?)\s*\((?:unit|general)\s+cost\)\s*$", re.IGNORECASE)
+_ZERO_PADDED_BLOCK_OBJECT: Final = re.compile(r"^b\d{2,}$")
+PLANIMATION_COMPAT_PROBLEM_NAME: Final = "problem.planimation-compat.pddl"
+
+
+def _planimation_compat_problem_path(domain_path: Path, problem_path: Path, cache_dir: Path) -> Path:
+    try:
+        task = parse_task(domain_path, problem_path)
+    except (PDDLError, OSError):
+        return problem_path
+    formatted = _format_planimation_compat_problem(task)
+    if formatted is None:
+        return problem_path
+    compat_path = cache_dir / PLANIMATION_COMPAT_PROBLEM_NAME
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    compat_path.write_text(formatted, encoding="utf-8")
+    return compat_path
+
+
+def _format_planimation_compat_problem(task: PDDLTask) -> str | None:
+    objects = tuple(sorted(task.objects_by_type.get("object", ())))
+    if not objects or not all(_ZERO_PADDED_BLOCK_OBJECT.fullmatch(obj) for obj in objects):
+        return None
+    renamed = {obj: f"b{index + 1}" for index, obj in enumerate(objects)}
+    def canonical(atom: tuple[str, ...]) -> str:
+        return canonical_atom(tuple(renamed.get(part, part) for part in atom))
+    lines = ["", "", f"(define (problem {task.problem_name})", f"(:domain {task.domain_name})"]
+    lines.extend(("(:objects " + " ".join(renamed[obj] for obj in objects) + " )", "(:init"))
+    lines.extend(f"  {canonical(atom)}" for atom in sorted(task.init))
+    lines.append(")")
+    if task.goal:
+        lines.extend(("(:goal", "(and", *(canonical(atom) for atom in sorted(task.goal)), ")", ")"))
+    else:
+        lines.append("(:goal (and))")
+    lines.extend((")", "", ""))
+    return "\n".join(lines) + "\n"
 
 
 @dataclass(frozen=True, slots=True)

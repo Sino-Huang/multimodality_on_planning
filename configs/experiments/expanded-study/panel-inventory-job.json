@@ -1,0 +1,18 @@
+{
+  "job_id": "panel-historical-inventory",
+  "branch": "expanded_baseline",
+  "gpus": [],
+  "max_seconds": 1800,
+  "total": 1,
+  "command": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/prepare_expanded_panel.py",
+    "inventory"
+  ],
+  "completion_hook": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/prepare_expanded_panel.py",
+    "audit-inventory"
+  ],
+  "resume_reason": "Remove incorrect twelve-domain inventory assertion: actual historical source has fifteen domains; scan all for exclusions while requested panel scope is clarified."
+}

@@ -1,0 +1,21 @@
+{
+  "job_id": "panel-select-v2",
+  "branch": "expanded_baseline",
+  "gpus": [],
+  "max_seconds": 900,
+  "total": 24,
+  "command": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/select_expanded_panel.py",
+    "select",
+    "--protocol",
+    "configs/experiments/expanded-study/panel-protocol-v2.json"
+  ],
+  "completion_hook": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/select_expanded_panel.py",
+    "audit",
+    "--protocol",
+    "configs/experiments/expanded-study/panel-protocol-v2.json"
+  ]
+}

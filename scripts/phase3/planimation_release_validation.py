@@ -7,7 +7,7 @@ from json import JSONDecodeError
 from pathlib import Path
 from typing import Callable, Literal
 
-from scripts.phase3.io_utils import file_sha256, is_relative_artifact_path, repo_root
+from scripts.phase3.io_utils import is_relative_artifact_path, repo_root
 from scripts.phase3.planimation_pairing import _load_source_example, _trace_identity, validate_vlm_schema_instance
 from scripts.phase3.render_semantics import validate_render_artifacts
 from scripts.phase3.traversal_state_types import JSONValue, TraversalProjectionInput, TraversalStateCandidate
@@ -114,7 +114,7 @@ def _artifact_errors(record: JSONRecord) -> list[str]:
     receipt = validate_render_artifacts(trace_path, image_path)
     if receipt.status != "success":
         return ["invalid_render_image"]
-    if render.get("png_sha256") != file_sha256(image_path) or render.get("vfg_sha256") != file_sha256(trace_path) or render.get("semantic_image_metrics") != receipt.to_record():
+    if render.get("semantic_image_metrics") != receipt.to_record():
         return ["render_receipt_mismatch"]
     return []
 

@@ -1,0 +1,305 @@
+{
+  "issue": 76,
+  "contract_id": "issue-76-multimodal-feasibility-v1",
+  "execution_complete": true,
+  "pilot_complete": true,
+  "scientific_gate_passed": false,
+  "scientific_completion": false,
+  "outcome": "VALID_STOP",
+  "elapsed_seconds": 3894.99,
+  "gate_seconds": 14400,
+  "within_wall_cap": true,
+  "training_records_per_algorithm": 512,
+  "epochs": 1,
+  "optimizer_updates_per_algorithm": 16,
+  "training_seed": 17,
+  "evaluation_seeds": [
+    17
+  ],
+  "task_groups": 9,
+  "algorithm_task_cases": 12,
+  "episodes": 48,
+  "independent_replay": "PASS",
+  "new_model_calls_during_verification": 0,
+  "qualification": {
+    "0": {
+      "hardware_probes": 8,
+      "paired_adapter_probes": {
+        "bfs": 1,
+        "best_first_width": 1,
+        "best_first_add_w3": 1,
+        "best_first_add_greedy": 1
+      },
+      "note": "Historical adapter progress printed 1/2: one planned primary probe with two distinct inputs; display denominator corrected after the running workers loaded their code."
+    },
+    "1": {
+      "hardware_probes": 8,
+      "paired_adapter_probes": {
+        "bfs": 1,
+        "best_first_width": 1,
+        "best_first_add_w3": 1,
+        "best_first_add_greedy": 1
+      },
+      "note": "Historical adapter progress printed 1/2: one planned primary probe with two distinct inputs; display denominator corrected after the running workers loaded their code."
+    }
+  },
+  "training": [
+    {
+      "contract_id": "issue-76-multimodal-feasibility-v1",
+      "algorithm": "bfs",
+      "seed": 17,
+      "steps": 16,
+      "final_checkpoint": "outputs/multimodal_development/issue76-feasibility-v1/attempt-001/training/bfs/final",
+      "train_records": 512,
+      "outcome": "PASS",
+      "peak_allocated_bytes": 34135289856,
+      "peak_reserved_bytes": 84527808512,
+      "elapsed_seconds": 1242.05,
+      "modality": "multimodal-state"
+    },
+    {
+      "contract_id": "issue-76-multimodal-feasibility-v1",
+      "algorithm": "best_first_width",
+      "seed": 17,
+      "steps": 16,
+      "final_checkpoint": "outputs/multimodal_development/issue76-feasibility-v1/attempt-001/training/best_first_width/final",
+      "train_records": 512,
+      "outcome": "PASS",
+      "peak_allocated_bytes": 32544347648,
+      "peak_reserved_bytes": 83200311296,
+      "elapsed_seconds": 1212.45,
+      "modality": "multimodal-state"
+    },
+    {
+      "contract_id": "issue-76-multimodal-feasibility-v1",
+      "algorithm": "best_first_add_w3",
+      "seed": 17,
+      "steps": 16,
+      "final_checkpoint": "outputs/multimodal_development/issue76-feasibility-v1/attempt-001/training/best_first_add_w3/final",
+      "train_records": 512,
+      "outcome": "PASS",
+      "peak_allocated_bytes": 34202628096,
+      "peak_reserved_bytes": 84148224000,
+      "elapsed_seconds": 1249.63,
+      "modality": "multimodal-state"
+    },
+    {
+      "contract_id": "issue-76-multimodal-feasibility-v1",
+      "algorithm": "best_first_add_greedy",
+      "seed": 17,
+      "steps": 16,
+      "final_checkpoint": "outputs/multimodal_development/issue76-feasibility-v1/attempt-001/training/best_first_add_greedy/final",
+      "train_records": 512,
+      "outcome": "PASS",
+      "peak_allocated_bytes": 34213340672,
+      "peak_reserved_bytes": 84148224000,
+      "elapsed_seconds": 1228.43,
+      "modality": "multimodal-state"
+    }
+  ],
+  "evaluation_workers": [
+    {
+      "contract_id": "issue-76-multimodal-feasibility-v1",
+      "outcome": "PASS",
+      "worker": 0,
+      "episodes": "see original worker manifest",
+      "peak_allocated_bytes": 44511248384,
+      "peak_reserved_bytes": 46965719040,
+      "elapsed_seconds": 576.75,
+      "modality": "multimodal-state"
+    },
+    {
+      "contract_id": "issue-76-multimodal-feasibility-v1",
+      "outcome": "PASS",
+      "worker": 1,
+      "episodes": "see original worker manifest",
+      "peak_allocated_bytes": 44511248384,
+      "peak_reserved_bytes": 46965719040,
+      "elapsed_seconds": 531.93,
+      "modality": "multimodal-state"
+    }
+  ],
+  "failed_thresholds": [
+    {
+      "algorithm": "bfs",
+      "criterion": "learned_success",
+      "actual": 0.0,
+      "limit": 0.8
+    },
+    {
+      "algorithm": "bfs",
+      "criterion": "maximum_invalid_rate",
+      "actual": 0.42857142857142855,
+      "limit": 0.05
+    },
+    {
+      "algorithm": "best_first_width",
+      "criterion": "learned_success",
+      "actual": 0.0,
+      "limit": 0.8
+    },
+    {
+      "algorithm": "best_first_width",
+      "criterion": "maximum_invalid_rate",
+      "actual": 1.0,
+      "limit": 0.05
+    },
+    {
+      "algorithm": "best_first_add_w3",
+      "criterion": "learned_success",
+      "actual": 0.3333333333333333,
+      "limit": 0.8
+    },
+    {
+      "algorithm": "best_first_add_w3",
+      "criterion": "maximum_invalid_rate",
+      "actual": 0.18181818181818182,
+      "limit": 0.05
+    },
+    {
+      "algorithm": "best_first_add_greedy",
+      "criterion": "learned_success",
+      "actual": 0.3333333333333333,
+      "limit": 0.8
+    },
+    {
+      "algorithm": "best_first_add_greedy",
+      "criterion": "maximum_invalid_rate",
+      "actual": 0.2,
+      "limit": 0.05
+    }
+  ],
+  "metrics": {
+    "bfs": {
+      "invariant_valid_success": {
+        "exact_reference": 1.0,
+        "random_valid": 0.3333333333333333,
+        "pretrained_base": 0.0,
+        "process_sft": 0.0
+      },
+      "invalid_operation_rate": {
+        "exact_reference": 0.0,
+        "random_valid": 0.0,
+        "pretrained_base": 1.0,
+        "process_sft": 0.42857142857142855
+      },
+      "budget_usage": {
+        "exact_reference": 0.5,
+        "random_valid": 0.5,
+        "pretrained_base": 0.046875,
+        "process_sft": 0.109375
+      },
+      "best_control": "random_valid",
+      "gain": -0.3333333333333333,
+      "paired_bootstrap_lower_bound": -1.0,
+      "advantage_established": false,
+      "per_seed_success": {
+        "17": {
+          "random_valid": 0.3333333333333333,
+          "pretrained_base": 0.0,
+          "process_sft": 0.0
+        }
+      }
+    },
+    "best_first_width": {
+      "invariant_valid_success": {
+        "exact_reference": 1.0,
+        "random_valid": 0.6666666666666666,
+        "pretrained_base": 0.0,
+        "process_sft": 0.0
+      },
+      "invalid_operation_rate": {
+        "exact_reference": 0.0,
+        "random_valid": 0.0,
+        "pretrained_base": 1.0,
+        "process_sft": 1.0
+      },
+      "budget_usage": {
+        "exact_reference": 0.5,
+        "random_valid": 0.5185185185185185,
+        "pretrained_base": 0.05555555555555555,
+        "process_sft": 0.05555555555555555
+      },
+      "best_control": "random_valid",
+      "gain": -0.6666666666666666,
+      "paired_bootstrap_lower_bound": -1.0,
+      "advantage_established": false,
+      "per_seed_success": {
+        "17": {
+          "random_valid": 0.6666666666666666,
+          "pretrained_base": 0.0,
+          "process_sft": 0.0
+        }
+      }
+    },
+    "best_first_add_w3": {
+      "invariant_valid_success": {
+        "exact_reference": 1.0,
+        "random_valid": 1.0,
+        "pretrained_base": 0.0,
+        "process_sft": 0.3333333333333333
+      },
+      "invalid_operation_rate": {
+        "exact_reference": 0.0,
+        "random_valid": 0.0,
+        "pretrained_base": 1.0,
+        "process_sft": 0.18181818181818182
+      },
+      "budget_usage": {
+        "exact_reference": 0.5,
+        "random_valid": 0.5,
+        "pretrained_base": 0.05555555555555555,
+        "process_sft": 0.2037037037037037
+      },
+      "best_control": "random_valid",
+      "gain": -0.6666666666666667,
+      "paired_bootstrap_lower_bound": -1.0,
+      "advantage_established": false,
+      "per_seed_success": {
+        "17": {
+          "random_valid": 1.0,
+          "pretrained_base": 0.0,
+          "process_sft": 0.3333333333333333
+        }
+      }
+    },
+    "best_first_add_greedy": {
+      "invariant_valid_success": {
+        "exact_reference": 1.0,
+        "random_valid": 1.0,
+        "pretrained_base": 0.0,
+        "process_sft": 0.3333333333333333
+      },
+      "invalid_operation_rate": {
+        "exact_reference": 0.0,
+        "random_valid": 0.0,
+        "pretrained_base": 1.0,
+        "process_sft": 0.2
+      },
+      "budget_usage": {
+        "exact_reference": 0.5,
+        "random_valid": 0.5,
+        "pretrained_base": 0.05555555555555555,
+        "process_sft": 0.18518518518518517
+      },
+      "best_control": "random_valid",
+      "gain": -0.6666666666666667,
+      "paired_bootstrap_lower_bound": -1.0,
+      "advantage_established": false,
+      "per_seed_success": {
+        "17": {
+          "random_valid": 1.0,
+          "pretrained_base": 0.0,
+          "process_sft": 0.3333333333333333
+        }
+      }
+    }
+  },
+  "comparison_scope": "within_multimodal_feasibility; training_unmatched_to_issue75_v5",
+  "historical_progress_display_fix": {
+    "tests_passed": 7,
+    "elapsed_seconds": 9.05,
+    "experiment_outputs_changed": false,
+    "new_model_calls": 0
+  }
+}

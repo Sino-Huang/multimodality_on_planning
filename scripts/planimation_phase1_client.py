@@ -91,15 +91,17 @@ def post_pddl_for_vfg(
     timeout: int,
     plan: str | None = None,
     solver_url: str | None = None,
+    allow_redirects: bool = True,
 ) -> tuple[bytes, str]:
     """Submit one PDDL bundle through ordered upload endpoints.
 
     ``plan`` is an optional supplied action sequence. When non-None it is sent as
     an additional multipart ``plan`` field, which selects the backend's supplied-
-    plan path instead of its hosted solver. When None the multipart body is
-    byte-for-byte identical to the historical three-field bundle (``domain``,
-    ``problem``, ``animation`` only). ``solver_url`` is an optional backend URL
-    field for callers that need to block default solver delegation.
+    plan path instead of its hosted solver. When None, the historical three-field
+    bundle (``domain``, ``problem``, ``animation`` only) is sent. ``solver_url``
+    is an optional backend URL field for callers that need to block default
+    solver delegation.
+    ``allow_redirects`` can be disabled by localhost-only production callers.
     """
     files = {
         "domain": (None, domain_path.read_text(encoding="utf-8")),
@@ -113,7 +115,7 @@ def post_pddl_for_vfg(
     errors: list[str] = []
     for url in pddl_candidates:
         try:
-            response = requests.post(url, files=files, timeout=timeout)
+            response = requests.post(url, files=files, timeout=timeout, allow_redirects=allow_redirects)
         except requests.RequestException as error:
             errors.append(f"{url} -> {error}")
             continue

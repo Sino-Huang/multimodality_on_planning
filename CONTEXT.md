@@ -4,9 +4,8 @@ GitHub issue #38, "Spec: Teach VLMs executable search processes across
 modalities", is the single ratified authority decision for the current program,
 executed through its ready-for-agent tickets #39-#108. This ratification under
 issue #39 records its authority only: issue #38 remains open and its title,
-body, state, and labels remain unchanged. No Search Process Policy training run
-or efficacy result exists yet; nothing in this glossary or in retained evidence
-constitutes such a result.
+body, state, and labels remain unchanged. This glossary defines terminology; experiment completion and efficacy claims
+are recorded in the corresponding evidence reports.
 
 ## Current terms (Search Process Policy program, issue #38)
 

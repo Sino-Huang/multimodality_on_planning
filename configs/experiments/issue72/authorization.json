@@ -1,0 +1,9 @@
+{
+  "binding": {
+    "contract_id": "issue-71-modality-development-v2",
+    "attempt_id": "issue72-layout-001",
+    "output_root": "outputs/modality_phase/issue71-v2/render_preflight/issue72-layout-001"
+  },
+  "gate_receipt_id": "gate:issue-71-modality-development-v2:issue72-layout-001:PASS",
+  "basis": "Supervisor request to implement/test #72 with storage restraint. Authorizes only the cheap layout audit and its small JSON result, not bulk rendering."
+}

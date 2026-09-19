@@ -1,0 +1,43 @@
+{
+  "study_id": "matched-modalities-v4",
+  "outcome": "VALID_STOP",
+  "model_input_ready": false,
+  "reason": "Cumulative qualification allocation exhausted before multimodal checks completed",
+  "budget_ledger": "outputs/matched_modalities/v2/budget.json",
+  "spent_seconds": {
+    "qualify": 3600.582769393921,
+    "train": 1512.3401610851288,
+    "evaluate": 0
+  },
+  "visual_qualification": [
+    {
+      "report": "outputs/matched_modalities/v4/qualification/visual-state-gpu-0.json",
+      "worker": 0,
+      "outcome": "PASS",
+      "semantic_algorithms": [
+        "bfs",
+        "best_first_add_w3"
+      ],
+      "seconds_per_call": 49.973994513973594,
+      "training_microstep_seconds": 6.318123588338494,
+      "covers_selected_input_envelope": true
+    },
+    {
+      "report": "outputs/matched_modalities/v4/qualification/visual-state-gpu-1.json",
+      "worker": 1,
+      "outcome": "PASS",
+      "semantic_algorithms": [
+        "best_first_width",
+        "best_first_add_greedy"
+      ],
+      "seconds_per_call": 49.16677110269666,
+      "training_microstep_seconds": 5.702195648103952,
+      "covers_selected_input_envelope": true
+    }
+  ],
+  "complete_text_adapters": 4,
+  "complete_native_visual_adapters": 0,
+  "complete_native_multimodal_adapters": 0,
+  "final_evaluation_run": false,
+  "budget_revision_approved": false
+}

@@ -1,0 +1,9 @@
+{
+  "outcome": "PASS",
+  "decisions": 4310,
+  "modalities": 3,
+  "maximum_common_input_bytes": 5189,
+  "maximum_accepted_deltas": 16,
+  "scientific_inputs_mutated": false,
+  "scope": "all retained exact-reference decisions; live complete-input token cap remains separately enforced"
+}

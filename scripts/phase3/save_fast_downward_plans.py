@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable
 
-from .io_utils import file_sha256, read_jsonl, relpath, repo_root, write_json, write_jsonl
+from .io_utils import read_jsonl, relpath, repo_root, write_json, write_jsonl
 
 
 DEFAULT_ALIAS = "lama-first"
@@ -170,7 +170,6 @@ def _success_record(
         **base,
         "status": status,
         "plan_paths": [relpath(path) for path in plan_paths],
-        "plan_hashes": {relpath(path): file_sha256(path) for path in plan_paths},
         "plan_count": len(plan_paths),
         "command": _command_label(command) if command else [],
         "returncode": returncode,

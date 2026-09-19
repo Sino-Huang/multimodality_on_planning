@@ -1,0 +1,26 @@
+{
+  "component": "matrix",
+  "phase_id": "issue-71-modality-development-v1",
+  "algorithms": ["bfs", "best_first_width", "best_first_add_w3", "best_first_add_greedy"],
+  "algorithm_settings": {"bfs": "FIFO", "best_first_width": "full_bfws_goal_count, unpruned", "best_first_add_w3": "g + 3*h_add, reopen", "best_first_add_greedy": "h_add, no reopening"},
+  "modalities": ["text-state", "visual-state", "multimodal-state"],
+  "cell_enumeration": "Cartesian product of algorithms and modalities, in listed order",
+  "cell_count": 12,
+  "conditions": ["base", "process_sft", "random_valid", "exact_classical"],
+  "random_valid_interpretation": "oracle-assisted legal-operation control; parity does not demonstrate learned search advantage",
+  "training_run_count": 12,
+  "primary_metrics": ["invariant_valid_success", "invalid_operation_rate", "budget_usage"],
+  "comparisons": ["process_sft_minus_base", "process_sft_minus_best_control", "visual_minus_text", "multimodal_minus_text"],
+  "statistics": {"unit": "whole_problem_instance", "method": "paired_percentile_bootstrap", "resamples": 10000, "seed": 1729, "confidence": 0.95, "modality_equivalence_margin": 0.05, "aggregate": "family-normalized", "report_each_evaluation_seed": true},
+  "competence_thresholds": {"exact_reference_invariant_valid_success": 1.0, "process_sft_invariant_valid_success": 0.8, "maximum_invalid_operation_rate": 0.05},
+  "advantage_claim": "separate from competence; requires positive paired gain lower bound over the best control",
+  "excluded": ["optimal A-star", "heuristic-representation effect", "held-out efficacy testing", "DAgger", "second backbone", "transfer", "independent training-seed variance"],
+  "stages": {
+    "render": {"issue": 72, "requires": []},
+    "corpus": {"issues": [73, 74], "requires": ["render"]},
+    "training": {"issues": [75, 76], "requires": ["corpus"]},
+    "qualification": {"issues": [75, 76], "requires": ["corpus", "training"]},
+    "evaluation": {"issues": [75, 76], "requires": ["corpus", "training", "qualification"]},
+    "synthesis": {"issue": 77, "requires": ["evaluation"]}
+  }
+}

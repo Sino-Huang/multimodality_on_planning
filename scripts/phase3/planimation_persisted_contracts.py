@@ -18,11 +18,9 @@ PAIR_FIELDS: Final = frozenset(
         "pair_id",
         "source_root",
         "source_root_id",
-        "source_root_sha256",
         "source_jsonl",
-        "source_split_sha256",
         "source_line_index",
-        "source_record_sha256",
+        "source_record_id",
         "example_id",
         "domain",
         "instance_id",
@@ -30,14 +28,11 @@ PAIR_FIELDS: Final = frozenset(
         "planner",
         "active_planner_id",
         "bucket",
-        "plan_hash",
-        "trace_hash",
         "trace_fidelity",
         "planner_approximation",
         "domain_path",
         "problem_path",
         "render_trace_path",
-        "render_action_hash",
         "frame_paths",
         "frame_count",
         "plan_length",
@@ -59,18 +54,15 @@ STATE_BASE_FIELDS: Final = frozenset(
         "split",
         "planner",
         "step_index",
-        "state_hash",
+        "state_id",
         "transition",
         "cache_dir",
         "cache_key",
         "domain_path",
-        "domain_sha256",
-        "problem_sha256",
+        "problem_path",
         "profile_path",
-        "profile_sha256",
         "renderer_id",
-        "renderer_config_sha256",
-        "state_sha256",
+        "renderer_config",
         "status",
     }
 )
@@ -79,10 +71,7 @@ STATE_SUCCESS_FIELDS: Final = frozenset(
     {
         "frame_path",
         "derived_problem_path",
-        "input_hash",
         "trace_path",
-        "vfg_sha256",
-        "png_sha256",
         "png_dimensions",
         "semantic_image_qa",
         "semantic_image_metrics",
@@ -134,9 +123,10 @@ def validate_state_render_record(record: JSONRecord, pair_ids: frozenset[str]) -
         else STATE_FAILED_FIELDS | STATE_OPTIONAL_FIELDS
     )
     errors = _shape_errors(record, STATE_BASE_FIELDS, STATE_BASE_FIELDS | variant_fields, "state render")
-    errors.extend(_text_errors(record, STATE_BASE_FIELDS - {"schema_version", "planner", "step_index", "transition", "status"}, "state render"))
+    errors.extend(_text_errors(record, STATE_BASE_FIELDS - {"schema_version", "planner", "step_index", "transition", "renderer_config", "status"}, "state render"))
     errors.extend(_integer_errors(record, {"step_index"}, "state render"))
     errors.extend(_mapping_errors(record, {"transition"}, "state render"))
+    errors.extend(_mapping_errors(record, {"renderer_config"}, "state render"))
     errors.extend(_planner_errors(record, {"planner"}, "state render"))
     if record.get("schema_version") != SCHEMA_VERSION:
         errors.append("state render schema version")

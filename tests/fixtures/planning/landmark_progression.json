@@ -1,0 +1,6 @@
+{
+  "domain": "landmark-progression",
+  "domain_pddl": "(define (domain landmark-progression) (:requirements :strips) (:predicates (s) (p) (d) (x) (y) (g)) (:action make-p :parameters () :precondition (s) :effect (and (p) (not (s)))) (:action reset-p :parameters () :precondition (p) :effect (and (s) (not (p)))) (:action drop-p :parameters () :precondition (p) :effect (and (d) (not (p)))) (:action restore-p :parameters () :precondition (d) :effect (p)) (:action achieve-g-x :parameters () :precondition (and (p) (x)) :effect (g)) (:action achieve-g-y :parameters () :precondition (and (p) (y)) :effect (g)))",
+  "instance_id": "landmark-progression-0000",
+  "problem_pddl": "(define (problem landmark-progression-p) (:domain landmark-progression) (:init (s) (x) (y)) (:goal (g)))"
+}

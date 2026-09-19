@@ -1,0 +1,9 @@
+{
+  "job_id": "curriculum-evaluate-final",
+  "branch": "curriculum_modality",
+  "gpus": [],
+  "max_seconds": 21600,
+  "total": 243,
+  "command": ["/home/sukaih/miniconda3/envs/ada_vla/bin/python", "scripts/run_expanded_curriculum_evaluation.py", "finalize"],
+  "completion_hook": ["/home/sukaih/miniconda3/envs/ada_vla/bin/python", "scripts/run_expanded_curriculum_evaluation.py", "audit-final"]
+}

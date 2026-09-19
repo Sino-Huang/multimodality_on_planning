@@ -1,0 +1,8 @@
+{
+  "selected_count": 24,
+  "target_count": 24,
+  "missing_strata": [],
+  "final_membership_frozen": false,
+  "hardware_qualified": false,
+  "report": "outputs/expanded-study/v1/panel-v2/structural-selection.json"
+}

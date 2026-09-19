@@ -1,0 +1,73 @@
+{
+  "issue": 75,
+  "contract_id": "issue-75-visual-development-32k-v1",
+  "implementation_commit": "8da08ae",
+  "status": "prepared-for-operator-execution",
+  "scientific_completion": false,
+  "issue_closed": false,
+  "production_attempt_started": false,
+  "model_calls": 0,
+  "dry_run": "PASS",
+  "tests": {
+    "passed": 1002,
+    "skipped": 13,
+    "elapsed_seconds": 334.55,
+    "scope": "full suite before review fixes"
+  },
+  "static_checks": {
+    "black": "PASS",
+    "ruff": "PASS",
+    "basedpyright": "PASS"
+  },
+  "teacher_snapshot_replay": {
+    "outcome": "PASS",
+    "probes": 31,
+    "elapsed_seconds": 52.83,
+    "model_calls": 0
+  },
+  "full_dev_task_groups": 97,
+  "full_dev_algorithm_episodes": 120,
+  "full_condition_episodes": 1920,
+  "training_runs": 4,
+  "training_seed": 17,
+  "evaluation_seeds": [
+    17,
+    29,
+    43,
+    71,
+    101
+  ],
+  "devices": [
+    "0",
+    "1"
+  ],
+  "master_ports": [
+    18575,
+    18576
+  ],
+  "preparation_evidence": "outputs/visual_development/issue75-preparation-001",
+  "operator_command": "source ~/cd_vlaplan && python -u scripts/run_visual_issue75.py all",
+  "progress": {
+    "heartbeat_seconds": 20,
+    "stream_child_logs": true,
+    "completed_total_elapsed_eta": true
+  },
+  "remaining": [
+    "Actual GPU memory, batch semantics and throughput qualification",
+    "Outcome-blind full/fallback panel selection",
+    "Complete references and four training runs",
+    "Final-adapter and base rollouts across the selected panel",
+    "Independent replay, coverage and scientific adjudication"
+  ],
+  "final_focused_tests": {
+    "passed": 18,
+    "elapsed_seconds": 31.0,
+    "scope": "after monotonic clock and training hardware probe fixes"
+  },
+  "review": {
+    "standards_hard_violations": 0,
+    "standards_nonblocking_findings": 1,
+    "spec_findings": 1,
+    "spec_findings_resolved": 1
+  }
+}

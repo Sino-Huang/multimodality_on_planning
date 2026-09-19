@@ -1,0 +1,17 @@
+{
+  "job_id": "panel-live-views",
+  "branch": "expanded_baseline",
+  "gpus": [],
+  "max_seconds": 900,
+  "total": 24,
+  "command": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/qualify_expanded_live_views.py"
+  ],
+  "completion_hook": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/qualify_expanded_live_views.py",
+    "audit"
+  ],
+  "resume_reason": "Replay retained reference and dynamic parent paths into the restored PDDL authority before using stored states; preserve first attempt and existing rendered state."
+}

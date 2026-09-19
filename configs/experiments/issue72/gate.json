@@ -1,0 +1,10 @@
+{
+  "binding": {
+    "contract_id": "issue-71-modality-development-v2",
+    "attempt_id": "issue72-layout-001",
+    "output_root": "outputs/modality_phase/issue71-v2/render_preflight/issue72-layout-001"
+  },
+  "outcome": "PASS",
+  "ancestor_receipt_id": null,
+  "scope": "Initial-layout feasibility only; no rendering, HTTP or model work."
+}

@@ -37,7 +37,7 @@ def test_repeated_state_assets_do_not_merge_graph_events() -> None:
     repeated = [candidate for projection in projections for candidate in projection.candidates if candidate.state_atoms[0] == "(at b)"]
 
     # Then: each graph event remains separately addressable.
-    assert len({candidate.state_asset_hash for candidate in repeated}) == 1
+    assert len({candidate.state_asset_id for candidate in repeated}) == 1
     assert len({candidate.event_id for candidate in repeated}) == len(repeated)
 
 
@@ -53,7 +53,7 @@ def test_repeated_expansions_in_one_trace_keep_distinct_event_ids() -> None:
 
     # Then: one shared state asset never aliases the separate expansion events.
     assert len(selected) == 2
-    assert len({candidate.state_asset_hash for candidate in selected}) == 1
+    assert len({candidate.state_asset_id for candidate in selected}) == 1
     assert len({candidate.event_id for candidate in selected}) == 2
 
 
@@ -77,7 +77,7 @@ def test_preserves_explicit_successor_semantics_when_assets_repeat() -> None:
 
     # Then: equal state assets retain their recorded and distinct graph semantics.
     assert [candidate.event_kind for candidate in successors] == ["generation", "revisit", "backtrack"]
-    assert len({candidate.state_asset_hash for candidate in successors}) == 1
+    assert len({candidate.state_asset_id for candidate in successors}) == 1
     assert len({candidate.event_id for candidate in successors}) == 3
 
 
@@ -171,7 +171,7 @@ def test_projects_only_validated_graphplan_extracted_plan_replay_states() -> Non
     # Then: layers remain nonvisual and only PDDL-validated replay states become candidates.
     assert all(event.supervision_mode == "planner_semantics" for event in events)
     assert all("state_atoms" not in event.to_record() for event in events)
-    assert all("state_asset_hash" not in event.to_record() for event in events)
+    assert all("state_asset_id" not in event.to_record() for event in events)
     assert [candidate.state_source for candidate in projection.candidates] == [
         "extracted_plan_replay",
         "extracted_plan_replay",
@@ -238,7 +238,7 @@ def _identity(source_row: dict[str, Any]) -> FrozenSourceIdentity:
         source_root_id="fixture-root",
         source_jsonl="train.jsonl",
         source_line_index=0,
-        source_record_sha256=f"hash-{source_row['example_id']}",
+        source_record_id=f"record-{source_row['example_id']}",
         example_id=source_row["example_id"],
         planner=source_row["planner"],
     )

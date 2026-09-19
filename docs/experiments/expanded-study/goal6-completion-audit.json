@@ -1,0 +1,454 @@
+{
+  "status": "complete",
+  "scope": {
+    "goal": 6,
+    "protocol_id": "expanded-dagger-v1",
+    "issues": [
+      80,
+      81,
+      82,
+      83,
+      84
+    ],
+    "iterations_completed": [
+      1,
+      2
+    ],
+    "modalities": [
+      "text-state",
+      "visual-state",
+      "multimodal-state"
+    ],
+    "evaluation_arms": [
+      "dagger_iteration_2",
+      "continued_sft_iteration_2",
+      "original_process_sft",
+      "random_valid",
+      "exact_reference"
+    ]
+  },
+  "requirements": {
+    "alternating_updates": "Iteration one trained from verified Goal 5 corrections; iteration two collection used each modality's DAgger iteration-one final checkpoint; iteration two then trained from the cumulative aggregation.",
+    "continued_sft_control": "Each continued-SFT cell used the unchanged original 512-record membership with the same one epoch, 16 updates, seed 17 and two-step checkpoint lineage as its DAgger counterpart.",
+    "iteration_two_collection": "All three training-only cells reached 128 expert corrections and retained the terminal uncorrected rejection; no quota was transferred, expanded, invented or duplicated.",
+    "correction_replay_and_aggregation": "The independent final audit replayed 37 iteration-two episodes and all 384 new corrections without model calls, then reconstructed each 512-record cumulative aggregation.",
+    "checkpoint_verification": "Both final training hooks independently verified six checkpoints, 512 records and 16 optimizer updates per cell; all 504 adapter tensors changed from the declared source checkpoint in every cell.",
+    "fixed_evaluation": "Only the seed-17 final DAgger and continued-SFT iteration-two checkpoints were evaluated on the declared 3-task development and 24-task unseen panels across all three modalities.",
+    "comparator_reuse": "Original process SFT, random-valid and exact-reference episodes were reused under the same panel/task contracts and independently verified during finalization.",
+    "complete_independent_replay": "The scheduler final hook and a standalone rerun independently replayed all 405 episodes and reproduced the published cells, paired rows and accounting exactly.",
+    "separate_reporting": "dagger-comparison.json reports invariant-valid success, goal/search decisions, invalid-operation rate, expert-query cost and GPU compute in separate fields with all 81 whole-problem paired rows.",
+    "no_final_corrections_or_outcome_selection": "Both correction rounds contain only the frozen training-task order. Evaluation ran complete declared panels once; the infrastructure retry retained completed episodes and journals and did not replace outcomes.",
+    "budget": "All DAgger attempts, including retained failures, consumed 10.909218951265014 GPU-hours against the unchanged 48-GPU-hour branch cap.",
+    "scientific_result": "On the 72 unseen modality-task pairs, DAgger and exposure-matched continued SFT each achieved 1 invariant-valid success; DAgger had one paired win, one paired loss and 70 ties. DAgger did not outperform the random-valid control, which achieved 45 successes."
+  },
+  "coverage": {
+    "collection": {
+      "iteration_1": {
+        "collection_decisions": 659,
+        "invalid_student_operations": 387,
+        "expert_queries": 384,
+        "corrections": 384,
+        "episodes_replayed": 36
+      },
+      "iteration_2": {
+        "collection_decisions": 954,
+        "invalid_student_operations": 387,
+        "expert_queries": 384,
+        "corrections": 384,
+        "episodes_replayed": 37
+      },
+      "total": {
+        "collection_decisions": 1613,
+        "invalid_student_operations": 774,
+        "expert_queries": 768,
+        "corrections": 768,
+        "episodes_replayed": 73
+      },
+      "final_cumulative_unique_training_corrections": {
+        "text-state": 201,
+        "visual-state": 203,
+        "multimodal-state": 181
+      }
+    },
+    "training": {
+      "records_per_cell_iteration": 512,
+      "optimizer_updates_per_cell_iteration": 16,
+      "cells_per_iteration": 6,
+      "records_across_both_arms_and_iterations": 6144,
+      "optimizer_updates_across_both_arms_and_iterations": 192,
+      "training_seed_variance_claimed": false
+    },
+    "evaluation": {
+      "episodes_replayed": 405,
+      "expected_episodes": 405,
+      "paired_modality_task_rows": 81,
+      "missing_episodes": 0,
+      "full_declared_panels_retained": true
+    }
+  },
+  "results": {
+    "aggregate": {
+      "development": {
+        "dagger_iteration_2": {
+          "episodes": 9,
+          "invariant_valid_successes": 3,
+          "success_rate": 0.3333333333333333,
+          "decisions": 29,
+          "invalid_operations": 6,
+          "invalid_operation_rate": 0.20689655172413793
+        },
+        "continued_sft_iteration_2": {
+          "episodes": 9,
+          "invariant_valid_successes": 2,
+          "success_rate": 0.2222222222222222,
+          "decisions": 39,
+          "invalid_operations": 7,
+          "invalid_operation_rate": 0.1794871794871795
+        },
+        "original_process_sft": {
+          "episodes": 9,
+          "invariant_valid_successes": 1,
+          "success_rate": 0.1111111111111111,
+          "decisions": 22,
+          "invalid_operations": 8,
+          "invalid_operation_rate": 0.36363636363636365
+        },
+        "random_valid": {
+          "episodes": 9,
+          "invariant_valid_successes": 6,
+          "success_rate": 0.6666666666666666,
+          "decisions": 51,
+          "invalid_operations": 0,
+          "invalid_operation_rate": 0.0
+        },
+        "exact_reference": {
+          "episodes": 9,
+          "invariant_valid_successes": 9,
+          "success_rate": 1.0,
+          "decisions": 51,
+          "invalid_operations": 0,
+          "invalid_operation_rate": 0.0
+        }
+      },
+      "unseen": {
+        "dagger_iteration_2": {
+          "episodes": 72,
+          "invariant_valid_successes": 1,
+          "success_rate": 0.013888888888888888,
+          "decisions": 225,
+          "invalid_operations": 71,
+          "invalid_operation_rate": 0.31555555555555553
+        },
+        "continued_sft_iteration_2": {
+          "episodes": 72,
+          "invariant_valid_successes": 1,
+          "success_rate": 0.013888888888888888,
+          "decisions": 406,
+          "invalid_operations": 71,
+          "invalid_operation_rate": 0.1748768472906404
+        },
+        "original_process_sft": {
+          "episodes": 72,
+          "invariant_valid_successes": 0,
+          "success_rate": 0.0,
+          "decisions": 198,
+          "invalid_operations": 72,
+          "invalid_operation_rate": 0.36363636363636365
+        },
+        "random_valid": {
+          "episodes": 72,
+          "invariant_valid_successes": 45,
+          "success_rate": 0.625,
+          "decisions": 5715,
+          "invalid_operations": 0,
+          "invalid_operation_rate": 0.0
+        },
+        "exact_reference": {
+          "episodes": 72,
+          "invariant_valid_successes": 72,
+          "success_rate": 1.0,
+          "decisions": 5907,
+          "invalid_operations": 0,
+          "invalid_operation_rate": 0.0
+        }
+      }
+    },
+    "paired_dagger_contrasts": {
+      "development": {
+        "continued_sft_iteration_2": {
+          "dagger_minus_comparator_success_rate": 0.1111111111111111,
+          "dagger_wins": 2,
+          "dagger_losses": 1,
+          "ties": 6
+        },
+        "original_process_sft": {
+          "dagger_minus_comparator_success_rate": 0.2222222222222222,
+          "dagger_wins": 3,
+          "dagger_losses": 1,
+          "ties": 5
+        },
+        "random_valid": {
+          "dagger_minus_comparator_success_rate": -0.3333333333333333,
+          "dagger_wins": 2,
+          "dagger_losses": 5,
+          "ties": 2
+        },
+        "exact_reference": {
+          "dagger_minus_comparator_success_rate": -0.6666666666666666,
+          "dagger_wins": 0,
+          "dagger_losses": 6,
+          "ties": 3
+        }
+      },
+      "unseen": {
+        "continued_sft_iteration_2": {
+          "dagger_minus_comparator_success_rate": 0.0,
+          "dagger_wins": 1,
+          "dagger_losses": 1,
+          "ties": 70
+        },
+        "original_process_sft": {
+          "dagger_minus_comparator_success_rate": 0.013888888888888888,
+          "dagger_wins": 1,
+          "dagger_losses": 0,
+          "ties": 71
+        },
+        "random_valid": {
+          "dagger_minus_comparator_success_rate": -0.6111111111111112,
+          "dagger_wins": 0,
+          "dagger_losses": 44,
+          "ties": 28
+        },
+        "exact_reference": {
+          "dagger_minus_comparator_success_rate": -0.9861111111111112,
+          "dagger_wins": 0,
+          "dagger_losses": 71,
+          "ties": 1
+        }
+      }
+    }
+  },
+  "published_artifacts": {
+    "comparison": {
+      "path": "docs/experiments/expanded-study/dagger-comparison.json",
+      "canonical_json_sha256": "3b19d0e2c5aafe6827acf8fca3a940ed09cb4d5fb2e1a973c9259545749278a2"
+    },
+    "raw_evaluation_evidence": {
+      "path": "outputs/expanded-study/v1/dagger/evaluation/evidence.json",
+      "canonical_json_sha256": "04d59045639586a8d289915a4b9a2b430c4d8e1f0715ce9e87a9afd7462011bf",
+      "independent_replay": "PASS: all 405 DAgger comparison episodes independently replayed"
+    },
+    "collection_artifacts": {
+      "outputs/expanded-study/v1/dagger/collection/iteration-1/text-state/collection.json": "ac38dcdf76a57f1895f522534c78342fe03edaffb5ca7c6d405e3ce4c3397797",
+      "outputs/expanded-study/v1/dagger/collection/iteration-1/text-state/corrections.json.gz": "55f74269b819ab9e929400894a8ca01ab5c3bcb62c080655565dca6975b8c217",
+      "outputs/expanded-study/v1/dagger/collection/iteration-1/text-state/aggregation.json.gz": "3a4ba959e5ef6ad4fbabce30d8fc73adc6e208bef804cee5c9c8c27acd07cc40",
+      "outputs/expanded-study/v1/dagger/collection/iteration-1/visual-state/collection.json": "c5b30990c94df651215065dc469140c95a5ec2f41dd48903ebc87d4bce5f62c9",
+      "outputs/expanded-study/v1/dagger/collection/iteration-1/visual-state/corrections.json.gz": "af814d1b9e769411375f222780048de725e8d1acb1875aa6e4b89545f1e7b9b8",
+      "outputs/expanded-study/v1/dagger/collection/iteration-1/visual-state/aggregation.json.gz": "62ca87f22558d5d5ed289bd7e657617863c707bddaba3e0995a5b6cedce7bed7",
+      "outputs/expanded-study/v1/dagger/collection/iteration-1/multimodal-state/collection.json": "c54b7b1e0e3d0d0b4af37afeeb6c802237cf7558d42b32130556a3afc134151d",
+      "outputs/expanded-study/v1/dagger/collection/iteration-1/multimodal-state/corrections.json.gz": "09995da614d9e3885ce0398ad4ce34b3b797058b4ec58e58dc8e96ad3c2c46f7",
+      "outputs/expanded-study/v1/dagger/collection/iteration-1/multimodal-state/aggregation.json.gz": "35600b9754caefe10eb83f1e467e899114603ac1ad0fe8b5b1c1072cf381412b",
+      "outputs/expanded-study/v1/dagger/collection/iteration-2/text-state/collection.json": "538576e5eb215733d599c29052a1c4994edcb6bfac234745c2a2a37068061d8e",
+      "outputs/expanded-study/v1/dagger/collection/iteration-2/text-state/corrections.json.gz": "90883fde9377541d65a3fb89dd864779fad84b5382f23c8bc2bec2ab209180cc",
+      "outputs/expanded-study/v1/dagger/collection/iteration-2/text-state/aggregation.json.gz": "ddb985347f3924d0fd2571b49daa2e168dd9d5c1714623f1b7bfc9636cb25aee",
+      "outputs/expanded-study/v1/dagger/collection/iteration-2/visual-state/collection.json": "2704c25cbc01d25bb069926e02fac03ea60e99c2ea85b8408e16f15bb0d79d2f",
+      "outputs/expanded-study/v1/dagger/collection/iteration-2/visual-state/corrections.json.gz": "dd5e719381e8e306bdb072043b53c792253e7a3c549cb3501c80ebdaa937ef3f",
+      "outputs/expanded-study/v1/dagger/collection/iteration-2/visual-state/aggregation.json.gz": "39c7c655b38d2de96e81d31bf55718f3c7f6c82c636010247fbd6cd27e84d808",
+      "outputs/expanded-study/v1/dagger/collection/iteration-2/multimodal-state/collection.json": "a7a5e050f7ab42705ce0871ae80117827dbe69aa21f50a2c12a075893e090576",
+      "outputs/expanded-study/v1/dagger/collection/iteration-2/multimodal-state/corrections.json.gz": "426334e9d47888d0123a9e3d42939a3ee61492436b12e8eb403432d13b0d9355",
+      "outputs/expanded-study/v1/dagger/collection/iteration-2/multimodal-state/aggregation.json.gz": "82ca2c004e58b8d137f4dcc96bb6002ad87ca807e4f9f2a37d68776b99830c77"
+    },
+    "final_checkpoint_tensor_sha256": {
+      "outputs/expanded-study/v1/dagger/training/text-state/dagger/iteration-1/final/adapter_model.safetensors": "78a084b2a1cabb593ada87ff67e2cd3643db4468c3014ab0bacb7b0f6bc3c42a",
+      "outputs/expanded-study/v1/dagger/training/text-state/continued-sft/iteration-1/final/adapter_model.safetensors": "99e230a5317acbff912c8abe778a2865a2387c4a091e5b4fd96c3b82e996757b",
+      "outputs/expanded-study/v1/dagger/training/visual-state/dagger/iteration-1/final/adapter_model.safetensors": "275d8e7326fedfe732969a41c6e91b2f4df71b101264f6fb1ca8d30d44dbdc6f",
+      "outputs/expanded-study/v1/dagger/training/visual-state/continued-sft/iteration-1/final/adapter_model.safetensors": "92f466475aad41ae6d47dba10c42b60140ab62d9747b9e567a8d060785430e00",
+      "outputs/expanded-study/v1/dagger/training/multimodal-state/dagger/iteration-1/final/adapter_model.safetensors": "f9c5bee346b65a35d75a53b7a3885944625c431fc34d4229a617bf5c49ccbefd",
+      "outputs/expanded-study/v1/dagger/training/multimodal-state/continued-sft/iteration-1/final/adapter_model.safetensors": "357b4b995a5dd82c321b34249ced2c4c772ef921df4e65bb9a0ca6428e203118",
+      "outputs/expanded-study/v1/dagger/training/text-state/dagger/iteration-2/final/adapter_model.safetensors": "94612ed8b8914a429f950deef6b3044654f0c87c71e3e26ed1cca5456b0cbd78",
+      "outputs/expanded-study/v1/dagger/training/text-state/continued-sft/iteration-2/final/adapter_model.safetensors": "2946d613cc260b961ce1ee84ed226b1df11702190c7c01c8d34ae2d5f0c7686b",
+      "outputs/expanded-study/v1/dagger/training/visual-state/dagger/iteration-2/final/adapter_model.safetensors": "695cac680a8424305824ef15852d719a4cf8c7b68aee20966987a61b010ed261",
+      "outputs/expanded-study/v1/dagger/training/visual-state/continued-sft/iteration-2/final/adapter_model.safetensors": "24dadd67ce01b6b74f32e489ee542df8a3907ac4aed9cf1a039db4ef45b47f0d",
+      "outputs/expanded-study/v1/dagger/training/multimodal-state/dagger/iteration-2/final/adapter_model.safetensors": "9cce1cd294fbbe9187f3e952cfc41e3d581876f91d7b0e65fa33b97e93ac6d5f",
+      "outputs/expanded-study/v1/dagger/training/multimodal-state/continued-sft/iteration-2/final/adapter_model.safetensors": "8e08d0fb6611c3582e29438568a5895627c4c333f3cc3e972dc4c84c9f75f49f"
+    }
+  },
+  "execution": {
+    "training_iteration_1_jobs": [
+      {
+        "job_id": "dagger-train-1-0",
+        "attempt": 1,
+        "gpus": [
+          0
+        ],
+        "master_port": 18800,
+        "gpu_hours": 1.021746384302775
+      },
+      {
+        "job_id": "dagger-train-1-1",
+        "attempt": 1,
+        "gpus": [
+          1
+        ],
+        "master_port": 18801,
+        "gpu_hours": 0.5721482536527845
+      }
+    ],
+    "collection_iteration_2_jobs": [
+      {
+        "job_id": "dagger-collection-2-0",
+        "attempt": 1,
+        "gpus": [
+          0
+        ],
+        "master_port": 18800,
+        "gpu_hours": 1.7629206810394924
+      },
+      {
+        "job_id": "dagger-collection-2-1",
+        "attempt": 1,
+        "gpus": [
+          1
+        ],
+        "master_port": 18801,
+        "gpu_hours": 1.135927238729265
+      }
+    ],
+    "training_iteration_2_jobs": [
+      {
+        "job_id": "dagger-train-2-0",
+        "attempt": 1,
+        "gpus": [
+          0
+        ],
+        "master_port": 18800,
+        "gpu_hours": 1.0251103444894154
+      },
+      {
+        "job_id": "dagger-train-2-1",
+        "attempt": 1,
+        "gpus": [
+          1
+        ],
+        "master_port": 18801,
+        "gpu_hours": 0.5787112017472585
+      }
+    ],
+    "evaluation_jobs": [
+      {
+        "job_id": "dagger-evaluate-0",
+        "attempt": 2,
+        "gpus": [
+          0
+        ],
+        "master_port": 18800,
+        "gpu_hours": 1.5669210523366928
+      },
+      {
+        "job_id": "dagger-evaluate-1",
+        "attempt": 2,
+        "gpus": [
+          1
+        ],
+        "master_port": 18801,
+        "gpu_hours": 0.8244653345478905
+      }
+    ],
+    "master_port_mapping": {
+      "gpu_0": 18800,
+      "gpu_1": 18801
+    },
+    "compute_gpu_hours": {
+      "qualification_and_iteration_one_collection": 2.220535196661949,
+      "training": 3.1977161841922337,
+      "iteration_two_collection": 2.898847919768757,
+      "evaluation": 2.592119650642077
+    },
+    "cumulative_dagger_gpu_hours": 10.909218951265014,
+    "dagger_branch_cap_gpu_hours": 48,
+    "retained_technical_failures": {
+      "gpu_hours": 0.3163940208488041,
+      "evaluation_attempts": [
+        {
+          "job_id": "dagger-evaluate-0",
+          "attempt": 1,
+          "gpu_hours": 0.08603067020575206
+        },
+        {
+          "job_id": "dagger-evaluate-1",
+          "attempt": 1,
+          "gpu_hours": 0.1147025935517417
+        }
+      ],
+      "cause_and_resume": "ExpandedTaskViews omitted scene-only persistence fields required by evaluation save/restore. Commit a0b8d53 restored them; the same frozen completed episodes and pending journals resumed in attempt two."
+    }
+  },
+  "verification_commands": [
+    "source ~/cd_vlaplan && EXPANDED_TERMINAL_PATH=outputs/expanded-study/v1/jobs/dagger-train-1-final/1/terminal.json python scripts/run_expanded_dagger.py audit-training-final --iteration 1",
+    "source ~/cd_vlaplan && EXPANDED_TERMINAL_PATH=outputs/expanded-study/v1/jobs/dagger-collection-2-final/1/terminal.json python scripts/run_expanded_dagger.py audit-collection-final",
+    "source ~/cd_vlaplan && EXPANDED_TERMINAL_PATH=outputs/expanded-study/v1/jobs/dagger-train-2-final/1/terminal.json python scripts/run_expanded_dagger.py audit-training-final --iteration 2",
+    "source ~/cd_vlaplan && EXPANDED_TERMINAL_PATH=outputs/expanded-study/v1/jobs/dagger-evaluate-final/1/terminal.json python scripts/run_expanded_dagger.py audit-evaluation-final",
+    "source ~/cd_vlaplan && python -m pytest tests/planning_benchmark/test_expanded_dagger.py tests/planning_benchmark/test_expanded_dagger_evaluation.py tests/planning_benchmark/test_expanded_baseline.py tests/planning_benchmark/test_expanded_candidates.py tests/planning_benchmark/test_expanded_scheduler.py tests/planning_benchmark/test_scene_only_views.py tests/planning_benchmark/test_visual_development.py tests/planning_benchmark/test_multimodal_development.py -q",
+    "source ~/cd_vlaplan && ruff check examples/planning_benchmark_slice/expanded_dagger.py examples/planning_benchmark_slice/expanded_dagger_collection.py examples/planning_benchmark_slice/expanded_dagger_evaluation.py examples/planning_benchmark_slice/expanded_dagger_training.py examples/planning_benchmark_slice/expanded_views.py scripts/run_expanded_dagger.py tests/planning_benchmark/test_expanded_dagger.py tests/planning_benchmark/test_expanded_dagger_evaluation.py tests/planning_benchmark/test_expanded_candidates.py"
+  ],
+  "verification_results": {
+    "scheduled_training_iteration_1_hook": "PASS",
+    "standalone_training_iteration_1_audit": "PASS: DAgger iteration 1 and continued-SFT checkpoints independently verified",
+    "scheduled_collection_iteration_2_hook": "PASS",
+    "standalone_collection_iteration_2_audit": "PASS: all three DAgger iteration-two correction sets independently replayed and aggregated",
+    "scheduled_training_iteration_2_hook": "PASS",
+    "standalone_training_iteration_2_audit": "PASS: DAgger iteration 2 and continued-SFT checkpoints independently verified",
+    "scheduled_evaluation_hook": "PASS",
+    "standalone_evaluation_replay": "PASS: all 405 DAgger comparison episodes independently replayed",
+    "direct_serialized_artifact_audit": "PASS: 768 corrections, six 512-record aggregations, twelve final checkpoints, 162 fresh model episodes, 81 paired rows and complete ledger accounting satisfied split, provenance, lineage, quota, seed and coverage assertions",
+    "affected_tests": "67 passed in 91.63s",
+    "ruff": "All checks passed"
+  },
+  "publication": {
+    "implementation_commits": [
+      "d2feba80b25dd7a70212888848182d6dcccd7d13",
+      "7062b2aad01d8a9bf069148c8b17caf92e3b9514",
+      "a0b8d53"
+    ],
+    "evidence_commit": "5385748d38fd8af9c30264abdc8c40e35a298d6a",
+    "issues": [
+      {
+        "number": 80,
+        "state": "CLOSED",
+        "closedAt": "2026-09-15T19:07:14Z",
+        "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/80"
+      },
+      {
+        "number": 81,
+        "state": "CLOSED",
+        "closedAt": "2026-09-15T19:07:15Z",
+        "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/81"
+      },
+      {
+        "number": 82,
+        "state": "CLOSED",
+        "closedAt": "2026-09-15T19:07:16Z",
+        "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/82"
+      },
+      {
+        "number": 83,
+        "state": "CLOSED",
+        "closedAt": "2026-09-15T19:07:18Z",
+        "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/83"
+      },
+      {
+        "number": 84,
+        "state": "CLOSED",
+        "closedAt": "2026-09-15T19:07:19Z",
+        "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/84"
+      }
+    ],
+    "closeouts": [
+      "https://github.com/Sino-Huang/multimodality_on_planning/issues/80#issuecomment-5686512961",
+      "https://github.com/Sino-Huang/multimodality_on_planning/issues/81#issuecomment-5686513239",
+      "https://github.com/Sino-Huang/multimodality_on_planning/issues/82#issuecomment-5686513523",
+      "https://github.com/Sino-Huang/multimodality_on_planning/issues/83#issuecomment-5686513833",
+      "https://github.com/Sino-Huang/multimodality_on_planning/issues/84#issuecomment-5686514242"
+    ]
+  }
+}

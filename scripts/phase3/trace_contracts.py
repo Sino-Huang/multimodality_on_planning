@@ -1,13 +1,11 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Final, Literal, Mapping, NoReturn, Sequence, TypeAlias
 
-from . import cgas_trace_contract_v3
 from .local_planner_types import JSONValue
 
 
@@ -15,7 +13,7 @@ TRACE_CONTRACT_VERSION: Final = "phase3_traversal_trace_v1"
 ACTIVE_PLANNERS: Final = frozenset({"ff", "gbfs", "iw", "graphplan"})
 CONCRETE_EVENT_KINDS: Final = frozenset({"expansion", "generation", "revisit", "backtrack"})
 PlannerName: TypeAlias = Literal["ff", "gbfs", "iw", "graphplan"]
-IWTraceContractVersion: TypeAlias = Literal["phase3_traversal_trace_v1", "cgas_trace_contract_v3"]
+IWTraceContractVersion: TypeAlias = Literal["phase3_traversal_trace_v1"]
 JSONMapping: TypeAlias = Mapping[str, JSONValue]
 
 
@@ -33,7 +31,7 @@ class FrozenSourceIdentity:
     source_root_id: str
     source_jsonl: str
     source_line_index: int
-    source_record_sha256: str
+    source_record_id: str
     example_id: str
     planner: PlannerName
 
@@ -42,7 +40,7 @@ class FrozenSourceIdentity:
             "source_root_id": self.source_root_id,
             "source_jsonl": self.source_jsonl,
             "source_line_index": self.source_line_index,
-            "source_record_sha256": self.source_record_sha256,
+            "source_record_id": self.source_record_id,
             "example_id": self.example_id,
             "planner": self.planner,
         }
@@ -59,7 +57,7 @@ class TraversalEvent:
     parent_node_id: str | None
     action: str | None
     concrete_state_source: Literal["trace_recorded"] | None
-    concrete_state_hash: str | None
+    concrete_state_id: str | None
     planner_metadata: dict[str, JSONValue]
 
     def to_record(self) -> dict[str, JSONValue]:
@@ -73,7 +71,7 @@ class TraversalEvent:
             "parent_node_id": self.parent_node_id,
             "action": self.action,
             "concrete_state_source": self.concrete_state_source,
-            "concrete_state_hash": self.concrete_state_hash,
+            "concrete_state_id": self.concrete_state_id,
             "planner_metadata": self.planner_metadata,
         }
 
@@ -199,7 +197,7 @@ def _concrete_event(identity: FrozenSourceIdentity, planner: PlannerName, index:
     _validate_concrete_event_fields(event, planner)
     kind = _concrete_event_kind(event)
     _validate_successor_kinds(event, planner)
-    return TraversalEvent(identity, "concrete_state", planner, kind, index, _node_id(identity, kind, index), None, action, "trace_recorded", _state_hash(atoms), dict(event))
+    return TraversalEvent(identity, "concrete_state", planner, kind, index, _node_id(identity, kind, index), None, action, "trace_recorded", _state_identity(atoms), dict(event))
 
 
 def _iw_required_fields(
@@ -214,14 +212,6 @@ def _iw_required_fields(
                     return ("decision", "frontier_size_after", "novel_item", "novelty_table_before", "novelty_table_after", "successors")
                 case "prune":
                     return ("decision", "frontier_size_after")
-                case unsupported:
-                    assert_never(unsupported, "unsupported_iw_decision")
-        case cgas_trace_contract_v3.CONTRACT_ID:
-            match decision:
-                case "expand":
-                    return ("decision", "frontier_size_after", "novel_item", cgas_trace_contract_v3.IW_EVENT_FIELDS_ADDED[0], "successors")
-                case "prune":
-                    return ("decision", "frontier_size_after", cgas_trace_contract_v3.IW_EVENT_FIELDS_ADDED[0])
                 case unsupported:
                     assert_never(unsupported, "unsupported_iw_decision")
         case unsupported:
@@ -243,15 +233,6 @@ def _validate_iw_event_fields(
                     pass
                 case unsupported:
                     assert_never(unsupported, "unsupported_iw_decision")
-        case cgas_trace_contract_v3.CONTRACT_ID:
-            match _text(event, "decision"):
-                case "expand":
-                    _text(event, "novel_item")
-                case "prune":
-                    pass
-                case unsupported:
-                    assert_never(unsupported, "unsupported_iw_decision")
-            _strings(event, cgas_trace_contract_v3.IW_EVENT_FIELDS_ADDED[0])
         case unsupported:
             assert_never(unsupported, "unsupported_trace_contract_version")
 
@@ -259,8 +240,6 @@ def _validate_iw_event_fields(
 def _iw_trace_contract_version(value: str) -> IWTraceContractVersion:
     match value:
         case "phase3_traversal_trace_v1":
-            return value
-        case cgas_trace_contract_v3.CONTRACT_ID:
             return value
         case unsupported:
             assert_never(unsupported, "unsupported_trace_contract_version")
@@ -333,7 +312,7 @@ def _semantic_event(identity: FrozenSourceIdentity, kind: str, index: int, paylo
 
 
 def _reject_visual_fields(value: JSONValue, path: str) -> None:
-    forbidden = {"state_atoms", "state_asset_hash", "state_source", "frame_path", "render_candidate", "render_eligible", "render_job_eligible"}
+    forbidden = {"state_atoms", "state_asset_id", "state_source", "frame_path", "render_candidate", "render_eligible", "render_job_eligible"}
     if isinstance(value, dict):
         for key, nested in value.items():
             if key in forbidden:
@@ -423,11 +402,11 @@ def _optional_action(event: JSONMapping) -> str | None:
 
 
 def _node_id(identity: FrozenSourceIdentity, kind: str, index: int) -> str:
-    return f"{identity.source_record_sha256}:{kind}:{index}"
+    return f"{identity.source_record_id}:{kind}:{index}"
 
 
-def _state_hash(atoms: tuple[str, ...]) -> str:
-    return hashlib.sha256(json.dumps(atoms, separators=(",", ":")).encode("utf-8")).hexdigest()
+def _state_identity(atoms: tuple[str, ...]) -> str:
+    return json.dumps(atoms, separators=(",", ":"))
 
 
 def assert_never(value: str, reason: str) -> NoReturn:
@@ -443,7 +422,7 @@ def main() -> int:
     report = []
     for case in cases:
         source_row = case["source_row"]
-        identity = FrozenSourceIdentity("fixture-root", "train.jsonl", 0, f"hash-{source_row['example_id']}", source_row["example_id"], _planner(source_row["planner"]))
+        identity = FrozenSourceIdentity("fixture-root", "train.jsonl", 0, f"record-{source_row['example_id']}", source_row["example_id"], _planner(source_row["planner"]))
         try:
             report.append({"name": case["name"], "events": len(project_traversal_events(identity, source_row)), "status": "projected"})
         except TraceContractError as error:

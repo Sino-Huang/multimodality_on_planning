@@ -1,0 +1,64 @@
+{
+  "program_id": "expanded-nine-day-v1",
+  "status": "prepared_not_executed",
+  "start_utc": "2026-09-14T11:55:19Z",
+  "gpu_cutoff_utc": "2026-09-21T11:55:19Z",
+  "handoff_deadline_utc": "2026-09-23T11:55:19Z",
+  "deadline_kind": "internal project window; not an ICLR deadline",
+  "hardware": {
+    "gpus": 2,
+    "model": "NVIDIA A100 80GB",
+    "preserve_unrelated_processes": true,
+    "max_own_model_workers_per_gpu": 1
+  },
+  "experiment_gpu_hours_cap": 336,
+  "final_cpu_writing_hours_reserved": 48,
+  "allocations_gpu_hours": {
+    "expanded_baseline": 56,
+    "dagger": 48,
+    "successor_prediction": 64,
+    "curriculum_modality": 48,
+    "generalization_robustness": 32,
+    "second_backbone": 40,
+    "transfer": 24,
+    "recovery_reserve": 24
+  },
+  "accounting": {
+    "metric": "sum of own allocated model-worker GPU durations across devices; include model loading, saves, failures and retries",
+    "also_record": "elapsed wall time, CPU work and actual available VRAM",
+    "ledger": "outputs/expanded-study/v1/budget.json",
+    "preserve_prior_ledgers": true,
+    "reset_on_resume": false,
+    "automatic_total_extension": false,
+    "transfers": "document prospective branch transfers before execution, preserve total cap and absolute cutoff; do not silently delete coverage"
+  },
+  "master_port_pool": [
+    18800,
+    18801,
+    18802,
+    18803,
+    18804,
+    18805
+  ],
+  "default_training_seed": 17,
+  "qualification_safety_factor": 1.25,
+  "state_images": {
+    "size": [
+      128,
+      128
+    ],
+    "text_annotations": false,
+    "goal_context": "separate complete pages",
+    "semantic_information_equivalence_claimed": false
+  },
+  "execution_authorization": "This preparation does not start model jobs. Each copied execution goal authorizes its declared branch within this plan.",
+  "issues": {
+    "readiness": 116,
+    "panel": 117,
+    "baseline": 118,
+    "curriculum": 119,
+    "synthesis": 120,
+    "manuscript": 121,
+    "release": 122
+  }
+}

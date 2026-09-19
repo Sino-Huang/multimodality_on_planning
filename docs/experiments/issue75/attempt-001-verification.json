@@ -1,0 +1,44 @@
+{
+  "outcome": "VALID_STOP",
+  "elapsed_seconds": 3609.47,
+  "authorization_and_gate_binding": "PASS",
+  "workers": [
+    {
+      "log": "outputs/visual_development/issue75-32k-v1/attempt-001/launches/qualify/worker-0.log",
+      "last_completed_probe": {
+        "stage": "qualification",
+        "worker": 0,
+        "elapsed_seconds": 3475.74,
+        "completed": 4,
+        "total": 31,
+        "eta_seconds": 23458.40943817771
+      }
+    },
+    {
+      "log": "outputs/visual_development/issue75-32k-v1/attempt-001/launches/qualify/worker-1.log",
+      "last_completed_probe": {
+        "stage": "qualification",
+        "worker": 1,
+        "elapsed_seconds": 3294.82,
+        "completed": 4,
+        "total": 31,
+        "eta_seconds": 22237.16163483518
+      }
+    }
+  ],
+  "downstream_artifacts_present": {
+    "qualification.json": false,
+    "references": false,
+    "training": false,
+    "evaluation": false,
+    "adjudication.json": false
+  },
+  "issue": 75,
+  "attempt_id": "attempt-001",
+  "contract_id": "issue-75-visual-development-32k-v1",
+  "scientific_completion": false,
+  "closure_supported": false,
+  "result": "outputs/visual_development/issue75-32k-v1/attempt-001/result.json",
+  "qualification_limit_seconds": 3600,
+  "next_step": "Address qualification runtime before a separately authorized successor attempt; preserve this completed attempt and its frozen settings."
+}

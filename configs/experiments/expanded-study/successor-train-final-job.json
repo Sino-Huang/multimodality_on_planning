@@ -1,0 +1,9 @@
+{
+  "job_id": "successor-train-final",
+  "branch": "successor_prediction",
+  "gpus": [],
+  "max_seconds": 3600,
+  "total": 3,
+  "command": ["/home/sukaih/miniconda3/envs/ada_vla/bin/python", "scripts/run_expanded_successor_training.py", "finalize-training"],
+  "completion_hook": ["/home/sukaih/miniconda3/envs/ada_vla/bin/python", "scripts/run_expanded_successor_training.py", "audit-training-final"]
+}

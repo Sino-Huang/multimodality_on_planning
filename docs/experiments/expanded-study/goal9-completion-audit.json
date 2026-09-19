@@ -1,0 +1,76 @@
+{
+  "status": "complete",
+  "goal": 9,
+  "issues": [89, 99],
+  "requirements": {
+    "train_frozen_three_modality_cells": "successor-training.json/md: 3 cells, 512 release-001 teacher labels each in frozen membership order, 1 epoch, exactly 16 optimizer updates, seed 17, sequential sampler, final checkpoint only, single run per cell.",
+    "declared_diagnostics_and_update_exposure_isolation": "No development/final diagnostics are declared for training and none ran; per-cell reports + completion receipts verify 16 updates / 512-record exposure / source-checkpoint byte immutability (recursive manifest); 504/504 adapter tensors changed per cell; aggregate training-report.json status PASS gates evaluation.",
+    "preserve_failed_predictions_no_substitution_no_final_score_selection": "All 109 evaluation raw predictions and all 1,536 Goal 8 interaction predictions retained byte-identically; trusted_state_substitutions=0 across all 90 episodes; only final checkpoints entered evaluation.",
+    "qualified_fixed_panel_comparison": "successor-evaluation.json: 3 development + 12 frozen fallback unseen tasks x 3 modalities x 2 arms = 90/90 episodes, complete_coverage true, missing_bindings []; both arms share the deterministic canonical BFS action order (replay-verified); per-episode call limit 2x exact-reference decisions enforced (109 used of 4,062).",
+    "preserve_raw_states_and_failures": "Every episode retains raw prediction text, strict per-check verification (schema, static_context, source_identity, action_identity, applicability, state_identity, effect), downstream search status and termination reason; 44 model-arm invalid_successor terminations and 1 goal_reached preserved as outcomes.",
+    "independent_replay": "Per-worker audits plus standalone re-audits replayed 60/60 and 30/30 episodes; audit-final independently recomputed the complete published evidence byte-for-byte under 7f1f893; replay drain defect (7456808) and disclosed re-audit repair recorded in evidence jobs[].hook_returncode=1 + reaudit fields.",
+    "separate_outcome_reporting": "successor-evaluation.json reports schema validity, static/source/action/applicability/state/effect validity, downstream search, model calls and compute separately per modality x arm x panel, plus 45 paired whole-problem rows.",
+    "accounting_cutoff_ports": "evaluate-0 GPU0 port 18800 0.389697 GPUh; evaluate-1 GPU1 port 18801 0.251746 GPUh; CPU finalizer; one attempt per job; branch cumulative 10.851129/64; all GPU stages ended before the 2026-09-21T11:55:19Z cutoff; no transfer or extension.",
+    "background_hooks_and_terminal_status": "Every attempt wrote terminal.json + completion.json + hook receipts; attempt-1 evaluate hook failures retained (rc=1 with defect traceback) and disclosed alongside the passing re-audits; final job hook rc=0.",
+    "publication_and_issue_closeout": "Code dd4818a/7456808/7f1f893 and evidence 59fb882 + this closeout committed/pushed; #89 closed with successor-training.md evidence; #99 is closed alongside this publication."
+  },
+  "independent_audit": {
+    "outcome": "PASS",
+    "goal": 9,
+    "training_cells_verified": 3,
+    "records_per_cell": 512,
+    "optimizer_updates_per_cell": 16,
+    "changed_parameter_tensors_per_cell": 504,
+    "episodes_replayed": 90,
+    "expected_episodes": 90,
+    "missing_bindings": 0,
+    "raw_predictions_retained": 109,
+    "trusted_state_substitutions": 0,
+    "trusted_arm_successes": 45,
+    "model_arm_successes": 1,
+    "model_calls": 109,
+    "model_call_allowance": 4062,
+    "cumulative_successor_gpu_hours": 10.851129,
+    "runtime_lineage": {
+      "training": "dd4818a",
+      "episode_production": "59fb882",
+      "replay_verifier_fix": "7456808",
+      "reaudit_and_finalization": "7f1f893"
+    }
+  },
+  "coverage": {
+    "panels": {"development": 3, "unseen": 12},
+    "modalities": ["text-state", "visual-state", "multimodal-state"],
+    "arms": ["model_generated_successor", "trusted_successor"],
+    "episodes": 90,
+    "coverage_admission": "exact_cost_fallback (frozen, outcome-blind, Goal 7)"
+  },
+  "execution": {
+    "jobs": ["successor-train-0", "successor-train-1", "successor-train-final", "successor-evaluate-0", "successor-evaluate-1", "successor-evaluate-final"],
+    "attempts": [1, 1, 1, 1, 1, 1],
+    "physical_gpus": [[0], [1], [], [0], [1], []],
+    "master_ports": [18800, 18801, null, 18800, 18801, null],
+    "goal9_gpu_hours": 1.335222,
+    "cumulative_successor_gpu_hours": 10.851129,
+    "branch_cap_gpu_hours": 64
+  },
+  "tests": "752 passed, 13 skipped",
+  "ruff": "All checks passed",
+  "limitations": [
+    "Fallback unseen coverage (12 tasks, one per domain) is the frozen outcome-blind admission; the full 24-task panel was projected infeasible in Goal 7 and is explicitly missing by design.",
+    "One training seed (17) per cell; no training-seed variance claimed.",
+    "Model-arm downstream success is measured under canonical BFS action order with a 2x exact-reference call limit; not a claim about other search algorithms or policies.",
+    "Dataset/episode artifacts use the local outputs corpus-release convention; compact paths/hashes/evidence are committed.",
+    "Re-audit validation binds schema, attempt identity, outcome, coverage and the embedded original hook receipt; it does not prove timestamp ordering or commit ancestry, and the evidence does not claim otherwise."
+  ],
+  "artifacts": {
+    "successor-training.json": {"path": "docs/experiments/expanded-study/successor-training.json"},
+    "successor-training.md": {"path": "docs/experiments/expanded-study/successor-training.md"},
+    "successor-evaluation.json": {"path": "docs/experiments/expanded-study/successor-evaluation.json", "runtime_sha256_prefix": "32af278df87f9c0a"},
+    "successor-evaluation.md": {"path": "docs/experiments/expanded-study/successor-evaluation.md"}
+  },
+  "publication": {
+    "implementation_commits": ["dd4818a", "7456808", "7f1f893"],
+    "evidence_commits": ["59fb882"]
+  }
+}

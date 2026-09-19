@@ -1,0 +1,17 @@
+{
+  "schema_version": "modality_phase_freeze_v1",
+  "phase_id": "issue-71-modality-development-v1",
+  "source_issue": 71,
+  "parent_issue": 38,
+  "status": "candidate_not_authorized",
+  "components": {
+    "render": "configs/experiments/issue71/render.json",
+    "corpus": "configs/experiments/issue71/corpus.json",
+    "checkpoint": "configs/experiments/issue71/checkpoint.json",
+    "budget": "configs/experiments/issue71/budget.json",
+    "matrix": "configs/experiments/issue71/matrix.json"
+  },
+  "infrastructure_evidence": "docs/experiments/issue70/live-report.json",
+  "authorization_manifest": "configs/experiments/issue71/authorization.json",
+  "change_policy": "A completed attempt is retained. Changed scientific settings require a successor phase and new attempt/output binding."
+}

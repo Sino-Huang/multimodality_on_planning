@@ -1,0 +1,22 @@
+{
+  "domain_pddl": "(define (domain grid)\n(:requirements :strips)\n(:predicates (conn ?x ?y)\n             (key-shape ?k ?s)\n             (lock-shape ?x ?s)\n             (at ?r ?x )\n\t     (at-robot ?x)\n             (place ?p)\n             (key ?k)\n             (shape ?s)\n             (locked ?x)\n             (holding ?k)\n             (open ?x)\n             (arm-empty ))\n\n\n\n(:action unlock\n:parameters (?curpos ?lockpos ?key ?shape)\n:precondition (and (place ?curpos) (place ?lockpos) (key ?key) (shape ?shape)\n          (conn ?curpos ?lockpos) (key-shape ?key ?shape)\n                   (lock-shape ?lockpos ?shape) (at-robot ?curpos) \n                   (locked ?lockpos) (holding ?key))\n:effect (and  (open ?lockpos) (not (locked ?lockpos))))\n\n\n(:action move\n:parameters (?curpos ?nextpos)\n:precondition (and (place ?curpos) (place ?nextpos)\n               (at-robot ?curpos) (conn ?curpos ?nextpos) (open ?nextpos))\n:effect (and (at-robot ?nextpos) (not (at-robot ?curpos))))\n\n(:action pickup\n:parameters (?curpos ?key)\n:precondition (and (place ?curpos) (key ?key) \n                  (at-robot ?curpos) (at ?key ?curpos) (arm-empty ))\n:effect (and (holding ?key)\n   (not (at ?key ?curpos)) (not (arm-empty ))))\n\n\n(:action pickup-and-loose\n:parameters (?curpos ?newkey ?oldkey)\n:precondition (and (place ?curpos) (key ?newkey) (key ?oldkey)\n                  (at-robot ?curpos) (holding ?oldkey) (at ?newkey ?curpos))\n:effect (and (holding ?newkey) (at ?oldkey ?curpos)\n        (not (holding ?oldkey)) (not (at ?newkey ?curpos))))\n\n(:action putdown\n:parameters (?curpos ?key)\n:precondition (and (place ?curpos) (key ?key) \n                  (at-robot ?curpos) (holding ?key))\n:effect (and (arm-empty ) (at ?key ?curpos) (not (holding ?key)))))\n\n\n\t\n",
+  "problem_pddl": "(define (problem grid-3-3-1-1-1)\n    (:domain grid)\n    (:objects\n    pos0-0 pos0-1 pos0-2 pos1-0 pos1-1 pos1-2 pos2-0 pos2-1 pos2-2\n    shape0\n    key0\n    )\n\n    (:init\n       (arm-empty)\n\n       (place pos0-0)\n       (place pos0-1)\n       (place pos0-2)\n       (place pos1-0)\n       (place pos1-1)\n       (place pos1-2)\n       (place pos2-0)\n       (place pos2-1)\n       (place pos2-2)\n       (shape shape0)\n       (key key0)\n\n       (conn pos0-0 pos1-0)\n       (conn pos0-0 pos0-1)\n       (conn pos0-1 pos1-1)\n       (conn pos0-1 pos0-2)\n       (conn pos0-1 pos0-0)\n       (conn pos0-2 pos1-2)\n       (conn pos0-2 pos0-1)\n       (conn pos1-0 pos2-0)\n       (conn pos1-0 pos1-1)\n       (conn pos1-0 pos0-0)\n       (conn pos1-1 pos2-1)\n       (conn pos1-1 pos1-2)\n       (conn pos1-1 pos0-1)\n       (conn pos1-1 pos1-0)\n       (conn pos1-2 pos2-2)\n       (conn pos1-2 pos0-2)\n       (conn pos1-2 pos1-1)\n       (conn pos2-0 pos2-1)\n       (conn pos2-0 pos1-0)\n       (conn pos2-1 pos2-2)\n       (conn pos2-1 pos1-1)\n       (conn pos2-1 pos2-0)\n       (conn pos2-2 pos1-2)\n       (conn pos2-2 pos2-1)\n       (locked pos1-1)\n       (lock-shape  pos1-1 shape0)\n       (open pos0-0)\n       (open pos0-1)\n       (open pos0-2)\n       (open pos1-0)\n       (open pos1-2)\n       (open pos2-0)\n       (open pos2-1)\n       (open pos2-2)\n\n       (key-shape  key0 shape0)\n       (at key0 pos0-2)\n       (at-robot pos2-1)\n    )\n\n    (:goal (and\n       (at key0 pos2-1)\n    )))\n    \n",
+  "authority_transformations": [],
+  "generator_command": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/modules/pddl-generators/grid/generate.py",
+    "3",
+    "3",
+    "--shapes",
+    "1",
+    "--keys",
+    "1",
+    "--locks",
+    "1",
+    "--prob-goal",
+    "1",
+    "--seed",
+    "916000"
+  ],
+  "initial_walk": null
+}

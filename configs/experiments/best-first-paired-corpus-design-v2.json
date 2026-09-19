@@ -1,0 +1,71 @@
+{
+  "accepted_delta_limit": 16,
+  "algorithms": [
+    "best_first_add_w3",
+    "best_first_add_greedy"
+  ],
+  "byte_identical_regeneration_required": [
+    "corpus",
+    "curricula",
+    "split_ledger",
+    "training_projection"
+  ],
+  "compression": {
+    "format": "gzip",
+    "mtime": 0
+  },
+  "curriculum_controls": [
+    "staged",
+    "shuffled",
+    "mixed_order"
+  ],
+  "curriculum_seed": 64,
+  "expected_counts": {
+    "dev_records": 89007,
+    "operational_records": 289902,
+    "pairs": 75,
+    "process_records": 289902,
+    "strata": 26,
+    "traces": 150,
+    "train_records": 200895
+  },
+  "fresh_test_access_authorized": false,
+  "input_builder": "examples.planning_benchmark_slice.best_first_model_input.build_compact_best_first_model_input",
+  "model_input_schema": "best_first_compact_model_input_v2",
+  "parent_issue": 38,
+  "phase_id": "issue-64-best-first-paired-corpus-v2",
+  "required_audit_results": {
+    "canonical_input_overlap_count": 0,
+    "future_step_leakage_count": 0,
+    "held_out_instance_count": 0,
+    "identical_input_conflicting_target_count": 0,
+    "input_over_budget_count": 0,
+    "input_target_overlap_count": 0,
+    "live_training_input_mismatch_count": 0,
+    "semantic_task_overlap_count": 0,
+    "state_action_mismatch_count": 0,
+    "target_over_budget_count": 0,
+    "target_parse_rejection_count": 0,
+    "teacher_decision_rejection_count": 0
+  },
+  "schema_version": "best_first_paired_corpus_design_v2",
+  "segment_alignment": "atomic_successor_decision",
+  "source_issue": 64,
+  "source_trace_contract_id": "issue-63-best-first-paired-v3",
+  "source_trace_manifest": {
+    "path": "data/best_first_paired_phase_v3/exact-traces/manifest.json"
+  },
+  "split_unit": "semantic_task_identity",
+  "tokenizer": {
+    "context_limit": 8192,
+    "model_id": "Qwen/Qwen3-VL-8B-Instruct",
+    "model_input_token_limit": 7808,
+    "model_output_token_limit": 384,
+    "revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b"
+  },
+  "training_serializer": "examples.planning_benchmark_slice.best_first_model_input.serialize_best_first_message_prefix",
+  "views": [
+    "operational",
+    "process"
+  ]
+}

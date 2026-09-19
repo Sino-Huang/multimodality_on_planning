@@ -1,6 +1,6 @@
 from __future__ import annotations
 from pathlib import Path
-from .io_utils import is_relative_artifact_path, stable_hash, write_json
+from .io_utils import is_relative_artifact_path, write_json
 from .traversal_state_types import JSONValue
 SCHEMA_VERSION = "phase3_planimation_vlm_v1"
 
@@ -69,7 +69,7 @@ def _hybrid_record(pair: dict[str, JSONValue], state: dict[str, JSONValue], lang
     record = {
         "schema_version": SCHEMA_VERSION,
         "record_type": record_type,
-        "record_id": stable_hash([pair["pair_id"], record_type, event_id])[:32],
+        "record_id": f"{pair['pair_id']}:{record_type}:{event_id}",
         "split": pair["split"],
         "domain": pair["domain"],
         "instance_id": pair["instance_id"],
@@ -80,11 +80,11 @@ def _hybrid_record(pair: dict[str, JSONValue], state: dict[str, JSONValue], lang
         "language_context": language_context,
         "target": target,
         "provenance": {
-            "pair": {key: pair[key] for key in ("pair_id", "example_id", "source_root_id", "source_jsonl", "source_line_index", "source_record_sha256", "source_split_sha256", "source_root_sha256", "plan_hash")},
+            "pair": {key: pair[key] for key in ("pair_id", "example_id", "source_root_id", "source_jsonl", "source_line_index", "source_record_id")},
             "event": {"event_id": event_id, "parent_event_id": transition.get("parent_event_id"), "step_index": step_index, "action": transition["action"], "normalized_action": transition.get("normalized_action"), "frame_role": transition["frame_role"], "event_kind": transition.get("event_kind", "plan_replay"), "state_role": transition.get("state_role", "plan_replay")},
-            "state": {"state_hash": state["state_hash"], "state_asset_hash": transition.get("state_asset_hash", state["state_hash"]), "state_source": transition["state_source"], "state_before_hash": stable_hash(transition["state_before"]), "state_after_hash": stable_hash(transition["state_after"])},
-            "trace": {"trace_contract_version": trace["trace_contract_version"], "full_trace_hash": stable_hash(trace), "trace_size_chars": pair["trace_size_chars"], "trace_fidelity": pair["trace_fidelity"]},
-            "render": {key: state[key] for key in ("cache_key", "cache_dir", "derived_problem_path", "input_hash", "trace_path", "vfg_sha256", "png_sha256", "png_dimensions", "semantic_image_qa", "semantic_image_metrics")},
+            "state": {"state_id": state["state_id"], "state_asset_id": transition.get("state_asset_id", state["state_id"]), "state_source": transition["state_source"], "state_before": transition["state_before"], "state_after": transition["state_after"]},
+            "trace": {"trace_contract_version": trace["trace_contract_version"], "trace_size_chars": pair["trace_size_chars"], "trace_fidelity": pair["trace_fidelity"]},
+            "render": {key: state[key] for key in ("cache_key", "cache_dir", "derived_problem_path", "trace_path", "png_dimensions", "semantic_image_qa", "semantic_image_metrics")},
         },
     }
     if record_type == "step_vlm_record":
@@ -95,7 +95,7 @@ def _hybrid_record(pair: dict[str, JSONValue], state: dict[str, JSONValue], lang
     return record
 
 def _write_pairing_schema(path: Path) -> None:
-    _write_schema(path, "pairing_manifest", ["schema_version", "pair_id", "source_root", "source_root_id", "source_root_sha256", "source_jsonl", "source_split_sha256", "source_line_index", "source_record_sha256", "example_id", "active_planner_id", "domain", "instance_id", "split", "planner", "plan_length", "trace_size_chars", "frame_count", "frame_alignment_status", "training_eligible", "exclusion_reasons"])
+    _write_schema(path, "pairing_manifest", ["schema_version", "pair_id", "source_root", "source_root_id", "source_jsonl", "source_line_index", "source_record_id", "example_id", "active_planner_id", "domain", "instance_id", "split", "planner", "plan_length", "trace_size_chars", "frame_count", "frame_alignment_status", "training_eligible", "exclusion_reasons"])
 
 def _write_vlm_schema(path: Path, title: str) -> None:
     write_json(path, _hybrid_vlm_schema(title))
@@ -124,11 +124,11 @@ def _hybrid_vlm_schema(record_type: str) -> dict[str, JSONValue]:
         "language_context": _strict_object_schema({field: {"type": "string"} for field in ("instruction", "current_state_pddl", "goal_pddl")}),
         "target": {"type": "object", "required": list(target_properties), "properties": target_properties, "additionalProperties": False},
         "provenance": {"type": "object", "required": ["pair", "event", "state", "trace", "render"], "properties": {
-            "pair": _strict_object_schema({field: {"type": "integer"} if field == "source_line_index" else {"type": "string"} for field in ("pair_id", "example_id", "source_root_id", "source_jsonl", "source_line_index", "source_record_sha256", "source_split_sha256", "source_root_sha256", "plan_hash")}),
+            "pair": _strict_object_schema({field: {"type": "integer"} if field == "source_line_index" else {"type": "string"} for field in ("pair_id", "example_id", "source_root_id", "source_jsonl", "source_line_index", "source_record_id")}),
             "event": _strict_object_schema({"event_id": {"type": "string"}, "parent_event_id": {"type": ["string", "null"]}, "step_index": {"type": "integer"}, "action": {"type": ["string", "null"]}, "normalized_action": {"type": ["string", "null"]}, "frame_role": {"type": "string"}, "event_kind": {"type": "string"}, "state_role": {"type": "string"}}),
-            "state": _strict_object_schema({field: {"type": "string"} for field in ("state_hash", "state_asset_hash", "state_source", "state_before_hash", "state_after_hash")}),
-            "trace": _strict_object_schema({"trace_contract_version": {"type": "string"}, "full_trace_hash": {"type": "string"}, "trace_size_chars": {"type": "integer"}, "trace_fidelity": {"type": "string"}}),
-            "render": _strict_object_schema({**{field: {"type": "string"} for field in ("cache_key", "cache_dir", "derived_problem_path", "input_hash", "trace_path", "vfg_sha256", "png_sha256", "semantic_image_qa")}, "png_dimensions": {"type": "array", "items": {"type": "integer"}}, "semantic_image_metrics": {"type": "object"}}),
+            "state": _strict_object_schema({"state_id": {"type": "string"}, "state_asset_id": {"type": "string"}, "state_source": {"type": "string"}, "state_before": {"type": "array", "items": {"type": "string"}}, "state_after": {"type": "array", "items": {"type": "string"}}}),
+            "trace": _strict_object_schema({"trace_contract_version": {"type": "string"}, "trace_size_chars": {"type": "integer"}, "trace_fidelity": {"type": "string"}}),
+            "render": _strict_object_schema({**{field: {"type": "string"} for field in ("cache_key", "cache_dir", "derived_problem_path", "trace_path", "semantic_image_qa")}, "png_dimensions": {"type": "array", "items": {"type": "integer"}}, "semantic_image_metrics": {"type": "object"}}),
         }, "additionalProperties": False},
     }
     if record_type == "step_vlm_record":

@@ -3,7 +3,6 @@ from __future__ import annotations
 from collections import deque
 from typing import Final
 
-from .cgas_trace_contract_v3 import CONTRACT_ID as TRACE_CONTRACT_VERSION
 from .local_goal_regression import GoalRegressionRequest, recover_goal_regression_plan, should_try_goal_regression_first
 from .local_iw_novelty import first_novel, novelty_items, serialize_tuple, state_atoms
 from .local_planner_types import (
@@ -19,6 +18,7 @@ from .pddl import Atom, GroundAction
 
 DEFAULT_MAX_APPLICABLE_ACTIONS: Final = 2000
 DEFAULT_LOCAL_IW_MAX_WIDTH: Final = 3
+TRACE_CONTRACT_VERSION: Final = "local_iw_trace_v1"
 
 
 def run_iterated_width(request: LocalPlannerRequest) -> LocalPlannerResult:

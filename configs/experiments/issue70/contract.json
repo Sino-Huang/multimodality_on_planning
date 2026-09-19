@@ -1,0 +1,32 @@
+{
+  "schema_version": "matched_modality_issue70_contract_v1",
+  "source_issue": 70,
+  "binding": {
+    "contract_id": "issue-70-matched-modality-development-v1",
+    "attempt_id": "issue70-attempt-001",
+    "output_root": "outputs/modality_phase/issue70-v1"
+  },
+  "scope": "One small exact-candidate-reference infrastructure episode per modality; no model inference, training, efficacy claim, or throughput qualification.",
+  "algorithm": "best_first_add_greedy",
+  "policy": "exact_candidate_reference",
+  "max_expansions": 8,
+  "max_decisions": 16,
+  "domain_path": "configs/experiments/issue70/domain.pddl",
+  "problem_path": "configs/experiments/issue70/problem.pddl",
+  "animation_profile_path": "configs/experiments/issue70/animation.pddl",
+  "base_url": "http://127.0.0.1:18092",
+  "timeout_seconds": 30,
+  "supplied_paths": [["(move a b)", "(move b c)"]],
+  "limits": {
+    "tokenizer_id": "Qwen/Qwen3-VL-8B-Instruct",
+    "tokenizer_revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+    "max_input_tokens": 8192,
+    "image_width": 1024,
+    "image_height": 1536,
+    "font_name": "DejaVuSans.ttf",
+    "font_size": 18,
+    "max_memory_bytes": 32768,
+    "accepted_delta_limit": 16,
+    "input_size_bins": [2048, 4096, 6144, 8192]
+  }
+}

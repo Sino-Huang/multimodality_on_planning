@@ -9,11 +9,31 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Iterable, Sequence
 
-from .blocksworld import AtomSet, BlocksworldAction, BlocksworldProblem, IllegalActionError, parse_blocksworld
+from .blocksworld import (
+    AtomSet,
+    BlocksworldAction,
+    BlocksworldProblem,
+    parse_blocksworld,
+)
+from .pddl_state import CanonicalState, GroundedAction, PDDLTransition
+from .search_memory import (
+    AcceptedTransition,
+    FrontierIntent,
+    SearchMemory,
+    SearchTransitionRequest,
+    StateEvaluation,
+    apply_search_transition,
+)
+from .search_trace import (
+    SearchTraceSegment,
+    TraceSegmentLimits,
+    append_search_trace_record,
+    start_search_trace,
+)
 from .validate_instance import InstanceValidationError, load_fixture, validate_fixture
 
-
 ACTION_PATTERN = re.compile(r"^\s*([A-Za-z_-]+)\s*\(([^()]*)\)\s*$")
+DEFAULT_MAX_TRACE_BYTES = 1_000_000
 
 
 class BenchmarkLoopError(ValueError):
@@ -23,25 +43,45 @@ class BenchmarkLoopError(ValueError):
         self.details = details or {}
 
 
+def _evaluation_disabled(_state: CanonicalState) -> StateEvaluation:
+    raise AssertionError("state evaluation is disabled for benchmark-loop transitions")
+
+
 @dataclass
 class BlocksworldBenchmarkLoop:
     problem: BlocksworldProblem
     instance_id: str
     fixture_path: Path
     max_steps: int
+    max_trace_bytes: int = DEFAULT_MAX_TRACE_BYTES
     state: AtomSet = field(init=False)
     step_index: int = field(init=False, default=0)
     step_logs: list[dict[str, Any]] = field(init=False, default_factory=list)
+    transition_records: list[PDDLTransition] = field(init=False, default_factory=list)
+    search_memory: SearchMemory = field(init=False)
+    search_trace_segment: SearchTraceSegment = field(init=False)
 
     def __post_init__(self) -> None:
         if self.max_steps <= 0:
             raise BenchmarkLoopError("invalid_max_steps", "max_steps must be positive")
+        if (
+            isinstance(self.max_trace_bytes, bool)
+            or not isinstance(self.max_trace_bytes, int)
+            or self.max_trace_bytes <= 0
+        ):
+            raise BenchmarkLoopError("invalid_max_trace_bytes", "max_trace_bytes must be positive")
         self.reset()
 
     def reset(self) -> dict[str, Any]:
         self.state = self.problem.initial_state()
         self.step_index = 0
         self.step_logs = []
+        self.transition_records = []
+        self.search_memory = SearchMemory.initial(self.problem.authority)
+        self.search_trace_segment = start_search_trace(
+            self.search_memory,
+            limits=TraceSegmentLimits(max_records=self.max_steps, max_bytes=self.max_trace_bytes),
+        )
         return self.observe()
 
     def observe(self) -> dict[str, Any]:
@@ -54,7 +94,7 @@ class BlocksworldBenchmarkLoop:
             max_steps=self.max_steps,
         )
 
-    def step(self, action_text: str) -> dict[str, Any]:
+    def step(self, action_text: str, *, rationale: str = "external_action") -> dict[str, Any]:
         if self.is_terminal:
             raise BenchmarkLoopError(
                 "terminal_state",
@@ -73,7 +113,28 @@ class BlocksworldBenchmarkLoop:
             "is_legal": action_serialized in legal_actions,
             "legal_actions": list(legal_actions),
         }
-        if not legal_action_check["is_legal"]:
+
+        operation = SearchTransitionRequest(
+            source_state_id=pre_state_id,
+            action=GroundedAction(action.name, action.args),
+            frontier_intent=FrontierIntent(retire_source=True, target_position=0),
+            visit_target=True,
+            evaluate_target=False,
+        )
+        memory_before = self.search_memory
+        result = apply_search_transition(memory_before, operation, evaluator=_evaluation_disabled)
+        trace_segment = append_search_trace_record(
+            self.search_trace_segment,
+            memory_before=memory_before,
+            observation=observation,
+            rationale=rationale,
+            operation=operation,
+            result=result,
+            limits=TraceSegmentLimits(max_records=self.max_steps, max_bytes=self.max_trace_bytes),
+        )
+        self.search_trace_segment = trace_segment
+
+        if not isinstance(result, AcceptedTransition):
             raise BenchmarkLoopError(
                 "illegal_action",
                 f"illegal action in current state: {action_serialized}",
@@ -83,14 +144,13 @@ class BlocksworldBenchmarkLoop:
                     "observation": observation,
                     "pre_state_id": pre_state_id,
                     "step_index": self.step_index,
+                    "search_trace_segment": json.loads(self.search_trace_segment.to_bytes().decode("utf-8")),
                 },
             )
 
-        try:
-            post_state = self.problem.transition(pre_state, action)
-        except IllegalActionError as error:  # pragma: no cover - guarded by the explicit legal-action check above.
-            raise BenchmarkLoopError("illegal_action", str(error), details=legal_action_check) from error
-
+        transition = result.transition
+        post_state = frozenset(transition.target_state.atoms)
+        self.search_memory = result.memory
         self.state = post_state
         self.step_index += 1
         terminal_status = self.terminal_status()
@@ -101,9 +161,11 @@ class BlocksworldBenchmarkLoop:
             "pre_state_id": pre_state_id,
             "post_state_id": self.problem.state_id(post_state),
             "post_state_atoms": sorted(post_state),
+            "transition_provenance": transition.provenance.to_dict(),
             "legal_action_check": legal_action_check,
             "terminal_status": terminal_status,
         }
+        self.transition_records.append(transition)
         self.step_logs.append(step_log)
         return step_log
 
@@ -133,7 +195,7 @@ class BlocksworldBenchmarkLoop:
         for action in actions:
             if self.is_terminal:
                 break
-            self.step(action)
+            self.step(action, rationale="scripted_action")
         return build_run_payload(loop=self, mode="scripted", selected_actions=list(actions))
 
     def run_oracle(self) -> dict[str, Any]:
@@ -145,7 +207,7 @@ class BlocksworldBenchmarkLoop:
                 break
             next_action = plan[0]
             selected_actions.append(next_action.serialize())
-            self.step(next_action.serialize())
+            self.step(next_action.serialize(), rationale="oracle_shortest_path_choice")
         return build_run_payload(loop=self, mode="oracle", selected_actions=selected_actions)
 
 
@@ -190,7 +252,9 @@ def parse_action_text(action_text: str) -> BlocksworldAction:
         raise BenchmarkLoopError("illegal_action", str(error), details={"action": action_text}) from error
 
 
-def shortest_action_plan(problem: BlocksworldProblem, start_state: Iterable[str], *, max_depth: int) -> tuple[BlocksworldAction, ...] | None:
+def shortest_action_plan(
+    problem: BlocksworldProblem, start_state: Iterable[str], *, max_depth: int
+) -> tuple[BlocksworldAction, ...] | None:
     start = frozenset(start_state)
     if problem.is_goal(start):
         return tuple()
@@ -214,7 +278,12 @@ def shortest_action_plan(problem: BlocksworldProblem, start_state: Iterable[str]
     return None
 
 
-def load_validated_loop(fixture_path: Path, *, max_steps: int) -> BlocksworldBenchmarkLoop:
+def load_validated_loop(
+    fixture_path: Path,
+    *,
+    max_steps: int,
+    max_trace_bytes: int = DEFAULT_MAX_TRACE_BYTES,
+) -> BlocksworldBenchmarkLoop:
     validate_fixture(fixture_path, require_non_empty_goal=True)
     fixture = load_fixture(fixture_path)
     problem = parse_blocksworld(fixture.domain_pddl, fixture.problem_pddl)
@@ -224,6 +293,7 @@ def load_validated_loop(fixture_path: Path, *, max_steps: int) -> BlocksworldBen
         instance_id=instance_id,
         fixture_path=fixture_path,
         max_steps=max_steps,
+        max_trace_bytes=max_trace_bytes,
     )
 
 
@@ -237,7 +307,10 @@ def load_scripted_actions(path: Path) -> list[str]:
     elif isinstance(payload, dict) and isinstance(payload.get("actions"), list):
         actions = payload["actions"]
     else:
-        raise BenchmarkLoopError("malformed_actions", "actions file must be a JSON list or an object with an actions list")
+        raise BenchmarkLoopError(
+            "malformed_actions",
+            "actions file must be a JSON list or an object with an actions list",
+        )
     if not all(isinstance(action, str) and action.strip() for action in actions):
         raise BenchmarkLoopError("malformed_actions", "every scripted action must be a non-empty string")
     return [str(action) for action in actions]
@@ -247,7 +320,7 @@ def build_run_payload(*, loop: BlocksworldBenchmarkLoop, mode: str, selected_act
     terminal_status = loop.terminal_status()
     return {
         "valid": True,
-        "schema_version": "planning_benchmark_loop_run_v1",
+        "schema_version": "planning_benchmark_loop_run_v2",
         "mode": mode,
         "domain": "blocksworld",
         "fixture": str(loop.fixture_path),
@@ -268,6 +341,7 @@ def build_run_payload(*, loop: BlocksworldBenchmarkLoop, mode: str, selected_act
         "final_observation": loop.observe(),
         "terminal_status": terminal_status,
         "step_logs": loop.step_logs,
+        "search_trace_segment": json.loads(loop.search_trace_segment.to_bytes().decode("utf-8")),
     }
 
 
@@ -287,6 +361,12 @@ def build_parser() -> argparse.ArgumentParser:
 def _add_common_run_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--fixture", required=True, type=Path, help="Validated planning fixture JSON.")
     parser.add_argument("--max-steps", type=int, default=64, help="Maximum in-process environment steps.")
+    parser.add_argument(
+        "--max-trace-bytes",
+        type=int,
+        default=DEFAULT_MAX_TRACE_BYTES,
+        help="Maximum canonical search-trace segment size in bytes.",
+    )
     parser.add_argument("--json", action="store_true", help="Emit machine-readable JSON.")
 
 
@@ -301,9 +381,15 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
     if args.max_steps <= 0:
         parser.exit(status=2, message="--max-steps must be positive\n")
+    if args.max_trace_bytes <= 0:
+        parser.exit(status=2, message="--max-trace-bytes must be positive\n")
 
     try:
-        loop = load_validated_loop(args.fixture, max_steps=args.max_steps)
+        loop = load_validated_loop(
+            args.fixture,
+            max_steps=args.max_steps,
+            max_trace_bytes=args.max_trace_bytes,
+        )
         if args.command == "run-oracle":
             payload = loop.run_oracle()
         elif args.command == "run-scripted":
@@ -331,6 +417,7 @@ if __name__ == "__main__":
 
 
 __all__ = [
+    "DEFAULT_MAX_TRACE_BYTES",
     "BenchmarkLoopError",
     "BlocksworldBenchmarkLoop",
     "build_observation_payload",

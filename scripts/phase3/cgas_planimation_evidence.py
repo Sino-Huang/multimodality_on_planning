@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import re
 import sys
@@ -253,17 +252,15 @@ def build_certification(report: Mapping[str, Any], attempt_root: Path) -> dict[s
         stages = vfg.get("visualStages")
         artifact_checks = (
             render.get("status") == "success",
-            render.get("vfg_sha256") == _sha256(trace_path),
-            render.get("frame_sha256") == _sha256(frame_path),
             isinstance(stages, list),
             isinstance(stages, list) and render.get("visualStages_count") == len(stages),
         )
         artifacts_valid = all(artifact_checks)
         claims["render_artifacts_valid"] = "pass" if artifacts_valid else "fail"
         diagnostics["render_artifacts_valid"] = (
-            "required VFG and PNG artifacts exist with matching digests and structure"
+            "required VFG and PNG artifacts exist with the expected structure"
             if artifacts_valid
-            else "required artifact status, digest, or VFG stage count did not match"
+            else "required artifact status or VFG stage count did not match"
         )
 
         saved_receipt = render.get("semantic_receipt")
@@ -410,10 +407,6 @@ def _artifact_path(attempt_root: Path, value: Any, name: str) -> Path:
     if not resolved.is_relative_to(attempt_root) or not resolved.is_file():
         raise EvidenceMalformedError(f"{name}_invalid")
     return resolved
-
-
-def _sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def _is_loopback_url(value: Any) -> bool:

@@ -76,7 +76,7 @@ def test_generate_supervised_data_checks_actual_example_size(tmp_path: Path) -> 
     assert attempts[0]["status"] == "skipped_resource_limit"
     assert attempts[0]["trace_fidelity"] == "none"
     assert attempts[0]["replay_validation_id"] is None
-    assert attempts[0]["plan_hash"] is None
+    assert attempts[0]["plan_id"] is None
     shutil.rmtree(fixture_root)
 
 

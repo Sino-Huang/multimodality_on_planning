@@ -1,0 +1,133 @@
+{
+  "authorization_id": "issue-67-best-first-curriculum-authorization-v1",
+  "condition_results": {
+    "exact_reference": {
+      "budget_usage": 0.5,
+      "episodes": 12,
+      "invalid_operation_rate": 0.0,
+      "invariant_valid_success": 1.0
+    },
+    "pretrained_base": {
+      "budget_usage": 0.005067567567567568,
+      "episodes": 60,
+      "invalid_operation_rate": 1.0,
+      "invariant_valid_success": 0.0
+    },
+    "process_sft": {
+      "mixed_order": {
+        "budget_usage": 0.5,
+        "episodes": 60,
+        "invalid_operation_rate": 0.0,
+        "invariant_valid_success": 1.0
+      },
+      "shuffled": {
+        "budget_usage": 0.5,
+        "episodes": 60,
+        "invalid_operation_rate": 0.0,
+        "invariant_valid_success": 1.0
+      },
+      "staged": {
+        "budget_usage": 0.5,
+        "episodes": 60,
+        "invalid_operation_rate": 0.0,
+        "invariant_valid_success": 1.0
+      }
+    },
+    "random_valid": {
+      "budget_usage": 0.5,
+      "episodes": 60,
+      "invalid_operation_rate": 0.0,
+      "invariant_valid_success": 1.0
+    }
+  },
+  "contract_id": "issue-67-best-first-curriculum-comparison-v1",
+  "coverage": {
+    "evaluation_seeds": [
+      17,
+      29,
+      43,
+      71,
+      101
+    ],
+    "mode": "cheapest_complete_task_per_domain",
+    "reference_episodes": 72,
+    "replayed_episodes": 312,
+    "rollout_episodes": 240,
+    "selected_tasks": 12
+  },
+  "curriculum_conclusion": {
+    "equivalence_margin": 0.05,
+    "pairwise_intervals": {
+      "shuffled_minus_mixed_order": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "staged_minus_mixed_order": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "staged_minus_shuffled": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "statement": "Staged, shuffled, and mixed-order training were practically equivalent on the selected panel; all three achieved complete invariant-valid success with zero invalid operations.",
+    "status": "no_material_order_effect"
+  },
+  "original_heuristic_representation": {
+    "outcome": "ANCESTOR_STOP",
+    "scientific_completion": false,
+    "statement": "The stopped h-max versus landmark-count phase cannot support a heuristic-representation claim; both authorized replacements use h_add."
+  },
+  "outcome": "PASS",
+  "qualification": {
+    "calls_per_second_lower_95": 0.28715684247618056,
+    "maximum_scheduled_calls": 9472,
+    "maximum_shard_scheduled_calls": 4752,
+    "model_load_seconds": 76.21858409512788,
+    "outcomes_observed": false,
+    "projected_rollout_seconds": 19949.97315190616,
+    "qualification_elapsed_seconds": 152.1333830356598
+  },
+  "replacement_setting_comparison": {
+    "conclusion": "no_material_model_decision_advantage",
+    "greedy_relative_decision_reduction_interval": [
+      -0.04773342945382349,
+      0.0562367864693446,
+      0.16972353842017837
+    ],
+    "learned_success_difference_greedy_minus_w3": 0.0,
+    "material_decision_reduction_threshold": 0.1,
+    "statement": "Greedy used fewer aggregate decisions and expansions but did not meet the frozen model-decision advantage threshold; it also returned higher-cost solutions on aggregate."
+  },
+  "schema_version": "best_first_issue67_terminal_result_v1",
+  "scientific_completion": true,
+  "semantic_replay": {
+    "episodes": 312,
+    "status": "PASS"
+  },
+  "source_issue": 67,
+  "training": {
+    "logical_runs_per_cell": 1,
+    "mixed_order": {
+      "completed_steps": 522,
+      "final_attempt": 1,
+      "seed": 17
+    },
+    "shuffled": {
+      "completed_steps": 522,
+      "final_attempt": 2,
+      "resumed_from_step": 260,
+      "seed": 17
+    },
+    "staged": {
+      "completed_steps": 522,
+      "final_attempt": 2,
+      "resumed_from_step": 260,
+      "seed": 17
+    }
+  }
+}

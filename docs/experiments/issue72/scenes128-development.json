@@ -1,0 +1,26 @@
+{
+  "schema_version": "scene_assets_development_evidence_v1",
+  "contract_id": "issue-72-scene-assets-128-v1",
+  "stored_scene_size": [128, 128],
+  "full_transition_inventory": {
+    "task_groups": 241,
+    "distinct_states_within_task_groups": 51208,
+    "decision_bindings": 78230,
+    "replay_failures": 0,
+    "renders_performed": 0
+  },
+  "live_smoke": {
+    "report": "outputs/modality_phase/issue72-scenes128-v1/smoke-005/report.json",
+    "outcome": "PASS",
+    "task_groups": 3,
+    "frames": 6,
+    "backend_processes": 2,
+    "endpoints": ["http://127.0.0.1:18092", "http://127.0.0.1:18093"],
+    "puzzle_scene_visually_inspected": true
+  },
+  "scientific_completion": false,
+  "production_preflight_complete": false,
+  "scene_asset_collection_complete": false,
+  "partial_goal_images_complete": false,
+  "model_input_ready": false
+}

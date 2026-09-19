@@ -1,0 +1,17 @@
+{
+  "job_id": "panel-reference-screen",
+  "branch": "expanded_baseline",
+  "gpus": [],
+  "max_seconds": 7200,
+  "total": 384,
+  "command": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/screen_expanded_panel.py",
+    "screen"
+  ],
+  "completion_hook": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/screen_expanded_panel.py",
+    "audit"
+  ]
+}

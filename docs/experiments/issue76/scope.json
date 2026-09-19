@@ -1,0 +1,38 @@
+{
+  "scope": "standalone_multimodal_feasibility",
+  "matched_to_issue75_v5": false,
+  "reason": "v5 trained on 43876 full-corpus records for two epochs; existing four-hour budget preserves the declared 512-record one-epoch pilot instead of repeating or extending that run",
+  "comparison_claims": [
+    "within-multimodal base/SFT/reference controls",
+    "operational feasibility under four-hour cap"
+  ],
+  "excluded_claims": [
+    "controlled cross-modality effect",
+    "training-seed variance",
+    "held-out generalization"
+  ],
+  "input_measurements": {
+    "bfs": {
+      "training_records": 512,
+      "selected_dev_records": 32,
+      "maximum_multimodal_input_tokens": 5228
+    },
+    "best_first_width": {
+      "training_records": 512,
+      "selected_dev_records": 27,
+      "maximum_multimodal_input_tokens": 5163
+    },
+    "best_first_add_w3": {
+      "training_records": 512,
+      "selected_dev_records": 27,
+      "maximum_multimodal_input_tokens": 5431
+    },
+    "best_first_add_greedy": {
+      "training_records": 512,
+      "selected_dev_records": 27,
+      "maximum_multimodal_input_tokens": 5431
+    }
+  },
+  "source_pilot_manifest": "configs/experiments/issue75/pilot-plan-v1.json",
+  "gate_seconds": 14400
+}

@@ -1,0 +1,19 @@
+{
+  "job_id": "panel-gpu-1",
+  "branch": "expanded_baseline",
+  "gpus": [
+    1
+  ],
+  "max_seconds": 1800,
+  "total": 12,
+  "command": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/qualify_expanded_gpu.py",
+    "run"
+  ],
+  "completion_hook": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/qualify_expanded_gpu.py",
+    "audit"
+  ]
+}

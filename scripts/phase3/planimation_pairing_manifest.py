@@ -1,11 +1,10 @@
 from __future__ import annotations
-import hashlib
 import json
 import re
 from collections import Counter
 from pathlib import Path
 from typing import Iterable
-from .io_utils import read_jsonl, relpath, resolve_repo_path, stable_hash, write_json, write_jsonl
+from .io_utils import read_jsonl, relpath, resolve_repo_path, write_json, write_jsonl
 from .pddl import PDDLError, normalize_action_string
 from .trace_contracts import FrozenSourceIdentity, TraceContractError, project_traversal_events
 from .traversal_state_types import JSONValue
@@ -27,11 +26,11 @@ def build_pairing_manifest(dataset_roots: Iterable[Path], output_root: Path, *, 
     vfg_cache: dict[str, tuple[list[str], str | None]] = {}
     for dataset_root in sorted(roots, key=lambda path: path.as_posix()):
         accounting = {str(row["instance_id"]): row for row in read_jsonl(dataset_root / "diagnostics" / "instance_accounting.jsonl")}
-        source_snapshot = _source_root_snapshot(dataset_root)
+        _source_root_snapshot(dataset_root)
         for split in ("train", "dev", "test"):
             source_jsonl = dataset_root / f"{split}.jsonl"
-            for line_index, source_bytes, example in _source_jsonl_rows(source_jsonl):
-                record = _pair_record(dataset_root, source_jsonl, line_index, source_bytes, example, accounting.get(str(example["instance_id"])), source_snapshot, config, vfg_cache)
+            for line_index, _source_bytes, example in _source_jsonl_rows(source_jsonl):
+                record = _pair_record(dataset_root, source_jsonl, line_index, example, accounting.get(str(example["instance_id"])), config, vfg_cache)
                 if record["pair_id"] in seen_ids:
                     raise ValueError(f"duplicate pairing record: {record['pair_id']}")
                 seen_ids.add(record["pair_id"])
@@ -51,7 +50,7 @@ def build_pairing_manifest(dataset_roots: Iterable[Path], output_root: Path, *, 
     write_json(output_root / "reports" / "pairing_summary.json", summary)
     return {"records": records, "summary": summary}
 
-def _pair_record(dataset_root: Path, source_jsonl: Path, line_index: int, source_bytes: bytes, example: dict[str, JSONValue], accounting: dict[str, JSONValue] | None, source_snapshot: dict[str, str], config: PairingConfig, vfg_cache: dict[str, tuple[list[str], str | None]]) -> dict[str, JSONValue]:
+def _pair_record(dataset_root: Path, source_jsonl: Path, line_index: int, example: dict[str, JSONValue], accounting: dict[str, JSONValue] | None, config: PairingConfig, vfg_cache: dict[str, tuple[list[str], str | None]]) -> dict[str, JSONValue]:
     vision = example.get("model_facing", {}).get("vision", {})
     trace = example.get("supervised_target", {}).get("planner_trace", {})
     plan = [normalize_action_string(str(action)) for action in example.get("supervised_target", {}).get("plan", [])]
@@ -68,7 +67,8 @@ def _pair_record(dataset_root: Path, source_jsonl: Path, line_index: int, source
     source_relative_path = source_jsonl.relative_to(dataset_root).as_posix()
     trace_text = json.dumps(trace, sort_keys=True, ensure_ascii=True, separators=(",", ":"))
     bucket = str((accounting or {}).get("bucket", ""))
-    identity = FrozenSourceIdentity(dataset_root.name, source_relative_path, line_index, hashlib.sha256(source_bytes).hexdigest(), str(example["example_id"]), planner)
+    source_record_id = f"{source_relative_path}:{line_index}:{example['example_id']}"
+    identity = FrozenSourceIdentity(dataset_root.name, source_relative_path, line_index, source_record_id, str(example["example_id"]), planner)
     try:
         project_traversal_events(identity, example)
     except TraceContractError as error:
@@ -78,17 +78,15 @@ def _pair_record(dataset_root: Path, source_jsonl: Path, line_index: int, source
     exclusions = _exclusion_reasons(example, trace, len(plan), len(trace_text), bucket, config)
     if trace_contract_exclusion is not None:
         exclusions.append(f"trace_contract_exclusion:{trace_contract_exclusion}")
-    pair_id = stable_hash([dataset_root.name, example["example_id"]])[:32]
+    pair_id = f"{dataset_root.name}:{example['example_id']}"
     return {
         "schema_version": SCHEMA_VERSION,
         "pair_id": pair_id,
         "source_root": relpath(dataset_root),
         "source_root_id": dataset_root.name,
-        "source_root_sha256": stable_hash(source_snapshot),
         "source_jsonl": source_relative_path,
-        "source_split_sha256": source_snapshot[source_relative_path.removesuffix(".jsonl")],
         "source_line_index": line_index,
-        "source_record_sha256": hashlib.sha256(source_bytes).hexdigest(),
+        "source_record_id": source_record_id,
         "example_id": example["example_id"],
         "domain": example["domain"],
         "instance_id": example["instance_id"],
@@ -96,14 +94,11 @@ def _pair_record(dataset_root: Path, source_jsonl: Path, line_index: int, source
         "planner": planner,
         "active_planner_id": planner,
         "bucket": bucket,
-        "plan_hash": example["plan_hash"],
-        "trace_hash": stable_hash(trace),
         "trace_fidelity": example["trace_fidelity"],
         "planner_approximation": _planner_approximation(planner, trace),
         "domain_path": example["model_facing"]["domain_source"],
         "problem_path": example["model_facing"]["problem_source"],
         "render_trace_path": relpath(vfg_path) if vfg_path else "",
-        "render_action_hash": stable_hash(vfg_actions),
         "frame_paths": [relpath(path) for path in frames],
         "frame_count": len(frames),
         "plan_length": len(plan),

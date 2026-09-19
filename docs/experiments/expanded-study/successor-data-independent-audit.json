@@ -1,0 +1,24 @@
+{
+  "outcome": "PASS",
+  "goal": 8,
+  "interactions_replayed": 1536,
+  "teacher_targets_strictly_verified": 1536,
+  "tasks": 25,
+  "first_attempt_predictions_recovered_without_regeneration": 4,
+  "source_heldout_semantic_context_overlap": 0,
+  "whole_instance_scope": "Canonical task-context equality; preserves source corpus splits and compares both current final panels.",
+  "conflicting_identical_authoritative_inputs": 0,
+  "verification_outcomes": {
+    "accepted": 119,
+    "effect": 68,
+    "schema": 1274,
+    "state_identity": 75
+  },
+  "runtime_heads": [
+    "9a9fe12888b860076862140e73edd1ee7a6a8b3d",
+    "beee3604b646c04f30d2f60e86161eba342a609a"
+  ],
+  "cumulative_gpu_hours_including_qualification_failures_and_retries": 9.515907205409475,
+  "missing_records": 0,
+  "training_updates": 0
+}

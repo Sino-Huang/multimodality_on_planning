@@ -1,0 +1,12 @@
+{
+  "schema_version": "generation_governance_v2",
+  "receipt_type": "gate",
+  "binding": {
+    "contract_id": "issue-70-matched-modality-development-v1",
+    "attempt_id": "issue70-attempt-001",
+    "output_root": "outputs/modality_phase/issue70-v1"
+  },
+  "outcome": "PASS",
+  "ancestor_receipt_id": null,
+  "basis": "Dependencies #47 and #69 are closed; this gate permits only the bounded issue70 development infrastructure test described by contract.json."
+}

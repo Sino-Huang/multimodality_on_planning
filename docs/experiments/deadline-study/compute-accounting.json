@@ -1,0 +1,63 @@
+{
+  "units": "wall-clock seconds, not GPU-hours",
+  "core_attempts": [
+    {
+      "source": "outputs/visual_development/issue75-32k-v1/attempt-001/result.json",
+      "contract_id": "issue-75-visual-development-32k-v1",
+      "outcome": "VALID_STOP",
+      "elapsed_seconds": 3609.47,
+      "reason": "VALID_STOP: VALID_STOP: no new model calls after cutoff"
+    },
+    {
+      "source": "outputs/visual_development/issue75-32k-v2/attempt-001/result.json",
+      "contract_id": "issue-75-visual-development-32k-v2",
+      "outcome": "VALID_STOP",
+      "elapsed_seconds": 2979.96,
+      "reason": "VALID_STOP: CUDA out of memory. Tried to allocate 2.55 GiB. GPU 0 has a total capacity of 79.25 GiB of which 1.34 GiB is free. Process 49552 has 9.31 GiB memory in use. Including non-PyTorch memory, this process has 68.59 GiB memory in use. Of the allocated memory 64.71 GiB is allocated by PyTorch, and 3.38 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)"
+    },
+    {
+      "source": "outputs/visual_development/issue75-32k-v3/attempt-001/result.json",
+      "contract_id": "issue-75-visual-development-32k-v3",
+      "outcome": "VALID_STOP",
+      "elapsed_seconds": 4580.65,
+      "reason": "VALID_STOP: neither frozen panel fits the clock"
+    },
+    {
+      "source": "outputs/visual_development/issue75-32k-v5/attempt-001/result.json",
+      "contract_id": "issue-75-visual-development-32k-v5",
+      "outcome": "VALID_STOP",
+      "elapsed_seconds": 274431.03,
+      "reason": "VALID_STOP: frozen threshold failed"
+    },
+    {
+      "source": "docs/experiments/issue76/completion-summary.json",
+      "contract_id": "issue-76-multimodal-feasibility-v1",
+      "outcome": "VALID_STOP",
+      "elapsed_seconds": 3894.99,
+      "reason": "Complete pilot; all four adapters fail success and invalid-operation thresholds."
+    }
+  ],
+  "known_core_attempt_wall_seconds": 289496.10000000003,
+  "current_goal_gpu_stage_seconds": 3894.99,
+  "current_goal_stage_cap_seconds": 14400,
+  "future_gpu_seconds_after_no_go": 0,
+  "additional_dagger_gpu_seconds": 0,
+  "scope_note": "Core timed #75 attempts and #76 only. This is not the total cost of the whole historical research program. Earlier BFS/curriculum training times, data preparation, CPU audits and packaging are not included in this sum.",
+  "issue54_v8_gate_seconds": 28465.573609113693,
+  "issue67_total_actual_wall_seconds": null,
+  "missing_measurements": [
+    "whole historical-program GPU-hours",
+    "whole-run visual-v5 peak memory",
+    "complete issue67 end-to-end wall time"
+  ],
+  "multimodal_training_peak_allocated_bytes_by_algorithm": {
+    "bfs": 34135289856,
+    "best_first_width": 32544347648,
+    "best_first_add_w3": 34202628096,
+    "best_first_add_greedy": 34213340672
+  },
+  "multimodal_evaluation_peak_allocated_bytes_by_worker": {
+    "0": 44511248384,
+    "1": 44511248384
+  }
+}

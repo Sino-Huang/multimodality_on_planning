@@ -1,0 +1,6 @@
+{
+  "domain": "hmax-equality-unsupported",
+  "domain_pddl": "(define (domain hmax-equality-unsupported) (:requirements :strips :equality) (:predicates (ready) (done)) (:action equality-step :parameters (?x ?y) :precondition (and (ready) (= ?x ?y)) :effect (done)))",
+  "instance_id": "hmax-equality-unsupported-0000",
+  "problem_pddl": "(define (problem hmax-equality-unsupported-p) (:domain hmax-equality-unsupported) (:objects a b) (:init (ready)) (:goal (done)))"
+}

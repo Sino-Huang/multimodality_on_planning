@@ -1,0 +1,27 @@
+{
+  "verifier": "scripts/verify_modality_experiment.py",
+  "tests": {
+    "passed": 5,
+    "elapsed_seconds": 4.23
+  },
+  "black": "PASS",
+  "ruff": "PASS",
+  "basedpyright": "PASS",
+  "real_terminal_run_check": {
+    "contract_id": "issue-75-visual-development-32k-v5",
+    "verification_outcome": "PASS",
+    "execution_complete": true,
+    "scientific_gate_passed": false,
+    "retained_outcome": "VALID_STOP",
+    "independently_replayed_episodes": 864,
+    "condition_counts": {
+      "pretrained_base": 270,
+      "process_sft": 270,
+      "exact_reference": 54,
+      "random_valid": 270
+    },
+    "new_model_calls": 0,
+    "elapsed_seconds": 370.56
+  },
+  "note": "Known completed visual v5 evidence was replayed to validate the verifier; no GPU model calls or original output rewrites. Multimodal #76 is still running."
+}

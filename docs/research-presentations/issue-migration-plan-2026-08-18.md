@@ -1,9 +1,9 @@
 # Issue Migration Plan: CGAS Tracker to Search-Process Research Target
 
-**Status:** Proposal for supervisor review. Non-executable. Dated 2026-08-18.
+**Status:** Approved migration record, amended 2026-08-21 to remove the operational-only SFT arm from current scope.
 **Repository:** `Sino-Huang/multimodality_on_planning`.
 
-This document is a migration plan only. It performs no `gh` mutation of any kind: no issue is created, edited, relabeled, commented on, or closed by this document or under its authority. GitHub [issue #1](https://github.com/Sino-Huang/multimodality_on_planning/issues/1) and the current proposal, specification, and execution plan remain the authoritative scope until the supervisor approves this migration in writing. Every disposition, new issue title, and dependency below is a suggestion awaiting that approval.
+This document records the migration proposal that was subsequently approved and realized in the issue tree rooted at GitHub [issue #38](https://github.com/Sino-Huang/multimodality_on_planning/issues/38). It does not itself authorize tracker mutations. The transaction details below are retained as history; #38 is the current scope authority, including the 2026-08-21 removal of operational-only SFT from planned work.
 
 Companion documents:
 
@@ -22,7 +22,7 @@ Companion documents:
 
 The current tracker implements the CGAS target: stepwise Joint Action-and-Certificate SFT over replayed BFS/IW plan transitions, measured by Verified Joint Step, with Adaptive Scaffolding over Support Routes backed by Live Memory and Route Labels (canonical terms per [`CONTEXT.md`](../../CONTEXT.md)).
 
-The proposed target is different in kind: teach algorithm-conditioned, executable search behavior from canonical planner-derived ReAct traces with typed operations. The model owns the search decisions; a trusted PDDL runtime stores and validates state and returns modality-specific observations but cannot choose or repair evaluation decisions. The core algorithm set is BFS (positive control), IW, A*+h_max, and A*+landmark-count, where the A* pair is a heuristic-representation comparison. Training is organized as matched algorithm-by-modality cells (text-state, visual-state, multimodal-state with state+goal semantic parity and a fixed search-memory API/capacity), across base, operational-only SFT, process SFT, and process SFT+DAgger arms, under a staged curriculum with a mixed-order control. Experience Distillation is at most a gated comparison, not a headline arm.
+The proposed target is different in kind: teach algorithm-conditioned, executable search behavior from canonical planner-derived ReAct traces with typed operations. The model owns the search decisions; a trusted PDDL runtime stores and validates state and returns modality-specific observations but cannot choose or repair evaluation decisions. The core algorithm set is BFS (positive control), IW, A*+h_max, and A*+landmark-count, where the A* pair is a heuristic-representation comparison. Training is organized as matched algorithm-by-modality cells (text-state, visual-state, multimodal-state with state+goal semantic parity and a fixed search-memory API/capacity), across base, process SFT, and process SFT+DAgger arms, under a staged curriculum with a mixed-order control. The operational-only SFT arm was removed on 2026-08-21 to prioritize learning the search process under the available time; this is a scope decision, not evidence that operational SFT cannot affect search. Experience Distillation is at most a gated comparison, not a headline arm.
 
 Because the scientific target, the model/runtime responsibility split, the algorithm set, the training arms, and the evaluation gates all change, the existing issue tree cannot simply be relabeled. It must be superseded by a new dependency-ordered tree, with reusable evidence and infrastructure carried forward explicitly.
 
@@ -113,7 +113,7 @@ Issue numbers below are placeholders (N1-N15); real numbers are assigned at crea
 - **Label:** `needs-triage`
 
 ### N9 - Modality matrix experiment
-- **Objective:** The matched algorithm-by-modality cells (four algorithms x three modalities) across base, operational-only SFT, and process SFT arms, with staged curriculum and mixed-order control.
+- **Objective:** The matched algorithm-by-modality cells (four algorithms x three modalities) across base and process SFT, with staged curriculum and mixed-order control.
 - **Acceptance evidence:** Full cell matrix results under problem-level splits and frozen operational/structural diagnostics.
 - **Depends on:** N8.
 - **Label:** `needs-triage`

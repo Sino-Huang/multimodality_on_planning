@@ -1,0 +1,133 @@
+{
+  "schema_version": "expanded_second_backbone_qualification_v1",
+  "outcome": "PASS",
+  "protocol_id": "expanded-second-backbone-v1",
+  "backbone_key": "internvl3_5-8b",
+  "complete": true,
+  "limits": {
+    "record_limit": null,
+    "task_limit": null
+  },
+  "context_tokens": 32768,
+  "output_tokens": 384,
+  "records_measured": 1536,
+  "tasks_measured": 24,
+  "decisions_measured": 5907,
+  "tokenizer_identity": true,
+  "maxima": {
+    "text-state": {
+      "train_prefix": 2106,
+      "train_full": 2240,
+      "live": 4421
+    },
+    "visual-state": {
+      "train_prefix": 11527,
+      "train_full": 11673,
+      "live": 16538
+    },
+    "multimodal-state": {
+      "train_prefix": 12553,
+      "train_full": 12706,
+      "live": 18289
+    }
+  },
+  "extrema": {
+    "text-state": {
+      "smallest_full": {
+        "record_id": "bfs/ferry-train-easy-0000:bfs:0",
+        "full_tokens": 945
+      },
+      "densest_full": {
+        "record_id": "bfs/logistics-train-hard-0000:bfs:428",
+        "full_tokens": 2240
+      }
+    },
+    "visual-state": {
+      "smallest_full": {
+        "record_id": "bfs/ferry-train-easy-0000:bfs:0",
+        "full_tokens": 7812
+      },
+      "densest_full": {
+        "record_id": "bfs/visitall-train-medium-0000:bfs:382",
+        "full_tokens": 11673
+      }
+    },
+    "multimodal-state": {
+      "smallest_full": {
+        "record_id": "bfs/ferry-train-easy-0000:bfs:0",
+        "full_tokens": 8141
+      },
+      "densest_full": {
+        "record_id": "bfs/visitall-train-medium-0000:bfs:382",
+        "full_tokens": 12706
+      }
+    },
+    "densest_live": {
+      "task_id": "expanded-final/storage-expanded-919100",
+      "event_index": 133,
+      "modality": "multimodal-state",
+      "input_tokens": 18289
+    }
+  },
+  "violations": [],
+  "cross_checks": [
+    {
+      "modality": "text-state",
+      "task_id": "expanded-final/storage-expanded-919100",
+      "event_index": 133,
+      "input_tokens": 4421,
+      "images": 0,
+      "verify_complete": true
+    },
+    {
+      "modality": "visual-state",
+      "task_id": "expanded-final/storage-expanded-919100",
+      "event_index": 133,
+      "input_tokens": 16538,
+      "images": 6,
+      "verify_complete": true
+    },
+    {
+      "modality": "multimodal-state",
+      "task_id": "expanded-final/storage-expanded-919100",
+      "event_index": 133,
+      "input_tokens": 18289,
+      "images": 6,
+      "verify_complete": true
+    }
+  ],
+  "previews": [
+    {
+      "page": 0,
+      "role": "task-context",
+      "path": "outputs/expanded-study/v1/second-backbone/qualification/previews/expanded-final__storage-expanded-919100/page-00-task-context.png"
+    },
+    {
+      "page": 1,
+      "role": "task-context",
+      "path": "outputs/expanded-study/v1/second-backbone/qualification/previews/expanded-final__storage-expanded-919100/page-01-task-context.png"
+    },
+    {
+      "page": 2,
+      "role": "task-context",
+      "path": "outputs/expanded-study/v1/second-backbone/qualification/previews/expanded-final__storage-expanded-919100/page-02-task-context.png"
+    },
+    {
+      "page": 3,
+      "role": "initial-state",
+      "path": "outputs/expanded-study/v1/second-backbone/qualification/previews/expanded-final__storage-expanded-919100/page-03-initial-state.png"
+    },
+    {
+      "page": 4,
+      "role": "current-state",
+      "path": "outputs/expanded-study/v1/second-backbone/qualification/previews/expanded-final__storage-expanded-919100/page-04-current-state.png"
+    },
+    {
+      "page": 5,
+      "role": "goal",
+      "path": "outputs/expanded-study/v1/second-backbone/qualification/previews/expanded-final__storage-expanded-919100/page-05-goal.png"
+    }
+  ],
+  "decision_token_distributions": "outputs/expanded-study/v1/second-backbone/qualification/decision-token-distributions.json.gz",
+  "elapsed_seconds": 70.19607451558113
+}

@@ -1,0 +1,92 @@
+{
+  "algorithm": "best_first_add_greedy",
+  "analysis": {
+    "bootstrap_confidence": 0.95,
+    "bootstrap_resamples": 10000,
+    "bootstrap_seed": 1729,
+    "curriculum_equivalence_margin": 0.05,
+    "material_decision_reduction": 0.1,
+    "unit": "whole_problem_instance"
+  },
+  "ancestry": {
+    "issue65_terminal_result": "data/best_first_paired_phase_v3/issue65-terminal/result.json",
+    "issue66_terminal_result": "data/best_first_paired_phase_v3/issue66-terminal/result.json"
+  },
+  "contract_id": "issue-67-best-first-curriculum-comparison-v1",
+  "curricula": [
+    "staged",
+    "shuffled",
+    "mixed_order"
+  ],
+  "data": {
+    "corpus_root": "data/best_first_paired_phase_v3/corpus-release-v3",
+    "curriculum_view": "process",
+    "trace_manifest": "data/best_first_paired_phase_v3/exact-traces/manifest.json"
+  },
+  "evaluation": {
+    "batch_input_tokens": 48000,
+    "batch_size": 8,
+    "decision_call_multiplier": 2,
+    "fallback_panel": "cheapest_complete_task_per_domain",
+    "full_panel_first": true,
+    "output_tokens": 384,
+    "physical_model_conditions": 4,
+    "qualification_seconds": 3600,
+    "reference_decision_ceiling": 1024,
+    "rollout_certification_seconds": 54000,
+    "rollout_cutoff_seconds": 64800,
+    "safety_margin": 1.2,
+    "seeds": [
+      17,
+      29,
+      43,
+      71,
+      101
+    ]
+  },
+  "expected": {
+    "development_exact_decisions": 6696,
+    "development_tasks": 23,
+    "training_greedy_records": 8342,
+    "training_greedy_validation_records": 6696
+  },
+  "model": {
+    "context_tokens": 8192,
+    "inference_dtype": "float32",
+    "model_id": "Qwen/Qwen3-VL-8B-Instruct",
+    "revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b"
+  },
+  "outcomes": [
+    "PASS",
+    "VALID_STOP",
+    "INVALID",
+    "ANCESTOR_STOP"
+  ],
+  "parent_issue": 38,
+  "priority": "h_add",
+  "reopen_closed": false,
+  "representative_cell_reason": "lowest measured issue-64 decision count; parent #38 permits representative curriculum controls",
+  "schema_version": "best_first_issue67_curriculum_v1",
+  "source_issue": 67,
+  "training": {
+    "epochs": 2,
+    "lora": {
+      "alpha": 128,
+      "bias": "none",
+      "dropout": 0.05,
+      "rank": 64,
+      "target_modules": "all-linear"
+    },
+    "optimization": {
+      "global_batch_size": 32,
+      "learning_rate": 0.0001,
+      "lr_scheduler": "cosine",
+      "max_gradient_norm": 1.0,
+      "optimizer": "adamw_torch",
+      "warmup_ratio": 0.03,
+      "weight_decay": 0.0
+    },
+    "replicate_count_per_cell": 1,
+    "seed": 17
+  }
+}

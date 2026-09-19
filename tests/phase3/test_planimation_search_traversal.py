@@ -49,7 +49,7 @@ def test_emits_distinct_search_traversal_records_for_concrete_candidates(tmp_pat
     assert {record["record_type"] for record in records} == {"search_traversal_record"}
     assert {record["supervision_mode"] for record in records} == {"search_traversal"}
     assert len({record["provenance"]["event"]["event_id"] for record in records}) == 2
-    assert len({record["provenance"]["state"]["state_asset_hash"] for record in records}) == 2
+    assert len({record["provenance"]["state"]["state_asset_id"] for record in records}) == 2
 
 
 def test_excludes_ff_successor_without_recorded_state_atoms() -> None:
@@ -91,7 +91,7 @@ def test_shared_traversal_asset_preserves_distinct_search_events(tmp_path: Path)
     assert len(successor_records) == 3
     assert len({record["provenance"]["event"]["event_id"] for record in successor_records}) == 3
     assert len({record["provenance"]["event"]["event_kind"] for record in successor_records}) == 3
-    assert len({record["provenance"]["state"]["state_asset_hash"] for record in successor_records}) == 1
+    assert len({record["provenance"]["state"]["state_asset_id"] for record in successor_records}) == 1
 
 
 def test_graphplan_semantic_layers_do_not_emit_search_traversal_records(tmp_path: Path) -> None:

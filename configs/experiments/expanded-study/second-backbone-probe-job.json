@@ -1,0 +1,21 @@
+{
+  "job_id": "second-backbone-probe",
+  "branch": "second_backbone",
+  "gpus": [
+    0
+  ],
+  "master_port": 18802,
+  "max_seconds": 7200,
+  "total": 1,
+  "command": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/run_expanded_second_backbone.py",
+    "probe"
+  ],
+  "completion_hook": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/run_expanded_second_backbone.py",
+    "audit-probe"
+  ],
+  "resume_reason": "attempts 1-4 each failed on probe-stage code bugs, not model behavior: attempt 1 extrema-sentinel KeyError and LoRA double-wrap (05b21ac); attempt 2 nested-vs-flat determinism comparison (844b702, with a debug job proving visual_sdpa byte-identical x3 on all extrema); attempt 3 CUDA/CPU mixing in _save_probe_adapters and a missing device move in the training-step loop (dc3522e); attempt 4 completed every generation gate (parity, determinism, guards, throughput, adapter isolation) then OOMed in the training-step cost loop because the 34GB fp32 policy was still resident alongside the bf16 trainer — production training never carries the policy, so the policy is now freed before the step-cost loop (this change); no attempt produced probe evidence, attempt 5 reruns the full probe"
+}

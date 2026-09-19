@@ -1,0 +1,33 @@
+{
+  "status": "complete",
+  "requirements": {
+    "24_tasks_12_domains_two_strata": "final-panel.json; verify_expanded_panel.py checks the exact domain/stratum Cartesian product and 1152/576 binding counts",
+    "frozen_structural_reference_rules": "panel-protocol.json and panel-protocol-v2.json; all 384 original seeds retained; typed-grounding correction documented before new final outcomes",
+    "whole_instance_exclusion": "panel-independent-audit.json: source and object-renaming comparison against 4970 historical task contexts and all selected tasks",
+    "full_source_goals_and_scope": "independent parent-path replay and source-goal equivalence across all 1866 reference states; committed source PDDL snapshots and complete goal-page recipes",
+    "128px_unlabelled_views": "panel-reference-views.json, recipe-bound rasterization and image-size audits; representative scene/goal inspection recorded",
+    "producing_operation_and_live_resume": "panel-live-views.json: 24 tasks, new accepted-state rendering or verified reference closure, read-only restoration with parent-path replay; regression proves distinct episodes cannot share cached images at the same local new-state index",
+    "common_search_memory": "panel-common-memory.json: 4310 decisions across three modalities, identical common payloads, at most 16 accepted deltas",
+    "complete_input_bounds": "native complete-message cap plus policy batch/context guards; CPU boundary tests and actual GPU single/batch limit probes",
+    "actual_both_GPU_qualification": "panel-gpu-qualification.json: both A100s, 12 probes each, all modality adapter banks, 32384 single / 24000 batch input tokens / 384 outputs, terminal hook success",
+    "costs_and_infeasibility": "full-allowance estimate 574.076 GPU-hours reported infeasible; separately frozen historical-consumption admission 35.010 hours plus 0.733 spent within 56; no task reduction or budget increase",
+    "preserve_old_assets": "only new-task scenes and 24 source snapshots produced; v5 checkpoints, old scene collections, corpus and ledgers retained",
+    "background_progress_and_hooks": "shared budget ledger and terminal/hook records for source, screen, selection, views, live-view, common-memory, runtime-parity and GPU jobs; failed CPU attempts retained",
+    "freeze_before_final_model_outcomes": "final-panel.json freezes all 24 task bindings after unscored technical probes; no expanded baseline planning episodes or new training run",
+    "branch_contracts": "final panel names ExpandedTaskViews and v5 checkpoints, declared matrix/caps and source snapshots; Goal 3 owns episode-runner implementation and execution"
+  },
+  "verification_command": "source ~/cd_vlaplan && python scripts/verify_expanded_panel.py",
+  "verification_result": "PASS",
+  "focused_tests": "14 capacity/candidate/isomorphism tests passed on final code, including standard token-counter replay, parent-state restore and cross-episode live-image cache isolation.",
+  "cost_admission": "QUALIFIED_WITH_CONDITIONAL_COST_ADMISSION",
+  "worst_allowance_completion_guaranteed": false,
+  "publication": {
+    "source_commit": "0754579",
+    "issue": {
+      "closedAt": "2026-09-14T13:55:16Z",
+      "state": "CLOSED",
+      "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/117"
+    },
+    "closeout": "https://github.com/Sino-Huang/multimodality_on_planning/issues/117#issuecomment-5665111120"
+  }
+}

@@ -51,7 +51,7 @@ REQUIRED_EXAMPLE_FIELDS = (
     "instance_id",
     "split",
     "planner",
-    "plan_hash",
+    "plan_id",
     "trace_fidelity",
     "vision_supervision_available",
     "model_facing",
@@ -76,7 +76,7 @@ PLANNER_ATTEMPT_FIELDS = (
     "problem_path",
     "planner_command",
     "planner_version",
-    "plan_hash",
+    "plan_id",
     "resource_gate",
     "expansion_count",
     "plan_length",
@@ -172,7 +172,7 @@ def _schema_doc(title: str, fields: tuple[str, ...], *, required: tuple[str, ...
     for field in ("model_facing", "supervised_target", "evaluation_metadata"):
         if field in fields:
             properties[field] = {"type": "object"}
-    for field in ("domain", "instance_id", "split", "planner", "example_id", "plan_hash", "trace_fidelity"):
+    for field in ("domain", "instance_id", "split", "planner", "example_id", "plan_id", "trace_fidelity"):
         if field in required_fields:
             properties[field] = {"type": "string"}
     if "vision_supervision_available" in fields:

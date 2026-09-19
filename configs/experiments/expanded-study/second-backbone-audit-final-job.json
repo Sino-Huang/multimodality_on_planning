@@ -1,0 +1,17 @@
+{
+  "job_id": "second-backbone-audit-final",
+  "branch": "second_backbone",
+  "gpus": [],
+  "max_seconds": 21600,
+  "total": 144,
+  "command": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/run_expanded_second_backbone.py",
+    "finalize-evaluation"
+  ],
+  "completion_hook": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/run_expanded_second_backbone.py",
+    "audit-final"
+  ]
+}

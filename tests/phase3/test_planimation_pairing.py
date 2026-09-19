@@ -149,8 +149,6 @@ def test_pair_render_and_emit_vlm_records(tmp_path: Path) -> None:
 
     cache_result = json.loads(next((output_root / "state_cache").rglob("result.json")).read_text(encoding="utf-8"))
     assert cache_result["profile_path"].startswith("data/")
-    assert len(cache_result["profile_sha256"]) == 64
-    assert len(cache_result["png_sha256"]) == 64
     assert cache_result["png_dimensions"] == [100, 100]
     assert cache_result["semantic_image_qa"] == "validated_expected_object_coverage"
 
@@ -460,10 +458,6 @@ def test_render_replay_rejects_stale_cache_metadata_and_corrupt_png(tmp_path: Pa
     render_replay_states(output_root, renderer=fake_renderer, config=RenderConfig(request_delay_seconds=0))
     cache_dir = next((output_root / "state_cache").rglob("result.json")).parent
     (cache_dir / "frames" / "frame_000.png").write_bytes(b"\x89PNG\r\n\x1a\nnot-a-decodable-image")
-    stale = json.loads((cache_dir / "result.json").read_text(encoding="utf-8"))
-    stale["png_sha256"] = "0" * 64
-    (cache_dir / "result.json").write_text(json.dumps(stale), encoding="utf-8")
-
     rerun = render_replay_states(output_root, renderer=fake_renderer, config=RenderConfig(request_delay_seconds=0))
 
     assert rerun["summary"]["cache_hits"] == 3
@@ -684,7 +678,7 @@ def test_validate_hybrid_record_rejects_unexpected_nested_contract_field(tmp_pat
         ("step_vlm_train.jsonl", ("target", "reasoning_context"), [], "schema type mismatch for target.reasoning_context: expected object"),
         ("full_reasoning_train.jsonl", ("provenance", "pair", "source_line_index"), True, "schema type mismatch for provenance.pair.source_line_index: expected integer"),
         ("full_reasoning_train.jsonl", ("provenance", "event", "action"), False, "schema type mismatch for provenance.event.action: expected string or null"),
-        ("full_reasoning_train.jsonl", ("provenance", "state", "state_hash"), 1, "schema type mismatch for provenance.state.state_hash: expected string"),
+        ("full_reasoning_train.jsonl", ("provenance", "state", "state_id"), 1, "schema type mismatch for provenance.state.state_id: expected string"),
         ("full_reasoning_train.jsonl", ("provenance", "render", "png_dimensions"), [100, True], "schema type mismatch for provenance.render.png_dimensions[1]: expected integer"),
         ("full_reasoning_train.jsonl", ("artifact_paths", "image_path"), "/tmp/forged.png", "artifact_paths image_path must be relative"),
     ],
@@ -816,9 +810,7 @@ def test_pair_manifest_freezes_jsonl_row_provenance_and_reloads_without_trace_fi
     assert record["source_root_id"] == source_root.name
     assert record["source_jsonl"] == "train.jsonl"
     assert record["source_line_index"] == 0
-    assert len(record["source_record_sha256"]) == 64
-    assert len(record["source_split_sha256"]) == 64
-    assert len(record["source_root_sha256"]) == 64
+    assert record["source_record_id"] == "train.jsonl:0:example-0000"
     assert _load_source_example(record)["example_id"] == "example-0000"
 
 
@@ -864,7 +856,6 @@ def test_pair_manifest_excludes_legacy_trace_contract_without_plan_level_fallbac
         ("split", "dev", "split"),
         ("domain", "other", "domain"),
         ("instance_id", "other-instance", "instance_id"),
-        ("plan_hash", "other-plan", "plan_hash"),
     ],
 )
 def test_load_source_example_rejects_manifest_identity_drift(tmp_path: Path, field: str, value: str, reason: str) -> None:
@@ -890,7 +881,7 @@ def test_validate_pairing_output_indexes_source_rows_once_per_jsonl(tmp_path: Pa
     source_root = _source_root(tmp_path)
     source_path = source_root / "train.jsonl"
     first = json.loads(source_path.read_text(encoding="utf-8"))
-    second = {**first, "example_id": "example-0001", "plan_hash": "plan-hash-0001"}
+    second = {**first, "example_id": "example-0001", "plan_id": "plan-hash-0001"}
     source_path.write_text("\n" + json.dumps(first) + "\n\n" + json.dumps(second) + "\n", encoding="utf-8")
     output_root = _output_root(tmp_path)
     records = build_pairing_manifest([source_root], output_root, config=PairingConfig(domains=frozenset({"tiny"}), buckets=frozenset({"easy"})))["records"]
@@ -1040,7 +1031,7 @@ def _source_root(tmp_path: Path, *, vfg_action: str = "(move a b)", recovered: b
         "instance_id": "tiny-train-easy-0000",
         "split": "train",
         "planner": planner,
-        "plan_hash": "plan-hash",
+        "plan_id": "plan-hash",
         "trace_fidelity": "success_full_trace",
         "vision_supervision_available": True,
         "model_facing": {"domain_source": relpath(domain), "problem_source": relpath(problem), "vision": {"trace_path": relpath(render / "trace.vfg.json"), "frame_paths": [relpath(frames / "frame_000.png"), relpath(frames / "frame_001.png")]}},

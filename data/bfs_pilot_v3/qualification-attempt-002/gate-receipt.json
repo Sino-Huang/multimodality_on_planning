@@ -1,0 +1,7 @@
+{
+  "attempt_id": "qualification-attempt-002",
+  "outcome": "PASS",
+  "phase_id": "issue-111-bfs-expansion-qualified-pilot-v3",
+  "schema_version": "bfs_pilot_gate_receipt_v3",
+  "scientific_completion": false
+}

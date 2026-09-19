@@ -1,0 +1,52 @@
+(define (problem freecell-f2-c2-s2-i1-02-12
+)(:domain freecell)
+(:objects 
+          C0 CA C2
+          H0 HA H2
+ - card
+          CELLN0 CELLN1 CELLN2 
+ - cellnum
+          COLN0 COLN1 COLN2 
+ - colnum
+          N0 N1 N2 
+ - num
+           C H
+ - suit
+)
+(:init
+(VALUE C0 N0)
+(VALUE CA N1)
+(VALUE C2 N2)
+(VALUE H0 N0)
+(VALUE HA N1)
+(VALUE H2 N2)
+(CELLSUCCESSOR CELLN1 CELLN0)
+(CELLSUCCESSOR CELLN2 CELLN1)
+(COLSUCCESSOR COLN1 COLN0)
+(COLSUCCESSOR COLN2 COLN1)
+(SUCCESSOR N1 N0)
+(SUCCESSOR N2 N1)
+(HASSUIT C0 C)
+(HASSUIT CA C)
+(HASSUIT C2 C)
+(HASSUIT H0 H)
+(HASSUIT HA H)
+(HASSUIT H2 H)
+(HOME C0)
+(HOME H0)
+(CELLSPACE CELLN2)
+(COLSPACE COLN1)
+
+(BOTTOMCOL C2)
+(ON CA C2)
+(ON HA CA)
+(ON H2 HA)
+(CLEAR H2)
+)
+(:goal
+(and
+(HOME C2)
+(HOME H2)
+)
+)
+)

@@ -1,0 +1,478 @@
+{
+  "scope": "Historical evidence inventory prepared before #76 results; not a #77 decision or final study conclusion.",
+  "historical_bfs_stages": [
+    {
+      "stage": "v3",
+      "status": "superseded defective protocol",
+      "limitations": [
+        "live/training input mismatch",
+        "some target outputs exceeded generation budget"
+      ],
+      "source": "https://github.com/Sino-Huang/multimodality_on_planning/issues/54"
+    },
+    {
+      "stage": "v6",
+      "status": "corrected observable corpus, completed training, interrupted broad checkpoint evaluation",
+      "improvements": [
+        "complete static task context",
+        "exact candidate and visited membership",
+        "zero audited conflicting identical inputs and cross-split overlaps",
+        "8192-token context and 384-token output allowance"
+      ],
+      "limitations": [
+        "broad checkpoint evaluation paused for time cost",
+        "partial evaluations did not support a completed adjudication"
+      ],
+      "source": "https://github.com/Sino-Huang/multimodality_on_planning/issues/54"
+    },
+    {
+      "stage": "resource preflight successors",
+      "status": "resource admission stops before completed deadline evaluation",
+      "source": "https://github.com/Sino-Huang/multimodality_on_planning/issues/54"
+    },
+    {
+      "stage": "v8",
+      "status": "complete corrected cost-qualified evaluation with failed gain gate",
+      "selected_tasks": 15,
+      "difficulty_counts": {
+        "easy": 11,
+        "medium": 3,
+        "hard": 1
+      },
+      "selected_task_ids": [
+        "15puzzle-dev-easy-0000",
+        "blocksworld-dev-easy-0000",
+        "depot-dev-easy-0000",
+        "driverlog-dev-medium-0000",
+        "elevators-dev-easy-0000",
+        "ferry-dev-easy-0000",
+        "freecell-dev-hard-0000",
+        "grid-dev-easy-0000",
+        "gripper-dev-medium-0000",
+        "logistics-dev-easy-0000",
+        "snake-dev-easy-0000",
+        "sokoban-dev-easy-0000",
+        "storage-dev-easy-0000",
+        "towers_of_hanoi-dev-medium-0000",
+        "visitall-dev-easy-0000"
+      ],
+      "outcome": "VALID_STOP",
+      "coverage_complete": true,
+      "elapsed_seconds": 28465.573609113693,
+      "metrics": {
+        "absolute_gain_over_best_control": 0.0,
+        "base_invariant_valid_success": 0.0,
+        "best_control": "random_valid",
+        "checks": {
+          "absolute_gain": false,
+          "bootstrap_lower_bound": true,
+          "invalid_operation_rate": true,
+          "invariant_valid_success": true
+        },
+        "exact_reference_invariant_valid_success": 1.0,
+        "outcome": "VALID_STOP",
+        "paired_bootstrap_gain_lower_bound": 0.0,
+        "per_seed": {
+          "101": {
+            "base_invariant_valid_success": 0.0,
+            "process_sft_invalid_operation_rate": 0.0,
+            "process_sft_invariant_valid_success": 1.0,
+            "random_valid_invariant_valid_success": 1.0,
+            "selected_adapter": "checkpoint-1221-seed-101"
+          },
+          "17": {
+            "base_invariant_valid_success": 0.0,
+            "process_sft_invalid_operation_rate": 0.0,
+            "process_sft_invariant_valid_success": 1.0,
+            "random_valid_invariant_valid_success": 1.0,
+            "selected_adapter": "checkpoint-1221-seed-17"
+          },
+          "29": {
+            "base_invariant_valid_success": 0.0,
+            "process_sft_invalid_operation_rate": 0.0,
+            "process_sft_invariant_valid_success": 1.0,
+            "random_valid_invariant_valid_success": 1.0,
+            "selected_adapter": "checkpoint-1221-seed-29"
+          },
+          "43": {
+            "base_invariant_valid_success": 0.0,
+            "process_sft_invalid_operation_rate": 0.0,
+            "process_sft_invariant_valid_success": 1.0,
+            "random_valid_invariant_valid_success": 1.0,
+            "selected_adapter": "checkpoint-1221-seed-43"
+          },
+          "71": {
+            "base_invariant_valid_success": 0.0,
+            "process_sft_invalid_operation_rate": 0.0,
+            "process_sft_invariant_valid_success": 1.0,
+            "random_valid_invariant_valid_success": 1.0,
+            "selected_adapter": "checkpoint-1221-seed-71"
+          }
+        },
+        "process_sft_invalid_operation_rate": 0.0,
+        "process_sft_invariant_valid_success": 1.0,
+        "random_valid_invariant_valid_success": 1.0,
+        "scientific_completion": false,
+        "selected_adapters": {
+          "101": "checkpoint-1221-seed-101",
+          "17": "checkpoint-1221-seed-17",
+          "29": "checkpoint-1221-seed-29",
+          "43": "checkpoint-1221-seed-43",
+          "71": "checkpoint-1221-seed-71"
+        }
+      },
+      "source": "outputs/bfs_phase/issue54-v8-adjudication/report.json"
+    }
+  ],
+  "issue67": {
+    "source": "data/best_first_paired_phase_v3/issue67-terminal/result.json",
+    "outcome": "PASS",
+    "coverage": {
+      "evaluation_seeds": [
+        17,
+        29,
+        43,
+        71,
+        101
+      ],
+      "mode": "cheapest_complete_task_per_domain",
+      "reference_episodes": 72,
+      "replayed_episodes": 312,
+      "rollout_episodes": 240,
+      "selected_tasks": 12
+    },
+    "training": {
+      "logical_runs_per_cell": 1,
+      "mixed_order": {
+        "completed_steps": 522,
+        "final_attempt": 1,
+        "seed": 17
+      },
+      "shuffled": {
+        "completed_steps": 522,
+        "final_attempt": 2,
+        "resumed_from_step": 260,
+        "seed": 17
+      },
+      "staged": {
+        "completed_steps": 522,
+        "final_attempt": 2,
+        "resumed_from_step": 260,
+        "seed": 17
+      }
+    },
+    "condition_results": {
+      "exact_reference": {
+        "budget_usage": 0.5,
+        "episodes": 12,
+        "invalid_operation_rate": 0.0,
+        "invariant_valid_success": 1.0
+      },
+      "pretrained_base": {
+        "budget_usage": 0.005067567567567568,
+        "episodes": 60,
+        "invalid_operation_rate": 1.0,
+        "invariant_valid_success": 0.0
+      },
+      "process_sft": {
+        "mixed_order": {
+          "budget_usage": 0.5,
+          "episodes": 60,
+          "invalid_operation_rate": 0.0,
+          "invariant_valid_success": 1.0
+        },
+        "shuffled": {
+          "budget_usage": 0.5,
+          "episodes": 60,
+          "invalid_operation_rate": 0.0,
+          "invariant_valid_success": 1.0
+        },
+        "staged": {
+          "budget_usage": 0.5,
+          "episodes": 60,
+          "invalid_operation_rate": 0.0,
+          "invariant_valid_success": 1.0
+        }
+      },
+      "random_valid": {
+        "budget_usage": 0.5,
+        "episodes": 60,
+        "invalid_operation_rate": 0.0,
+        "invariant_valid_success": 1.0
+      }
+    },
+    "curriculum_conclusion": {
+      "equivalence_margin": 0.05,
+      "pairwise_intervals": {
+        "shuffled_minus_mixed_order": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "staged_minus_mixed_order": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "staged_minus_shuffled": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "statement": "Staged, shuffled, and mixed-order training were practically equivalent on the selected panel; all three achieved complete invariant-valid success with zero invalid operations.",
+      "status": "no_material_order_effect"
+    },
+    "replacement_setting_comparison": {
+      "conclusion": "no_material_model_decision_advantage",
+      "greedy_relative_decision_reduction_interval": [
+        -0.04773342945382349,
+        0.0562367864693446,
+        0.16972353842017837
+      ],
+      "learned_success_difference_greedy_minus_w3": 0.0,
+      "material_decision_reduction_threshold": 0.1,
+      "statement": "Greedy used fewer aggregate decisions and expansions but did not meet the frozen model-decision advantage threshold; it also returned higher-cost solutions on aggregate."
+    },
+    "original_heuristic_representation": {
+      "outcome": "ANCESTOR_STOP",
+      "scientific_completion": false,
+      "statement": "The stopped h-max versus landmark-count phase cannot support a heuristic-representation claim; both authorized replacements use h_add."
+    },
+    "matched_to_issue76": false,
+    "reason": "Different corpus/input contract, full training schedule and selected task panel; not a matched text pilot baseline."
+  },
+  "issue75": {
+    "source": "docs/experiments/issue75/v5-completion-verification.json",
+    "execution_complete": true,
+    "scientific_gate_passed": false,
+    "task_groups": 42,
+    "algorithm_task_cases": 54,
+    "episodes": 864,
+    "training_records": 43876,
+    "training_epochs": 2,
+    "training_seed": 17,
+    "evaluation_seeds": [
+      17,
+      29,
+      43,
+      71,
+      101
+    ],
+    "elapsed_seconds": 274431.03,
+    "metrics": {
+      "bfs": {
+        "invariant_valid_success": {
+          "exact_reference": 1.0,
+          "random_valid": 0.7066666666666667,
+          "pretrained_base": 0.0,
+          "process_sft": 1.0
+        },
+        "invalid_operation_rate": {
+          "exact_reference": 0.0,
+          "random_valid": 0.0,
+          "pretrained_base": 1.0,
+          "process_sft": 0.0
+        },
+        "budget_usage": {
+          "exact_reference": 0.5,
+          "random_valid": 0.47876712328767124,
+          "pretrained_base": 0.025684931506849314,
+          "process_sft": 0.5
+        },
+        "best_control": "random_valid",
+        "gain": 0.29333333333333333,
+        "paired_bootstrap_lower_bound": 0.14666666666666667,
+        "advantage_established": true,
+        "per_seed_success": {
+          "17": {
+            "random_valid": 0.6666666666666666,
+            "pretrained_base": 0.0,
+            "process_sft": 1.0
+          },
+          "29": {
+            "random_valid": 0.7333333333333333,
+            "pretrained_base": 0.0,
+            "process_sft": 1.0
+          },
+          "43": {
+            "random_valid": 0.8,
+            "pretrained_base": 0.0,
+            "process_sft": 1.0
+          },
+          "71": {
+            "random_valid": 0.5333333333333333,
+            "pretrained_base": 0.0,
+            "process_sft": 1.0
+          },
+          "101": {
+            "random_valid": 0.8,
+            "pretrained_base": 0.0,
+            "process_sft": 1.0
+          }
+        }
+      },
+      "best_first_width": {
+        "invariant_valid_success": {
+          "exact_reference": 1.0,
+          "random_valid": 0.52,
+          "pretrained_base": 0.0,
+          "process_sft": 0.6666666666666666
+        },
+        "invalid_operation_rate": {
+          "exact_reference": 0.0,
+          "random_valid": 0.0,
+          "pretrained_base": 1.0,
+          "process_sft": 0.0044286979627989375
+        },
+        "budget_usage": {
+          "exact_reference": 0.5,
+          "random_valid": 0.4823270163067431,
+          "pretrained_base": 0.0033054208902600266,
+          "process_sft": 0.24878801234023798
+        },
+        "best_control": "random_valid",
+        "gain": 0.1466666666666666,
+        "paired_bootstrap_lower_bound": -0.14666666666666667,
+        "advantage_established": false,
+        "per_seed_success": {
+          "17": {
+            "random_valid": 0.4666666666666667,
+            "pretrained_base": 0.0,
+            "process_sft": 0.6666666666666666
+          },
+          "29": {
+            "random_valid": 0.5333333333333333,
+            "pretrained_base": 0.0,
+            "process_sft": 0.6666666666666666
+          },
+          "43": {
+            "random_valid": 0.4,
+            "pretrained_base": 0.0,
+            "process_sft": 0.6666666666666666
+          },
+          "71": {
+            "random_valid": 0.4666666666666667,
+            "pretrained_base": 0.0,
+            "process_sft": 0.6666666666666666
+          },
+          "101": {
+            "random_valid": 0.7333333333333333,
+            "pretrained_base": 0.0,
+            "process_sft": 0.6666666666666666
+          }
+        }
+      },
+      "best_first_add_w3": {
+        "invariant_valid_success": {
+          "exact_reference": 1.0,
+          "random_valid": 1.0,
+          "pretrained_base": 0.0,
+          "process_sft": 1.0
+        },
+        "invalid_operation_rate": {
+          "exact_reference": 0.0,
+          "random_valid": 0.0,
+          "pretrained_base": 1.0,
+          "process_sft": 0.0
+        },
+        "budget_usage": {
+          "exact_reference": 0.5,
+          "random_valid": 0.5,
+          "pretrained_base": 0.005249343832020997,
+          "process_sft": 0.5
+        },
+        "best_control": "random_valid",
+        "gain": 0.0,
+        "paired_bootstrap_lower_bound": 0.0,
+        "advantage_established": false,
+        "per_seed_success": {
+          "17": {
+            "random_valid": 1.0,
+            "pretrained_base": 0.0,
+            "process_sft": 1.0
+          },
+          "29": {
+            "random_valid": 1.0,
+            "pretrained_base": 0.0,
+            "process_sft": 1.0
+          },
+          "43": {
+            "random_valid": 1.0,
+            "pretrained_base": 0.0,
+            "process_sft": 1.0
+          },
+          "71": {
+            "random_valid": 1.0,
+            "pretrained_base": 0.0,
+            "process_sft": 1.0
+          },
+          "101": {
+            "random_valid": 1.0,
+            "pretrained_base": 0.0,
+            "process_sft": 1.0
+          }
+        }
+      },
+      "best_first_add_greedy": {
+        "invariant_valid_success": {
+          "exact_reference": 1.0,
+          "random_valid": 1.0,
+          "pretrained_base": 0.0,
+          "process_sft": 1.0
+        },
+        "invalid_operation_rate": {
+          "exact_reference": 0.0,
+          "random_valid": 0.0,
+          "pretrained_base": 1.0,
+          "process_sft": 0.0
+        },
+        "budget_usage": {
+          "exact_reference": 0.5,
+          "random_valid": 0.5,
+          "pretrained_base": 0.005067567567567568,
+          "process_sft": 0.5
+        },
+        "best_control": "random_valid",
+        "gain": 0.0,
+        "paired_bootstrap_lower_bound": 0.0,
+        "advantage_established": false,
+        "per_seed_success": {
+          "17": {
+            "random_valid": 1.0,
+            "pretrained_base": 0.0,
+            "process_sft": 1.0
+          },
+          "29": {
+            "random_valid": 1.0,
+            "pretrained_base": 0.0,
+            "process_sft": 1.0
+          },
+          "43": {
+            "random_valid": 1.0,
+            "pretrained_base": 0.0,
+            "process_sft": 1.0
+          },
+          "71": {
+            "random_valid": 1.0,
+            "pretrained_base": 0.0,
+            "process_sft": 1.0
+          },
+          "101": {
+            "random_valid": 1.0,
+            "pretrained_base": 0.0,
+            "process_sft": 1.0
+          }
+        }
+      }
+    },
+    "matched_to_issue76": false
+  },
+  "interpretation_limits": [
+    "Do not pool success rates from different panels or training schedules.",
+    "Random-valid is a programmatic valid-operation reference, not an equally informed learned baseline.",
+    "High success with saturated controls does not establish structural/process advantage.",
+    "Repeated rollout seeds do not establish training-seed variance.",
+    "No held-out final evaluation or cross-modality causal conclusion is available from this inventory."
+  ]
+}

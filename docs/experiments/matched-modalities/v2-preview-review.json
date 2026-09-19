@@ -1,0 +1,104 @@
+{
+  "study_id": "matched-modalities-v2",
+  "reviewer": "assistant visual inspection requested by user",
+  "processed_previews_inspected": [
+    "outputs/matched_modalities/v2/preparation/final/storage-760000/preview-task-context-0.png",
+    "outputs/matched_modalities/v2/preparation/final/storage-760000/preview-task-context-1.png",
+    "outputs/matched_modalities/v2/preparation/final/storage-760000/preview-task-context-2.png",
+    "outputs/matched_modalities/v2/preparation/final/storage-760000/preview-current-state-0.png",
+    "outputs/matched_modalities/v2/preparation/final/storage-760000/preview-goal-0.png",
+    "outputs/matched_modalities/v2/preparation/final/blocksworld-730002/preview-task-context-0.png",
+    "outputs/matched_modalities/v2/preparation/final/blocksworld-730002/preview-current-state-0.png",
+    "outputs/matched_modalities/v2/preparation/final/blocksworld-730002/preview-goal-0.png",
+    "outputs/matched_modalities/v2/preparation/final/ferry-740000/preview-task-context-0.png",
+    "outputs/matched_modalities/v2/preparation/final/ferry-740000/preview-current-state-0.png",
+    "outputs/matched_modalities/v2/preparation/final/ferry-740000/preview-goal-0.png"
+  ],
+  "no_clipping_observed": true,
+  "readable_annotation_text": true,
+  "constraint_scope_and_arguments_preserved": true,
+  "note": "Original 128px scenes are illustrative; their tiny labels are not relied on. Annotation pages remain 24px DejaVuSans under the frozen Qwen processor.",
+  "tasks": [
+    {
+      "task_id": "matched-final/storage-760000",
+      "states": 21,
+      "maximum_input_tokens": {
+        "text-state": 2713,
+        "visual-state": 5381,
+        "multimodal-state": 6589
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 8,
+          "expansions": 5
+        },
+        "best_first_width": {
+          "decisions": 6,
+          "expansions": 5
+        },
+        "best_first_add_w3": {
+          "decisions": 10,
+          "expansions": 4
+        },
+        "best_first_add_greedy": {
+          "decisions": 10,
+          "expansions": 4
+        }
+      }
+    },
+    {
+      "task_id": "matched-final/blocksworld-730002",
+      "states": 125,
+      "maximum_input_tokens": {
+        "text-state": 1769,
+        "visual-state": 3769,
+        "multimodal-state": 4095
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 54,
+          "expansions": 32
+        },
+        "best_first_width": {
+          "decisions": 19,
+          "expansions": 11
+        },
+        "best_first_add_w3": {
+          "decisions": 25,
+          "expansions": 9
+        },
+        "best_first_add_greedy": {
+          "decisions": 25,
+          "expansions": 9
+        }
+      }
+    },
+    {
+      "task_id": "matched-final/ferry-740000",
+      "states": 45,
+      "maximum_input_tokens": {
+        "text-state": 1788,
+        "visual-state": 3683,
+        "multimodal-state": 4114
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 26,
+          "expansions": 17
+        },
+        "best_first_width": {
+          "decisions": 22,
+          "expansions": 13
+        },
+        "best_first_add_w3": {
+          "decisions": 12,
+          "expansions": 4
+        },
+        "best_first_add_greedy": {
+          "decisions": 12,
+          "expansions": 4
+        }
+      }
+    }
+  ]
+}

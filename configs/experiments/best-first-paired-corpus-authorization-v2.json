@@ -1,0 +1,31 @@
+{
+  "authorization_id": "issue-64-best-first-paired-corpus-authorization-v2",
+  "authorized_stages": [
+    "corpus_release"
+  ],
+  "contract_id": "issue-64-best-first-paired-corpus-v2",
+  "design_manifest": {
+    "path": "configs/experiments/best-first-paired-corpus-design-v2.json"
+  },
+  "gate_receipt": {
+    "contract_id": "issue-64-best-first-paired-corpus-v2",
+    "outcome": "PASS",
+    "receipt_id": "gate:issue-64-best-first-paired-corpus-v2:PASS",
+    "schema_version": "best_first_corpus_gate_v1",
+    "source_issue": 64
+  },
+  "outcome": "PASS",
+  "output_root": "data/best_first_paired_phase_v3/corpus-release-v2",
+  "parent_issue": 38,
+  "predecessor_receipt": {
+    "path": "data/best_first_paired_phase_v3/corpus-receipts/corpus-issue-64-best-first-paired-corpus-v1-attempt-001.json"
+  },
+  "receipt_id": "corpus:issue-64-best-first-paired-corpus-v2:attempt-001",
+  "schema_version": "best_first_paired_corpus_authorization_v2",
+  "scientific_completion": false,
+  "source_generation_receipt": {
+    "path": "data/best_first_paired_phase_v3/exact-traces/generation-receipt.json"
+  },
+  "source_issue": 64,
+  "start_permitted": true
+}

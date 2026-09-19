@@ -1,0 +1,123 @@
+{
+  "study_id": "matched-modalities-v3",
+  "scope": "text-state only",
+  "outcome": "PASS",
+  "completed_text_adapters": 4,
+  "complete_training_coverage": false,
+  "visual_adapters": 0,
+  "multimodal_adapters": 0,
+  "record_presentations": 2048,
+  "optimizer_updates": 64,
+  "shared_training_seconds_spent": 1512.3401610851288,
+  "adapters": [
+    {
+      "algorithm": "bfs",
+      "steps": 16,
+      "seed": 17,
+      "final_checkpoint": "outputs/matched_modalities/v3/training/text-state/bfs/final",
+      "diagnostics": [
+        {
+          "eval_loss": 0.08005227893590927,
+          "eval_runtime": 8.6088,
+          "eval_samples_per_second": 3.252,
+          "eval_steps_per_second": 3.252,
+          "epoch": 0.3125,
+          "step": 5
+        },
+        {
+          "eval_loss": 0.02901265397667885,
+          "eval_runtime": 7.9582,
+          "eval_samples_per_second": 3.518,
+          "eval_steps_per_second": 3.518,
+          "epoch": 0.625,
+          "step": 10
+        }
+      ],
+      "adapter_isolation_passed": true,
+      "started": 1789307026.1330938,
+      "finished": 1789307838.58001
+    },
+    {
+      "algorithm": "best_first_width",
+      "steps": 16,
+      "seed": 17,
+      "final_checkpoint": "outputs/matched_modalities/v3/training/text-state/best_first_width/final",
+      "diagnostics": [
+        {
+          "eval_loss": 0.41243964433670044,
+          "eval_runtime": 7.7015,
+          "eval_samples_per_second": 3.376,
+          "eval_steps_per_second": 3.376,
+          "epoch": 0.3125,
+          "step": 5
+        },
+        {
+          "eval_loss": 0.09120343625545502,
+          "eval_runtime": 7.4371,
+          "eval_samples_per_second": 3.496,
+          "eval_steps_per_second": 3.496,
+          "epoch": 0.625,
+          "step": 10
+        }
+      ],
+      "adapter_isolation_passed": true,
+      "started": 1789307026.1341088,
+      "finished": 1789307811.4785376
+    },
+    {
+      "algorithm": "best_first_add_w3",
+      "steps": 16,
+      "seed": 17,
+      "final_checkpoint": "outputs/matched_modalities/v3/training/text-state/best_first_add_w3/final",
+      "diagnostics": [
+        {
+          "eval_loss": 0.039811208844184875,
+          "eval_runtime": 5.1836,
+          "eval_samples_per_second": 5.209,
+          "eval_steps_per_second": 5.209,
+          "epoch": 0.3125,
+          "step": 5
+        },
+        {
+          "eval_loss": 0.032545655965805054,
+          "eval_runtime": 5.4756,
+          "eval_samples_per_second": 4.931,
+          "eval_steps_per_second": 4.931,
+          "epoch": 0.625,
+          "step": 10
+        }
+      ],
+      "adapter_isolation_passed": true,
+      "started": 1789307821.4478931,
+      "finished": 1789308494.4018843
+    },
+    {
+      "algorithm": "best_first_add_greedy",
+      "steps": 16,
+      "seed": 17,
+      "final_checkpoint": "outputs/matched_modalities/v3/training/text-state/best_first_add_greedy/final",
+      "diagnostics": [
+        {
+          "eval_loss": 0.031611546874046326,
+          "eval_runtime": 5.2599,
+          "eval_samples_per_second": 5.133,
+          "eval_steps_per_second": 5.133,
+          "epoch": 0.3125,
+          "step": 5
+        },
+        {
+          "eval_loss": 0.0291376244276762,
+          "eval_runtime": 5.1988,
+          "eval_samples_per_second": 5.193,
+          "eval_steps_per_second": 5.193,
+          "epoch": 0.625,
+          "step": 10
+        }
+      ],
+      "adapter_isolation_passed": true,
+      "started": 1789307846.5869696,
+      "finished": 1789308522.5504444
+    }
+  ],
+  "hold_reason": "User requested scene-only state representations; annotated visual launches stopped before model loading."
+}

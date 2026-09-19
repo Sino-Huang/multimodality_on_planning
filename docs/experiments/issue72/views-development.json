@@ -1,0 +1,80 @@
+{
+  "contract_id": "issue-72-readable-pages-v1",
+  "outcome": "VALID_STOP",
+  "model_input_ready": false,
+  "scientific_completion": false,
+  "readability_approved": false,
+  "full_layout_dry_run": {
+    "tasks": 241,
+    "states": 51208,
+    "decisions": 78230,
+    "workers": 4,
+    "elapsed_seconds": 35.65,
+    "rendered_images": 0,
+    "model_calls": 0
+  },
+  "bounded_runs": [
+    {
+      "report": "outputs/modality_views/smoke-002/report.json",
+      "counts": {
+        "tasks": 1,
+        "states": 34,
+        "decisions": 139
+      },
+      "outcome": "INCOMPLETE",
+      "maximum_input_tokens": 3782,
+      "recommended_context": 8192,
+      "elapsed_seconds": 20.32440810278058
+    },
+    {
+      "report": "outputs/modality_views/smoke-003/report.json",
+      "counts": {
+        "tasks": 3,
+        "states": 179,
+        "decisions": 185
+      },
+      "outcome": "INCOMPLETE",
+      "maximum_input_tokens": 9798,
+      "recommended_context": 16384,
+      "elapsed_seconds": 22.60109722148627
+    },
+    {
+      "report": "outputs/modality_views/smoke-dense-001/report.json",
+      "counts": {
+        "tasks": 1,
+        "states": 594,
+        "decisions": 610
+      },
+      "outcome": "VALID_STOP",
+      "maximum_input_tokens": 49963,
+      "recommended_context": null,
+      "elapsed_seconds": 84.59896347299218
+    },
+    {
+      "report": "outputs/modality_views/smoke-004/report.json",
+      "counts": {
+        "tasks": 4,
+        "states": 213,
+        "decisions": 324
+      },
+      "outcome": "INCOMPLETE",
+      "maximum_input_tokens": 9798,
+      "recommended_context": 16384,
+      "elapsed_seconds": 25.244590020738542,
+      "per_decision_measurements_retained": true
+    }
+  ],
+  "blocker": "Dense Visitall: 49,963 input tokens exceeds 32,768 total-token ceiling before 384 output reserve. No automatic context increase, task dropping, truncation, materialization or activation.",
+  "preserved_scene_attempts": [
+    "collect-003",
+    "collect-004"
+  ],
+  "validation": {
+    "focused_tests_passed": 70,
+    "includes_actual_frozen_processor": true,
+    "interrupted_reuse_targeted_test_passed": true,
+    "ruff": "PASS",
+    "black": "PASS",
+    "basedpyright": "PASS"
+  }
+}

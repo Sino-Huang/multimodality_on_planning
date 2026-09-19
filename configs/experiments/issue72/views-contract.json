@@ -1,0 +1,29 @@
+{
+  "contract_id": "issue-72-readable-pages-v1",
+  "page_size": [
+    768,
+    1024
+  ],
+  "font": "DejaVuSans.ttf",
+  "font_size": 24,
+  "roles": [
+    "task-context",
+    "current-state",
+    "goal"
+  ],
+  "state_cache_bytes": 67108864,
+  "contexts": [
+    8192,
+    16384,
+    32768
+  ],
+  "output_tokens": 384,
+  "model_id": "Qwen/Qwen3-VL-8B-Instruct",
+  "model_revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+  "scene_report": "outputs/modality_phase/issue72-scenes128-v1/collect-004/report.json",
+  "expected": {
+    "tasks": 241,
+    "states": 51208,
+    "decisions": 78230
+  }
+}

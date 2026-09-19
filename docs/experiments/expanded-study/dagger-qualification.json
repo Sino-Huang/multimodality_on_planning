@@ -1,0 +1,52 @@
+{
+  "outcome": "PASS",
+  "protocol_id": "expanded-dagger-v1",
+  "hardware_qualified": true,
+  "modalities": {
+    "text-state": {
+      "full_output_seconds_per_decision": 20.160042429342866,
+      "trainable_adapter_microstep_seconds": 1.3901763502508402,
+      "collection_allowance_seconds": 20743.34196620807,
+      "training_allowance_seconds": 2884.4112605303526,
+      "full_evaluation_call_allowance": 7944,
+      "full_evaluation_allowance_seconds": 160201.10631798021,
+      "historical_consumption_evaluation_calls": 146,
+      "conditional_evaluation_seconds": 2993.0954539645463
+    },
+    "multimodal-state": {
+      "full_output_seconds_per_decision": 28.247382206842303,
+      "trainable_adapter_microstep_seconds": 3.0951449312269688,
+      "collection_allowance_seconds": 28982.855440218,
+      "training_allowance_seconds": 6376.078851163387,
+      "full_evaluation_call_allowance": 7944,
+      "full_evaluation_allowance_seconds": 224425.972281361,
+      "historical_consumption_evaluation_calls": 140,
+      "conditional_evaluation_seconds": 3983.401539163664
+    },
+    "visual-state": {
+      "full_output_seconds_per_decision": 25.271225281059742,
+      "trainable_adapter_microstep_seconds": 2.826968999579549,
+      "collection_allowance_seconds": 25978.33697734773,
+      "training_allowance_seconds": 5827.841428615153,
+      "full_evaluation_call_allowance": 7944,
+      "full_evaluation_allowance_seconds": 200804.91477750987,
+      "historical_consumption_evaluation_calls": 154,
+      "conditional_evaluation_seconds": 3942.069838054478
+    }
+  },
+  "qualification_gpu_hours_spent": 0.14161082983016968,
+  "full_allowance_gpu_hours": 234.94190919820994,
+  "full_allowance_completion_guaranteed": false,
+  "conditional_historical_consumption_gpu_hours": 35.45808053651954,
+  "conditional_cost_admission": true,
+  "branch_cap_gpu_hours": 48,
+  "model_outcomes_used_for_coverage_selection": false,
+  "coverage_reduction": null,
+  "collection_started": false,
+  "persistent_training_updates": 0,
+  "scalar_batch_divergence_reported": {
+    "text-state": false,
+    "multimodal-state": false,
+    "visual-state": false
+  }
+}

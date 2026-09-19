@@ -1,0 +1,17 @@
+{
+  "job_id": "panel-reference-views",
+  "branch": "expanded_baseline",
+  "gpus": [],
+  "max_seconds": 3600,
+  "total": 24,
+  "command": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/prepare_expanded_views.py",
+    "prepare"
+  ],
+  "completion_hook": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/prepare_expanded_views.py",
+    "audit"
+  ]
+}

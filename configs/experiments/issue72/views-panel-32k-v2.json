@@ -1,0 +1,4252 @@
+{
+  "schema_version": "modality_view_panel_v2",
+  "panel_id": "issue-72-readable-pages-panel-32k-v2",
+  "source_panel": "configs/experiments/issue71/v2/panel.json",
+  "measurement_report": "outputs/modality_views/select-32k-001/report.json",
+  "selection_uses_model_outcomes": false,
+  "authorization_basis": "User authorized exclusion of instances requiring more than 32K tokens, aligned with BFS/BFWS source training data.",
+  "selection_rule": "Exclude whole task group when any decision/modality exceeds 32384 input tokens; additive settings enter and leave together.",
+  "max_context_tokens": 32768,
+  "reserved_output_tokens": 384,
+  "max_input_tokens": 32384,
+  "source_counts": {
+    "tasks": 241,
+    "states": 51208,
+    "decisions": 78230
+  },
+  "expected": {
+    "tasks": 238,
+    "states": 49274,
+    "decisions": 76217
+  },
+  "selected": [
+    {
+      "task_id": "astar-pair-019a96eba9946613bdcbb545",
+      "domain": "towers_of_hanoi",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-019a96eba9946613bdcbb545/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-019a96eba9946613bdcbb545/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 68,
+          "expansions": 23
+        },
+        "best_first_add_w3": {
+          "decisions": 71,
+          "expansions": 24
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-051fdbd100fbacd0ec37c6bd",
+      "domain": "gripper",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-051fdbd100fbacd0ec37c6bd/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-051fdbd100fbacd0ec37c6bd/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 82,
+          "expansions": 15
+        },
+        "best_first_add_w3": {
+          "decisions": 82,
+          "expansions": 15
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-075c3ed815a56bd67d6aa030",
+      "domain": "visitall",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-075c3ed815a56bd67d6aa030/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-075c3ed815a56bd67d6aa030/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 190,
+          "expansions": 54
+        },
+        "best_first_add_w3": {
+          "decisions": 202,
+          "expansions": 57
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-0b41a0f58eae391b00530295",
+      "domain": "15puzzle",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-0b41a0f58eae391b00530295/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-0b41a0f58eae391b00530295/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 425,
+          "expansions": 143
+        },
+        "best_first_add_w3": {
+          "decisions": 592,
+          "expansions": 202
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-12081de85b7805e93ea9c5ec",
+      "domain": "storage",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-12081de85b7805e93ea9c5ec/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-12081de85b7805e93ea9c5ec/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 7,
+          "expansions": 3
+        },
+        "best_first_add_w3": {
+          "decisions": 7,
+          "expansions": 3
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-15205002a905be45f6de13ba",
+      "domain": "blocksworld",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-15205002a905be45f6de13ba/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-15205002a905be45f6de13ba/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 8,
+          "expansions": 4
+        },
+        "best_first_add_w3": {
+          "decisions": 8,
+          "expansions": 4
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-16cbf3ca9ba3286203d930e0",
+      "domain": "towers_of_hanoi",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-16cbf3ca9ba3286203d930e0/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-16cbf3ca9ba3286203d930e0/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 602,
+          "expansions": 201
+        },
+        "best_first_add_w3": {
+          "decisions": 779,
+          "expansions": 260
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-1957c98ec374a1aabc24ead1",
+      "domain": "ferry",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-1957c98ec374a1aabc24ead1/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-1957c98ec374a1aabc24ead1/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 56,
+          "expansions": 11
+        },
+        "best_first_add_w3": {
+          "decisions": 56,
+          "expansions": 11
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-1ade7fc9f40863f1c7f8ab28",
+      "domain": "grid",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-1ade7fc9f40863f1c7f8ab28/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-1ade7fc9f40863f1c7f8ab28/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 18,
+          "expansions": 6
+        },
+        "best_first_add_w3": {
+          "decisions": 18,
+          "expansions": 6
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-1bb0358debd75d2cbb8f1476",
+      "domain": "ferry",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-1bb0358debd75d2cbb8f1476/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-1bb0358debd75d2cbb8f1476/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 26,
+          "expansions": 9
+        },
+        "best_first_add_w3": {
+          "decisions": 26,
+          "expansions": 9
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-2f0e9c94cb201b472f3c22ca",
+      "domain": "visitall",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-2f0e9c94cb201b472f3c22ca/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-2f0e9c94cb201b472f3c22ca/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 142,
+          "expansions": 40
+        },
+        "best_first_add_w3": {
+          "decisions": 146,
+          "expansions": 41
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-3582dc0e217c46c51694d871",
+      "domain": "logistics",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-3582dc0e217c46c51694d871/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-3582dc0e217c46c51694d871/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 35,
+          "expansions": 5
+        },
+        "best_first_add_w3": {
+          "decisions": 35,
+          "expansions": 5
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-36f9d84cdc0c9b6047aecdfa",
+      "domain": "ferry",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-36f9d84cdc0c9b6047aecdfa/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-36f9d84cdc0c9b6047aecdfa/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 103,
+          "expansions": 21
+        },
+        "best_first_add_w3": {
+          "decisions": 103,
+          "expansions": 21
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-39c476766409cc3a2d68a6ef",
+      "domain": "ferry",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-39c476766409cc3a2d68a6ef/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-39c476766409cc3a2d68a6ef/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 12,
+          "expansions": 4
+        },
+        "best_first_add_w3": {
+          "decisions": 12,
+          "expansions": 4
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-3a30c275e3e2ae7ce2f33b0c",
+      "domain": "blocksworld",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-3a30c275e3e2ae7ce2f33b0c/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-3a30c275e3e2ae7ce2f33b0c/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 331,
+          "expansions": 68
+        },
+        "best_first_add_w3": {
+          "decisions": 339,
+          "expansions": 70
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-45b9ab3225aca821e79e1377",
+      "domain": "logistics",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-45b9ab3225aca821e79e1377/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-45b9ab3225aca821e79e1377/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 481,
+          "expansions": 33
+        },
+        "best_first_add_w3": {
+          "decisions": 481,
+          "expansions": 33
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-48e4e2038f5443ea4e720c87",
+      "domain": "gripper",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-48e4e2038f5443ea4e720c87/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-48e4e2038f5443ea4e720c87/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 622,
+          "expansions": 51
+        },
+        "best_first_add_w3": {
+          "decisions": 622,
+          "expansions": 51
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-52e29481191473f1076e755d",
+      "domain": "gripper",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-52e29481191473f1076e755d/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-52e29481191473f1076e755d/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 82,
+          "expansions": 15
+        },
+        "best_first_add_w3": {
+          "decisions": 82,
+          "expansions": 15
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-596aea50549b5d145900c791",
+      "domain": "blocksworld",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-596aea50549b5d145900c791/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-596aea50549b5d145900c791/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 893,
+          "expansions": 146
+        },
+        "best_first_add_w3": {
+          "decisions": 905,
+          "expansions": 149
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-6171b339e4cb4134c758558d",
+      "domain": "towers_of_hanoi",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-6171b339e4cb4134c758558d/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-6171b339e4cb4134c758558d/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 68,
+          "expansions": 23
+        },
+        "best_first_add_w3": {
+          "decisions": 71,
+          "expansions": 24
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-6352f1adec5c97e2a019afb8",
+      "domain": "depot",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-6352f1adec5c97e2a019afb8/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-6352f1adec5c97e2a019afb8/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 97,
+          "expansions": 11
+        },
+        "best_first_add_w3": {
+          "decisions": 97,
+          "expansions": 11
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-68102553bb074ad39ce92c92",
+      "domain": "15puzzle",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-68102553bb074ad39ce92c92/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-68102553bb074ad39ce92c92/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 388,
+          "expansions": 131
+        },
+        "best_first_add_w3": {
+          "decisions": 920,
+          "expansions": 315
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-686d0878aae995864745ba90",
+      "domain": "depot",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-686d0878aae995864745ba90/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-686d0878aae995864745ba90/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 99,
+          "expansions": 11
+        },
+        "best_first_add_w3": {
+          "decisions": 99,
+          "expansions": 11
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-68749e308f10bfe2d08d1760",
+      "domain": "elevators",
+      "difficulty": "hard",
+      "split": "train",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-68749e308f10bfe2d08d1760/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-68749e308f10bfe2d08d1760/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 280,
+          "expansions": 23
+        },
+        "best_first_add_w3": {
+          "decisions": 280,
+          "expansions": 23
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-6945fa02d2d17d867112c4f8",
+      "domain": "gripper",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-6945fa02d2d17d867112c4f8/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-6945fa02d2d17d867112c4f8/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 208,
+          "expansions": 27
+        },
+        "best_first_add_w3": {
+          "decisions": 208,
+          "expansions": 27
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-6e86542e71a4e886a3206800",
+      "domain": "ferry",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-6e86542e71a4e886a3206800/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-6e86542e71a4e886a3206800/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 629,
+          "expansions": 89
+        },
+        "best_first_add_w3": {
+          "decisions": 610,
+          "expansions": 85
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-7538502e3699babe03ea2040",
+      "domain": "gripper",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-7538502e3699babe03ea2040/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-7538502e3699babe03ea2040/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 712,
+          "expansions": 55
+        },
+        "best_first_add_w3": {
+          "decisions": 712,
+          "expansions": 55
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-7b4ab5abbaa41d4c8889f9d9",
+      "domain": "blocksworld",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-7b4ab5abbaa41d4c8889f9d9/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-7b4ab5abbaa41d4c8889f9d9/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 9,
+          "expansions": 4
+        },
+        "best_first_add_w3": {
+          "decisions": 9,
+          "expansions": 4
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-7bd5e7f0ad6f979dee4756cb",
+      "domain": "elevators",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-7bd5e7f0ad6f979dee4756cb/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-7bd5e7f0ad6f979dee4756cb/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 26,
+          "expansions": 6
+        },
+        "best_first_add_w3": {
+          "decisions": 26,
+          "expansions": 6
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-7c21d3ccb50204c13a15e7b9",
+      "domain": "ferry",
+      "difficulty": "hard",
+      "split": "train",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-7c21d3ccb50204c13a15e7b9/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-7c21d3ccb50204c13a15e7b9/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 410,
+          "expansions": 59
+        },
+        "best_first_add_w3": {
+          "decisions": 410,
+          "expansions": 59
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-7f785946db48bbe67222c817",
+      "domain": "driverlog",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-7f785946db48bbe67222c817/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-7f785946db48bbe67222c817/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 86,
+          "expansions": 10
+        },
+        "best_first_add_w3": {
+          "decisions": 86,
+          "expansions": 10
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-848763f2407cee58328339d3",
+      "domain": "elevators",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-848763f2407cee58328339d3/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-848763f2407cee58328339d3/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 29,
+          "expansions": 7
+        },
+        "best_first_add_w3": {
+          "decisions": 29,
+          "expansions": 7
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-8fd79215aa5f66ec902a00ff",
+      "domain": "logistics",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-8fd79215aa5f66ec902a00ff/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-8fd79215aa5f66ec902a00ff/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 569,
+          "expansions": 37
+        },
+        "best_first_add_w3": {
+          "decisions": 569,
+          "expansions": 37
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-91e111bd7f3e3b0915798450",
+      "domain": "towers_of_hanoi",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-91e111bd7f3e3b0915798450/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-91e111bd7f3e3b0915798450/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 599,
+          "expansions": 200
+        },
+        "best_first_add_w3": {
+          "decisions": 779,
+          "expansions": 260
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-91f3e92bc50d9d19e3dedd11",
+      "domain": "elevators",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-91f3e92bc50d9d19e3dedd11/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-91f3e92bc50d9d19e3dedd11/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 35,
+          "expansions": 9
+        },
+        "best_first_add_w3": {
+          "decisions": 35,
+          "expansions": 9
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-95ab115af93608b6f872a1b5",
+      "domain": "logistics",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-95ab115af93608b6f872a1b5/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-95ab115af93608b6f872a1b5/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 23,
+          "expansions": 3
+        },
+        "best_first_add_w3": {
+          "decisions": 23,
+          "expansions": 3
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-98c1d25bb281b00423a37e1e",
+      "domain": "blocksworld",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-98c1d25bb281b00423a37e1e/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-98c1d25bb281b00423a37e1e/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 192,
+          "expansions": 41
+        },
+        "best_first_add_w3": {
+          "decisions": 196,
+          "expansions": 42
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-9a5aedca496cf39ce562443e",
+      "domain": "elevators",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-9a5aedca496cf39ce562443e/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-9a5aedca496cf39ce562443e/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 338,
+          "expansions": 28
+        },
+        "best_first_add_w3": {
+          "decisions": 338,
+          "expansions": 28
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-9afbe57d9446f26953eae7d5",
+      "domain": "grid",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-9afbe57d9446f26953eae7d5/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-9afbe57d9446f26953eae7d5/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 72,
+          "expansions": 20
+        },
+        "best_first_add_w3": {
+          "decisions": 80,
+          "expansions": 22
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-9be08bcdd8d5c88b704a389f",
+      "domain": "ferry",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-9be08bcdd8d5c88b704a389f/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-9be08bcdd8d5c88b704a389f/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 9,
+          "expansions": 3
+        },
+        "best_first_add_w3": {
+          "decisions": 9,
+          "expansions": 3
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-a2c5721c6a3c55fd6a1ead7e",
+      "domain": "depot",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-a2c5721c6a3c55fd6a1ead7e/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-a2c5721c6a3c55fd6a1ead7e/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 178,
+          "expansions": 20
+        },
+        "best_first_add_w3": {
+          "decisions": 250,
+          "expansions": 28
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-a55f7ef3322cf2eea1341531",
+      "domain": "elevators",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-a55f7ef3322cf2eea1341531/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-a55f7ef3322cf2eea1341531/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 114,
+          "expansions": 14
+        },
+        "best_first_add_w3": {
+          "decisions": 114,
+          "expansions": 14
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-a6ef053082a84891715aa276",
+      "domain": "elevators",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-a6ef053082a84891715aa276/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-a6ef053082a84891715aa276/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 35,
+          "expansions": 9
+        },
+        "best_first_add_w3": {
+          "decisions": 35,
+          "expansions": 9
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-a7e9f9d8a560449e7e8dea7c",
+      "domain": "gripper",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-a7e9f9d8a560449e7e8dea7c/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-a7e9f9d8a560449e7e8dea7c/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 808,
+          "expansions": 59
+        },
+        "best_first_add_w3": {
+          "decisions": 808,
+          "expansions": 59
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-aaaa448e13387001133cb489",
+      "domain": "elevators",
+      "difficulty": "hard",
+      "split": "train",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-aaaa448e13387001133cb489/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-aaaa448e13387001133cb489/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 299,
+          "expansions": 25
+        },
+        "best_first_add_w3": {
+          "decisions": 299,
+          "expansions": 25
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-b14482d9ff9b955af5164881",
+      "domain": "storage",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-b14482d9ff9b955af5164881/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-b14482d9ff9b955af5164881/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 9,
+          "expansions": 3
+        },
+        "best_first_add_w3": {
+          "decisions": 9,
+          "expansions": 3
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-b24e907353a060c05285227f",
+      "domain": "logistics",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-b24e907353a060c05285227f/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-b24e907353a060c05285227f/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 80,
+          "expansions": 11
+        },
+        "best_first_add_w3": {
+          "decisions": 80,
+          "expansions": 11
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-b59a82d550893559e72e3eb5",
+      "domain": "depot",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-b59a82d550893559e72e3eb5/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-b59a82d550893559e72e3eb5/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 372,
+          "expansions": 44
+        },
+        "best_first_add_w3": {
+          "decisions": 372,
+          "expansions": 44
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-bc6ce59babccc16c270b5d19",
+      "domain": "towers_of_hanoi",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-bc6ce59babccc16c270b5d19/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-bc6ce59babccc16c270b5d19/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 602,
+          "expansions": 201
+        },
+        "best_first_add_w3": {
+          "decisions": 758,
+          "expansions": 253
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-c74b4dad2e92aad252008eed",
+      "domain": "storage",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-c74b4dad2e92aad252008eed/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-c74b4dad2e92aad252008eed/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 9,
+          "expansions": 3
+        },
+        "best_first_add_w3": {
+          "decisions": 9,
+          "expansions": 3
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-cc57de99aed278eb2b4ef084",
+      "domain": "ferry",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-cc57de99aed278eb2b4ef084/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-cc57de99aed278eb2b4ef084/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 10,
+          "expansions": 3
+        },
+        "best_first_add_w3": {
+          "decisions": 10,
+          "expansions": 3
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-cd52ad7ea95f66092a00388e",
+      "domain": "depot",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-cd52ad7ea95f66092a00388e/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-cd52ad7ea95f66092a00388e/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 923,
+          "expansions": 105
+        },
+        "best_first_add_w3": {
+          "decisions": 783,
+          "expansions": 89
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-ced39d7f5d295d4bbe978009",
+      "domain": "grid",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-ced39d7f5d295d4bbe978009/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-ced39d7f5d295d4bbe978009/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 13,
+          "expansions": 4
+        },
+        "best_first_add_w3": {
+          "decisions": 13,
+          "expansions": 4
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-d50aa97e5716e9b99787e332",
+      "domain": "driverlog",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-d50aa97e5716e9b99787e332/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-d50aa97e5716e9b99787e332/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 105,
+          "expansions": 13
+        },
+        "best_first_add_w3": {
+          "decisions": 105,
+          "expansions": 13
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-d6fd972a4475a5c3bfe69114",
+      "domain": "elevators",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-d6fd972a4475a5c3bfe69114/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-d6fd972a4475a5c3bfe69114/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 114,
+          "expansions": 13
+        },
+        "best_first_add_w3": {
+          "decisions": 114,
+          "expansions": 13
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-e234ab366482ad80703c71f7",
+      "domain": "logistics",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-e234ab366482ad80703c71f7/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-e234ab366482ad80703c71f7/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 584,
+          "expansions": 42
+        },
+        "best_first_add_w3": {
+          "decisions": 584,
+          "expansions": 42
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-e5b524e6fad607ba23f1bc79",
+      "domain": "towers_of_hanoi",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-e5b524e6fad607ba23f1bc79/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-e5b524e6fad607ba23f1bc79/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 71,
+          "expansions": 24
+        },
+        "best_first_add_w3": {
+          "decisions": 74,
+          "expansions": 25
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-e6a3347bbbc25d3eb1abd5e0",
+      "domain": "15puzzle",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-e6a3347bbbc25d3eb1abd5e0/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-e6a3347bbbc25d3eb1abd5e0/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 554,
+          "expansions": 188
+        },
+        "best_first_add_w3": {
+          "decisions": 918,
+          "expansions": 312
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-ec82a9ef4b15093fffe787a0",
+      "domain": "blocksworld",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-ec82a9ef4b15093fffe787a0/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-ec82a9ef4b15093fffe787a0/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 285,
+          "expansions": 69
+        },
+        "best_first_add_w3": {
+          "decisions": 328,
+          "expansions": 80
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-ed408d5f921ef09b7ede292a",
+      "domain": "grid",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-ed408d5f921ef09b7ede292a/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-ed408d5f921ef09b7ede292a/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 38,
+          "expansions": 10
+        },
+        "best_first_add_w3": {
+          "decisions": 38,
+          "expansions": 10
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-f11a1267d49463a982782c40",
+      "domain": "blocksworld",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-f11a1267d49463a982782c40/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-f11a1267d49463a982782c40/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 5,
+          "expansions": 2
+        },
+        "best_first_add_w3": {
+          "decisions": 5,
+          "expansions": 2
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-f26ec7b6805ca59777107b77",
+      "domain": "driverlog",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-f26ec7b6805ca59777107b77/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-f26ec7b6805ca59777107b77/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 142,
+          "expansions": 18
+        },
+        "best_first_add_w3": {
+          "decisions": 142,
+          "expansions": 18
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-f6b14b1766e2283358a604b9",
+      "domain": "ferry",
+      "difficulty": "hard",
+      "split": "train",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-f6b14b1766e2283358a604b9/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-f6b14b1766e2283358a604b9/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 400,
+          "expansions": 58
+        },
+        "best_first_add_w3": {
+          "decisions": 314,
+          "expansions": 45
+        }
+      }
+    },
+    {
+      "task_id": "astar-pair-f8eddbc6c32516f0586eadd1",
+      "domain": "15puzzle",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_add_greedy": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-f8eddbc6c32516f0586eadd1/best_first_add_greedy.json.gz",
+        "best_first_add_w3": "data/best_first_paired_phase_v3/exact-traces/pairs/astar-pair-f8eddbc6c32516f0586eadd1/best_first_add_w3.json.gz"
+      },
+      "reference_costs": {
+        "best_first_add_greedy": {
+          "decisions": 227,
+          "expansions": 78
+        },
+        "best_first_add_w3": {
+          "decisions": 179,
+          "expansions": 61
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/15puzzle-train-easy-0091",
+      "domain": "15puzzle",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/15puzzle/easy/dev/15puzzle-train-easy-0091/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 484,
+          "expansions": 276
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/15puzzle-train-medium-0001",
+      "domain": "15puzzle",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/15puzzle/medium/dev/15puzzle-train-medium-0001/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 734,
+          "expansions": 432
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/blocksworld-train-easy-0023",
+      "domain": "blocksworld",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/blocksworld/easy/train/blocksworld-train-easy-0023/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 6,
+          "expansions": 4
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/blocksworld-train-easy-0086",
+      "domain": "blocksworld",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/blocksworld/easy/dev/blocksworld-train-easy-0086/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 5,
+          "expansions": 4
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/blocksworld-train-easy-0101",
+      "domain": "blocksworld",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/blocksworld/easy/train/blocksworld-train-easy-0101/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 6,
+          "expansions": 3
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/blocksworld-train-hard-0060",
+      "domain": "blocksworld",
+      "difficulty": "hard",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/blocksworld/hard/train/blocksworld-train-hard-0060/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 640,
+          "expansions": 159
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/blocksworld-train-medium-0069",
+      "domain": "blocksworld",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/blocksworld/medium/train/blocksworld-train-medium-0069/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 517,
+          "expansions": 168
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/blocksworld-train-medium-0112",
+      "domain": "blocksworld",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/blocksworld/medium/dev/blocksworld-train-medium-0112/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 225,
+          "expansions": 88
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/blocksworld-train-medium-0121",
+      "domain": "blocksworld",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/blocksworld/medium/train/blocksworld-train-medium-0121/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 215,
+          "expansions": 72
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/depot-train-easy-0044",
+      "domain": "depot",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/depot/easy/train/depot-train-easy-0044/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 260,
+          "expansions": 73
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/depot-train-easy-0054",
+      "domain": "depot",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/depot/easy/train/depot-train-easy-0054/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 200,
+          "expansions": 62
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/depot-train-easy-0088",
+      "domain": "depot",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/depot/easy/dev/depot-train-easy-0088/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 271,
+          "expansions": 84
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/depot-train-medium-0007",
+      "domain": "depot",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/depot/medium/train/depot-train-medium-0007/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 330,
+          "expansions": 99
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/depot-train-medium-0014",
+      "domain": "depot",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/depot/medium/dev/depot-train-medium-0014/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 198,
+          "expansions": 67
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/driverlog-train-medium-0067",
+      "domain": "driverlog",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/driverlog/medium/train/driverlog-train-medium-0067/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 854,
+          "expansions": 161
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/driverlog-train-medium-0073",
+      "domain": "driverlog",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/driverlog/medium/train/driverlog-train-medium-0073/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 518,
+          "expansions": 102
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/driverlog-train-medium-0077",
+      "domain": "driverlog",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/driverlog/medium/dev/driverlog-train-medium-0077/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 707,
+          "expansions": 171
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/elevators-train-easy-0040",
+      "domain": "elevators",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/elevators/easy/dev/elevators-train-easy-0040/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 41,
+          "expansions": 20
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/elevators-train-easy-0064",
+      "domain": "elevators",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/elevators/easy/train/elevators-train-easy-0064/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 31,
+          "expansions": 18
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/elevators-train-easy-0067",
+      "domain": "elevators",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/elevators/easy/train/elevators-train-easy-0067/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 32,
+          "expansions": 19
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/elevators-train-hard-0021",
+      "domain": "elevators",
+      "difficulty": "hard",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/elevators/hard/train/elevators-train-hard-0021/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 718,
+          "expansions": 243
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/elevators-train-hard-0037",
+      "domain": "elevators",
+      "difficulty": "hard",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/elevators/hard/train/elevators-train-hard-0037/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 808,
+          "expansions": 305
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/elevators-train-hard-0043",
+      "domain": "elevators",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/elevators/hard/dev/elevators-train-hard-0043/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 676,
+          "expansions": 250
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/elevators-train-medium-0004",
+      "domain": "elevators",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/elevators/medium/dev/elevators-train-medium-0004/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 41,
+          "expansions": 21
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/elevators-train-medium-0030",
+      "domain": "elevators",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/elevators/medium/train/elevators-train-medium-0030/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 259,
+          "expansions": 90
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/elevators-train-medium-0044",
+      "domain": "elevators",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/elevators/medium/train/elevators-train-medium-0044/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 262,
+          "expansions": 114
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/ferry-train-easy-0017",
+      "domain": "ferry",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/ferry/easy/train/ferry-train-easy-0017/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 19,
+          "expansions": 11
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/ferry-train-easy-0038",
+      "domain": "ferry",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/ferry/easy/train/ferry-train-easy-0038/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 20,
+          "expansions": 12
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/ferry-train-easy-0039",
+      "domain": "ferry",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/ferry/easy/dev/ferry-train-easy-0039/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 19,
+          "expansions": 11
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/ferry-train-hard-0028",
+      "domain": "ferry",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/ferry/hard/dev/ferry-train-hard-0028/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 386,
+          "expansions": 104
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/ferry-train-hard-0044",
+      "domain": "ferry",
+      "difficulty": "hard",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/ferry/hard/train/ferry-train-hard-0044/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 417,
+          "expansions": 109
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/ferry-train-hard-0045",
+      "domain": "ferry",
+      "difficulty": "hard",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/ferry/hard/train/ferry-train-hard-0045/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 435,
+          "expansions": 115
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/ferry-train-medium-0022",
+      "domain": "ferry",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/ferry/medium/train/ferry-train-medium-0022/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 19,
+          "expansions": 13
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/ferry-train-medium-0035",
+      "domain": "ferry",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/ferry/medium/dev/ferry-train-medium-0035/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 100,
+          "expansions": 36
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/ferry-train-medium-0076",
+      "domain": "ferry",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/ferry/medium/train/ferry-train-medium-0076/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 129,
+          "expansions": 47
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/freecell-train-easy-0053",
+      "domain": "freecell",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/freecell/easy/train/freecell-train-easy-0053/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 364,
+          "expansions": 82
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/freecell-train-easy-0057",
+      "domain": "freecell",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/freecell/easy/dev/freecell-train-easy-0057/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 271,
+          "expansions": 65
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/freecell-train-easy-0068",
+      "domain": "freecell",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/freecell/easy/train/freecell-train-easy-0068/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 547,
+          "expansions": 144
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/freecell-train-medium-0010",
+      "domain": "freecell",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/freecell/medium/dev/freecell-train-medium-0010/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 314,
+          "expansions": 66
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/freecell-train-medium-0045",
+      "domain": "freecell",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/freecell/medium/train/freecell-train-medium-0045/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 394,
+          "expansions": 86
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/grid-train-easy-0068",
+      "domain": "grid",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/grid/easy/train/grid-train-easy-0068/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 128,
+          "expansions": 59
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/grid-train-easy-0071",
+      "domain": "grid",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/grid/easy/train/grid-train-easy-0071/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 36,
+          "expansions": 21
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/grid-train-easy-0086",
+      "domain": "grid",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/grid/easy/dev/grid-train-easy-0086/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 57,
+          "expansions": 29
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/grid-train-medium-0020",
+      "domain": "grid",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/grid/medium/train/grid-train-medium-0020/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 164,
+          "expansions": 86
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/grid-train-medium-0103",
+      "domain": "grid",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/grid/medium/train/grid-train-medium-0103/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 389,
+          "expansions": 180
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/gripper-train-easy-0017",
+      "domain": "gripper",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/gripper/easy/train/gripper-train-easy-0017/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 90,
+          "expansions": 39
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/gripper-train-easy-0020",
+      "domain": "gripper",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/gripper/easy/dev/gripper-train-easy-0020/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 90,
+          "expansions": 39
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/gripper-train-easy-0050",
+      "domain": "gripper",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/gripper/easy/train/gripper-train-easy-0050/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 373,
+          "expansions": 111
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/logistics-train-easy-0021",
+      "domain": "logistics",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/logistics/easy/train/logistics-train-easy-0021/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 51,
+          "expansions": 21
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/logistics-train-easy-0030",
+      "domain": "logistics",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/logistics/easy/train/logistics-train-easy-0030/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 34,
+          "expansions": 16
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/logistics-train-easy-0066",
+      "domain": "logistics",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/logistics/easy/dev/logistics-train-easy-0066/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 80,
+          "expansions": 34
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/snake-train-easy-0014",
+      "domain": "snake",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/snake/easy/train/snake-train-easy-0014/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 27,
+          "expansions": 11
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/snake-train-easy-0030",
+      "domain": "snake",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/snake/easy/train/snake-train-easy-0030/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 98,
+          "expansions": 38
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/snake-train-easy-0126",
+      "domain": "snake",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/snake/easy/dev/snake-train-easy-0126/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 210,
+          "expansions": 87
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/snake-train-hard-0006",
+      "domain": "snake",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/snake/hard/dev/snake-train-hard-0006/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 154,
+          "expansions": 128
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/snake-train-hard-0009",
+      "domain": "snake",
+      "difficulty": "hard",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/snake/hard/train/snake-train-hard-0009/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 185,
+          "expansions": 155
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/snake-train-hard-0049",
+      "domain": "snake",
+      "difficulty": "hard",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/snake/hard/train/snake-train-hard-0049/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 189,
+          "expansions": 151
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/snake-train-medium-0009",
+      "domain": "snake",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/snake/medium/train/snake-train-medium-0009/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 634,
+          "expansions": 372
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/snake-train-medium-0070",
+      "domain": "snake",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/snake/medium/dev/snake-train-medium-0070/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 120,
+          "expansions": 106
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/snake-train-medium-0100",
+      "domain": "snake",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/snake/medium/train/snake-train-medium-0100/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 170,
+          "expansions": 141
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/sokoban-train-easy-0029",
+      "domain": "sokoban",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/sokoban/easy/dev/sokoban-train-easy-0029/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 148,
+          "expansions": 73
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/sokoban-train-easy-0127",
+      "domain": "sokoban",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/sokoban/easy/train/sokoban-train-easy-0127/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 188,
+          "expansions": 96
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/sokoban-train-easy-0128",
+      "domain": "sokoban",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/sokoban/easy/train/sokoban-train-easy-0128/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 241,
+          "expansions": 124
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/sokoban-train-hard-0062",
+      "domain": "sokoban",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/sokoban/hard/dev/sokoban-train-hard-0062/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 206,
+          "expansions": 108
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/sokoban-train-hard-0069",
+      "domain": "sokoban",
+      "difficulty": "hard",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/sokoban/hard/train/sokoban-train-hard-0069/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 231,
+          "expansions": 120
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/sokoban-train-hard-0094",
+      "domain": "sokoban",
+      "difficulty": "hard",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/sokoban/hard/train/sokoban-train-hard-0094/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 203,
+          "expansions": 108
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/sokoban-train-medium-0003",
+      "domain": "sokoban",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/sokoban/medium/train/sokoban-train-medium-0003/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 153,
+          "expansions": 73
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/sokoban-train-medium-0057",
+      "domain": "sokoban",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/sokoban/medium/dev/sokoban-train-medium-0057/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 86,
+          "expansions": 46
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/sokoban-train-medium-0097",
+      "domain": "sokoban",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/sokoban/medium/train/sokoban-train-medium-0097/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 116,
+          "expansions": 57
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/storage-train-easy-0004",
+      "domain": "storage",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/storage/easy/dev/storage-train-easy-0004/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 3,
+          "expansions": 3
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/storage-train-easy-0021",
+      "domain": "storage",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/storage/easy/train/storage-train-easy-0021/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 4,
+          "expansions": 3
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/storage-train-easy-0035",
+      "domain": "storage",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/storage/easy/train/storage-train-easy-0035/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 4,
+          "expansions": 3
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/storage-train-medium-0047",
+      "domain": "storage",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/storage/medium/train/storage-train-medium-0047/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 856,
+          "expansions": 284
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/towers_of_hanoi-train-easy-0059",
+      "domain": "towers_of_hanoi",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/towers_of_hanoi/easy/dev/towers_of_hanoi-train-easy-0059/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 44,
+          "expansions": 32
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/towers_of_hanoi-train-easy-0060",
+      "domain": "towers_of_hanoi",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/towers_of_hanoi/easy/train/towers_of_hanoi-train-easy-0060/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 57,
+          "expansions": 42
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/towers_of_hanoi-train-easy-0061",
+      "domain": "towers_of_hanoi",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/towers_of_hanoi/easy/train/towers_of_hanoi-train-easy-0061/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 53,
+          "expansions": 38
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/towers_of_hanoi-train-medium-0020",
+      "domain": "towers_of_hanoi",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/towers_of_hanoi/medium/train/towers_of_hanoi-train-medium-0020/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 490,
+          "expansions": 372
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/towers_of_hanoi-train-medium-0030",
+      "domain": "towers_of_hanoi",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/towers_of_hanoi/medium/train/towers_of_hanoi-train-medium-0030/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 460,
+          "expansions": 348
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/towers_of_hanoi-train-medium-0046",
+      "domain": "towers_of_hanoi",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/towers_of_hanoi/medium/dev/towers_of_hanoi-train-medium-0046/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 464,
+          "expansions": 349
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/visitall-train-easy-0020",
+      "domain": "visitall",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/visitall/easy/dev/visitall-train-easy-0020/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 64,
+          "expansions": 22
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/visitall-train-easy-0038",
+      "domain": "visitall",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/visitall/easy/train/visitall-train-easy-0038/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 76,
+          "expansions": 29
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/visitall-train-easy-0064",
+      "domain": "visitall",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/visitall/easy/train/visitall-train-easy-0064/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 93,
+          "expansions": 32
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/visitall-train-medium-0050",
+      "domain": "visitall",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/visitall/medium/train/visitall-train-medium-0050/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 204,
+          "expansions": 64
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/visitall-train-medium-0061",
+      "domain": "visitall",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/visitall/medium/dev/visitall-train-medium-0061/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 237,
+          "expansions": 86
+        }
+      }
+    },
+    {
+      "task_id": "best_first_width/visitall-train-medium-0076",
+      "domain": "visitall",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/visitall/medium/train/visitall-train-medium-0076/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 228,
+          "expansions": 83
+        }
+      }
+    },
+    {
+      "task_id": "bfs/15puzzle-dev-easy-0000",
+      "domain": "15puzzle",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/15puzzle/easy/15puzzle-dev-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 10,
+          "expansions": 9
+        }
+      }
+    },
+    {
+      "task_id": "bfs/15puzzle-dev-hard-0000",
+      "domain": "15puzzle",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/15puzzle/hard/15puzzle-dev-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 427,
+          "expansions": 265
+        }
+      }
+    },
+    {
+      "task_id": "bfs/15puzzle-dev-medium-0000",
+      "domain": "15puzzle",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/15puzzle/medium/15puzzle-dev-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 279,
+          "expansions": 158
+        }
+      }
+    },
+    {
+      "task_id": "bfs/15puzzle-train-easy-0000",
+      "domain": "15puzzle",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/15puzzle/easy/15puzzle-train-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 6,
+          "expansions": 5
+        }
+      }
+    },
+    {
+      "task_id": "bfs/15puzzle-train-hard-0000",
+      "domain": "15puzzle",
+      "difficulty": "hard",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/15puzzle/hard/15puzzle-train-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 427,
+          "expansions": 265
+        }
+      }
+    },
+    {
+      "task_id": "bfs/15puzzle-train-medium-0000",
+      "domain": "15puzzle",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/15puzzle/medium/15puzzle-train-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 276,
+          "expansions": 159
+        }
+      }
+    },
+    {
+      "task_id": "bfs/blocksworld-dev-easy-0000",
+      "domain": "blocksworld",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/blocksworld/easy/blocksworld-dev-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 22,
+          "expansions": 18
+        }
+      }
+    },
+    {
+      "task_id": "bfs/blocksworld-dev-hard-0000",
+      "domain": "blocksworld",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/blocksworld/hard/blocksworld-dev-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 729,
+          "expansions": 498
+        }
+      }
+    },
+    {
+      "task_id": "bfs/blocksworld-dev-medium-0000",
+      "domain": "blocksworld",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/blocksworld/medium/blocksworld-dev-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 122,
+          "expansions": 90
+        }
+      }
+    },
+    {
+      "task_id": "bfs/blocksworld-train-easy-0000",
+      "domain": "blocksworld",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/blocksworld/easy/blocksworld-train-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 14,
+          "expansions": 10
+        }
+      }
+    },
+    {
+      "task_id": "bfs/blocksworld-train-medium-0000",
+      "domain": "blocksworld",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/blocksworld/medium/blocksworld-train-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 121,
+          "expansions": 88
+        }
+      }
+    },
+    {
+      "task_id": "bfs/depot-dev-easy-0000",
+      "domain": "depot",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/depot/easy/depot-dev-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 10,
+          "expansions": 8
+        }
+      }
+    },
+    {
+      "task_id": "bfs/depot-dev-hard-0000",
+      "domain": "depot",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/depot/hard/depot-dev-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 588,
+          "expansions": 411
+        }
+      }
+    },
+    {
+      "task_id": "bfs/depot-dev-medium-0000",
+      "domain": "depot",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/depot/medium/depot-dev-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 219,
+          "expansions": 141
+        }
+      }
+    },
+    {
+      "task_id": "bfs/depot-train-easy-0000",
+      "domain": "depot",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/depot/easy/depot-train-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 10,
+          "expansions": 8
+        }
+      }
+    },
+    {
+      "task_id": "bfs/depot-train-hard-0000",
+      "domain": "depot",
+      "difficulty": "hard",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/depot/hard/depot-train-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 675,
+          "expansions": 484
+        }
+      }
+    },
+    {
+      "task_id": "bfs/depot-train-medium-0000",
+      "domain": "depot",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/depot/medium/depot-train-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 218,
+          "expansions": 140
+        }
+      }
+    },
+    {
+      "task_id": "bfs/driverlog-dev-easy-0000",
+      "domain": "driverlog",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/driverlog/easy/driverlog-dev-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 4,
+          "expansions": 3
+        }
+      }
+    },
+    {
+      "task_id": "bfs/driverlog-dev-hard-0000",
+      "domain": "driverlog",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/driverlog/hard/driverlog-dev-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 768,
+          "expansions": 541
+        }
+      }
+    },
+    {
+      "task_id": "bfs/driverlog-dev-medium-0000",
+      "domain": "driverlog",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/driverlog/medium/driverlog-dev-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 101,
+          "expansions": 78
+        }
+      }
+    },
+    {
+      "task_id": "bfs/driverlog-train-easy-0000",
+      "domain": "driverlog",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/driverlog/easy/driverlog-train-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 44,
+          "expansions": 27
+        }
+      }
+    },
+    {
+      "task_id": "bfs/driverlog-train-hard-0000",
+      "domain": "driverlog",
+      "difficulty": "hard",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/driverlog/hard/driverlog-train-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 540,
+          "expansions": 333
+        }
+      }
+    },
+    {
+      "task_id": "bfs/driverlog-train-medium-0000",
+      "domain": "driverlog",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/driverlog/medium/driverlog-train-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 93,
+          "expansions": 71
+        }
+      }
+    },
+    {
+      "task_id": "bfs/elevators-dev-easy-0000",
+      "domain": "elevators",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/elevators/easy/elevators-dev-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 9,
+          "expansions": 6
+        }
+      }
+    },
+    {
+      "task_id": "bfs/elevators-dev-hard-0000",
+      "domain": "elevators",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/elevators/hard/elevators-dev-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 430,
+          "expansions": 265
+        }
+      }
+    },
+    {
+      "task_id": "bfs/elevators-dev-medium-0000",
+      "domain": "elevators",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/elevators/medium/elevators-dev-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 382,
+          "expansions": 218
+        }
+      }
+    },
+    {
+      "task_id": "bfs/elevators-train-easy-0000",
+      "domain": "elevators",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/elevators/easy/elevators-train-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 9,
+          "expansions": 6
+        }
+      }
+    },
+    {
+      "task_id": "bfs/elevators-train-hard-0000",
+      "domain": "elevators",
+      "difficulty": "hard",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/elevators/hard/elevators-train-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 443,
+          "expansions": 260
+        }
+      }
+    },
+    {
+      "task_id": "bfs/elevators-train-medium-0000",
+      "domain": "elevators",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/elevators/medium/elevators-train-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 382,
+          "expansions": 214
+        }
+      }
+    },
+    {
+      "task_id": "bfs/ferry-dev-easy-0000",
+      "domain": "ferry",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/ferry/easy/ferry-dev-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 5,
+          "expansions": 4
+        }
+      }
+    },
+    {
+      "task_id": "bfs/ferry-dev-hard-0000",
+      "domain": "ferry",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/ferry/hard/ferry-dev-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 501,
+          "expansions": 323
+        }
+      }
+    },
+    {
+      "task_id": "bfs/ferry-dev-medium-0000",
+      "domain": "ferry",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/ferry/medium/ferry-dev-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 213,
+          "expansions": 123
+        }
+      }
+    },
+    {
+      "task_id": "bfs/ferry-train-easy-0000",
+      "domain": "ferry",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/ferry/easy/ferry-train-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 4,
+          "expansions": 4
+        }
+      }
+    },
+    {
+      "task_id": "bfs/ferry-train-hard-0000",
+      "domain": "ferry",
+      "difficulty": "hard",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/ferry/hard/ferry-train-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 599,
+          "expansions": 403
+        }
+      }
+    },
+    {
+      "task_id": "bfs/ferry-train-medium-0000",
+      "domain": "ferry",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/ferry/medium/ferry-train-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 217,
+          "expansions": 126
+        }
+      }
+    },
+    {
+      "task_id": "bfs/freecell-dev-easy-0000",
+      "domain": "freecell",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/freecell/easy/freecell-dev-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 8,
+          "expansions": 5
+        }
+      }
+    },
+    {
+      "task_id": "bfs/freecell-dev-hard-0000",
+      "domain": "freecell",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/freecell/hard/freecell-dev-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 378,
+          "expansions": 267
+        }
+      }
+    },
+    {
+      "task_id": "bfs/freecell-dev-medium-0000",
+      "domain": "freecell",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/freecell/medium/freecell-dev-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 247,
+          "expansions": 173
+        }
+      }
+    },
+    {
+      "task_id": "bfs/freecell-train-easy-0000",
+      "domain": "freecell",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/freecell/easy/freecell-train-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 8,
+          "expansions": 6
+        }
+      }
+    },
+    {
+      "task_id": "bfs/freecell-train-hard-0000",
+      "domain": "freecell",
+      "difficulty": "hard",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/freecell/hard/freecell-train-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 363,
+          "expansions": 264
+        }
+      }
+    },
+    {
+      "task_id": "bfs/freecell-train-medium-0000",
+      "domain": "freecell",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/freecell/medium/freecell-train-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 293,
+          "expansions": 204
+        }
+      }
+    },
+    {
+      "task_id": "bfs/grid-dev-easy-0000",
+      "domain": "grid",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/grid/easy/grid-dev-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 82,
+          "expansions": 46
+        }
+      }
+    },
+    {
+      "task_id": "bfs/grid-dev-hard-0000",
+      "domain": "grid",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/grid/hard/grid-dev-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 510,
+          "expansions": 264
+        }
+      }
+    },
+    {
+      "task_id": "bfs/grid-dev-medium-0000",
+      "domain": "grid",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/grid/medium/grid-dev-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 214,
+          "expansions": 103
+        }
+      }
+    },
+    {
+      "task_id": "bfs/grid-train-easy-0000",
+      "domain": "grid",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/grid/easy/grid-train-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 44,
+          "expansions": 22
+        }
+      }
+    },
+    {
+      "task_id": "bfs/grid-train-hard-0000",
+      "domain": "grid",
+      "difficulty": "hard",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/grid/hard/grid-train-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 695,
+          "expansions": 391
+        }
+      }
+    },
+    {
+      "task_id": "bfs/grid-train-medium-0000",
+      "domain": "grid",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/grid/medium/grid-train-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 202,
+          "expansions": 92
+        }
+      }
+    },
+    {
+      "task_id": "bfs/gripper-dev-easy-0000",
+      "domain": "gripper",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/gripper/easy/gripper-dev-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 33,
+          "expansions": 24
+        }
+      }
+    },
+    {
+      "task_id": "bfs/gripper-dev-hard-0000",
+      "domain": "gripper",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/gripper/hard/gripper-dev-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 935,
+          "expansions": 702
+        }
+      }
+    },
+    {
+      "task_id": "bfs/gripper-dev-medium-0000",
+      "domain": "gripper",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/gripper/medium/gripper-dev-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 113,
+          "expansions": 86
+        }
+      }
+    },
+    {
+      "task_id": "bfs/gripper-train-easy-0000",
+      "domain": "gripper",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/gripper/easy/gripper-train-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 33,
+          "expansions": 24
+        }
+      }
+    },
+    {
+      "task_id": "bfs/gripper-train-hard-0000",
+      "domain": "gripper",
+      "difficulty": "hard",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/gripper/hard/gripper-train-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 935,
+          "expansions": 702
+        }
+      }
+    },
+    {
+      "task_id": "bfs/gripper-train-medium-0000",
+      "domain": "gripper",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/gripper/medium/gripper-train-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 113,
+          "expansions": 86
+        }
+      }
+    },
+    {
+      "task_id": "bfs/logistics-dev-easy-0000",
+      "domain": "logistics",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/logistics/easy/logistics-dev-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 8,
+          "expansions": 6
+        }
+      }
+    },
+    {
+      "task_id": "bfs/logistics-dev-hard-0000",
+      "domain": "logistics",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/logistics/hard/logistics-dev-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 408,
+          "expansions": 326
+        }
+      }
+    },
+    {
+      "task_id": "bfs/logistics-dev-medium-0000",
+      "domain": "logistics",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/logistics/medium/logistics-dev-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 300,
+          "expansions": 222
+        }
+      }
+    },
+    {
+      "task_id": "bfs/logistics-train-easy-0000",
+      "domain": "logistics",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/logistics/easy/logistics-train-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 4,
+          "expansions": 4
+        }
+      }
+    },
+    {
+      "task_id": "bfs/logistics-train-hard-0000",
+      "domain": "logistics",
+      "difficulty": "hard",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/logistics/hard/logistics-train-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 466,
+          "expansions": 377
+        }
+      }
+    },
+    {
+      "task_id": "bfs/logistics-train-medium-0000",
+      "domain": "logistics",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/logistics/medium/logistics-train-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 157,
+          "expansions": 111
+        }
+      }
+    },
+    {
+      "task_id": "bfs/snake-dev-easy-0000",
+      "domain": "snake",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/snake/easy/snake-dev-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 53,
+          "expansions": 22
+        }
+      }
+    },
+    {
+      "task_id": "bfs/snake-dev-hard-0000",
+      "domain": "snake",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/snake/hard/snake-dev-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 429,
+          "expansions": 260
+        }
+      }
+    },
+    {
+      "task_id": "bfs/snake-dev-medium-0000",
+      "domain": "snake",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/snake/medium/snake-dev-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 368,
+          "expansions": 211
+        }
+      }
+    },
+    {
+      "task_id": "bfs/snake-train-easy-0000",
+      "domain": "snake",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/snake/easy/snake-train-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 61,
+          "expansions": 26
+        }
+      }
+    },
+    {
+      "task_id": "bfs/snake-train-hard-0000",
+      "domain": "snake",
+      "difficulty": "hard",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/snake/hard/snake-train-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 586,
+          "expansions": 348
+        }
+      }
+    },
+    {
+      "task_id": "bfs/snake-train-medium-0000",
+      "domain": "snake",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/snake/medium/snake-train-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 201,
+          "expansions": 98
+        }
+      }
+    },
+    {
+      "task_id": "bfs/sokoban-dev-easy-0000",
+      "domain": "sokoban",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/sokoban/easy/sokoban-dev-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 7,
+          "expansions": 3
+        }
+      }
+    },
+    {
+      "task_id": "bfs/sokoban-dev-hard-0000",
+      "domain": "sokoban",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/sokoban/hard/sokoban-dev-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 469,
+          "expansions": 306
+        }
+      }
+    },
+    {
+      "task_id": "bfs/sokoban-dev-medium-0000",
+      "domain": "sokoban",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/sokoban/medium/sokoban-dev-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 275,
+          "expansions": 164
+        }
+      }
+    },
+    {
+      "task_id": "bfs/sokoban-train-easy-0000",
+      "domain": "sokoban",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/sokoban/easy/sokoban-train-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 7,
+          "expansions": 3
+        }
+      }
+    },
+    {
+      "task_id": "bfs/sokoban-train-hard-0000",
+      "domain": "sokoban",
+      "difficulty": "hard",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/sokoban/hard/sokoban-train-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 500,
+          "expansions": 342
+        }
+      }
+    },
+    {
+      "task_id": "bfs/sokoban-train-medium-0000",
+      "domain": "sokoban",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/sokoban/medium/sokoban-train-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 240,
+          "expansions": 142
+        }
+      }
+    },
+    {
+      "task_id": "bfs/storage-dev-easy-0000",
+      "domain": "storage",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/storage/easy/storage-dev-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 5,
+          "expansions": 3
+        }
+      }
+    },
+    {
+      "task_id": "bfs/storage-dev-hard-0000",
+      "domain": "storage",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/storage/hard/storage-dev-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 524,
+          "expansions": 262
+        }
+      }
+    },
+    {
+      "task_id": "bfs/storage-dev-medium-0000",
+      "domain": "storage",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/storage/medium/storage-dev-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 129,
+          "expansions": 73
+        }
+      }
+    },
+    {
+      "task_id": "bfs/storage-train-easy-0000",
+      "domain": "storage",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/storage/easy/storage-train-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 8,
+          "expansions": 4
+        }
+      }
+    },
+    {
+      "task_id": "bfs/storage-train-hard-0000",
+      "domain": "storage",
+      "difficulty": "hard",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/storage/hard/storage-train-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 524,
+          "expansions": 262
+        }
+      }
+    },
+    {
+      "task_id": "bfs/storage-train-medium-0000",
+      "domain": "storage",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/storage/medium/storage-train-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 129,
+          "expansions": 73
+        }
+      }
+    },
+    {
+      "task_id": "bfs/towers_of_hanoi-dev-easy-0000",
+      "domain": "towers_of_hanoi",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/towers_of_hanoi/easy/towers_of_hanoi-dev-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 34,
+          "expansions": 25
+        }
+      }
+    },
+    {
+      "task_id": "bfs/towers_of_hanoi-dev-hard-0000",
+      "domain": "towers_of_hanoi",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/towers_of_hanoi/hard/towers_of_hanoi-dev-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 918,
+          "expansions": 675
+        }
+      }
+    },
+    {
+      "task_id": "bfs/towers_of_hanoi-dev-medium-0000",
+      "domain": "towers_of_hanoi",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/towers_of_hanoi/medium/towers_of_hanoi-dev-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 94,
+          "expansions": 67
+        }
+      }
+    },
+    {
+      "task_id": "bfs/towers_of_hanoi-train-easy-0000",
+      "domain": "towers_of_hanoi",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/towers_of_hanoi/easy/towers_of_hanoi-train-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 34,
+          "expansions": 25
+        }
+      }
+    },
+    {
+      "task_id": "bfs/towers_of_hanoi-train-hard-0000",
+      "domain": "towers_of_hanoi",
+      "difficulty": "hard",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/towers_of_hanoi/hard/towers_of_hanoi-train-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 918,
+          "expansions": 675
+        }
+      }
+    },
+    {
+      "task_id": "bfs/towers_of_hanoi-train-medium-0000",
+      "domain": "towers_of_hanoi",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/towers_of_hanoi/medium/towers_of_hanoi-train-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 94,
+          "expansions": 67
+        }
+      }
+    },
+    {
+      "task_id": "bfs/visitall-dev-easy-0000",
+      "domain": "visitall",
+      "difficulty": "easy",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/visitall/easy/visitall-dev-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 2,
+          "expansions": 1
+        }
+      }
+    },
+    {
+      "task_id": "bfs/visitall-dev-hard-0000",
+      "domain": "visitall",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/visitall/hard/visitall-dev-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 547,
+          "expansions": 352
+        }
+      }
+    },
+    {
+      "task_id": "bfs/visitall-dev-medium-0000",
+      "domain": "visitall",
+      "difficulty": "medium",
+      "split": "dev",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/visitall/medium/visitall-dev-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 206,
+          "expansions": 100
+        }
+      }
+    },
+    {
+      "task_id": "bfs/visitall-train-easy-0000",
+      "domain": "visitall",
+      "difficulty": "easy",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/visitall/easy/visitall-train-easy-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 12,
+          "expansions": 7
+        }
+      }
+    },
+    {
+      "task_id": "bfs/visitall-train-hard-0000",
+      "domain": "visitall",
+      "difficulty": "hard",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/visitall/hard/visitall-train-hard-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 823,
+          "expansions": 559
+        }
+      }
+    },
+    {
+      "task_id": "bfs/visitall-train-medium-0000",
+      "domain": "visitall",
+      "difficulty": "medium",
+      "split": "train",
+      "trace_paths": {
+        "bfs": "data/bfs_pilot_v6/exact-traces/traces/visitall/medium/visitall-train-medium-0000/search-trace.json"
+      },
+      "reference_costs": {
+        "bfs": {
+          "decisions": 383,
+          "expansions": 222
+        }
+      }
+    }
+  ],
+  "excluded": [
+    {
+      "task_id": "best_first_width/visitall-train-hard-0007",
+      "domain": "visitall",
+      "difficulty": "hard",
+      "split": "dev",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/visitall/hard/dev/visitall-train-hard-0007/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 626,
+          "expansions": 251
+        }
+      },
+      "outcome": "VALID_STOP",
+      "reason": "complete_input_exceeds_32k_context",
+      "maximum_input_tokens": 49847,
+      "overflow_decisions_by_modality": {
+        "text-state": 0,
+        "visual-state": 478,
+        "multimodal-state": 626
+      },
+      "decision_measurements": "outputs/modality_views/select-32k-001/task-000146/decision-measurements.json.gz"
+    },
+    {
+      "task_id": "best_first_width/visitall-train-hard-0013",
+      "domain": "visitall",
+      "difficulty": "hard",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/visitall/hard/train/visitall-train-hard-0013/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 610,
+          "expansions": 244
+        }
+      },
+      "outcome": "VALID_STOP",
+      "reason": "complete_input_exceeds_32k_context",
+      "maximum_input_tokens": 49963,
+      "overflow_decisions_by_modality": {
+        "text-state": 0,
+        "visual-state": 466,
+        "multimodal-state": 610
+      },
+      "decision_measurements": "outputs/modality_views/select-32k-001/task-000147/decision-measurements.json.gz"
+    },
+    {
+      "task_id": "best_first_width/visitall-train-hard-0047",
+      "domain": "visitall",
+      "difficulty": "hard",
+      "split": "train",
+      "trace_paths": {
+        "best_first_width": "data/bfws_phase_v1/exact-traces/traces/visitall/hard/train/visitall-train-hard-0047/search-trace.json.gz"
+      },
+      "reference_costs": {
+        "best_first_width": {
+          "decisions": 777,
+          "expansions": 369
+        }
+      },
+      "outcome": "VALID_STOP",
+      "reason": "complete_input_exceeds_32k_context",
+      "maximum_input_tokens": 49896,
+      "overflow_decisions_by_modality": {
+        "text-state": 0,
+        "visual-state": 620,
+        "multimodal-state": 777
+      },
+      "decision_measurements": "outputs/modality_views/select-32k-001/task-000148/decision-measurements.json.gz"
+    }
+  ],
+  "exclusion_counts": {
+    "tasks": 3,
+    "states": 1934,
+    "decisions": 2013
+  },
+  "strata": {
+    "excluded/best_first_width/dev/visitall/hard": 1,
+    "excluded/best_first_width/train/visitall/hard": 2,
+    "selected/best_first_add_greedy/dev/15puzzle/easy": 1,
+    "selected/best_first_add_greedy/dev/15puzzle/medium": 1,
+    "selected/best_first_add_greedy/dev/blocksworld/easy": 1,
+    "selected/best_first_add_greedy/dev/blocksworld/hard": 1,
+    "selected/best_first_add_greedy/dev/blocksworld/medium": 1,
+    "selected/best_first_add_greedy/dev/depot/easy": 1,
+    "selected/best_first_add_greedy/dev/depot/medium": 1,
+    "selected/best_first_add_greedy/dev/driverlog/medium": 1,
+    "selected/best_first_add_greedy/dev/elevators/easy": 1,
+    "selected/best_first_add_greedy/dev/elevators/hard": 1,
+    "selected/best_first_add_greedy/dev/elevators/medium": 1,
+    "selected/best_first_add_greedy/dev/ferry/easy": 1,
+    "selected/best_first_add_greedy/dev/ferry/hard": 1,
+    "selected/best_first_add_greedy/dev/ferry/medium": 1,
+    "selected/best_first_add_greedy/dev/grid/easy": 1,
+    "selected/best_first_add_greedy/dev/gripper/easy": 1,
+    "selected/best_first_add_greedy/dev/gripper/medium": 1,
+    "selected/best_first_add_greedy/dev/logistics/easy": 1,
+    "selected/best_first_add_greedy/dev/logistics/medium": 1,
+    "selected/best_first_add_greedy/dev/storage/easy": 1,
+    "selected/best_first_add_greedy/dev/towers_of_hanoi/easy": 1,
+    "selected/best_first_add_greedy/dev/towers_of_hanoi/medium": 1,
+    "selected/best_first_add_greedy/dev/visitall/easy": 1,
+    "selected/best_first_add_greedy/train/15puzzle/easy": 1,
+    "selected/best_first_add_greedy/train/15puzzle/medium": 1,
+    "selected/best_first_add_greedy/train/blocksworld/easy": 2,
+    "selected/best_first_add_greedy/train/blocksworld/medium": 2,
+    "selected/best_first_add_greedy/train/depot/easy": 2,
+    "selected/best_first_add_greedy/train/depot/medium": 1,
+    "selected/best_first_add_greedy/train/driverlog/medium": 2,
+    "selected/best_first_add_greedy/train/elevators/easy": 2,
+    "selected/best_first_add_greedy/train/elevators/hard": 2,
+    "selected/best_first_add_greedy/train/elevators/medium": 2,
+    "selected/best_first_add_greedy/train/ferry/easy": 2,
+    "selected/best_first_add_greedy/train/ferry/hard": 2,
+    "selected/best_first_add_greedy/train/ferry/medium": 2,
+    "selected/best_first_add_greedy/train/grid/easy": 2,
+    "selected/best_first_add_greedy/train/grid/medium": 1,
+    "selected/best_first_add_greedy/train/gripper/easy": 2,
+    "selected/best_first_add_greedy/train/gripper/medium": 2,
+    "selected/best_first_add_greedy/train/logistics/easy": 2,
+    "selected/best_first_add_greedy/train/logistics/medium": 2,
+    "selected/best_first_add_greedy/train/storage/easy": 2,
+    "selected/best_first_add_greedy/train/towers_of_hanoi/easy": 2,
+    "selected/best_first_add_greedy/train/towers_of_hanoi/medium": 2,
+    "selected/best_first_add_greedy/train/visitall/easy": 1,
+    "selected/best_first_add_w3/dev/15puzzle/easy": 1,
+    "selected/best_first_add_w3/dev/15puzzle/medium": 1,
+    "selected/best_first_add_w3/dev/blocksworld/easy": 1,
+    "selected/best_first_add_w3/dev/blocksworld/hard": 1,
+    "selected/best_first_add_w3/dev/blocksworld/medium": 1,
+    "selected/best_first_add_w3/dev/depot/easy": 1,
+    "selected/best_first_add_w3/dev/depot/medium": 1,
+    "selected/best_first_add_w3/dev/driverlog/medium": 1,
+    "selected/best_first_add_w3/dev/elevators/easy": 1,
+    "selected/best_first_add_w3/dev/elevators/hard": 1,
+    "selected/best_first_add_w3/dev/elevators/medium": 1,
+    "selected/best_first_add_w3/dev/ferry/easy": 1,
+    "selected/best_first_add_w3/dev/ferry/hard": 1,
+    "selected/best_first_add_w3/dev/ferry/medium": 1,
+    "selected/best_first_add_w3/dev/grid/easy": 1,
+    "selected/best_first_add_w3/dev/gripper/easy": 1,
+    "selected/best_first_add_w3/dev/gripper/medium": 1,
+    "selected/best_first_add_w3/dev/logistics/easy": 1,
+    "selected/best_first_add_w3/dev/logistics/medium": 1,
+    "selected/best_first_add_w3/dev/storage/easy": 1,
+    "selected/best_first_add_w3/dev/towers_of_hanoi/easy": 1,
+    "selected/best_first_add_w3/dev/towers_of_hanoi/medium": 1,
+    "selected/best_first_add_w3/dev/visitall/easy": 1,
+    "selected/best_first_add_w3/train/15puzzle/easy": 1,
+    "selected/best_first_add_w3/train/15puzzle/medium": 1,
+    "selected/best_first_add_w3/train/blocksworld/easy": 2,
+    "selected/best_first_add_w3/train/blocksworld/medium": 2,
+    "selected/best_first_add_w3/train/depot/easy": 2,
+    "selected/best_first_add_w3/train/depot/medium": 1,
+    "selected/best_first_add_w3/train/driverlog/medium": 2,
+    "selected/best_first_add_w3/train/elevators/easy": 2,
+    "selected/best_first_add_w3/train/elevators/hard": 2,
+    "selected/best_first_add_w3/train/elevators/medium": 2,
+    "selected/best_first_add_w3/train/ferry/easy": 2,
+    "selected/best_first_add_w3/train/ferry/hard": 2,
+    "selected/best_first_add_w3/train/ferry/medium": 2,
+    "selected/best_first_add_w3/train/grid/easy": 2,
+    "selected/best_first_add_w3/train/grid/medium": 1,
+    "selected/best_first_add_w3/train/gripper/easy": 2,
+    "selected/best_first_add_w3/train/gripper/medium": 2,
+    "selected/best_first_add_w3/train/logistics/easy": 2,
+    "selected/best_first_add_w3/train/logistics/medium": 2,
+    "selected/best_first_add_w3/train/storage/easy": 2,
+    "selected/best_first_add_w3/train/towers_of_hanoi/easy": 2,
+    "selected/best_first_add_w3/train/towers_of_hanoi/medium": 2,
+    "selected/best_first_add_w3/train/visitall/easy": 1,
+    "selected/best_first_width/dev/15puzzle/easy": 1,
+    "selected/best_first_width/dev/15puzzle/medium": 1,
+    "selected/best_first_width/dev/blocksworld/easy": 1,
+    "selected/best_first_width/dev/blocksworld/medium": 1,
+    "selected/best_first_width/dev/depot/easy": 1,
+    "selected/best_first_width/dev/depot/medium": 1,
+    "selected/best_first_width/dev/driverlog/medium": 1,
+    "selected/best_first_width/dev/elevators/easy": 1,
+    "selected/best_first_width/dev/elevators/hard": 1,
+    "selected/best_first_width/dev/elevators/medium": 1,
+    "selected/best_first_width/dev/ferry/easy": 1,
+    "selected/best_first_width/dev/ferry/hard": 1,
+    "selected/best_first_width/dev/ferry/medium": 1,
+    "selected/best_first_width/dev/freecell/easy": 1,
+    "selected/best_first_width/dev/freecell/medium": 1,
+    "selected/best_first_width/dev/grid/easy": 1,
+    "selected/best_first_width/dev/gripper/easy": 1,
+    "selected/best_first_width/dev/logistics/easy": 1,
+    "selected/best_first_width/dev/snake/easy": 1,
+    "selected/best_first_width/dev/snake/hard": 1,
+    "selected/best_first_width/dev/snake/medium": 1,
+    "selected/best_first_width/dev/sokoban/easy": 1,
+    "selected/best_first_width/dev/sokoban/hard": 1,
+    "selected/best_first_width/dev/sokoban/medium": 1,
+    "selected/best_first_width/dev/storage/easy": 1,
+    "selected/best_first_width/dev/towers_of_hanoi/easy": 1,
+    "selected/best_first_width/dev/towers_of_hanoi/medium": 1,
+    "selected/best_first_width/dev/visitall/easy": 1,
+    "selected/best_first_width/dev/visitall/medium": 1,
+    "selected/best_first_width/train/blocksworld/easy": 2,
+    "selected/best_first_width/train/blocksworld/hard": 1,
+    "selected/best_first_width/train/blocksworld/medium": 2,
+    "selected/best_first_width/train/depot/easy": 2,
+    "selected/best_first_width/train/depot/medium": 1,
+    "selected/best_first_width/train/driverlog/medium": 2,
+    "selected/best_first_width/train/elevators/easy": 2,
+    "selected/best_first_width/train/elevators/hard": 2,
+    "selected/best_first_width/train/elevators/medium": 2,
+    "selected/best_first_width/train/ferry/easy": 2,
+    "selected/best_first_width/train/ferry/hard": 2,
+    "selected/best_first_width/train/ferry/medium": 2,
+    "selected/best_first_width/train/freecell/easy": 2,
+    "selected/best_first_width/train/freecell/medium": 1,
+    "selected/best_first_width/train/grid/easy": 2,
+    "selected/best_first_width/train/grid/medium": 2,
+    "selected/best_first_width/train/gripper/easy": 2,
+    "selected/best_first_width/train/logistics/easy": 2,
+    "selected/best_first_width/train/snake/easy": 2,
+    "selected/best_first_width/train/snake/hard": 2,
+    "selected/best_first_width/train/snake/medium": 2,
+    "selected/best_first_width/train/sokoban/easy": 2,
+    "selected/best_first_width/train/sokoban/hard": 2,
+    "selected/best_first_width/train/sokoban/medium": 2,
+    "selected/best_first_width/train/storage/easy": 2,
+    "selected/best_first_width/train/storage/medium": 1,
+    "selected/best_first_width/train/towers_of_hanoi/easy": 2,
+    "selected/best_first_width/train/towers_of_hanoi/medium": 2,
+    "selected/best_first_width/train/visitall/easy": 2,
+    "selected/best_first_width/train/visitall/medium": 2,
+    "selected/bfs/dev/15puzzle/easy": 1,
+    "selected/bfs/dev/15puzzle/hard": 1,
+    "selected/bfs/dev/15puzzle/medium": 1,
+    "selected/bfs/dev/blocksworld/easy": 1,
+    "selected/bfs/dev/blocksworld/hard": 1,
+    "selected/bfs/dev/blocksworld/medium": 1,
+    "selected/bfs/dev/depot/easy": 1,
+    "selected/bfs/dev/depot/hard": 1,
+    "selected/bfs/dev/depot/medium": 1,
+    "selected/bfs/dev/driverlog/easy": 1,
+    "selected/bfs/dev/driverlog/hard": 1,
+    "selected/bfs/dev/driverlog/medium": 1,
+    "selected/bfs/dev/elevators/easy": 1,
+    "selected/bfs/dev/elevators/hard": 1,
+    "selected/bfs/dev/elevators/medium": 1,
+    "selected/bfs/dev/ferry/easy": 1,
+    "selected/bfs/dev/ferry/hard": 1,
+    "selected/bfs/dev/ferry/medium": 1,
+    "selected/bfs/dev/freecell/easy": 1,
+    "selected/bfs/dev/freecell/hard": 1,
+    "selected/bfs/dev/freecell/medium": 1,
+    "selected/bfs/dev/grid/easy": 1,
+    "selected/bfs/dev/grid/hard": 1,
+    "selected/bfs/dev/grid/medium": 1,
+    "selected/bfs/dev/gripper/easy": 1,
+    "selected/bfs/dev/gripper/hard": 1,
+    "selected/bfs/dev/gripper/medium": 1,
+    "selected/bfs/dev/logistics/easy": 1,
+    "selected/bfs/dev/logistics/hard": 1,
+    "selected/bfs/dev/logistics/medium": 1,
+    "selected/bfs/dev/snake/easy": 1,
+    "selected/bfs/dev/snake/hard": 1,
+    "selected/bfs/dev/snake/medium": 1,
+    "selected/bfs/dev/sokoban/easy": 1,
+    "selected/bfs/dev/sokoban/hard": 1,
+    "selected/bfs/dev/sokoban/medium": 1,
+    "selected/bfs/dev/storage/easy": 1,
+    "selected/bfs/dev/storage/hard": 1,
+    "selected/bfs/dev/storage/medium": 1,
+    "selected/bfs/dev/towers_of_hanoi/easy": 1,
+    "selected/bfs/dev/towers_of_hanoi/hard": 1,
+    "selected/bfs/dev/towers_of_hanoi/medium": 1,
+    "selected/bfs/dev/visitall/easy": 1,
+    "selected/bfs/dev/visitall/hard": 1,
+    "selected/bfs/dev/visitall/medium": 1,
+    "selected/bfs/train/15puzzle/easy": 1,
+    "selected/bfs/train/15puzzle/hard": 1,
+    "selected/bfs/train/15puzzle/medium": 1,
+    "selected/bfs/train/blocksworld/easy": 1,
+    "selected/bfs/train/blocksworld/medium": 1,
+    "selected/bfs/train/depot/easy": 1,
+    "selected/bfs/train/depot/hard": 1,
+    "selected/bfs/train/depot/medium": 1,
+    "selected/bfs/train/driverlog/easy": 1,
+    "selected/bfs/train/driverlog/hard": 1,
+    "selected/bfs/train/driverlog/medium": 1,
+    "selected/bfs/train/elevators/easy": 1,
+    "selected/bfs/train/elevators/hard": 1,
+    "selected/bfs/train/elevators/medium": 1,
+    "selected/bfs/train/ferry/easy": 1,
+    "selected/bfs/train/ferry/hard": 1,
+    "selected/bfs/train/ferry/medium": 1,
+    "selected/bfs/train/freecell/easy": 1,
+    "selected/bfs/train/freecell/hard": 1,
+    "selected/bfs/train/freecell/medium": 1,
+    "selected/bfs/train/grid/easy": 1,
+    "selected/bfs/train/grid/hard": 1,
+    "selected/bfs/train/grid/medium": 1,
+    "selected/bfs/train/gripper/easy": 1,
+    "selected/bfs/train/gripper/hard": 1,
+    "selected/bfs/train/gripper/medium": 1,
+    "selected/bfs/train/logistics/easy": 1,
+    "selected/bfs/train/logistics/hard": 1,
+    "selected/bfs/train/logistics/medium": 1,
+    "selected/bfs/train/snake/easy": 1,
+    "selected/bfs/train/snake/hard": 1,
+    "selected/bfs/train/snake/medium": 1,
+    "selected/bfs/train/sokoban/easy": 1,
+    "selected/bfs/train/sokoban/hard": 1,
+    "selected/bfs/train/sokoban/medium": 1,
+    "selected/bfs/train/storage/easy": 1,
+    "selected/bfs/train/storage/hard": 1,
+    "selected/bfs/train/storage/medium": 1,
+    "selected/bfs/train/towers_of_hanoi/easy": 1,
+    "selected/bfs/train/towers_of_hanoi/hard": 1,
+    "selected/bfs/train/towers_of_hanoi/medium": 1,
+    "selected/bfs/train/visitall/easy": 1,
+    "selected/bfs/train/visitall/hard": 1,
+    "selected/bfs/train/visitall/medium": 1
+  },
+  "decisions_by_algorithm_split": {
+    "excluded/best_first_width/dev": 626,
+    "excluded/best_first_width/train": 1387,
+    "selected/best_first_add_greedy/dev": 6696,
+    "selected/best_first_add_greedy/train": 8342,
+    "selected/best_first_add_w3/dev": 7095,
+    "selected/best_first_add_w3/train": 9398,
+    "selected/best_first_width/dev": 6435,
+    "selected/best_first_width/train": 14225,
+    "selected/bfs/dev": 12115,
+    "selected/bfs/train": 11911
+  },
+  "maximum_retained_input_tokens": 23379,
+  "model_input_ready": false,
+  "scientific_completion": false
+}

@@ -27,7 +27,7 @@ from scripts.phase3.planimation_pairing import (
     validate_state_render_record,
     validate_vlm_record,
 )
-from scripts.phase3.rollout_gate_selection import has_valid_selection_pair_contract, is_lowercase_sha256
+from scripts.phase3.rollout_gate_selection import has_valid_selection_pair_contract
 from scripts.phase3.traversal_state_types import JSONValue
 
 Split = Literal["train", "dev", "test"]
@@ -43,10 +43,7 @@ class SelectionPair:
     source_root: str
     source_jsonl: str
     source_line_index: int
-    source_record_sha256: str
-    source_root_sha256: str
-    source_split_sha256: str
-    plan_hash: str
+    source_record_id: str
     planner: str
     domain: str
     bucket: str
@@ -60,7 +57,7 @@ class SelectionPair:
 class SelectionContract:
     selected_pair_ids: frozenset[str]
     selected_pairs: tuple[SelectionPair, ...]
-    input_pairing_manifest_sha256: str
+    input_pairing_manifest_path: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -205,9 +202,9 @@ def _load_selection(path: Path) -> SelectionContract:
     errors: list[str] = []
     if selection.get("artifact_kind") != "planimation_rollout_selection_v1":
         errors.append("invalid selection artifact kind")
-    manifest_hash = selection.get("input_pairing_manifest_sha256")
-    if not is_lowercase_sha256(manifest_hash):
-        errors.append("selection input_pairing_manifest_sha256")
+    manifest_path = selection.get("input_pairing_manifest_path")
+    if manifest_path != "diagnostics/pairing_manifest.jsonl":
+        errors.append("selection input_pairing_manifest_path")
     raw_ids = selection.get("selected_pair_ids")
     selected_ids: tuple[str, ...] = ()
     if not isinstance(raw_ids, list) or not raw_ids:
@@ -232,8 +229,8 @@ def _load_selection(path: Path) -> SelectionContract:
     if not has_valid_selection_pair_contract(raw_ids, raw_pairs):
         errors.append("selection pair IDs mismatch")
     _raise_if_errors(errors)
-    assert isinstance(manifest_hash, str) and manifest_hash
-    return SelectionContract(frozenset(selected_ids), tuple(frozen_pairs), manifest_hash)
+    assert isinstance(manifest_path, str) and manifest_path
+    return SelectionContract(frozenset(selected_ids), tuple(frozen_pairs), manifest_path)
 
 
 def _parse_selection_pair(pair: JSONRecord, errors: list[str]) -> SelectionPair | None:
@@ -242,10 +239,7 @@ def _parse_selection_pair(pair: JSONRecord, errors: list[str]) -> SelectionPair 
     source_root = _selection_string(pair, "source_root", errors)
     source_jsonl = _selection_string(pair, "source_jsonl", errors)
     source_line_index = _selection_line_index(pair, errors)
-    source_record_sha256 = _selection_string(pair, "source_record_sha256", errors)
-    source_root_sha256 = _selection_string(pair, "source_root_sha256", errors)
-    source_split_sha256 = _selection_string(pair, "source_split_sha256", errors)
-    plan_hash = _selection_string(pair, "plan_hash", errors)
+    source_record_id = _selection_string(pair, "source_record_id", errors)
     planner = _selection_string(pair, "planner", errors)
     domain = _selection_string(pair, "domain", errors)
     bucket = _selection_string(pair, "bucket", errors)
@@ -259,10 +253,7 @@ def _parse_selection_pair(pair: JSONRecord, errors: list[str]) -> SelectionPair 
         or source_root is None
         or source_jsonl is None
         or source_line_index is None
-        or source_record_sha256 is None
-        or source_root_sha256 is None
-        or source_split_sha256 is None
-        or plan_hash is None
+        or source_record_id is None
         or planner is None
         or domain is None
         or bucket is None
@@ -274,10 +265,7 @@ def _parse_selection_pair(pair: JSONRecord, errors: list[str]) -> SelectionPair 
         source_root,
         source_jsonl,
         source_line_index,
-        source_record_sha256,
-        source_root_sha256,
-        source_split_sha256,
-        plan_hash,
+        source_record_id,
         planner,
         domain,
         bucket,
@@ -333,10 +321,7 @@ def _validate_selection(manifest: list[JSONRecord], selection: SelectionContract
             ("source_root", selected.source_root),
             ("source_jsonl", selected.source_jsonl),
             ("source_line_index", selected.source_line_index),
-            ("source_record_sha256", selected.source_record_sha256),
-            ("source_root_sha256", selected.source_root_sha256),
-            ("source_split_sha256", selected.source_split_sha256),
-            ("plan_hash", selected.plan_hash),
+            ("source_record_id", selected.source_record_id),
             ("planner", selected.planner),
             ("domain", selected.domain),
             ("bucket", selected.bucket),

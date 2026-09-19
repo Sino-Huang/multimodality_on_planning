@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import hashlib
 import json
 import shutil
 from collections.abc import Iterable
@@ -92,19 +91,6 @@ def write_jsonl(path: Path, rows: Iterable[JSONRecord]) -> None:
 def write_json(path: Path, payload: JSONRecord) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=True) + "\n", encoding="utf-8")
-
-
-def stable_hash(value: JSONValue) -> str:
-    text = json.dumps(value, sort_keys=True, ensure_ascii=True, separators=(",", ":"))
-    return hashlib.sha256(text.encode("utf-8")).hexdigest()
-
-
-def file_sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
 
 
 def relpath(path: str | Path, *, root: Path | None = None) -> str:

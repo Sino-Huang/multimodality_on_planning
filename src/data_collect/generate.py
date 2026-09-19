@@ -3,16 +3,25 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
+import tempfile
 from collections import Counter
 from dataclasses import dataclass, replace
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import Any, Callable, Mapping, Sequence, cast
 
 from .adapters import GenerationSpec, GeneratorAdapter, GeneratorRejection, build_domain_registry
 from .config import CurriculumConfig, DomainConfig
 from .difficulty import DIFFICULTY_BUCKETS, hybrid_measured_percentile
-from .normalization import AcceptedProblemIdentity, AcceptedProblemIndex, normalize_pddl
+from .governance import (
+    AuthorizationReceipt,
+    GateReceipt,
+    ReceiptBinding,
+    RunReceipt,
+    StopOutcome,
+    evaluate_execution_permission,
+)
 from .metadata import (
     DUPLICATE_PROBLEM_REASON,
     AcceptedInstanceMetadata,
@@ -25,8 +34,217 @@ from .metadata import (
     write_result_metadata,
     write_summary_metadata,
 )
+from .normalization import AcceptedProblemIdentity, AcceptedProblemIndex, normalize_pddl
 from .rendering import Renderer, gate_rendered_candidate, require_rendering_preflight
+from .replay import ArtifactSet, build_canonical_bundle, build_replay_contract
 from .selection import select_stratified_by_measured_bucket
+from .splits import SplitLedger, whole_instance_identity
+from .structural import StructuralProfile, StructuralStrataPolicy, derive_structural_profiles, verify_structural_coverage
+
+
+def _canonical_json(value: object) -> str:
+    return json.dumps(value, allow_nan=False, ensure_ascii=True, separators=(",", ":"), sort_keys=True)
+
+
+def _governed_receipt_path(receipt_root: Path, binding: Mapping[str, object]) -> Path:
+    return receipt_root / f"generation-run-{binding['contract_id']}-{binding['attempt_id']}.json"
+
+
+def _validated_receipt_root(receipt_root: Path | str, binding: ReceiptBinding) -> Path:
+    raw_root = os.fspath(receipt_root)
+    if not raw_root or raw_root != raw_root.strip():
+        raise ValueError("receipt_root must be non-empty canonical text")
+    root = Path(raw_root)
+    if not root.is_absolute():
+        raise ValueError("receipt_root must be absolute")
+    resolved_root = root.resolve()
+    if root != resolved_root:
+        raise ValueError("receipt_root must already be resolved")
+
+    output_root = Path(binding.output_root).resolve()
+    if resolved_root == output_root or output_root in resolved_root.parents:
+        raise ValueError("receipt_root must not be binding.output_root or one of its descendants")
+    return resolved_root
+
+
+@dataclass(frozen=True, slots=True)
+class GenerationRequest:
+    """Authorization inputs for one governed generation attempt."""
+
+    binding: ReceiptBinding
+    gate_receipt: GateReceipt | object
+    authorization_receipt: AuthorizationReceipt | object | None
+    receipt_root: Path | str
+    ancestor_receipt_id: str | None = None
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.binding, ReceiptBinding):
+            raise TypeError("binding must be a ReceiptBinding")
+        object.__setattr__(self, "receipt_root", _validated_receipt_root(self.receipt_root, self.binding))
+
+
+@dataclass(frozen=True, slots=True)
+class GenerationRunReceipt:
+    """Persisted completion result layered on the authorization-only API."""
+
+    outcome: StopOutcome
+    status: str
+    binding: ReceiptBinding
+    scientific_completion: bool
+    receipt_path: Path
+    authorization_receipt: RunReceipt
+    execution_result: dict[str, object] | None = None
+    reason: str | None = None
+
+    def __post_init__(self) -> None:
+        if self.outcome is StopOutcome.INVALID and self.scientific_completion:
+            raise ValueError("INVALID can never claim scientific completion")
+        if self.scientific_completion and not (
+            self.outcome is StopOutcome.PASS and self.status == "completed"
+        ):
+            raise ValueError("scientific completion requires a completed PASS")
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "authorization_receipt": self.authorization_receipt.to_dict(),
+            "binding": self.binding.to_dict(),
+            "execution_result": self.execution_result,
+            "outcome": self.outcome.value,
+            "reason": self.reason,
+            "receipt_path": str(self.receipt_path),
+            "receipt_type": "generation_run",
+            "scientific_completion": self.scientific_completion,
+            "status": self.status,
+        }
+
+    def canonical_json(self) -> str:
+        return _canonical_json(self.to_dict())
+
+
+class ValidExecutionStop(Exception):
+    """Typed, governed stop raised after an authorized execution has started."""
+
+    def __init__(
+        self,
+        reason: str,
+        *,
+        status: str = "resource_exhaustion",
+        execution_result: Mapping[str, object] | None = None,
+    ) -> None:
+        if not isinstance(reason, str) or not reason or reason != reason.strip():
+            raise ValueError("valid execution stop reason must be non-empty canonical text")
+        if not isinstance(status, str) or not status or status != status.strip():
+            raise ValueError("valid execution stop status must be non-empty canonical text")
+        super().__init__(reason)
+        self.reason = reason
+        self.status = status
+        self.execution_result = None if execution_result is None else dict(execution_result)
+
+
+def _persist_governed_receipt(receipt: GenerationRunReceipt) -> GenerationRunReceipt:
+    _atomic_write(receipt.receipt_path, (receipt.canonical_json() + "\n").encode("utf-8"))
+    return receipt
+
+
+def _reservation_payload(request: GenerationRequest, receipt_path: Path) -> bytes:
+    return _canonical_bytes(
+        {
+            "binding": request.binding.to_dict(),
+            "receipt_path": str(receipt_path),
+            "receipt_type": "generation_run_reservation",
+            "status": "reserved",
+        }
+    )
+
+
+def _reserve_attempt(request: GenerationRequest, receipt_path: Path) -> None:
+    try:
+        _atomic_create(receipt_path, _reservation_payload(request, receipt_path))
+    except FileExistsError as error:
+        raise _terminal_receipt_exists_error(receipt_path, request.binding) from error
+
+
+def _terminal_receipt_exists_error(receipt_path: Path, binding: ReceiptBinding) -> FileExistsError:
+    return FileExistsError(
+        f"Terminal generation receipt already exists for attempt {binding.attempt_id!r} at "
+        f"{receipt_path}; use a new attempt_id"
+    )
+
+
+def run_authorized_generation(
+    request: GenerationRequest,
+    execute: Callable[[], object],
+) -> GenerationRunReceipt:
+    """Authorize first, then persist a serializable completion receipt."""
+
+    if not isinstance(request, GenerationRequest):
+        raise TypeError("request must be a GenerationRequest")
+    receipt_root = cast(Path, request.receipt_root)
+    receipt_path = _governed_receipt_path(receipt_root, request.binding.to_dict())
+    _reserve_attempt(request, receipt_path)
+
+    authorization = evaluate_execution_permission(
+        binding=request.binding,
+        gate_receipt=request.gate_receipt,
+        authorization_receipt=request.authorization_receipt,
+        ancestor_receipt_id=request.ancestor_receipt_id,
+    )
+    if not authorization.start_permitted:
+        return _persist_governed_receipt(
+            GenerationRunReceipt(
+                outcome=authorization.outcome,
+                status=authorization.run_state.replace("-", "_"),
+                binding=request.binding,
+                scientific_completion=False,
+                receipt_path=receipt_path,
+                authorization_receipt=authorization,
+                reason=authorization.reason,
+            )
+        )
+    try:
+        raw_result = execute()
+        execution_result = json.loads(_canonical_json(raw_result))
+    except ValidExecutionStop as stop:
+        execution_result = (
+            None
+            if stop.execution_result is None
+            else json.loads(_canonical_json(stop.execution_result))
+        )
+        return _persist_governed_receipt(
+            GenerationRunReceipt(
+                outcome=StopOutcome.VALID_STOP,
+                status=stop.status,
+                binding=request.binding,
+                scientific_completion=False,
+                receipt_path=receipt_path,
+                authorization_receipt=authorization,
+                execution_result=execution_result,
+                reason=stop.reason,
+            )
+        )
+    except Exception as error:
+        return _persist_governed_receipt(
+            GenerationRunReceipt(
+                outcome=StopOutcome.INVALID,
+                status="execution_failed",
+                binding=request.binding,
+                scientific_completion=False,
+                receipt_path=receipt_path,
+                authorization_receipt=authorization,
+                reason=f"execute_raised:{type(error).__name__}",
+            )
+        )
+    return _persist_governed_receipt(
+        GenerationRunReceipt(
+            outcome=StopOutcome.PASS,
+            status="completed",
+            binding=request.binding,
+            scientific_completion=True,
+            receipt_path=receipt_path,
+            authorization_receipt=authorization,
+            execution_result=execution_result,
+        )
+    )
 
 GENERATION_REJECTION_STAGE = "generation"
 DEDUPE_REJECTION_STAGE = "dedupe"
@@ -49,6 +267,298 @@ class GenerationRunResult:
     summary_path: Path
 
 
+def run_governed_generation(
+    request: GenerationRequest,
+    curriculum_config: CurriculumConfig,
+    *,
+    output_root: Path | str,
+    renderer: Renderer | None,
+    max_attempts_per_bucket: int,
+    seed: int,
+    split_ledger_path: Path | str,
+    structural_policy: StructuralStrataPolicy | None = None,
+    structural_profiles: Sequence[StructuralProfile] | None = None,
+    structural_policy_path: Path | str | None = None,
+    force: bool = False,
+    domains: Sequence[str] | None = None,
+    splits: Sequence[str] | None = None,
+    quotas_by_split: Mapping[str, Mapping[str, int]] | None = None,
+    candidate_multiplier: int | None = None,
+    registry: Mapping[str, GeneratorAdapter] | None = None,
+) -> GenerationRunReceipt:
+    """Run the legacy orchestrator only after authorization and bind its outputs.
+
+    A completed PASS requires artifact-derived structural coverage under the
+    supplied policy. Supplied profiles are an optional exact assertion.
+    """
+
+    resolved_output_root = Path(output_root).resolve()
+    resolved_ledger_path = Path(split_ledger_path).resolve()
+    _validate_external_generation_path(resolved_ledger_path, output_root=resolved_output_root, name="split_ledger_path")
+
+    def execute() -> dict[str, object]:
+        if Path(request.binding.output_root).resolve() != resolved_output_root:
+            raise ValueError("generation output_root must match the governance binding")
+        if structural_policy is None:
+            raise ValueError("structural_policy is required for PASS")
+        if structural_policy_path is None:
+            raise ValueError("structural_policy_path is required for PASS replay")
+        resolved_policy_path = Path(structural_policy_path).resolve()
+        if not resolved_policy_path.is_file():
+            raise ValueError("structural policy must be a committed file for replay")
+        policy_payload = json.loads(resolved_policy_path.read_text(encoding="utf-8"))
+        if policy_payload != structural_policy.to_dict():
+            raise ValueError("structural_policy_path must semantically match structural_policy")
+
+        selected_domain_configs = _select_domains(curriculum_config, domains)
+        selected_split_names = _select_splits(curriculum_config, splits)
+        resolved_quotas = _resolve_quotas(curriculum_config, selected_split_names, quotas_by_split)
+        resolved_candidate_multiplier = (
+            curriculum_config.candidate_multiplier if candidate_multiplier is None else candidate_multiplier
+        )
+        replay_contract = build_replay_contract(
+            contract_id=request.binding.contract_id,
+            seed=seed,
+            max_attempts_per_bucket=max_attempts_per_bucket,
+            candidate_multiplier=resolved_candidate_multiplier,
+            require_rendering=curriculum_config.require_rendering,
+            selected_domains=[domain.domain_id for domain in selected_domain_configs],
+            selected_splits=selected_split_names,
+            quotas_by_split=resolved_quotas,
+            source_artifacts=_replay_source_artifacts(
+                curriculum_config=curriculum_config,
+                selected_domains=selected_domain_configs,
+                structural_policy_path=resolved_policy_path,
+            ),
+        )
+        split_ledger = SplitLedger(resolved_ledger_path)
+
+        def validate_split_assignments(instances: Sequence[AcceptedInstanceMetadata]) -> None:
+            assignments = [
+                (whole_instance_identity(Path(instance.domain_path), Path(instance.problem_path)), instance.split)
+                for instance in instances
+            ]
+            for identity, split in assignments:
+                existing = split_ledger.split_for(identity)
+                if existing is not None and existing != split:
+                    raise ValueError(
+                        f"Identity {identity!r} is already assigned to {existing!r}; cannot reassign it to {split!r}"
+                    )
+            for identity, split in assignments:
+                split_ledger.assign(identity, split)
+
+        result = orchestrate_generation(
+            curriculum_config,
+            output_root=resolved_output_root,
+            renderer=renderer,
+            max_attempts_per_bucket=max_attempts_per_bucket,
+            seed=seed,
+            force=force,
+            domains=domains,
+            splits=splits,
+            quotas_by_split=quotas_by_split,
+            candidate_multiplier=candidate_multiplier,
+            registry=registry,
+            split_validator=validate_split_assignments,
+        )
+        return _bind_governed_outputs(
+            result,
+            split_ledger_path=resolved_ledger_path,
+            structural_policy=structural_policy,
+            structural_profiles=structural_profiles,
+            replay_contract=replay_contract,
+        )
+
+    return run_authorized_generation(request, execute)
+
+
+def _bind_governed_outputs(
+    result: GenerationRunResult,
+    *,
+    split_ledger_path: Path | str,
+    structural_policy: StructuralStrataPolicy,
+    structural_profiles: Sequence[StructuralProfile] | None,
+    replay_contract: bytes,
+) -> dict[str, object]:
+    output_root = result.output_root.resolve()
+    ledger_path = Path(split_ledger_path).resolve()
+    ledger = SplitLedger(ledger_path)
+    ledger_path.parent.mkdir(parents=True, exist_ok=True)
+    ledger_path.open("a", encoding="utf-8").close()
+    accepted_records: list[dict[str, str]] = []
+    pddl_artifacts: dict[str, Path] = {}
+    expected_assignments: dict[str, str] = {}
+
+    for instance in result.accepted_instances:
+        domain_path = Path(instance.domain_path).resolve()
+        problem_path = Path(instance.problem_path).resolve()
+        domain_relative = _relative_artifact_path(domain_path, output_root)
+        problem_relative = _relative_artifact_path(problem_path, output_root)
+        identity = whole_instance_identity(domain_path, problem_path)
+        ledger.assign(identity, instance.split)
+        expected_assignments[identity] = instance.split
+        accepted_records.append(
+            {
+                "domain_path": domain_relative,
+                "identity": identity,
+                "instance_id": instance.instance_id,
+                "problem_path": problem_relative,
+                "split": instance.split,
+            }
+        )
+        pddl_artifacts[domain_relative] = domain_path
+        pddl_artifacts[problem_relative] = problem_path
+
+    verified_ledger = SplitLedger(ledger_path)
+    for identity, split in expected_assignments.items():
+        if verified_ledger.split_for(identity) != split:
+            raise ValueError(f"split ledger verification failed for {identity}")
+
+    derived_profiles = derive_structural_profiles(result.accepted_instances)
+    accepted_splits = {instance.instance_id: instance.split for instance in result.accepted_instances}
+    derived_by_id = {profile.instance_id: profile for profile in derived_profiles}
+    derived_splits = {instance_id: profile.split for instance_id, profile in derived_by_id.items()}
+    if len(derived_by_id) != len(derived_profiles):
+        raise ValueError("derived structural profiles must have unique instance ids")
+    if derived_splits != accepted_splits:
+        raise ValueError("derived structural profiles must exactly match accepted instance ids and splits")
+    if structural_profiles is not None:
+        asserted_by_id = {profile.instance_id: profile for profile in structural_profiles}
+        if len(asserted_by_id) != len(structural_profiles) or asserted_by_id != derived_by_id:
+            raise ValueError("supplied structural profiles must exactly match artifact-derived profiles")
+    coverage = verify_structural_coverage(structural_policy, derived_profiles)
+    structural_result = {"asserted": True, **coverage.to_dict()}
+    structural_profiles_payload = [
+        profile.to_dict() for profile in sorted(derived_profiles, key=lambda profile: profile.instance_id)
+    ]
+
+    accepted_records.sort(key=lambda item: (item["instance_id"], item["domain_path"], item["problem_path"]))
+    summary_payload = _canonical_summary_payload(result.summary)
+    artifacts: dict[str, bytes | Path] = {
+        **pddl_artifacts,
+        "contracts/generation-replay.json": replay_contract,
+        "manifests/accepted.json": _canonical_bytes(accepted_records),
+        "manifests/split-ledger.jsonl": ledger_path.read_bytes(),
+        "manifests/structural-profiles.json": _canonical_bytes(structural_profiles_payload),
+        "manifests/summary.json": _canonical_bytes(summary_payload),
+    }
+    bundle = build_canonical_bundle(artifacts)
+    replay_root = output_root / ".replay"
+    bundle_path = replay_root / "canonical-bundle.bin"
+    bundle_manifest_path = replay_root / "canonical-bundle-manifest.json"
+    bundle_manifest = {
+        "artifacts": [
+            {
+                "path": path,
+                "size_bytes": len(_artifact_bytes(source)),
+            }
+            for path, source in sorted(artifacts.items())
+        ],
+        "bundle_size_bytes": len(bundle),
+        "format": "canonical-generation-replay-v1",
+    }
+    _atomic_write(bundle_path, bundle)
+    _atomic_write(bundle_manifest_path, _canonical_bytes(bundle_manifest))
+
+    return {
+        "accepted_count": len(result.accepted_instances),
+        "accepted_manifest_path": str(result.accepted_manifest_path),
+        "canonical_bundle_manifest_path": str(bundle_manifest_path),
+        "canonical_bundle_path": str(bundle_path),
+        "output_root": str(output_root),
+        "rejected_count": len(result.rejected_candidates),
+        "rejections_path": str(result.rejections_path),
+        "split_ledger_path": str(ledger_path),
+        "structural_coverage": structural_result,
+        "summary_path": str(result.summary_path),
+    }
+
+
+def _validate_external_generation_path(path: Path, *, output_root: Path, name: str) -> None:
+    if path == output_root or output_root in path.parents:
+        raise ValueError(f"{name} must be outside output_root")
+
+
+def _canonical_summary_payload(summary: SummaryMetadata) -> dict[str, object]:
+    return {
+        "accepted_by_bucket": dict(summary.accepted_by_bucket),
+        "accepted_by_domain": dict(summary.accepted_by_domain),
+        "accepted_by_split": dict(summary.accepted_by_split),
+        "accepted_total": summary.accepted_total,
+        "domains_completed": summary.domains_completed,
+        "duplicate_accepted_problems": summary.duplicate_accepted_problems,
+        "rejected_by_reason": dict(summary.rejected_by_reason),
+        "rejected_total": summary.rejected_total,
+        "render_failed_accepted": summary.render_failed_accepted,
+        "resumed_accepted_total": summary.resumed_accepted_total,
+    }
+
+
+def _replay_source_artifacts(
+    *,
+    curriculum_config: CurriculumConfig,
+    selected_domains: Sequence[DomainConfig],
+    structural_policy_path: Path,
+) -> ArtifactSet:
+    config_path = curriculum_config.config_path.resolve()
+    if not config_path.is_file():
+        raise ValueError("curriculum config must be a committed file for replay")
+    artifacts: dict[str, Path] = {
+        "config/curriculum": config_path,
+        "policy/structural": structural_policy_path,
+    }
+    for domain in selected_domains:
+        render_profile_path = domain.render_profile_path.resolve()
+        if not render_profile_path.is_file():
+            raise ValueError(f"render profile must be a committed file for replay: {render_profile_path}")
+        artifacts[f"render-profiles/{domain.domain_id}.pddl"] = render_profile_path
+    return artifacts
+
+
+def _relative_artifact_path(path: Path, output_root: Path) -> str:
+    relative = path.relative_to(output_root).as_posix()
+    if path.suffix.lower() != ".pddl":
+        raise ValueError(f"governed instance artifact is not PDDL: {relative}")
+    return relative
+
+
+def _canonical_bytes(value: object) -> bytes:
+    return (_canonical_json(value) + "\n").encode("utf-8")
+
+
+def _artifact_bytes(source: bytes | Path) -> bytes:
+    return source if isinstance(source, bytes) else source.read_bytes()
+
+
+def _atomic_write(path: Path, contents: bytes) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, temporary_name = tempfile.mkstemp(dir=path.parent, prefix=f".{path.name}.", suffix=".tmp")
+    temporary_path = Path(temporary_name)
+    try:
+        with os.fdopen(descriptor, "wb") as handle:
+            handle.write(contents)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary_path, path)
+    except BaseException:
+        temporary_path.unlink(missing_ok=True)
+        raise
+
+
+def _atomic_create(path: Path, contents: bytes) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, temporary_name = tempfile.mkstemp(dir=path.parent, prefix=f".{path.name}.", suffix=".tmp")
+    temporary_path = Path(temporary_name)
+    try:
+        with os.fdopen(descriptor, "wb") as handle:
+            handle.write(contents)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.link(temporary_path, path)
+    finally:
+        temporary_path.unlink(missing_ok=True)
+
+
 def orchestrate_generation(
     curriculum_config: CurriculumConfig,
     *,
@@ -62,6 +572,7 @@ def orchestrate_generation(
     quotas_by_split: Mapping[str, Mapping[str, int]] | None = None,
     candidate_multiplier: int | None = None,
     registry: Mapping[str, GeneratorAdapter] | None = None,
+    split_validator: Callable[[Sequence[AcceptedInstanceMetadata]], None] | None = None,
 ) -> GenerationRunResult:
     if max_attempts_per_bucket <= 0:
         raise ValueError("max_attempts_per_bucket must be positive")
@@ -90,8 +601,8 @@ def orchestrate_generation(
 
     domain_registry = dict(registry or build_domain_registry(replace(curriculum_config, domains=selected_domains)))
     _require_adapter_readiness(domain_registry, selected_domains)
-    resume_hash_splits = tuple(curriculum_config.splits)
-    existing_accepted = [] if force else _load_existing_accepted(resolved_output_root, selected_domains, resume_hash_splits)
+    resume_splits = tuple(curriculum_config.splits)
+    existing_accepted = [] if force else _load_existing_accepted(resolved_output_root, selected_domains, resume_splits)
     existing_rejections = [] if force else _load_rejections(resolved_output_root / REJECTIONS_FILENAME)
 
     accepted_instances: list[AcceptedInstanceMetadata] = list(existing_accepted)
@@ -196,13 +707,14 @@ def orchestrate_generation(
                         )
                         continue
 
+                    candidate_renderer = cast(Renderer, renderer)
                     rendered_or_rejection = gate_rendered_candidate(
                         candidate=normalized_or_rejection,
                         split=split,
                         bucket=target_bucket,
                         index=attempt_index,
                         attempt_index=attempt_index,
-                        renderer=renderer,
+                        renderer=candidate_renderer,
                         render_profile_path=domain.render_profile_path,
                         timeout_seconds=curriculum_config.timeouts.render_seconds,
                         extra={
@@ -241,6 +753,9 @@ def orchestrate_generation(
                 if candidate.candidate_id in selected_candidate_ids:
                     continue
                 rejected_candidates.append(_build_selection_rejection(candidate))
+
+            if split_validator is not None:
+                split_validator(selection_result.selected_instances)
 
             for selected in selection_result.selected_instances:
                 finalized = _finalize_selected_candidate(
@@ -341,7 +856,7 @@ def _require_adapter_readiness(
         if bool(getattr(capability, "ready", True)):
             continue
 
-        failures = tuple(getattr(capability, "readiness_failures", ()))
+        failures = cast(Sequence[object], getattr(capability, "readiness_failures", ()))
         if not failures:
             issues.append(f"{domain.domain_id}: adapter readiness failed")
             continue
@@ -740,10 +1255,15 @@ def _sorted_rejections(rejections: Sequence[RejectedCandidateMetadata]) -> list[
 __all__ = [
     "ACCEPTED_MANIFEST_FILENAME",
     "GENERATION_REJECTION_STAGE",
-    "GenerationRunResult",
     "REJECTIONS_FILENAME",
     "SELECTION_NOT_SELECTED_REASON",
     "STAGING_DIRNAME",
     "SUMMARY_FILENAME",
+    "GenerationRequest",
+    "GenerationRunReceipt",
+    "GenerationRunResult",
+    "ValidExecutionStop",
     "orchestrate_generation",
+    "run_authorized_generation",
+    "run_governed_generation",
 ]

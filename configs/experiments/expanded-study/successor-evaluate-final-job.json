@@ -1,0 +1,9 @@
+{
+  "job_id": "successor-evaluate-final",
+  "branch": "successor_prediction",
+  "gpus": [],
+  "max_seconds": 21600,
+  "total": 90,
+  "command": ["/home/sukaih/miniconda3/envs/ada_vla/bin/python", "scripts/run_expanded_successor_evaluation.py", "finalize"],
+  "completion_hook": ["/home/sukaih/miniconda3/envs/ada_vla/bin/python", "scripts/run_expanded_successor_evaluation.py", "audit-final"]
+}

@@ -1,0 +1,62 @@
+{
+  "outcome": "PASS",
+  "study_scope": "deadline_pilot",
+  "train_records": {
+    "bfs": 512,
+    "best_first_width": 512,
+    "best_first_add_w3": 512,
+    "best_first_add_greedy": 512
+  },
+  "optimizer_steps": {
+    "bfs": 16,
+    "best_first_width": 16,
+    "best_first_add_w3": 16,
+    "best_first_add_greedy": 16
+  },
+  "evaluation_seeds": [
+    17
+  ],
+  "planned_condition_episodes": 48,
+  "clock_seconds": 14400,
+  "model_calls_started": false,
+  "writes": 0,
+  "github_titles_and_bodies_verified": [
+    75,
+    76,
+    77,
+    78,
+    79,
+    80,
+    81,
+    82,
+    83,
+    84,
+    85,
+    86,
+    87,
+    88,
+    89,
+    90,
+    91,
+    92,
+    93,
+    94,
+    95,
+    96,
+    97,
+    98,
+    99,
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109
+  ],
+  "gpu_experiments_launched": 0,
+  "runtime_measurement": "Not performed: existing full-size #75 workers occupied both GPUs."
+}

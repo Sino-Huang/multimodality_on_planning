@@ -1,0 +1,27 @@
+{
+  "schema_version": "modality_freeze_report_v1",
+  "source_issue": 71,
+  "phase_id": "issue-71-modality-development-v2",
+  "outcome": "PASS",
+  "freeze_complete": true,
+  "scientific_completion": false,
+  "scope": "Configuration freeze and conditional development authorization only",
+  "freeze_manifest": "configs/experiments/issue71/v2/freeze.json",
+  "authorization_manifest": "configs/experiments/issue71/v2/authorization.json",
+  "profile_inventory": 15,
+  "selected_task_groups": 241,
+  "excluded_task_groups": 18,
+  "algorithm_episodes": 305,
+  "modality_cells": 12,
+  "planned_decision_projections": 234690,
+  "validation": {
+    "focused_tests_passed": 71,
+    "ruff": "PASS",
+    "black": "PASS",
+    "basedpyright_errors": 0,
+    "dry_run": "PASS",
+    "dry_run_writes": 0
+  },
+  "not_run": ["production profile qualification", "bulk renders", "modality corpus release", "training", "hardware qualification", "model evaluation"],
+  "next_issue": 72
+}

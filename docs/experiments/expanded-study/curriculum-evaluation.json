@@ -1,0 +1,4572 @@
+{
+  "schema_version": "expanded_curriculum_evaluation_evidence_v1",
+  "status": "PASS",
+  "outcome": "PASS",
+  "protocol_id": "expanded-curriculum-v1",
+  "coverage": {
+    "model_episodes": 243,
+    "expected_model_episodes": 243,
+    "comparator_bindings": 324,
+    "expected_comparator_bindings": 324,
+    "missing_bindings": [],
+    "missing_comparator_bindings": []
+  },
+  "cells": [
+    {
+      "panel": "development",
+      "modality": "multimodal-state",
+      "arm": "multimodal-state__base",
+      "episodes": 3,
+      "invariant_valid_successes": 0,
+      "goal_reached": 0,
+      "algorithm_invariants_hold": 0,
+      "decisions": 3,
+      "invalid_operations": 3,
+      "invalid_operation_rate": 1.0,
+      "model_calls": 3,
+      "decision_call_allowance": 42
+    },
+    {
+      "panel": "development",
+      "modality": "multimodal-state",
+      "arm": "multimodal-state__exact_reference",
+      "episodes": 3,
+      "invariant_valid_successes": 3,
+      "goal_reached": 3,
+      "algorithm_invariants_hold": 3,
+      "decisions": 21,
+      "invalid_operations": 0,
+      "invalid_operation_rate": 0.0,
+      "model_calls": 0,
+      "decision_call_allowance": 42
+    },
+    {
+      "panel": "development",
+      "modality": "multimodal-state",
+      "arm": "multimodal-state__mixed_order",
+      "episodes": 3,
+      "invariant_valid_successes": 3,
+      "goal_reached": 3,
+      "algorithm_invariants_hold": 3,
+      "decisions": 21,
+      "invalid_operations": 0,
+      "invalid_operation_rate": 0.0,
+      "model_calls": 21,
+      "decision_call_allowance": 42
+    },
+    {
+      "panel": "development",
+      "modality": "multimodal-state",
+      "arm": "multimodal-state__random_valid",
+      "episodes": 3,
+      "invariant_valid_successes": 3,
+      "goal_reached": 3,
+      "algorithm_invariants_hold": 3,
+      "decisions": 21,
+      "invalid_operations": 0,
+      "invalid_operation_rate": 0.0,
+      "model_calls": 0,
+      "decision_call_allowance": 42
+    },
+    {
+      "panel": "development",
+      "modality": "multimodal-state",
+      "arm": "multimodal-state__sft_sequential_order_control",
+      "episodes": 3,
+      "invariant_valid_successes": 3,
+      "goal_reached": 3,
+      "algorithm_invariants_hold": 3,
+      "decisions": 21,
+      "invalid_operations": 0,
+      "invalid_operation_rate": 0.0,
+      "model_calls": 21,
+      "decision_call_allowance": 42
+    },
+    {
+      "panel": "development",
+      "modality": "multimodal-state",
+      "arm": "multimodal-state__shuffled",
+      "episodes": 3,
+      "invariant_valid_successes": 3,
+      "goal_reached": 3,
+      "algorithm_invariants_hold": 3,
+      "decisions": 21,
+      "invalid_operations": 0,
+      "invalid_operation_rate": 0.0,
+      "model_calls": 21,
+      "decision_call_allowance": 42
+    },
+    {
+      "panel": "development",
+      "modality": "multimodal-state",
+      "arm": "multimodal-state__staged",
+      "episodes": 3,
+      "invariant_valid_successes": 3,
+      "goal_reached": 3,
+      "algorithm_invariants_hold": 3,
+      "decisions": 21,
+      "invalid_operations": 0,
+      "invalid_operation_rate": 0.0,
+      "model_calls": 21,
+      "decision_call_allowance": 42
+    },
+    {
+      "panel": "development",
+      "modality": "text-state",
+      "arm": "text-state__base",
+      "episodes": 3,
+      "invariant_valid_successes": 0,
+      "goal_reached": 0,
+      "algorithm_invariants_hold": 0,
+      "decisions": 3,
+      "invalid_operations": 3,
+      "invalid_operation_rate": 1.0,
+      "model_calls": 3,
+      "decision_call_allowance": 42
+    },
+    {
+      "panel": "development",
+      "modality": "text-state",
+      "arm": "text-state__exact_reference",
+      "episodes": 3,
+      "invariant_valid_successes": 3,
+      "goal_reached": 3,
+      "algorithm_invariants_hold": 3,
+      "decisions": 21,
+      "invalid_operations": 0,
+      "invalid_operation_rate": 0.0,
+      "model_calls": 0,
+      "decision_call_allowance": 42
+    },
+    {
+      "panel": "development",
+      "modality": "text-state",
+      "arm": "text-state__mixed_order",
+      "episodes": 3,
+      "invariant_valid_successes": 3,
+      "goal_reached": 3,
+      "algorithm_invariants_hold": 3,
+      "decisions": 21,
+      "invalid_operations": 0,
+      "invalid_operation_rate": 0.0,
+      "model_calls": 21,
+      "decision_call_allowance": 42
+    },
+    {
+      "panel": "development",
+      "modality": "text-state",
+      "arm": "text-state__random_valid",
+      "episodes": 3,
+      "invariant_valid_successes": 3,
+      "goal_reached": 3,
+      "algorithm_invariants_hold": 3,
+      "decisions": 21,
+      "invalid_operations": 0,
+      "invalid_operation_rate": 0.0,
+      "model_calls": 0,
+      "decision_call_allowance": 42
+    },
+    {
+      "panel": "development",
+      "modality": "text-state",
+      "arm": "text-state__sft_sequential_order_control",
+      "episodes": 3,
+      "invariant_valid_successes": 2,
+      "goal_reached": 2,
+      "algorithm_invariants_hold": 2,
+      "decisions": 15,
+      "invalid_operations": 1,
+      "invalid_operation_rate": 0.06666666666666667,
+      "model_calls": 15,
+      "decision_call_allowance": 42
+    },
+    {
+      "panel": "development",
+      "modality": "text-state",
+      "arm": "text-state__shuffled",
+      "episodes": 3,
+      "invariant_valid_successes": 3,
+      "goal_reached": 3,
+      "algorithm_invariants_hold": 3,
+      "decisions": 21,
+      "invalid_operations": 0,
+      "invalid_operation_rate": 0.0,
+      "model_calls": 21,
+      "decision_call_allowance": 42
+    },
+    {
+      "panel": "development",
+      "modality": "text-state",
+      "arm": "text-state__staged",
+      "episodes": 3,
+      "invariant_valid_successes": 2,
+      "goal_reached": 2,
+      "algorithm_invariants_hold": 2,
+      "decisions": 16,
+      "invalid_operations": 1,
+      "invalid_operation_rate": 0.0625,
+      "model_calls": 16,
+      "decision_call_allowance": 42
+    },
+    {
+      "panel": "development",
+      "modality": "visual-state",
+      "arm": "visual-state__base",
+      "episodes": 3,
+      "invariant_valid_successes": 0,
+      "goal_reached": 0,
+      "algorithm_invariants_hold": 0,
+      "decisions": 3,
+      "invalid_operations": 3,
+      "invalid_operation_rate": 1.0,
+      "model_calls": 3,
+      "decision_call_allowance": 42
+    },
+    {
+      "panel": "development",
+      "modality": "visual-state",
+      "arm": "visual-state__exact_reference",
+      "episodes": 3,
+      "invariant_valid_successes": 3,
+      "goal_reached": 3,
+      "algorithm_invariants_hold": 3,
+      "decisions": 21,
+      "invalid_operations": 0,
+      "invalid_operation_rate": 0.0,
+      "model_calls": 0,
+      "decision_call_allowance": 42
+    },
+    {
+      "panel": "development",
+      "modality": "visual-state",
+      "arm": "visual-state__mixed_order",
+      "episodes": 3,
+      "invariant_valid_successes": 3,
+      "goal_reached": 3,
+      "algorithm_invariants_hold": 3,
+      "decisions": 21,
+      "invalid_operations": 0,
+      "invalid_operation_rate": 0.0,
+      "model_calls": 21,
+      "decision_call_allowance": 42
+    },
+    {
+      "panel": "development",
+      "modality": "visual-state",
+      "arm": "visual-state__random_valid",
+      "episodes": 3,
+      "invariant_valid_successes": 3,
+      "goal_reached": 3,
+      "algorithm_invariants_hold": 3,
+      "decisions": 21,
+      "invalid_operations": 0,
+      "invalid_operation_rate": 0.0,
+      "model_calls": 0,
+      "decision_call_allowance": 42
+    },
+    {
+      "panel": "development",
+      "modality": "visual-state",
+      "arm": "visual-state__sft_sequential_order_control",
+      "episodes": 3,
+      "invariant_valid_successes": 3,
+      "goal_reached": 3,
+      "algorithm_invariants_hold": 3,
+      "decisions": 21,
+      "invalid_operations": 0,
+      "invalid_operation_rate": 0.0,
+      "model_calls": 21,
+      "decision_call_allowance": 42
+    },
+    {
+      "panel": "development",
+      "modality": "visual-state",
+      "arm": "visual-state__shuffled",
+      "episodes": 3,
+      "invariant_valid_successes": 3,
+      "goal_reached": 3,
+      "algorithm_invariants_hold": 3,
+      "decisions": 21,
+      "invalid_operations": 0,
+      "invalid_operation_rate": 0.0,
+      "model_calls": 21,
+      "decision_call_allowance": 42
+    },
+    {
+      "panel": "development",
+      "modality": "visual-state",
+      "arm": "visual-state__staged",
+      "episodes": 3,
+      "invariant_valid_successes": 3,
+      "goal_reached": 3,
+      "algorithm_invariants_hold": 3,
+      "decisions": 21,
+      "invalid_operations": 0,
+      "invalid_operation_rate": 0.0,
+      "model_calls": 21,
+      "decision_call_allowance": 42
+    },
+    {
+      "panel": "unseen",
+      "modality": "multimodal-state",
+      "arm": "multimodal-state__base",
+      "episodes": 24,
+      "invariant_valid_successes": 0,
+      "goal_reached": 0,
+      "algorithm_invariants_hold": 0,
+      "decisions": 24,
+      "invalid_operations": 24,
+      "invalid_operation_rate": 1.0,
+      "model_calls": 24,
+      "decision_call_allowance": 1346
+    },
+    {
+      "panel": "unseen",
+      "modality": "multimodal-state",
+      "arm": "multimodal-state__exact_reference",
+      "episodes": 24,
+      "invariant_valid_successes": 24,
+      "goal_reached": 24,
+      "algorithm_invariants_hold": 24,
+      "decisions": 673,
+      "invalid_operations": 0,
+      "invalid_operation_rate": 0.0,
+      "model_calls": 0,
+      "decision_call_allowance": 1346
+    },
+    {
+      "panel": "unseen",
+      "modality": "multimodal-state",
+      "arm": "multimodal-state__mixed_order",
+      "episodes": 24,
+      "invariant_valid_successes": 24,
+      "goal_reached": 24,
+      "algorithm_invariants_hold": 24,
+      "decisions": 673,
+      "invalid_operations": 0,
+      "invalid_operation_rate": 0.0,
+      "model_calls": 673,
+      "decision_call_allowance": 1346
+    },
+    {
+      "panel": "unseen",
+      "modality": "multimodal-state",
+      "arm": "multimodal-state__random_valid",
+      "episodes": 24,
+      "invariant_valid_successes": 24,
+      "goal_reached": 24,
+      "algorithm_invariants_hold": 24,
+      "decisions": 673,
+      "invalid_operations": 0,
+      "invalid_operation_rate": 0.0,
+      "model_calls": 0,
+      "decision_call_allowance": 1346
+    },
+    {
+      "panel": "unseen",
+      "modality": "multimodal-state",
+      "arm": "multimodal-state__sft_sequential_order_control",
+      "episodes": 24,
+      "invariant_valid_successes": 21,
+      "goal_reached": 21,
+      "algorithm_invariants_hold": 21,
+      "decisions": 617,
+      "invalid_operations": 3,
+      "invalid_operation_rate": 0.004862236628849271,
+      "model_calls": 617,
+      "decision_call_allowance": 1346
+    },
+    {
+      "panel": "unseen",
+      "modality": "multimodal-state",
+      "arm": "multimodal-state__shuffled",
+      "episodes": 24,
+      "invariant_valid_successes": 24,
+      "goal_reached": 24,
+      "algorithm_invariants_hold": 24,
+      "decisions": 673,
+      "invalid_operations": 0,
+      "invalid_operation_rate": 0.0,
+      "model_calls": 673,
+      "decision_call_allowance": 1346
+    },
+    {
+      "panel": "unseen",
+      "modality": "multimodal-state",
+      "arm": "multimodal-state__staged",
+      "episodes": 24,
+      "invariant_valid_successes": 22,
+      "goal_reached": 22,
+      "algorithm_invariants_hold": 22,
+      "decisions": 645,
+      "invalid_operations": 2,
+      "invalid_operation_rate": 0.0031007751937984496,
+      "model_calls": 645,
+      "decision_call_allowance": 1346
+    },
+    {
+      "panel": "unseen",
+      "modality": "text-state",
+      "arm": "text-state__base",
+      "episodes": 24,
+      "invariant_valid_successes": 0,
+      "goal_reached": 0,
+      "algorithm_invariants_hold": 0,
+      "decisions": 24,
+      "invalid_operations": 24,
+      "invalid_operation_rate": 1.0,
+      "model_calls": 24,
+      "decision_call_allowance": 1346
+    },
+    {
+      "panel": "unseen",
+      "modality": "text-state",
+      "arm": "text-state__exact_reference",
+      "episodes": 24,
+      "invariant_valid_successes": 24,
+      "goal_reached": 24,
+      "algorithm_invariants_hold": 24,
+      "decisions": 673,
+      "invalid_operations": 0,
+      "invalid_operation_rate": 0.0,
+      "model_calls": 0,
+      "decision_call_allowance": 1346
+    },
+    {
+      "panel": "unseen",
+      "modality": "text-state",
+      "arm": "text-state__mixed_order",
+      "episodes": 24,
+      "invariant_valid_successes": 22,
+      "goal_reached": 22,
+      "algorithm_invariants_hold": 22,
+      "decisions": 650,
+      "invalid_operations": 2,
+      "invalid_operation_rate": 0.003076923076923077,
+      "model_calls": 650,
+      "decision_call_allowance": 1346
+    },
+    {
+      "panel": "unseen",
+      "modality": "text-state",
+      "arm": "text-state__random_valid",
+      "episodes": 24,
+      "invariant_valid_successes": 24,
+      "goal_reached": 24,
+      "algorithm_invariants_hold": 24,
+      "decisions": 673,
+      "invalid_operations": 0,
+      "invalid_operation_rate": 0.0,
+      "model_calls": 0,
+      "decision_call_allowance": 1346
+    },
+    {
+      "panel": "unseen",
+      "modality": "text-state",
+      "arm": "text-state__sft_sequential_order_control",
+      "episodes": 24,
+      "invariant_valid_successes": 22,
+      "goal_reached": 22,
+      "algorithm_invariants_hold": 22,
+      "decisions": 614,
+      "invalid_operations": 2,
+      "invalid_operation_rate": 0.003257328990228013,
+      "model_calls": 614,
+      "decision_call_allowance": 1346
+    },
+    {
+      "panel": "unseen",
+      "modality": "text-state",
+      "arm": "text-state__shuffled",
+      "episodes": 24,
+      "invariant_valid_successes": 21,
+      "goal_reached": 21,
+      "algorithm_invariants_hold": 21,
+      "decisions": 639,
+      "invalid_operations": 3,
+      "invalid_operation_rate": 0.004694835680751174,
+      "model_calls": 639,
+      "decision_call_allowance": 1346
+    },
+    {
+      "panel": "unseen",
+      "modality": "text-state",
+      "arm": "text-state__staged",
+      "episodes": 24,
+      "invariant_valid_successes": 22,
+      "goal_reached": 22,
+      "algorithm_invariants_hold": 22,
+      "decisions": 618,
+      "invalid_operations": 2,
+      "invalid_operation_rate": 0.003236245954692557,
+      "model_calls": 618,
+      "decision_call_allowance": 1346
+    },
+    {
+      "panel": "unseen",
+      "modality": "visual-state",
+      "arm": "visual-state__base",
+      "episodes": 24,
+      "invariant_valid_successes": 0,
+      "goal_reached": 0,
+      "algorithm_invariants_hold": 0,
+      "decisions": 24,
+      "invalid_operations": 24,
+      "invalid_operation_rate": 1.0,
+      "model_calls": 24,
+      "decision_call_allowance": 1346
+    },
+    {
+      "panel": "unseen",
+      "modality": "visual-state",
+      "arm": "visual-state__exact_reference",
+      "episodes": 24,
+      "invariant_valid_successes": 24,
+      "goal_reached": 24,
+      "algorithm_invariants_hold": 24,
+      "decisions": 673,
+      "invalid_operations": 0,
+      "invalid_operation_rate": 0.0,
+      "model_calls": 0,
+      "decision_call_allowance": 1346
+    },
+    {
+      "panel": "unseen",
+      "modality": "visual-state",
+      "arm": "visual-state__mixed_order",
+      "episodes": 24,
+      "invariant_valid_successes": 23,
+      "goal_reached": 23,
+      "algorithm_invariants_hold": 23,
+      "decisions": 649,
+      "invalid_operations": 1,
+      "invalid_operation_rate": 0.0015408320493066256,
+      "model_calls": 649,
+      "decision_call_allowance": 1346
+    },
+    {
+      "panel": "unseen",
+      "modality": "visual-state",
+      "arm": "visual-state__random_valid",
+      "episodes": 24,
+      "invariant_valid_successes": 24,
+      "goal_reached": 24,
+      "algorithm_invariants_hold": 24,
+      "decisions": 673,
+      "invalid_operations": 0,
+      "invalid_operation_rate": 0.0,
+      "model_calls": 0,
+      "decision_call_allowance": 1346
+    },
+    {
+      "panel": "unseen",
+      "modality": "visual-state",
+      "arm": "visual-state__sft_sequential_order_control",
+      "episodes": 24,
+      "invariant_valid_successes": 22,
+      "goal_reached": 22,
+      "algorithm_invariants_hold": 22,
+      "decisions": 643,
+      "invalid_operations": 2,
+      "invalid_operation_rate": 0.003110419906687403,
+      "model_calls": 643,
+      "decision_call_allowance": 1346
+    },
+    {
+      "panel": "unseen",
+      "modality": "visual-state",
+      "arm": "visual-state__shuffled",
+      "episodes": 24,
+      "invariant_valid_successes": 24,
+      "goal_reached": 24,
+      "algorithm_invariants_hold": 24,
+      "decisions": 673,
+      "invalid_operations": 0,
+      "invalid_operation_rate": 0.0,
+      "model_calls": 673,
+      "decision_call_allowance": 1346
+    },
+    {
+      "panel": "unseen",
+      "modality": "visual-state",
+      "arm": "visual-state__staged",
+      "episodes": 24,
+      "invariant_valid_successes": 21,
+      "goal_reached": 21,
+      "algorithm_invariants_hold": 21,
+      "decisions": 626,
+      "invalid_operations": 3,
+      "invalid_operation_rate": 0.004792332268370607,
+      "model_calls": 626,
+      "decision_call_allowance": 1346
+    }
+  ],
+  "paired_rows": [
+    {
+      "panel": "development",
+      "task_id": "matched-final/blocksworld-730060",
+      "arms": {
+        "text-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 4
+        },
+        "text-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 4
+        },
+        "text-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 4
+        },
+        "visual-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 4
+        },
+        "visual-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 4
+        },
+        "visual-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 4
+        },
+        "multimodal-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 4
+        },
+        "multimodal-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 4
+        },
+        "multimodal-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 4
+        },
+        "text-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 4
+        },
+        "text-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 4
+        },
+        "text-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 4
+        },
+        "visual-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 4
+        },
+        "visual-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 4
+        },
+        "visual-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 4
+        },
+        "multimodal-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 4
+        },
+        "multimodal-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 4
+        },
+        "multimodal-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 4
+        }
+      }
+    },
+    {
+      "panel": "development",
+      "task_id": "matched-final/ferry-780004",
+      "arms": {
+        "text-state__staged": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 2
+        },
+        "text-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 7
+        },
+        "text-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 7
+        },
+        "visual-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 7
+        },
+        "visual-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 7
+        },
+        "visual-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 7
+        },
+        "multimodal-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 7
+        },
+        "multimodal-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 7
+        },
+        "multimodal-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 7
+        },
+        "text-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 7
+        },
+        "text-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 7
+        },
+        "visual-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 7
+        },
+        "visual-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 7
+        },
+        "visual-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 7
+        },
+        "multimodal-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 7
+        },
+        "multimodal-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 7
+        },
+        "multimodal-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 7
+        }
+      }
+    },
+    {
+      "panel": "development",
+      "task_id": "matched-final/storage-760000",
+      "arms": {
+        "text-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 10
+        },
+        "text-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 10
+        },
+        "text-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 10
+        },
+        "visual-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 10
+        },
+        "visual-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 10
+        },
+        "visual-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 10
+        },
+        "multimodal-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 10
+        },
+        "multimodal-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 10
+        },
+        "multimodal-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 10
+        },
+        "text-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 10
+        },
+        "text-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 10
+        },
+        "text-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 10
+        },
+        "visual-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 10
+        },
+        "visual-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 10
+        },
+        "visual-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 10
+        },
+        "multimodal-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 10
+        },
+        "multimodal-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 10
+        },
+        "multimodal-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 10
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "task_id": "expanded-final/15puzzle-compact-910000",
+      "arms": {
+        "text-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 12
+        },
+        "text-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 12
+        },
+        "text-state__mixed_order": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 3
+        },
+        "visual-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 12
+        },
+        "visual-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 12
+        },
+        "visual-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 12
+        },
+        "multimodal-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 12
+        },
+        "multimodal-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 12
+        },
+        "multimodal-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 12
+        },
+        "text-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 12
+        },
+        "text-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 12
+        },
+        "text-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 12
+        },
+        "visual-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 12
+        },
+        "visual-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 12
+        },
+        "visual-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 12
+        },
+        "multimodal-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 12
+        },
+        "multimodal-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 12
+        },
+        "multimodal-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 12
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "task_id": "expanded-final/15puzzle-expanded-910109",
+      "arms": {
+        "text-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 19
+        },
+        "text-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 19
+        },
+        "text-state__mixed_order": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 5
+        },
+        "visual-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 19
+        },
+        "visual-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 19
+        },
+        "visual-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 19
+        },
+        "multimodal-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 19
+        },
+        "multimodal-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 19
+        },
+        "multimodal-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 19
+        },
+        "text-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 19
+        },
+        "text-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 19
+        },
+        "text-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 19
+        },
+        "visual-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 19
+        },
+        "visual-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 19
+        },
+        "visual-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 19
+        },
+        "multimodal-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 19
+        },
+        "multimodal-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 19
+        },
+        "multimodal-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 19
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "task_id": "expanded-final/blocksworld-compact-911000",
+      "arms": {
+        "text-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 44
+        },
+        "text-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 44
+        },
+        "text-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 44
+        },
+        "visual-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 44
+        },
+        "visual-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 44
+        },
+        "visual-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 44
+        },
+        "multimodal-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 44
+        },
+        "multimodal-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 44
+        },
+        "multimodal-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 44
+        },
+        "text-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 44
+        },
+        "text-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 44
+        },
+        "text-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 44
+        },
+        "visual-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 44
+        },
+        "visual-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 44
+        },
+        "visual-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 44
+        },
+        "multimodal-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 44
+        },
+        "multimodal-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 44
+        },
+        "multimodal-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 44
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "task_id": "expanded-final/blocksworld-expanded-911101",
+      "arms": {
+        "text-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 18
+        },
+        "text-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 18
+        },
+        "text-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 18
+        },
+        "visual-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 18
+        },
+        "visual-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 18
+        },
+        "visual-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 18
+        },
+        "multimodal-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 18
+        },
+        "multimodal-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 18
+        },
+        "multimodal-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 18
+        },
+        "text-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 18
+        },
+        "text-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 18
+        },
+        "text-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 18
+        },
+        "visual-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 18
+        },
+        "visual-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 18
+        },
+        "visual-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 18
+        },
+        "multimodal-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 18
+        },
+        "multimodal-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 18
+        },
+        "multimodal-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 18
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "task_id": "expanded-final/depot-compact-912000",
+      "arms": {
+        "text-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 17
+        },
+        "text-state__shuffled": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 17
+        },
+        "text-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 17
+        },
+        "visual-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 17
+        },
+        "visual-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 17
+        },
+        "visual-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 17
+        },
+        "multimodal-state__staged": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 3
+        },
+        "multimodal-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 17
+        },
+        "multimodal-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 17
+        },
+        "text-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 17
+        },
+        "text-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 17
+        },
+        "text-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 17
+        },
+        "visual-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 17
+        },
+        "visual-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 17
+        },
+        "visual-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 17
+        },
+        "multimodal-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 3
+        },
+        "multimodal-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 17
+        },
+        "multimodal-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 17
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "task_id": "expanded-final/depot-expanded-912100",
+      "arms": {
+        "text-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 23
+        },
+        "text-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 23
+        },
+        "text-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 23
+        },
+        "visual-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 23
+        },
+        "visual-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 23
+        },
+        "visual-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 23
+        },
+        "multimodal-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 23
+        },
+        "multimodal-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 23
+        },
+        "multimodal-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 23
+        },
+        "text-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 23
+        },
+        "text-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 23
+        },
+        "text-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 23
+        },
+        "visual-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 23
+        },
+        "visual-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 23
+        },
+        "visual-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 23
+        },
+        "multimodal-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 23
+        },
+        "multimodal-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 23
+        },
+        "multimodal-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 23
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "task_id": "expanded-final/driverlog-compact-913001",
+      "arms": {
+        "text-state__staged": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 8
+        },
+        "text-state__shuffled": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 24
+        },
+        "text-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 43
+        },
+        "visual-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 43
+        },
+        "visual-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 43
+        },
+        "visual-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 43
+        },
+        "multimodal-state__staged": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 29
+        },
+        "multimodal-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 43
+        },
+        "multimodal-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 43
+        },
+        "text-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 9
+        },
+        "text-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 43
+        },
+        "text-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 43
+        },
+        "visual-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 43
+        },
+        "visual-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 43
+        },
+        "visual-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 43
+        },
+        "multimodal-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 16
+        },
+        "multimodal-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 43
+        },
+        "multimodal-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 43
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "task_id": "expanded-final/driverlog-expanded-913103",
+      "arms": {
+        "text-state__staged": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 9
+        },
+        "text-state__shuffled": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 14
+        },
+        "text-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 29
+        },
+        "visual-state__staged": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 12
+        },
+        "visual-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 29
+        },
+        "visual-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 29
+        },
+        "multimodal-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 29
+        },
+        "multimodal-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 29
+        },
+        "multimodal-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 29
+        },
+        "text-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 4
+        },
+        "text-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 29
+        },
+        "text-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 29
+        },
+        "visual-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 29
+        },
+        "visual-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 29
+        },
+        "visual-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 29
+        },
+        "multimodal-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 14
+        },
+        "multimodal-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 29
+        },
+        "multimodal-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 29
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "task_id": "expanded-final/elevators-compact-914002",
+      "arms": {
+        "text-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 11
+        },
+        "text-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 11
+        },
+        "text-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 11
+        },
+        "visual-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 11
+        },
+        "visual-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 11
+        },
+        "visual-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 11
+        },
+        "multimodal-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 11
+        },
+        "multimodal-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 11
+        },
+        "multimodal-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 11
+        },
+        "text-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 11
+        },
+        "text-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 11
+        },
+        "text-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 11
+        },
+        "visual-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 11
+        },
+        "visual-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 11
+        },
+        "visual-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 11
+        },
+        "multimodal-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 11
+        },
+        "multimodal-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 11
+        },
+        "multimodal-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 11
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "task_id": "expanded-final/elevators-expanded-914105",
+      "arms": {
+        "text-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "text-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "text-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "visual-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "visual-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "visual-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "multimodal-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "multimodal-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "multimodal-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "text-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "text-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "text-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "visual-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "visual-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "visual-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "multimodal-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "multimodal-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "multimodal-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "task_id": "expanded-final/ferry-compact-915000",
+      "arms": {
+        "text-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 11
+        },
+        "text-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 11
+        },
+        "text-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 11
+        },
+        "visual-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 11
+        },
+        "visual-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 11
+        },
+        "visual-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 11
+        },
+        "multimodal-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 11
+        },
+        "multimodal-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 11
+        },
+        "multimodal-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 11
+        },
+        "text-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 11
+        },
+        "text-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 11
+        },
+        "text-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 11
+        },
+        "visual-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 11
+        },
+        "visual-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 11
+        },
+        "visual-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 11
+        },
+        "multimodal-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 11
+        },
+        "multimodal-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 11
+        },
+        "multimodal-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 11
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "task_id": "expanded-final/ferry-expanded-915109",
+      "arms": {
+        "text-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 25
+        },
+        "text-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 25
+        },
+        "text-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 25
+        },
+        "visual-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 25
+        },
+        "visual-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 25
+        },
+        "visual-state__mixed_order": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 25
+        },
+        "multimodal-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 25
+        },
+        "multimodal-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 25
+        },
+        "text-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 25
+        },
+        "text-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 25
+        },
+        "text-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 25
+        },
+        "visual-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 25
+        },
+        "visual-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 25
+        },
+        "visual-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 25
+        },
+        "multimodal-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 25
+        },
+        "multimodal-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 25
+        },
+        "multimodal-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 25
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "task_id": "expanded-final/grid-compact-916000",
+      "arms": {
+        "text-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 23
+        },
+        "text-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 23
+        },
+        "text-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 23
+        },
+        "visual-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 23
+        },
+        "visual-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 23
+        },
+        "visual-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 23
+        },
+        "multimodal-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 23
+        },
+        "multimodal-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 23
+        },
+        "multimodal-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 23
+        },
+        "text-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 23
+        },
+        "text-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 23
+        },
+        "text-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 23
+        },
+        "visual-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 23
+        },
+        "visual-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 23
+        },
+        "visual-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 23
+        },
+        "multimodal-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 23
+        },
+        "multimodal-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 23
+        },
+        "multimodal-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 23
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "task_id": "expanded-final/grid-expanded-916100",
+      "arms": {
+        "text-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "text-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "text-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "visual-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "visual-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "visual-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "multimodal-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "multimodal-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "multimodal-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "text-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "text-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "text-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "visual-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "visual-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "visual-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "multimodal-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "multimodal-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "multimodal-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "task_id": "expanded-final/gripper-compact-917000",
+      "arms": {
+        "text-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 30
+        },
+        "text-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 30
+        },
+        "text-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 30
+        },
+        "visual-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 30
+        },
+        "visual-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 30
+        },
+        "visual-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 30
+        },
+        "multimodal-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 30
+        },
+        "multimodal-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 30
+        },
+        "multimodal-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 30
+        },
+        "text-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 30
+        },
+        "text-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 30
+        },
+        "text-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 30
+        },
+        "visual-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 30
+        },
+        "visual-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 30
+        },
+        "visual-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 30
+        },
+        "multimodal-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 30
+        },
+        "multimodal-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 30
+        },
+        "multimodal-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 30
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "task_id": "expanded-final/gripper-expanded-917101",
+      "arms": {
+        "text-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 42
+        },
+        "text-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 42
+        },
+        "text-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 42
+        },
+        "visual-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 42
+        },
+        "visual-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 42
+        },
+        "visual-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 42
+        },
+        "multimodal-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 42
+        },
+        "multimodal-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 42
+        },
+        "multimodal-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 42
+        },
+        "text-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 42
+        },
+        "text-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 42
+        },
+        "text-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 42
+        },
+        "visual-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 42
+        },
+        "visual-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 42
+        },
+        "visual-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 42
+        },
+        "multimodal-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 42
+        },
+        "multimodal-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 42
+        },
+        "multimodal-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 42
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "task_id": "expanded-final/logistics-compact-918000",
+      "arms": {
+        "text-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 21
+        },
+        "text-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 21
+        },
+        "text-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 21
+        },
+        "visual-state__staged": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 4
+        },
+        "visual-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 21
+        },
+        "visual-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 21
+        },
+        "multimodal-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 21
+        },
+        "multimodal-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 21
+        },
+        "multimodal-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 21
+        },
+        "text-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 21
+        },
+        "text-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 21
+        },
+        "text-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 21
+        },
+        "visual-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 4
+        },
+        "visual-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 21
+        },
+        "visual-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 21
+        },
+        "multimodal-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 21
+        },
+        "multimodal-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 21
+        },
+        "multimodal-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 21
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "task_id": "expanded-final/logistics-expanded-918100",
+      "arms": {
+        "text-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "text-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "text-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "visual-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "visual-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "visual-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "multimodal-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "multimodal-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "multimodal-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "text-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "text-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "text-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "visual-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "visual-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "visual-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "multimodal-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "multimodal-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "multimodal-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "task_id": "expanded-final/storage-compact-919000",
+      "arms": {
+        "text-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 9
+        },
+        "text-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 9
+        },
+        "text-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 9
+        },
+        "visual-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 9
+        },
+        "visual-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 9
+        },
+        "visual-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 9
+        },
+        "multimodal-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 9
+        },
+        "multimodal-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 9
+        },
+        "multimodal-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 9
+        },
+        "text-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 9
+        },
+        "text-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 9
+        },
+        "text-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 9
+        },
+        "visual-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 9
+        },
+        "visual-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 9
+        },
+        "visual-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 9
+        },
+        "multimodal-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 9
+        },
+        "multimodal-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 9
+        },
+        "multimodal-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 9
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "task_id": "expanded-final/storage-expanded-919100",
+      "arms": {
+        "text-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 62
+        },
+        "text-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 62
+        },
+        "text-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 62
+        },
+        "visual-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 62
+        },
+        "visual-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 62
+        },
+        "visual-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 62
+        },
+        "multimodal-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 62
+        },
+        "multimodal-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 62
+        },
+        "multimodal-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 62
+        },
+        "text-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 62
+        },
+        "text-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 62
+        },
+        "text-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 62
+        },
+        "visual-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 62
+        },
+        "visual-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 62
+        },
+        "visual-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 62
+        },
+        "multimodal-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 62
+        },
+        "multimodal-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 62
+        },
+        "multimodal-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 62
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "task_id": "expanded-final/towers_of_hanoi-compact-920000",
+      "arms": {
+        "text-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 15
+        },
+        "text-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 15
+        },
+        "text-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 15
+        },
+        "visual-state__staged": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 2
+        },
+        "visual-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 15
+        },
+        "visual-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 15
+        },
+        "multimodal-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 15
+        },
+        "multimodal-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 15
+        },
+        "multimodal-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 15
+        },
+        "text-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 15
+        },
+        "text-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 15
+        },
+        "text-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 15
+        },
+        "visual-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 2
+        },
+        "visual-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 15
+        },
+        "visual-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 15
+        },
+        "multimodal-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 15
+        },
+        "multimodal-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 15
+        },
+        "multimodal-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 15
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "task_id": "expanded-final/towers_of_hanoi-expanded-920100",
+      "arms": {
+        "text-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 71
+        },
+        "text-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 71
+        },
+        "text-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 71
+        },
+        "visual-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 71
+        },
+        "visual-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 71
+        },
+        "visual-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 71
+        },
+        "multimodal-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 71
+        },
+        "multimodal-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 71
+        },
+        "multimodal-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 71
+        },
+        "text-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 71
+        },
+        "text-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 71
+        },
+        "text-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 71
+        },
+        "visual-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 71
+        },
+        "visual-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 71
+        },
+        "visual-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 71
+        },
+        "multimodal-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 71
+        },
+        "multimodal-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 71
+        },
+        "multimodal-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 71
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "task_id": "expanded-final/visitall-compact-921000",
+      "arms": {
+        "text-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 16
+        },
+        "text-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 16
+        },
+        "text-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 16
+        },
+        "visual-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 16
+        },
+        "visual-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 16
+        },
+        "visual-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 16
+        },
+        "multimodal-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 16
+        },
+        "multimodal-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 16
+        },
+        "multimodal-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 16
+        },
+        "text-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 16
+        },
+        "text-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 16
+        },
+        "text-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 16
+        },
+        "visual-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 16
+        },
+        "visual-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 16
+        },
+        "visual-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 16
+        },
+        "multimodal-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 16
+        },
+        "multimodal-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 16
+        },
+        "multimodal-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 16
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "task_id": "expanded-final/visitall-expanded-921100",
+      "arms": {
+        "text-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "text-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "text-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "visual-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "visual-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "visual-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "multimodal-state__staged": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "multimodal-state__shuffled": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "multimodal-state__mixed_order": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "text-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "text-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "text-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "visual-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "visual-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "visual-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "multimodal-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__sft_sequential_order_control": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "multimodal-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "multimodal-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        }
+      }
+    }
+  ],
+  "compute": {
+    "model_calls": 6030,
+    "active_wall_seconds": 33105.833557642996
+  },
+  "comparator_provenance": {
+    "audit": {
+      "goal3_evidence": "docs/experiments/expanded-study/baseline-evaluation.json",
+      "goal3_evidence_sha256": "sha256:ba470dd4498e11a21fba8e9f61611c8f7be6ddcb167ad02a7fbed6e1516eb03a",
+      "goal3_independent_replay": "docs/experiments/expanded-study/baseline-independent-replay.json",
+      "goal3_independent_replay_sha256": "sha256:7f78b9d2cbda99446be52690b796975b77010522bd768c0d77cce6858cf4a366",
+      "process_sft": {
+        "text-state": {
+          "checkpoint": "outputs/matched_modalities/v3/training/text-state/best_first_add_greedy/final",
+          "adapter_model_sha256": "sha256:8a4f17eca2f76090f86e3b5c55ad831df30b9156234519ed3b0e8007ce77add1",
+          "adapter_config_sha256": "sha256:260d25e343183cb3abe5afa8a2498027b5fb6909a6a41217b901bb631b4019ca"
+        },
+        "visual-state": {
+          "checkpoint": "outputs/matched_modalities/v5/training/visual-state/best_first_add_greedy/final",
+          "adapter_model_sha256": "sha256:41dc46e74ed4d9fe70c7714474329a6fdee9b435060facecf2e49dc4edf8f2e2",
+          "adapter_config_sha256": "sha256:2078b82addbe45a9b1f90ee4a2ab8f646d0774bb17324a32a927eee13b9aac9c"
+        },
+        "multimodal-state": {
+          "checkpoint": "outputs/matched_modalities/v5/training/multimodal-state/best_first_add_greedy/final",
+          "adapter_model_sha256": "sha256:c0a2a61eea1dec6102923976f744d5c8697b32c5e472ef7c387b7f68869dab2e",
+          "adapter_config_sha256": "sha256:61635ca264eb30c10c959591558c8edfab24bf5186c7dca4d852809d8ea84c45"
+        }
+      }
+    },
+    "sources": [
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__15puzzle-compact-910000/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__15puzzle-compact-910000/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__15puzzle-compact-910000/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__15puzzle-compact-910000/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__15puzzle-expanded-910109/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__15puzzle-expanded-910109/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__15puzzle-expanded-910109/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__15puzzle-expanded-910109/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__blocksworld-compact-911000/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__blocksworld-compact-911000/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__blocksworld-compact-911000/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__blocksworld-compact-911000/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__blocksworld-expanded-911101/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__blocksworld-expanded-911101/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__blocksworld-expanded-911101/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__blocksworld-expanded-911101/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__depot-compact-912000/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__depot-compact-912000/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__depot-compact-912000/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__depot-compact-912000/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__depot-expanded-912100/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__depot-expanded-912100/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__depot-expanded-912100/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__depot-expanded-912100/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__driverlog-compact-913001/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__driverlog-compact-913001/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__driverlog-compact-913001/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__driverlog-compact-913001/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__driverlog-expanded-913103/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__driverlog-expanded-913103/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__driverlog-expanded-913103/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__driverlog-expanded-913103/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__elevators-compact-914002/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__elevators-compact-914002/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__elevators-compact-914002/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__elevators-compact-914002/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__elevators-expanded-914105/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__elevators-expanded-914105/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__elevators-expanded-914105/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__elevators-expanded-914105/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__ferry-compact-915000/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__ferry-compact-915000/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__ferry-compact-915000/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__ferry-compact-915000/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__ferry-expanded-915109/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__ferry-expanded-915109/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__ferry-expanded-915109/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__ferry-expanded-915109/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__grid-compact-916000/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__grid-compact-916000/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__grid-compact-916000/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__grid-compact-916000/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__grid-expanded-916100/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__grid-expanded-916100/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__grid-expanded-916100/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__grid-expanded-916100/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__gripper-compact-917000/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__gripper-compact-917000/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__gripper-compact-917000/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__gripper-compact-917000/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__gripper-expanded-917101/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__gripper-expanded-917101/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__gripper-expanded-917101/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__gripper-expanded-917101/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__logistics-compact-918000/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__logistics-compact-918000/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__logistics-compact-918000/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__logistics-compact-918000/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__logistics-expanded-918100/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__logistics-expanded-918100/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__logistics-expanded-918100/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__logistics-expanded-918100/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__storage-compact-919000/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__storage-compact-919000/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__storage-compact-919000/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__storage-compact-919000/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__storage-expanded-919100/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__storage-expanded-919100/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__storage-expanded-919100/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__storage-expanded-919100/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__towers_of_hanoi-compact-920000/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__towers_of_hanoi-compact-920000/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__towers_of_hanoi-compact-920000/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__towers_of_hanoi-compact-920000/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__towers_of_hanoi-expanded-920100/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__towers_of_hanoi-expanded-920100/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__towers_of_hanoi-expanded-920100/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__towers_of_hanoi-expanded-920100/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__visitall-compact-921000/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__visitall-compact-921000/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__visitall-compact-921000/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__visitall-compact-921000/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__visitall-expanded-921100/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__visitall-expanded-921100/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__visitall-expanded-921100/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__visitall-expanded-921100/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__15puzzle-compact-910000/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__15puzzle-compact-910000/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__15puzzle-compact-910000/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__15puzzle-compact-910000/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__15puzzle-expanded-910109/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__15puzzle-expanded-910109/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__15puzzle-expanded-910109/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__15puzzle-expanded-910109/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__blocksworld-compact-911000/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__blocksworld-compact-911000/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__blocksworld-compact-911000/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__blocksworld-compact-911000/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__blocksworld-expanded-911101/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__blocksworld-expanded-911101/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__blocksworld-expanded-911101/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__blocksworld-expanded-911101/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__depot-compact-912000/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__depot-compact-912000/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__depot-compact-912000/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__depot-compact-912000/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__depot-expanded-912100/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__depot-expanded-912100/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__depot-expanded-912100/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__depot-expanded-912100/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__driverlog-compact-913001/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__driverlog-compact-913001/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__driverlog-compact-913001/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__driverlog-compact-913001/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__driverlog-expanded-913103/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__driverlog-expanded-913103/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__driverlog-expanded-913103/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__driverlog-expanded-913103/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__elevators-compact-914002/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__elevators-compact-914002/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__elevators-compact-914002/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__elevators-compact-914002/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__elevators-expanded-914105/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__elevators-expanded-914105/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__elevators-expanded-914105/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__elevators-expanded-914105/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__ferry-compact-915000/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__ferry-compact-915000/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__ferry-compact-915000/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__ferry-compact-915000/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__ferry-expanded-915109/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__ferry-expanded-915109/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__ferry-expanded-915109/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__ferry-expanded-915109/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__grid-compact-916000/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__grid-compact-916000/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__grid-compact-916000/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__grid-compact-916000/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__grid-expanded-916100/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__grid-expanded-916100/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__grid-expanded-916100/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__grid-expanded-916100/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__gripper-compact-917000/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__gripper-compact-917000/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__gripper-compact-917000/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__gripper-compact-917000/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__gripper-expanded-917101/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__gripper-expanded-917101/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__gripper-expanded-917101/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__gripper-expanded-917101/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__logistics-compact-918000/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__logistics-compact-918000/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__logistics-compact-918000/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__logistics-compact-918000/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__logistics-expanded-918100/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__logistics-expanded-918100/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__logistics-expanded-918100/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__logistics-expanded-918100/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__storage-compact-919000/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__storage-compact-919000/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__storage-compact-919000/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__storage-compact-919000/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__storage-expanded-919100/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__storage-expanded-919100/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__storage-expanded-919100/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__storage-expanded-919100/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__towers_of_hanoi-compact-920000/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__towers_of_hanoi-compact-920000/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__towers_of_hanoi-compact-920000/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__towers_of_hanoi-compact-920000/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__towers_of_hanoi-expanded-920100/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__towers_of_hanoi-expanded-920100/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__towers_of_hanoi-expanded-920100/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__towers_of_hanoi-expanded-920100/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__visitall-compact-921000/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__visitall-compact-921000/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__visitall-compact-921000/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__visitall-compact-921000/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__visitall-expanded-921100/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__visitall-expanded-921100/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__visitall-expanded-921100/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__visitall-expanded-921100/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__15puzzle-compact-910000/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__15puzzle-compact-910000/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__15puzzle-compact-910000/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__15puzzle-compact-910000/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__15puzzle-expanded-910109/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__15puzzle-expanded-910109/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__15puzzle-expanded-910109/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__15puzzle-expanded-910109/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__blocksworld-compact-911000/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__blocksworld-compact-911000/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__blocksworld-compact-911000/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__blocksworld-compact-911000/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__blocksworld-expanded-911101/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__blocksworld-expanded-911101/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__blocksworld-expanded-911101/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__blocksworld-expanded-911101/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__depot-compact-912000/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__depot-compact-912000/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__depot-compact-912000/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__depot-compact-912000/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__depot-expanded-912100/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__depot-expanded-912100/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__depot-expanded-912100/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__depot-expanded-912100/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__driverlog-compact-913001/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__driverlog-compact-913001/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__driverlog-compact-913001/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__driverlog-compact-913001/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__driverlog-expanded-913103/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__driverlog-expanded-913103/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__driverlog-expanded-913103/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__driverlog-expanded-913103/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__elevators-compact-914002/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__elevators-compact-914002/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__elevators-compact-914002/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__elevators-compact-914002/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__elevators-expanded-914105/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__elevators-expanded-914105/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__elevators-expanded-914105/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__elevators-expanded-914105/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__ferry-compact-915000/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__ferry-compact-915000/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__ferry-compact-915000/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__ferry-compact-915000/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__ferry-expanded-915109/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__ferry-expanded-915109/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__ferry-expanded-915109/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__ferry-expanded-915109/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__grid-compact-916000/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__grid-compact-916000/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__grid-compact-916000/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__grid-compact-916000/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__grid-expanded-916100/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__grid-expanded-916100/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__grid-expanded-916100/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__grid-expanded-916100/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__gripper-compact-917000/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__gripper-compact-917000/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__gripper-compact-917000/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__gripper-compact-917000/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__gripper-expanded-917101/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__gripper-expanded-917101/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__gripper-expanded-917101/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__gripper-expanded-917101/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__logistics-compact-918000/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__logistics-compact-918000/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__logistics-compact-918000/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__logistics-compact-918000/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__logistics-expanded-918100/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__logistics-expanded-918100/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__logistics-expanded-918100/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__logistics-expanded-918100/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__storage-compact-919000/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__storage-compact-919000/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__storage-compact-919000/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__storage-compact-919000/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__storage-expanded-919100/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__storage-expanded-919100/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__storage-expanded-919100/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__storage-expanded-919100/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__towers_of_hanoi-compact-920000/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__towers_of_hanoi-compact-920000/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__towers_of_hanoi-compact-920000/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__towers_of_hanoi-compact-920000/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__towers_of_hanoi-expanded-920100/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__towers_of_hanoi-expanded-920100/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__towers_of_hanoi-expanded-920100/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__towers_of_hanoi-expanded-920100/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__visitall-compact-921000/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__visitall-compact-921000/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__visitall-compact-921000/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__visitall-compact-921000/best_first_add_greedy-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__visitall-expanded-921100/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__visitall-expanded-921100/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__visitall-expanded-921100/best_first_add_greedy-process_sft.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__visitall-expanded-921100/best_first_add_greedy-random_valid.json.gz",
+      "outputs/matched_modalities/v5/evaluation/multimodal-state/matched-final__blocksworld-730060/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/matched_modalities/v5/evaluation/multimodal-state/matched-final__blocksworld-730060/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/matched_modalities/v5/evaluation/multimodal-state/matched-final__blocksworld-730060/best_first_add_greedy-process_sft.json.gz",
+      "outputs/matched_modalities/v5/evaluation/multimodal-state/matched-final__blocksworld-730060/best_first_add_greedy-random_valid.json.gz",
+      "outputs/matched_modalities/v5/evaluation/multimodal-state/matched-final__ferry-780004/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/matched_modalities/v5/evaluation/multimodal-state/matched-final__ferry-780004/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/matched_modalities/v5/evaluation/multimodal-state/matched-final__ferry-780004/best_first_add_greedy-process_sft.json.gz",
+      "outputs/matched_modalities/v5/evaluation/multimodal-state/matched-final__ferry-780004/best_first_add_greedy-random_valid.json.gz",
+      "outputs/matched_modalities/v5/evaluation/multimodal-state/matched-final__storage-760000/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/matched_modalities/v5/evaluation/multimodal-state/matched-final__storage-760000/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/matched_modalities/v5/evaluation/multimodal-state/matched-final__storage-760000/best_first_add_greedy-process_sft.json.gz",
+      "outputs/matched_modalities/v5/evaluation/multimodal-state/matched-final__storage-760000/best_first_add_greedy-random_valid.json.gz",
+      "outputs/matched_modalities/v5/evaluation/text-state/matched-final__blocksworld-730060/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/matched_modalities/v5/evaluation/text-state/matched-final__blocksworld-730060/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/matched_modalities/v5/evaluation/text-state/matched-final__blocksworld-730060/best_first_add_greedy-process_sft.json.gz",
+      "outputs/matched_modalities/v5/evaluation/text-state/matched-final__blocksworld-730060/best_first_add_greedy-random_valid.json.gz",
+      "outputs/matched_modalities/v5/evaluation/text-state/matched-final__ferry-780004/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/matched_modalities/v5/evaluation/text-state/matched-final__ferry-780004/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/matched_modalities/v5/evaluation/text-state/matched-final__ferry-780004/best_first_add_greedy-process_sft.json.gz",
+      "outputs/matched_modalities/v5/evaluation/text-state/matched-final__ferry-780004/best_first_add_greedy-random_valid.json.gz",
+      "outputs/matched_modalities/v5/evaluation/text-state/matched-final__storage-760000/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/matched_modalities/v5/evaluation/text-state/matched-final__storage-760000/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/matched_modalities/v5/evaluation/text-state/matched-final__storage-760000/best_first_add_greedy-process_sft.json.gz",
+      "outputs/matched_modalities/v5/evaluation/text-state/matched-final__storage-760000/best_first_add_greedy-random_valid.json.gz",
+      "outputs/matched_modalities/v5/evaluation/visual-state/matched-final__blocksworld-730060/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/matched_modalities/v5/evaluation/visual-state/matched-final__blocksworld-730060/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/matched_modalities/v5/evaluation/visual-state/matched-final__blocksworld-730060/best_first_add_greedy-process_sft.json.gz",
+      "outputs/matched_modalities/v5/evaluation/visual-state/matched-final__blocksworld-730060/best_first_add_greedy-random_valid.json.gz",
+      "outputs/matched_modalities/v5/evaluation/visual-state/matched-final__ferry-780004/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/matched_modalities/v5/evaluation/visual-state/matched-final__ferry-780004/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/matched_modalities/v5/evaluation/visual-state/matched-final__ferry-780004/best_first_add_greedy-process_sft.json.gz",
+      "outputs/matched_modalities/v5/evaluation/visual-state/matched-final__ferry-780004/best_first_add_greedy-random_valid.json.gz",
+      "outputs/matched_modalities/v5/evaluation/visual-state/matched-final__storage-760000/best_first_add_greedy-exact_reference.json.gz",
+      "outputs/matched_modalities/v5/evaluation/visual-state/matched-final__storage-760000/best_first_add_greedy-pretrained_base.json.gz",
+      "outputs/matched_modalities/v5/evaluation/visual-state/matched-final__storage-760000/best_first_add_greedy-process_sft.json.gz",
+      "outputs/matched_modalities/v5/evaluation/visual-state/matched-final__storage-760000/best_first_add_greedy-random_valid.json.gz"
+    ]
+  },
+  "producing_attempts": [
+    {
+      "job_id": "curriculum-evaluate-0",
+      "attempt": 2,
+      "directory": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/expanded-study/v1/jobs/curriculum-evaluate-0/2"
+    },
+    {
+      "job_id": "curriculum-evaluate-0",
+      "attempt": 4,
+      "directory": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/expanded-study/v1/jobs/curriculum-evaluate-0/4"
+    },
+    {
+      "job_id": "curriculum-evaluate-0",
+      "attempt": 5,
+      "directory": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/expanded-study/v1/jobs/curriculum-evaluate-0/5"
+    },
+    {
+      "job_id": "curriculum-evaluate-1",
+      "attempt": 2,
+      "directory": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/expanded-study/v1/jobs/curriculum-evaluate-1/2"
+    },
+    {
+      "job_id": "curriculum-evaluate-1",
+      "attempt": 4,
+      "directory": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/expanded-study/v1/jobs/curriculum-evaluate-1/4"
+    }
+  ],
+  "jobs": [
+    {
+      "job_id": "curriculum-evaluate-0",
+      "attempt": 5,
+      "gpus": [
+        0
+      ],
+      "master_port": 18800,
+      "gpu_hours": 0.11672316683663263
+    },
+    {
+      "job_id": "curriculum-evaluate-1",
+      "attempt": 4,
+      "gpus": [
+        1
+      ],
+      "master_port": 18801,
+      "gpu_hours": 1.8262199463446935
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "selected_count": 22,
+  "target_count": 24,
+  "missing_strata": [
+    {
+      "domain": "storage",
+      "stratum": "compact",
+      "reason": "frozen_seed_pool_exhausted"
+    },
+    {
+      "domain": "storage",
+      "stratum": "expanded",
+      "reason": "frozen_seed_pool_exhausted"
+    }
+  ],
+  "final_membership_frozen": false,
+  "hardware_qualified": false,
+  "report": "outputs/expanded-study/v1/panel/structural-selection.json"
+}

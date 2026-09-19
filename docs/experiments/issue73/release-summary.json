@@ -1,0 +1,105 @@
+{
+  "issue": 73,
+  "contract_id": "issue-73-visual-state-corpus-32k-v1",
+  "release_report": "outputs/modality_corpus/issue73-visual-32k-v1/release-001/report.json",
+  "release_outcome": "PASS",
+  "counts": {
+    "tasks": 238,
+    "states": 49274,
+    "decisions": 76217
+  },
+  "algorithm_episodes": 302,
+  "released_modalities": [
+    "text-state",
+    "visual-state"
+  ],
+  "qualified_modalities": [
+    "text-state",
+    "visual-state",
+    "multimodal-state"
+  ],
+  "processor": {
+    "model_id": "Qwen/Qwen3-VL-8B-Instruct",
+    "model_revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+    "context_tokens": 32768,
+    "output_tokens": 384
+  },
+  "maximum_tokens": {
+    "text-state": 8659,
+    "visual-state": 16812,
+    "multimodal-state": 23379,
+    "target": 307
+  },
+  "stored_corpus_bytes": 11126647,
+  "materialization_seconds": 505.98,
+  "audit": {
+    "decisions_by_algorithm_split": {
+      "best_first_add_greedy/dev": 6696,
+      "best_first_add_greedy/train": 8342,
+      "best_first_add_w3/dev": 7095,
+      "best_first_add_w3/train": 9398,
+      "best_first_width/dev": 6435,
+      "best_first_width/train": 14225,
+      "bfs/dev": 12115,
+      "bfs/train": 11911
+    },
+    "semantic_task_overlap_count": 0,
+    "model_input_overlap_count": 0,
+    "identical_input_conflicting_target_count": 0
+  },
+  "checks": {
+    "all_family_adapters": true,
+    "teacher_live_semantic_parity": true,
+    "strict_target_runtime_application": true,
+    "split_isolation": true,
+    "no_future_leakage": true,
+    "processor_limits": true,
+    "complete_selected_coverage": true
+  },
+  "read_only_check": {
+    "stage": "check:complete",
+    "completed": 238,
+    "total": 238,
+    "elapsed_seconds": 531.53,
+    "eta_seconds": 0.0,
+    "outcome": "PASS",
+    "counts": {
+      "tasks": 238,
+      "states": 49274,
+      "decisions": 76217
+    },
+    "scientific_completion": true,
+    "log": "outputs/modality_corpus/issue73-visual-32k-v1/verification-001/check.log"
+  },
+  "review": {
+    "standards_findings": 0,
+    "spec_findings": 0,
+    "record": "docs/experiments/issue73/review.md"
+  },
+  "validation": {
+    "focused_tests": "22 passed",
+    "full_suite": {
+      "passed": 970,
+      "skipped": 13,
+      "warnings": 1,
+      "seconds": 365.27,
+      "log": "outputs/modality_corpus/issue73-visual-32k-v1/verification-001/full-tests.log"
+    },
+    "black": "PASS (19 changed Python files)",
+    "ruff": "PASS (changed files; final test regex correction checked separately)",
+    "basedpyright": "0 errors, 0 warnings",
+    "loader_smoke_algorithms": [
+      "bfs",
+      "best_first_width",
+      "best_first_add_w3",
+      "best_first_add_greedy"
+    ]
+  },
+  "asset_policy": "References existing collect-003/collect-004 scenes and #72 readable context/goal PNGs and state recipes; no scene copies.",
+  "handoff": "#74 multimodal release and #75/#76 model runs remain separate; no GPU throughput/training/evaluation claim.",
+  "authorization": "configs/experiments/issue73/authorization.json",
+  "gate": "configs/experiments/issue73/gate.json",
+  "released_decision_projections": 152434,
+  "qualified_decision_projections": 228651,
+  "completion": "PASS: visual-state corpus and matched text baseline complete within approved successor scope"
+}

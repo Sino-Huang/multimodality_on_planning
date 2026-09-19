@@ -1,0 +1,953 @@
+{
+  "outcome": "PASS",
+  "protocol_id": "expanded-matched-baseline-v1",
+  "panel_id": "expanded-panel-v2-qualified",
+  "logical_bindings": 1152,
+  "model_episodes": 576,
+  "complete_coverage": true,
+  "missing_bindings": [],
+  "coverage": [
+    {
+      "modality": "multimodal-state",
+      "algorithm": "best_first_add_greedy",
+      "condition": "exact_reference",
+      "episodes": 24
+    },
+    {
+      "modality": "multimodal-state",
+      "algorithm": "best_first_add_greedy",
+      "condition": "pretrained_base",
+      "episodes": 24
+    },
+    {
+      "modality": "multimodal-state",
+      "algorithm": "best_first_add_greedy",
+      "condition": "process_sft",
+      "episodes": 24
+    },
+    {
+      "modality": "multimodal-state",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "episodes": 24
+    },
+    {
+      "modality": "multimodal-state",
+      "algorithm": "best_first_add_w3",
+      "condition": "exact_reference",
+      "episodes": 24
+    },
+    {
+      "modality": "multimodal-state",
+      "algorithm": "best_first_add_w3",
+      "condition": "pretrained_base",
+      "episodes": 24
+    },
+    {
+      "modality": "multimodal-state",
+      "algorithm": "best_first_add_w3",
+      "condition": "process_sft",
+      "episodes": 24
+    },
+    {
+      "modality": "multimodal-state",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "episodes": 24
+    },
+    {
+      "modality": "multimodal-state",
+      "algorithm": "best_first_width",
+      "condition": "exact_reference",
+      "episodes": 24
+    },
+    {
+      "modality": "multimodal-state",
+      "algorithm": "best_first_width",
+      "condition": "pretrained_base",
+      "episodes": 24
+    },
+    {
+      "modality": "multimodal-state",
+      "algorithm": "best_first_width",
+      "condition": "process_sft",
+      "episodes": 24
+    },
+    {
+      "modality": "multimodal-state",
+      "algorithm": "best_first_width",
+      "condition": "random_valid",
+      "episodes": 24
+    },
+    {
+      "modality": "multimodal-state",
+      "algorithm": "bfs",
+      "condition": "exact_reference",
+      "episodes": 24
+    },
+    {
+      "modality": "multimodal-state",
+      "algorithm": "bfs",
+      "condition": "pretrained_base",
+      "episodes": 24
+    },
+    {
+      "modality": "multimodal-state",
+      "algorithm": "bfs",
+      "condition": "process_sft",
+      "episodes": 24
+    },
+    {
+      "modality": "multimodal-state",
+      "algorithm": "bfs",
+      "condition": "random_valid",
+      "episodes": 24
+    },
+    {
+      "modality": "text-state",
+      "algorithm": "best_first_add_greedy",
+      "condition": "exact_reference",
+      "episodes": 24
+    },
+    {
+      "modality": "text-state",
+      "algorithm": "best_first_add_greedy",
+      "condition": "pretrained_base",
+      "episodes": 24
+    },
+    {
+      "modality": "text-state",
+      "algorithm": "best_first_add_greedy",
+      "condition": "process_sft",
+      "episodes": 24
+    },
+    {
+      "modality": "text-state",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "episodes": 24
+    },
+    {
+      "modality": "text-state",
+      "algorithm": "best_first_add_w3",
+      "condition": "exact_reference",
+      "episodes": 24
+    },
+    {
+      "modality": "text-state",
+      "algorithm": "best_first_add_w3",
+      "condition": "pretrained_base",
+      "episodes": 24
+    },
+    {
+      "modality": "text-state",
+      "algorithm": "best_first_add_w3",
+      "condition": "process_sft",
+      "episodes": 24
+    },
+    {
+      "modality": "text-state",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "episodes": 24
+    },
+    {
+      "modality": "text-state",
+      "algorithm": "best_first_width",
+      "condition": "exact_reference",
+      "episodes": 24
+    },
+    {
+      "modality": "text-state",
+      "algorithm": "best_first_width",
+      "condition": "pretrained_base",
+      "episodes": 24
+    },
+    {
+      "modality": "text-state",
+      "algorithm": "best_first_width",
+      "condition": "process_sft",
+      "episodes": 24
+    },
+    {
+      "modality": "text-state",
+      "algorithm": "best_first_width",
+      "condition": "random_valid",
+      "episodes": 24
+    },
+    {
+      "modality": "text-state",
+      "algorithm": "bfs",
+      "condition": "exact_reference",
+      "episodes": 24
+    },
+    {
+      "modality": "text-state",
+      "algorithm": "bfs",
+      "condition": "pretrained_base",
+      "episodes": 24
+    },
+    {
+      "modality": "text-state",
+      "algorithm": "bfs",
+      "condition": "process_sft",
+      "episodes": 24
+    },
+    {
+      "modality": "text-state",
+      "algorithm": "bfs",
+      "condition": "random_valid",
+      "episodes": 24
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "best_first_add_greedy",
+      "condition": "exact_reference",
+      "episodes": 24
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "best_first_add_greedy",
+      "condition": "pretrained_base",
+      "episodes": 24
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "best_first_add_greedy",
+      "condition": "process_sft",
+      "episodes": 24
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "episodes": 24
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "best_first_add_w3",
+      "condition": "exact_reference",
+      "episodes": 24
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "best_first_add_w3",
+      "condition": "pretrained_base",
+      "episodes": 24
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "best_first_add_w3",
+      "condition": "process_sft",
+      "episodes": 24
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "episodes": 24
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "best_first_width",
+      "condition": "exact_reference",
+      "episodes": 24
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "best_first_width",
+      "condition": "pretrained_base",
+      "episodes": 24
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "best_first_width",
+      "condition": "process_sft",
+      "episodes": 24
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "best_first_width",
+      "condition": "random_valid",
+      "episodes": 24
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "bfs",
+      "condition": "exact_reference",
+      "episodes": 24
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "bfs",
+      "condition": "pretrained_base",
+      "episodes": 24
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "bfs",
+      "condition": "process_sft",
+      "episodes": 24
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "bfs",
+      "condition": "random_valid",
+      "episodes": 24
+    }
+  ],
+  "by_condition": {
+    "pretrained_base": {
+      "episodes": 288,
+      "successes": 0,
+      "decisions": 288,
+      "invalid_operations": 288
+    },
+    "process_sft": {
+      "episodes": 288,
+      "successes": 125,
+      "decisions": 3918,
+      "invalid_operations": 163
+    },
+    "random_valid": {
+      "episodes": 288,
+      "successes": 240,
+      "decisions": 12582,
+      "invalid_operations": 0
+    },
+    "exact_reference": {
+      "episodes": 288,
+      "successes": 288,
+      "decisions": 12930,
+      "invalid_operations": 0
+    }
+  },
+  "by_cell": [
+    {
+      "modality": "multimodal-state",
+      "algorithm": "best_first_add_greedy",
+      "condition": "exact_reference",
+      "episodes": 24,
+      "successes": 24,
+      "decisions": 673,
+      "invalid_operations": 0
+    },
+    {
+      "modality": "multimodal-state",
+      "algorithm": "best_first_add_greedy",
+      "condition": "pretrained_base",
+      "episodes": 24,
+      "successes": 0,
+      "decisions": 24,
+      "invalid_operations": 24
+    },
+    {
+      "modality": "multimodal-state",
+      "algorithm": "best_first_add_greedy",
+      "condition": "process_sft",
+      "episodes": 24,
+      "successes": 21,
+      "decisions": 617,
+      "invalid_operations": 3
+    },
+    {
+      "modality": "multimodal-state",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "episodes": 24,
+      "successes": 24,
+      "decisions": 673,
+      "invalid_operations": 0
+    },
+    {
+      "modality": "multimodal-state",
+      "algorithm": "best_first_add_w3",
+      "condition": "exact_reference",
+      "episodes": 24,
+      "successes": 24,
+      "decisions": 694,
+      "invalid_operations": 0
+    },
+    {
+      "modality": "multimodal-state",
+      "algorithm": "best_first_add_w3",
+      "condition": "pretrained_base",
+      "episodes": 24,
+      "successes": 0,
+      "decisions": 24,
+      "invalid_operations": 24
+    },
+    {
+      "modality": "multimodal-state",
+      "algorithm": "best_first_add_w3",
+      "condition": "process_sft",
+      "episodes": 24,
+      "successes": 22,
+      "decisions": 666,
+      "invalid_operations": 2
+    },
+    {
+      "modality": "multimodal-state",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "episodes": 24,
+      "successes": 24,
+      "decisions": 694,
+      "invalid_operations": 0
+    },
+    {
+      "modality": "multimodal-state",
+      "algorithm": "best_first_width",
+      "condition": "exact_reference",
+      "episodes": 24,
+      "successes": 24,
+      "decisions": 974,
+      "invalid_operations": 0
+    },
+    {
+      "modality": "multimodal-state",
+      "algorithm": "best_first_width",
+      "condition": "pretrained_base",
+      "episodes": 24,
+      "successes": 0,
+      "decisions": 24,
+      "invalid_operations": 24
+    },
+    {
+      "modality": "multimodal-state",
+      "algorithm": "best_first_width",
+      "condition": "process_sft",
+      "episodes": 24,
+      "successes": 0,
+      "decisions": 24,
+      "invalid_operations": 24
+    },
+    {
+      "modality": "multimodal-state",
+      "algorithm": "best_first_width",
+      "condition": "random_valid",
+      "episodes": 24,
+      "successes": 17,
+      "decisions": 922,
+      "invalid_operations": 0
+    },
+    {
+      "modality": "multimodal-state",
+      "algorithm": "bfs",
+      "condition": "exact_reference",
+      "episodes": 24,
+      "successes": 24,
+      "decisions": 1969,
+      "invalid_operations": 0
+    },
+    {
+      "modality": "multimodal-state",
+      "algorithm": "bfs",
+      "condition": "pretrained_base",
+      "episodes": 24,
+      "successes": 0,
+      "decisions": 24,
+      "invalid_operations": 24
+    },
+    {
+      "modality": "multimodal-state",
+      "algorithm": "bfs",
+      "condition": "process_sft",
+      "episodes": 24,
+      "successes": 0,
+      "decisions": 63,
+      "invalid_operations": 24
+    },
+    {
+      "modality": "multimodal-state",
+      "algorithm": "bfs",
+      "condition": "random_valid",
+      "episodes": 24,
+      "successes": 15,
+      "decisions": 1905,
+      "invalid_operations": 0
+    },
+    {
+      "modality": "text-state",
+      "algorithm": "best_first_add_greedy",
+      "condition": "exact_reference",
+      "episodes": 24,
+      "successes": 24,
+      "decisions": 673,
+      "invalid_operations": 0
+    },
+    {
+      "modality": "text-state",
+      "algorithm": "best_first_add_greedy",
+      "condition": "pretrained_base",
+      "episodes": 24,
+      "successes": 0,
+      "decisions": 24,
+      "invalid_operations": 24
+    },
+    {
+      "modality": "text-state",
+      "algorithm": "best_first_add_greedy",
+      "condition": "process_sft",
+      "episodes": 24,
+      "successes": 22,
+      "decisions": 614,
+      "invalid_operations": 2
+    },
+    {
+      "modality": "text-state",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "episodes": 24,
+      "successes": 24,
+      "decisions": 673,
+      "invalid_operations": 0
+    },
+    {
+      "modality": "text-state",
+      "algorithm": "best_first_add_w3",
+      "condition": "exact_reference",
+      "episodes": 24,
+      "successes": 24,
+      "decisions": 694,
+      "invalid_operations": 0
+    },
+    {
+      "modality": "text-state",
+      "algorithm": "best_first_add_w3",
+      "condition": "pretrained_base",
+      "episodes": 24,
+      "successes": 0,
+      "decisions": 24,
+      "invalid_operations": 24
+    },
+    {
+      "modality": "text-state",
+      "algorithm": "best_first_add_w3",
+      "condition": "process_sft",
+      "episodes": 24,
+      "successes": 20,
+      "decisions": 609,
+      "invalid_operations": 4
+    },
+    {
+      "modality": "text-state",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "episodes": 24,
+      "successes": 24,
+      "decisions": 694,
+      "invalid_operations": 0
+    },
+    {
+      "modality": "text-state",
+      "algorithm": "best_first_width",
+      "condition": "exact_reference",
+      "episodes": 24,
+      "successes": 24,
+      "decisions": 974,
+      "invalid_operations": 0
+    },
+    {
+      "modality": "text-state",
+      "algorithm": "best_first_width",
+      "condition": "pretrained_base",
+      "episodes": 24,
+      "successes": 0,
+      "decisions": 24,
+      "invalid_operations": 24
+    },
+    {
+      "modality": "text-state",
+      "algorithm": "best_first_width",
+      "condition": "process_sft",
+      "episodes": 24,
+      "successes": 0,
+      "decisions": 24,
+      "invalid_operations": 24
+    },
+    {
+      "modality": "text-state",
+      "algorithm": "best_first_width",
+      "condition": "random_valid",
+      "episodes": 24,
+      "successes": 17,
+      "decisions": 922,
+      "invalid_operations": 0
+    },
+    {
+      "modality": "text-state",
+      "algorithm": "bfs",
+      "condition": "exact_reference",
+      "episodes": 24,
+      "successes": 24,
+      "decisions": 1969,
+      "invalid_operations": 0
+    },
+    {
+      "modality": "text-state",
+      "algorithm": "bfs",
+      "condition": "pretrained_base",
+      "episodes": 24,
+      "successes": 0,
+      "decisions": 24,
+      "invalid_operations": 24
+    },
+    {
+      "modality": "text-state",
+      "algorithm": "bfs",
+      "condition": "process_sft",
+      "episodes": 24,
+      "successes": 0,
+      "decisions": 66,
+      "invalid_operations": 24
+    },
+    {
+      "modality": "text-state",
+      "algorithm": "bfs",
+      "condition": "random_valid",
+      "episodes": 24,
+      "successes": 15,
+      "decisions": 1905,
+      "invalid_operations": 0
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "best_first_add_greedy",
+      "condition": "exact_reference",
+      "episodes": 24,
+      "successes": 24,
+      "decisions": 673,
+      "invalid_operations": 0
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "best_first_add_greedy",
+      "condition": "pretrained_base",
+      "episodes": 24,
+      "successes": 0,
+      "decisions": 24,
+      "invalid_operations": 24
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "best_first_add_greedy",
+      "condition": "process_sft",
+      "episodes": 24,
+      "successes": 22,
+      "decisions": 643,
+      "invalid_operations": 2
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "episodes": 24,
+      "successes": 24,
+      "decisions": 673,
+      "invalid_operations": 0
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "best_first_add_w3",
+      "condition": "exact_reference",
+      "episodes": 24,
+      "successes": 24,
+      "decisions": 694,
+      "invalid_operations": 0
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "best_first_add_w3",
+      "condition": "pretrained_base",
+      "episodes": 24,
+      "successes": 0,
+      "decisions": 24,
+      "invalid_operations": 24
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "best_first_add_w3",
+      "condition": "process_sft",
+      "episodes": 24,
+      "successes": 18,
+      "decisions": 499,
+      "invalid_operations": 6
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "episodes": 24,
+      "successes": 24,
+      "decisions": 694,
+      "invalid_operations": 0
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "best_first_width",
+      "condition": "exact_reference",
+      "episodes": 24,
+      "successes": 24,
+      "decisions": 974,
+      "invalid_operations": 0
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "best_first_width",
+      "condition": "pretrained_base",
+      "episodes": 24,
+      "successes": 0,
+      "decisions": 24,
+      "invalid_operations": 24
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "best_first_width",
+      "condition": "process_sft",
+      "episodes": 24,
+      "successes": 0,
+      "decisions": 24,
+      "invalid_operations": 24
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "best_first_width",
+      "condition": "random_valid",
+      "episodes": 24,
+      "successes": 17,
+      "decisions": 922,
+      "invalid_operations": 0
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "bfs",
+      "condition": "exact_reference",
+      "episodes": 24,
+      "successes": 24,
+      "decisions": 1969,
+      "invalid_operations": 0
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "bfs",
+      "condition": "pretrained_base",
+      "episodes": 24,
+      "successes": 0,
+      "decisions": 24,
+      "invalid_operations": 24
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "bfs",
+      "condition": "process_sft",
+      "episodes": 24,
+      "successes": 0,
+      "decisions": 69,
+      "invalid_operations": 24
+    },
+    {
+      "modality": "visual-state",
+      "algorithm": "bfs",
+      "condition": "random_valid",
+      "episodes": 24,
+      "successes": 15,
+      "decisions": 1905,
+      "invalid_operations": 0
+    }
+  ],
+  "random_valid_is_oracle_assisted": true,
+  "new_training": false,
+  "raw_invalid_outputs_preserved": 451,
+  "expanded_baseline_gpu_hours_cumulative": 6.52891837351852,
+  "branch_cap_gpu_hours": 56,
+  "worker_attempts": {
+    "baseline-controls-0": {
+      "job_id": "baseline-controls-0",
+      "branch": "expanded_baseline",
+      "gpus": [],
+      "max_seconds": 21600,
+      "total": 288,
+      "command": [
+        "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+        "scripts/run_expanded_baseline.py",
+        "run",
+        "--worker",
+        "0",
+        "--kind",
+        "controls"
+      ],
+      "completion_hook": [
+        "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+        "scripts/audit_expanded_baseline.py",
+        "worker",
+        "--worker",
+        "0",
+        "--kind",
+        "controls"
+      ],
+      "attempt": 1,
+      "status": "succeeded",
+      "master_port": null,
+      "admitted": 1789395312.2890768,
+      "gpu_hours": 0.0,
+      "directory": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/expanded-study/v1/jobs/baseline-controls-0/1",
+      "supervisor": {
+        "pid": 113097,
+        "start_ticks": "886671214"
+      },
+      "started": 1789395312.723838,
+      "worker": {
+        "pid": 113136,
+        "start_ticks": "886671258"
+      },
+      "ended": 1789395673.218688,
+      "elapsed_seconds": 360.4948499202728,
+      "cpu_seconds": 334.657887,
+      "returncode": 0,
+      "error": null
+    },
+    "baseline-controls-1": {
+      "job_id": "baseline-controls-1",
+      "branch": "expanded_baseline",
+      "gpus": [],
+      "max_seconds": 21600,
+      "total": 288,
+      "command": [
+        "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+        "scripts/run_expanded_baseline.py",
+        "run",
+        "--worker",
+        "1",
+        "--kind",
+        "controls"
+      ],
+      "completion_hook": [
+        "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+        "scripts/audit_expanded_baseline.py",
+        "worker",
+        "--worker",
+        "1",
+        "--kind",
+        "controls"
+      ],
+      "attempt": 1,
+      "status": "succeeded",
+      "master_port": null,
+      "admitted": 1789395316.3706703,
+      "gpu_hours": 0.0,
+      "directory": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/expanded-study/v1/jobs/baseline-controls-1/1",
+      "supervisor": {
+        "pid": 113949,
+        "start_ticks": "886671622"
+      },
+      "started": 1789395316.759304,
+      "worker": {
+        "pid": 113970,
+        "start_ticks": "886671661"
+      },
+      "ended": 1789396122.8826606,
+      "elapsed_seconds": 806.1233565807343,
+      "cpu_seconds": 775.6437810000001,
+      "returncode": 0,
+      "error": null
+    },
+    "baseline-models-0": {
+      "job_id": "baseline-models-0",
+      "branch": "expanded_baseline",
+      "gpus": [
+        0
+      ],
+      "max_seconds": 99000,
+      "total": 288,
+      "command": [
+        "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+        "scripts/run_expanded_baseline.py",
+        "run",
+        "--worker",
+        "0",
+        "--kind",
+        "models"
+      ],
+      "completion_hook": [
+        "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+        "scripts/audit_expanded_baseline.py",
+        "worker",
+        "--worker",
+        "0",
+        "--kind",
+        "models"
+      ],
+      "attempt": 1,
+      "status": "succeeded",
+      "master_port": 18800,
+      "admitted": 1789395912.5951712,
+      "gpu_hours": 2.1596809197796714,
+      "directory": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/expanded-study/v1/jobs/baseline-models-0/1",
+      "supervisor": {
+        "pid": 136679,
+        "start_ticks": "886731245"
+      },
+      "started": 1789395912.8983736,
+      "available_vram_at_launch_csv": "index, uuid, name, memory.total [MiB], memory.free [MiB]\n0, GPU-f285a104-a0c2-92f5-e068-ec248f5bc798, NVIDIA A100 80GB PCIe, 81920 MiB, 81154 MiB\n1, GPU-496a5706-19b9-5d01-07ad-d819ccd18348, NVIDIA A100 80GB PCIe, 81920 MiB, 81154 MiB\n",
+      "worker": {
+        "pid": 136702,
+        "start_ticks": "886731280"
+      },
+      "ended": 1789403687.7496848,
+      "elapsed_seconds": 7774.851311206818,
+      "cpu_seconds": 7721.8022789999995,
+      "returncode": 0,
+      "error": null
+    },
+    "baseline-models-1": {
+      "job_id": "baseline-models-1",
+      "branch": "expanded_baseline",
+      "gpus": [
+        1
+      ],
+      "max_seconds": 99000,
+      "total": 288,
+      "command": [
+        "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+        "scripts/run_expanded_baseline.py",
+        "run",
+        "--worker",
+        "1",
+        "--kind",
+        "models"
+      ],
+      "completion_hook": [
+        "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+        "scripts/audit_expanded_baseline.py",
+        "worker",
+        "--worker",
+        "1",
+        "--kind",
+        "models"
+      ],
+      "attempt": 1,
+      "status": "succeeded",
+      "master_port": 18801,
+      "admitted": 1789396156.1029794,
+      "gpu_hours": 3.636097687151697,
+      "directory": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/expanded-study/v1/jobs/baseline-models-1/1",
+      "supervisor": {
+        "pid": 146222,
+        "start_ticks": "886755596"
+      },
+      "started": 1789396156.395064,
+      "available_vram_at_launch_csv": "index, uuid, name, memory.total [MiB], memory.free [MiB]\n0, GPU-f285a104-a0c2-92f5-e068-ec248f5bc798, NVIDIA A100 80GB PCIe, 81920 MiB, 42753 MiB\n1, GPU-496a5706-19b9-5d01-07ad-d819ccd18348, NVIDIA A100 80GB PCIe, 81920 MiB, 81154 MiB\n",
+      "worker": {
+        "pid": 146227,
+        "start_ticks": "886755630"
+      },
+      "ended": 1789409246.3467379,
+      "elapsed_seconds": 13089.951673746109,
+      "cpu_seconds": 13026.660612,
+      "returncode": 0,
+      "error": null
+    }
+  },
+  "finished": 1789409811.3786185
+}

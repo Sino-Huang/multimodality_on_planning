@@ -24,7 +24,6 @@ In this file, we define 3 types of datasets:
 See `scripts/load_dataset.py` for examples on how to use these datasets.
 """
 import os
-import hashlib
 import io
 import json, torch
 import copy
@@ -980,7 +979,6 @@ class LeRobotSingleDataset(Dataset):
         def is_main():
             return (not dist.is_initialized()) or dist.get_rank() == 0
     
-        config_key = self._get_steps_config_key()
         steps_filename = "steps_data_index.pkl"
         steps_path = self.dataset_path / "meta" / steps_filename
     
@@ -1002,7 +1000,6 @@ class LeRobotSingleDataset(Dataset):
             all_steps = self._get_all_steps_single_process()
     
             cache_data = {
-                "config_key": config_key,
                 "steps": all_steps,
                 "num_trajectories": len(self.trajectory_ids),
                 "total_steps": len(all_steps),
@@ -1028,17 +1025,6 @@ class LeRobotSingleDataset(Dataset):
             cached_data = pickle.load(f)
     
         return cached_data["steps"]
-
-    def _get_steps_config_key(self) -> str:
-        """Generate a configuration key for steps caching."""
-        config_dict = {
-            "delete_pause_frame": self.delete_pause_frame,
-            "dataset_name": self.dataset_name,
-        }
-        # Create a hash of the configuration
-        config_str = str(sorted(config_dict.items()))
-        return hashlib.md5(config_str.encode()).hexdigest()[:12]  #
-
 
     def _get_all_steps_single_process(self) -> list[tuple[int, int]]:
         """Original single-process implementation as fallback."""
@@ -2019,17 +2005,6 @@ class CachedLeRobotSingleDataset(LeRobotSingleDataset):
         super().set_transforms_metadata(metadata)
 
 
-def safe_hash(input_tuple):
-    # keep 128 bits of the hash
-    tuple_string = repr(input_tuple).encode("utf-8")
-    sha256 = hashlib.sha256()
-    sha256.update(tuple_string)
-
-    seed = int(sha256.hexdigest(), 16)
-
-    return seed & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
-
-
 class MixtureSpecElement(BaseModel):
     dataset_path: list[Path] | Path = Field(..., description="The path to the dataset.")
     dataset_weight: float = Field(..., description="The weight of the dataset in the mixture.")
@@ -2321,7 +2296,7 @@ class LeRobotMixtureDataset(Dataset):
         # return self.sampled_steps[index]
 
         # Set seed
-        seed = index if self.mode != "train" else safe_hash((self.epoch, index, self.seed))
+        seed = index if self.mode != "train" else (self.epoch, index, self.seed)
         rng = np.random.default_rng(seed)
 
         # Sample dataset

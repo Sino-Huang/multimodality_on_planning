@@ -1,0 +1,238 @@
+"""Replay-bound new-task state catalogs for expanded panel views."""
+
+import copy
+import json
+from typing import Any
+
+from .modality_view_preparation import frozen_processor
+from .pddl_state import GroundedAction, PDDLStateAuthority
+from .scene_assets import read_json
+from .visual_episode import VisualSession, VisualTaskViews
+
+_RENDER_OVERRIDE_KEYS = {"canvas_size", "layout_offset"}
+
+
+def apply_render_overrides(payload, overrides=None):
+    """Return renderer input/settings; preserve the original payload when unset."""
+
+    if not overrides:
+        return payload, {"canvas_size": 128}
+    if set(overrides) - _RENDER_OVERRIDE_KEYS:
+        raise ValueError("unsupported expanded-view render override")
+    canvas_size = overrides.get("canvas_size", 128)
+    offset = overrides.get("layout_offset", [0.0, 0.0])
+    if not isinstance(canvas_size, int) or canvas_size <= 0:
+        raise ValueError("render override canvas_size must be a positive integer")
+    if (
+        not isinstance(offset, list)
+        or len(offset) != 2
+        or any(not isinstance(value, (int, float)) or abs(value) > 0.1 for value in offset)
+    ):
+        raise ValueError("render override layout_offset must contain two bounded numbers")
+    shifted = copy.deepcopy(payload)
+    requested_dx, requested_dy = map(float, offset)
+    for stage in shifted.get("visualStages", []):
+        sprites = stage.get("visualSprites", [])
+        if not sprites:
+            continue
+        dx = min(
+            max(requested_dx, max(-float(sprite["minX"]) for sprite in sprites)),
+            min(1.0 - float(sprite["maxX"]) for sprite in sprites),
+        )
+        dy = min(
+            max(requested_dy, max(-float(sprite["minY"]) for sprite in sprites)),
+            min(1.0 - float(sprite["maxY"]) for sprite in sprites),
+        )
+        for sprite in sprites:
+            for lower, upper, delta in (("minX", "maxX", dx), ("minY", "maxY", dy)):
+                minimum, maximum = float(sprite[lower]), float(sprite[upper])
+                sprite[lower], sprite[upper] = minimum + delta, maximum + delta
+    return shifted, {"canvas_size": canvas_size}
+
+
+def render_unlabelled_vfg(vfg_bytes, output_dir, stage, object_names, overrides=None):
+    """Render one stage with optional additive per-task overrides."""
+
+    from scripts.planimation_phase1_frames import render_vfg_to_local_png_frames
+
+    payload = json.loads(vfg_bytes.decode())
+    payload, settings = apply_render_overrides(payload, overrides)
+    return render_vfg_to_local_png_frames(
+        json.dumps(payload).encode(),
+        output_dir,
+        stage,
+        stage,
+        canvas_size=settings["canvas_size"],
+        draw_labels=False,
+        object_names=frozenset(object_names),
+    )
+
+
+class ReferenceStateCatalog:
+    """Register state images only after their producing operation is accepted."""
+
+    state = VisualTaskViews.state
+
+    def __init__(self, authority):
+        self.authority = authority
+        self.states: list[dict[str, Any]] = [
+            dict(
+                index=0,
+                atoms=list(authority.initial_state.atoms),
+                fluents=list(authority.initial_state.fluents),
+                parent=None,
+            )
+        ]
+        self.indices = {authority.initial_state.state_id: 0}
+        self.symbols = None
+        self.symbol_states = {}
+
+    def register(self, source, action):
+        target = self.authority.apply(source, GroundedAction(action["name"], tuple(action["args"]))).target_state
+        if target.state_id not in self.indices:
+            index = len(self.states)
+            self.indices[target.state_id] = index
+            self.states.append(
+                dict(
+                    index=index,
+                    atoms=list(target.atoms),
+                    fluents=list(target.fluents),
+                    parent=dict(
+                        state=self.indices[source.state_id],
+                        action=f"({action['name']} {' '.join(action['args'])})".replace(" )", ")"),
+                    ),
+                )
+            )
+            self.symbols = None
+        return self.indices[target.state_id]
+
+
+def reference_catalog(root, row, reference_paths, study_id):
+    task = read_json(root / row["task_path"])
+    authority = PDDLStateAuthority.from_pddl(task["domain_pddl"], task["problem_pddl"])
+    views = ReferenceStateCatalog(authority)
+    decisions = []
+    for algorithm, path in reference_paths.items():
+        reference = read_json(root / path)
+        if not reference["events"]:
+            expected = {
+                "algorithm_invariants_hold": True,
+                "decision_count": 0,
+                "expansion_count": 0,
+                "goal_reached": True,
+                "invalid_operation_count": 0,
+                "invalid_operation_rate": 0.0,
+                "invariant_valid_success": True,
+                "model_call_limit": 0,
+                "termination_reason": "goal_reached",
+            }
+            if not authority.is_goal(authority.initial_state) or reference["result"] != expected:
+                raise ValueError("zero-decision reference differs during independent state replay")
+            continue
+        session = VisualSession(root, row, algorithm, "exact_reference", 17, root, study_id, views=views)
+        for index, event in enumerate(reference["events"]):
+            request = session.next_request()
+            if request is None or dict(request.model_input) != event["input"]:
+                raise ValueError("reference input differs during independent state replay")
+            source = views.state(dict(request.model_input), algorithm)
+            decisions.append(dict(algorithm=algorithm, index=index, state=views.indices[source.state_id]))
+            session.submit(event["raw_output"])
+            if not session.events[-1]["accepted"]:
+                raise ValueError("retained exact reference operation rejected")
+        if session.next_request() is not None or session.result() != reference["result"]:
+            raise ValueError("reference result differs during independent state replay")
+    return dict(
+        task_context=authority.task_context(),
+        states=views.states,
+        decisions=decisions,
+        scope=(
+            "all source/current and accepted-successor states in frozen exact references; "
+            "not full reachability closure"
+        ),
+    )
+
+
+class ExpandedTaskViews(VisualTaskViews):
+    """Use retained reference images and materialize new accepted states on demand."""
+
+    def __init__(self, root, task, output, endpoint, *, read_only=False, page_processor=None):
+        from .modality_corpus_replay import canonical
+        from .scene_only_views import SceneOnlyViews
+
+        self.root, self.row, self.output, self.endpoint = root, task["row"], output, endpoint
+        self.read_only = read_only
+        self.page_processor = page_processor or frozen_processor()
+        native = copy.deepcopy(task["native_views"])
+        # New-state indices are local to an episode; isolate their image cache.
+        native["view_id"] = f"{native['view_id']}:live:{output.resolve()}"
+        self.source_manifest = native["source_manifest"]
+        task_manifest = task.get("view_manifest")
+        self.manifest = (
+            copy.deepcopy(task_manifest)
+            if isinstance(task_manifest, dict)
+            else read_json(root / self.source_manifest)
+        )
+        self.render_overrides = copy.deepcopy(self.manifest.get("render_overrides"))
+        self.catalog = read_json(root / self.manifest["scene_catalog"])
+        self.states = list(self.catalog["states"])
+        self.original_count = len(self.states)
+        self.dynamic_path = output / "views.json.gz"
+        self.scene_only_paths = {}
+        self.scene_only_bindings = {}
+        if self.dynamic_path.exists():
+            retained = read_json(self.dynamic_path)
+            if retained["source_manifest"] != self.source_manifest or retained["task_id"] != self.row["task_id"]:
+                raise ValueError("retained expanded live-view binding differs")
+            self.states.extend(retained["states"])
+            self.scene_only_paths = dict(retained.get("scene_only_paths", {}))
+            self.scene_only_bindings = dict(retained.get("scene_only_bindings", {}))
+        self.recipes = [[] for _ in self.states]
+        self.indices = {self.key(s["atoms"], s["fluents"]): i for i, s in enumerate(self.states)}
+        self.symbols, self.symbol_states = None, {}
+        source = read_json(root / self.row["task_path"])
+        self.authority = PDDLStateAuthority.from_pddl(source["domain_pddl"], source["problem_pddl"])
+        if canonical(self.catalog["task_context"]) != canonical(self.authority.task_context()):
+            raise ValueError("expanded live view task differs from source PDDL")
+        replayed = []
+        for entry in self.states:
+            parent = entry["parent"]
+            if parent is None:
+                state = self.authority.initial_state
+            else:
+                words = parent["action"].strip("()").split()
+                state = self.authority.apply(
+                    replayed[parent["state"]], GroundedAction(words[0], tuple(words[1:]))
+                ).target_state
+            if list(state.atoms) != entry["atoms"] or list(state.fluents) != entry["fluents"]:
+                raise ValueError("stored expanded view state does not replay from its parent")
+            replayed.append(state)
+        self.scene_views = SceneOnlyViews(root, {self.row["task_id"]: native}, page_processor=self.page_processor)
+        for state in self.states[self.original_count :]:
+            self._bind_native(state["index"])
+
+    def _bind_native(self, index):
+        state = self.states[index]
+        native = self.scene_views.tasks[self.row["task_id"]]
+        native["scenes"][str(index)] = state["scene_path"]
+        native["scene_bindings"][str(index)] = {"vfg": state["vfg"], "stage": len(self.path(index))}
+
+    def _render(self, index):
+        import tempfile
+
+        super()._render(index)
+        state = self.states[index]
+        payload = read_json(self.root / state["vfg"])
+        stage = len(self.path(index))
+        with tempfile.TemporaryDirectory(dir=self.output, prefix="unlabelled-") as directory:
+            from pathlib import Path
+
+            folder = Path(directory)
+            render_unlabelled_vfg(
+                json.dumps(payload).encode(),
+                folder,
+                stage,
+                self.authority.objects,
+                self.render_overrides,
+            )
+            (folder / "frame_000.png").replace(self.root / state["scene_path"])
+        self._bind_native(index)

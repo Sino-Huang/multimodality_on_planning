@@ -1,0 +1,85 @@
+{
+  "algorithm": "best_first_add_greedy",
+  "contract_id": "issue-66-best-first-add-greedy-development-v1",
+  "data": {
+    "corpus_root": "data/best_first_paired_phase_v3/corpus-release-v3",
+    "corpus_receipt": "data/best_first_paired_phase_v3/corpus-receipts/corpus-issue-64-best-first-paired-corpus-v3-attempt-001.json",
+    "split_ledger": "data/best_first_paired_phase_v3/corpus-release-v3/splits/assignments.jsonl.gz",
+    "task_manifest": "configs/experiments/astar-paired-task-v1.json",
+    "trace_manifest": "data/best_first_paired_phase_v3/exact-traces/manifest.json",
+    "trace_root": "data/best_first_paired_phase_v3/exact-traces",
+    "training_manifest": "data/best_first_paired_phase_v3/corpus-release-v3/training/manifest.json"
+  },
+  "evaluation": {
+    "batch_input_tokens": 48000,
+    "batch_size": 8,
+    "bootstrap_resamples": 10000,
+    "bootstrap_seed": 1729,
+    "decision_call_multiplier": 2,
+    "model_conditions": [
+      "pretrained_base",
+      "process_sft"
+    ],
+    "output_tokens": 384,
+    "qualification_seconds": 3600,
+    "reference_conditions": [
+      "random_valid",
+      "exact_reference"
+    ],
+    "reference_decision_ceiling": 1024,
+    "rollout_certification_seconds": 54000,
+    "rollout_cutoff_seconds": 64800,
+    "safety_margin": 1.2,
+    "seeds": [
+      17,
+      29,
+      43,
+      71,
+      101
+    ]
+  },
+  "expected": {
+    "development_exact_decisions": 6696,
+    "development_tasks": 23,
+    "training_greedy_records": 8342,
+    "training_greedy_validation_records": 6696
+  },
+  "model": {
+    "context_tokens": 8192,
+    "inference_dtype": "float32",
+    "model_id": "Qwen/Qwen3-VL-8B-Instruct",
+    "revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b"
+  },
+  "outcomes": [
+    "PASS",
+    "VALID_STOP",
+    "INVALID",
+    "ANCESTOR_STOP"
+  ],
+  "parent_issue": 38,
+  "priority": "h_add",
+  "reopen_closed": false,
+  "schema_version": "best_first_issue66_development_v1",
+  "source_issue": 66,
+  "training": {
+    "epochs": 2,
+    "lora": {
+      "alpha": 128,
+      "bias": "none",
+      "dropout": 0.05,
+      "rank": 64,
+      "target_modules": "all-linear"
+    },
+    "optimization": {
+      "global_batch_size": 32,
+      "learning_rate": 0.0001,
+      "lr_scheduler": "cosine",
+      "max_gradient_norm": 1.0,
+      "optimizer": "adamw_torch",
+      "warmup_ratio": 0.03,
+      "weight_decay": 0.0
+    },
+    "replicate_count": 1,
+    "seed": 17
+  }
+}

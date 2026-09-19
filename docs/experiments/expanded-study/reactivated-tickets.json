@@ -1,0 +1,200 @@
+[
+  {
+    "number": 78,
+    "previous_state": "CLOSED",
+    "previous_title": "T40: OPTIONAL bounded DAgger correction interface",
+    "new_state": "OPEN",
+    "branch": "dagger",
+    "dependencies": "#116",
+    "execution_complete": false
+  },
+  {
+    "number": 79,
+    "previous_state": "CLOSED",
+    "previous_title": "T41: OPTIONAL configure one DAgger iteration",
+    "new_state": "OPEN",
+    "branch": "dagger",
+    "dependencies": "#78",
+    "execution_complete": false
+  },
+  {
+    "number": 80,
+    "previous_state": "CLOSED",
+    "previous_title": "T42: OPTIONAL text DAgger collection alternative",
+    "new_state": "OPEN",
+    "branch": "dagger",
+    "dependencies": "#79",
+    "execution_complete": false
+  },
+  {
+    "number": 81,
+    "previous_state": "CLOSED",
+    "previous_title": "T43: OPTIONAL visual DAgger collection alternative",
+    "new_state": "OPEN",
+    "branch": "dagger",
+    "dependencies": "#79",
+    "execution_complete": false
+  },
+  {
+    "number": 82,
+    "previous_state": "CLOSED",
+    "previous_title": "T44: OPTIONAL multimodal DAgger collection alternative",
+    "new_state": "OPEN",
+    "branch": "dagger",
+    "dependencies": "#79",
+    "execution_complete": false
+  },
+  {
+    "number": 83,
+    "previous_state": "CLOSED",
+    "previous_title": "T45: OPTIONAL verify the selected DAgger correction set",
+    "new_state": "OPEN",
+    "branch": "dagger",
+    "dependencies": "#80, #81, #82",
+    "execution_complete": false
+  },
+  {
+    "number": 84,
+    "previous_state": "CLOSED",
+    "previous_title": "T46: OPTIONAL train and evaluate one DAgger update",
+    "new_state": "OPEN",
+    "branch": "dagger",
+    "dependencies": "#83 verified first-iteration artifacts (not ticket closure), #117, #118",
+    "execution_complete": false
+  },
+  {
+    "number": 85,
+    "previous_state": "OPEN",
+    "previous_title": "T47: DEFERRED: Define full-state successor verification and traces",
+    "new_state": "OPEN",
+    "branch": "successor_prediction",
+    "dependencies": "#116",
+    "execution_complete": false
+  },
+  {
+    "number": 86,
+    "previous_state": "OPEN",
+    "previous_title": "T48: DEFERRED: Freeze and authorize end-to-end data and development",
+    "new_state": "OPEN",
+    "branch": "successor_prediction",
+    "dependencies": "#85",
+    "execution_complete": false
+  },
+  {
+    "number": 87,
+    "previous_state": "OPEN",
+    "previous_title": "T49: DEFERRED: Collect model-generated-successor interactions",
+    "new_state": "OPEN",
+    "branch": "successor_prediction",
+    "dependencies": "#86",
+    "execution_complete": false
+  },
+  {
+    "number": 88,
+    "previous_state": "OPEN",
+    "previous_title": "T50: DEFERRED: Construct and release the end-to-end corpus",
+    "new_state": "OPEN",
+    "branch": "successor_prediction",
+    "dependencies": "#87",
+    "execution_complete": false
+  },
+  {
+    "number": 89,
+    "previous_state": "OPEN",
+    "previous_title": "T51: DEFERRED: Train, evaluate, and freeze end-to-end checkpoints",
+    "new_state": "OPEN",
+    "branch": "successor_prediction",
+    "dependencies": "#88",
+    "execution_complete": false
+  },
+  {
+    "number": 99,
+    "previous_state": "OPEN",
+    "previous_title": "T61: DEFERRED: Execute final end-to-end successor evaluation",
+    "new_state": "OPEN",
+    "branch": "successor_prediction",
+    "dependencies": "#89, #117",
+    "execution_complete": false
+  },
+  {
+    "number": 96,
+    "previous_state": "OPEN",
+    "previous_title": "T58: DEFERRED: Execute structural generalization",
+    "new_state": "OPEN",
+    "branch": "generalization_robustness",
+    "dependencies": "#117; fixed baseline checkpoints",
+    "execution_complete": false
+  },
+  {
+    "number": 98,
+    "previous_state": "OPEN",
+    "previous_title": "T60: DEFERRED: Execute name and render robustness",
+    "new_state": "OPEN",
+    "branch": "generalization_robustness",
+    "dependencies": "#117; fixed baseline checkpoints",
+    "execution_complete": false
+  },
+  {
+    "number": 101,
+    "previous_state": "OPEN",
+    "previous_title": "T63: DEFERRED: Resolve and authorize second-backbone replication",
+    "new_state": "OPEN",
+    "branch": "second_backbone",
+    "dependencies": "#116, #117",
+    "execution_complete": false
+  },
+  {
+    "number": 102,
+    "previous_state": "OPEN",
+    "previous_title": "T64: DEFERRED: Integrate and train second-backbone key cells",
+    "new_state": "OPEN",
+    "branch": "second_backbone",
+    "dependencies": "#101",
+    "execution_complete": false
+  },
+  {
+    "number": 103,
+    "previous_state": "OPEN",
+    "previous_title": "T65: DEFERRED: Execute and adjudicate second-backbone replication",
+    "new_state": "OPEN",
+    "branch": "second_backbone",
+    "dependencies": "#102, #117",
+    "execution_complete": false
+  },
+  {
+    "number": 104,
+    "previous_state": "OPEN",
+    "previous_title": "T66: DEFERRED: Resolve, preregister, and authorize transfer",
+    "new_state": "OPEN",
+    "branch": "transfer",
+    "dependencies": "#116; verified v5 BFS checkpoints",
+    "execution_complete": false
+  },
+  {
+    "number": 105,
+    "previous_state": "OPEN",
+    "previous_title": "T67: DEFERRED: Execute and report FOLIO transfer",
+    "new_state": "OPEN",
+    "branch": "transfer",
+    "dependencies": "#104",
+    "execution_complete": false
+  },
+  {
+    "number": 106,
+    "previous_state": "OPEN",
+    "previous_title": "T68: DEFERRED: Execute and report HumanEval transfer",
+    "new_state": "OPEN",
+    "branch": "transfer",
+    "dependencies": "#104",
+    "execution_complete": false
+  },
+  {
+    "number": 107,
+    "previous_state": "OPEN",
+    "previous_title": "T69: DEFERRED: Execute and report GSM8K transfer",
+    "new_state": "OPEN",
+    "branch": "transfer",
+    "dependencies": "#104",
+    "execution_complete": false
+  }
+]

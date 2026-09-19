@@ -1,0 +1,6 @@
+{
+  "instance_id": "iw-width-two-fixture-0000",
+  "domain": "iw-width-two",
+  "domain_pddl": "(define (domain iw-width-two)\n  (:requirements :strips)\n  (:predicates (p) (x) (y) (z))\n  (:action take-x :parameters () :precondition (p) :effect (and (x) (not (p))))\n  (:action take-y :parameters () :precondition (p) :effect (and (y) (not (p))))\n  (:action take-z :parameters () :precondition (p) :effect (and (z) (not (p))))\n  (:action join :parameters () :precondition (z) :effect (and (x) (y) (not (z)))))\n",
+  "problem_pddl": "(define (problem iw-width-two-problem)\n  (:domain iw-width-two)\n  (:init (p))\n  (:goal (and (x) (y))))\n"
+}

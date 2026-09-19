@@ -1,0 +1,11 @@
+{
+  "schema_version": "generation_governance_v2",
+  "receipt_type": "authorization",
+  "binding": {
+    "contract_id": "issue-70-matched-modality-development-v1",
+    "attempt_id": "issue70-attempt-001",
+    "output_root": "outputs/modality_phase/issue70-v1"
+  },
+  "gate_receipt_id": "gate:issue-70-matched-modality-development-v1:issue70-attempt-001:PASS",
+  "authorization_basis": "User request to implement and test #70. Limited to this small exact-reference integration smoke; not authorization for the modality matrix, model training, or throughput experiments."
+}

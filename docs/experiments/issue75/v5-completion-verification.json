@@ -1,0 +1,335 @@
+{
+  "issue": 75,
+  "contract_id": "issue-75-visual-development-32k-v5",
+  "verification_outcome": "PASS",
+  "execution_complete": true,
+  "scientific_gate_passed": false,
+  "scientific_completion": false,
+  "retained_outcome": "VALID_STOP",
+  "retained_result": "outputs/visual_development/issue75-32k-v5/attempt-001/result.json",
+  "scope": "completed cost-ranked v5 development experiment; four-hour pilot not run",
+  "frozen_config_matches": true,
+  "qualified_hardware_matches": true,
+  "complete_episode_coverage": true,
+  "independently_replayed_episodes": 864,
+  "saved_adjudication_matches_replay": true,
+  "condition_counts": {
+    "exact_reference": 54,
+    "random_valid": 270,
+    "pretrained_base": 270,
+    "process_sft": 270
+  },
+  "task_groups": 42,
+  "algorithm_task_cases": 54,
+  "training_records": 43876,
+  "training_runs": [
+    {
+      "contract_id": "issue-75-visual-development-32k-v5",
+      "algorithm": "bfs",
+      "seed": 17,
+      "steps": 746,
+      "final_checkpoint": "outputs/visual_development/issue75-32k-v5/attempt-001/training/bfs/final",
+      "train_records": 11911,
+      "outcome": "PASS"
+    },
+    {
+      "contract_id": "issue-75-visual-development-32k-v5",
+      "algorithm": "best_first_width",
+      "seed": 17,
+      "steps": 890,
+      "final_checkpoint": "outputs/visual_development/issue75-32k-v5/attempt-001/training/best_first_width/final",
+      "train_records": 14225,
+      "outcome": "PASS"
+    },
+    {
+      "contract_id": "issue-75-visual-development-32k-v5",
+      "algorithm": "best_first_add_w3",
+      "seed": 17,
+      "steps": 588,
+      "final_checkpoint": "outputs/visual_development/issue75-32k-v5/attempt-001/training/best_first_add_w3/final",
+      "train_records": 9398,
+      "outcome": "PASS"
+    },
+    {
+      "contract_id": "issue-75-visual-development-32k-v5",
+      "algorithm": "best_first_add_greedy",
+      "seed": 17,
+      "steps": 522,
+      "final_checkpoint": "outputs/visual_development/issue75-32k-v5/attempt-001/training/best_first_add_greedy/final",
+      "train_records": 8342,
+      "outcome": "PASS"
+    }
+  ],
+  "training_epochs": 2,
+  "training_seed": 17,
+  "evaluation_seeds": [
+    17,
+    29,
+    43,
+    71,
+    101
+  ],
+  "actual_run_elapsed_seconds": 274431.03,
+  "verification_elapsed_seconds": 355.89,
+  "new_model_calls": 0,
+  "metrics": {
+    "bfs": {
+      "invariant_valid_success": {
+        "exact_reference": 1.0,
+        "random_valid": 0.7066666666666667,
+        "pretrained_base": 0.0,
+        "process_sft": 1.0
+      },
+      "invalid_operation_rate": {
+        "exact_reference": 0.0,
+        "random_valid": 0.0,
+        "pretrained_base": 1.0,
+        "process_sft": 0.0
+      },
+      "budget_usage": {
+        "exact_reference": 0.5,
+        "random_valid": 0.47876712328767124,
+        "pretrained_base": 0.025684931506849314,
+        "process_sft": 0.5
+      },
+      "best_control": "random_valid",
+      "gain": 0.29333333333333333,
+      "paired_bootstrap_lower_bound": 0.14666666666666667,
+      "advantage_established": true,
+      "per_seed_success": {
+        "17": {
+          "random_valid": 0.6666666666666666,
+          "pretrained_base": 0.0,
+          "process_sft": 1.0
+        },
+        "29": {
+          "random_valid": 0.7333333333333333,
+          "pretrained_base": 0.0,
+          "process_sft": 1.0
+        },
+        "43": {
+          "random_valid": 0.8,
+          "pretrained_base": 0.0,
+          "process_sft": 1.0
+        },
+        "71": {
+          "random_valid": 0.5333333333333333,
+          "pretrained_base": 0.0,
+          "process_sft": 1.0
+        },
+        "101": {
+          "random_valid": 0.8,
+          "pretrained_base": 0.0,
+          "process_sft": 1.0
+        }
+      }
+    },
+    "best_first_width": {
+      "invariant_valid_success": {
+        "exact_reference": 1.0,
+        "random_valid": 0.52,
+        "pretrained_base": 0.0,
+        "process_sft": 0.6666666666666666
+      },
+      "invalid_operation_rate": {
+        "exact_reference": 0.0,
+        "random_valid": 0.0,
+        "pretrained_base": 1.0,
+        "process_sft": 0.0044286979627989375
+      },
+      "budget_usage": {
+        "exact_reference": 0.5,
+        "random_valid": 0.4823270163067431,
+        "pretrained_base": 0.0033054208902600266,
+        "process_sft": 0.24878801234023798
+      },
+      "best_control": "random_valid",
+      "gain": 0.1466666666666666,
+      "paired_bootstrap_lower_bound": -0.14666666666666667,
+      "advantage_established": false,
+      "per_seed_success": {
+        "17": {
+          "random_valid": 0.4666666666666667,
+          "pretrained_base": 0.0,
+          "process_sft": 0.6666666666666666
+        },
+        "29": {
+          "random_valid": 0.5333333333333333,
+          "pretrained_base": 0.0,
+          "process_sft": 0.6666666666666666
+        },
+        "43": {
+          "random_valid": 0.4,
+          "pretrained_base": 0.0,
+          "process_sft": 0.6666666666666666
+        },
+        "71": {
+          "random_valid": 0.4666666666666667,
+          "pretrained_base": 0.0,
+          "process_sft": 0.6666666666666666
+        },
+        "101": {
+          "random_valid": 0.7333333333333333,
+          "pretrained_base": 0.0,
+          "process_sft": 0.6666666666666666
+        }
+      }
+    },
+    "best_first_add_w3": {
+      "invariant_valid_success": {
+        "exact_reference": 1.0,
+        "random_valid": 1.0,
+        "pretrained_base": 0.0,
+        "process_sft": 1.0
+      },
+      "invalid_operation_rate": {
+        "exact_reference": 0.0,
+        "random_valid": 0.0,
+        "pretrained_base": 1.0,
+        "process_sft": 0.0
+      },
+      "budget_usage": {
+        "exact_reference": 0.5,
+        "random_valid": 0.5,
+        "pretrained_base": 0.005249343832020997,
+        "process_sft": 0.5
+      },
+      "best_control": "random_valid",
+      "gain": 0.0,
+      "paired_bootstrap_lower_bound": 0.0,
+      "advantage_established": false,
+      "per_seed_success": {
+        "17": {
+          "random_valid": 1.0,
+          "pretrained_base": 0.0,
+          "process_sft": 1.0
+        },
+        "29": {
+          "random_valid": 1.0,
+          "pretrained_base": 0.0,
+          "process_sft": 1.0
+        },
+        "43": {
+          "random_valid": 1.0,
+          "pretrained_base": 0.0,
+          "process_sft": 1.0
+        },
+        "71": {
+          "random_valid": 1.0,
+          "pretrained_base": 0.0,
+          "process_sft": 1.0
+        },
+        "101": {
+          "random_valid": 1.0,
+          "pretrained_base": 0.0,
+          "process_sft": 1.0
+        }
+      }
+    },
+    "best_first_add_greedy": {
+      "invariant_valid_success": {
+        "exact_reference": 1.0,
+        "random_valid": 1.0,
+        "pretrained_base": 0.0,
+        "process_sft": 1.0
+      },
+      "invalid_operation_rate": {
+        "exact_reference": 0.0,
+        "random_valid": 0.0,
+        "pretrained_base": 1.0,
+        "process_sft": 0.0
+      },
+      "budget_usage": {
+        "exact_reference": 0.5,
+        "random_valid": 0.5,
+        "pretrained_base": 0.005067567567567568,
+        "process_sft": 0.5
+      },
+      "best_control": "random_valid",
+      "gain": 0.0,
+      "paired_bootstrap_lower_bound": 0.0,
+      "advantage_established": false,
+      "per_seed_success": {
+        "17": {
+          "random_valid": 1.0,
+          "pretrained_base": 0.0,
+          "process_sft": 1.0
+        },
+        "29": {
+          "random_valid": 1.0,
+          "pretrained_base": 0.0,
+          "process_sft": 1.0
+        },
+        "43": {
+          "random_valid": 1.0,
+          "pretrained_base": 0.0,
+          "process_sft": 1.0
+        },
+        "71": {
+          "random_valid": 1.0,
+          "pretrained_base": 0.0,
+          "process_sft": 1.0
+        },
+        "101": {
+          "random_valid": 1.0,
+          "pretrained_base": 0.0,
+          "process_sft": 1.0
+        }
+      }
+    }
+  },
+  "family_normalized_success": {
+    "exact_reference": 1.0,
+    "random_valid": 0.7422222222222222,
+    "pretrained_base": 0.0,
+    "process_sft": 0.8888888888888888
+  },
+  "threshold_failure": {
+    "algorithm": "best_first_width",
+    "metric": "invariant_valid_success",
+    "actual": 0.6666666666666666,
+    "required": 0.8
+  },
+  "handoff": "Retain v5 final adapters and traces. The 512-record/one-epoch #76 pilot is not a matched training comparison to v5. Reconcile scope before #76/#77/#93-#95 comparison claims; do not automatically expand compute.",
+  "trained_adapter_probes_by_worker": {
+    "0": {
+      "bfs": {
+        "completed": 9,
+        "total": 9
+      },
+      "best_first_width": {
+        "completed": 10,
+        "total": 10
+      },
+      "best_first_add_w3": {
+        "completed": 6,
+        "total": 6
+      },
+      "best_first_add_greedy": {
+        "completed": 6,
+        "total": 6
+      }
+    },
+    "1": {
+      "bfs": {
+        "completed": 9,
+        "total": 9
+      },
+      "best_first_width": {
+        "completed": 10,
+        "total": 10
+      },
+      "best_first_add_w3": {
+        "completed": 6,
+        "total": 6
+      },
+      "best_first_add_greedy": {
+        "completed": 6,
+        "total": 6
+      }
+    }
+  },
+  "whole_run_peak_memory_bytes": null,
+  "memory_measurement_scope": "Reused v3 qualification only; whole-run v5 peak memory was not recorded.",
+  "source_result_preserved": true
+}

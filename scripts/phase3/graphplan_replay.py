@@ -9,7 +9,7 @@ from .traversal_state_types import (
     TraversalStateCandidate,
     TraversalStateProjection,
     exclusion,
-    state_asset_hash,
+    state_asset_id,
 )
 
 
@@ -84,7 +84,7 @@ def _replay_candidates(
             state_source="extracted_plan_replay",
             normalized_action=None,
             state_atoms=initial_atoms,
-            state_asset_hash=state_asset_hash(initial_atoms),
+            state_asset_id=state_asset_id(initial_atoms),
             extraction_event_id=event.node_id,
             extraction_step_index=0,
         )
@@ -104,7 +104,7 @@ def _replay_candidates(
                 state_source="extracted_plan_replay",
                 normalized_action=action,
                 state_atoms=atoms,
-                state_asset_hash=state_asset_hash(atoms),
+                state_asset_id=state_asset_id(atoms),
                 extraction_event_id=event.node_id,
                 extraction_step_index=index,
             )

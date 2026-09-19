@@ -1,0 +1,9 @@
+{
+  "job_id": "baseline-final-audit",
+  "branch": "expanded_baseline",
+  "gpus": [],
+  "max_seconds": 21600,
+  "total": 1152,
+  "command": ["/home/sukaih/miniconda3/envs/ada_vla/bin/python", "scripts/audit_expanded_baseline.py", "final"],
+  "completion_hook": ["/home/sukaih/miniconda3/envs/ada_vla/bin/python", "scripts/audit_expanded_baseline.py", "hook"]
+}

@@ -12,11 +12,10 @@ from typing import Any, Callable, Final
 
 from .attempt_runner import run_planner_jobs
 from .gbfs import gbfs_estimate_exceeds_resource_gate, gbfs_trace, run_gbfs
-from .io_utils import clear_output_root, count_jsonl, ensure_layout, file_sha256, read_jsonl, relpath, repo_root, stable_hash, write_json, write_jsonl
+from .io_utils import clear_output_root, count_jsonl, ensure_layout, read_jsonl, relpath, repo_root, write_json, write_jsonl
 from .local_goal_regression import GoalRegressionRequest, recover_goal_regression_plan, should_try_goal_regression_first
 from .local_planner_types import PlannerName
 from .local_planners import LocalPlannerRequest, run_local_planner
-from .output_layout_lock import shared_output_layout_lock
 from .pddl import PDDLError, ground_actions, normalize_action_string, parse_task, replay_plan
 from .schema import SCHEMA_VERSION, is_successful_trace_status, validate_instance_accounting, validate_planner_attempt, validate_supervised_example, write_schema_documents
 from .traversal_state_types import JSONValue
@@ -165,26 +164,24 @@ def generate_supervised_data(input_root: Path, output_root: Path, planners: tupl
     if jobs < 1:
         raise ValueError("jobs must be at least 1")
     limits = {**RESOURCE_LIMITS, **(limits or {})}
-    with shared_output_layout_lock(Path(__file__).resolve().parents[2]):
-        clear_output_root(output_root, input_root=input_root)
-        write_schema_documents(output_root)
-        accounting = build_instance_accounting(input_root, output_root)
-        preflight = preflight_pddl_features(input_root, output_root / "diagnostics" / "instance_accounting.jsonl", output_root / "diagnostics" / "pddl_feature_preflight.jsonl")
-        vision = validate_vision_assets(output_root / "diagnostics" / "instance_accounting.jsonl", output_root / "diagnostics" / "vision_validation.jsonl")
-        preflight_by_id = {row["instance_id"]: row for row in preflight}
-        vision_by_id = {row["instance_id"]: row for row in vision}
+    clear_output_root(output_root, input_root=input_root)
+    write_schema_documents(output_root)
+    accounting = build_instance_accounting(input_root, output_root)
+    preflight = preflight_pddl_features(input_root, output_root / "diagnostics" / "instance_accounting.jsonl", output_root / "diagnostics" / "pddl_feature_preflight.jsonl")
+    vision = validate_vision_assets(output_root / "diagnostics" / "instance_accounting.jsonl", output_root / "diagnostics" / "vision_validation.jsonl")
+    preflight_by_id = {row["instance_id"]: row for row in preflight}
+    vision_by_id = {row["instance_id"]: row for row in vision}
 
-        attempts, replay_rows, examples = run_planner_jobs(jobs, accounting, planners, preflight_by_id, vision_by_id, limits, progress_callback, _attempt_planner)
+    attempts, replay_rows, examples = run_planner_jobs(jobs, accounting, planners, preflight_by_id, vision_by_id, limits, progress_callback, _attempt_planner)
 
-        attempts.sort(key=lambda item: (item["domain"], item["split"], item["instance_id"], item["planner"]))
-        replay_rows.sort(key=lambda item: str(item["replay_validation_id"]))
-        examples.sort(key=lambda item: str(item["example_id"]))
-        write_jsonl(output_root / "diagnostics" / "planner_attempts.jsonl", attempts)
-        write_jsonl(output_root / "diagnostics" / "replay_validation.jsonl", replay_rows)
-        for split in ("train", "dev", "test"):
-            write_jsonl(output_root / f"{split}.jsonl", [example for example in examples if example["split"] == split])
-        reports = _write_reports(input_root, output_root, accounting, attempts, examples, limits)
-        return reports
+    attempts.sort(key=lambda item: (item["domain"], item["split"], item["instance_id"], item["planner"]))
+    replay_rows.sort(key=lambda item: str(item["replay_validation_id"]))
+    examples.sort(key=lambda item: str(item["example_id"]))
+    write_jsonl(output_root / "diagnostics" / "planner_attempts.jsonl", attempts)
+    write_jsonl(output_root / "diagnostics" / "replay_validation.jsonl", replay_rows)
+    for split in ("train", "dev", "test"):
+        write_jsonl(output_root / f"{split}.jsonl", [example for example in examples if example["split"] == split])
+    return _write_reports(input_root, output_root, accounting, attempts, examples, limits)
 
 
 def _attempt_planner(account: dict[str, Any], preflight: dict[str, Any], vision: dict[str, Any], planner: str, limits: dict[str, int]) -> tuple[dict[str, Any], dict[str, Any] | None, dict[str, Any] | None]:
@@ -200,7 +197,7 @@ def _attempt_planner(account: dict[str, Any], preflight: dict[str, Any], vision:
         "planner_version": None,
         "trace_fidelity": "none",
         "replay_validation_id": None,
-        "plan_hash": None,
+        "plan_id": None,
     }
     if preflight.get("status") not in {"supported"}:
         return _attempt(base, str(preflight.get("status", "skipped_unsupported_pddl"))), None, None
@@ -264,10 +261,9 @@ def _successful_attempt(base: dict[str, Any], account: dict[str, Any], vision: d
     if not replay_payload["replay_ok"] or not replay_payload["goal_satisfied"]:
         failed = str(replay_payload["status"])
         return _attempt(base, failed), _replay_row(base, replay_payload, plan, limits=limits), None
-    plan_hash_payload: list[JSONValue] = [action for action in plan]
-    plan_hash = stable_hash(plan_hash_payload)
-    replay_id = f"{account['instance_id']}::{planner}::{plan_hash[:12]}"
-    attempt = _attempt(base, status, trace_fidelity=status, replay_validation_id=replay_id, plan_hash=plan_hash, plan_length=len(plan))
+    plan_id = json.dumps(plan, separators=(",", ":"))
+    replay_id = f"{account['instance_id']}::{planner}"
+    attempt = _attempt(base, status, trace_fidelity=status, replay_validation_id=replay_id, plan_id=plan_id, plan_length=len(plan))
     replay = _replay_row({**attempt, "replay_validation_id": replay_id}, replay_payload, plan, limits=limits)
     example = _build_example(account, vision, attempt, plan, replay, trace, limits=limits)
     example_text = json.dumps(example, sort_keys=True, ensure_ascii=True)
@@ -307,7 +303,7 @@ def _replay_row(attempt: dict[str, Any], replay_payload: dict[str, Any], plan: l
 
 
 def _build_example(account: dict[str, Any], vision: dict[str, Any], attempt: dict[str, Any], plan: list[str], replay: dict[str, Any], trace: dict[str, Any], *, limits: dict[str, int]) -> dict[str, Any]:
-    example_id = stable_hash([account["instance_id"], attempt["planner"], attempt["plan_hash"]])[:32]
+    example_id = f"{account['instance_id']}::{attempt['planner']}"
     vision_available = bool(vision.get("vision_supervision_available"))
     return {
         "schema_version": SCHEMA_VERSION,
@@ -316,7 +312,7 @@ def _build_example(account: dict[str, Any], vision: dict[str, Any], attempt: dic
         "instance_id": account["instance_id"],
         "split": account["split"],
         "planner": attempt["planner"],
-        "plan_hash": attempt["plan_hash"],
+        "plan_id": attempt["plan_id"],
         "trace_fidelity": attempt["trace_fidelity"],
         "vision_supervision_available": vision_available,
         "model_facing": {
@@ -529,7 +525,7 @@ def _write_reports(input_root: Path, output_root: Path, accounting: list[dict[st
         "planners": list(active_planners),
         "resource_limits": limits,
         "stable_sorting": ["domain", "split", "instance_id", "planner"],
-        "generated_file_digests": {path: file_sha256(output_root / path) for path in generated_files if (output_root / path).exists()},
+        "generated_files": [path for path in generated_files if (output_root / path).exists()],
         "ignored_nondeterministic_fields": [],
     }
     summary = {

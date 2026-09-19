@@ -14,7 +14,6 @@ from examples.planning_benchmark_slice.modality_serializers import (
 )
 from examples.planning_benchmark_slice.zero_shot import ALGORITHMS, MODALITIES
 
-
 REPO_ROOT = Path(__file__).resolve().parents[2]
 NONTRIVIAL_FIXTURE = REPO_ROOT / "tests" / "fixtures" / "planning" / "blocksworld_nontrivial.json"
 
@@ -48,13 +47,16 @@ def test_serialize_modalities_writes_four_jsonl_files_and_summary(tmp_path: Path
 
     summary = serialize_modalities(input_path=expert_dir, output_dir=dataset_dir, modalities=MODALITIES)
 
+    assert ALGORITHMS == ("bfs", "iterated_width")
     assert summary["valid"] is True
     assert summary["leakage_errors"] == []
-    assert summary["counts_by_modality"] == {modality: 8 for modality in MODALITIES}
-    assert summary["counts_by_algorithm"] == {algorithm: {modality: 2 for modality in MODALITIES} for algorithm in ALGORITHMS}
+    assert summary["counts_by_modality"] == {modality: 4 for modality in MODALITIES}
+    assert summary["counts_by_algorithm"] == {
+        algorithm: {modality: 2 for modality in MODALITIES} for algorithm in ALGORITHMS
+    }
     assert set(summary["output_paths"]) == set(MODALITIES)
     assert {path.name for path in dataset_dir.glob("*.jsonl")} == {f"{modality}.jsonl" for modality in MODALITIES}
-    assert len(_read_jsonl(dataset_dir / "vision.jsonl")) == 8
+    assert len(_read_jsonl(dataset_dir / "vision.jsonl")) == 4
     assert summary["vision_skip_reasons"]
     assert {reason["code"] for reason in summary["vision_skip_reasons"]} == {"no_render_artifacts"}
 
@@ -81,12 +83,14 @@ def test_serializer_cli_emits_json_and_deterministic_modality_files(tmp_path: Pa
     assert result.returncode == 0
     assert result.stderr == ""
     assert payload["valid"] is True
-    assert payload["record_count"] == 32
+    assert payload["record_count"] == 16
     assert payload["leakage_errors"] == []
     assert set(payload["output_paths"]) == set(MODALITIES)
     first_language = _read_jsonl(dataset_dir / "language.jsonl")[0]
     assert first_language["schema_version"] == "planning_modality_record_v1"
-    assert first_language["modality_boundary_note"].startswith("Only model_facing")
+    boundary_note = first_language["modality_boundary_note"]
+    assert isinstance(boundary_note, str)
+    assert boundary_note.startswith("Only model_facing")
 
 
 def test_vision_only_has_no_symbolic_state_ids_or_pddl(tmp_path: Path) -> None:
@@ -138,19 +142,15 @@ def test_vision_language_tool_includes_algorithm_scratchpads_and_targets(tmp_pat
     _generate_all_experts(expert_dir)
 
     records = build_modality_records(input_path=expert_dir, modalities=("vision_language_tool",))
-    by_algorithm = {algorithm: next(record for record in records if record["algorithm"] == algorithm) for algorithm in ALGORITHMS}
+    by_algorithm = {
+        algorithm: next(record for record in records if record["algorithm"] == algorithm) for algorithm in ALGORITHMS
+    }
 
     assert {"frontier_before", "frontier_after", "visited_before", "visited_after"} <= set(
         by_algorithm["bfs"]["model_facing"]["tool_state"]["scratchpad"]
     )
-    assert {"heuristic_value", "successor_heuristics", "selected_successor_id", "tie_break_rule"} <= set(
-        by_algorithm["fast_forward"]["model_facing"]["tool_state"]["scratchpad"]
-    )
     assert {"width", "novelty_table_before", "novelty_table_after", "decision"} <= set(
         by_algorithm["iterated_width"]["model_facing"]["tool_state"]["scratchpad"]
-    )
-    assert {"proposition_layers", "action_layers", "mutex_pairs", "extraction"} <= set(
-        by_algorithm["graphplan"]["model_facing"]["tool_state"]["scratchpad"]
     )
     for record in records:
         assert record["model_facing"]["tool_state"]["update_target_field"] == "internal_state_update"

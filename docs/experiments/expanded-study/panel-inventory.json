@@ -1,0 +1,37 @@
+{
+  "status": "historical_inventory_complete_panel_not_selected",
+  "domains": [
+    "15puzzle",
+    "blocksworld",
+    "depot",
+    "driverlog",
+    "elevators",
+    "ferry",
+    "freecell",
+    "grid",
+    "gripper",
+    "logistics",
+    "snake",
+    "sokoban",
+    "storage",
+    "towers_of_hanoi",
+    "visitall"
+  ],
+  "planned_domain_count": 12,
+  "source_domain_count": 15,
+  "domain_scope_resolved": false,
+  "source_panel": "configs/experiments/issue72/views-panel-32k-v2.json",
+  "source_task_count": 5410,
+  "source_distinct_semantics": 4757,
+  "matched_candidate_count": 1120,
+  "matched_candidates_by_domain": {
+    "blocksworld": 352,
+    "ferry": 384,
+    "storage": 384
+  },
+  "distinct_semantics": 4970,
+  "identity_scope": "canonical task context independent of problem name; object-renaming equivalence still requires audit",
+  "new_tasks_generated": 0,
+  "model_calls": 0,
+  "inventory_path": "outputs/expanded-study/v1/panel/historical-inventory.json"
+}

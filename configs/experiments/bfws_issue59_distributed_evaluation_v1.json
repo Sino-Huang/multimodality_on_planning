@@ -1,0 +1,18 @@
+{
+  "contract_id": "issue-59-bfws-distributed-evaluation-v1",
+  "parent_contract_id": "issue-59-bfws-single-training-v2",
+  "reason": "Supervisor provided a second shared-filesystem server with two A100 GPUs after the original hardware qualification VALID_STOP.",
+  "run_id": "four-gpu-v1",
+  "schema_version": "bfws_issue59_distributed_evaluation_v1",
+  "scientific_scope": "Replacement development qualification and rollout using the unchanged seed-17 checkpoint, references, tasks, budgets, and thresholds.",
+  "source_issue": 59,
+  "topology": {
+    "devices_per_node": [
+      "cuda:0",
+      "cuda:1"
+    ],
+    "node_count": 2,
+    "rollout_shard_count": 4,
+    "shared_filesystem": true
+  }
+}

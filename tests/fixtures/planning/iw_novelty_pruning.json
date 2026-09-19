@@ -1,0 +1,6 @@
+{
+  "instance_id": "iw-novelty-pruning-fixture-0000",
+  "domain": "iw-novelty-pruning",
+  "domain_pddl": "(define (domain iw-novelty-pruning)\n  (:requirements :strips)\n  (:predicates (start) (p) (q) (r) (shared) (progress) (goal))\n  (:action root-a\n    :parameters ()\n    :precondition (and (start) (p))\n    :effect (and (shared) (not (start)) (not (p))))\n  (:action root-b\n    :parameters ()\n    :precondition (and (start) (q))\n    :effect (and (shared) (not (start)) (not (q))))\n  (:action root-c\n    :parameters ()\n    :precondition (and (start) (r))\n    :effect (and (shared) (not (start)) (not (r))))\n  (:action continue\n    :parameters ()\n    :precondition (and (shared) (q) (r))\n    :effect (and (progress) (not (shared))))\n  (:action finish\n    :parameters ()\n    :precondition (progress)\n    :effect (goal)))\n",
+  "problem_pddl": "(define (problem iw-novelty-pruning-problem)\n  (:domain iw-novelty-pruning)\n  (:init (start) (p) (q) (r))\n  (:goal (goal)))\n"
+}

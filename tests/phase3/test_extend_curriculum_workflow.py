@@ -10,7 +10,7 @@ from scripts.phase3 import extend_curriculum_workflow
 from scripts.phase3.extend_curriculum_workflow import WorkflowConfig, build_parser, inspect_shards, run_workflow, update_final_root
 
 
-def test_inspect_shards_counts_hashes_and_staging(tmp_path: Path) -> None:
+def test_inspect_shards_counts_normalized_problems_and_staging(tmp_path: Path) -> None:
     shard = tmp_path / "shards" / "blocksworld"
     instance = shard / "blocksworld" / "train" / "easy" / "blocksworld-train-easy-0000"
     instance.mkdir(parents=True)
@@ -29,8 +29,8 @@ def test_inspect_shards_counts_hashes_and_staging(tmp_path: Path) -> None:
     state = inspect_shards(tmp_path / "shards")
 
     assert state.accepted_total == 1
-    assert state.duplicate_hashes == 0
-    assert state.missing_hashes == 0
+    assert state.duplicate_problems == 0
+    assert state.missing_normalized_problems == 0
     assert state.staging_entries == 2
     assert state.counts_by_domain_split_bucket[("blocksworld", "train", "easy")] == 1
     assert state.attempts_by_domain_split_bucket[("blocksworld", "train", "easy")] == 2

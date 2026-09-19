@@ -1,0 +1,43 @@
+{
+  "outcome": "VALID_STOP",
+  "hardware_passed": true,
+  "estimate": {
+    "by_modality": {
+      "text-state": {
+        "training_seconds": 2640.4920855211094,
+        "evaluation_seconds": 14285.42019115761,
+        "training_microstep_seconds": 1.3901763502508402,
+        "seconds_per_call": 24.744936952367425
+      },
+      "visual-state": {
+        "training_seconds": 4960.2545581245795,
+        "evaluation_seconds": 21189.761263073888,
+        "training_microstep_seconds": 2.896019270643592,
+        "seconds_per_call": 36.848260490223765
+      },
+      "multimodal-state": {
+        "training_seconds": 5588.066667444073,
+        "evaluation_seconds": 24941.661606451962,
+        "training_microstep_seconds": 3.242849553003907,
+        "seconds_per_call": 43.403307838365436
+      }
+    },
+    "training_seconds": 13188.813311089762,
+    "evaluation_seconds": 60416.84306068346,
+    "fits": false
+  },
+  "worker_reports": [
+    "outputs/matched_modalities/v2/qualification/gpu-0.json",
+    "outputs/matched_modalities/v2/qualification/gpu-1.json"
+  ],
+  "model_outcomes_used_for_selection": false,
+  "study_id": "matched-modalities-v2",
+  "qualification_seconds": 2554.2372558116913,
+  "training_cells_completed": 0,
+  "final_model_episodes": 0,
+  "training_blocker": "Frozen protocol requires final evaluation admission before training; measured final estimate exceeds six-hour cap.",
+  "code_revisions": [
+    "69e5998998f9ea4deb8ad1a047aaf8d8c93024d6",
+    "69e5998998f9ea4deb8ad1a047aaf8d8c93024d6"
+  ]
+}

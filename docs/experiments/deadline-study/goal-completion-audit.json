@@ -1,0 +1,101 @@
+{
+  "goal_route": [
+    76,
+    77,
+    100,
+    108
+  ],
+  "completion_audit": "PASS",
+  "selected_tickets": [
+    {
+      "closedAt": "2026-09-12T16:12:11Z",
+      "number": 76,
+      "state": "CLOSED",
+      "title": "T38: Complete the bounded multimodal feasibility experiment",
+      "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/76"
+    },
+    {
+      "closedAt": "2026-09-12T16:12:15Z",
+      "number": 77,
+      "state": "CLOSED",
+      "title": "T39: Synthesize development evidence and choose the deadline stop route",
+      "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/77"
+    },
+    {
+      "closedAt": "2026-09-12T16:14:27Z",
+      "number": 100,
+      "state": "CLOSED",
+      "title": "T62: Report deadline development feasibility and limitations",
+      "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/100"
+    },
+    {
+      "closedAt": "2026-09-12T17:07:13Z",
+      "number": 108,
+      "state": "CLOSED",
+      "title": "T70: Publish the verified deadline feasibility study artifacts",
+      "url": "https://github.com/Sino-Huang/multimodality_on_planning/issues/108"
+    }
+  ],
+  "requirements": [
+    {
+      "requirement": "#76 reconciled bounded execution, fresh multimodal qualification, exact samples/seed, complete episodes and independent replay",
+      "status": "proved",
+      "evidence": [
+        "docs/experiments/issue76/scope.json",
+        "configs/experiments/issue76/experiment.json",
+        "docs/experiments/issue76/completion-summary.json",
+        "docs/experiments/issue76/completion-verification.json"
+      ]
+    },
+    {
+      "requirement": "#77 evidence synthesis and explicit go/no-go/optional-DAgger decision",
+      "status": "proved",
+      "evidence": [
+        "docs/experiments/issue77/decision.json",
+        "docs/experiments/issue77/decision.md"
+      ]
+    },
+    {
+      "requirement": "Conditional final branch and optional DAgger applicability",
+      "status": "not_selected_by_verified_NO_GO",
+      "evidence": [
+        "docs/experiments/deadline-study/completion-ledger.json"
+      ],
+      "scientific_execution_claim": false
+    },
+    {
+      "requirement": "#100 scope, controls, invalid charges, budgets, uncertainty, historical distinctions and limited conclusion",
+      "status": "proved",
+      "evidence": [
+        "docs/experiments/deadline-study/report.md",
+        "docs/experiments/deadline-study/core-results.csv",
+        "docs/experiments/deadline-study/compute-accounting.json",
+        "docs/experiments/deadline-study/prior-evidence.json",
+        "docs/experiments/deadline-study/bfs-v7-admission-reconstruction.json"
+      ]
+    },
+    {
+      "requirement": "#108 configs/IDs/checkpoints/logs/replay data/tools/claims/ledger published and available",
+      "status": "proved",
+      "evidence": [
+        "docs/experiments/deadline-study/publication-verification.json",
+        "docs/experiments/deadline-study/restored-replay-verification.json",
+        "https://github.com/Sino-Huang/multimodality_on_planning/releases/tag/deadline-study-v1"
+      ]
+    },
+    {
+      "requirement": "Preserve failed scientific gates and distinguish deferred/unmeasured work",
+      "status": "proved",
+      "evidence": [
+        "docs/experiments/issue75/v5-completion-verification.json",
+        "docs/experiments/issue76/completion-verification.json",
+        "docs/experiments/deadline-study/completion-ledger.json"
+      ]
+    }
+  ],
+  "additional_gpu_work_after_no_go": false,
+  "original_scientific_outcomes_unchanged": true,
+  "remaining_required_work": [],
+  "release_url": "https://github.com/Sino-Huang/multimodality_on_planning/releases/tag/deadline-study-v1",
+  "note": "Goal completion means the selected stop-route work and artifact release are complete, not that failed model gates passed or unselected experiments ran."
+}
