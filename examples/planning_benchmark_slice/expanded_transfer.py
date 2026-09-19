@@ -1,11 +1,16 @@
-"""Transfer (#104-#107) branch machinery: zero-shot transfer of planning-trained BFS adapters.
+"""Transfer (#104-#107) branch machinery: zero-shot transfer of planning-trained adapters.
 
-The frozen contract is configs/experiments/expanded-study/transfer-protocol.json. This module
+The frozen v1 contract is configs/experiments/expanded-study/transfer-protocol.json. This module
 freezes FOLIO/GSM8K/HumanEval subsets before any model output, probes runtime gates, admits
-against the 24 GPU-hour branch budget and the absolute GPU cutoff, runs the four frozen cells
-(base + three BFS LoRA adapters) on two workers, and scores with pinned parsing and a sandboxed
+against the 24 GPU-hour branch budget and the absolute GPU cutoff, runs the frozen cells (v1:
+base + three BFS LoRA adapters) on two workers, and scores with pinned parsing and a sandboxed
 HumanEval executor. GPU stages (probe/run) are executed by the scheduler; every producing stage
 has an independent audit.
+
+Extension protocols (e.g. transfer-protocol-v2.json) set "extends" to the v1 protocol id and drive
+the cell set/order, output root, subset sizes, worker assignment and publication filenames through
+the protocol document itself; they reuse the v1 frozen subsets byte-identically and never rerun
+the base cell. A protocol without "extends" follows the v1 paths exactly.
 """
 
 from __future__ import annotations
@@ -58,6 +63,94 @@ SEED = 17
 LEAKAGE_NGRAM = 8
 # The scheduler hard-caps completion hooks at 300s; bound the sandbox re-execution phase.
 RESAMPLE_BUDGET_SECONDS = 150
+
+# v1 frozen subsets, pinned so extension protocols verify and reference them byte-identically.
+V1_SUBSETS_PATH = f"{OUTPUT_ROOT}/subsets.json"
+V1_SUBSETS_SHA256 = "24157aaadc6f3c2b1bf7ff1e858a3a7bef93f98f68354d8d1334b30bfaa12627"
+
+
+# ---------------------------------------------------------------------------
+# Protocol-driven layout: cell set/order, output root, sizes, worker mapping
+# ---------------------------------------------------------------------------
+# Every helper falls back to the v1 constants when the protocol lacks the field,
+# so the v1 protocol and existing fixtures behave exactly as before.
+
+
+def cell_order(protocol: Mapping[str, Any]) -> tuple[str, ...]:
+    order = protocol.get("execution_topology", {}).get("cell_order_per_benchmark")
+    return tuple(order) if order else CELL_ORDER
+
+
+def adapted_cells(protocol: Mapping[str, Any]) -> tuple[str, ...]:
+    order = cell_order(protocol)
+    cells = protocol.get("cells", {})
+    if cells:
+        return tuple(cell for cell in order if cells.get(cell, {}).get("adapter_id"))
+    return tuple(cell for cell in order if cell != "base")
+
+
+def output_root(protocol: Mapping[str, Any]) -> str:
+    return str(protocol.get("evidence", {}).get("output_root", OUTPUT_ROOT))
+
+
+def doc_stem(protocol: Mapping[str, Any]) -> str:
+    """Publication filename stem: the output-root basename ('transfer', 'transfer-v2', ...)."""
+    return output_root(protocol).rstrip("/").rsplit("/", 1)[-1]
+
+
+def l0_sizes(protocol: Mapping[str, Any]) -> dict[str, int]:
+    benchmarks = protocol.get("benchmarks", {})
+    sizes = benchmarks.get("subset_sizes")
+    if sizes:
+        return dict(sizes)
+    per_benchmark = {
+        name: spec["subset_size"]
+        for name, spec in benchmarks.items()
+        if isinstance(spec, Mapping) and "subset_size" in spec
+    }
+    return per_benchmark or dict(L0_SIZES)
+
+
+def l1_sizes(protocol: Mapping[str, Any]) -> dict[str, int]:
+    sizes = protocol.get("benchmarks", {}).get("l1_subset_sizes")
+    return dict(sizes) if sizes else dict(L1_SIZES)
+
+
+def _worker_ids(protocol: Mapping[str, Any]) -> dict[int, Mapping[str, Any]]:
+    workers = protocol.get("execution_topology", {}).get("workers", {})
+    return {int(name.rsplit("-", 1)[1]): spec for name, spec in workers.items()}
+
+
+def worker_benchmarks(protocol: Mapping[str, Any]) -> dict[int, tuple[str, ...]]:
+    workers = _worker_ids(protocol)
+    if not workers:
+        return dict(WORKER_BENCHMARKS)
+    return {worker: tuple(spec["benchmarks"]) for worker, spec in workers.items()}
+
+
+def worker_gpus(protocol: Mapping[str, Any]) -> dict[int, int]:
+    workers = _worker_ids(protocol)
+    if not workers:
+        return dict(WORKER_GPUS)
+    return {worker: int(spec["gpu"]) for worker, spec in workers.items()}
+
+
+def subsets_reference(protocol: Mapping[str, Any]) -> dict[str, str] | None:
+    """Pinned v1 subsets reference for extension protocols; None for the v1 protocol."""
+    reference = protocol.get("benchmarks", {}).get("subsets_reference")
+    if reference:
+        return dict(reference)
+    if protocol.get("extends"):
+        return {"path": V1_SUBSETS_PATH, "sha256": V1_SUBSETS_SHA256}
+    return None
+
+
+def _protocol_ids(protocol: Mapping[str, Any]) -> set[str]:
+    """Protocol ids accepted in frozen evidence: the protocol's own plus any inherited v1 id."""
+    ids = {protocol["protocol_id"]}
+    if protocol.get("extends"):
+        ids.add(protocol["extends"])
+    return ids
 
 VALIDATE_SCHEMA = "expanded_transfer_validate_v1"
 SUBSETS_SCHEMA = "expanded_transfer_subsets_v1"
@@ -489,6 +582,8 @@ def _prompt_fields(template: str) -> set[str]:
 
 def validate_protocol(root: Path, protocol: Mapping[str, Any]) -> dict[str, Any]:
     """Hard-fail unless the frozen transfer protocol is internally consistent with reality."""
+    if protocol.get("extends"):
+        return _validate_extension_protocol(root, protocol)
     failures: list[str] = []
 
     def check(name: str, condition: bool, detail: str = "") -> None:
@@ -645,6 +740,139 @@ def validate_protocol(root: Path, protocol: Mapping[str, Any]) -> dict[str, Any]
         "l0_sizes": dict(L0_SIZES),
         "l1_sizes": dict(L1_SIZES),
         "worker_benchmarks": {str(worker): list(bench) for worker, bench in WORKER_BENCHMARKS.items()},
+    }
+
+
+def _validate_extension_protocol(root: Path, protocol: Mapping[str, Any]) -> dict[str, Any]:
+    """Validate an extension protocol: adapted cells only, inherited byte-identical v1 subsets."""
+    failures: list[str] = []
+
+    def check(name: str, condition: bool, detail: str = "") -> None:
+        if not condition:
+            failures.append(f"{name}: {detail}")
+
+    schedule = read_json(root / SCHEDULE_DOC)
+    check("schema", protocol.get("schema") == PROTOCOL_SCHEMA, str(protocol.get("schema")))
+    check("extends", protocol.get("extends") == PROTOCOL_ID, str(protocol.get("extends")))
+    check(
+        "protocol_id",
+        bool(protocol.get("protocol_id")) and protocol.get("protocol_id") != PROTOCOL_ID,
+        str(protocol.get("protocol_id")),
+    )
+    check("program", protocol.get("program") == "expanded-nine-day-v1")
+    check("issues", protocol.get("issues") == [104, 105, 106, 107], str(protocol.get("issues")))
+    check("branch", protocol.get("branch") == BRANCH)
+    check("frozen", protocol.get("frozen_before_any_model_output") is True)
+    check("allocation_matches_schedule", schedule["allocations_gpu_hours"].get(BRANCH) == BRANCH_GPU_HOURS)
+
+    cells = protocol.get("cells", {})
+    order = cell_order(protocol)
+    check("cells_nonempty", bool(cells))
+    check("cells_order", sorted(cells) == sorted(order), str(sorted(cells)))
+    check("no_base_rerun", "base" not in cells)
+    adapter_paths: dict[str, Path] = {}
+    for cell in order:
+        checkpoint = root / cells.get(cell, {}).get("checkpoint", "")
+        adapter_paths[cell] = checkpoint
+        check(
+            f"adapter_{cell}",
+            checkpoint.is_dir()
+            and (checkpoint / "adapter_config.json").is_file()
+            and (checkpoint / "adapter_model.safetensors").is_file(),
+            str(checkpoint),
+        )
+        check(f"adapter_{cell}_id", cells.get(cell, {}).get("adapter_id") == cell)
+
+    base_model = protocol.get("base_model", {})
+    check("base_model_id", base_model.get("model_id") == "Qwen/Qwen3-VL-8B-Instruct")
+    check("base_model_revision", base_model.get("revision") == "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b")
+    snapshot = (
+        root / ".cache/hf/hub/models--Qwen--Qwen3-VL-8B-Instruct/snapshots" / str(base_model.get("revision"))
+    )
+    check("base_model_cached", (snapshot / "config.json").is_file(), str(snapshot))
+
+    benchmarks = protocol.get("benchmarks", {})
+    check("benchmarks_inherit", benchmarks.get("inherit") == PROTOCOL_ID, str(benchmarks.get("inherit")))
+    check("l0_sizes", l0_sizes(protocol) == L0_SIZES, str(l0_sizes(protocol)))
+    check("l1_sizes", l1_sizes(protocol) == L1_SIZES, str(l1_sizes(protocol)))
+    check(
+        "l1_arithmetic",
+        {name: len(l1_order([str(i) for i in range(L0_SIZES[name])])) for name in BENCHMARK_ORDER} == L1_SIZES,
+    )
+    check("max_context", MAX_CONTEXT_TOKENS > max(64, 512, 768))
+
+    decoding = protocol.get("decoding", {})
+    check(
+        "decoding",
+        decoding.get("inherit") == PROTOCOL_ID
+        and decoding.get("do_sample") is False
+        and decoding.get("seed") == SEED
+        and decoding.get("dtype") == "float32",
+    )
+    topology = protocol.get("execution_topology", {})
+    check(
+        "topology",
+        worker_benchmarks(protocol) == WORKER_BENCHMARKS
+        and worker_gpus(protocol) == WORKER_GPUS
+        and tuple(topology.get("cell_order_per_benchmark", ())) == order,
+        str(topology.get("workers")),
+    )
+    check(
+        "port_pool",
+        tuple(topology.get("master_port_pool", ())) == PORT_POOL
+        and tuple(schedule.get("master_port_pool", ())) == PORT_POOL,
+    )
+    check("gpu_cutoff", schedule.get("gpu_cutoff_utc") == GPU_CUTOFF_UTC)
+
+    gate = protocol.get("resource_gate", {})
+    check("safety_factor", gate.get("safety_factor") == SAFETY_FACTOR)
+    ledger_path = root / LEDGER_PATH
+    check("ledger_exists", ledger_path.is_file(), str(ledger_path))
+    if ledger_path.is_file():
+        ledger = read_json(ledger_path)
+        check(
+            "ledger_branch",
+            ledger.get("allocations_gpu_hours", {}).get(BRANCH) == BRANCH_GPU_HOURS
+            and ledger.get("schedule") == schedule,
+        )
+    check("leakage_corpus", (root / CORPUS_REPORT).is_file())
+    check(
+        "output_root",
+        output_root(protocol) != OUTPUT_ROOT and output_root(protocol).startswith("outputs/expanded-study/v1/"),
+        output_root(protocol),
+    )
+    reference = subsets_reference(protocol)
+    check("subsets_reference", reference is not None)
+    if reference is not None:
+        source = root / reference.get("path", "")
+        check("subsets_reference_exists", source.is_file(), str(source))
+        if source.is_file():
+            check(
+                "subsets_reference_sha256",
+                _sha256_path(source) == reference.get("sha256"),
+                reference.get("path", ""),
+            )
+        v1_freeze = root / OUTPUT_ROOT / "freeze.json"
+        check(
+            "v1_freeze_pass",
+            v1_freeze.is_file() and read_json(v1_freeze).get("outcome") == "PASS",
+            str(v1_freeze),
+        )
+
+    if failures:
+        raise ValueError("transfer extension protocol validation failed: " + "; ".join(failures))
+    return {
+        "schema_version": VALIDATE_SCHEMA,
+        "outcome": "PASS",
+        "protocol_id": protocol["protocol_id"],
+        "extends": protocol["extends"],
+        "adapter_paths": {cell: str(path.relative_to(root)) for cell, path in adapter_paths.items()},
+        "l0_sizes": l0_sizes(protocol),
+        "l1_sizes": l1_sizes(protocol),
+        "worker_benchmarks": {
+            str(worker): list(benchmarks) for worker, benchmarks in worker_benchmarks(protocol).items()
+        },
+        "subsets_reference": reference,
     }
 
 
@@ -812,6 +1040,11 @@ def freeze_stage(
     progress: Callable[..., None] | None = None,
 ) -> dict[str, Any]:
     """Download, hash-pin and freeze the three benchmark subsets before any model output."""
+    reference = subsets_reference(protocol)
+    if protocol.get("extends"):
+        if reference is None:
+            raise ValueError("transfer extension protocol lacks a subsets reference")
+        return _freeze_extension_stage(root, protocol, reference, progress=progress)
     started = time.monotonic()
     checks = validate_protocol(root, protocol)
     downloads = {benchmark: _download(root, protocol, benchmark) for benchmark in BENCHMARK_ORDER}
@@ -917,6 +1150,97 @@ def freeze_stage(
     return freeze
 
 
+def _freeze_extension_stage(
+    root: Path,
+    protocol: Mapping[str, Any],
+    reference: Mapping[str, str],
+    *,
+    progress: Callable[..., None] | None = None,
+) -> dict[str, Any]:
+    """Verify the pinned v1 subsets by sha256 and copy them byte-identically; never re-derive."""
+    started = time.monotonic()
+    checks = validate_protocol(root, protocol)
+    source = root / reference["path"]
+    raw = source.read_bytes()
+    digest = hashlib.sha256(raw).hexdigest()
+    if digest != reference["sha256"]:
+        raise RuntimeError(
+            "transfer extension freeze refused: referenced subsets sha256 "
+            f"{digest} differs from the pinned {reference['sha256']}"
+        )
+    subsets = json.loads(raw)
+    if subsets.get("schema_version") != SUBSETS_SCHEMA or subsets.get("protocol_id") not in _protocol_ids(protocol):
+        raise ValueError("transfer extension referenced subsets differ from the frozen v1 schema")
+    output = root / output_root(protocol)
+    output.mkdir(parents=True, exist_ok=True)
+    destination = output / "subsets.json"
+    if destination.exists() and destination.read_bytes() != raw:
+        raise RuntimeError(f"transfer freeze is not byte-reproducible: {destination}")
+    temporary = destination.with_name(destination.name + ".tmp")
+    temporary.write_bytes(raw)
+    temporary.replace(destination)
+    if progress is not None:
+        progress(completed=1, total=3, stage="subsets_reference")
+
+    v1_freeze = read_json(root / OUTPUT_ROOT / "freeze.json")
+    if v1_freeze.get("outcome") != "PASS":
+        raise ValueError("transfer extension requires a PASS v1 freeze")
+    v1_leakage = root / OUTPUT_ROOT / "leakage.json"
+    if not v1_leakage.is_file():
+        raise ValueError("transfer extension requires the v1 leakage report")
+    shutil.copyfile(v1_leakage, output / "leakage.json")
+    if progress is not None:
+        progress(completed=2, total=3, stage="leakage_reference")
+
+    summary = {}
+    for benchmark in BENCHMARK_ORDER:
+        block = subsets["benchmarks"][benchmark]
+        summary[benchmark] = {
+            "l0_size": len(block["l0_order"]),
+            "l1_size": len(block["l1_order"]),
+            "l0_order": block["l0_order"],
+            "l1_order": block["l1_order"],
+            "l0_order_sha256": _json_sha256(block["l0_order"]),
+            "input_tokens": {
+                "min": min(entry["input_tokens"] for entry in block["examples"].values()),
+                "max": max(entry["input_tokens"] for entry in block["examples"].values()),
+            },
+            **{key: block[key] for key in ("strata_sizes", "strata_seats", "strata_boundaries") if key in block},
+        }
+    sandbox_unshare = probe_unshare_network()
+    freeze = {
+        "schema_version": FREEZE_SCHEMA,
+        "outcome": "PASS",
+        "protocol_id": protocol["protocol_id"],
+        "extends": protocol["extends"],
+        "method": "referenced-v1: v1 frozen subsets verified by sha256 and copied byte-identically",
+        "protocol_checks": checks,
+        "subsets_reference": {
+            "path": reference["path"],
+            "sha256": reference["sha256"],
+            "verified_sha256": "sha256:" + digest,
+            "copied_bytes": len(raw),
+            "byte_identical": True,
+        },
+        "subsets": summary,
+        "leakage": {
+            **v1_freeze.get("leakage", {}),
+            "status": "inherited_from_v1",
+            "source": str(v1_leakage.relative_to(root)),
+        },
+        "sandbox": {
+            "unshare_network_available": sandbox_unshare,
+            "decision": "unshare -n" if sandbox_unshare else "socket-blocking prelude only",
+        },
+        "elapsed_seconds": time.monotonic() - started,
+        "frozen_at": time.time(),
+    }
+    write_json(output / "freeze.json", freeze)
+    if progress is not None:
+        progress(completed=3, total=3, stage="freeze_evidence")
+    return freeze
+
+
 # ---------------------------------------------------------------------------
 # audit-freeze: independent re-download, re-hash, re-derive, byte-compare
 # ---------------------------------------------------------------------------
@@ -966,6 +1290,11 @@ def _audit_l1(l0: Sequence[str]) -> list[str]:
 
 def audit_freeze_stage(root: Path, protocol: Mapping[str, Any]) -> dict[str, Any]:
     """Re-download to a temp dir, re-hash, re-derive subsets independently, byte-compare."""
+    reference = subsets_reference(protocol)
+    if protocol.get("extends"):
+        if reference is None:
+            raise ValueError("transfer extension protocol lacks a subsets reference")
+        return _audit_freeze_extension(root, protocol, reference)
     stored = read_json(root / OUTPUT_ROOT / "subsets.json")
     if stored.get("schema_version") != SUBSETS_SCHEMA or stored.get("protocol_id") != protocol["protocol_id"]:
         raise ValueError("transfer stored subsets differ from the frozen schema")
@@ -1072,6 +1401,46 @@ def audit_freeze_stage(root: Path, protocol: Mapping[str, Any]) -> dict[str, Any
     return result
 
 
+def _audit_freeze_extension(
+    root: Path, protocol: Mapping[str, Any], reference: Mapping[str, str]
+) -> dict[str, Any]:
+    """Extension audit: v2 subsets byte-identical to the pinned v1 freeze; v1 evidence untouched."""
+    out = root / output_root(protocol)
+    stored_raw = (out / "subsets.json").read_bytes()
+    source_raw = (root / reference["path"]).read_bytes()
+    digest = hashlib.sha256(stored_raw).hexdigest()
+    subsets = json.loads(stored_raw)
+    freeze = read_json(out / "freeze.json")
+    comparisons = {
+        "subsets_byte_identical_to_v1": stored_raw == source_raw,
+        "subsets_sha256_matches_pin": digest == reference["sha256"],
+        "subsets_protocol_is_v1": subsets.get("protocol_id") == protocol.get("extends"),
+        "freeze_schema": freeze.get("schema_version") == FREEZE_SCHEMA
+        and freeze.get("protocol_id") == protocol["protocol_id"],
+        "freeze_records_pin": freeze.get("subsets_reference", {}).get("sha256") == reference["sha256"],
+        "freeze_evidence_orders_match": all(
+            freeze["subsets"][benchmark]["l0_order"] == subsets["benchmarks"][benchmark]["l0_order"]
+            and freeze["subsets"][benchmark]["l1_order"] == subsets["benchmarks"][benchmark]["l1_order"]
+            for benchmark in BENCHMARK_ORDER
+        ),
+        "v1_subsets_untouched": hashlib.sha256((root / OUTPUT_ROOT / "subsets.json").read_bytes()).hexdigest()
+        == reference["sha256"],
+        "leakage_inherited": freeze.get("leakage", {}).get("status") == "inherited_from_v1",
+    }
+    passed = all(comparisons.values())
+    result = {
+        "schema_version": AUDIT_FREEZE_SCHEMA,
+        "outcome": "PASS" if passed else "INVALID",
+        "protocol_id": protocol["protocol_id"],
+        "comparisons": comparisons,
+        "audited_at": time.time(),
+    }
+    write_json(out / "audit-freeze.json", result)
+    if not passed:
+        raise RuntimeError("transfer audit-freeze extension verification differs")
+    return result
+
+
 # ---------------------------------------------------------------------------
 # Probe (GPU): outcome-blind runtime gates; probe outputs are never scored
 # ---------------------------------------------------------------------------
@@ -1120,7 +1489,7 @@ def benchmark_request(
 
 def adapter_fingerprints(root: Path, protocol: Mapping[str, Any]) -> dict[str, Any]:
     fingerprints = {}
-    for cell in ADAPTED_CELLS:
+    for cell in adapted_cells(protocol):
         checkpoint = root / protocol["cells"][cell]["checkpoint"]
         fingerprints[cell] = {
             "checkpoint": protocol["cells"][cell]["checkpoint"],
@@ -1150,10 +1519,13 @@ def probe_stage(
     os.environ.setdefault("HF_HOME", str(root / ".cache" / "hf"))
     attempt_dir = Path(attempt_dir)
     started_all = time.monotonic()
-    subsets = read_json(root / OUTPUT_ROOT / "subsets.json")
-    if subsets.get("schema_version") != SUBSETS_SCHEMA or subsets.get("protocol_id") != protocol["protocol_id"]:
+    out = root / output_root(protocol)
+    order = cell_order(protocol)
+    adapted = adapted_cells(protocol)
+    subsets = read_json(out / "subsets.json")
+    if subsets.get("schema_version") != SUBSETS_SCHEMA or subsets.get("protocol_id") not in _protocol_ids(protocol):
         raise ValueError("transfer probe requires frozen subsets")
-    freeze = read_json(root / OUTPUT_ROOT / "freeze.json")
+    freeze = read_json(out / "freeze.json")
     if freeze.get("outcome") != "PASS":
         raise ValueError("transfer probe requires a PASS freeze")
     set_seed(SEED)
@@ -1161,7 +1533,7 @@ def probe_stage(
     policy = BatchedPolicyAdapter(
         model_id=protocol["base_model"]["model_id"],
         revision=protocol["base_model"]["revision"],
-        adapter_paths={cell: root / protocol["cells"][cell]["checkpoint"] for cell in ADAPTED_CELLS},
+        adapter_paths={cell: root / protocol["cells"][cell]["checkpoint"] for cell in adapted},
         device="cuda:0",
         max_new_tokens=64,
         max_context_tokens=MAX_CONTEXT_TOKENS,
@@ -1178,7 +1550,22 @@ def probe_stage(
     cells: dict[str, dict[str, Any]] = {}
     isolation_pre: list[str] | None = None
     isolation_requests = []
-    total_cells = len(BENCHMARK_ORDER) * len(CELL_ORDER)
+    if "base" not in order:
+        # Extension protocols run no base cell; capture the uncached base outputs (adapter_id=None)
+        # explicitly so adapter isolation is still verified pre/post the adapted cells.
+        folio_block = subsets["benchmarks"]["folio"]
+        picked = []
+        for key in ("min", "p50", "p95"):
+            example_id = selections["folio"][key]
+            if example_id not in picked:
+                picked.append(example_id)
+        policy.max_new_tokens = folio_block["max_new_tokens"]
+        isolation_requests = [
+            benchmark_request("folio", folio_block["examples"][example_id], None, session_prefix="transfer-probe")
+            for example_id in picked
+        ]
+        isolation_pre = list(policy._generate_uncached(None, isolation_requests))
+    total_cells = len(BENCHMARK_ORDER) * len(order)
     completed_cells = 0
     for benchmark in BENCHMARK_ORDER:
         block = subsets["benchmarks"][benchmark]
@@ -1190,7 +1577,7 @@ def probe_stage(
                 picked.append(example_id)
         entries = [block["examples"][example_id] for example_id in picked]
         cells[benchmark] = {}
-        for cell in CELL_ORDER:
+        for cell in order:
             adapter_id = None if cell == "base" else cell
             requests = [
                 benchmark_request(benchmark, entry, adapter_id, session_prefix="transfer-probe") for entry in entries
@@ -1239,6 +1626,8 @@ def probe_stage(
                 progress(completed=completed_cells, total=total_cells, stage=f"probe_{benchmark}_{cell}")
 
     policy.max_new_tokens = subsets["benchmarks"]["folio"]["max_new_tokens"]
+    if isolation_pre is None or not isolation_requests:
+        raise RuntimeError("VALID_STOP: transfer adapter isolation baseline was not captured")
     isolation_post = policy._generate_uncached(None, isolation_requests)
     adapter_isolation = {
         "benchmark": "folio",
@@ -1280,13 +1669,13 @@ def probe_stage(
     throughput = {}
     latency = {}
     for benchmark in BENCHMARK_ORDER:
-        samples = [cells[benchmark][cell]["batched"]["throughput_tokens_per_second"] for cell in CELL_ORDER]
+        samples = [cells[benchmark][cell]["batched"]["throughput_tokens_per_second"] for cell in order]
         throughput[benchmark] = {
             "samples_tokens_per_second": samples,
             "lower_95_tokens_per_second": lower_95_throughput_bound(samples),
         }
         per_example_seconds = [
-            row["latency_seconds"] for cell in CELL_ORDER for row in cells[benchmark][cell]["per_example"]
+            row["latency_seconds"] for cell in order for row in cells[benchmark][cell]["per_example"]
         ]
         latency[benchmark] = {
             "per_example_seconds": per_example_seconds,
@@ -1316,7 +1705,7 @@ def probe_stage(
         "finished_at": time.time(),
     }
     write_json(attempt_dir / "probe.json", result)
-    write_json(root / OUTPUT_ROOT / "probe.json", result)
+    write_json(out / "probe.json", result)
     return result
 
 
@@ -1329,12 +1718,13 @@ def audit_probe_stage(root: Path, protocol: Mapping[str, Any], probe: Mapping[st
         problems.append("outcome")
     if not probe.get("load", {}).get("wall_seconds"):
         problems.append("load wall time")
+    order = cell_order(protocol)
     for benchmark in BENCHMARK_ORDER:
         block = probe.get("cells", {}).get(benchmark, {})
-        if sorted(block) != sorted(CELL_ORDER):
+        if sorted(block) != sorted(order):
             problems.append(f"{benchmark} cells covered: {sorted(block)}")
             continue
-        for cell in CELL_ORDER:
+        for cell in order:
             entry = block[cell]
             if entry.get("scalar_batch_parity") is not True:
                 problems.append(f"{benchmark}/{cell} parity")
@@ -1363,7 +1753,7 @@ def audit_probe_stage(root: Path, protocol: Mapping[str, Any], probe: Mapping[st
         "problems": problems,
         "audited_at": time.time(),
     }
-    write_json(root / OUTPUT_ROOT / "audit-probe.json", result)
+    write_json(root / output_root(protocol) / "audit-probe.json", result)
     if problems:
         raise RuntimeError("transfer probe evidence is incomplete: " + "; ".join(problems))
     return result
@@ -1394,20 +1784,22 @@ def decide_admission(
     now_epoch: float,
     cutoff_epoch: float,
 ) -> dict[str, Any]:
-    """Frozen admission arithmetic: p95 probe latency x subset size x 4 cells + load, x 1.25."""
+    """Frozen admission arithmetic: p95 probe latency x subset size x cell count + load, x 1.25."""
     cap = float(protocol.get("allocation_gpu_hours", BRANCH_GPU_HOURS))
     safety = SAFETY_FACTOR
     load_seconds = float(probe["load"]["wall_seconds"])
     remainder = cap - branch_spent_gpu_hours
+    cell_count = len(cell_order(protocol))
+    workers = worker_benchmarks(protocol)
     arithmetic: dict[str, Any] = {}
-    for level, sizes in (("L0", dict(L0_SIZES)), ("L1", dict(L1_SIZES))):
+    for level, sizes in (("L0", l0_sizes(protocol)), ("L1", l1_sizes(protocol))):
         per_worker_seconds = {
             str(worker): sum(
-                probe["latency"][benchmark]["p95_seconds_per_example"] * sizes[benchmark] * len(CELL_ORDER)
+                probe["latency"][benchmark]["p95_seconds_per_example"] * sizes[benchmark] * cell_count
                 for benchmark in benchmarks
             )
             + load_seconds
-            for worker, benchmarks in WORKER_BENCHMARKS.items()
+            for worker, benchmarks in workers.items()
         }
         required_gpu_hours = sum(per_worker_seconds.values()) * safety / 3600
         wall_seconds = max(per_worker_seconds.values()) * safety
@@ -1465,7 +1857,8 @@ def decide_admission(
 
 
 def admit_stage(root: Path, protocol: Mapping[str, Any], *, now_epoch: float | None = None) -> dict[str, Any]:
-    probe_path = root / OUTPUT_ROOT / "probe.json"
+    out = root / output_root(protocol)
+    probe_path = out / "probe.json"
     if not probe_path.is_file():
         raise RuntimeError("VALID_STOP: transfer admission requires a completed probe")
     probe = read_json(probe_path)
@@ -1482,13 +1875,13 @@ def admit_stage(root: Path, protocol: Mapping[str, Any], *, now_epoch: float | N
         now_epoch=time.time() if now_epoch is None else now_epoch,
         cutoff_epoch=timestamp(cutoff),
     )
-    write_json(root / OUTPUT_ROOT / "admission.json", result)
+    write_json(out / "admission.json", result)
     return result
 
 
 def require_admission_gate(root: Path, protocol: Mapping[str, Any]) -> dict[str, Any]:
     """GPU evaluation work is authorized only by a PASS admission (L0 full or L1 reduced)."""
-    path = root / OUTPUT_ROOT / "admission.json"
+    path = root / output_root(protocol) / "admission.json"
     if not path.is_file():
         raise RuntimeError("VALID_STOP: transfer cost admission has not run")
     admission = read_json(path)
@@ -1524,8 +1917,9 @@ def authorized_ids(subsets: Mapping[str, Any], admission: Mapping[str, Any], ben
 # ---------------------------------------------------------------------------
 
 
-def _run_paths(root: Path, benchmark: str, cell: str) -> tuple[Path, Path]:
-    run_dir = root / OUTPUT_ROOT / "run" / benchmark
+def _run_paths(root: Path, benchmark: str, cell: str, protocol: Mapping[str, Any] | None = None) -> tuple[Path, Path]:
+    base = output_root(protocol) if protocol else OUTPUT_ROOT
+    run_dir = root / base / "run" / benchmark
     final = run_dir / f"{cell}.json.gz"
     journal = run_dir / f"{cell}.partial.json.gz"
     return final, journal
@@ -1568,7 +1962,7 @@ def run_cell(
 ) -> dict[str, Any]:
     """Run one (benchmark, cell): batch via the frozen caps, journal each example, resume-safe."""
     block = subsets["benchmarks"][benchmark]
-    final, journal = _run_paths(root, benchmark, cell)
+    final, journal = _run_paths(root, benchmark, cell, protocol)
     identity = _run_identity(protocol, benchmark, cell, level, block["max_new_tokens"], fingerprints)
     if final.is_file():
         report = read_json(final)
@@ -1650,26 +2044,28 @@ def run_worker(
     attempt_dir: Path,
     progress: Callable[..., None] | None = None,
 ) -> dict[str, Any]:
-    if worker not in WORKER_BENCHMARKS:
+    if worker not in worker_benchmarks(protocol):
         raise ValueError("transfer worker is outside the frozen mapping")
     os.environ.setdefault("HF_HOME", str(root / ".cache" / "hf"))
     from transformers import set_seed
 
     from .qwen_text_policy import BatchedPolicyAdapter
 
+    out = root / output_root(protocol)
+    order = cell_order(protocol)
     admission = require_admission_gate(root, protocol)
     level = admission["decision"]
-    subsets = read_json(root / OUTPUT_ROOT / "subsets.json")
-    if subsets.get("schema_version") != SUBSETS_SCHEMA or subsets.get("protocol_id") != protocol["protocol_id"]:
+    subsets = read_json(out / "subsets.json")
+    if subsets.get("schema_version") != SUBSETS_SCHEMA or subsets.get("protocol_id") not in _protocol_ids(protocol):
         raise ValueError("transfer run requires frozen subsets")
     from .expanded_scheduler import timestamp
 
     cutoff = timestamp(read_json(root / SCHEDULE_DOC)["gpu_cutoff_utc"])
     if time.time() >= cutoff:
         raise RuntimeError("VALID_STOP: transfer GPU cutoff has passed")
-    benchmarks = WORKER_BENCHMARKS[worker]
+    benchmarks = worker_benchmarks(protocol)[worker]
     selected = {benchmark: authorized_ids(subsets, admission, benchmark) for benchmark in benchmarks}
-    total_units = sum(len(ids) for ids in selected.values()) * len(CELL_ORDER)
+    total_units = sum(len(ids) for ids in selected.values()) * len(order)
     completed_units = 0
 
     def unit_progress(*, completed_delta: int, stage: str) -> None:
@@ -1683,7 +2079,7 @@ def run_worker(
     policy = BatchedPolicyAdapter(
         model_id=protocol["base_model"]["model_id"],
         revision=protocol["base_model"]["revision"],
-        adapter_paths={cell: root / protocol["cells"][cell]["checkpoint"] for cell in ADAPTED_CELLS},
+        adapter_paths={cell: root / protocol["cells"][cell]["checkpoint"] for cell in adapted_cells(protocol)},
         device="cuda:0",
         max_new_tokens=64,
         max_context_tokens=MAX_CONTEXT_TOKENS,
@@ -1699,7 +2095,7 @@ def run_worker(
     reports: list[dict[str, Any]] = []
     missing: list[dict[str, str]] = []
     for benchmark in benchmarks:
-        for cell in CELL_ORDER:
+        for cell in order:
             if time.time() >= cutoff:
                 missing.append({"benchmark": benchmark, "cell": cell})
                 continue
@@ -1721,7 +2117,7 @@ def run_worker(
                     "cell": cell,
                     "examples": report["examples"],
                     "generated_tokens_total": report["generated_tokens_total"],
-                    "output": str(_run_paths(root, benchmark, cell)[0].relative_to(root)),
+                    "output": str(_run_paths(root, benchmark, cell, protocol)[0].relative_to(root)),
                 }
             )
     result = {
@@ -1729,7 +2125,7 @@ def run_worker(
         "outcome": "PASS" if not missing else "VALID_STOP",
         "protocol_id": protocol["protocol_id"],
         "worker": worker,
-        "gpu": WORKER_GPUS[worker],
+        "gpu": worker_gpus(protocol)[worker],
         "admission_decision": level,
         "benchmarks": list(benchmarks),
         "cells": reports,
@@ -1754,7 +2150,7 @@ def audit_run_worker(
     terminal: Mapping[str, Any],
 ) -> dict[str, Any]:
     """CPU hook: declared coverage == produced coverage; provenance; no duplicates."""
-    if worker not in WORKER_BENCHMARKS:
+    if worker not in worker_benchmarks(protocol):
         raise ValueError("transfer worker is outside the frozen mapping")
     if terminal.get("status") != "succeeded":
         raise RuntimeError(f"transfer run worker {worker} did not succeed")
@@ -1763,17 +2159,18 @@ def audit_run_worker(
     if result.get("schema_version") != WORKER_RESULT_SCHEMA or result.get("worker") != worker:
         raise ValueError("transfer worker result provenance differs")
     admission = require_admission_gate(root, protocol)
-    subsets = read_json(root / OUTPUT_ROOT / "subsets.json")
+    subsets = read_json(root / output_root(protocol) / "subsets.json")
     fingerprints = adapter_fingerprints(root, protocol)
     problems: list[str] = []
     produced = {(row["benchmark"], row["cell"]): row for row in result.get("cells", [])}
     declared_missing = {(row["benchmark"], row["cell"]) for row in result.get("missing", [])}
     audited_cells = []
-    for benchmark in WORKER_BENCHMARKS[worker]:
+    order = cell_order(protocol)
+    for benchmark in worker_benchmarks(protocol)[worker]:
         ids = authorized_ids(subsets, admission, benchmark)
-        for cell in CELL_ORDER:
+        for cell in order:
             key = (benchmark, cell)
-            final, journal = _run_paths(root, benchmark, cell)
+            final, journal = _run_paths(root, benchmark, cell, protocol)
             if not final.is_file():
                 if key not in declared_missing:
                     problems.append(f"{benchmark}/{cell} missing but not declared")
@@ -1898,18 +2295,19 @@ def _cell_latency_seconds(entries: Mapping[str, Any]) -> float:
 def score_stage(
     root: Path, protocol: Mapping[str, Any], *, progress: Callable[..., None] | None = None
 ) -> dict[str, Any]:
-    freeze = read_json(root / OUTPUT_ROOT / "freeze.json")
+    freeze = read_json(root / output_root(protocol) / "freeze.json")
     use_unshare = bool(freeze.get("sandbox", {}).get("unshare_network_available"))
-    subsets = read_json(root / OUTPUT_ROOT / "subsets.json")
+    subsets = read_json(root / output_root(protocol) / "subsets.json")
     cells: list[dict[str, Any]] = []
     missing: list[dict[str, str]] = []
-    scores_dir = root / OUTPUT_ROOT / "scores"
-    total = sum(len(block["l0_order"]) for block in subsets["benchmarks"].values()) * len(CELL_ORDER)
+    scores_dir = root / output_root(protocol) / "scores"
+    order = cell_order(protocol)
+    total = sum(len(block["l0_order"]) for block in subsets["benchmarks"].values()) * len(order)
     completed = 0
     for benchmark in BENCHMARK_ORDER:
         block = subsets["benchmarks"][benchmark]
-        for cell in CELL_ORDER:
-            final, _journal = _run_paths(root, benchmark, cell)
+        for cell in order:
+            final, _journal = _run_paths(root, benchmark, cell, protocol)
             if not final.is_file():
                 missing.append({"benchmark": benchmark, "cell": cell})
                 continue
@@ -1984,7 +2382,7 @@ def score_stage(
         "missing": missing,
         "scored_at": time.time(),
     }
-    write_json(root / OUTPUT_ROOT / "scores.json", result)
+    write_json(root / output_root(protocol) / "scores.json", result)
     if progress is not None:
         progress(completed=completed, total=total, stage="scored")
     return result
@@ -2070,12 +2468,12 @@ def _audit_defines(code: str, entry_point: str) -> bool:
 def audit_score_stage(
     root: Path, protocol: Mapping[str, Any], *, resample_budget_seconds: float = RESAMPLE_BUDGET_SECONDS
 ) -> dict[str, Any]:
-    scores = read_json(root / OUTPUT_ROOT / "scores.json")
+    scores = read_json(root / output_root(protocol) / "scores.json")
     if scores.get("schema_version") != SCORES_SCHEMA or scores.get("protocol_id") != protocol["protocol_id"]:
         raise ValueError("transfer scores evidence differs from the frozen schema")
-    freeze = read_json(root / OUTPUT_ROOT / "freeze.json")
+    freeze = read_json(root / output_root(protocol) / "freeze.json")
     use_unshare = bool(freeze.get("sandbox", {}).get("unshare_network_available"))
-    subsets = read_json(root / OUTPUT_ROOT / "subsets.json")
+    subsets = read_json(root / output_root(protocol) / "subsets.json")
     problems: list[str] = []
     resample_report: list[dict[str, Any]] = []
     resample_started = time.monotonic()
@@ -2156,7 +2554,7 @@ def audit_score_stage(
         "problems": problems,
         "audited_at": time.time(),
     }
-    write_json(root / OUTPUT_ROOT / "audit-score.json", result)
+    write_json(root / output_root(protocol) / "audit-score.json", result)
     if problems:
         raise RuntimeError("transfer audit-score differs: " + "; ".join(problems))
     return result
@@ -2169,17 +2567,18 @@ def audit_score_stage(
 
 def _build_final_report(root: Path, protocol: Mapping[str, Any], *, audit: bool) -> dict[str, Any]:
     """Rebuild per-benchmark tables from raw run outputs; audit uses the duplicated parsers."""
-    subsets = read_json(root / OUTPUT_ROOT / "subsets.json")
-    admission_path = root / OUTPUT_ROOT / "admission.json"
+    out = root / output_root(protocol)
+    subsets = read_json(out / "subsets.json")
+    admission_path = out / "admission.json"
     admission = read_json(admission_path) if admission_path.is_file() else None
-    predictions_dir = root / OUTPUT_ROOT / "scores"
+    predictions_dir = out / "scores"
     benchmarks: dict[str, Any] = {}
     missing: list[dict[str, str]] = []
     for benchmark in BENCHMARK_ORDER:
         block = subsets["benchmarks"][benchmark]
         benchmarks[benchmark] = {}
-        for cell in CELL_ORDER:
-            final, _journal = _run_paths(root, benchmark, cell)
+        for cell in cell_order(protocol):
+            final, _journal = _run_paths(root, benchmark, cell, protocol)
             if not final.is_file():
                 missing.append({"benchmark": benchmark, "cell": cell})
                 continue
@@ -2242,7 +2641,7 @@ def _build_final_report(root: Path, protocol: Mapping[str, Any], *, audit: bool)
                 "input_tokens_total": report["input_tokens_total"],
                 "latency_seconds": _cell_latency_seconds(report["entries"]),
             }
-    freeze = read_json(root / OUTPUT_ROOT / "freeze.json")
+    freeze = read_json(out / "freeze.json")
     return {
         "schema_version": FINAL_SCHEMA,
         "outcome": "PASS" if not missing else "VALID_STOP",
@@ -2263,7 +2662,7 @@ def _build_final_report(root: Path, protocol: Mapping[str, Any], *, audit: bool)
 
 def finalize_stage(root: Path, protocol: Mapping[str, Any]) -> dict[str, Any]:
     report = _build_final_report(root, protocol, audit=False)
-    path = root / OUTPUT_ROOT / "final-report.json"
+    path = root / output_root(protocol) / "final-report.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(report, indent=2) + "\n")
     return report
@@ -2272,7 +2671,7 @@ def finalize_stage(root: Path, protocol: Mapping[str, Any]) -> dict[str, Any]:
 def audit_final_stage(root: Path, protocol: Mapping[str, Any]) -> dict[str, Any]:
     """Independent rebuild; requires byte-equality with final-report.json."""
     rebuilt = _build_final_report(root, protocol, audit=True)
-    path = root / OUTPUT_ROOT / "final-report.json"
+    path = root / output_root(protocol) / "final-report.json"
     expected = (json.dumps(rebuilt, indent=2) + "\n").encode()
     actual = path.read_bytes()
     result = {
@@ -2282,7 +2681,7 @@ def audit_final_stage(root: Path, protocol: Mapping[str, Any]) -> dict[str, Any]
         "byte_equal": actual == expected,
         "audited_at": time.time(),
     }
-    write_json(root / OUTPUT_ROOT / "audit-final.json", result)
+    write_json(root / output_root(protocol) / "audit-final.json", result)
     if actual != expected:
         raise RuntimeError("transfer final report differs from the independent audit rebuild")
     return result
@@ -2293,43 +2692,76 @@ def audit_final_stage(root: Path, protocol: Mapping[str, Any]) -> dict[str, Any]
 # ---------------------------------------------------------------------------
 
 
-def analyze_stage(root: Path, protocol: Mapping[str, Any]) -> dict[str, Any]:
+def _extension_base_rows(root: Path, protocol: Mapping[str, Any], admission: Mapping[str, Any]) -> dict[str, Any]:
+    """v1 per-benchmark rows when an extension's admission level matches v1's (paired subsets); else {}."""
+    if not protocol.get("extends"):
+        return {}
     path = root / OUTPUT_ROOT / "final-report.json"
+    if not path.is_file():
+        return {}
+    report = read_json(path)
+    if report.get("protocol_id") != protocol["extends"]:
+        return {}
+    if report.get("admission_decision") != admission.get("decision"):
+        return {}
+    return report.get("benchmarks", {})
+
+
+def analyze_stage(root: Path, protocol: Mapping[str, Any]) -> dict[str, Any]:
+    out = root / output_root(protocol)
+    path = out / "final-report.json"
     report = read_json(path) if path.is_file() else None
-    admission = read_json(root / OUTPUT_ROOT / "admission.json")
+    admission = read_json(out / "admission.json")
+    extension = protocol.get("extends")
+    v1_rows = _extension_base_rows(root, protocol, admission)
     contrasts: list[dict[str, Any]] = []
     if report is not None and report.get("benchmarks"):
         for benchmark in BENCHMARK_ORDER:
             cells = report["benchmarks"].get(benchmark, {})
-            if "base" not in cells:
+            base_row = cells.get("base")
+            base_source = "final-report.json"
+            if base_row is None:
+                base_row = v1_rows.get(benchmark, {}).get("base")
+                base_source = f"{OUTPUT_ROOT}/final-report.json (v1 base cell, same frozen subsets and level)"
+            if base_row is None:
                 continue
-            base_accuracy = cells["base"]["accuracy"]
-            for cell in ADAPTED_CELLS:
-                if cell not in cells:
+            for cell in adapted_cells(protocol):
+                row = cells.get(cell)
+                if row is None or row["examples"] != base_row["examples"]:
                     continue
                 contrasts.append(
                     {
                         "benchmark": benchmark,
                         "cell": cell,
-                        "accuracy": cells[cell]["accuracy"],
-                        "base_accuracy": base_accuracy,
-                        "delta_vs_base": cells[cell]["accuracy"] - base_accuracy,
-                        "malformed": cells[cell]["malformed"],
+                        "accuracy": row["accuracy"],
+                        "base_accuracy": base_row["accuracy"],
+                        "delta_vs_base": row["accuracy"] - base_row["accuracy"],
+                        "malformed": row["malformed"],
+                        "base_source": base_source,
                     }
                 )
+    contract = (
+        "descriptive zero-shot transfer deltas per cell vs base; no adapter selection or rerun by "
+        "transfer-test success"
+    )
+    if extension:
+        contract += (
+            "; extension authorized after v1 results were observed (disclosed in the protocol and the "
+            "published narrative); base values are the v1 base cell on identical frozen subsets when the "
+            "admission levels match"
+        )
     result = {
         "schema_version": ANALYSIS_SCHEMA,
         "outcome": "PASS",
         "protocol_id": protocol["protocol_id"],
         "admission_decision": admission.get("decision"),
         "contrasts": contrasts,
-        "comparison_contract": (
-            "descriptive zero-shot transfer deltas per cell vs base; no adapter selection or rerun by "
-            "transfer-test success"
-        ),
+        "comparison_contract": contract,
         "limitations": (report or {}).get("limitations", []),
     }
-    write_json(root / OUTPUT_ROOT / "analysis.json", result)
+    if extension:
+        result["extends"] = extension
+    write_json(out / "analysis.json", result)
     return result
 
 
@@ -2352,23 +2784,19 @@ def _copy_evidence(root: Path, source: Path, name: str) -> Path:
 
 def publish(root: Path, protocol: Mapping[str, Any]) -> dict[str, Any]:
     """Copy compact byte-identical evidence JSONs and render the Markdown narrative."""
-    admission = read_json(root / OUTPUT_ROOT / "admission.json")
-    freeze = read_json(root / OUTPUT_ROOT / "freeze.json")
+    out = root / output_root(protocol)
+    stem = doc_stem(protocol)
+    admission = read_json(out / "admission.json")
+    freeze = read_json(out / "freeze.json")
     targets = [
-        str(_copy_evidence(root, root / OUTPUT_ROOT / "freeze.json", "transfer-protocol-checks.json").relative_to(root)),
-        str(_copy_evidence(root, root / OUTPUT_ROOT / "admission.json", "transfer-admission.json").relative_to(root)),
+        str(_copy_evidence(root, out / "freeze.json", f"{stem}-protocol-checks.json").relative_to(root)),
+        str(_copy_evidence(root, out / "admission.json", f"{stem}-admission.json").relative_to(root)),
     ]
-    if admission.get("decision") in ("L0", "L1") and (root / OUTPUT_ROOT / "scores.json").is_file():
-        targets.append(
-            str(_copy_evidence(root, root / OUTPUT_ROOT / "scores.json", "transfer-scores.json").relative_to(root))
-        )
-        if (root / OUTPUT_ROOT / "final-report.json").is_file():
+    if admission.get("decision") in ("L0", "L1") and (out / "scores.json").is_file():
+        targets.append(str(_copy_evidence(root, out / "scores.json", f"{stem}-scores.json").relative_to(root)))
+        if (out / "final-report.json").is_file():
             targets.append(
-                str(
-                    _copy_evidence(
-                        root, root / OUTPUT_ROOT / "final-report.json", "transfer-final-report.json"
-                    ).relative_to(root)
-                )
+                str(_copy_evidence(root, out / "final-report.json", f"{stem}-final-report.json").relative_to(root))
             )
         targets.append(str(_publish_results(root, protocol, freeze, admission).relative_to(root)))
     else:
@@ -2380,7 +2808,7 @@ def publish(root: Path, protocol: Mapping[str, Any]) -> dict[str, Any]:
         "published": targets,
         "published_at": time.time(),
     }
-    write_json(root / OUTPUT_ROOT / "publish.json", result)
+    write_json(out / "publish.json", result)
     return result
 
 
@@ -2402,30 +2830,76 @@ def _subset_lines(freeze: Mapping[str, Any]) -> list[str]:
 def _publish_results(
     root: Path, protocol: Mapping[str, Any], freeze: Mapping[str, Any], admission: Mapping[str, Any]
 ) -> Path:
-    report = read_json(root / OUTPUT_ROOT / "final-report.json")
-    scores = read_json(root / OUTPUT_ROOT / "scores.json")
+    out = root / output_root(protocol)
+    stem = doc_stem(protocol)
+    extension = protocol.get("extends")
+    order = cell_order(protocol)
+    report = read_json(out / "final-report.json")
+    scores = read_json(out / "scores.json")
     leakage = freeze["leakage"]
-    lines = [
-        f"Zero-shot transfer of planning-trained BFS LoRA adapters for `{protocol['protocol_id']}` "
-        f"(admission decision **{admission['decision']}**).",
-        "",
-        "Cells: base Qwen3-VL-8B-Instruct plus the `bfs_text`, `bfs_visual` and `bfs_multimodal` adapters; "
-        "greedy decoding, seed 17, fp32; per-benchmark max_new_tokens folio 64 / gsm8k 512 / humaneval 768.",
-        "",
-        "## Frozen subsets",
-        "",
-        *_subset_lines(freeze),
-        "",
-        "Subset selection used label strata (folio), reasoning-step quartiles (gsm8k) and full coverage "
-        "(humaneval) only — never model outcomes. L1 is the even-numbered positions of each frozen L0 order.",
-        "",
-        "## Results",
-        "",
-        "| Benchmark | Cell | Examples | Correct | Accuracy/pass@1 | Malformed | Categories |",
-        "| --- | --- | ---: | ---: | ---: | ---: | --- |",
-    ]
+    v1_rows = _extension_base_rows(root, protocol, admission)
+    if extension:
+        cell_list = ", ".join(f"`{cell}`" for cell in order)
+        lines = [
+            f"Zero-shot transfer of the remaining planning-trained adapters for `{protocol['protocol_id']}` "
+            f"(admission decision **{admission['decision']}**), extending `{extension}`.",
+            "",
+            f"Cells: {cell_list}. The base cell was already run under v1 and is not rerun; v1 base values "
+            "are referenced where the admission levels match. Greedy decoding, seed 17, fp32; per-benchmark "
+            "max_new_tokens folio 64 / gsm8k 512 / humaneval 768.",
+            "",
+            "## Extension provenance",
+            "",
+            protocol.get("extension_rationale", ""),
+            "",
+            "- Extension timing: this extension was authorized **after** the v1 BFS transfer results were "
+            "observed; it is exhaustive over every remaining verified trained cell, so it does not select "
+            "adapters by observed transfer success.",
+            "- v1 base/BFS evidence: [transfer-results.md](transfer-results.md); v1 evidence is never "
+            "overwritten.",
+            "",
+            "## Frozen subsets",
+            "",
+            *_subset_lines(freeze),
+            "",
+            "Subsets are the v1 frozen subsets reused byte-identically (sha256 "
+            f"`{freeze.get('subsets_reference', {}).get('sha256', '—')}`), verified at freeze; no "
+            "re-selection and no re-derivation.",
+            "",
+            "## Results",
+            "",
+            "| Benchmark | Cell | Examples | Correct | Accuracy/pass@1 | Malformed | Categories |",
+            "| --- | --- | ---: | ---: | ---: | ---: | --- |",
+        ]
+    else:
+        lines = [
+            f"Zero-shot transfer of planning-trained BFS LoRA adapters for `{protocol['protocol_id']}` "
+            f"(admission decision **{admission['decision']}**).",
+            "",
+            "Cells: base Qwen3-VL-8B-Instruct plus the `bfs_text`, `bfs_visual` and `bfs_multimodal` adapters; "
+            "greedy decoding, seed 17, fp32; per-benchmark max_new_tokens folio 64 / gsm8k 512 / humaneval 768.",
+            "",
+            "## Frozen subsets",
+            "",
+            *_subset_lines(freeze),
+            "",
+            "Subset selection used label strata (folio), reasoning-step quartiles (gsm8k) and full coverage "
+            "(humaneval) only — never model outcomes. L1 is the even-numbered positions of each frozen L0 order.",
+            "",
+            "## Results",
+            "",
+            "| Benchmark | Cell | Examples | Correct | Accuracy/pass@1 | Malformed | Categories |",
+            "| --- | --- | ---: | ---: | ---: | ---: | --- |",
+        ]
     for benchmark in BENCHMARK_ORDER:
-        for cell in CELL_ORDER:
+        base_row = v1_rows.get(benchmark, {}).get("base")
+        if base_row is not None:
+            lines.append(
+                f"| {benchmark} | base (v1 reference) | {base_row['examples']} | {base_row['correct']} | "
+                f"{base_row['accuracy']:.4f} | {base_row['malformed']} | "
+                f"{json.dumps(base_row['categories'], sort_keys=True)} |"
+            )
+        for cell in order:
             row = report["benchmarks"].get(benchmark, {}).get(cell)
             if row is None:
                 lines.append(f"| {benchmark} | {cell} | 0 | — | — | — | missing |")
@@ -2434,6 +2908,12 @@ def _publish_results(
                 f"| {benchmark} | {cell} | {row['examples']} | {row['correct']} | {row['accuracy']:.4f} | "
                 f"{row['malformed']} | {json.dumps(row['categories'], sort_keys=True)} |"
             )
+    if extension and not v1_rows:
+        lines += [
+            "",
+            "v1 base values are not paired with this extension's admission level; see "
+            "[transfer-results.md](transfer-results.md) for the v1 base cell.",
+        ]
     lines += [
         "",
         "## Costs",
@@ -2442,7 +2922,7 @@ def _publish_results(
         "| --- | --- | ---: | ---: | ---: |",
     ]
     for benchmark in BENCHMARK_ORDER:
-        for cell in CELL_ORDER:
+        for cell in order:
             row = report["benchmarks"].get(benchmark, {}).get(cell)
             if row is None:
                 continue
@@ -2474,21 +2954,35 @@ def _publish_results(
         "benchmark contamination is disclosed, not measured.",
         "- FOLIO is the v0.0 validation split (the official public evaluation set; test labels unreleased), "
         "not the access-gated HF yale-nlp/FOLIO v2 update.",
-        "",
-        "Compact evidence: [transfer-protocol-checks.json](transfer-protocol-checks.json), "
-        "[transfer-admission.json](transfer-admission.json), "
-        "[transfer-scores.json](transfer-scores.json) and "
-        "[transfer-final-report.json](transfer-final-report.json) (byte-identical copies).",
     ]
-    path = root / DOCS_DIR / "transfer-results.md"
-    _write_markdown(path, "Transfer benchmark results (#104-#107)", lines)
+    if extension:
+        lines.append(
+            "- This extension was authorized after the v1 BFS transfer results were observed; the timing is "
+            "disclosed in Extension provenance and contrasts reference the v1 base cell."
+        )
+    lines += [
+        "",
+        f"Compact evidence: [{stem}-protocol-checks.json]({stem}-protocol-checks.json), "
+        f"[{stem}-admission.json]({stem}-admission.json), "
+        f"[{stem}-scores.json]({stem}-scores.json) and "
+        f"[{stem}-final-report.json]({stem}-final-report.json) (byte-identical copies).",
+    ]
+    path = root / DOCS_DIR / f"{stem}-results.md"
+    title = "Transfer benchmark results (#104-#107)" if not extension else "Transfer extension results (#104-#107)"
+    _write_markdown(path, title, lines)
     return path
 
 
 def _publish_valid_stop(
     root: Path, protocol: Mapping[str, Any], freeze: Mapping[str, Any], admission: Mapping[str, Any]
 ) -> Path:
+    stem = doc_stem(protocol)
+    extension = protocol.get("extends")
     arithmetic = admission["arithmetic"]
+    if extension:
+        protocol_line = f"- Protocol: `{protocol['protocol_id']}`, extending `{extension}`."
+    else:
+        protocol_line = f"- Protocol: `{protocol['protocol_id']}` (`{PROTOCOL_FILE}`)."
     lines = [
         f"The `transfer` branch is terminal **{admission['outcome']}** at the frozen cost-admission gate "
         f"(decision **{admission['decision']}**). No transfer evaluation was launched; the only GPU work was "
@@ -2496,8 +2990,17 @@ def _publish_valid_stop(
         "",
         f"- Branch: `transfer`, {admission['branch_cap_gpu_hours']} GPU-h cap; spent "
         f"{admission['branch_spent_gpu_hours']:.4f}; remainder {admission['branch_remainder_gpu_hours']:.4f}.",
-        f"- Protocol: `{protocol['protocol_id']}` (`{PROTOCOL_FILE}`).",
+        protocol_line,
         f"- Base model: `{protocol['base_model']['model_id']}` @ `{protocol['base_model']['revision']}`.",
+    ]
+    if extension:
+        lines += [
+            "",
+            "Extension timing: this extension was authorized **after** the v1 BFS transfer results were "
+            "observed; it is exhaustive over every remaining verified trained cell and does not select "
+            "adapters by observed transfer success.",
+        ]
+    lines += [
         "",
         "## Frozen subsets",
         "",
@@ -2505,7 +3008,8 @@ def _publish_valid_stop(
         "",
         "## Admission arithmetic",
         "",
-        "Basis: per benchmark p95 probe seconds/example x subset size x 4 cells plus one measured model load "
+        f"Basis: per benchmark p95 probe seconds/example x subset size x {len(cell_order(protocol))} cells "
+        "plus one measured model load "
         f"per worker, times safety factor {arithmetic['L0']['safety_factor']}.",
         "",
         "| Level | Required GPU-h | Required wall-h | Fits remainder | Fits cutoff |",
@@ -2532,9 +3036,12 @@ def _publish_valid_stop(
         "benchmark contamination is disclosed, not measured.",
         "- FOLIO is the v0.0 validation split, not the access-gated HF yale-nlp/FOLIO v2 update.",
         "",
-        "Compact evidence: [transfer-protocol-checks.json](transfer-protocol-checks.json) and "
-        "[transfer-admission.json](transfer-admission.json) (byte-identical copies).",
+        f"Compact evidence: [{stem}-protocol-checks.json]({stem}-protocol-checks.json) and "
+        f"[{stem}-admission.json]({stem}-admission.json) (byte-identical copies).",
     ]
-    path = root / DOCS_DIR / "transfer-valid-stop.md"
-    _write_markdown(path, "Transfer terminal VALID_STOP (#104-#107)", lines)
+    path = root / DOCS_DIR / f"{stem}-valid-stop.md"
+    title = "Transfer terminal VALID_STOP (#104-#107)"
+    if extension:
+        title = "Transfer extension terminal VALID_STOP (#104-#107)"
+    _write_markdown(path, title, lines)
     return path

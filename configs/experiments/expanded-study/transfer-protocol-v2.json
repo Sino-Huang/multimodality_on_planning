@@ -1,0 +1,101 @@
+{
+  "schema": "expanded_transfer_protocol_v1",
+  "protocol_id": "transfer-extension-remaining-algorithms-v2",
+  "program": "expanded-nine-day-v1",
+  "issues": [104, 105, 106, 107],
+  "branch": "transfer",
+  "extends": "transfer-folio-humaneval-gsm8k-v1",
+  "extension_rationale": "The v1 protocol declared base + three BFS-adapter cells and is complete. The user then explicitly requested testing the remaining nine trained adapters (best_first_width, best_first_add_w3, best_first_add_greedy x text/visual/multimodal). This extension is exhaustive over every remaining verified trained cell — it does not select adapters by observed transfer success — and reuses the v1 frozen subsets, prompts, decoding, parsing, sandbox and metrics unchanged. It was authorized after the v1 BFS transfer results were observed; that timing is disclosed here and in the published narrative.",
+  "frozen_before_any_model_output": true,
+  "frozen_at_utc": "2026-09-19T00:00:00Z",
+  "cells": {
+    "iw_text": {
+      "adapter_id": "iw_text",
+      "checkpoint": "outputs/matched_modalities/v3/training/text-state/best_first_width/final",
+      "algorithm": "best_first_width"
+    },
+    "iw_visual": {
+      "adapter_id": "iw_visual",
+      "checkpoint": "outputs/matched_modalities/v5/training/visual-state/best_first_width/final",
+      "algorithm": "best_first_width"
+    },
+    "iw_multimodal": {
+      "adapter_id": "iw_multimodal",
+      "checkpoint": "outputs/matched_modalities/v5/training/multimodal-state/best_first_width/final",
+      "algorithm": "best_first_width"
+    },
+    "astar_w3_text": {
+      "adapter_id": "astar_w3_text",
+      "checkpoint": "outputs/matched_modalities/v3/training/text-state/best_first_add_w3/final",
+      "algorithm": "best_first_add_w3"
+    },
+    "astar_w3_visual": {
+      "adapter_id": "astar_w3_visual",
+      "checkpoint": "outputs/matched_modalities/v5/training/visual-state/best_first_add_w3/final",
+      "algorithm": "best_first_add_w3"
+    },
+    "astar_w3_multimodal": {
+      "adapter_id": "astar_w3_multimodal",
+      "checkpoint": "outputs/matched_modalities/v5/training/multimodal-state/best_first_add_w3/final",
+      "algorithm": "best_first_add_w3"
+    },
+    "astar_greedy_text": {
+      "adapter_id": "astar_greedy_text",
+      "checkpoint": "outputs/matched_modalities/v3/training/text-state/best_first_add_greedy/final",
+      "algorithm": "best_first_add_greedy"
+    },
+    "astar_greedy_visual": {
+      "adapter_id": "astar_greedy_visual",
+      "checkpoint": "outputs/matched_modalities/v5/training/visual-state/best_first_add_greedy/final",
+      "algorithm": "best_first_add_greedy"
+    },
+    "astar_greedy_multimodal": {
+      "adapter_id": "astar_greedy_multimodal",
+      "checkpoint": "outputs/matched_modalities/v5/training/multimodal-state/best_first_add_greedy/final",
+      "algorithm": "best_first_add_greedy"
+    }
+  },
+  "base_model": {
+    "model_id": "Qwen/Qwen3-VL-8B-Instruct",
+    "revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+    "note": "identical pin to v1; the base cell was already run under v1 and is not rerun"
+  },
+  "benchmarks": {
+    "inherit": "transfer-folio-humaneval-gsm8k-v1",
+    "note": "v2 reuses the v1 frozen subsets (outputs/expanded-study/v1/transfer/subsets.json sha256 24157aaadc6f3c2b1bf7ff1e858a3a7bef93f98f68354d8d1334b30bfaa12627), prompts, max_new_tokens (folio 64 / gsm8k 512 / humaneval 768), parsing rules, sandbox contract and metrics byte-identically. No re-selection, no re-freezing of examples, no new benchmark content. The v1 freeze stage must verify and reference, never regenerate.",
+    "subsets_reference": {
+      "path": "outputs/expanded-study/v1/transfer/subsets.json",
+      "sha256": "24157aaadc6f3c2b1bf7ff1e858a3a7bef93f98f68354d8d1334b30bfaa12627"
+    },
+    "subset_sizes": {"folio": 200, "gsm8k": 200, "humaneval": 164},
+    "l1_subset_sizes": {"folio": 100, "gsm8k": 100, "humaneval": 82}
+  },
+  "decoding": {
+    "inherit": "transfer-folio-humaneval-gsm8k-v1",
+    "do_sample": false,
+    "seed": 17,
+    "dtype": "float32"
+  },
+  "resource_gate": {
+    "probe_examples": "same representative probe design as v1 (p50/p95 input-token-length examples of the frozen L0 subsets plus the min-length guard), executed for all nine v2 cells to re-verify scalar/batch parity, repeated-batch determinism, adapter isolation and token guards for these specific adapters and to measure per-benchmark p95 latency",
+    "admission_rule": {
+      "L0": "full frozen v1 subsets x 9 cells; estimated from probe p95 per-example latency x subset size x 9 cells plus model-load per worker, times safety factor 1.25, must fit the transfer branch remainder (24 - already spent) and the absolute GPU cutoff 2026-09-21T11:55:19Z",
+      "L1": "frozen v1 L1 subsets (even positions of the L0 orders) x 9 cells, used only if L0 does not fit",
+      "L2": "otherwise VALID_STOP"
+    },
+    "safety_factor": 1.25
+  },
+  "execution_topology": {
+    "workers": {
+      "transfer-v2-run-0": {"gpu": 0, "benchmarks": ["gsm8k"]},
+      "transfer-v2-run-1": {"gpu": 1, "benchmarks": ["folio", "humaneval"]}
+    },
+    "cell_order_per_benchmark": ["iw_text", "iw_visual", "iw_multimodal", "astar_w3_text", "astar_w3_visual", "astar_w3_multimodal", "astar_greedy_text", "astar_greedy_visual", "astar_greedy_multimodal"],
+    "master_port_pool": [18800, 18801, 18802, 18803, 18804, 18805]
+  },
+  "evidence": {
+    "output_root": "outputs/expanded-study/v1/transfer-v2",
+    "publication": "docs/experiments/expanded-study/transfer-v2-*.json + transfer-v2-results.md; v1 evidence under outputs/expanded-study/v1/transfer/ and docs/experiments/expanded-study/transfer-* is never overwritten",
+    "valid_stop_contract": "as v1: VALID_STOP for resource or ordinary threshold failure; INVALID for provenance/replay/execution mismatch"
+  }
+}

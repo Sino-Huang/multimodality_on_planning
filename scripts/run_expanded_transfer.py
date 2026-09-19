@@ -22,10 +22,10 @@ def _head():
     return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
 
 
-def require_worker_environment(worker):
-    if worker not in (0, 1):
+def require_worker_environment(worker, protocol):
+    if worker not in branch.worker_benchmarks(protocol):
         raise ValueError("transfer worker is outside the frozen mapping")
-    expected_gpu = str(branch.WORKER_GPUS[worker])
+    expected_gpu = str(branch.worker_gpus(protocol)[worker])
     if os.environ.get("CUDA_VISIBLE_DEVICES") != expected_gpu:
         raise ValueError("transfer worker GPU differs from frozen mapping")
     try:
@@ -37,11 +37,11 @@ def require_worker_environment(worker):
     return port
 
 
-def _progress_path(stage):
+def _progress_path(stage, protocol):
     configured = os.environ.get("EXPANDED_PROGRESS_PATH")
     if configured:
         return Path(configured)
-    path = ROOT / branch.OUTPUT_ROOT / f"progress-{stage}.json"
+    path = ROOT / branch.output_root(protocol) / f"progress-{stage}.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     return path
 
@@ -51,8 +51,8 @@ def _write_progress(path, values):
     print(json.dumps({"stage": "transfer", **values}), flush=True)
 
 
-def _progress(stage):
-    path = _progress_path(stage)
+def _progress(stage, protocol):
+    path = _progress_path(stage, protocol)
 
     def progress(**values):
         _write_progress(path, values)
@@ -60,11 +60,11 @@ def _progress(stage):
     return progress, path
 
 
-def _attempt_dir():
+def _attempt_dir(protocol):
     configured = os.environ.get("EXPANDED_ATTEMPT_DIR")
     if configured:
         return Path(configured)
-    path = ROOT / branch.OUTPUT_ROOT / "direct-attempt"
+    path = ROOT / branch.output_root(protocol) / "direct-attempt"
     path.mkdir(parents=True, exist_ok=True)
     return path
 
@@ -80,9 +80,10 @@ def validate(protocol):
 
 
 def freeze(protocol):
-    progress, path = _progress("freeze")
+    progress, path = _progress("freeze", protocol)
     result = branch.freeze_stage(ROOT, protocol, progress=progress)
-    write(path, {"completed": 6, "total": 6, "terminal": True})
+    total = 3 if protocol.get("extends") else 6
+    write(path, {"completed": total, "total": total, "terminal": True})
     summary = {"outcome": result["outcome"], "subsets": {k: v["l0_size"] for k, v in result["subsets"].items()}}
     print(json.dumps(summary, indent=2))
 
@@ -100,9 +101,10 @@ def probe(protocol):
         raise ValueError("transfer probe GPU differs from frozen mapping")
     if "MASTER_PORT" in os.environ and int(os.environ["MASTER_PORT"]) not in branch.PORT_POOL:
         raise ValueError("transfer probe MASTER_PORT is outside the frozen pool")
-    progress, path = _progress("probe")
-    result = branch.probe_stage(ROOT, protocol, attempt_dir=_attempt_dir(), progress=progress)
-    write(path, {"completed": 12, "total": 12, "terminal": True})
+    progress, path = _progress("probe", protocol)
+    result = branch.probe_stage(ROOT, protocol, attempt_dir=_attempt_dir(protocol), progress=progress)
+    total = len(branch.BENCHMARK_ORDER) * len(branch.cell_order(protocol))
+    write(path, {"completed": total, "total": total, "terminal": True})
     print(json.dumps({"outcome": result["outcome"], "probe_gpu_hours": result["probe_gpu_hours"]}, indent=2))
 
 
@@ -110,8 +112,9 @@ def audit_probe(protocol):
     terminal = _terminal()
     if terminal is not None and terminal.get("status") != "succeeded":
         raise RuntimeError("transfer probe job did not succeed")
-    attempt_probe = _attempt_dir() / "probe.json"
-    evidence = read(attempt_probe) if attempt_probe.is_file() else read(ROOT / branch.OUTPUT_ROOT / "probe.json")
+    attempt_probe = _attempt_dir(protocol) / "probe.json"
+    retained = ROOT / branch.output_root(protocol) / "probe.json"
+    evidence = read(attempt_probe) if attempt_probe.is_file() else read(retained)
     result = branch.audit_probe_stage(ROOT, protocol, evidence)
     print(json.dumps({"outcome": result["outcome"]}, indent=2))
 
@@ -122,9 +125,9 @@ def admit(protocol):
 
 
 def run(protocol, worker):
-    require_worker_environment(worker)
-    progress, path = _progress(f"run-{worker}")
-    result = branch.run_worker(ROOT, protocol, worker, attempt_dir=_attempt_dir(), progress=progress)
+    require_worker_environment(worker, protocol)
+    progress, path = _progress(f"run-{worker}", protocol)
+    result = branch.run_worker(ROOT, protocol, worker, attempt_dir=_attempt_dir(protocol), progress=progress)
     total = len(result["cells"]) and sum(row["examples"] for row in result["cells"])
     write(path, {"completed": total, "total": total, "terminal": True})
     print(json.dumps({"outcome": result["outcome"], "examples": result["examples_completed"]}, indent=2))
@@ -139,7 +142,7 @@ def audit_run_worker(protocol, worker):
 
 
 def score(protocol):
-    progress, path = _progress("score")
+    progress, path = _progress("score", protocol)
     result = branch.score_stage(ROOT, protocol, progress=progress)
     write(path, {"completed": 1, "total": 1, "terminal": True})
     print(json.dumps({"outcome": result["outcome"], "cells": len(result["cells"])}, indent=2))

@@ -759,3 +759,210 @@ def test_leakage_check_reports_shared_ngrams(tmp_path):
     assert result["records_scanned"] == 1
     assert result["items_with_shared_ngrams"] == 1
     assert result["matches"]["hit"] == ["alpha beta gamma delta epsilon zeta eta theta"]
+
+
+# ---------------------------------------------------------------------------
+# v2 extension: protocol-driven layout, byte-identical subset reuse, v1 regression
+# ---------------------------------------------------------------------------
+
+PROTOCOL_V2_PATH = ROOT / "configs/experiments/expanded-study/transfer-protocol-v2.json"
+
+
+def repository_protocol_v2():
+    return json.loads(PROTOCOL_V2_PATH.read_text())
+
+
+def test_protocol_driven_layout_helpers():
+    fake = _fake_protocol()
+    assert branch.cell_order(fake) == branch.CELL_ORDER
+    assert branch.adapted_cells(fake) == branch.ADAPTED_CELLS
+    assert branch.output_root(fake) == branch.OUTPUT_ROOT
+    assert branch.doc_stem(fake) == "transfer"
+    assert branch.worker_benchmarks(fake) == branch.WORKER_BENCHMARKS
+    assert branch.worker_gpus(fake) == branch.WORKER_GPUS
+    assert branch.l0_sizes(fake) == branch.L0_SIZES
+    assert branch.l1_sizes(fake) == branch.L1_SIZES
+    assert branch.subsets_reference(fake) is None
+
+    v2 = repository_protocol_v2()
+    order = branch.cell_order(v2)
+    assert order == tuple(v2["execution_topology"]["cell_order_per_benchmark"])
+    assert len(order) == 9 and "base" not in order
+    assert branch.adapted_cells(v2) == order
+    assert branch.output_root(v2) == "outputs/expanded-study/v1/transfer-v2"
+    assert branch.doc_stem(v2) == "transfer-v2"
+    assert branch.worker_benchmarks(v2) == {0: ("gsm8k",), 1: ("folio", "humaneval")}
+    assert branch.worker_gpus(v2) == {0: 0, 1: 1}
+    assert branch.l0_sizes(v2) == branch.L0_SIZES
+    assert branch.l1_sizes(v2) == branch.L1_SIZES
+    reference = branch.subsets_reference(v2)
+    assert reference == {
+        "path": f"{branch.OUTPUT_ROOT}/subsets.json",
+        "sha256": branch.V1_SUBSETS_SHA256,
+    }
+
+    custom = {
+        "protocol_id": "custom",
+        "cells": {"x": {"adapter_id": "x"}, "y": {"adapter_id": "y"}},
+        "execution_topology": {
+            "cell_order_per_benchmark": ["x", "y"],
+            "workers": {"custom-run-0": {"gpu": 3, "benchmarks": ["folio"]}},
+        },
+        "evidence": {"output_root": "outputs/tmp/custom"},
+    }
+    assert branch.cell_order(custom) == ("x", "y")
+    assert branch.adapted_cells(custom) == ("x", "y")
+    assert branch.output_root(custom) == "outputs/tmp/custom"
+    assert branch.doc_stem(custom) == "custom"
+    assert branch.worker_benchmarks(custom) == {0: ("folio",)}
+    assert branch.worker_gpus(custom) == {0: 3}
+
+
+def test_repository_protocol_v2_validates_against_live_repo():
+    report = branch.validate_protocol(ROOT, repository_protocol_v2())
+    assert report["outcome"] == "PASS"
+    assert report["extends"] == branch.PROTOCOL_ID
+    assert sorted(report["adapter_paths"]) == sorted(branch.cell_order(repository_protocol_v2()))
+    assert report["l0_sizes"] == {"folio": 200, "gsm8k": 200, "humaneval": 164}
+    assert report["l1_sizes"] == {"folio": 100, "gsm8k": 100, "humaneval": 82}
+    assert report["worker_benchmarks"] == {"0": ["gsm8k"], "1": ["folio", "humaneval"]}
+
+    changed = repository_protocol_v2()
+    changed["cells"]["iw_text"]["checkpoint"] = "missing/checkpoint"
+    with pytest.raises(ValueError, match="extension protocol validation failed"):
+        branch.validate_protocol(ROOT, changed)
+    changed = repository_protocol_v2()
+    changed["evidence"]["output_root"] = branch.OUTPUT_ROOT
+    with pytest.raises(ValueError, match="extension protocol validation failed"):
+        branch.validate_protocol(ROOT, changed)
+    changed = repository_protocol_v2()
+    changed["benchmarks"]["subsets_reference"]["sha256"] = "0" * 64
+    with pytest.raises(ValueError, match="extension protocol validation failed"):
+        branch.validate_protocol(ROOT, changed)
+
+
+def test_v1_admission_regression_byte_identical():
+    """The parameterized code must reproduce the published v1 admission decision exactly."""
+    from examples.planning_benchmark_slice.expanded_scheduler import timestamp
+
+    protocol = repository_protocol()
+    out = ROOT / branch.OUTPUT_ROOT
+    probe = json.loads((out / "probe.json").read_text())
+    admission = json.loads((out / "admission.json").read_text())
+    schedule = json.loads((ROOT / branch.SCHEDULE_DOC).read_text())
+    decision = branch.decide_admission(
+        protocol,
+        probe,
+        branch_spent_gpu_hours=admission["branch_spent_gpu_hours"],
+        now_epoch=admission["decided_at"],
+        cutoff_epoch=timestamp(schedule["gpu_cutoff_utc"]),
+    )
+    assert decision == admission
+    assert json.dumps(decision, indent=2) + "\n" == (out / "admission.json").read_text()
+
+
+def test_extension_admission_remainder_arithmetic():
+    protocol = repository_protocol_v2()
+    probe = _probe()
+    now = time.time()
+    decision = branch.decide_admission(
+        protocol, probe, branch_spent_gpu_hours=1.5, now_epoch=now, cutoff_epoch=now + 48 * 3600
+    )
+    assert math.isclose(decision["branch_remainder_gpu_hours"], 22.5)
+    assert math.isclose(decision["arithmetic"]["L0"]["per_worker_seconds"]["0"], 1.0 * 200 * 9 + 100.0)
+    assert math.isclose(
+        decision["arithmetic"]["L1"]["per_worker_seconds"]["1"], 1.0 * 100 * 9 + 1.0 * 82 * 9 + 100.0
+    )
+    assert decision["arithmetic"]["L0"]["subset_sizes"] == branch.L0_SIZES
+    assert decision["arithmetic"]["L1"]["subset_sizes"] == branch.L1_SIZES
+    boundary = 24 - decision["arithmetic"]["L0"]["required_gpu_hours"]
+    flipped = branch.decide_admission(
+        protocol, probe, branch_spent_gpu_hours=boundary + 0.01, now_epoch=now, cutoff_epoch=now + 48 * 3600
+    )
+    assert flipped["decision"] == "L1"
+
+
+def _fixture_extension_protocol(tmp_path, subsets_bytes):
+    import hashlib
+
+    digest = hashlib.sha256(subsets_bytes).hexdigest()
+    v1_root = tmp_path / branch.OUTPUT_ROOT
+    v1_root.mkdir(parents=True, exist_ok=True)
+    (v1_root / "subsets.json").write_bytes(subsets_bytes)
+    write_json(
+        v1_root / "freeze.json",
+        {
+            "outcome": "PASS",
+            "leakage": {
+                "records_scanned": 3,
+                "benchmark_inputs": 2,
+                "items_with_shared_ngrams": 0,
+                "report": "leakage.json",
+            },
+        },
+    )
+    write_json(v1_root / "leakage.json", {"schema_version": branch.LEAKAGE_SCHEMA, "matches": {}})
+    protocol = {
+        "protocol_id": "transfer-extension-test-v2",
+        "extends": branch.PROTOCOL_ID,
+        "frozen_at_utc": "2026-09-19T00:00:00Z",
+        "base_model": {"model_id": "m", "revision": "r"},
+        "cells": {"x": {"adapter_id": "x", "checkpoint": "adapters/x"}},
+        "benchmarks": {
+            "inherit": branch.PROTOCOL_ID,
+            "subsets_reference": {"path": f"{branch.OUTPUT_ROOT}/subsets.json", "sha256": digest},
+            "subset_sizes": dict(branch.L0_SIZES),
+            "l1_subset_sizes": dict(branch.L1_SIZES),
+        },
+        "execution_topology": {"cell_order_per_benchmark": ["x"]},
+        "evidence": {"output_root": "outputs/expanded-study/v1/transfer-v2-test"},
+    }
+    return protocol, digest
+
+
+def _minimal_subsets_bytes():
+    benchmarks = {}
+    for name, ids in (("folio", ["f0", "f1"]), ("gsm8k", ["g0", "g1"]), ("humaneval", ["h0", "h1"])):
+        benchmarks[name] = {
+            "l0_order": ids,
+            "l1_order": ids[::2],
+            "max_new_tokens": 64,
+            "examples": {example_id: {"input_tokens": 10} for example_id in ids},
+        }
+    return (json.dumps({"schema_version": branch.SUBSETS_SCHEMA, "protocol_id": branch.PROTOCOL_ID,
+                        "benchmarks": benchmarks}, indent=2) + "\n").encode()
+
+
+def test_extension_freeze_verifies_and_copies_byte_identically(tmp_path, monkeypatch):
+    protocol, digest = _fixture_extension_protocol(tmp_path, _minimal_subsets_bytes())
+    monkeypatch.setattr(branch, "validate_protocol", lambda root, proto: {"outcome": "PASS"})
+    monkeypatch.setattr(branch, "probe_unshare_network", lambda: False)
+
+    freeze = branch.freeze_stage(tmp_path, protocol)
+    out = tmp_path / "outputs/expanded-study/v1/transfer-v2-test"
+    assert freeze["outcome"] == "PASS"
+    assert freeze["method"].startswith("referenced-v1")
+    assert (out / "subsets.json").read_bytes() == (tmp_path / branch.OUTPUT_ROOT / "subsets.json").read_bytes()
+    assert freeze["subsets_reference"]["verified_sha256"] == "sha256:" + digest
+    assert freeze["subsets_reference"]["byte_identical"] is True
+    assert freeze["leakage"]["status"] == "inherited_from_v1"
+    assert freeze["leakage"]["records_scanned"] == 3
+    assert freeze["subsets"]["folio"]["l0_size"] == 2
+    assert (out / "leakage.json").is_file()
+
+    audit = branch.audit_freeze_stage(tmp_path, protocol)
+    assert audit["outcome"] == "PASS"
+    assert all(audit["comparisons"].values())
+
+    # A tampered pin fails closed before anything is written.
+    tampered = json.loads(json.dumps(protocol))
+    tampered["benchmarks"]["subsets_reference"]["sha256"] = "0" * 64
+    tampered["evidence"]["output_root"] = "outputs/expanded-study/v1/transfer-v2-tampered"
+    with pytest.raises(RuntimeError, match="freeze refused"):
+        branch.freeze_stage(tmp_path, tampered)
+    assert not (tmp_path / "outputs/expanded-study/v1/transfer-v2-tampered").exists()
+
+    # An extension refusing to overwrite a divergent subsets.json.
+    (out / "subsets.json").write_text("{}")
+    with pytest.raises(RuntimeError, match="byte-reproducible"):
+        branch.freeze_stage(tmp_path, protocol)

@@ -1,0 +1,27 @@
+{
+  "job_id": "transfer-v2-run-1",
+  "branch": "transfer",
+  "gpus": [
+    1
+  ],
+  "max_seconds": 21600,
+  "total": 3276,
+  "command": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/run_expanded_transfer.py",
+    "run",
+    "--worker",
+    "1",
+    "--protocol",
+    "configs/experiments/expanded-study/transfer-protocol-v2.json"
+  ],
+  "completion_hook": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/run_expanded_transfer.py",
+    "audit-run-worker",
+    "--worker",
+    "1",
+    "--protocol",
+    "configs/experiments/expanded-study/transfer-protocol-v2.json"
+  ]
+}

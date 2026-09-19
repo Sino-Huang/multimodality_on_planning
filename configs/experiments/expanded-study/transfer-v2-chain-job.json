@@ -1,0 +1,16 @@
+{
+  "job_id": "transfer-v2-chain",
+  "branch": "transfer",
+  "gpus": [],
+  "max_seconds": 64800,
+  "total": 6,
+  "command": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "outputs/expanded-study/v1/transfer-v2/goal13b_chain.py"
+  ],
+  "completion_hook": [
+    "/usr/bin/test",
+    "-f",
+    "outputs/expanded-study/v1/transfer-v2/goal13b-chain/complete.json"
+  ]
+}
