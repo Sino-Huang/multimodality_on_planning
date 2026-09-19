@@ -2192,9 +2192,9 @@ def audit_run_worker(
                 continue
             if journal.is_file():
                 problems.append(f"{benchmark}/{cell} retains a partial journal")
-            order = report.get("order", [])
+            report_order = report.get("order", [])
             entries = report.get("entries", {})
-            if order != ids or sorted(entries) != sorted(ids) or len(set(order)) != len(order):
+            if report_order != ids or sorted(entries) != sorted(ids) or len(set(report_order)) != len(report_order):
                 problems.append(f"{benchmark}/{cell} coverage differs")
                 continue
             for example_id in ids:

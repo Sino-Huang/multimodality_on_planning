@@ -966,3 +966,136 @@ def test_extension_freeze_verifies_and_copies_byte_identically(tmp_path, monkeyp
     (out / "subsets.json").write_text("{}")
     with pytest.raises(RuntimeError, match="byte-reproducible"):
         branch.freeze_stage(tmp_path, protocol)
+
+
+# ---------------------------------------------------------------------------
+# Regression: multi-benchmark worker audit must not shadow the cell order
+# ---------------------------------------------------------------------------
+
+
+def _fake_multi_benchmark_worker_root(tmp_path):
+    """Two benchmarks, two adapted cells, complete run evidence for one worker."""
+    protocol = {
+        "protocol_id": "transfer-audit-shadow-test",
+        "base_model": {"model_id": "m", "revision": "r"},
+        "cells": {
+            "x": {"adapter_id": "x", "checkpoint": "adapters/x"},
+            "y": {"adapter_id": "y", "checkpoint": "adapters/y"},
+        },
+        "execution_topology": {
+            "cell_order_per_benchmark": ["x", "y"],
+            "workers": {"test-run-0": {"gpu": 0, "benchmarks": ["folio", "gsm8k"]}},
+        },
+        "evidence": {"output_root": "outputs/transfer-audit-shadow-test"},
+    }
+    for cell in ("x", "y"):
+        checkpoint = tmp_path / "adapters" / cell
+        checkpoint.mkdir(parents=True)
+        (checkpoint / "adapter_config.json").write_text("{}")
+        (checkpoint / "adapter_model.safetensors").write_bytes(b"fake")
+    benchmarks = {}
+    for name, count, allowance in (("folio", 3, 64), ("gsm8k", 2, 512)):
+        entries = {}
+        order = []
+        for index in range(count):
+            example_id = f"{name}-{index}"
+            order.append(example_id)
+            if name == "folio":
+                model_input = {
+                    "benchmark": "folio",
+                    "example_id": example_id,
+                    "premises": [f"premise {index}"],
+                    "conclusion": f"conclusion {index}",
+                }
+                gold = {"label": "True"}
+            else:
+                model_input = {"benchmark": "gsm8k", "example_id": example_id, "question": f"q {index}"}
+                gold = {"answer": "#### 1", "final": "1"}
+            prompt = branch.rendered_prompt(name, model_input)
+            entries[example_id] = {
+                "example_id": example_id,
+                "model_input": model_input,
+                "system": prompt["system"],
+                "user": prompt["user"],
+                "input_tokens": 10,
+                "gold": gold,
+            }
+        benchmarks[name] = {
+            "l0_order": order,
+            "l1_order": branch.l1_order(order),
+            "max_new_tokens": allowance,
+            "examples": entries,
+        }
+    out = tmp_path / "outputs/transfer-audit-shadow-test"
+    write_json(
+        out / "subsets.json",
+        {"schema_version": branch.SUBSETS_SCHEMA, "protocol_id": protocol["protocol_id"], "benchmarks": benchmarks},
+    )
+    write_json(
+        out / "admission.json",
+        {
+            "schema_version": branch.ADMISSION_SCHEMA,
+            "protocol_id": protocol["protocol_id"],
+            "outcome": "PASS",
+            "decision": "L0",
+            "ledger_mutated": False,
+            "authorized_subsets": {"decision": "L0", "subset_sizes": {"folio": 3, "gsm8k": 2}},
+        },
+    )
+    fingerprints = branch.adapter_fingerprints(tmp_path, protocol)
+    cells_declared = []
+    for name in ("folio", "gsm8k"):
+        ids = benchmarks[name]["l0_order"]
+        for cell in ("x", "y"):
+            final, _journal = branch._run_paths(tmp_path, name, cell, protocol)
+            write_json(
+                final,
+                {
+                    **branch._run_identity(protocol, name, cell, "L0", benchmarks[name]["max_new_tokens"], fingerprints),
+                    "examples": len(ids),
+                    "order": list(ids),
+                    "entries": {
+                        example_id: {
+                            "raw_output": f"output:{example_id}",
+                            "input_tokens": 10,
+                            "generated_tokens": 3,
+                            "batch_size": 1,
+                            "batch_latency_seconds": 0.1,
+                        }
+                        for example_id in ids
+                    },
+                    "generated_tokens_total": 3 * len(ids),
+                    "input_tokens_total": 10 * len(ids),
+                },
+            )
+            cells_declared.append({"benchmark": name, "cell": cell, "examples": len(ids)})
+    attempt = tmp_path / "attempt"
+    attempt.mkdir()
+    write_json(
+        attempt / "worker-result.json",
+        {
+            "schema_version": branch.WORKER_RESULT_SCHEMA,
+            "outcome": "PASS",
+            "protocol_id": protocol["protocol_id"],
+            "worker": 0,
+            "cells": cells_declared,
+            "missing": [],
+        },
+    )
+    return protocol, attempt
+
+
+def test_audit_run_worker_multi_benchmark_no_cell_order_shadowing(tmp_path):
+    """Worker covering >1 benchmark: the report's example-id order must not become the cell order.
+
+    Regression for the v2 parameterization bug where `order = report.get("order", [])` rebound
+    the cell order, so the second benchmark's cells were looked up under folio example ids.
+    """
+    protocol, attempt = _fake_multi_benchmark_worker_root(tmp_path)
+    audit = branch.audit_run_worker(
+        tmp_path, protocol, 0, terminal={"status": "succeeded", "directory": str(attempt)}
+    )
+    assert audit["outcome"] == "PASS"
+    assert audit["problems"] == []
+    audited = {(row["benchmark"], row["cell"]) for row in audit["cells_audited"]}
+    assert audited == {("folio", "x"), ("folio", "y"), ("gsm8k", "x"), ("gsm8k", "y")}
