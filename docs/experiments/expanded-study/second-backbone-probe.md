@@ -1,8 +1,8 @@
 # Second-backbone probe and admission (#101-#103)
 
-Second-backbone probe and admission for `expanded-second-backbone-v1`.
+Second-backbone probe and admission for `expanded-second-backbone-v2`.
 
-Probe outcome: **PASS**; admission decision: **L2** (VALID_STOP).
+Probe outcome: **PASS**; admission decision: **L1** (PASS).
 
 - Attention: requested `visual_sdpa`, applied `visual_sdpa`, fallback used: False.
 - Load: 34.1s; VRAM after load 34113274368 bytes.
@@ -25,8 +25,8 @@ Probe outcome: **PASS**; admission decision: **L2** (VALID_STOP).
 | Level | Episodes | Required GPU-h (incl. spent, x safety) | Fits remainder |
 | --- | ---: | ---: | --- |
 | L0 | 144 | 258.419 | False |
-| L1 | 72 | 48.141 | False |
+| L1 | 72 | 48.141 | True |
 
-Branch cap 40 GPU-h; spent 3.958; remainder 36.042; ledger mutated: False.
+Branch cap 52.11 GPU-h; spent 3.958; remainder 48.152; ledger mutated: False.
 
 Compact evidence: [second-backbone-probe.json](second-backbone-probe.json) and [second-backbone-admission.json](second-backbone-admission.json) (byte-identical copies).

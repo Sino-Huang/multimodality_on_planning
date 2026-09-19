@@ -1,0 +1,197 @@
+{
+  "schema_version": "expanded_second_backbone_analysis_v1",
+  "outcome": "PASS",
+  "protocol_id": "expanded-second-backbone-v2",
+  "unit": "whole_problem_paired",
+  "paired_units": 12,
+  "authorized_scope": {
+    "decision": "L1",
+    "task_ids": [
+      "expanded-final/15puzzle-compact-910000",
+      "expanded-final/depot-compact-912000",
+      "expanded-final/depot-expanded-912100",
+      "expanded-final/elevators-compact-914002",
+      "expanded-final/elevators-expanded-914105",
+      "expanded-final/ferry-compact-915000",
+      "expanded-final/ferry-expanded-915109",
+      "expanded-final/grid-compact-916000",
+      "expanded-final/logistics-compact-918000",
+      "expanded-final/logistics-expanded-918100",
+      "expanded-final/storage-compact-919000",
+      "expanded-final/towers_of_hanoi-compact-920000"
+    ],
+    "task_id_order": "frozen panel order",
+    "model_episodes": 72,
+    "comparator_episodes": 72,
+    "selection": "lowest reference bfs decision count only, frozen before any model outcome"
+  },
+  "reduced_scope": "reduced key-cell panel selected by lowest reference bfs decision count only (tasks ranked by reference_costs.bfs.decisions; kept 12/24 tasks); documented fallback because L0 exceeded the branch remainder",
+  "bootstrap": {
+    "seed": 1729,
+    "resamples": 10000,
+    "confidence": 0.95
+  },
+  "contrasts": [
+    {
+      "modality": "text-state",
+      "contrast": "process_sft_minus_pretrained_base",
+      "interval": {
+        "lower": 0.0,
+        "point": 0.0,
+        "upper": 0.0
+      }
+    },
+    {
+      "modality": "text-state",
+      "contrast": "process_sft_minus_random_valid",
+      "interval": {
+        "lower": -1.0,
+        "point": -0.75,
+        "upper": -0.5
+      }
+    },
+    {
+      "modality": "visual-state",
+      "contrast": "process_sft_minus_pretrained_base",
+      "interval": {
+        "lower": 0.0,
+        "point": 0.0,
+        "upper": 0.0
+      }
+    },
+    {
+      "modality": "visual-state",
+      "contrast": "process_sft_minus_random_valid",
+      "interval": {
+        "lower": -1.0,
+        "point": -0.75,
+        "upper": -0.5
+      }
+    },
+    {
+      "modality": "multimodal-state",
+      "contrast": "process_sft_minus_pretrained_base",
+      "interval": {
+        "lower": 0.0,
+        "point": 0.0,
+        "upper": 0.0
+      }
+    },
+    {
+      "modality": "multimodal-state",
+      "contrast": "process_sft_minus_random_valid",
+      "interval": {
+        "lower": -1.0,
+        "point": -0.75,
+        "upper": -0.5
+      }
+    }
+  ],
+  "cross_backbone": [
+    {
+      "modality": "text-state",
+      "contrast": "internvl3_5-8b_process_sft_minus_qwen3-vl-8b_process_sft",
+      "interval": {
+        "lower": 0.0,
+        "point": 0.0,
+        "upper": 0.0
+      },
+      "qwen_process_sft_success_rate": 0.0,
+      "method": "paired interval conditions the Qwen per-task outcome at its pinned by_cell BFS success rate (only aggregate baseline cells are pinned); interval width reflects InternVL task-level variation around the Qwen rate; the InternVL panel is the reference-cost-reduced key-cell subset while the Qwen rate remains the pinned full-panel aggregate, so this contrast is descriptive, not paired"
+    },
+    {
+      "modality": "visual-state",
+      "contrast": "internvl3_5-8b_process_sft_minus_qwen3-vl-8b_process_sft",
+      "interval": {
+        "lower": 0.0,
+        "point": 0.0,
+        "upper": 0.0
+      },
+      "qwen_process_sft_success_rate": 0.0,
+      "method": "paired interval conditions the Qwen per-task outcome at its pinned by_cell BFS success rate (only aggregate baseline cells are pinned); interval width reflects InternVL task-level variation around the Qwen rate; the InternVL panel is the reference-cost-reduced key-cell subset while the Qwen rate remains the pinned full-panel aggregate, so this contrast is descriptive, not paired"
+    },
+    {
+      "modality": "multimodal-state",
+      "contrast": "internvl3_5-8b_process_sft_minus_qwen3-vl-8b_process_sft",
+      "interval": {
+        "lower": 0.0,
+        "point": 0.0,
+        "upper": 0.0
+      },
+      "qwen_process_sft_success_rate": 0.0,
+      "method": "paired interval conditions the Qwen per-task outcome at its pinned by_cell BFS success rate (only aggregate baseline cells are pinned); interval width reflects InternVL task-level variation around the Qwen rate; the InternVL panel is the reference-cost-reduced key-cell subset while the Qwen rate remains the pinned full-panel aggregate, so this contrast is descriptive, not paired"
+    }
+  ],
+  "by_modality": {
+    "text-state": {
+      "internvl": {
+        "process_sft_successes": 0,
+        "pretrained_base_successes": 0,
+        "random_valid_successes": 18,
+        "exact_reference_successes": 24,
+        "episodes": 12
+      },
+      "invalid_operation_rates": {
+        "pretrained_base": 1.0,
+        "process_sft": 0.5217391304347826,
+        "random_valid": 0.0,
+        "exact_reference": 0.0
+      },
+      "decision_usage": {
+        "process_sft_decisions": 23,
+        "process_sft_decision_call_allowance": 640,
+        "pretrained_base_decisions": 12
+      }
+    },
+    "visual-state": {
+      "internvl": {
+        "process_sft_successes": 0,
+        "pretrained_base_successes": 0,
+        "random_valid_successes": 18,
+        "exact_reference_successes": 24,
+        "episodes": 12
+      },
+      "invalid_operation_rates": {
+        "pretrained_base": 1.0,
+        "process_sft": 0.6666666666666666,
+        "random_valid": 0.0,
+        "exact_reference": 0.0
+      },
+      "decision_usage": {
+        "process_sft_decisions": 18,
+        "process_sft_decision_call_allowance": 640,
+        "pretrained_base_decisions": 12
+      }
+    },
+    "multimodal-state": {
+      "internvl": {
+        "process_sft_successes": 0,
+        "pretrained_base_successes": 0,
+        "random_valid_successes": 18,
+        "exact_reference_successes": 24,
+        "episodes": 12
+      },
+      "invalid_operation_rates": {
+        "pretrained_base": 1.0,
+        "process_sft": 0.6666666666666666,
+        "random_valid": 0.0,
+        "exact_reference": 0.0
+      },
+      "decision_usage": {
+        "process_sft_decisions": 18,
+        "process_sft_decision_call_allowance": 640,
+        "pretrained_base_decisions": 12
+      }
+    }
+  },
+  "control_saturation": {
+    "exact_reference_saturated": true,
+    "process_sft_saturated": false,
+    "note": "exact_reference/random_valid are deterministic reused controls; saturation is reported, never treated as a model result"
+  },
+  "random_valid_assistance": "oracle-assisted valid-operation control; not equally assisted learned generation",
+  "invalid_operation_rates_preserved": true,
+  "negative_results_preserved": true,
+  "single_training_seed_limitation": "exactly one training run per cell; no training-seed variance is estimated or claimed",
+  "architecture_note": "InternVL3.5-8B shares the Qwen3-8B LLM family with the primary backbone; the replication contrast is the vision tower (InternViT vs Qwen-ViT), connector, image tokenization, and multimodal training recipe, and it is reported as an architecture-difference limitation"
+}

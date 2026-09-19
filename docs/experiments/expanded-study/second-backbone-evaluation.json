@@ -1,0 +1,1304 @@
+{
+  "schema_version": "expanded_second_backbone_evaluation_evidence_v1",
+  "status": "PASS",
+  "outcome": "PASS",
+  "protocol_id": "expanded-second-backbone-v2",
+  "panel_id": "expanded-panel-v2-qualified",
+  "backbone_key": "internvl3_5-8b",
+  "logical_bindings": 144,
+  "model_episodes": 72,
+  "expected_model_episodes": 72,
+  "comparator_episodes": 144,
+  "expected_comparator_episodes": 72,
+  "frozen_full_panel_model_episodes": 72,
+  "authorized_scope": {
+    "decision": "L1",
+    "task_ids": [
+      "expanded-final/15puzzle-compact-910000",
+      "expanded-final/depot-compact-912000",
+      "expanded-final/depot-expanded-912100",
+      "expanded-final/elevators-compact-914002",
+      "expanded-final/elevators-expanded-914105",
+      "expanded-final/ferry-compact-915000",
+      "expanded-final/ferry-expanded-915109",
+      "expanded-final/grid-compact-916000",
+      "expanded-final/logistics-compact-918000",
+      "expanded-final/logistics-expanded-918100",
+      "expanded-final/storage-compact-919000",
+      "expanded-final/towers_of_hanoi-compact-920000"
+    ],
+    "task_id_order": "frozen panel order",
+    "model_episodes": 72,
+    "comparator_episodes": 72,
+    "selection": "lowest reference bfs decision count only, frozen before any model outcome"
+  },
+  "reduced_scope": "reduced key-cell panel selected by lowest reference bfs decision count only (tasks ranked by reference_costs.bfs.decisions; kept 12/24 tasks); documented fallback because L0 exceeded the branch remainder",
+  "complete_coverage": true,
+  "missing_bindings": [],
+  "missing_comparator_bindings": [],
+  "by_condition": {
+    "pretrained_base": {
+      "episodes": 36,
+      "successes": 0,
+      "decisions": 36,
+      "invalid_operations": 36
+    },
+    "process_sft": {
+      "episodes": 36,
+      "successes": 0,
+      "decisions": 59,
+      "invalid_operations": 36
+    },
+    "random_valid": {
+      "episodes": 72,
+      "successes": 54,
+      "decisions": 1902,
+      "invalid_operations": 0
+    },
+    "exact_reference": {
+      "episodes": 72,
+      "successes": 72,
+      "decisions": 1920,
+      "invalid_operations": 0
+    }
+  },
+  "by_cell": [
+    {
+      "modality": "multimodal-state",
+      "condition": "exact_reference",
+      "episodes": 24,
+      "invariant_valid_successes": 24,
+      "goal_reached": 24,
+      "algorithm_invariants_hold": 24,
+      "decisions": 640,
+      "invalid_operations": 0,
+      "invalid_operation_rate": 0.0,
+      "model_calls": 0,
+      "decision_call_allowance": 1280
+    },
+    {
+      "modality": "multimodal-state",
+      "condition": "pretrained_base",
+      "episodes": 12,
+      "invariant_valid_successes": 0,
+      "goal_reached": 0,
+      "algorithm_invariants_hold": 0,
+      "decisions": 12,
+      "invalid_operations": 12,
+      "invalid_operation_rate": 1.0,
+      "model_calls": 12,
+      "decision_call_allowance": 640
+    },
+    {
+      "modality": "multimodal-state",
+      "condition": "process_sft",
+      "episodes": 12,
+      "invariant_valid_successes": 0,
+      "goal_reached": 0,
+      "algorithm_invariants_hold": 0,
+      "decisions": 18,
+      "invalid_operations": 12,
+      "invalid_operation_rate": 0.6666666666666666,
+      "model_calls": 18,
+      "decision_call_allowance": 640
+    },
+    {
+      "modality": "multimodal-state",
+      "condition": "random_valid",
+      "episodes": 24,
+      "invariant_valid_successes": 18,
+      "goal_reached": 18,
+      "algorithm_invariants_hold": 24,
+      "decisions": 634,
+      "invalid_operations": 0,
+      "invalid_operation_rate": 0.0,
+      "model_calls": 0,
+      "decision_call_allowance": 1280
+    },
+    {
+      "modality": "text-state",
+      "condition": "exact_reference",
+      "episodes": 24,
+      "invariant_valid_successes": 24,
+      "goal_reached": 24,
+      "algorithm_invariants_hold": 24,
+      "decisions": 640,
+      "invalid_operations": 0,
+      "invalid_operation_rate": 0.0,
+      "model_calls": 0,
+      "decision_call_allowance": 1280
+    },
+    {
+      "modality": "text-state",
+      "condition": "pretrained_base",
+      "episodes": 12,
+      "invariant_valid_successes": 0,
+      "goal_reached": 0,
+      "algorithm_invariants_hold": 0,
+      "decisions": 12,
+      "invalid_operations": 12,
+      "invalid_operation_rate": 1.0,
+      "model_calls": 12,
+      "decision_call_allowance": 640
+    },
+    {
+      "modality": "text-state",
+      "condition": "process_sft",
+      "episodes": 12,
+      "invariant_valid_successes": 0,
+      "goal_reached": 0,
+      "algorithm_invariants_hold": 0,
+      "decisions": 23,
+      "invalid_operations": 12,
+      "invalid_operation_rate": 0.5217391304347826,
+      "model_calls": 23,
+      "decision_call_allowance": 640
+    },
+    {
+      "modality": "text-state",
+      "condition": "random_valid",
+      "episodes": 24,
+      "invariant_valid_successes": 18,
+      "goal_reached": 18,
+      "algorithm_invariants_hold": 24,
+      "decisions": 634,
+      "invalid_operations": 0,
+      "invalid_operation_rate": 0.0,
+      "model_calls": 0,
+      "decision_call_allowance": 1280
+    },
+    {
+      "modality": "visual-state",
+      "condition": "exact_reference",
+      "episodes": 24,
+      "invariant_valid_successes": 24,
+      "goal_reached": 24,
+      "algorithm_invariants_hold": 24,
+      "decisions": 640,
+      "invalid_operations": 0,
+      "invalid_operation_rate": 0.0,
+      "model_calls": 0,
+      "decision_call_allowance": 1280
+    },
+    {
+      "modality": "visual-state",
+      "condition": "pretrained_base",
+      "episodes": 12,
+      "invariant_valid_successes": 0,
+      "goal_reached": 0,
+      "algorithm_invariants_hold": 0,
+      "decisions": 12,
+      "invalid_operations": 12,
+      "invalid_operation_rate": 1.0,
+      "model_calls": 12,
+      "decision_call_allowance": 640
+    },
+    {
+      "modality": "visual-state",
+      "condition": "process_sft",
+      "episodes": 12,
+      "invariant_valid_successes": 0,
+      "goal_reached": 0,
+      "algorithm_invariants_hold": 0,
+      "decisions": 18,
+      "invalid_operations": 12,
+      "invalid_operation_rate": 0.6666666666666666,
+      "model_calls": 18,
+      "decision_call_allowance": 640
+    },
+    {
+      "modality": "visual-state",
+      "condition": "random_valid",
+      "episodes": 24,
+      "invariant_valid_successes": 18,
+      "goal_reached": 18,
+      "algorithm_invariants_hold": 24,
+      "decisions": 634,
+      "invalid_operations": 0,
+      "invalid_operation_rate": 0.0,
+      "model_calls": 0,
+      "decision_call_allowance": 1280
+    }
+  ],
+  "paired_rows": [
+    {
+      "panel": "unseen",
+      "task_id": "expanded-final/15puzzle-compact-910000",
+      "arms": {
+        "text-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 2
+        },
+        "text-state__random_valid": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "text-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "visual-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__random_valid": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "visual-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "multimodal-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__random_valid": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 0,
+          "decisions": 33
+        },
+        "multimodal-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 33
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "task_id": "expanded-final/depot-compact-912000",
+      "arms": {
+        "text-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 11
+        },
+        "text-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 10
+        },
+        "visual-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 11
+        },
+        "visual-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 10
+        },
+        "multimodal-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 11
+        },
+        "multimodal-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 10
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "task_id": "expanded-final/depot-expanded-912100",
+      "arms": {
+        "text-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 17
+        },
+        "text-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 18
+        },
+        "visual-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 17
+        },
+        "visual-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 18
+        },
+        "multimodal-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 17
+        },
+        "multimodal-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 18
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "task_id": "expanded-final/elevators-compact-914002",
+      "arms": {
+        "text-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 8
+        },
+        "text-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 8
+        },
+        "visual-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 4
+        },
+        "visual-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 8
+        },
+        "visual-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 8
+        },
+        "multimodal-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 8
+        },
+        "multimodal-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 8
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "task_id": "expanded-final/elevators-expanded-914105",
+      "arms": {
+        "text-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 3
+        },
+        "text-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 50
+        },
+        "text-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 53
+        },
+        "visual-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 4
+        },
+        "visual-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 50
+        },
+        "visual-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 53
+        },
+        "multimodal-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 50
+        },
+        "multimodal-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 53
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "task_id": "expanded-final/ferry-compact-915000",
+      "arms": {
+        "text-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 3
+        },
+        "text-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 8
+        },
+        "text-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 10
+        },
+        "visual-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 8
+        },
+        "visual-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 10
+        },
+        "multimodal-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 8
+        },
+        "multimodal-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 10
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "task_id": "expanded-final/ferry-expanded-915109",
+      "arms": {
+        "text-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__random_valid": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 0,
+          "decisions": 47
+        },
+        "text-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 48
+        },
+        "visual-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__random_valid": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 0,
+          "decisions": 47
+        },
+        "visual-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 48
+        },
+        "multimodal-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__random_valid": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 0,
+          "decisions": 47
+        },
+        "multimodal-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 48
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "task_id": "expanded-final/grid-compact-916000",
+      "arms": {
+        "text-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__random_valid": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 0,
+          "decisions": 78
+        },
+        "text-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 75
+        },
+        "visual-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__random_valid": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 0,
+          "decisions": 78
+        },
+        "visual-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 75
+        },
+        "multimodal-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__random_valid": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 0,
+          "decisions": 78
+        },
+        "multimodal-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 75
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "task_id": "expanded-final/logistics-compact-918000",
+      "arms": {
+        "text-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 3
+        },
+        "text-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 7
+        },
+        "text-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 8
+        },
+        "visual-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 7
+        },
+        "visual-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 8
+        },
+        "multimodal-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 7
+        },
+        "multimodal-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 8
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "task_id": "expanded-final/logistics-expanded-918100",
+      "arms": {
+        "text-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 2
+        },
+        "text-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 20
+        },
+        "text-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 20
+        },
+        "visual-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 20
+        },
+        "visual-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 20
+        },
+        "multimodal-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 4
+        },
+        "multimodal-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 20
+        },
+        "multimodal-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 20
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "task_id": "expanded-final/storage-compact-919000",
+      "arms": {
+        "text-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 10
+        },
+        "text-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 10
+        },
+        "visual-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 10
+        },
+        "visual-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 10
+        },
+        "multimodal-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 10
+        },
+        "multimodal-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 10
+        }
+      }
+    },
+    {
+      "panel": "unseen",
+      "task_id": "expanded-final/towers_of_hanoi-compact-920000",
+      "arms": {
+        "text-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "text-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 4
+        },
+        "text-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 28
+        },
+        "text-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 27
+        },
+        "visual-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "visual-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 28
+        },
+        "visual-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 27
+        },
+        "multimodal-state__base": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 1
+        },
+        "multimodal-state__sft_sequential_order_control": {
+          "invariant_valid_success": false,
+          "goal_reached": false,
+          "invalid_operations": 1,
+          "decisions": 4
+        },
+        "multimodal-state__random_valid": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 28
+        },
+        "multimodal-state__exact_reference": {
+          "invariant_valid_success": true,
+          "goal_reached": true,
+          "invalid_operations": 0,
+          "decisions": 27
+        }
+      }
+    }
+  ],
+  "paired_rows_note": "paired_rows reused from expanded_curriculum_evaluation; the InternVL process_sft arm binds to the sft_sequential_order_control key because both are sequential-order process-SFT conditions",
+  "compute": {
+    "model_calls": 95,
+    "active_wall_seconds": 1558.6211605947465
+  },
+  "comparator_provenance": {
+    "audit": {
+      "baseline_protocol": "configs/experiments/expanded-study/baseline-protocol.json",
+      "baseline_protocol_sha256": "sha256:2f805417f5de2d6c841915e95c0df4e21d174ad2373de7da7f7e150d19c0b9a8",
+      "baseline_evaluation": "docs/experiments/expanded-study/baseline-evaluation.json",
+      "baseline_evaluation_sha256": "sha256:ba470dd4498e11a21fba8e9f61611c8f7be6ddcb167ad02a7fbed6e1516eb03a",
+      "baseline_independent_replay": "docs/experiments/expanded-study/baseline-independent-replay.json",
+      "baseline_independent_replay_sha256": "sha256:7f78b9d2cbda99446be52690b796975b77010522bd768c0d77cce6858cf4a366",
+      "baseline_episodes_root": "outputs/expanded-study/v1/baseline/episodes",
+      "reused_conditions": [
+        "random_valid",
+        "exact_reference"
+      ]
+    },
+    "sources": [
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__15puzzle-compact-910000/bfs-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__15puzzle-compact-910000/bfs-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__depot-compact-912000/bfs-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__depot-compact-912000/bfs-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__depot-expanded-912100/bfs-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__depot-expanded-912100/bfs-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__elevators-compact-914002/bfs-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__elevators-compact-914002/bfs-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__elevators-expanded-914105/bfs-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__elevators-expanded-914105/bfs-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__ferry-compact-915000/bfs-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__ferry-compact-915000/bfs-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__ferry-expanded-915109/bfs-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__ferry-expanded-915109/bfs-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__grid-compact-916000/bfs-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__grid-compact-916000/bfs-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__logistics-compact-918000/bfs-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__logistics-compact-918000/bfs-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__logistics-expanded-918100/bfs-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__logistics-expanded-918100/bfs-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__storage-compact-919000/bfs-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__storage-compact-919000/bfs-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__towers_of_hanoi-compact-920000/bfs-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/multimodal-state/expanded-final__towers_of_hanoi-compact-920000/bfs-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__15puzzle-compact-910000/bfs-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__15puzzle-compact-910000/bfs-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__depot-compact-912000/bfs-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__depot-compact-912000/bfs-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__depot-expanded-912100/bfs-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__depot-expanded-912100/bfs-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__elevators-compact-914002/bfs-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__elevators-compact-914002/bfs-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__elevators-expanded-914105/bfs-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__elevators-expanded-914105/bfs-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__ferry-compact-915000/bfs-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__ferry-compact-915000/bfs-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__ferry-expanded-915109/bfs-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__ferry-expanded-915109/bfs-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__grid-compact-916000/bfs-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__grid-compact-916000/bfs-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__logistics-compact-918000/bfs-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__logistics-compact-918000/bfs-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__logistics-expanded-918100/bfs-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__logistics-expanded-918100/bfs-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__storage-compact-919000/bfs-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__storage-compact-919000/bfs-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__towers_of_hanoi-compact-920000/bfs-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__towers_of_hanoi-compact-920000/bfs-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__15puzzle-compact-910000/bfs-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__15puzzle-compact-910000/bfs-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__depot-compact-912000/bfs-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__depot-compact-912000/bfs-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__depot-expanded-912100/bfs-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__depot-expanded-912100/bfs-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__elevators-compact-914002/bfs-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__elevators-compact-914002/bfs-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__elevators-expanded-914105/bfs-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__elevators-expanded-914105/bfs-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__ferry-compact-915000/bfs-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__ferry-compact-915000/bfs-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__ferry-expanded-915109/bfs-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__ferry-expanded-915109/bfs-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__grid-compact-916000/bfs-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__grid-compact-916000/bfs-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__logistics-compact-918000/bfs-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__logistics-compact-918000/bfs-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__logistics-expanded-918100/bfs-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__logistics-expanded-918100/bfs-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__storage-compact-919000/bfs-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__storage-compact-919000/bfs-random_valid.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__towers_of_hanoi-compact-920000/bfs-exact_reference.json.gz",
+      "outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__towers_of_hanoi-compact-920000/bfs-random_valid.json.gz"
+    ]
+  },
+  "producing_attempts": [
+    {
+      "job_id": "sb-v2-evaluate-0",
+      "attempt": 1,
+      "directory": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/expanded-study/v1/jobs/sb-v2-evaluate-0/1"
+    },
+    {
+      "job_id": "sb-v2-evaluate-1",
+      "attempt": 1,
+      "directory": "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/expanded-study/v1/jobs/sb-v2-evaluate-1/1"
+    }
+  ],
+  "launch_heads": [
+    {
+      "job_id": "sb-v2-evaluate-0",
+      "attempt": 1,
+      "runtime_head": "5440116e9e62a9e8b958b5dac9b4c15b25f678fa"
+    },
+    {
+      "job_id": "sb-v2-evaluate-1",
+      "attempt": 1,
+      "runtime_head": "5440116e9e62a9e8b958b5dac9b4c15b25f678fa"
+    }
+  ],
+  "branch_accounting": {
+    "branch": "second_backbone",
+    "cap_gpu_hours": 52.11,
+    "cumulative_spent_gpu_hours": 6.030487103859584
+  },
+  "jobs": [
+    {
+      "job_id": "sb-v2-evaluate-0",
+      "attempt": 1,
+      "gpus": [
+        0
+      ],
+      "master_port": 18800,
+      "gpu_hours": 0.25349742233753203
+    },
+    {
+      "job_id": "sb-v2-evaluate-1",
+      "attempt": 1,
+      "gpus": [
+        1
+      ],
+      "master_port": 18801,
+      "gpu_hours": 0.24598390440146128
+    }
+  ]
+}

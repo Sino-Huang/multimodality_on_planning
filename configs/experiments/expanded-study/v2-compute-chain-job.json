@@ -4,6 +4,7 @@
   "gpus": [],
   "max_seconds": 216000,
   "total": 1,
+  "resume_reason": "resume after 8faa498 adapter-checkpoint fix: gr-v2-models-0 attempt 2 relaunched and running; gr-v2-models-1 attempt 1 succeeded audited (150/150 base episodes); all completed stage attempts are preserved and not relaunched",
   "command": [
     "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
     "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/expanded-study/v1/v2-chain/v2_chain.py"

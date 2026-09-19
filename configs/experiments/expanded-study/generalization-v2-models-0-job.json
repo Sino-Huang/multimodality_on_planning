@@ -7,6 +7,7 @@
   "master_port": 18800,
   "max_seconds": 53400,
   "total": 150,
+  "resume_reason": "retry after 8faa498 fixed the adapter checkpoint path form; attempt 1 crashed before producing any episode (0.021 GPU-h retained), no partial episodes exist",
   "command": [
     "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
     "scripts/run_expanded_generalization.py",

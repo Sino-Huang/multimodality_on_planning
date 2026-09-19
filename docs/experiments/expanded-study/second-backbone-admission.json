@@ -1,11 +1,11 @@
 {
   "schema_version": "expanded_second_backbone_admission_v1",
-  "decision": "L2",
-  "outcome": "VALID_STOP",
-  "protocol_id": "expanded-second-backbone-v1",
-  "branch_cap_gpu_hours": 40,
+  "decision": "L1",
+  "outcome": "PASS",
+  "protocol_id": "expanded-second-backbone-v2",
+  "branch_cap_gpu_hours": 52.11,
   "branch_spent_gpu_hours": 3.957651311026679,
-  "branch_remainder_gpu_hours": 36.04234868897332,
+  "branch_remainder_gpu_hours": 48.15234868897332,
   "arithmetic": {
     "L0": {
       "episodes": 144,
@@ -21,7 +21,7 @@
       "evaluation_gpu_hours": 32.644730803800954,
       "safety_factor": 1.25,
       "required_gpu_hours_including_spent": 48.14088442694189,
-      "fits_branch_remainder": false
+      "fits_branch_remainder": true
     }
   },
   "calls_per_episode_basis": "2 x reference bfs decisions per task (the frozen decision-call allowance)",
@@ -38,7 +38,27 @@
     },
     "probe_gpu_hours": 1.3135802797957634
   },
-  "reduced_scope": null,
-  "authorized_scope": null,
+  "reduced_scope": "reduced key-cell panel selected by lowest reference bfs decision count only (tasks ranked by reference_costs.bfs.decisions; kept 12/24 tasks); documented fallback because L0 exceeded the branch remainder",
+  "authorized_scope": {
+    "decision": "L1",
+    "task_ids": [
+      "expanded-final/15puzzle-compact-910000",
+      "expanded-final/depot-compact-912000",
+      "expanded-final/depot-expanded-912100",
+      "expanded-final/elevators-compact-914002",
+      "expanded-final/elevators-expanded-914105",
+      "expanded-final/ferry-compact-915000",
+      "expanded-final/ferry-expanded-915109",
+      "expanded-final/grid-compact-916000",
+      "expanded-final/logistics-compact-918000",
+      "expanded-final/logistics-expanded-918100",
+      "expanded-final/storage-compact-919000",
+      "expanded-final/towers_of_hanoi-compact-920000"
+    ],
+    "task_id_order": "frozen panel order",
+    "model_episodes": 72,
+    "comparator_episodes": 72,
+    "selection": "lowest reference bfs decision count only, frozen before any model outcome"
+  },
   "ledger_mutated": false
 }

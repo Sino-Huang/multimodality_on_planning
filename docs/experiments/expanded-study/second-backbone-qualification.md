@@ -1,6 +1,6 @@
 # Second-backbone qualification (#101-#103)
 
-Second-backbone input qualification for `expanded-second-backbone-v1` (backbone `internvl3_5-8b`).
+Second-backbone input qualification for `expanded-second-backbone-v2` (backbone `internvl3_5-8b`).
 
 Outcome: **PASS** (complete: True).
 

@@ -4,6 +4,7 @@
   "gpus": [],
   "max_seconds": 21600,
   "total": 72,
+  "resume_reason": "retry after fd04151 replayed reused comparators under their producing processor; attempt 2 failed in comparator verification, all episode files and worker results unchanged",
   "command": [
     "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
     "scripts/run_expanded_second_backbone.py",
