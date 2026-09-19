@@ -2147,11 +2147,9 @@ def verify_comparator(
     view_output = Path(report["view_output"])
     if not view_output.is_absolute():
         view_output = root / view_output
-    views = ExpandedTaskViews(
-        root, task, view_output, endpoint, read_only=True, page_processor=backbone_page_processor(protocol)
-    )
+    views = ExpandedTaskViews(root, task, view_output, endpoint, read_only=True)
     replay_report = dict(report, contract_id=report.get("contract_id", report.get("protocol_id")))
-    replay_visual_episode(root, task["row"], replay_report, views, page_processor=backbone_page_processor(protocol))
+    replay_visual_episode(root, task["row"], replay_report, views)
     actual_contract = report.get("contract_id", report.get("protocol_id"))
     if (
         report.get("task_id") != task["row"]["task_id"]
