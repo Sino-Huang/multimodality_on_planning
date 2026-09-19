@@ -4,7 +4,7 @@
 - Manuscript genre and central contribution: REVISED to a development-stage map of when executable search control is learnable and when it fails to generalize.
 - Evidence audit: ALIGNED through `origin/main` commit `abe99f2` on 2026-09-19 and merged into `manuscript` at `4a5d06a`.
 - Title: RETAINED — "Can Vision-Language Models Learn to Execute Classical Search Algorithms?"
-- Abstract: REVISED on 2026-09-19 to the current BFWS, expanded-baseline, DAgger, and successor evidence.
+- Abstract: REVISED on 2026-09-19 to a concise 164-word deadline version with one bounded BFWS result and a high-level broader-evidence boundary.
 - Introduction: REVISED and synchronized to evidence through 2026-09-19.
 - Related Work: NOT STARTED
 - Method and evidence contract: NOT STARTED
@@ -25,7 +25,7 @@
 - Curriculum ordering by modality produced no material interaction: all four interaction intervals include zero. Several conditions and controls saturated.
 - Generalization/robustness evaluation and second-backbone model evaluation terminated as resource-bounded no-runs. The second backbone was qualified, but no training or model outcome exists. Transfer, synthesis, and the authorized final primary evaluation remain unexecuted.
 - All current model comparisons use a single training seed. Repeated rollout or reference seeds do not estimate training-seed variance. No overall final comparative efficacy finding is licensed.
-- The revised 220-word Abstract reports the BFWS positive signal, saturated-control boundary, expanded three-modality baseline, DAgger/successor failures, and the development-stage scope. Its conclusion is that executable search is trainable and learned advantage can appear, but is algorithm- and headroom-dependent and does not establish general planning efficacy.
+- The revised 164-word Abstract asks whether process supervision can teach declared search execution, summarizes the policy/runtime separation, reports the bounded BFWS development result, and states that broader development panels show no consistent advantage across algorithms or modalities. It omits experiment-ledger detail and concludes only that learned-control advantage appeared in one development setting while broader planning efficacy remains open.
 - The synchronized Introduction preserves the domain motivation, prior observational diagnosis, training/full-episode gap, and policy/runtime mechanism. Its latter half now uses the active BFS/BFWS/additive-best-first matrix, treats modality/DAgger/successor/curriculum studies as completed, reports the BFWS positive comparison and expanded-baseline failures, and marks held-out primary evaluation, generalization, second-backbone outcomes, and transfer as unresolved.
 - Its three contributions are now an executed diagnosis-to-intervention test, the replay-determinative interface, and a headroom-dependent empirical map rather than a BFS-only pilot plus pending BFWS infrastructure.
 
@@ -47,5 +47,5 @@
 - [RESOLVED: prior-work citations] The Introduction cites the original planning-probe sources and arXiv:2607.11197 at their appropriate claim boundaries.
 
 ## Next
-- The 220-word deadline Abstract and synchronized Introduction compiled successfully on 2026-09-19 with `manuscript/build_pdf.sh`; the PDF is three pages with no LaTeX errors or undefined citations. The rendered PDF was checked to contain the complete Abstract after escaping the `100\%` token.
-- Obtain a new critique of the deadline Abstract and synchronized Introduction. The following session should either draft Results around the headroom-dependent learned-advantage map or address the new critic's critical issues before Related Work.
+- The revised 164-word deadline Abstract compiled successfully on 2026-09-19 with `manuscript/build_pdf.sh`; the three-page PDF has no LaTeX errors, undefined citations, or layout warnings, and the complete eight-sentence Abstract was verified from the rendered PDF.
+- The following session should either reconcile any critical Abstract wording issue or begin Results. The detailed experimental ledger belongs in Results rather than the deadline Abstract and can be reflected in later paper-stage Abstract revisions.
