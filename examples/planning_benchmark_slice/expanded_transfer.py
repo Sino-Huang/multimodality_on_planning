@@ -2033,11 +2033,26 @@ def _audit_gsm8k_equal(prediction: str, gold: str) -> bool:
 
 
 def _audit_extract_humaneval(raw_output: str) -> str:
-    marker = "```python"
-    if marker in raw_output:
-        tail = raw_output.split(marker, 1)[1]
-        tail = tail.split("```", 1)[0]
-        return tail.strip("\n").strip()
+    """Independent implementation of the frozen extraction rule (first complete block only).
+
+    A ```python candidate must be followed by a whitespace run containing a newline, and the
+    block must close at the next ```; candidates failing either check are skipped. An
+    unterminated fence is not a complete block, so the raw output is the fallback. This
+    mirrors HUMANEVAL_FENCED_RE semantics exactly without reusing it.
+    """
+    rest = raw_output
+    while "```python" in rest:
+        rest = rest.split("```python", 1)[1]
+        index = 0
+        while index < len(rest) and rest[index].isspace():
+            index += 1
+        head = rest[:index]
+        if "\n" not in head:
+            continue
+        tail = rest[head.rindex("\n") + 1 :]
+        if "```" not in tail:
+            continue
+        return tail.split("```", 1)[0].strip("\n").strip()
     return raw_output.strip("\n").strip()
 
 

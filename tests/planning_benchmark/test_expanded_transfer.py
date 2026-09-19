@@ -222,6 +222,54 @@ def test_humaneval_extraction_fenced_unfenced_empty():
     assert not branch.humaneval_defines_entry_point("def broken(:", "add")
 
 
+def test_humaneval_extraction_unterminated_fence_matches_frozen_rule():
+    # Regression: an unterminated fence is not a complete block; both paths fall back to the
+    # raw output, whose ```python line breaks ast.parse, so the prediction is malformed.
+    raw = "```python\ndef min_path(grid):\n    return 0\n"
+    expected = raw.strip("\n").strip()
+    assert branch.extract_humaneval_code(raw) == expected
+    assert branch._audit_extract_humaneval(raw) == expected
+    assert not branch.humaneval_defines_entry_point(branch.extract_humaneval_code(raw), "min_path")
+    assert not branch._audit_defines(branch._audit_extract_humaneval(raw), "min_path")
+    terminated = "Here:\n```python\ndef min_path(grid):\n    return 0\n```\nThanks."
+    assert branch.extract_humaneval_code(terminated) == "def min_path(grid):\n    return 0"
+    assert branch._audit_extract_humaneval(terminated) == branch.extract_humaneval_code(terminated)
+    assert branch._audit_defines(branch._audit_extract_humaneval(terminated), "min_path")
+
+
+@pytest.mark.parametrize(
+    "raw",
+    [
+        "```python```",  # no newline after the marker: not a block
+        "```python",  # marker only
+        "```python def f():\n    pass\n```",  # no newline directly after the marker
+        "```python\n\n\ndef f():\n    pass\n```",  # extra blank lines after the marker
+        "```pythonX\n```python\ndef f():\n    pass\n```",  # false marker skipped, real block taken
+        "```python\nbody without close\n\n```python\ndef g():\n    pass\n```",  # closes at the next fence
+        "no fence at all",
+        "",
+    ],
+)
+def test_audit_extract_matches_frozen_extraction_exactly(raw):
+    assert branch._audit_extract_humaneval(raw) == branch.extract_humaneval_code(raw)
+
+
+@pytest.mark.parametrize(
+    ("code", "entry_point", "expected"),
+    [
+        ("def f():\n    pass", "f", True),
+        ("async def f():\n    pass", "f", True),
+        ("def outer():\n    def f():\n        pass", "f", False),  # nested is not top-level
+        ("class A:\n    def f(self):\n        pass", "f", False),  # method is not top-level
+        ("def f(:", "f", False),  # syntax error
+        ("def g():\n    pass", "f", False),
+    ],
+)
+def test_audit_defines_agrees_with_scoring_defines(code, entry_point, expected):
+    assert branch.humaneval_defines_entry_point(code, entry_point) is expected
+    assert branch._audit_defines(code, entry_point) is expected
+
+
 def test_humaneval_sandbox_passes_and_blocks_sockets():
     program = branch.build_humaneval_program(
         "def add(a, b):\n    return a + b",
