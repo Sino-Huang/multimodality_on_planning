@@ -2243,7 +2243,9 @@ def build_evidence(
         )
         producing = report.get("producing_attempt")
         worker_result = worker_results.get((producing["job_id"], producing["attempt"]), {})
-        if worker_result.get("policy_identities", {}).get(report["arm"]) != report.get("policy_identity"):
+        if worker_result.get("policy_identities", {}).get(f"{report['modality']}__{report['arm']}") != report.get(
+            "policy_identity"
+        ):
             raise ValueError("second-backbone episode policy identity differs from its producing worker")
         fresh.append(report)
     comparators, comparator_missing = [], []
