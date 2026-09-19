@@ -4,7 +4,7 @@ Reproduce with `source ~/cd_vlaplan`, then `CUDA_VISIBLE_DEVICES='' python scrip
 
 ## 1. Program scope and branch reconciliation
 
-Program `expanded-nine-day-v1` ran on 2 x NVIDIA A100 80GB under a 336 GPU-hour cap with an absolute GPU cutoff of 2026-09-21T11:55:19Z and 48 CPU writing hours reserved. Seven branches were admitted; five executed to completion and two stopped terminal VALID_STOP at frozen cost-admission gates. Reconciliation (`branch-reconciliation.csv`, `budget.csv`):
+Program `expanded-nine-day-v1` ran on 2 x NVIDIA A100 80GB under a 336 GPU-hour cap with an absolute GPU cutoff of 2026-09-21T11:55:19Z and 48 CPU writing hours reserved. Seven branches were admitted; five executed to completion at v1 scope, and two (second_backbone, generalization_robustness) stopped terminal VALID_STOP at frozen v1 cost-admission gates and later completed at reduced scope under new versioned protocols (#123, #124). Reconciliation (`branch-reconciliation.csv`, `budget.csv`):
 
 | Branch | Tickets | Terminal state | Coverage declared | Coverage actual | GPU-h / cap | Audit verdict |
 | --- | --- | --- | --- | --- | ---: | --- |
@@ -13,11 +13,11 @@ Program `expanded-nine-day-v1` ran on 2 x NVIDIA A100 80GB under a 336 GPU-hour 
 | successor_prediction | #85-#89 #99 | complete | 90 episodes (15 modality x panel cells) | 90/90 episodes; missing 0 | 10.8511 / 64 | PASS (goal9 audit) |
 | curriculum_modality | #119 | complete | 243 model episodes + 324 comparator bindings | 243/243 model + 324/324 comparator; missing none | 11.7786 / 48 | PASS (goal10 audit) |
 | transfer | #104-#107 | complete | 12 v1 cells + 27 v2 cells; 36 paired comparisons | 39/39 cells; missing [] both protocols | 3.5993 / 24 | PASS (goal13 audit) |
-| second_backbone | #101 #102 #103 | VALID_STOP (L2) | no model outcomes (cost admission) | probe + CPU qualification only | 3.9577 / 40 | VALID_STOP (admission L2) |
-| generalization_robustness | #96 #98 | VALID_STOP (L4) | 120 generated variants | 93 eligible / 27 missing; 0 replacements | 0.6273 / 32 | VALID_STOP (admission L4) |
-| recovery_reserve | - | untouched | - | - | 0.0000 / 24 | - |
+| second_backbone | #101 #102 #103 #123 | complete (v2 reduced scope) | 72 model episodes + 72 reused comparators (L1 key-cell) | 72/72 model replayed + 72 comparators verified; missing [] | 6.0305 / 52.11 | PASS (admission L1 v2, #123 closeout) |
+| generalization_robustness | #96 #98 #124 | complete (v2 reduced scope) | 1200 episodes (300 model + 900 CPU controls) | 1200/1200 replayed; missing [] | 3.8189 / 32 | PASS (admission-v2, #124 closeout) |
+| recovery_reserve | - | reduced by transfer | - | - | 0.0000 / 11.89 | - |
 
-Open issues #96 and #98 (generalization/robustness) and #102/#103 (second backbone) are explicitly incomplete: both branches published terminal VALID_STOP evidence with admission arithmetic instead of model outcomes. Five branches' goal audits (goal2-goal10, goal13) are `complete` and goal-1 readiness is `PASS` (verification.json: GOAL-AUDITS).
+Tickets #123 and #124 are CLOSED on the published v2 evidence. The v1 full scopes remain unexecuted: issues #96 and #98 (generalization/robustness) and #102/#103 (second backbone) stay OPEN with their terminal VALID_STOP evidence retained as history (see section 6). Five branches' goal audits (goal2-goal10, goal13) are `complete` and goal-1 readiness is `PASS` (verification.json: GOAL-AUDITS).
 
 ## 2. Matched modalities: expanded baseline
 
@@ -106,18 +106,39 @@ Modality x ordering interaction contrasts (paired whole-problem bootstrap, 10,00
 
 All four interaction intervals include zero: there is no detectable curriculum-ordering by modality interaction. Saturation caveat: random-valid and exact controls saturate at 27/27 in every modality and the base at 0/27, so ceiling/floor effects bound observable differences.
 
-## 6. Generalization/robustness and second backbone: VALID_STOP
+## 6. Generalization/robustness and second backbone: v2 reduced-scope completions
 
-**Generalization/robustness (#96/#98), admission L4 VALID_STOP.** The frozen suite generated 120 variants (24 scale-up, 24 shifted-init, 72 perturbations). Qualification retained 93 eligible variants with 27 missing (24 `exact_reference_failed:bfs:expansion_budget_exhausted`, 2 `initial_goal`, 1 `structural whole-instance overlap`) and zero replacements. Every scope level fails the Gate-2 admission: even L3 (34 tasks) requires 1704.89 GPU-h against a 31.37 GPU-h remainder. No derived-task model evaluation was launched. One robustness finding exists without any model call: P3 name-compression is information-lossy exactly where names carry semantics — text 24/24 lossy, visual 0/24 lossy, multimodal 18/24 lossy.
+Both branches stopped terminal VALID_STOP at their frozen v1 cost-admission gates and later executed at reduced scope under new versioned protocols, funded within the original 336 GPU-h total and cutoff (verification.json: SECOND-BACKBONE-V2, GENERALIZATION-V2).
 
-**Second backbone (#101-#103), admission L2 VALID_STOP.** The probe qualifies OpenGVLab/InternVL3_5-8B-HF @741a7d03020411e666c6109218ab71e08151ef86 (visual_sdpa attention, byte-identical batched outputs, repeated-batch determinism, adapter isolation, token-limit guards; 1,536 records / 24 tasks / 5,907 decisions measured CPU-only). The cost admission then stops the branch:
+**Generalization/robustness v2 (#124, protocol `expanded-generalization-robustness-v2`).** Admission-v2 PASS admits a uniform k=5 cheapest-prefix per family of the 93 eligible variants (5 families x 5 = 25 variants; membership sha256 `008deaf35b…2d60` frozen before execution), requiring 29.4945 of the 31.3727 GPU-h branch remainder — no transfer was needed or requested. Evaluation outcome PASS: 1,200/1,200 episodes independently replayed (300 model = 25 x (6 learned_adapter + 6 pretrained_base) + 900 CPU controls = random_valid x 5 seeds + exact_reference), missingness []. Headline, recomputed from the 1,200 episode reports:
 
-| Level | Episodes | Train GPU-h | Eval GPU-h | Required incl. spent | Fits 36.04 remainder |
+| Family | learned_adapter | pretrained_base | random_valid | exact_reference |
+| --- | ---: | ---: | ---: | ---: |
+| object-renaming | 29/30 | 0/30 | 150/150 | 30/30 |
+| name-compression | 27/30 | 0/30 | 150/150 | 30/30 |
+| render-restyle | 27/30 | 0/30 | 150/150 | 30/30 |
+| scale-up | 26/30 | 0/30 | 150/150 | 30/30 |
+| shifted-init | 19/30 | 0/30 | 150/150 | 30/30 |
+
+Learned adapters succeed on **128/150** invariant-valid episodes vs **0/150** for the pretrained base — every base episode is a one-call invalid termination (150 decisions total), empirically confirming the estimand's 1-call base pricing. Controls saturate (random_valid 750/750, exact_reference 150/150) and are bounds, not learned ability, per the #54 rule. Learned by modality: text 44/50, multimodal 43/50, visual 41/50; by algorithm: greedy 67/75, w3 61/75. All 22 learned failures are single-invalid-operation terminations, concentrated in shifted-init (11). The lossy P3 name-compression stratum stays separate: all 5 admitted variants are text-lossy, 3 multimodal-lossy, 0 visual-lossy, and learned success on that stratum is text 9/10, visual 8/10, multimodal 10/10 — never pooled with the semantics-preserving families.
+
+**Second backbone v2 (#123, protocol `expanded-second-backbone-v2`).** Admission L1 PASS under the transfer-amended 52.11 GPU-h cap authorizes the 12/24 key-cell tasks selected by lowest reference BFS decision count, frozen before any model outcome. Training PASS: three cells (text/visual/multimodal), each 512 records x 16 optimizer updates, seed 17, identical fresh LoRA init across cells. Evaluation PASS: 72/72 model episodes independently replayed plus 72 sha256-pinned baseline comparators verified at zero new comparator GPU cost, missingness []. Null result, recomputed from the episode reports: neither arm ever reaches a goal.
+
+| Contrast (paired, 12 units, bootstrap seed 1729, 10,000 resamples) | text | visual | multimodal |
+| --- | ---: | ---: | ---: |
+| process_sft - pretrained_base | +0.000 [+0.000, +0.000] | +0.000 [+0.000, +0.000] | +0.000 [+0.000, +0.000] |
+| process_sft - random_valid | -0.750 [-1.000, -0.500] | -0.750 [-1.000, -0.500] | -0.750 [-1.000, -0.500] |
+
+Cross-backbone InternVL-SFT - Qwen3-VL-SFT (multimodal +0.000 [+0.000, +0.000] | text +0.000 [+0.000, +0.000] | visual +0.000 [+0.000, +0.000]) is reported as descriptive, not paired: the pinned baseline evidence holds aggregate cells only, so the contrast conditions on the Qwen pinned full-panel process-SFT BFS rate (0.0). pretrained_base runs 1 decision per episode (36 total); process_sft runs 1-4 decisions (59 total). Reused controls: random_valid 54/72 (18/24 per modality, oracle-assisted), exact_reference 72/72.
+
+**v1 history, retained.** The v1 full scopes remain unexecuted with their terminal VALID_STOP evidence intact. Generalization/robustness v1 (admission L4): the frozen suite generated 120 variants (24 scale-up, 24 shifted-init, 72 perturbations); qualification retained 93 eligible variants with 27 missing (24 `exact_reference_failed:bfs:expansion_budget_exhausted`, 2 `initial_goal`, 1 `structural whole-instance overlap`) and zero replacements; every v1 scope level fails the Gate-2 admission (even L3, 34 tasks, requires 1704.89 GPU-h against a 31.37 GPU-h remainder). P3 name-compression is information-lossy exactly where names carry semantics — text 24/24 lossy, visual 0/24 lossy, multimodal 18/24 lossy (family-wide classification). Second backbone v1 (admission L2): the probe qualifies OpenGVLab/InternVL3_5-8B-HF @741a7d03020411e666c6109218ab71e08151ef86 (visual_sdpa attention, byte-identical batched outputs, repeated-batch determinism, adapter isolation, token-limit guards; 1,536 records / 24 tasks / 5,907 decisions measured CPU-only) and the v1 cost admission then stopped the full-panel scope:
+
+| Level | Episodes | Train GPU-h | Eval GPU-h | Required incl. spent | Fits 36.04 pre-transfer remainder |
 | --- | ---: | ---: | ---: | ---: | --- |
 | L0 | 144 | 2.70 | 200.87 | 258.42 | False |
 | L1 | 72 | 2.70 | 32.64 | 48.14 | False |
 
-Neither branch mutated the ledger; both remain open as incomplete evidence publications.
+Issues #96/#98/#102/#103 stay OPEN on the v1 wording; #123/#124 are CLOSED on the v2 evidence.
 
 ## 7. Transfer to external benchmarks (#104-#107)
 
@@ -133,7 +154,7 @@ Paired verdict (`transfer-paired.csv`): 36 McNemar exact comparisons against the
 
 ## 8. Compute accounting
 
-Per-branch ledger reconciliation (sums recomputed from all 116 recorded attempts; failed and cutoff attempts retain their hours per the accounting policy):
+Per-branch ledger reconciliation (sums recomputed from all 135 recorded attempts; failed and cutoff attempts retain their hours per the accounting policy):
 
 | Branch | Attempts (s/f/c) | Succeeded GPU-h | Failed GPU-h | Cutoff GPU-h | Total GPU-h | Cap |
 | --- | --- | ---: | ---: | ---: | ---: | ---: |
@@ -141,27 +162,29 @@ Per-branch ledger reconciliation (sums recomputed from all 116 recorded attempts
 | dagger | 21/7/0 | 10.5928 | 0.3164 | 0.0000 | 10.9092 | 48 |
 | successor_prediction | 21/10/0 | 10.7636 | 0.0876 | 0.0000 | 10.8511 | 64 |
 | curriculum_modality | 6/4/3 | 4.1671 | 0.1121 | 7.4994 | 11.7786 | 48 |
-| generalization_robustness | 1/0/0 | 0.6273 | 0.0000 | 0.0000 | 0.6273 | 32 |
-| second_backbone | 3/4/0 | 1.5603 | 2.3973 | 0.0000 | 3.9577 | 40 |
+| generalization_robustness | 6/1/0 | 3.7983 | 0.0206 | 0.0000 | 3.8189 | 32 |
+| second_backbone | 10/10/0 | 3.6332 | 2.3973 | 0.0000 | 6.0305 | 52.11 |
 | transfer | 12/2/0 | 3.5993 | 0.0000 | 0.0000 | 3.5993 | 24 |
-| recovery_reserve | 0/0/0 | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 24 |
-| **Total** | **84/29/3** | **37.8393** | **2.9134** | **7.4994** | **48.2521 / 336** | 336 |
+| recovery_reserve | 0/0/0 | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 11.89 |
+| **Total** | **96/36/3** | **43.0832** | **2.9340** | **7.4994** | **53.5166 / 336** | 336 |
 
-The program spent 48.25/336 GPU-h (14.4% of cap). No transfers were requested or made between branches; the recovery reserve (24 GPU-h) is untouched; every attempt ended before the 2026-09-21T11:55:19Z GPU cutoff. Ledger-vs-branch cumulative totals agree within 0.01 GPU-h everywhere (verification.json: LEDGER, LEDGER-VS-BRANCH; the transfer docs' 3.5993 rounds the ledger's 3.59932 and the second-backbone admission conservatively double-counts the 0.63 GPU-h probe window in its remainder arithmetic).
+The program spent 53.52/336 GPU-h (15.9% of cap). Exactly one budget transfer was made: a prospective 12.11 GPU-h recovery_reserve -> second_backbone transfer documented on 2026-09-19 before execution (ticket #123, protocol expanded-second-backbone-v2), which moved the second_backbone cap 40 -> 52.11 and the recovery reserve 24 -> 11.89 while preserving the 336 total and the 2026-09-21T11:55:19Z GPU cutoff; every attempt ended before that cutoff. Ledger-vs-branch cumulative totals agree within 0.01 GPU-h everywhere (verification.json: LEDGER, LEDGER-VS-BRANCH; the transfer docs' 3.5993 rounds the ledger's 3.59932, the second-backbone v1 admission conservatively double-counts the 0.63 GPU-h probe window in its remainder arithmetic, and the generalization v1 admission's probe double-count is recorded as a nit in admission-v2 and not repeated).
 
 ## 9. Claim inventory and boundaries
 
-- **coverage** [supported]: Every executed branch reconciles with zero missing evidence: 1,152/1,152 baseline episodes independently replayed, 405/405 DAgger episodes, 90/90 successor episodes, 243/243 curriculum model episodes with 324/324 comparator bindings, and 39/39 transfer cells (12 v1 + 27 v2). Evidence: `verification.json: BASELINE-RECOMPUTE, DAGGER, SUCCESSOR, CURRICULUM, TRANSFER; baseline-independent-replay.json`.
+- **coverage** [supported]: Every executed branch reconciles with zero missing evidence: 1,152/1,152 baseline episodes independently replayed, 405/405 DAgger episodes, 90/90 successor episodes, 243/243 curriculum model episodes with 324/324 comparator bindings, 39/39 transfer cells (12 v1 + 27 v2), 72/72 second-backbone-v2 model episodes with 72 sha256-pinned comparators verified, and 1,200/1,200 generalization-v2 episodes. Evidence: `verification.json: BASELINE-RECOMPUTE, DAGGER, SUCCESSOR, CURRICULUM, TRANSFER, SECOND-BACKBONE-V2, GENERALIZATION-V2; baseline-independent-replay.json`.
 - **baseline-validity** [supported]: The pretrained base never emits a schema/search-valid operation (0/288 successes; every episode terminates on an invalid operation). Process-SFT succeeds on 125/288 with 163 invalid operations, and SFT driving BFS or best-first-width search fails 0/24 in every modality. Evidence: `baseline-summary.csv: arm=pretrained_base/process_sft; baseline-paired.csv; verification.json: BASELINE-RECOMPUTE`.
 - **baseline-controls** [boundary]: Random-valid, an oracle-assisted programmatic valid-operation control, reaches 240/288 (bfs 15/24, best_first_width 17/24, w3 24/24, greedy 24/24, identical across modalities); exact-reference reaches 288/288 with per-modality decisions of bfs 1969, bfw 974, w3 694, greedy 673. These are bounds and references, not model abilities. Evidence: `baseline-summary.csv: arm=random_valid/exact_reference; baseline-contrasts.csv: random_valid_minus_exact_reference`.
 - **dagger-null** [negative]: DAgger is a null result on the 72 unseen modality-task pairs: 1 invariant-valid success, identical to exposure-matched continued SFT (1/72) and far below random-valid (45/72); one paired win, one paired loss and 70 ties vs continued SFT. Final cumulative unique training corrections: text 201, visual 203, multimodal 181 over 12 training cells x 512 records x 16 updates. Evidence: `dagger-summary.csv; dagger-comparison.json: paired_whole_problem, final_cumulative_unique_training_corrections, training_exposure`.
 - **successor-verification** [negative]: The untrained exact-successor verification accepts 119/1536 collection predictions (text 43, visual 52, multimodal 24). The trained successor is exact on 65/109 predictions (93 schema-valid, 66 effect-valid) and yields 1/45 downstream success vs 45/45 for the trusted-successor arm. Evidence: `successor-summary.csv; successor-data.json: coverage.verification_outcomes; successor-evaluation.json: cells, paired_whole_problem_rows`.
 - **curriculum-null** [negative]: No curriculum-ordering x modality interaction: staged/shuffled/mixed successes are text 24/24/25, visual 24/27/26, multimodal 25/27/27 out of 27, and all four bootstrap interaction intervals include zero. Random-valid and exact controls saturate at 27/27 in every modality while the base stays at 0/27. Evidence: `curriculum-summary.csv; curriculum runtime analysis.json: modality_x_ordering_interaction, control_saturation`.
 - **transfer-null** [negative]: No adapter shows statistically reliable transfer to FOLIO, GSM8K or HumanEval: 0/36 comparisons survive Holm correction (min adjusted p 0.8156; smallest raw p 0.0227 for folio/iw_text). Leakage screening finds 7/564 benchmark items sharing trivial numeric 8-grams and zero content overlap. Evidence: `transfer-paired.csv; transfer-paired-analysis.json; transfer/leakage.json`.
-- **incomplete-branches** [incomplete]: second_backbone and generalization_robustness are terminal VALID_STOP with no model outcomes: admission L2 requires 258.42 (L0) / 48.14 (L1) GPU-h against a 36.04 remainder, and admission L4 follows the Gate-2 rule after 93/120 variants qualified (27 missing, 0 replacements). The recovery reserve is untouched. Evidence: `second-backbone/admission.json; generalization-robustness/admission.json, audit.json; budget.json`.
-- **compute-accounting** [supported]: The program spent 48.25/336 GPU-h across 116 recorded attempts with no transfers; failed and cutoff attempts retain their hours in the ledger, every attempt ended before the 2026-09-21T11:55:19Z cutoff, and the recovery reserve was never touched. Evidence: `budget.csv; verification.json: LEDGER, LEDGER-VS-BRANCH`.
+- **second-backbone-v2-null** [negative]: On the 12-task reference-cost-reduced key-cell panel (protocol expanded-second-backbone-v2, #123), the pinned InternVL3_5-8B backbone never reaches a goal: pretrained_base 0/36 (one invalid operation, 1 decision per episode) and process_sft 0/36 (1-4 decisions, 59 total). Paired whole-problem bootstrap (12 units, seed 1729, 10,000 resamples): process_sft - pretrained_base = +0.000 [0.000, 0.000] and process_sft - random_valid = -0.750 [-1.000, -0.500] in all three modalities; cross-backbone InternVL-SFT - Qwen3-VL-SFT = +0.000 [0.000, 0.000], which is descriptive, not paired, because the pinned baseline evidence holds aggregate cells only. Evidence: `second-backbone-v2/evaluation/analysis.json; verification.json: SECOND-BACKBONE-V2; issue-123-closeout.md`.
+- **generalization-v2-headline** [supported]: On the 25 admitted derived tasks (uniform k=5 x 5 families, protocol expanded-generalization-robustness-v2, #124) the learned additive-best-first adapters succeed on 128/150 episodes vs 0/150 for pretrained_base (every base episode is a one-call invalid termination, confirming the estimand's 1-call pricing empirically); per family learned: object-renaming 29/30, name-compression 27/30, render-restyle 27/30, scale-up 26/30, shifted-init 19/30; per modality text 44/50, multimodal 43/50, visual 41/50; greedy 67/75 vs w3 61/75. Controls saturate (random_valid 750/750, exact_reference 150/150) and are bounds, not learned ability, per the #54 rule; the lossy P3 name-compression stratum is reported separately (learned text 9/10, visual 8/10, multimodal 10/10) and never pooled. Evidence: `generalization-robustness/evaluation.json; verification.json: GENERALIZATION-V2; issue-124-closeout.md`.
+- **v1-full-scopes-remain-open** [boundary]: The v1 full scopes of second_backbone and generalization_robustness were never executed and their terminal VALID_STOP evidence is retained as history: v1 admission L2 (second_backbone; 258.42 L0 / 48.14 L1 GPU-h required against a 36.04 pre-transfer remainder) and v1 admission L4 (generalization_robustness; 93/120 variants qualified, 27 missing, 0 replacements; smallest L3 scope 1704.89 GPU-h infeasible). The v2 reduced scopes were funded by a single prospective 12.11 GPU-h recovery_reserve -> second_backbone transfer (ratified 2026-09-19, #123); generalization-v2 required 29.4945 of the 31.3727 remainder and needed no transfer. Issues #96/#98/#102/#103 remain OPEN. Evidence: `second-backbone/admission.json; generalization-robustness/admission.json, admission-v2.json, audit.json; budget.json; verification.json: LEDGER, SECOND-BACKBONE-V2, GENERALIZATION-V2`.
+- **compute-accounting** [supported]: The program spent 53.52/336 GPU-h across 135 recorded attempts with exactly one prospective transfer (recovery_reserve -> second_backbone, 12.11 GPU-h, documented 2026-09-19 for #123); failed and cutoff attempts retain their hours in the ledger, every attempt ended before the 2026-09-21T11:55:19Z cutoff, the 336 total and the cutoff were preserved, and the recovery reserve keeps its remaining 11.89 GPU-h. Evidence: `budget.csv; verification.json: LEDGER, LEDGER-VS-BRANCH`.
 - **historical-separation** [boundary]: The v5 study (3 problems x 4 algorithms x 3 modalities = 144 bindings, 72 model episodes; SFT 5/12 text, 6/12 visual, 6/12 multimodal) and historical #67 (60/60 saturated under all orderings) remain separate studies on their own ledgers and are never pooled into the expanded panel. Evidence: `v5-final-evaluation.json; analysis-v5/analysis.json; data/best_first_paired_phase_v3/issue67-terminal/result.json`.
-- **second-backbone-probe** [supported]: The second-backbone probe qualifies OpenGVLab/InternVL3_5-8B-HF @741a7d03020411e666c6109218ab71e08151ef86: visual_sdpa attention, byte-identical batched outputs, adapter isolation and token-limit guards all pass; only the cost admission stops the branch. Evidence: `second-backbone/probe.json, qualification/qualification.json`.
+- **second-backbone-probe** [supported]: The second-backbone probe qualifies OpenGVLab/InternVL3_5-8B-HF @741a7d03020411e666c6109218ab71e08151ef86: visual_sdpa attention, byte-identical batched outputs, adapter isolation and token-limit guards all pass. The v1 cost admission stopped the full-panel scope (L2 VALID_STOP), and the v2 L1 reduced key-cell scope was then trained and evaluated under #123 on the probed backbone. Evidence: `second-backbone/probe.json, qualification/qualification.json; second-backbone-v2/admission.json`.
 
 Claim boundaries, kept explicit:
 
@@ -170,6 +193,9 @@ Claim boundaries, kept explicit:
 - Operation validity, search quality (decisions/expansions), predicted-state correctness (successor checks) and compute accounting are distinct axes and are never conflated.
 - Unlabelled 128px state images lose information (P3 name-compression is lossy 24/24 in text and 18/24 in multimodal); matched modalities match training exposure, not lossless information, and shared text pages/goal context remain in every modality.
 - Tiny-subgroup honesty: 24-problem cells (baseline), 3-problem dev panels, 9-arm unseen panels and 36-transfer comparisons are small; bootstrap intervals are descriptive bounds, not broad superiority claims.
+- Reduced-scope honesty: second-backbone-v2 is a 12/24 key-cell panel selected by lowest reference BFS decision count (frozen pre-outcomes), and generalization-v2 admits 5 of 93 eligible variants per family (k=5 cheapest prefix); family strata hold 5 problems each (<8), so v2 family-level rates are descriptive-only under the tiny-subgroup rule and the v1 full scopes stay unexecuted (#96/#98/#102/#103 open).
+- The second-backbone-v2 cross-backbone contrast is descriptive, not paired (pinned baseline evidence holds aggregate cells only), and InternVL3.5-8B shares the Qwen3-8B LLM family, so the replication contrast is the vision tower, connector, image tokenization and multimodal recipe — not the LLM backbone.
+- v2 controls saturate (generalization random_valid 750/750, exact_reference 150/150; second-backbone exact_reference 72/72) and bound bookkeeping, never learned ability.
 
 ## 10. Figures
 

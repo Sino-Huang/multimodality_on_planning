@@ -4,6 +4,7 @@
   "gpus": [],
   "max_seconds": 3600,
   "total": 3,
+  "resume_reason": "retry after 5440116 fixed the v1 job-id pin in finalize-training; attempt 1 failed before any training artifact was written, trained checkpoints and ledger actuals from sb-v2-train-0/1 are retained unchanged",
   "command": [
     "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
     "scripts/run_expanded_second_backbone.py",

@@ -12,17 +12,17 @@
         "id": "LEDGER",
         "outcome": "PASS",
         "recomputed": {
-          "attempts": 116,
+          "attempts": 135,
           "per_branch_gpu_hours": {
             "expanded_baseline": 6.52891837351852,
             "dagger": 10.909218951265014,
             "successor_prediction": 10.851129488812553,
             "curriculum_modality": 11.778588217563097,
-            "generalization_robustness": 0.6272556656599044,
-            "second_backbone": 3.957651311026679,
+            "generalization_robustness": 3.818936477833324,
+            "second_backbone": 6.030487103859584,
             "transfer": 3.599319179389212
           },
-          "total_gpu_hours": 48.25208118723498,
+          "total_gpu_hours": 53.516597792241306,
           "per_branch_status_split": {
             "expanded_baseline": {
               "succeeded": 20,
@@ -42,11 +42,12 @@
               "cutoff": 3
             },
             "generalization_robustness": {
-              "succeeded": 1
+              "succeeded": 6,
+              "failed": 1
             },
             "second_backbone": {
-              "succeeded": 3,
-              "failed": 4
+              "succeeded": 10,
+              "failed": 10
             },
             "transfer": {
               "failed": 2,
@@ -72,10 +73,11 @@
               "cutoff": 7.499440970818202
             },
             "generalization_robustness": {
-              "succeeded": 0.6272556656599044
+              "succeeded": 3.79833507431878,
+              "failed": 0.02060140351454417
             },
             "second_backbone": {
-              "succeeded": 1.560328282184071,
+              "succeeded": 3.633164075016975,
               "failed": 2.397323028842608
             },
             "transfer": {
@@ -83,12 +85,17 @@
               "succeeded": 3.599319179389212
             }
           },
-          "transfers": [],
-          "max_attempt_ended_epoch": 1789804419.0599597
-        },
-        "recorded": {
-          "total_cap_gpu_hours": 336,
-          "per_branch_caps": {
+          "transfers": [
+            {
+              "source": "recovery_reserve",
+              "target": "second_backbone",
+              "hours": 12.11,
+              "reason": "Prospective transfer ratified by the user on 2026-09-19 (approach A): fund the frozen second-backbone L1 key-cell scope under new protocol expanded-second-backbone-v2 (ticket #123). Frozen arithmetic: train 2.70 + eval 32.64 GPU-h measured basis, x1.25 safety = 44.18 required-including-spent 48.14; amended cap 52.11 >= required 48.14 + spent 3.96. Does not extend the 336 total or the 2026-09-21T11:55:19Z cutoff; v1 VALID_STOP evidence retained; #102/#103 remain open.",
+              "time": 1789816956.548306,
+              "source_committed_hours": 0
+            }
+          ],
+          "schedule_allocations": {
             "expanded_baseline": 56,
             "dagger": 48,
             "successor_prediction": 64,
@@ -98,14 +105,54 @@
             "transfer": 24,
             "recovery_reserve": 24
           },
-          "transfers": [],
+          "derived_allocations_schedule_plus_transfers": {
+            "expanded_baseline": 56.0,
+            "dagger": 48.0,
+            "successor_prediction": 64.0,
+            "curriculum_modality": 48.0,
+            "generalization_robustness": 32.0,
+            "second_backbone": 52.11,
+            "transfer": 24.0,
+            "recovery_reserve": 11.89
+          },
+          "ledger_allocations": {
+            "expanded_baseline": 56,
+            "dagger": 48,
+            "successor_prediction": 64,
+            "curriculum_modality": 48,
+            "generalization_robustness": 32,
+            "second_backbone": 52.11,
+            "transfer": 24,
+            "recovery_reserve": 11.89
+          },
+          "single_transfer_matches_documented_reason": true,
+          "max_attempt_ended_epoch": 1789840426.6199868
+        },
+        "recorded": {
+          "total_cap_gpu_hours": 336,
+          "per_branch_caps": {
+            "expanded_baseline": 56,
+            "dagger": 48,
+            "successor_prediction": 64,
+            "curriculum_modality": 48,
+            "generalization_robustness": 32,
+            "second_backbone": 52.11,
+            "transfer": 24,
+            "recovery_reserve": 11.89
+          },
+          "expected_transfer": {
+            "source": "recovery_reserve",
+            "target": "second_backbone",
+            "hours": 12.11,
+            "documented": "prospective, ratified 2026-09-19 for protocol expanded-second-backbone-v2 (ticket #123)"
+          },
           "gpu_cutoff_utc": "2026-09-21T11:55:19Z",
           "gpu_cutoff_epoch": 1789991719.0
         },
         "sources": [
           "outputs/expanded-study/v1/budget.json"
         ],
-        "notes": "All per-branch sums are within cap, total is within the 336 GPU-h program cap, no transfers were requested and every attempt ended before the absolute GPU cutoff."
+        "notes": "All per-branch sums are within the schedule allocations adjusted by the single documented prospective transfer (recovery_reserve -> second_backbone, 12.11 GPU-h, #123), the ledger allocations equal schedule allocations plus/minus transfers with the 336 GPU-h total and the 2026-09-21T11:55:19Z cutoff preserved, and every attempt ended before the absolute GPU cutoff."
       },
       {
         "id": "LEDGER-VS-BRANCH",
@@ -115,8 +162,8 @@
           "dagger": 10.909218951265014,
           "successor_prediction": 10.851129488812553,
           "curriculum_modality": 11.778588217563097,
-          "generalization_robustness": 0.6272556656599044,
-          "second_backbone": 3.957651311026679,
+          "generalization_robustness": 3.818936477833324,
+          "second_backbone": 6.030487103859584,
           "transfer": 3.599319179389212
         },
         "recorded": {
@@ -126,21 +173,24 @@
             "successor_prediction": 10.851129,
             "curriculum_modality": 11.778588217563097,
             "transfer": 3.5993,
-            "second_backbone": 3.957651311026679,
-            "generalization_robustness": 0.6272556656599044
+            "second_backbone": 6.0305,
+            "generalization_robustness": 3.8189
           },
           "ledger_minus_recorded": {
             "expanded_baseline": 0.0,
             "dagger": 0.0,
             "successor_prediction": 4.888125531010701e-07,
             "curriculum_modality": 0.0,
-            "generalization_robustness": 0.0,
-            "second_backbone": 0.0,
+            "generalization_robustness": 3.6477833323722564e-05,
+            "second_backbone": -1.2896140415996626e-05,
             "transfer": 1.917938921192075e-05
           },
           "transfer_ledger_exact": 3.599319179389212,
           "transfer_docs_components_note": "transfer docs components sum 3.5965 vs ledger 3.5993 (rounding)",
-          "second_backbone_note": "admission remainder arithmetic conservatively double-counts the 0.63 GPU-h probe window; ledger sum is authoritative"
+          "second_backbone_recorded": "issue-123 closeout / sb2 evidence branch_accounting: v1 retained 3.9577 + v2 training 1.5734 + v2 evaluation 0.4995 + failed CPU finalize attempts 0.0",
+          "generalization_robustness_recorded": "issue-124 closeout accounting: probe 0.6273 + failed models-0 attempt 0.0206 + learned worker 3.0030 + base worker 0.1681 = 3.8189",
+          "second_backbone_v1_note": "the v1 admission remainder arithmetic conservatively double-counts the 0.63 GPU-h probe window; the ledger sum is authoritative",
+          "generalization_v1_note": "the v1 admission's 0.6273 probe double-count is recorded as a nit in admission-v2 and not repeated; the ledger sum is authoritative"
         },
         "sources": [
           "outputs/expanded-study/v1/budget.json",
@@ -149,8 +199,9 @@
           "docs/experiments/expanded-study/goal9-completion-audit.json",
           "docs/experiments/expanded-study/goal10-completion-audit.json",
           "docs/experiments/expanded-study/transfer-findings.md",
-          "outputs/expanded-study/v1/second-backbone/admission.json",
-          "outputs/expanded-study/v1/generalization-robustness/admission.json"
+          "outputs/expanded-study/v1/second-backbone-v2/evaluation/evidence.json",
+          "docs/experiments/expanded-study/issue-123-closeout.md",
+          "docs/experiments/expanded-study/issue-124-closeout.md"
         ],
         "notes": "PASS within the 0.01 GPU-h tolerance; exact differences recorded per branch."
       },
@@ -1381,15 +1432,155 @@
         "notes": "Anchor min Holm-adjusted p is 0.8156; the recomputed minimum exceeds the 0.05 threshold so no comparison survives correction."
       },
       {
-        "id": "INCOMPLETE-BRANCHES",
+        "id": "SECOND-BACKBONE-V2",
         "outcome": "PASS",
         "recomputed": {
-          "second_backbone": {
+          "v1_admission_retained": {
             "decision": "L2",
             "outcome": "VALID_STOP",
             "ledger_mutated": false
           },
-          "generalization_robustness": {
+          "v2_admission": {
+            "decision": "L1",
+            "outcome": "PASS",
+            "protocol_id": "expanded-second-backbone-v2",
+            "branch_cap_gpu_hours": 52.11,
+            "ledger_mutated": false,
+            "authorized_tasks": 12
+          },
+          "v2_training": {
+            "status": "PASS",
+            "cells": 3,
+            "records_per_cell": [
+              512,
+              512,
+              512
+            ],
+            "optimizer_updates_per_cell": [
+              16,
+              16,
+              16
+            ],
+            "same_record_set_all_cells": true,
+            "fresh_lora_init_identical_all_cells": true
+          },
+          "v2_evaluation": {
+            "outcome": "PASS",
+            "model_episodes": "72/72",
+            "complete_coverage": true,
+            "missing_bindings": [],
+            "missing_comparator_bindings": [],
+            "comparator_sources_sha256_pinned": 72,
+            "comparator_files_exist": true,
+            "model_arms_recomputed_from_72_episodes": {
+              "pretrained_base": {
+                "episodes": 36,
+                "successes": 0,
+                "decisions": 36,
+                "invalid_operations": 36
+              },
+              "process_sft": {
+                "episodes": 36,
+                "successes": 0,
+                "decisions": 59,
+                "invalid_operations": 36
+              }
+            },
+            "reused_controls": {
+              "random_valid": {
+                "episodes": 72,
+                "successes": 54,
+                "decisions": 1902,
+                "invalid_operations": 0
+              },
+              "exact_reference": {
+                "episodes": 72,
+                "successes": 72,
+                "decisions": 1920,
+                "invalid_operations": 0
+              }
+            }
+          },
+          "v2_analysis": {
+            "outcome": "PASS",
+            "paired_units": 12,
+            "bootstrap": {
+              "seed": 1729,
+              "resamples": 10000,
+              "confidence": 0.95
+            },
+            "process_sft_minus_pretrained_base": {
+              "multimodal-state": {
+                "lower": 0.0,
+                "point": 0.0,
+                "upper": 0.0
+              },
+              "text-state": {
+                "lower": 0.0,
+                "point": 0.0,
+                "upper": 0.0
+              },
+              "visual-state": {
+                "lower": 0.0,
+                "point": 0.0,
+                "upper": 0.0
+              }
+            },
+            "process_sft_minus_random_valid": {
+              "multimodal-state": {
+                "lower": -1.0,
+                "point": -0.75,
+                "upper": -0.5
+              },
+              "text-state": {
+                "lower": -1.0,
+                "point": -0.75,
+                "upper": -0.5
+              },
+              "visual-state": {
+                "lower": -1.0,
+                "point": -0.75,
+                "upper": -0.5
+              }
+            },
+            "cross_backbone_descriptive_not_paired": {
+              "multimodal-state": {
+                "lower": 0.0,
+                "point": 0.0,
+                "upper": 0.0
+              },
+              "text-state": {
+                "lower": 0.0,
+                "point": 0.0,
+                "upper": 0.0
+              },
+              "visual-state": {
+                "lower": 0.0,
+                "point": 0.0,
+                "upper": 0.0
+              }
+            }
+          }
+        },
+        "recorded": {
+          "expected": "v1 L2 VALID_STOP retained; v2 admission L1 PASS (cap 52.11), training PASS (3 cells x 512 records x 16 updates, identical fresh seed-17 LoRA init), evaluation PASS (72/72 model episodes replayed, 72 sha256-pinned comparators verified), analysis PASS (12 paired units; sft-base +0.000 [0,0]; sft-random_valid -0.750 [-1,-0.5]; cross-backbone +0.000 [0,0] descriptive, not paired)"
+        },
+        "sources": [
+          "outputs/expanded-study/v1/second-backbone/admission.json",
+          "outputs/expanded-study/v1/second-backbone-v2/admission.json",
+          "outputs/expanded-study/v1/second-backbone-v2/training/training-report.json",
+          "outputs/expanded-study/v1/second-backbone-v2/evaluation/evidence.json",
+          "outputs/expanded-study/v1/second-backbone-v2/evaluation/analysis.json",
+          "outputs/expanded-study/v1/second-backbone-v2/evaluation/**/*.json.gz",
+          "docs/experiments/expanded-study/issue-123-closeout.md"
+        ],
+        "notes": "The v1 full-panel scope stays a terminal VALID_STOP (L2, retained as history, #102/#103 open); the v2 reduced key-cell scope executed fully under protocol expanded-second-backbone-v2 and the 72 model episodes were independently replayed from raw episode reports."
+      },
+      {
+        "id": "GENERALIZATION-V2",
+        "outcome": "PASS",
+        "recomputed": {
+          "v1_admission_retained": {
             "decision": "L4",
             "outcome": "VALID_STOP",
             "ledger_mutated": false,
@@ -1402,20 +1593,218 @@
               "initial_goal": 2
             },
             "replacements": 0
+          },
+          "v2_admission": {
+            "decision": "PASS",
+            "outcome": "PASS",
+            "protocol_id": "expanded-generalization-robustness-v2",
+            "chosen_k": 5,
+            "total_variants": 25,
+            "uniform_k": true,
+            "required_gpu_hours": 29.494477929438386,
+            "branch_remainder_gpu_hours": 31.372744334340094,
+            "transfer_request": null,
+            "ledger_mutated": false
+          },
+          "v2_evaluation": {
+            "outcome": "PASS",
+            "episodes_replayed": "1200/1200",
+            "missing_bindings": [],
+            "membership_sha256_matches_across_admission_bindings_evaluation": true,
+            "suite_and_qualification_sha256_match_pinned_hashes": true,
+            "by_condition_recomputed_from_1200_episodes": {
+              "learned_adapter": {
+                "successes": 128,
+                "episodes": 150
+              },
+              "pretrained_base": {
+                "successes": 0,
+                "episodes": 150
+              },
+              "random_valid": {
+                "successes": 750,
+                "episodes": 750
+              },
+              "exact_reference": {
+                "successes": 150,
+                "episodes": 150
+              }
+            },
+            "pretrained_base_one_call_invalid_termination_everywhere": true,
+            "learned_by_family": {
+              "object-renaming": {
+                "successes": 29,
+                "episodes": 30
+              },
+              "name-compression": {
+                "successes": 27,
+                "episodes": 30
+              },
+              "render-restyle": {
+                "successes": 27,
+                "episodes": 30
+              },
+              "scale-up": {
+                "successes": 26,
+                "episodes": 30
+              },
+              "shifted-init": {
+                "successes": 19,
+                "episodes": 30
+              }
+            },
+            "by_family_condition": {
+              "object-renaming": {
+                "learned_adapter": {
+                  "successes": 29,
+                  "episodes": 30
+                },
+                "pretrained_base": {
+                  "successes": 0,
+                  "episodes": 30
+                },
+                "random_valid": {
+                  "successes": 150,
+                  "episodes": 150
+                },
+                "exact_reference": {
+                  "successes": 30,
+                  "episodes": 30
+                }
+              },
+              "name-compression": {
+                "learned_adapter": {
+                  "successes": 27,
+                  "episodes": 30
+                },
+                "pretrained_base": {
+                  "successes": 0,
+                  "episodes": 30
+                },
+                "random_valid": {
+                  "successes": 150,
+                  "episodes": 150
+                },
+                "exact_reference": {
+                  "successes": 30,
+                  "episodes": 30
+                }
+              },
+              "render-restyle": {
+                "learned_adapter": {
+                  "successes": 27,
+                  "episodes": 30
+                },
+                "pretrained_base": {
+                  "successes": 0,
+                  "episodes": 30
+                },
+                "random_valid": {
+                  "successes": 150,
+                  "episodes": 150
+                },
+                "exact_reference": {
+                  "successes": 30,
+                  "episodes": 30
+                }
+              },
+              "scale-up": {
+                "learned_adapter": {
+                  "successes": 26,
+                  "episodes": 30
+                },
+                "pretrained_base": {
+                  "successes": 0,
+                  "episodes": 30
+                },
+                "random_valid": {
+                  "successes": 150,
+                  "episodes": 150
+                },
+                "exact_reference": {
+                  "successes": 30,
+                  "episodes": 30
+                }
+              },
+              "shifted-init": {
+                "learned_adapter": {
+                  "successes": 19,
+                  "episodes": 30
+                },
+                "pretrained_base": {
+                  "successes": 0,
+                  "episodes": 30
+                },
+                "random_valid": {
+                  "successes": 150,
+                  "episodes": 150
+                },
+                "exact_reference": {
+                  "successes": 30,
+                  "episodes": 30
+                }
+              }
+            },
+            "learned_by_modality": {
+              "multimodal-state": {
+                "successes": 43,
+                "episodes": 50
+              },
+              "text-state": {
+                "successes": 44,
+                "episodes": 50
+              },
+              "visual-state": {
+                "successes": 41,
+                "episodes": 50
+              }
+            },
+            "learned_by_algorithm": {
+              "best_first_add_greedy": {
+                "successes": 67,
+                "episodes": 75
+              },
+              "best_first_add_w3": {
+                "successes": 61,
+                "episodes": 75
+              }
+            },
+            "p3_lossy_admitted_classification": {
+              "text-state": 5,
+              "visual-state": 0,
+              "multimodal-state": 3
+            },
+            "p3_lossy_stratum_learned": {
+              "multimodal-state": {
+                "successes": 10,
+                "episodes": 10
+              },
+              "text-state": {
+                "successes": 9,
+                "episodes": 10
+              },
+              "visual-state": {
+                "successes": 8,
+                "episodes": 10
+              }
+            }
           }
         },
         "recorded": {
-          "second_backbone_expected": "L2 VALID_STOP, ledger_mutated False",
-          "generalization_robustness_expected": "L4 VALID_STOP, ledger_mutated False",
-          "qualification_expected": "93 eligible / 27 missing / 0 replacements"
+          "expected": "v1 L4 VALID_STOP retained (93 eligible / 27 missing / 0 replacements); v2 admission PASS (uniform k=5, 25 variants, required 29.4945 <= remainder 31.3727, no transfer); evaluation PASS (1200/1200 replayed, membership sha256 008deaf35b...2d60, suite/qualification pins match); learned_adapter 128/150 vs pretrained_base 0/150 (one-call invalid terminations), random_valid 750/750, exact_reference 150/150"
         },
         "sources": [
-          "outputs/expanded-study/v1/second-backbone/admission.json",
           "outputs/expanded-study/v1/generalization-robustness/admission.json",
+          "outputs/expanded-study/v1/generalization-robustness/admission-v2.json",
+          "outputs/expanded-study/v1/generalization-robustness/evaluation.json",
+          "outputs/expanded-study/v1/generalization-robustness/evaluation-bindings.json",
+          "outputs/expanded-study/v1/generalization-robustness/suite-sha256.json",
+          "outputs/expanded-study/v1/generalization-robustness/episodes/**/*.json.gz",
           "outputs/expanded-study/v1/generalization-robustness/audit.json",
-          "outputs/expanded-study/v1/generalization-robustness/screening.json"
+          "outputs/expanded-study/v1/generalization-robustness/screening.json",
+          "docs/experiments/expanded-study/issue-124-closeout.md"
         ],
-        "notes": ""
+        "notes": "The v1 full-suite scope stays a terminal VALID_STOP (L4, retained as history, #96/#98 open); the v2 reduced scope executed fully under protocol expanded-generalization-robustness-v2 and all 1,200 episodes were independently replayed from raw episode reports."
       },
       {
         "id": "PROVENANCE",
@@ -1440,6 +1829,22 @@
           "docs/experiments/expanded-study/transfer-paired-analysis.json": {
             "runtime_copy": "outputs/expanded-study/v1/transfer-paired-analysis.json",
             "sha256_byte_identical": true
+          },
+          "docs/experiments/expanded-study/second-backbone-admission.json": {
+            "runtime_copy": "outputs/expanded-study/v1/second-backbone-v2/admission.json",
+            "sha256_byte_identical": true
+          },
+          "docs/experiments/expanded-study/second-backbone-training.json": {
+            "runtime_copy": "outputs/expanded-study/v1/second-backbone-v2/training/training-report.json",
+            "sha256_byte_identical": true
+          },
+          "docs/experiments/expanded-study/second-backbone-evaluation.json": {
+            "runtime_copy": "outputs/expanded-study/v1/second-backbone-v2/evaluation/evidence.json",
+            "sha256_byte_identical": true
+          },
+          "docs/experiments/expanded-study/second-backbone-analysis.json": {
+            "runtime_copy": "outputs/expanded-study/v1/second-backbone-v2/evaluation/analysis.json",
+            "sha256_byte_identical": true
           }
         },
         "recorded": {
@@ -1455,7 +1860,15 @@
           "docs/experiments/expanded-study/transfer-v2-scores.json",
           "outputs/expanded-study/v1/transfer-v2/scores.json",
           "docs/experiments/expanded-study/transfer-paired-analysis.json",
-          "outputs/expanded-study/v1/transfer-paired-analysis.json"
+          "outputs/expanded-study/v1/transfer-paired-analysis.json",
+          "docs/experiments/expanded-study/second-backbone-admission.json",
+          "outputs/expanded-study/v1/second-backbone-v2/admission.json",
+          "docs/experiments/expanded-study/second-backbone-training.json",
+          "outputs/expanded-study/v1/second-backbone-v2/training/training-report.json",
+          "docs/experiments/expanded-study/second-backbone-evaluation.json",
+          "outputs/expanded-study/v1/second-backbone-v2/evaluation/evidence.json",
+          "docs/experiments/expanded-study/second-backbone-analysis.json",
+          "outputs/expanded-study/v1/second-backbone-v2/evaluation/analysis.json"
         ],
         "notes": ""
       },
@@ -1556,36 +1969,36 @@
       },
       {
         "branch": "second_backbone",
-        "tickets": "#101 #102 #103",
-        "terminal_state": "VALID_STOP (L2)",
-        "coverage_declared": "no model outcomes (cost admission)",
-        "coverage_actual": "probe + CPU qualification only",
-        "gpu_hours": 3.9577,
-        "gpu_hours_cap": 40,
-        "audit_verdict": "VALID_STOP (admission L2)",
-        "notes": "L0 258.42 / L1 48.14 GPU-h required vs 36.04 remainder"
+        "tickets": "#101 #102 #103 #123",
+        "terminal_state": "complete (v2 reduced scope)",
+        "coverage_declared": "72 model episodes + 72 reused comparators (L1 key-cell)",
+        "coverage_actual": "72/72 model replayed + 72 comparators verified; missing []",
+        "gpu_hours": 6.0305,
+        "gpu_hours_cap": 52.11,
+        "audit_verdict": "PASS (admission L1 v2, #123 closeout)",
+        "notes": "v1 L2 VALID_STOP retained as history; 12/24 cheapest-by-reference-BFS tasks; null result"
       },
       {
         "branch": "generalization_robustness",
-        "tickets": "#96 #98",
-        "terminal_state": "VALID_STOP (L4)",
-        "coverage_declared": "120 generated variants",
-        "coverage_actual": "93 eligible / 27 missing; 0 replacements",
-        "gpu_hours": 0.6273,
+        "tickets": "#96 #98 #124",
+        "terminal_state": "complete (v2 reduced scope)",
+        "coverage_declared": "1200 episodes (300 model + 900 CPU controls)",
+        "coverage_actual": "1200/1200 replayed; missing []",
+        "gpu_hours": 3.8189,
         "gpu_hours_cap": 32,
-        "audit_verdict": "VALID_STOP (admission L4)",
-        "notes": "no model outcomes; smallest scope L3 needs 1704.89 GPU-h"
+        "audit_verdict": "PASS (admission-v2, #124 closeout)",
+        "notes": "v1 L4 VALID_STOP retained as history; k=5 x 5 families = 25 variants; learned 128/150 vs base 0/150"
       },
       {
         "branch": "recovery_reserve",
         "tickets": "-",
-        "terminal_state": "untouched",
+        "terminal_state": "reduced by transfer",
         "coverage_declared": "-",
         "coverage_actual": "-",
         "gpu_hours": 0.0,
-        "gpu_hours_cap": 24,
+        "gpu_hours_cap": 11.89,
         "audit_verdict": "-",
-        "notes": "no transfers requested"
+        "notes": "12.11 GPU-h transferred to second_backbone (prospective, 2026-09-19, #123)"
       }
     ],
     "budget": [
@@ -1643,29 +2056,29 @@
       },
       {
         "branch": "generalization_robustness",
-        "attempts": 1,
-        "succeeded": 1,
-        "failed": 0,
+        "attempts": 7,
+        "succeeded": 6,
+        "failed": 1,
         "cutoff": 0,
-        "gpu_hours_succeeded": 0.6272556656599044,
-        "gpu_hours_failed": 0.0,
+        "gpu_hours_succeeded": 3.79833507431878,
+        "gpu_hours_failed": 0.02060140351454417,
         "gpu_hours_cutoff": 0.0,
-        "gpu_hours_total": 0.6272556656599044,
+        "gpu_hours_total": 3.818936477833324,
         "cap_gpu_hours": 32,
-        "remainder_gpu_hours": 31.372744334340094
+        "remainder_gpu_hours": 28.181063522166674
       },
       {
         "branch": "second_backbone",
-        "attempts": 7,
-        "succeeded": 3,
-        "failed": 4,
+        "attempts": 20,
+        "succeeded": 10,
+        "failed": 10,
         "cutoff": 0,
-        "gpu_hours_succeeded": 1.560328282184071,
+        "gpu_hours_succeeded": 3.633164075016975,
         "gpu_hours_failed": 2.397323028842608,
         "gpu_hours_cutoff": 0.0,
-        "gpu_hours_total": 3.957651311026679,
-        "cap_gpu_hours": 40,
-        "remainder_gpu_hours": 36.04234868897332
+        "gpu_hours_total": 6.030487103859584,
+        "cap_gpu_hours": 52.11,
+        "remainder_gpu_hours": 46.079512896140415
       },
       {
         "branch": "transfer",
@@ -1690,21 +2103,21 @@
         "gpu_hours_failed": 0.0,
         "gpu_hours_cutoff": 0.0,
         "gpu_hours_total": 0.0,
-        "cap_gpu_hours": 24,
-        "remainder_gpu_hours": 24
+        "cap_gpu_hours": 11.89,
+        "remainder_gpu_hours": 11.89
       },
       {
         "branch": "TOTAL",
-        "attempts": 116,
-        "succeeded": 84,
-        "failed": 29,
+        "attempts": 135,
+        "succeeded": 96,
+        "failed": 36,
         "cutoff": 3,
-        "gpu_hours_succeeded": 37.8392880702681,
-        "gpu_hours_failed": 2.9133521461486813,
+        "gpu_hours_succeeded": 43.08320327175988,
+        "gpu_hours_failed": 2.933953549663226,
         "gpu_hours_cutoff": 7.499440970818202,
-        "gpu_hours_total": 48.25208118723498,
+        "gpu_hours_total": 53.516597792241306,
         "cap_gpu_hours": 336,
-        "remainder_gpu_hours": 287.747918812765
+        "remainder_gpu_hours": 282.4834022077587
       }
     ],
     "baseline-summary": [

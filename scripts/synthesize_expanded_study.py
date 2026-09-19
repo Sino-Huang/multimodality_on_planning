@@ -2,8 +2,11 @@
 """Synthesize all terminal branch evidence of the expanded-nine-day-v1 program (#120).
 
 CPU-only: no model calls and no CUDA. Reads the published terminal artifacts of
-every branch of the expanded study, recomputes their headline numbers from raw
-evidence where feasible (including all 1,152 gzipped baseline episode reports),
+every branch of the expanded study — including the v2 reduced-scope completions of
+second_backbone (#123) and generalization_robustness (#124) under their new
+versioned protocols — recomputes their headline numbers from raw evidence where
+feasible (including all 1,152 gzipped baseline episode reports, the 72
+second-backbone-v2 model episodes and the 1,200 generalization-v2 episode reports),
 runs the reconciliation checks listed in verification.json, and renders tables,
 figures, a machine-readable synthesis, a claim inventory and a narrative README.
 """
@@ -79,6 +82,22 @@ PROVENANCE_PAIRS = [
         "docs/experiments/expanded-study/transfer-paired-analysis.json",
         "outputs/expanded-study/v1/transfer-paired-analysis.json",
     ),
+    (
+        "docs/experiments/expanded-study/second-backbone-admission.json",
+        "outputs/expanded-study/v1/second-backbone-v2/admission.json",
+    ),
+    (
+        "docs/experiments/expanded-study/second-backbone-training.json",
+        "outputs/expanded-study/v1/second-backbone-v2/training/training-report.json",
+    ),
+    (
+        "docs/experiments/expanded-study/second-backbone-evaluation.json",
+        "outputs/expanded-study/v1/second-backbone-v2/evaluation/evidence.json",
+    ),
+    (
+        "docs/experiments/expanded-study/second-backbone-analysis.json",
+        "outputs/expanded-study/v1/second-backbone-v2/evaluation/analysis.json",
+    ),
 ]
 
 
@@ -150,7 +169,15 @@ def load_sources():
         "second_admission": read_json(V1 / "second-backbone/admission.json"),
         "second_probe": read_json(V1 / "second-backbone/probe.json"),
         "second_qualification": read_json(V1 / "second-backbone/qualification/qualification.json"),
+        "sb2_admission": read_json(V1 / "second-backbone-v2/admission.json"),
+        "sb2_training": read_json(V1 / "second-backbone-v2/training/training-report.json"),
+        "sb2_eval": read_json(V1 / "second-backbone-v2/evaluation/evidence.json"),
+        "sb2_analysis": read_json(V1 / "second-backbone-v2/evaluation/analysis.json"),
         "gen_admission": read_json(V1 / "generalization-robustness/admission.json"),
+        "gen2_admission": read_json(V1 / "generalization-robustness/admission-v2.json"),
+        "gen2_eval": read_json(V1 / "generalization-robustness/evaluation.json"),
+        "gen2_bindings": read_json(V1 / "generalization-robustness/evaluation-bindings.json"),
+        "gen2_suite_sha": read_json(V1 / "generalization-robustness/suite-sha256.json"),
         "gen_qualification": read_json(V1 / "generalization-robustness/qualification.json"),
         "gen_audit": read_json(V1 / "generalization-robustness/audit.json"),
         "gen_screening": read_json(V1 / "generalization-robustness/screening.json"),
@@ -183,6 +210,62 @@ def load_baseline_episodes():
                 "decisions": int(result["decision_count"]),
                 "invalid_operations": int(result["invalid_operation_count"]),
                 "expansions": int(result["expansion_count"]),
+                "termination_reason": result["termination_reason"],
+                "path": str(path.relative_to(ROOT)),
+            }
+        )
+    return episodes
+
+
+SB2_EPISODES = V1 / "second-backbone-v2/evaluation"
+GEN2_EPISODES = V1 / "generalization-robustness/episodes"
+
+
+def load_sb2_episodes():
+    """Replay the 72 second-backbone-v2 model episodes (base + SFT arms)."""
+    episodes = []
+    for path in sorted(SB2_EPISODES.rglob("*.json.gz")):
+        if path.name == "views.json.gz" or path.parent.name.endswith("-views"):
+            continue
+        with gzip.open(path, "rt", encoding="utf-8") as f:
+            ep = json.load(f)
+        result = ep["result"]
+        episodes.append(
+            {
+                "task_id": ep["task_id"],
+                "modality": ep["modality"],
+                "arm": ep["arm"],
+                "success": bool(result["invariant_valid_success"]),
+                "decisions": int(result["decision_count"]),
+                "invalid_operations": int(result["invalid_operation_count"]),
+                "path": str(path.relative_to(ROOT)),
+            }
+        )
+    return episodes
+
+
+def load_gen2_episodes(bindings):
+    """Replay all 1,200 generalization-v2 episodes joined to the frozen bindings."""
+    episodes = []
+    for binding in bindings:
+        if binding["condition"] == "random_valid":
+            name = f'{binding["algorithm"]}-random_valid-seed{binding["seed"]}.json.gz'
+        else:
+            name = f'{binding["algorithm"]}-{binding["condition"]}.json.gz'
+        path = GEN2_EPISODES / binding["modality"] / binding["variant_id"] / name
+        with gzip.open(path, "rt", encoding="utf-8") as f:
+            ep = json.load(f)
+        result = ep["result"]
+        episodes.append(
+            {
+                "variant_id": binding["variant_id"],
+                "family": binding["family"],
+                "modality": binding["modality"],
+                "algorithm": binding["algorithm"],
+                "condition": binding["condition"],
+                "success": bool(result["invariant_valid_success"]),
+                "decisions": int(result["decision_count"]),
+                "invalid_operations": int(result["invalid_operation_count"]),
                 "termination_reason": result["termination_reason"],
                 "path": str(path.relative_to(ROOT)),
             }
@@ -384,7 +467,7 @@ def budget_table(budget, sums, hours_by_status, counts):
     return rows
 
 
-def branch_reconciliation_table(sums):
+def branch_reconciliation_table(sums, caps):
     def hours(branch):
         return round(sums[branch], 4)
 
@@ -396,7 +479,7 @@ def branch_reconciliation_table(sums):
             "coverage_declared": "1152 logical bindings (576 model episodes)",
             "coverage_actual": "1152/1152 episodes; independent replay PASS",
             "gpu_hours": hours("expanded_baseline"),
-            "gpu_hours_cap": 56,
+            "gpu_hours_cap": caps["expanded_baseline"],
             "audit_verdict": "PASS (goal3 audit)",
             "notes": "24 problems x 4 algorithms x 3 modalities x 4 arms",
         },
@@ -407,7 +490,7 @@ def branch_reconciliation_table(sums):
             "coverage_declared": "405 episodes + 81 paired whole-problem rows",
             "coverage_actual": "405/405 episodes; missing 0",
             "gpu_hours": hours("dagger"),
-            "gpu_hours_cap": 48,
+            "gpu_hours_cap": caps["dagger"],
             "audit_verdict": "PASS (goal6 audit)",
             "notes": "two DAgger iterations vs exposure-matched continued SFT; null result",
         },
@@ -418,7 +501,7 @@ def branch_reconciliation_table(sums):
             "coverage_declared": "90 episodes (15 modality x panel cells)",
             "coverage_actual": "90/90 episodes; missing 0",
             "gpu_hours": hours("successor_prediction"),
-            "gpu_hours_cap": 64,
+            "gpu_hours_cap": caps["successor_prediction"],
             "audit_verdict": "PASS (goal9 audit)",
             "notes": "fallback 12-task unseen panel; full 24-task coverage missing by design",
         },
@@ -429,7 +512,7 @@ def branch_reconciliation_table(sums):
             "coverage_declared": "243 model episodes + 324 comparator bindings",
             "coverage_actual": "243/243 model + 324/324 comparator; missing none",
             "gpu_hours": hours("curriculum_modality"),
-            "gpu_hours_cap": 48,
+            "gpu_hours_cap": caps["curriculum_modality"],
             "audit_verdict": "PASS (goal10 audit)",
             "notes": "3 modalities x 3 orderings under best_first_add_greedy + 4 controls",
         },
@@ -440,42 +523,43 @@ def branch_reconciliation_table(sums):
             "coverage_declared": "12 v1 cells + 27 v2 cells; 36 paired comparisons",
             "coverage_actual": "39/39 cells; missing [] both protocols",
             "gpu_hours": hours("transfer"),
-            "gpu_hours_cap": 24,
+            "gpu_hours_cap": caps["transfer"],
             "audit_verdict": "PASS (goal13 audit)",
             "notes": "FOLIO/GSM8K/HumanEval; no comparison survives Holm",
         },
         {
             "branch": "second_backbone",
-            "tickets": "#101 #102 #103",
-            "terminal_state": "VALID_STOP (L2)",
-            "coverage_declared": "no model outcomes (cost admission)",
-            "coverage_actual": "probe + CPU qualification only",
+            "tickets": "#101 #102 #103 #123",
+            "terminal_state": "complete (v2 reduced scope)",
+            "coverage_declared": "72 model episodes + 72 reused comparators (L1 key-cell)",
+            "coverage_actual": "72/72 model replayed + 72 comparators verified; missing []",
             "gpu_hours": hours("second_backbone"),
-            "gpu_hours_cap": 40,
-            "audit_verdict": "VALID_STOP (admission L2)",
-            "notes": "L0 258.42 / L1 48.14 GPU-h required vs 36.04 remainder",
+            "gpu_hours_cap": caps["second_backbone"],
+            "audit_verdict": "PASS (admission L1 v2, #123 closeout)",
+            "notes": "v1 L2 VALID_STOP retained as history; 12/24 cheapest-by-reference-BFS tasks; null result",
         },
         {
             "branch": "generalization_robustness",
-            "tickets": "#96 #98",
-            "terminal_state": "VALID_STOP (L4)",
-            "coverage_declared": "120 generated variants",
-            "coverage_actual": "93 eligible / 27 missing; 0 replacements",
+            "tickets": "#96 #98 #124",
+            "terminal_state": "complete (v2 reduced scope)",
+            "coverage_declared": "1200 episodes (300 model + 900 CPU controls)",
+            "coverage_actual": "1200/1200 replayed; missing []",
             "gpu_hours": hours("generalization_robustness"),
-            "gpu_hours_cap": 32,
-            "audit_verdict": "VALID_STOP (admission L4)",
-            "notes": "no model outcomes; smallest scope L3 needs 1704.89 GPU-h",
+            "gpu_hours_cap": caps["generalization_robustness"],
+            "audit_verdict": "PASS (admission-v2, #124 closeout)",
+            "notes": "v1 L4 VALID_STOP retained as history; k=5 x 5 families = 25 variants; "
+            "learned 128/150 vs base 0/150",
         },
         {
             "branch": "recovery_reserve",
             "tickets": "-",
-            "terminal_state": "untouched",
+            "terminal_state": "reduced by transfer",
             "coverage_declared": "-",
             "coverage_actual": "-",
             "gpu_hours": 0.0,
-            "gpu_hours_cap": 24,
+            "gpu_hours_cap": caps["recovery_reserve"],
             "audit_verdict": "-",
-            "notes": "no transfers requested",
+            "notes": "12.11 GPU-h transferred to second_backbone (prospective, 2026-09-19, #123)",
         },
     ]
 
@@ -628,12 +712,32 @@ def run_verification(src, episodes, by_cell_recomputed, by_condition_recomputed,
 
     sums, hours_by_status, counts = ledger_totals(budget)
     caps = budget["allocations_gpu_hours"]
+    schedule_caps = budget["schedule"]["allocations_gpu_hours"]
     cutoff_epoch = datetime(2026, 9, 21, 11, 55, 19, tzinfo=timezone.utc).timestamp()
     max_ended = max(a["ended"] for a in budget["attempts"])
+
+    transfers = budget["transfers"]
+    net_transfer = defaultdict(float)
+    for transfer in transfers:
+        net_transfer[transfer["target"]] += transfer["hours"]
+        net_transfer[transfer["source"]] -= transfer["hours"]
+    derived_caps = {branch: schedule_caps[branch] + net_transfer[branch] for branch in schedule_caps}
+    transfer = transfers[0] if len(transfers) == 1 else None
+    single_documented_transfer = (
+        transfer is not None
+        and transfer["source"] == "recovery_reserve"
+        and transfer["target"] == "second_backbone"
+        and abs(transfer["hours"] - 12.11) < 1e-9
+        and "expanded-second-backbone-v2" in transfer["reason"]
+        and "#123" in transfer["reason"]
+        and "2026-09-19" in transfer["reason"]
+    )
     ledger_ok = (
-        all(sums[branch] <= caps[branch] + 1e-9 for branch in BRANCHES)
+        all(sums[branch] <= derived_caps[branch] + 1e-9 for branch in BRANCHES)
         and sum(sums.values()) <= budget["schedule"]["experiment_gpu_hours_cap"] + 1e-9
-        and budget["transfers"] == []
+        and all(abs(caps[branch] - derived_caps[branch]) < 1e-9 for branch in schedule_caps)
+        and abs(sum(caps.values()) - budget["schedule"]["experiment_gpu_hours_cap"]) < 1e-9
+        and single_documented_transfer
         and max_ended <= cutoff_epoch
     )
     checks.append(
@@ -646,19 +750,31 @@ def run_verification(src, episodes, by_cell_recomputed, by_condition_recomputed,
                 "total_gpu_hours": sum(sums.values()),
                 "per_branch_status_split": {branch: dict(counts[branch]) for branch in BRANCHES},
                 "per_branch_hours_by_status": {branch: dict(hours_by_status[branch]) for branch in BRANCHES},
-                "transfers": budget["transfers"],
+                "transfers": transfers,
+                "schedule_allocations": schedule_caps,
+                "derived_allocations_schedule_plus_transfers": derived_caps,
+                "ledger_allocations": caps,
+                "single_transfer_matches_documented_reason": single_documented_transfer,
                 "max_attempt_ended_epoch": max_ended,
             },
             {
                 "total_cap_gpu_hours": budget["schedule"]["experiment_gpu_hours_cap"],
                 "per_branch_caps": {branch: caps[branch] for branch in caps},
-                "transfers": [],
+                "expected_transfer": {
+                    "source": "recovery_reserve",
+                    "target": "second_backbone",
+                    "hours": 12.11,
+                    "documented": "prospective, ratified 2026-09-19 for protocol "
+                    "expanded-second-backbone-v2 (ticket #123)",
+                },
                 "gpu_cutoff_utc": budget["schedule"]["gpu_cutoff_utc"],
                 "gpu_cutoff_epoch": cutoff_epoch,
             },
             ["outputs/expanded-study/v1/budget.json"],
-            "All per-branch sums are within cap, total is within the 336 GPU-h program cap, no transfers "
-            "were requested and every attempt ended before the absolute GPU cutoff.",
+            "All per-branch sums are within the schedule allocations adjusted by the single documented "
+            "prospective transfer (recovery_reserve -> second_backbone, 12.11 GPU-h, #123), the ledger "
+            "allocations equal schedule allocations plus/minus transfers with the 336 GPU-h total and the "
+            "2026-09-21T11:55:19Z cutoff preserved, and every attempt ended before the absolute GPU cutoff.",
         )
     )
 
@@ -668,8 +784,8 @@ def run_verification(src, episodes, by_cell_recomputed, by_condition_recomputed,
         "successor_prediction": src["goal9_audit"]["execution"]["cumulative_successor_gpu_hours"],
         "curriculum_modality": src["goal10_audit"]["execution"]["compute_gpu_hours"]["curriculum_branch_cumulative"],
         "transfer": 3.5993,
-        "second_backbone": src["second_admission"]["branch_spent_gpu_hours"],
-        "generalization_robustness": src["gen_admission"]["branch_spent_gpu_hours"],
+        "second_backbone": round(src["sb2_eval"]["branch_accounting"]["cumulative_spent_gpu_hours"], 4),
+        "generalization_robustness": 3.8189,
     }
     differences = {branch: sums[branch] - recorded_totals[branch] for branch in BRANCHES}
     ledger_vs_ok = all(abs(differences[branch]) <= 0.01 for branch in BRANCHES)
@@ -683,8 +799,14 @@ def run_verification(src, episodes, by_cell_recomputed, by_condition_recomputed,
                 "ledger_minus_recorded": differences,
                 "transfer_ledger_exact": sums["transfer"],
                 "transfer_docs_components_note": "transfer docs components sum 3.5965 vs ledger 3.5993 (rounding)",
-                "second_backbone_note": "admission remainder arithmetic conservatively double-counts the "
-                "0.63 GPU-h probe window; ledger sum is authoritative",
+                "second_backbone_recorded": "issue-123 closeout / sb2 evidence branch_accounting: v1 retained "
+                "3.9577 + v2 training 1.5734 + v2 evaluation 0.4995 + failed CPU finalize attempts 0.0",
+                "generalization_robustness_recorded": "issue-124 closeout accounting: probe 0.6273 + failed "
+                "models-0 attempt 0.0206 + learned worker 3.0030 + base worker 0.1681 = 3.8189",
+                "second_backbone_v1_note": "the v1 admission remainder arithmetic conservatively "
+                "double-counts the 0.63 GPU-h probe window; the ledger sum is authoritative",
+                "generalization_v1_note": "the v1 admission's 0.6273 probe double-count is recorded as a nit "
+                "in admission-v2 and not repeated; the ledger sum is authoritative",
             },
             [
                 "outputs/expanded-study/v1/budget.json",
@@ -693,8 +815,9 @@ def run_verification(src, episodes, by_cell_recomputed, by_condition_recomputed,
                 "docs/experiments/expanded-study/goal9-completion-audit.json",
                 "docs/experiments/expanded-study/goal10-completion-audit.json",
                 "docs/experiments/expanded-study/transfer-findings.md",
-                "outputs/expanded-study/v1/second-backbone/admission.json",
-                "outputs/expanded-study/v1/generalization-robustness/admission.json",
+                "outputs/expanded-study/v1/second-backbone-v2/evaluation/evidence.json",
+                "docs/experiments/expanded-study/issue-123-closeout.md",
+                "docs/experiments/expanded-study/issue-124-closeout.md",
             ],
             "PASS within the 0.01 GPU-h tolerance; exact differences recorded per branch.",
         )
@@ -961,31 +1084,303 @@ def run_verification(src, episodes, by_cell_recomputed, by_condition_recomputed,
         )
     )
 
+    # --- second_backbone v2 (#123): L1 reduced scope executed and verified ---
     second = src["second_admission"]
-    gen = src["gen_admission"]
-    eligible, gen_reasons, _ = gen_rob_audit_counts(src["gen_audit"])
-    incomplete_ok = (
+    sb2_admission = src["sb2_admission"]
+    sb2_training = src["sb2_training"]
+    sb2_eval = src["sb2_eval"]
+    sb2_analysis = src["sb2_analysis"]
+    sb2_episodes = load_sb2_episodes()
+    sb2_model_by_arm = {}
+    for arm in ("pretrained_base", "process_sft"):
+        arm_eps = [e for e in sb2_episodes if e["arm"] == arm]
+        sb2_model_by_arm[arm] = {
+            "episodes": len(arm_eps),
+            "successes": sum(int(e["success"]) for e in arm_eps),
+            "decisions": sum(e["decisions"] for e in arm_eps),
+            "invalid_operations": sum(e["invalid_operations"] for e in arm_eps),
+        }
+    sb2_comparator_sources = sb2_eval["comparator_provenance"]["sources"]
+    sb2_comparators_ok = len(sb2_comparator_sources) == sb2_eval["expected_comparator_episodes"] and all(
+        (ROOT / source).exists() for source in sb2_comparator_sources
+    )
+    sb2_contrasts = {
+        (c["modality"], c["contrast"]): c["interval"] for c in sb2_analysis["contrasts"]
+    }
+    sb2_cross = {c["modality"]: c for c in sb2_analysis["cross_backbone"]}
+    sb2_ok = (
         second["decision"] == "L2"
         and second["outcome"] == "VALID_STOP"
-        and second["ledger_mutated"] is False
-        and gen["decision"] == "L4"
+        and sb2_admission["decision"] == "L1"
+        and sb2_admission["outcome"] == "PASS"
+        and sb2_admission["protocol_id"] == "expanded-second-backbone-v2"
+        and sb2_admission["ledger_mutated"] is False
+        and abs(sb2_admission["branch_cap_gpu_hours"] - 52.11) < 1e-9
+        and sb2_training["status"] == "PASS"
+        and len(sb2_training["cells"]) == 3
+        and all(c["records"] == 512 and c["optimizer_updates"] == 16 for c in sb2_training["cells"])
+        and sb2_training["same_record_set_all_cells"]
+        and sb2_training["fresh_lora_init_identical_all_cells"]
+        and sb2_eval["outcome"] == "PASS"
+        and sb2_eval["model_episodes"] == 72
+        and sb2_eval["expected_model_episodes"] == 72
+        and sb2_eval["complete_coverage"] is True
+        and sb2_eval["missing_bindings"] == []
+        and sb2_eval["missing_comparator_bindings"] == []
+        and sb2_comparators_ok
+        and sb2_model_by_arm
+        == {
+            "pretrained_base": {"episodes": 36, "successes": 0, "decisions": 36, "invalid_operations": 36},
+            "process_sft": {"episodes": 36, "successes": 0, "decisions": 59, "invalid_operations": 36},
+        }
+        and sb2_eval["by_condition"]["random_valid"]["successes"] == 54
+        and sb2_eval["by_condition"]["exact_reference"]["successes"] == 72
+        and sb2_analysis["outcome"] == "PASS"
+        and sb2_analysis["paired_units"] == 12
+        and sb2_analysis["bootstrap"] == {"seed": 1729, "resamples": 10000, "confidence": 0.95}
+        and all(
+            sb2_contrasts[(modality, "process_sft_minus_pretrained_base")]
+            == {"lower": 0.0, "point": 0.0, "upper": 0.0}
+            for modality in MODALITIES
+        )
+        and all(
+            sb2_contrasts[(modality, "process_sft_minus_random_valid")]
+            == {"lower": -1.0, "point": -0.75, "upper": -0.5}
+            for modality in MODALITIES
+        )
+        and all(
+            sb2_cross[m]["interval"] == {"lower": 0.0, "point": 0.0, "upper": 0.0}
+            and sb2_cross[m]["qwen_process_sft_success_rate"] == 0.0
+            and "descriptive, not paired" in sb2_cross[m]["method"]
+            for m in MODALITIES
+        )
+    )
+    checks.append(
+        make_check(
+            "SECOND-BACKBONE-V2",
+            sb2_ok,
+            {
+                "v1_admission_retained": {
+                    "decision": second["decision"],
+                    "outcome": second["outcome"],
+                    "ledger_mutated": second["ledger_mutated"],
+                },
+                "v2_admission": {
+                    "decision": sb2_admission["decision"],
+                    "outcome": sb2_admission["outcome"],
+                    "protocol_id": sb2_admission["protocol_id"],
+                    "branch_cap_gpu_hours": sb2_admission["branch_cap_gpu_hours"],
+                    "ledger_mutated": sb2_admission["ledger_mutated"],
+                    "authorized_tasks": len(sb2_admission["authorized_scope"]["task_ids"]),
+                },
+                "v2_training": {
+                    "status": sb2_training["status"],
+                    "cells": len(sb2_training["cells"]),
+                    "records_per_cell": [c["records"] for c in sb2_training["cells"]],
+                    "optimizer_updates_per_cell": [c["optimizer_updates"] for c in sb2_training["cells"]],
+                    "same_record_set_all_cells": sb2_training["same_record_set_all_cells"],
+                    "fresh_lora_init_identical_all_cells": sb2_training["fresh_lora_init_identical_all_cells"],
+                },
+                "v2_evaluation": {
+                    "outcome": sb2_eval["outcome"],
+                    "model_episodes": f'{sb2_eval["model_episodes"]}/{sb2_eval["expected_model_episodes"]}',
+                    "complete_coverage": sb2_eval["complete_coverage"],
+                    "missing_bindings": sb2_eval["missing_bindings"],
+                    "missing_comparator_bindings": sb2_eval["missing_comparator_bindings"],
+                    "comparator_sources_sha256_pinned": len(sb2_comparator_sources),
+                    "comparator_files_exist": sb2_comparators_ok,
+                    "model_arms_recomputed_from_72_episodes": sb2_model_by_arm,
+                    "reused_controls": {
+                        "random_valid": sb2_eval["by_condition"]["random_valid"],
+                        "exact_reference": sb2_eval["by_condition"]["exact_reference"],
+                    },
+                },
+                "v2_analysis": {
+                    "outcome": sb2_analysis["outcome"],
+                    "paired_units": sb2_analysis["paired_units"],
+                    "bootstrap": sb2_analysis["bootstrap"],
+                    "process_sft_minus_pretrained_base": {
+                        m: sb2_contrasts[(m, "process_sft_minus_pretrained_base")] for m in MODALITIES
+                    },
+                    "process_sft_minus_random_valid": {
+                        m: sb2_contrasts[(m, "process_sft_minus_random_valid")] for m in MODALITIES
+                    },
+                    "cross_backbone_descriptive_not_paired": {
+                        m: sb2_cross[m]["interval"] for m in MODALITIES
+                    },
+                },
+            },
+            {
+                "expected": "v1 L2 VALID_STOP retained; v2 admission L1 PASS (cap 52.11), training PASS "
+                "(3 cells x 512 records x 16 updates, identical fresh seed-17 LoRA init), evaluation PASS "
+                "(72/72 model episodes replayed, 72 sha256-pinned comparators verified), analysis PASS "
+                "(12 paired units; sft-base +0.000 [0,0]; sft-random_valid -0.750 [-1,-0.5]; cross-backbone "
+                "+0.000 [0,0] descriptive, not paired)",
+            },
+            [
+                "outputs/expanded-study/v1/second-backbone/admission.json",
+                "outputs/expanded-study/v1/second-backbone-v2/admission.json",
+                "outputs/expanded-study/v1/second-backbone-v2/training/training-report.json",
+                "outputs/expanded-study/v1/second-backbone-v2/evaluation/evidence.json",
+                "outputs/expanded-study/v1/second-backbone-v2/evaluation/analysis.json",
+                "outputs/expanded-study/v1/second-backbone-v2/evaluation/**/*.json.gz",
+                "docs/experiments/expanded-study/issue-123-closeout.md",
+            ],
+            "The v1 full-panel scope stays a terminal VALID_STOP (L2, retained as history, #102/#103 open); "
+            "the v2 reduced key-cell scope executed fully under protocol expanded-second-backbone-v2 and the "
+            "72 model episodes were independently replayed from raw episode reports.",
+        )
+    )
+
+    # --- generalization_robustness v2 (#124): k=5 x 5 families executed and verified ---
+    gen = src["gen_admission"]
+    gen2_admission = src["gen2_admission"]
+    gen2_eval = src["gen2_eval"]
+    gen2_bindings = src["gen2_bindings"]
+    gen2_suite_sha = src["gen2_suite_sha"]
+    eligible, gen_reasons, _ = gen_rob_audit_counts(src["gen_audit"])
+    gen2_episodes = load_gen2_episodes(gen2_bindings["bindings"])
+
+    def gen2_count(predicate):
+        eps = [e for e in gen2_episodes if predicate(e)]
+        return {"successes": sum(int(e["success"]) for e in eps), "episodes": len(eps)}
+
+    gen2_by_condition = {c: gen2_count(lambda e, c=c: e["condition"] == c) for c in (
+        "learned_adapter",
+        "pretrained_base",
+        "random_valid",
+        "exact_reference",
+    )}
+    gen2_family_learned = {
+        family: gen2_count(lambda e, f=family: e["family"] == f and e["condition"] == "learned_adapter")
+        for family in ("object-renaming", "name-compression", "render-restyle", "scale-up", "shifted-init")
+    }
+    gen2_family_condition = {
+        family: {
+            condition: gen2_count(
+                lambda e, f=family, c=condition: e["family"] == f and e["condition"] == c
+            )
+            for condition in ("learned_adapter", "pretrained_base", "random_valid", "exact_reference")
+        }
+        for family in ("object-renaming", "name-compression", "render-restyle", "scale-up", "shifted-init")
+    }
+    gen2_modality_learned = {
+        modality: gen2_count(lambda e, m=modality: e["modality"] == m and e["condition"] == "learned_adapter")
+        for modality in MODALITIES
+    }
+    gen2_algorithm_learned = {
+        algorithm: gen2_count(
+            lambda e, a=algorithm: e["algorithm"] == a and e["condition"] == "learned_adapter"
+        )
+        for algorithm in ("best_first_add_greedy", "best_first_add_w3")
+    }
+    admitted_variants = {vid for fam in gen2_admission["membership"].values() for vid in fam}
+    gen2_p3_lossy = {"text-state": 0, "visual-state": 0, "multimodal-state": 0}
+    for variant in src["gen_audit"]["variants"]:
+        if variant["variant_id"] not in admitted_variants:
+            continue
+        for modality, info in variant["audits"]["recoverability"].items():
+            if info["information_availability"]["classification"] == "lossy":
+                gen2_p3_lossy[modality] += 1
+    gen2_p3_learned = {
+        modality: gen2_count(
+            lambda e, m=modality: e["family"] == "name-compression"
+            and e["condition"] == "learned_adapter"
+            and e["modality"] == m
+        )
+        for modality in MODALITIES
+    }
+    gen2_membership = gen2_admission["membership_sha256"]
+    suite_sha = gen2_suite_sha["files"]
+    gen2_sha_ok = (
+        gen2_membership == gen2_eval["membership_sha256"] == gen2_bindings["membership_sha256"]
+        and gen2_membership == "008deaf35b710a941aa31d447d456b7d681c581760c28df4130c72a21adb2d60"
+        and suite_sha["outputs/expanded-study/v1/generalization-robustness/suite.json"]
+        == gen2_admission["inputs"]["suite_sha256"]
+        and suite_sha["outputs/expanded-study/v1/generalization-robustness/qualification.json"]
+        == gen2_admission["inputs"]["qualification"]["sha256"]
+        and sha256_file(ROOT / "outputs/expanded-study/v1/generalization-robustness/suite.json")
+        == gen2_admission["inputs"]["suite_sha256"]
+        and sha256_file(ROOT / "outputs/expanded-study/v1/generalization-robustness/qualification.json")
+        == gen2_admission["inputs"]["qualification"]["sha256"]
+    )
+    gen2_base_one_call = all(
+        e["decisions"] == 1 and e["termination_reason"] == "deterministic_invalid_operation"
+        for e in gen2_episodes
+        if e["condition"] == "pretrained_base"
+    )
+    gen2_ok = (
+        gen["decision"] == "L4"
         and gen["outcome"] == "VALID_STOP"
         and gen["ledger_mutated"] is False
+        and gen2_admission["decision"] == "PASS"
+        and gen2_admission["outcome"] == "PASS"
+        and gen2_admission["protocol_id"] == "expanded-generalization-robustness-v2"
+        and gen2_admission["ledger_mutated"] is False
+        and gen2_admission["membership_rule"]["uniform_k"] is True
+        and gen2_admission["chosen_k"] == 5
+        and gen2_admission["total_variants"] == 25
+        and abs(gen2_admission["budget"]["required_gpu_hours"] - 29.494477929438386) < 1e-9
+        and gen2_admission["budget"]["required_gpu_hours"]
+        <= gen2_admission["budget"]["branch_remainder_gpu_hours"] + 1e-9
+        and abs(gen2_admission["budget"]["branch_remainder_gpu_hours"] - 31.372744334340094) < 1e-9
+        and gen2_admission["transfer_request"] is None
+        and gen2_admission["next_rung"]["k"] == 6
+        and gen2_admission["ladder_by_k"]["6"]["fits_branch_remainder"] is False
+        and gen2_eval["outcome"] == "PASS"
+        and gen2_eval["episodes"] == 1200
+        and gen2_eval["episodes_replayed"] == 1200
+        and gen2_eval["missing_bindings"] == []
+        and gen2_sha_ok
+        and gen2_by_condition
+        == {
+            "learned_adapter": {"successes": 128, "episodes": 150},
+            "pretrained_base": {"successes": 0, "episodes": 150},
+            "random_valid": {"successes": 750, "episodes": 750},
+            "exact_reference": {"successes": 150, "episodes": 150},
+        }
+        and gen2_eval["by_condition"]["learned_adapter"]["invariant_valid_success"] == 128
+        and gen2_eval["by_condition"]["pretrained_base"]["invariant_valid_success"] == 0
+        and gen2_eval["by_condition"]["pretrained_base"]["decisions"] == 150
+        and gen2_eval["by_condition"]["random_valid"]["invariant_valid_success"] == 750
+        and gen2_eval["by_condition"]["exact_reference"]["invariant_valid_success"] == 150
+        and gen2_base_one_call
+        and gen2_family_learned
+        == {
+            "object-renaming": {"successes": 29, "episodes": 30},
+            "name-compression": {"successes": 27, "episodes": 30},
+            "render-restyle": {"successes": 27, "episodes": 30},
+            "scale-up": {"successes": 26, "episodes": 30},
+            "shifted-init": {"successes": 19, "episodes": 30},
+        }
+        and gen2_modality_learned
+        == {
+            "text-state": {"successes": 44, "episodes": 50},
+            "multimodal-state": {"successes": 43, "episodes": 50},
+            "visual-state": {"successes": 41, "episodes": 50},
+        }
+        and gen2_algorithm_learned
+        == {
+            "best_first_add_greedy": {"successes": 67, "episodes": 75},
+            "best_first_add_w3": {"successes": 61, "episodes": 75},
+        }
+        and gen2_p3_lossy == {"text-state": 5, "visual-state": 0, "multimodal-state": 3}
+        and gen2_p3_learned
+        == {
+            "text-state": {"successes": 9, "episodes": 10},
+            "visual-state": {"successes": 8, "episodes": 10},
+            "multimodal-state": {"successes": 10, "episodes": 10},
+        }
         and eligible == 93
         and sum(gen_reasons.values()) == 27
         and src["gen_screening"]["replacements"] == 0
     )
     checks.append(
         make_check(
-            "INCOMPLETE-BRANCHES",
-            incomplete_ok,
+            "GENERALIZATION-V2",
+            gen2_ok,
             {
-                "second_backbone": {
-                    "decision": second["decision"],
-                    "outcome": second["outcome"],
-                    "ledger_mutated": second["ledger_mutated"],
-                },
-                "generalization_robustness": {
+                "v1_admission_retained": {
                     "decision": gen["decision"],
                     "outcome": gen["outcome"],
                     "ledger_mutated": gen["ledger_mutated"],
@@ -995,18 +1390,56 @@ def run_verification(src, episodes, by_cell_recomputed, by_condition_recomputed,
                     "missing_reasons": dict(gen_reasons),
                     "replacements": src["gen_screening"]["replacements"],
                 },
+                "v2_admission": {
+                    "decision": gen2_admission["decision"],
+                    "outcome": gen2_admission["outcome"],
+                    "protocol_id": gen2_admission["protocol_id"],
+                    "chosen_k": gen2_admission["chosen_k"],
+                    "total_variants": gen2_admission["total_variants"],
+                    "uniform_k": gen2_admission["membership_rule"]["uniform_k"],
+                    "required_gpu_hours": gen2_admission["budget"]["required_gpu_hours"],
+                    "branch_remainder_gpu_hours": gen2_admission["budget"]["branch_remainder_gpu_hours"],
+                    "transfer_request": gen2_admission["transfer_request"],
+                    "ledger_mutated": gen2_admission["ledger_mutated"],
+                },
+                "v2_evaluation": {
+                    "outcome": gen2_eval["outcome"],
+                    "episodes_replayed": f'{gen2_eval["episodes_replayed"]}/{gen2_eval["episodes"]}',
+                    "missing_bindings": gen2_eval["missing_bindings"],
+                    "membership_sha256_matches_across_admission_bindings_evaluation": gen2_sha_ok,
+                    "suite_and_qualification_sha256_match_pinned_hashes": gen2_sha_ok,
+                    "by_condition_recomputed_from_1200_episodes": gen2_by_condition,
+                    "pretrained_base_one_call_invalid_termination_everywhere": gen2_base_one_call,
+                    "learned_by_family": gen2_family_learned,
+                    "by_family_condition": gen2_family_condition,
+                    "learned_by_modality": gen2_modality_learned,
+                    "learned_by_algorithm": gen2_algorithm_learned,
+                    "p3_lossy_admitted_classification": gen2_p3_lossy,
+                    "p3_lossy_stratum_learned": gen2_p3_learned,
+                },
             },
             {
-                "second_backbone_expected": "L2 VALID_STOP, ledger_mutated False",
-                "generalization_robustness_expected": "L4 VALID_STOP, ledger_mutated False",
-                "qualification_expected": "93 eligible / 27 missing / 0 replacements",
+                "expected": "v1 L4 VALID_STOP retained (93 eligible / 27 missing / 0 replacements); v2 "
+                "admission PASS (uniform k=5, 25 variants, required 29.4945 <= remainder 31.3727, no "
+                "transfer); evaluation PASS (1200/1200 replayed, membership sha256 "
+                "008deaf35b...2d60, suite/qualification pins match); learned_adapter 128/150 vs "
+                "pretrained_base 0/150 (one-call invalid terminations), random_valid 750/750, "
+                "exact_reference 150/150",
             },
             [
-                "outputs/expanded-study/v1/second-backbone/admission.json",
                 "outputs/expanded-study/v1/generalization-robustness/admission.json",
+                "outputs/expanded-study/v1/generalization-robustness/admission-v2.json",
+                "outputs/expanded-study/v1/generalization-robustness/evaluation.json",
+                "outputs/expanded-study/v1/generalization-robustness/evaluation-bindings.json",
+                "outputs/expanded-study/v1/generalization-robustness/suite-sha256.json",
+                "outputs/expanded-study/v1/generalization-robustness/episodes/**/*.json.gz",
                 "outputs/expanded-study/v1/generalization-robustness/audit.json",
                 "outputs/expanded-study/v1/generalization-robustness/screening.json",
+                "docs/experiments/expanded-study/issue-124-closeout.md",
             ],
+            "The v1 full-suite scope stays a terminal VALID_STOP (L4, retained as history, #96/#98 open); "
+            "the v2 reduced scope executed fully under protocol expanded-generalization-robustness-v2 and "
+            "all 1,200 episodes were independently replayed from raw episode reports.",
         )
     )
 
@@ -1052,8 +1485,8 @@ def run_verification(src, episodes, by_cell_recomputed, by_condition_recomputed,
 
 def assert_anchors(src, episodes, by_condition, sums, successor_sums, successor_checks, curriculum_analysis):
     total = sum(sums.values())
-    anchor(len(src["budget"]["attempts"]) == 116, "ledger attempts == 116")
-    anchor(abs(total - 48.2521) < 5e-5, f"ledger total ~= 48.2521 (got {total})")
+    anchor(len(src["budget"]["attempts"]) == 135, "ledger attempts == 135")
+    anchor(abs(total - 53.5166) < 5e-5, f"ledger total ~= 53.5166 (got {total})")
     anchor(total <= 336, "ledger total within 336 cap")
     for branch, expected in [
         ("expanded_baseline", 6.5289),
@@ -1061,11 +1494,36 @@ def assert_anchors(src, episodes, by_condition, sums, successor_sums, successor_
         ("successor_prediction", 10.8511),
         ("curriculum_modality", 11.7786),
         ("transfer", 3.5993),
-        ("second_backbone", 3.9577),
-        ("generalization_robustness", 0.6273),
+        ("second_backbone", 6.0305),
+        ("generalization_robustness", 3.8189),
     ]:
         anchor(abs(sums[branch] - expected) < 5e-5, f"{branch} gpu hours ~= {expected} (got {sums[branch]})")
-    anchor(src["budget"]["transfers"] == [], "no budget transfers")
+    transfers = src["budget"]["transfers"]
+    anchor(len(transfers) == 1, "exactly one budget transfer")
+    transfer = transfers[0]
+    anchor(
+        transfer["source"] == "recovery_reserve"
+        and transfer["target"] == "second_backbone"
+        and abs(transfer["hours"] - 12.11) < 1e-9
+        and "expanded-second-backbone-v2" in transfer["reason"],
+        "single prospective transfer recovery_reserve -> second_backbone (12.11 GPU-h, #123)",
+    )
+    allocations = src["budget"]["allocations_gpu_hours"]
+    anchor(
+        allocations
+        == {
+            "expanded_baseline": 56,
+            "dagger": 48,
+            "successor_prediction": 64,
+            "curriculum_modality": 48,
+            "generalization_robustness": 32,
+            "second_backbone": 52.11,
+            "transfer": 24,
+            "recovery_reserve": 11.89,
+        },
+        "transfer-adjusted ledger allocations",
+    )
+    anchor(abs(sum(allocations.values()) - 336) < 1e-9, "allocations still sum to the 336 GPU-h total")
 
     anchor(
         by_condition
@@ -1232,10 +1690,84 @@ def assert_anchors(src, episodes, by_condition, sums, successor_sums, successor_
     anchor(abs(arithmetic["L1"]["required_gpu_hours_including_spent"] - 48.14) < 0.01, "second backbone L1 anchor")
     anchor(
         abs(src["second_admission"]["branch_remainder_gpu_hours"] - 36.0423) < 0.001,
-        "second backbone remainder anchor",
+        "second backbone v1 remainder anchor (history, pre-transfer)",
     )
     projection = src["goal7_audit"]["qualification"]["full_coverage_projected_gpu_hours"]
     anchor(abs(projection - 147.66) < 0.01, "successor full-coverage projection anchor 147.66")
+
+    # v2 reduced-scope completions (#123 / #124)
+    sb2_admission = src["sb2_admission"]
+    anchor(
+        sb2_admission["decision"] == "L1"
+        and sb2_admission["outcome"] == "PASS"
+        and sb2_admission["protocol_id"] == "expanded-second-backbone-v2",
+        "second-backbone v2 admission L1 PASS anchor",
+    )
+    anchor(len(sb2_admission["authorized_scope"]["task_ids"]) == 12, "second-backbone v2 panel = 12 tasks")
+    anchor(
+        abs(sb2_admission["arithmetic"]["L1"]["required_gpu_hours_including_spent"] - 48.14) < 0.01,
+        "second-backbone v2 L1 required anchor",
+    )
+    sb2_eval = src["sb2_eval"]
+    anchor(
+        sb2_eval["model_episodes"] == 72
+        and sb2_eval["by_condition"]["pretrained_base"]["successes"] == 0
+        and sb2_eval["by_condition"]["process_sft"]["successes"] == 0
+        and sb2_eval["by_condition"]["random_valid"]["successes"] == 54
+        and sb2_eval["by_condition"]["exact_reference"]["successes"] == 72,
+        "second-backbone v2 by_condition anchor",
+    )
+    sb2_analysis = src["sb2_analysis"]
+    anchor(
+        sb2_analysis["outcome"] == "PASS" and sb2_analysis["paired_units"] == 12,
+        "second-backbone v2 analysis anchor",
+    )
+    anchor(
+        {c["contrast"]: c["interval"]["point"] for c in sb2_analysis["contrasts"] if c["modality"] == "text-state"}
+        == {"process_sft_minus_pretrained_base": 0.0, "process_sft_minus_random_valid": -0.75},
+        "second-backbone v2 contrast points anchor",
+    )
+    anchor(
+        all(
+            c["interval"] == {"lower": 0.0, "point": 0.0, "upper": 0.0}
+            for c in sb2_analysis["cross_backbone"]
+        ),
+        "second-backbone v2 cross-backbone descriptive zero anchor",
+    )
+
+    gen2_admission = src["gen2_admission"]
+    anchor(
+        gen2_admission["decision"] == "PASS"
+        and gen2_admission["outcome"] == "PASS"
+        and gen2_admission["protocol_id"] == "expanded-generalization-robustness-v2"
+        and gen2_admission["chosen_k"] == 5
+        and gen2_admission["total_variants"] == 25,
+        "generalization v2 admission anchor",
+    )
+    anchor(
+        abs(gen2_admission["budget"]["required_gpu_hours"] - 29.4945) < 1e-3
+        and abs(gen2_admission["budget"]["branch_remainder_gpu_hours"] - 31.3727) < 1e-3,
+        "generalization v2 required-vs-remainder anchor",
+    )
+    gen2_eval = src["gen2_eval"]
+    anchor(
+        gen2_eval["outcome"] == "PASS"
+        and gen2_eval["episodes"] == 1200
+        and gen2_eval["episodes_replayed"] == 1200
+        and gen2_eval["missing_bindings"] == [],
+        "generalization v2 replay completeness anchor",
+    )
+    anchor(
+        gen2_eval["membership_sha256"] == "008deaf35b710a941aa31d447d456b7d681c581760c28df4130c72a21adb2d60",
+        "generalization v2 membership sha256 anchor",
+    )
+    anchor(
+        gen2_eval["by_condition"]["learned_adapter"]["invariant_valid_success"] == 128
+        and gen2_eval["by_condition"]["pretrained_base"]["invariant_valid_success"] == 0
+        and gen2_eval["by_condition"]["random_valid"]["invariant_valid_success"] == 750
+        and gen2_eval["by_condition"]["exact_reference"]["invariant_valid_success"] == 150,
+        "generalization v2 headline anchor 128/150 vs 0/150, controls 750/750 and 150/150",
+    )
 
 
 def build_claims(src, verification, sums):
@@ -1244,10 +1776,11 @@ def build_claims(src, verification, sums):
             "id": "coverage",
             "text": "Every executed branch reconciles with zero missing evidence: 1,152/1,152 baseline "
             "episodes independently replayed, 405/405 DAgger episodes, 90/90 successor episodes, "
-            "243/243 curriculum model episodes with 324/324 comparator bindings, and 39/39 transfer "
-            "cells (12 v1 + 27 v2).",
-            "evidence": "verification.json: BASELINE-RECOMPUTE, DAGGER, SUCCESSOR, CURRICULUM, TRANSFER; "
-            "baseline-independent-replay.json",
+            "243/243 curriculum model episodes with 324/324 comparator bindings, 39/39 transfer "
+            "cells (12 v1 + 27 v2), 72/72 second-backbone-v2 model episodes with 72 sha256-pinned "
+            "comparators verified, and 1,200/1,200 generalization-v2 episodes.",
+            "evidence": "verification.json: BASELINE-RECOMPUTE, DAGGER, SUCCESSOR, CURRICULUM, TRANSFER, "
+            "SECOND-BACKBONE-V2, GENERALIZATION-V2; baseline-independent-replay.json",
             "status": "supported",
         },
         {
@@ -1311,21 +1844,56 @@ def build_claims(src, verification, sums):
             "status": "negative",
         },
         {
-            "id": "incomplete-branches",
-            "text": "second_backbone and generalization_robustness are terminal VALID_STOP with no model "
-            "outcomes: admission L2 requires 258.42 (L0) / 48.14 (L1) GPU-h against a 36.04 remainder, "
-            "and admission L4 follows the Gate-2 rule after 93/120 variants qualified (27 missing, "
-            "0 replacements). The recovery reserve is untouched.",
+            "id": "second-backbone-v2-null",
+            "text": "On the 12-task reference-cost-reduced key-cell panel (protocol "
+            "expanded-second-backbone-v2, #123), the pinned InternVL3_5-8B backbone never reaches a goal: "
+            "pretrained_base 0/36 (one invalid operation, 1 decision per episode) and process_sft 0/36 "
+            "(1-4 decisions, 59 total). Paired whole-problem bootstrap (12 units, seed 1729, 10,000 "
+            "resamples): process_sft - pretrained_base = +0.000 [0.000, 0.000] and process_sft - "
+            "random_valid = -0.750 [-1.000, -0.500] in all three modalities; cross-backbone InternVL-SFT "
+            "- Qwen3-VL-SFT = +0.000 [0.000, 0.000], which is descriptive, not paired, because the pinned "
+            "baseline evidence holds aggregate cells only.",
+            "evidence": "second-backbone-v2/evaluation/analysis.json; verification.json: SECOND-BACKBONE-V2; "
+            "issue-123-closeout.md",
+            "status": "negative",
+        },
+        {
+            "id": "generalization-v2-headline",
+            "text": "On the 25 admitted derived tasks (uniform k=5 x 5 families, protocol "
+            "expanded-generalization-robustness-v2, #124) the learned additive-best-first adapters succeed "
+            "on 128/150 episodes vs 0/150 for pretrained_base (every base episode is a one-call invalid "
+            "termination, confirming the estimand's 1-call pricing empirically); per family learned: "
+            "object-renaming 29/30, name-compression 27/30, render-restyle 27/30, scale-up 26/30, "
+            "shifted-init 19/30; per modality text 44/50, multimodal 43/50, visual 41/50; greedy 67/75 vs "
+            "w3 61/75. Controls saturate (random_valid 750/750, exact_reference 150/150) and are bounds, "
+            "not learned ability, per the #54 rule; the lossy P3 name-compression stratum is reported "
+            "separately (learned text 9/10, visual 8/10, multimodal 10/10) and never pooled.",
+            "evidence": "generalization-robustness/evaluation.json; verification.json: GENERALIZATION-V2; "
+            "issue-124-closeout.md",
+            "status": "supported",
+        },
+        {
+            "id": "v1-full-scopes-remain-open",
+            "text": "The v1 full scopes of second_backbone and generalization_robustness were never "
+            "executed and their terminal VALID_STOP evidence is retained as history: v1 admission L2 "
+            "(second_backbone; 258.42 L0 / 48.14 L1 GPU-h required against a 36.04 pre-transfer "
+            "remainder) and v1 admission L4 (generalization_robustness; 93/120 variants qualified, 27 "
+            "missing, 0 replacements; smallest L3 scope 1704.89 GPU-h infeasible). The v2 reduced scopes "
+            "were funded by a single prospective 12.11 GPU-h recovery_reserve -> second_backbone transfer "
+            "(ratified 2026-09-19, #123); generalization-v2 required 29.4945 of the 31.3727 remainder and "
+            "needed no transfer. Issues #96/#98/#102/#103 remain OPEN.",
             "evidence": "second-backbone/admission.json; generalization-robustness/admission.json, "
-            "audit.json; budget.json",
-            "status": "incomplete",
+            "admission-v2.json, audit.json; budget.json; verification.json: LEDGER, SECOND-BACKBONE-V2, "
+            "GENERALIZATION-V2",
+            "status": "boundary",
         },
         {
             "id": "compute-accounting",
-            "text": f"The program spent {sum(sums.values()):.2f}/336 GPU-h across 116 recorded attempts "
-            "with no transfers; failed and cutoff attempts retain their hours in the ledger, every "
-            "attempt ended before the 2026-09-21T11:55:19Z cutoff, and the recovery reserve was never "
-            "touched.",
+            "text": f"The program spent {sum(sums.values()):.2f}/336 GPU-h across 135 recorded attempts "
+            "with exactly one prospective transfer (recovery_reserve -> second_backbone, 12.11 GPU-h, "
+            "documented 2026-09-19 for #123); failed and cutoff attempts retain their hours in the "
+            "ledger, every attempt ended before the 2026-09-21T11:55:19Z cutoff, the 336 total and the "
+            "cutoff were preserved, and the recovery reserve keeps its remaining 11.89 GPU-h.",
             "evidence": "budget.csv; verification.json: LEDGER, LEDGER-VS-BRANCH",
             "status": "supported",
         },
@@ -1343,9 +1911,11 @@ def build_claims(src, verification, sums):
             "id": "second-backbone-probe",
             "text": "The second-backbone probe qualifies OpenGVLab/InternVL3_5-8B-HF "
             "@741a7d03020411e666c6109218ab71e08151ef86: visual_sdpa attention, byte-identical batched "
-            "outputs, adapter isolation and token-limit guards all pass; only the cost admission stops "
-            "the branch.",
-            "evidence": "second-backbone/probe.json, qualification/qualification.json",
+            "outputs, adapter isolation and token-limit guards all pass. The v1 cost admission stopped "
+            "the full-panel scope (L2 VALID_STOP), and the v2 L1 reduced key-cell scope was then trained "
+            "and evaluated under #123 on the probed backbone.",
+            "evidence": "second-backbone/probe.json, qualification/qualification.json; "
+            "second-backbone-v2/admission.json",
             "status": "supported",
         },
     ]
@@ -1382,8 +1952,10 @@ def narrative(src, tables, claims, sums, verification, successor_sums, successor
         "",
         "Program `expanded-nine-day-v1` ran on 2 x NVIDIA A100 80GB under a 336 GPU-hour cap with an "
         "absolute GPU cutoff of 2026-09-21T11:55:19Z and 48 CPU writing hours reserved. Seven branches "
-        "were admitted; five executed to completion and two stopped terminal VALID_STOP at frozen "
-        "cost-admission gates. Reconciliation (`branch-reconciliation.csv`, `budget.csv`):",
+        "were admitted; five executed to completion at v1 scope, and two (second_backbone, "
+        "generalization_robustness) stopped terminal VALID_STOP at frozen v1 cost-admission gates and "
+        "later completed at reduced scope under new versioned protocols (#123, #124). Reconciliation "
+        "(`branch-reconciliation.csv`, `budget.csv`):",
         "",
         "| Branch | Tickets | Terminal state | Coverage declared | Coverage actual | GPU-h / cap | Audit verdict |",
         "| --- | --- | --- | --- | --- | ---: | --- |",
@@ -1395,10 +1967,11 @@ def narrative(src, tables, claims, sums, verification, successor_sums, successor
         )
     lines += [
         "",
-        "Open issues #96 and #98 (generalization/robustness) and #102/#103 (second backbone) are "
-        "explicitly incomplete: both branches published terminal VALID_STOP evidence with admission "
-        "arithmetic instead of model outcomes. Five branches' goal audits (goal2-goal10, goal13) are "
-        "`complete` and goal-1 readiness is `PASS` (verification.json: GOAL-AUDITS).",
+        "Tickets #123 and #124 are CLOSED on the published v2 evidence. The v1 full scopes remain "
+        "unexecuted: issues #96 and #98 (generalization/robustness) and #102/#103 (second backbone) stay "
+        "OPEN with their terminal VALID_STOP evidence retained as history (see section 6). Five "
+        "branches' goal audits (goal2-goal10, goal13) are `complete` and goal-1 readiness is `PASS` "
+        "(verification.json: GOAL-AUDITS).",
         "",
         "## 2. Matched modalities: expanded baseline",
         "",
@@ -1585,29 +2158,107 @@ def narrative(src, tables, claims, sums, verification, successor_sums, successor
         "modality interaction. Saturation caveat: random-valid and exact controls saturate at 27/27 in "
         "every modality and the base at 0/27, so ceiling/floor effects bound observable differences.",
         "",
-        "## 6. Generalization/robustness and second backbone: VALID_STOP",
+        "## 6. Generalization/robustness and second backbone: v2 reduced-scope completions",
         "",
-        f"**Generalization/robustness (#96/#98), admission L4 VALID_STOP.** The frozen suite generated "
-        f"{len(src['gen_audit']['variants'])} variants (24 scale-up, 24 shifted-init, 72 perturbations). "
-        f"Qualification retained {eligible} eligible variants with {sum(gen_reasons.values())} missing "
+        "Both branches stopped terminal VALID_STOP at their frozen v1 cost-admission gates and later "
+        "executed at reduced scope under new versioned protocols, funded within the original 336 GPU-h "
+        "total and cutoff (verification.json: SECOND-BACKBONE-V2, GENERALIZATION-V2).",
+        "",
+        f"**Generalization/robustness v2 (#124, protocol `expanded-generalization-robustness-v2`).** "
+        f"Admission-v2 PASS admits a uniform k=5 cheapest-prefix per family of the 93 eligible variants "
+        f"(5 families x 5 = 25 variants; membership sha256 `008deaf35b…2d60` frozen before execution), "
+        f"requiring {src['gen2_admission']['budget']['required_gpu_hours']:.4f} of the "
+        f"{src['gen2_admission']['budget']['branch_remainder_gpu_hours']:.4f} GPU-h branch remainder — no "
+        f"transfer was needed or requested. Evaluation outcome PASS: 1,200/1,200 episodes independently "
+        f"replayed (300 model = 25 x (6 learned_adapter + 6 pretrained_base) + 900 CPU controls = "
+        f"random_valid x 5 seeds + exact_reference), missingness []. Headline, recomputed from the 1,200 "
+        f"episode reports:",
+        "",
+        "| Family | learned_adapter | pretrained_base | random_valid | exact_reference |",
+        "| --- | ---: | ---: | ---: | ---: |",
+    ]
+    gen2_recomputed = next(c for c in verification["checks"] if c["id"] == "GENERALIZATION-V2")["recomputed"][
+        "v2_evaluation"
+    ]
+    family_condition = gen2_recomputed["by_family_condition"]
+    for family, cells in family_condition.items():
+        cell_text = {
+            condition: f"{entry['successes']}/{entry['episodes']}"
+            for condition, entry in cells.items()
+        }
+        lines.append(
+            f"| {family} | {cell_text['learned_adapter']} | {cell_text['pretrained_base']} | "
+            f"{cell_text['random_valid']} | {cell_text['exact_reference']} |"
+        )
+    lines += [
+        "",
+        "Learned adapters succeed on **128/150** invariant-valid episodes vs **0/150** for the "
+        "pretrained base — every base episode is a one-call invalid termination (150 decisions total), "
+        "empirically confirming the estimand's 1-call base pricing. Controls saturate (random_valid "
+        "750/750, exact_reference 150/150) and are bounds, not learned ability, per the #54 rule. "
+        "Learned by modality: text 44/50, multimodal 43/50, visual 41/50; by algorithm: greedy 67/75, "
+        "w3 61/75. All 22 learned failures are single-invalid-operation terminations, concentrated in "
+        "shifted-init (11). The lossy P3 name-compression stratum stays separate: all 5 admitted "
+        "variants are text-lossy, 3 multimodal-lossy, 0 visual-lossy, and learned success on that "
+        "stratum is text 9/10, visual 8/10, multimodal 10/10 — never pooled with the "
+        "semantics-preserving families.",
+        "",
+        "**Second backbone v2 (#123, protocol `expanded-second-backbone-v2`).** Admission L1 PASS under "
+        "the transfer-amended 52.11 GPU-h cap authorizes the 12/24 key-cell tasks selected by lowest "
+        "reference BFS decision count, frozen before any model outcome. Training PASS: three cells "
+        "(text/visual/multimodal), each 512 records x 16 optimizer updates, seed 17, identical fresh "
+        "LoRA init across cells. Evaluation PASS: 72/72 model episodes independently replayed plus 72 "
+        "sha256-pinned baseline comparators verified at zero new comparator GPU cost, missingness []. "
+        "Null result, recomputed from the episode reports: neither arm ever reaches a goal.",
+        "",
+        "| Contrast (paired, 12 units, bootstrap seed 1729, 10,000 resamples) | text | visual | multimodal |",
+        "| --- | ---: | ---: | ---: |",
+    ]
+    sb2_recomputed = next(c for c in verification["checks"] if c["id"] == "SECOND-BACKBONE-V2")["recomputed"][
+        "v2_analysis"
+    ]
+    for contrast_key, label in (
+        ("process_sft_minus_pretrained_base", "process_sft - pretrained_base"),
+        ("process_sft_minus_random_valid", "process_sft - random_valid"),
+    ):
+        cells = []
+        for modality in MODALITIES:
+            interval = sb2_recomputed[contrast_key][modality]
+            cells.append(f"{interval['point']:+.3f} [{interval['lower']:+.3f}, {interval['upper']:+.3f}]")
+        lines.append(f"| {label} | " + " | ".join(cells) + " |")
+    cross = sb2_recomputed["cross_backbone_descriptive_not_paired"]
+    cross_text = " | ".join(
+        f"{modality.split('-')[0]} {cross[modality]['point']:+.3f} "
+        f"[{cross[modality]['lower']:+.3f}, {cross[modality]['upper']:+.3f}]"
+        for modality in MODALITIES
+    )
+    lines += [
+        "",
+        f"Cross-backbone InternVL-SFT - Qwen3-VL-SFT ({cross_text}) is reported as descriptive, not "
+        "paired: the pinned baseline evidence holds aggregate cells only, so the contrast conditions on "
+        "the Qwen pinned full-panel process-SFT BFS rate (0.0). pretrained_base runs 1 decision per "
+        "episode (36 total); process_sft runs 1-4 decisions (59 total). Reused controls: random_valid "
+        "54/72 (18/24 per modality, oracle-assisted), exact_reference 72/72.",
+        "",
+        "**v1 history, retained.** The v1 full scopes remain unexecuted with their terminal VALID_STOP "
+        "evidence intact. Generalization/robustness v1 (admission L4): the frozen suite generated "
+        f"{len(src['gen_audit']['variants'])} variants (24 scale-up, 24 shifted-init, 72 perturbations); "
+        f"qualification retained {eligible} eligible variants with {sum(gen_reasons.values())} missing "
         f"({gen_reasons['exact_reference_failed:bfs:expansion_budget_exhausted']} "
         f"`exact_reference_failed:bfs:expansion_budget_exhausted`, {gen_reasons['initial_goal']} "
         f"`initial_goal`, {gen_reasons['structural whole-instance overlap']} `structural whole-instance "
-        f"overlap`) and zero replacements. Every scope level fails the Gate-2 admission: even L3 (34 "
-        f"tasks) requires "
-        f"{gen['arithmetic']['L3']['required_gpu_hours']:.2f} GPU-h against a "
-        f"{gen['branch_remainder_gpu_hours']:.2f} GPU-h remainder. No derived-task model evaluation "
-        f"was launched. One robustness finding exists without any model call: P3 name-compression is "
+        f"overlap`) and zero replacements; every v1 scope level fails the Gate-2 admission (even L3, 34 "
+        f"tasks, requires {gen['arithmetic']['L3']['required_gpu_hours']:.2f} GPU-h against a "
+        f"{gen['branch_remainder_gpu_hours']:.2f} GPU-h remainder). P3 name-compression is "
         f"information-lossy exactly where names carry semantics — text {lossy['text-state']}/24 lossy, "
-        f"visual {lossy['visual-state']}/24 lossy, multimodal {lossy['multimodal-state']}/24 lossy.",
-        "",
-        "**Second backbone (#101-#103), admission L2 VALID_STOP.** The probe qualifies "
+        f"visual {lossy['visual-state']}/24 lossy, multimodal {lossy['multimodal-state']}/24 lossy "
+        f"(family-wide classification). Second backbone v1 (admission L2): the probe qualifies "
         "OpenGVLab/InternVL3_5-8B-HF @741a7d03020411e666c6109218ab71e08151ef86 (visual_sdpa attention, "
         "byte-identical batched outputs, repeated-batch determinism, adapter isolation, token-limit "
-        "guards; 1,536 records / 24 tasks / 5,907 decisions measured CPU-only). The cost admission "
-        "then stops the branch:",
+        "guards; 1,536 records / 24 tasks / 5,907 decisions measured CPU-only) and the v1 cost "
+        "admission then stopped the full-panel scope:",
         "",
-        "| Level | Episodes | Train GPU-h | Eval GPU-h | Required incl. spent | Fits 36.04 remainder |",
+        "| Level | Episodes | Train GPU-h | Eval GPU-h | Required incl. spent | Fits 36.04 pre-transfer remainder |",
         "| --- | ---: | ---: | ---: | ---: | --- |",
     ]
     for level in ("L0", "L1"):
@@ -1618,7 +2269,7 @@ def narrative(src, tables, claims, sums, verification, successor_sums, successor
         )
     lines += [
         "",
-        "Neither branch mutated the ledger; both remain open as incomplete evidence publications.",
+        "Issues #96/#98/#102/#103 stay OPEN on the v1 wording; #123/#124 are CLOSED on the v2 evidence.",
         "",
         "## 7. Transfer to external benchmarks (#104-#107)",
         "",
@@ -1654,7 +2305,7 @@ def narrative(src, tables, claims, sums, verification, successor_sums, successor
         "",
         "## 8. Compute accounting",
         "",
-        "Per-branch ledger reconciliation (sums recomputed from all 116 recorded attempts; failed and "
+        "Per-branch ledger reconciliation (sums recomputed from all 135 recorded attempts; failed and "
         "cutoff attempts retain their hours per the accounting policy):",
         "",
         "| Branch | Attempts (s/f/c) | Succeeded GPU-h | Failed GPU-h | Cutoff GPU-h | Total GPU-h | Cap |",
@@ -1674,13 +2325,16 @@ def narrative(src, tables, claims, sums, verification, successor_sums, successor
         f"**{total_row['gpu_hours_succeeded']:.4f}** | **{total_row['gpu_hours_failed']:.4f}** | "
         f"**{total_row['gpu_hours_cutoff']:.4f}** | **{total_hours:.4f} / 336** | 336 |",
         "",
-        f"The program spent {total_hours:.2f}/336 GPU-h ({100 * total_hours / 336:.1f}% of cap). No "
-        "transfers were requested or made between branches; the recovery reserve (24 GPU-h) is "
-        "untouched; every attempt ended before the 2026-09-21T11:55:19Z GPU cutoff. Ledger-vs-branch "
-        "cumulative totals agree within 0.01 GPU-h everywhere (verification.json: LEDGER, "
-        "LEDGER-VS-BRANCH; the transfer docs' 3.5993 rounds the ledger's 3.59932 and the "
-        "second-backbone admission conservatively double-counts the 0.63 GPU-h probe window in its "
-        "remainder arithmetic).",
+        f"The program spent {total_hours:.2f}/336 GPU-h ({100 * total_hours / 336:.1f}% of cap). Exactly "
+        "one budget transfer was made: a prospective 12.11 GPU-h recovery_reserve -> second_backbone "
+        "transfer documented on 2026-09-19 before execution (ticket #123, protocol "
+        "expanded-second-backbone-v2), which moved the second_backbone cap 40 -> 52.11 and the recovery "
+        "reserve 24 -> 11.89 while preserving the 336 total and the 2026-09-21T11:55:19Z GPU cutoff; "
+        "every attempt ended before that cutoff. Ledger-vs-branch cumulative totals agree within 0.01 "
+        "GPU-h everywhere (verification.json: LEDGER, LEDGER-VS-BRANCH; the transfer docs' 3.5993 rounds "
+        "the ledger's 3.59932, the second-backbone v1 admission conservatively double-counts the 0.63 "
+        "GPU-h probe window in its remainder arithmetic, and the generalization v1 admission's probe "
+        "double-count is recorded as a nit in admission-v2 and not repeated).",
         "",
         "## 9. Claim inventory and boundaries",
         "",
@@ -1704,6 +2358,17 @@ def narrative(src, tables, claims, sums, verification, successor_sums, successor
         "- Tiny-subgroup honesty: 24-problem cells (baseline), 3-problem dev panels, 9-arm unseen "
         "panels and 36-transfer comparisons are small; bootstrap intervals are descriptive bounds, "
         "not broad superiority claims.",
+        "- Reduced-scope honesty: second-backbone-v2 is a 12/24 key-cell panel selected by lowest "
+        "reference BFS decision count (frozen pre-outcomes), and generalization-v2 admits 5 of 93 "
+        "eligible variants per family (k=5 cheapest prefix); family strata hold 5 problems each (<8), "
+        "so v2 family-level rates are descriptive-only under the tiny-subgroup rule and the v1 full "
+        "scopes stay unexecuted (#96/#98/#102/#103 open).",
+        "- The second-backbone-v2 cross-backbone contrast is descriptive, not paired (pinned baseline "
+        "evidence holds aggregate cells only), and InternVL3.5-8B shares the Qwen3-8B LLM family, so "
+        "the replication contrast is the vision tower, connector, image tokenization and multimodal "
+        "recipe — not the LLM backbone.",
+        "- v2 controls saturate (generalization random_valid 750/750, exact_reference 150/150; "
+        "second-backbone exact_reference 72/72) and bound bookkeeping, never learned ability.",
         "",
         "## 10. Figures",
         "",
@@ -1987,13 +2652,15 @@ def figures(src, tables, sums, output):
     ax.set_yticks(y, branches, fontsize=8)
     ax.invert_yaxis()
     ax.set_xlabel("GPU-hours (black tick = branch cap)")
-    ax.set_title(f"Expanded-nine-day-v1 compute: {sum(sums.values()):.2f} / 336 GPU-h, no transfers")
+    ax.set_title(f"Expanded-nine-day-v1 compute: {sum(sums.values()):.2f} / 336 GPU-h, one 12.11 GPU-h transfer")
     ax.legend(fontsize=8, loc="lower right")
     fig.text(
         0.02,
         0.01,
-        "Failed and cutoff attempts retain their GPU-h per the accounting policy; the recovery reserve "
-        "is untouched.\nEvery attempt ended before the 2026-09-21T11:55:19Z GPU cutoff.",
+        "Failed and cutoff attempts retain their GPU-h per the accounting policy; the prospective\n"
+        "recovery_reserve -> second_backbone transfer (12.11 GPU-h, 2026-09-19, #123) is reflected in "
+        "the caps.\nEvery attempt ended before the 2026-09-21T11:55:19Z GPU cutoff; the recovery reserve "
+        "keeps 11.89 GPU-h.",
         fontsize=8,
         va="bottom",
     )
@@ -2027,7 +2694,7 @@ def main():
     )
 
     tables = {
-        "branch-reconciliation": branch_reconciliation_table(sums),
+        "branch-reconciliation": branch_reconciliation_table(sums, src["budget"]["allocations_gpu_hours"]),
         "budget": budget_table(src["budget"], sums, hours_by_status, counts),
         "baseline-summary": baseline_summary_table(by_cell_recomputed, baseline_expansions),
         "baseline-paired": baseline_paired_table(episodes),

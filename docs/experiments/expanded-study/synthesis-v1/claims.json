@@ -1,8 +1,8 @@
 [
   {
     "id": "coverage",
-    "text": "Every executed branch reconciles with zero missing evidence: 1,152/1,152 baseline episodes independently replayed, 405/405 DAgger episodes, 90/90 successor episodes, 243/243 curriculum model episodes with 324/324 comparator bindings, and 39/39 transfer cells (12 v1 + 27 v2).",
-    "evidence": "verification.json: BASELINE-RECOMPUTE, DAGGER, SUCCESSOR, CURRICULUM, TRANSFER; baseline-independent-replay.json",
+    "text": "Every executed branch reconciles with zero missing evidence: 1,152/1,152 baseline episodes independently replayed, 405/405 DAgger episodes, 90/90 successor episodes, 243/243 curriculum model episodes with 324/324 comparator bindings, 39/39 transfer cells (12 v1 + 27 v2), 72/72 second-backbone-v2 model episodes with 72 sha256-pinned comparators verified, and 1,200/1,200 generalization-v2 episodes.",
+    "evidence": "verification.json: BASELINE-RECOMPUTE, DAGGER, SUCCESSOR, CURRICULUM, TRANSFER, SECOND-BACKBONE-V2, GENERALIZATION-V2; baseline-independent-replay.json",
     "status": "supported"
   },
   {
@@ -42,14 +42,26 @@
     "status": "negative"
   },
   {
-    "id": "incomplete-branches",
-    "text": "second_backbone and generalization_robustness are terminal VALID_STOP with no model outcomes: admission L2 requires 258.42 (L0) / 48.14 (L1) GPU-h against a 36.04 remainder, and admission L4 follows the Gate-2 rule after 93/120 variants qualified (27 missing, 0 replacements). The recovery reserve is untouched.",
-    "evidence": "second-backbone/admission.json; generalization-robustness/admission.json, audit.json; budget.json",
-    "status": "incomplete"
+    "id": "second-backbone-v2-null",
+    "text": "On the 12-task reference-cost-reduced key-cell panel (protocol expanded-second-backbone-v2, #123), the pinned InternVL3_5-8B backbone never reaches a goal: pretrained_base 0/36 (one invalid operation, 1 decision per episode) and process_sft 0/36 (1-4 decisions, 59 total). Paired whole-problem bootstrap (12 units, seed 1729, 10,000 resamples): process_sft - pretrained_base = +0.000 [0.000, 0.000] and process_sft - random_valid = -0.750 [-1.000, -0.500] in all three modalities; cross-backbone InternVL-SFT - Qwen3-VL-SFT = +0.000 [0.000, 0.000], which is descriptive, not paired, because the pinned baseline evidence holds aggregate cells only.",
+    "evidence": "second-backbone-v2/evaluation/analysis.json; verification.json: SECOND-BACKBONE-V2; issue-123-closeout.md",
+    "status": "negative"
+  },
+  {
+    "id": "generalization-v2-headline",
+    "text": "On the 25 admitted derived tasks (uniform k=5 x 5 families, protocol expanded-generalization-robustness-v2, #124) the learned additive-best-first adapters succeed on 128/150 episodes vs 0/150 for pretrained_base (every base episode is a one-call invalid termination, confirming the estimand's 1-call pricing empirically); per family learned: object-renaming 29/30, name-compression 27/30, render-restyle 27/30, scale-up 26/30, shifted-init 19/30; per modality text 44/50, multimodal 43/50, visual 41/50; greedy 67/75 vs w3 61/75. Controls saturate (random_valid 750/750, exact_reference 150/150) and are bounds, not learned ability, per the #54 rule; the lossy P3 name-compression stratum is reported separately (learned text 9/10, visual 8/10, multimodal 10/10) and never pooled.",
+    "evidence": "generalization-robustness/evaluation.json; verification.json: GENERALIZATION-V2; issue-124-closeout.md",
+    "status": "supported"
+  },
+  {
+    "id": "v1-full-scopes-remain-open",
+    "text": "The v1 full scopes of second_backbone and generalization_robustness were never executed and their terminal VALID_STOP evidence is retained as history: v1 admission L2 (second_backbone; 258.42 L0 / 48.14 L1 GPU-h required against a 36.04 pre-transfer remainder) and v1 admission L4 (generalization_robustness; 93/120 variants qualified, 27 missing, 0 replacements; smallest L3 scope 1704.89 GPU-h infeasible). The v2 reduced scopes were funded by a single prospective 12.11 GPU-h recovery_reserve -> second_backbone transfer (ratified 2026-09-19, #123); generalization-v2 required 29.4945 of the 31.3727 remainder and needed no transfer. Issues #96/#98/#102/#103 remain OPEN.",
+    "evidence": "second-backbone/admission.json; generalization-robustness/admission.json, admission-v2.json, audit.json; budget.json; verification.json: LEDGER, SECOND-BACKBONE-V2, GENERALIZATION-V2",
+    "status": "boundary"
   },
   {
     "id": "compute-accounting",
-    "text": "The program spent 48.25/336 GPU-h across 116 recorded attempts with no transfers; failed and cutoff attempts retain their hours in the ledger, every attempt ended before the 2026-09-21T11:55:19Z cutoff, and the recovery reserve was never touched.",
+    "text": "The program spent 53.52/336 GPU-h across 135 recorded attempts with exactly one prospective transfer (recovery_reserve -> second_backbone, 12.11 GPU-h, documented 2026-09-19 for #123); failed and cutoff attempts retain their hours in the ledger, every attempt ended before the 2026-09-21T11:55:19Z cutoff, the 336 total and the cutoff were preserved, and the recovery reserve keeps its remaining 11.89 GPU-h.",
     "evidence": "budget.csv; verification.json: LEDGER, LEDGER-VS-BRANCH",
     "status": "supported"
   },
@@ -61,8 +73,8 @@
   },
   {
     "id": "second-backbone-probe",
-    "text": "The second-backbone probe qualifies OpenGVLab/InternVL3_5-8B-HF @741a7d03020411e666c6109218ab71e08151ef86: visual_sdpa attention, byte-identical batched outputs, adapter isolation and token-limit guards all pass; only the cost admission stops the branch.",
-    "evidence": "second-backbone/probe.json, qualification/qualification.json",
+    "text": "The second-backbone probe qualifies OpenGVLab/InternVL3_5-8B-HF @741a7d03020411e666c6109218ab71e08151ef86: visual_sdpa attention, byte-identical batched outputs, adapter isolation and token-limit guards all pass. The v1 cost admission stopped the full-panel scope (L2 VALID_STOP), and the v2 L1 reduced key-cell scope was then trained and evaluated under #123 on the probed backbone.",
+    "evidence": "second-backbone/probe.json, qualification/qualification.json; second-backbone-v2/admission.json",
     "status": "supported"
   }
 ]
