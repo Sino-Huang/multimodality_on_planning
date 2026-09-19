@@ -1,0 +1,193 @@
+{
+  "schema_version": "expanded_transfer_final_report_v1",
+  "outcome": "PASS",
+  "protocol_id": "transfer-folio-humaneval-gsm8k-v1",
+  "admission_decision": "L0",
+  "benchmarks": {
+    "folio": {
+      "base": {
+        "examples": 200,
+        "correct": 120,
+        "accuracy": 0.6,
+        "malformed": 0,
+        "categories": {
+          "correct": 120,
+          "incorrect": 80
+        },
+        "generated_tokens_total": 274,
+        "input_tokens_total": 28680,
+        "latency_seconds": 35.17509586177766
+      },
+      "bfs_text": {
+        "examples": 200,
+        "correct": 120,
+        "accuracy": 0.6,
+        "malformed": 0,
+        "categories": {
+          "correct": 120,
+          "incorrect": 80
+        },
+        "generated_tokens_total": 272,
+        "input_tokens_total": 28680,
+        "latency_seconds": 40.4320367295295
+      },
+      "bfs_visual": {
+        "examples": 200,
+        "correct": 121,
+        "accuracy": 0.605,
+        "malformed": 0,
+        "categories": {
+          "correct": 121,
+          "incorrect": 79
+        },
+        "generated_tokens_total": 275,
+        "input_tokens_total": 28680,
+        "latency_seconds": 39.75138424709439
+      },
+      "bfs_multimodal": {
+        "examples": 200,
+        "correct": 121,
+        "accuracy": 0.605,
+        "malformed": 0,
+        "categories": {
+          "correct": 121,
+          "incorrect": 79
+        },
+        "generated_tokens_total": 276,
+        "input_tokens_total": 28680,
+        "latency_seconds": 40.11988068558276
+      }
+    },
+    "gsm8k": {
+      "base": {
+        "examples": 200,
+        "correct": 191,
+        "accuracy": 0.955,
+        "malformed": 0,
+        "categories": {
+          "correct": 191,
+          "incorrect": 9
+        },
+        "generated_tokens_total": 29578,
+        "input_tokens_total": 23975,
+        "latency_seconds": 428.82210863009095
+      },
+      "bfs_text": {
+        "examples": 200,
+        "correct": 190,
+        "accuracy": 0.95,
+        "malformed": 0,
+        "categories": {
+          "correct": 190,
+          "incorrect": 10
+        },
+        "generated_tokens_total": 27539,
+        "input_tokens_total": 23975,
+        "latency_seconds": 442.9722148422152
+      },
+      "bfs_visual": {
+        "examples": 200,
+        "correct": 189,
+        "accuracy": 0.945,
+        "malformed": 0,
+        "categories": {
+          "correct": 189,
+          "incorrect": 11
+        },
+        "generated_tokens_total": 28211,
+        "input_tokens_total": 23975,
+        "latency_seconds": 503.24174022488296
+      },
+      "bfs_multimodal": {
+        "examples": 200,
+        "correct": 193,
+        "accuracy": 0.965,
+        "malformed": 0,
+        "categories": {
+          "correct": 193,
+          "incorrect": 7
+        },
+        "generated_tokens_total": 27382,
+        "input_tokens_total": 23975,
+        "latency_seconds": 458.81518724933267
+      }
+    },
+    "humaneval": {
+      "base": {
+        "examples": 164,
+        "correct": 128,
+        "accuracy": 0.7804878048780488,
+        "malformed": 2,
+        "categories": {
+          "passed": 128,
+          "wrong_answer": 22,
+          "runtime_error": 12,
+          "malformed": 2
+        },
+        "generated_tokens_total": 14146,
+        "input_tokens_total": 29393,
+        "latency_seconds": 294.3561673182994
+      },
+      "bfs_text": {
+        "examples": 164,
+        "correct": 130,
+        "accuracy": 0.7926829268292683,
+        "malformed": 1,
+        "categories": {
+          "passed": 130,
+          "wrong_answer": 22,
+          "runtime_error": 11,
+          "malformed": 1
+        },
+        "generated_tokens_total": 13970,
+        "input_tokens_total": 29393,
+        "latency_seconds": 304.9256707653403
+      },
+      "bfs_visual": {
+        "examples": 164,
+        "correct": 131,
+        "accuracy": 0.7987804878048781,
+        "malformed": 0,
+        "categories": {
+          "passed": 131,
+          "wrong_answer": 24,
+          "runtime_error": 9
+        },
+        "generated_tokens_total": 13659,
+        "input_tokens_total": 29393,
+        "latency_seconds": 304.365187805146
+      },
+      "bfs_multimodal": {
+        "examples": 164,
+        "correct": 128,
+        "accuracy": 0.7804878048780488,
+        "malformed": 1,
+        "categories": {
+          "passed": 128,
+          "wrong_answer": 25,
+          "runtime_error": 10,
+          "malformed": 1
+        },
+        "generated_tokens_total": 13860,
+        "input_tokens_total": 29393,
+        "latency_seconds": 296.59672969020903
+      }
+    }
+  },
+  "missing": [],
+  "leakage": {
+    "records_scanned": 76217,
+    "benchmark_inputs": 564,
+    "items_with_shared_ngrams": 7,
+    "report": "leakage.json"
+  },
+  "sandbox": {
+    "unshare_network_available": false,
+    "decision": "socket-blocking prelude only"
+  },
+  "limitations": [
+    "single decoding seed (17); no variance estimated",
+    "Qwen3-VL-8B-Instruct pretraining data is not auditable by this project; possible base-model benchmark contamination is disclosed, not measured",
+    "FOLIO is the v0.0 validation split (official public evaluation set), not the access-gated HF v2 update"
+  ]
+}

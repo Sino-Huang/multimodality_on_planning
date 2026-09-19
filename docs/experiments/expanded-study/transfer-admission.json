@@ -1,0 +1,67 @@
+{
+  "schema_version": "expanded_transfer_admission_v1",
+  "decision": "L0",
+  "outcome": "PASS",
+  "protocol_id": "transfer-folio-humaneval-gsm8k-v1",
+  "branch_cap_gpu_hours": 24.0,
+  "branch_spent_gpu_hours": 0.12880688812997607,
+  "branch_remainder_gpu_hours": 23.871193111870024,
+  "arithmetic": {
+    "L0": {
+      "subset_sizes": {
+        "folio": 200,
+        "gsm8k": 200,
+        "humaneval": 164
+      },
+      "per_worker_seconds": {
+        "0": 4978.478164725006,
+        "1": 3940.885886067152
+      },
+      "required_gpu_hours": 3.0970014065250546,
+      "required_wall_seconds": 6223.097705906257,
+      "safety_factor": 1.25,
+      "fits_branch_remainder": true,
+      "fits_per_worker_24h": true,
+      "fits_absolute_cutoff": true,
+      "fits": true
+    },
+    "L1": {
+      "subset_sizes": {
+        "folio": 100,
+        "gsm8k": 100,
+        "humaneval": 82
+      },
+      "per_worker_seconds": {
+        "0": 2510.8419464305043,
+        "1": 1992.0458071015776
+      },
+      "required_gpu_hours": 1.5635026921986395,
+      "required_wall_seconds": 3138.5524330381304,
+      "safety_factor": 1.25,
+      "fits_branch_remainder": true,
+      "fits_per_worker_24h": true,
+      "fits_absolute_cutoff": true,
+      "fits": true
+    }
+  },
+  "measured_inputs": {
+    "p95_seconds_per_example": {
+      "folio": 0.3554461393505335,
+      "gsm8k": 6.169090545736253,
+      "humaneval": 5.50811470495537
+    },
+    "model_load_seconds": 43.20572813600302,
+    "probe_gpu_hours": 0.1262665272783488
+  },
+  "authorized_subsets": {
+    "decision": "L0",
+    "subset_sizes": {
+      "folio": 200,
+      "gsm8k": 200,
+      "humaneval": 164
+    },
+    "selection": "full frozen L0 subsets"
+  },
+  "ledger_mutated": false,
+  "decided_at": 1789792490.0604525
+}

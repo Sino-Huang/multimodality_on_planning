@@ -1,0 +1,27 @@
+{
+  "status": "complete",
+  "goal": 13,
+  "issues": [104, 105, 106, 107],
+  "requirements": {
+    "frozen_benchmarks_104": "transfer-protocol.json froze official sources before any model output: FOLIO v0.0 validation (Yale-LILY/FOLIO commit 5d7bb84c7edab3fb358e057d2807f19cf5cf5e2d, sha256 6922c988…, the official public evaluation split; HF v2 gated/unreachable and documented), GSM8K main/test (openai/gsm8k@740312ad, sha256 ee7b8da9…), HumanEval (openai/openai_humaneval@7dce6050, sha256 2f2871a1…). Subsets 200/200/164 selected by label strata, reasoning-step quartiles and full coverage only; L1 fallback frozen pre-outcome; matched prompts, greedy fp32 decoding and metrics frozen; freeze audit PASS with byte-identical independent re-derivation.",
+    "protocol_verification_and_leakage_104": "48 transfer tests plus house suites pass. Normalized 8-gram containment of all 564 frozen benchmark inputs against the 76,217-record SFT corpus found 7 trivial generic numeric-sequence collisions and zero content overlap (leakage.json); base-model pretraining contamination is disclosed as unauditable.",
+    "outcome_blind_resource_gate": "Probe measured model load, scalar/batch byte parity, repeated-batch determinism, token guards, adapter isolation and lower-95% throughput for all four cells; admission arithmetic (0.1288 GPU-h spent, p95 latencies, safety 1.25) authorized L0 (full panel, est. 3.10 GPU-h) against the 24 GPU-hour branch cap and the absolute cutoff; admission.json ledger_mutated=false.",
+    "folio_execution_105": "200/200 frozen FOLIO examples x 4 cells scored with the frozen first-whole-word True/False/Uncertain parsing; raw outputs and parsed predictions retained; zero malformed; no transfer capability inferred from planning performance.",
+    "humaneval_execution_106": "164/164 problems x 4 cells; every generated program executed under the frozen sandbox (python -I, fresh temp cwd, scrubbed env, RLIMIT_CPU 10s, RLIMIT_AS 4GiB, RLIMIT_NOFILE 256, 15s wall, no network via socket-blocking prelude — unshare -n unavailable on this host and recorded); all outputs/errors retained; failures categorized passed/wrong_answer/runtime_error/malformed.",
+    "gsm8k_execution_107": "200/200 frozen GSM8K examples x 4 cells scored with the frozen official-style #### parsing plus last-number fallback; raw predictions, errors and costs retained; no favourable reruns.",
+    "complete_coverage_and_audit": "All 12 benchmark/cell combinations complete (missing=[]); run-worker audits PASS; audit-score PASS (12/12 cells re-parsed independently, 68/68 sandbox re-executions matched); finalize/audit-final byte-equality PASS. The score-hook's first audit failure was an audit-code extraction defect (unterminated-fence semantics diverged from the frozen closing-fence rule; HumanEval/129 in 3 cells); fixed in b26b2c7 with scores unchanged, rerun PASS, original hook evidence preserved plus hook-rerun-2.json.",
+    "accounting": "Transfer branch spent 1.0430/24 GPU-hours (probe 0.1288, run-0 0.5236, run-1 0.3906; CPU stages 0); program total 45.696/336; no transfers, no ledger resets, no outcome-selected reruns; absolute GPU cutoff 2026-09-21T11:55:19Z untouched.",
+    "no_selection_by_success": "All four frozen cells ran the full frozen panel regardless of outcomes; results: folio 0.600/0.600/0.605/0.605, gsm8k 0.955/0.950/0.945/0.965, humaneval pass@1 0.7805/0.7927/0.7988/0.7805 (base/bfs_text/bfs_visual/bfs_multimodal); differences of 1–3 examples reported without adapter selection."
+  },
+  "evidence": [
+    "configs/experiments/expanded-study/transfer-protocol.json",
+    "docs/experiments/expanded-study/transfer-protocol-checks.json",
+    "docs/experiments/expanded-study/transfer-admission.json",
+    "docs/experiments/expanded-study/transfer-scores.json",
+    "docs/experiments/expanded-study/transfer-final-report.json",
+    "docs/experiments/expanded-study/transfer-results.md",
+    "outputs/expanded-study/v1/transfer/ (frozen data, subsets.json, leakage.json, probe.json, raw predictions, sandbox logs, audit JSONs)",
+    "outputs/expanded-study/v1/jobs/transfer-* (terminal/heartbeat/hook evidence, incl. hook-rerun-2.json)"
+  ],
+  "tests": "tests/planning_benchmark/test_expanded_transfer.py: 48 passed; scheduler/second-backbone suites unaffected (31 passed); ruff clean"
+}

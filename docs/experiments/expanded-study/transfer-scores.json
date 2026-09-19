@@ -1,0 +1,229 @@
+{
+  "schema_version": "expanded_transfer_scores_v1",
+  "outcome": "PASS",
+  "protocol_id": "transfer-folio-humaneval-gsm8k-v1",
+  "metric": {
+    "folio": "accuracy over the frozen subset; malformed reported separately",
+    "gsm8k": "accuracy over the frozen subset; malformed reported separately",
+    "humaneval": "pass@1 with a single greedy sample; failures reported by category"
+  },
+  "sandbox": {
+    "unshare_network_available": false,
+    "decision": "socket-blocking prelude only"
+  },
+  "cells": [
+    {
+      "benchmark": "folio",
+      "cell": "base",
+      "subset_level": "L0",
+      "examples": 200,
+      "correct": 120,
+      "accuracy": 0.6,
+      "malformed": 0,
+      "categories": {
+        "correct": 120,
+        "incorrect": 80
+      },
+      "generated_tokens_total": 274,
+      "input_tokens_total": 28680,
+      "latency_seconds": 35.17509586177766,
+      "predictions": "outputs/expanded-study/v1/transfer/scores/predictions-folio-base.jsonl.gz"
+    },
+    {
+      "benchmark": "folio",
+      "cell": "bfs_text",
+      "subset_level": "L0",
+      "examples": 200,
+      "correct": 120,
+      "accuracy": 0.6,
+      "malformed": 0,
+      "categories": {
+        "correct": 120,
+        "incorrect": 80
+      },
+      "generated_tokens_total": 272,
+      "input_tokens_total": 28680,
+      "latency_seconds": 40.4320367295295,
+      "predictions": "outputs/expanded-study/v1/transfer/scores/predictions-folio-bfs_text.jsonl.gz"
+    },
+    {
+      "benchmark": "folio",
+      "cell": "bfs_visual",
+      "subset_level": "L0",
+      "examples": 200,
+      "correct": 121,
+      "accuracy": 0.605,
+      "malformed": 0,
+      "categories": {
+        "correct": 121,
+        "incorrect": 79
+      },
+      "generated_tokens_total": 275,
+      "input_tokens_total": 28680,
+      "latency_seconds": 39.75138424709439,
+      "predictions": "outputs/expanded-study/v1/transfer/scores/predictions-folio-bfs_visual.jsonl.gz"
+    },
+    {
+      "benchmark": "folio",
+      "cell": "bfs_multimodal",
+      "subset_level": "L0",
+      "examples": 200,
+      "correct": 121,
+      "accuracy": 0.605,
+      "malformed": 0,
+      "categories": {
+        "correct": 121,
+        "incorrect": 79
+      },
+      "generated_tokens_total": 276,
+      "input_tokens_total": 28680,
+      "latency_seconds": 40.11988068558276,
+      "predictions": "outputs/expanded-study/v1/transfer/scores/predictions-folio-bfs_multimodal.jsonl.gz"
+    },
+    {
+      "benchmark": "gsm8k",
+      "cell": "base",
+      "subset_level": "L0",
+      "examples": 200,
+      "correct": 191,
+      "accuracy": 0.955,
+      "malformed": 0,
+      "categories": {
+        "correct": 191,
+        "incorrect": 9
+      },
+      "generated_tokens_total": 29578,
+      "input_tokens_total": 23975,
+      "latency_seconds": 428.82210863009095,
+      "predictions": "outputs/expanded-study/v1/transfer/scores/predictions-gsm8k-base.jsonl.gz"
+    },
+    {
+      "benchmark": "gsm8k",
+      "cell": "bfs_text",
+      "subset_level": "L0",
+      "examples": 200,
+      "correct": 190,
+      "accuracy": 0.95,
+      "malformed": 0,
+      "categories": {
+        "correct": 190,
+        "incorrect": 10
+      },
+      "generated_tokens_total": 27539,
+      "input_tokens_total": 23975,
+      "latency_seconds": 442.9722148422152,
+      "predictions": "outputs/expanded-study/v1/transfer/scores/predictions-gsm8k-bfs_text.jsonl.gz"
+    },
+    {
+      "benchmark": "gsm8k",
+      "cell": "bfs_visual",
+      "subset_level": "L0",
+      "examples": 200,
+      "correct": 189,
+      "accuracy": 0.945,
+      "malformed": 0,
+      "categories": {
+        "correct": 189,
+        "incorrect": 11
+      },
+      "generated_tokens_total": 28211,
+      "input_tokens_total": 23975,
+      "latency_seconds": 503.24174022488296,
+      "predictions": "outputs/expanded-study/v1/transfer/scores/predictions-gsm8k-bfs_visual.jsonl.gz"
+    },
+    {
+      "benchmark": "gsm8k",
+      "cell": "bfs_multimodal",
+      "subset_level": "L0",
+      "examples": 200,
+      "correct": 193,
+      "accuracy": 0.965,
+      "malformed": 0,
+      "categories": {
+        "correct": 193,
+        "incorrect": 7
+      },
+      "generated_tokens_total": 27382,
+      "input_tokens_total": 23975,
+      "latency_seconds": 458.81518724933267,
+      "predictions": "outputs/expanded-study/v1/transfer/scores/predictions-gsm8k-bfs_multimodal.jsonl.gz"
+    },
+    {
+      "benchmark": "humaneval",
+      "cell": "base",
+      "subset_level": "L0",
+      "examples": 164,
+      "correct": 128,
+      "accuracy": 0.7804878048780488,
+      "malformed": 2,
+      "categories": {
+        "passed": 128,
+        "wrong_answer": 22,
+        "runtime_error": 12,
+        "malformed": 2
+      },
+      "generated_tokens_total": 14146,
+      "input_tokens_total": 29393,
+      "latency_seconds": 294.3561673182994,
+      "predictions": "outputs/expanded-study/v1/transfer/scores/predictions-humaneval-base.jsonl.gz"
+    },
+    {
+      "benchmark": "humaneval",
+      "cell": "bfs_text",
+      "subset_level": "L0",
+      "examples": 164,
+      "correct": 130,
+      "accuracy": 0.7926829268292683,
+      "malformed": 1,
+      "categories": {
+        "passed": 130,
+        "wrong_answer": 22,
+        "runtime_error": 11,
+        "malformed": 1
+      },
+      "generated_tokens_total": 13970,
+      "input_tokens_total": 29393,
+      "latency_seconds": 304.9256707653403,
+      "predictions": "outputs/expanded-study/v1/transfer/scores/predictions-humaneval-bfs_text.jsonl.gz"
+    },
+    {
+      "benchmark": "humaneval",
+      "cell": "bfs_visual",
+      "subset_level": "L0",
+      "examples": 164,
+      "correct": 131,
+      "accuracy": 0.7987804878048781,
+      "malformed": 0,
+      "categories": {
+        "passed": 131,
+        "wrong_answer": 24,
+        "runtime_error": 9
+      },
+      "generated_tokens_total": 13659,
+      "input_tokens_total": 29393,
+      "latency_seconds": 304.365187805146,
+      "predictions": "outputs/expanded-study/v1/transfer/scores/predictions-humaneval-bfs_visual.jsonl.gz"
+    },
+    {
+      "benchmark": "humaneval",
+      "cell": "bfs_multimodal",
+      "subset_level": "L0",
+      "examples": 164,
+      "correct": 128,
+      "accuracy": 0.7804878048780488,
+      "malformed": 1,
+      "categories": {
+        "passed": 128,
+        "wrong_answer": 25,
+        "runtime_error": 10,
+        "malformed": 1
+      },
+      "generated_tokens_total": 13860,
+      "input_tokens_total": 29393,
+      "latency_seconds": 296.59672969020903,
+      "predictions": "outputs/expanded-study/v1/transfer/scores/predictions-humaneval-bfs_multimodal.jsonl.gz"
+    }
+  ],
+  "missing": [],
+  "scored_at": 1789794448.0444453
+}
