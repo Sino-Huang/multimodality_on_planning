@@ -1,0 +1,67 @@
+{
+  "schema_version": "expanded_transfer_admission_v1",
+  "decision": "L0",
+  "outcome": "PASS",
+  "protocol_id": "transfer-extension-remaining-algorithms-v2",
+  "branch_cap_gpu_hours": 24.0,
+  "branch_spent_gpu_hours": 1.3654672747850418,
+  "branch_remainder_gpu_hours": 22.634532725214957,
+  "arithmetic": {
+    "L0": {
+      "subset_sizes": {
+        "folio": 200,
+        "gsm8k": 200,
+        "humaneval": 164
+      },
+      "per_worker_seconds": {
+        "0": 11445.721499273553,
+        "1": 10563.454234183953
+      },
+      "required_gpu_hours": 7.642074907450524,
+      "required_wall_seconds": 14307.151874091942,
+      "safety_factor": 1.25,
+      "fits_branch_remainder": true,
+      "fits_per_worker_24h": true,
+      "fits_absolute_cutoff": true,
+      "fits": true
+    },
+    "L1": {
+      "subset_sizes": {
+        "folio": 100,
+        "gsm8k": 100,
+        "humaneval": 82
+      },
+      "per_worker_seconds": {
+        "0": 5746.081813598052,
+        "1": 5304.948181053252
+      },
+      "required_gpu_hours": 3.8371631925872585,
+      "required_wall_seconds": 7182.602266997565,
+      "safety_factor": 1.25,
+      "fits_branch_remainder": true,
+      "fits_per_worker_24h": true,
+      "fits_absolute_cutoff": true,
+      "fits": true
+    }
+  },
+  "measured_inputs": {
+    "p95_seconds_per_example": {
+      "folio": 0.37637347597628834,
+      "gsm8k": 6.332932984083891,
+      "humaneval": 6.666354911588132
+    },
+    "model_load_seconds": 46.442127922549844,
+    "probe_gpu_hours": 0.31955865602112477
+  },
+  "authorized_subsets": {
+    "decision": "L0",
+    "subset_sizes": {
+      "folio": 200,
+      "gsm8k": 200,
+      "humaneval": 164
+    },
+    "selection": "full frozen L0 subsets"
+  },
+  "ledger_mutated": false,
+  "decided_at": 1789799155.9208436
+}
