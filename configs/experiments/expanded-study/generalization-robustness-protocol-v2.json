@@ -1,0 +1,236 @@
+{
+ "schema_version": "expanded_generalization_robustness_protocol_v2",
+ "protocol_id": "expanded-generalization-robustness-v2",
+ "program_id": "expanded-nine-day-v1",
+ "status": "frozen_before_derived_task_model_outcomes",
+ "issues": [124],
+ "parent_issue": 38,
+ "parent_links": {
+  "parent_issue": 38,
+  "related_issues": [96, 98],
+  "supersedes": "configs/experiments/expanded-study/generalization-robustness-protocol.json",
+  "v1_admission": "outputs/expanded-study/v1/generalization-robustness/admission.json"
+ },
+ "v1_result_retained": "The v1 admission decision L4 VALID_STOP is retained unchanged. This protocol cannot close issues #96/#98; it defines a reduced, cost-only-admitted scope under the valid-stop 'Legitimate future path' clause.",
+ "qualification_freeze": {
+  "preserved": true,
+  "suite_path": "outputs/expanded-study/v1/generalization-robustness/suite.json",
+  "suite_sha256": "a20c30cc7b57a784e955626b07e4eea28a956964c300b6404467d956e092a742",
+  "qualification_path": "outputs/expanded-study/v1/generalization-robustness/qualification.json",
+  "qualification_sha256": "cb5badf72543e351fff2a822b0cf4e2fc3b754405f7ef1d1369118891921118f",
+  "frozen_counts": {"generated": 120, "eligible": 93, "missing": 27},
+  "rule": "The 93/27 qualification freeze is preserved; no variant is replaced, re-screened or re-audited, and derived-task outcomes are never used to select scope."
+ },
+ "panel": "configs/experiments/expanded-study/final-panel.json",
+ "panel_id": "expanded-panel-v2-qualified",
+ "output_root": "outputs/expanded-study/v1/generalization-robustness",
+ "model_id": "Qwen/Qwen3-VL-8B-Instruct",
+ "model_revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+ "checkpoint_readiness": "docs/experiments/expanded-study/readiness.json",
+ "new_training": false,
+ "training_seed": 17,
+ "training_seed_variance_claimed": false,
+ "learned_algorithms": ["best_first_add_greedy", "best_first_add_w3"],
+ "matrix_justification": {
+  "frozen_cost_only": true,
+  "selection_basis": "qualification reference-cost statistics and frozen probe timing only; no derived-task model outcome exists or is used",
+  "text": "best_first_add_greedy and best_first_add_w3 are retained from the v1 matrix because, over the 93 eligible variants, the dropped algorithms carry the highest reference decision costs (bfs 7348 and best_first_width 3807 summed decisions versus best_first_add_greedy 2810 and best_first_add_w3 2756) and include the slowest probe combinations (best_first_width__multimodal-state 98.12 s bound, bfs__multimodal-state 90.31 s bound). Dropping them minimizes the priced matrix per admitted variant while retaining one best-first-add algorithm at beam width 3 and one greedy, covering the two learned search families at all three modalities."
+ },
+ "modalities": ["text-state", "visual-state", "multimodal-state"],
+ "estimand": {
+  "name": "v2_runtime_cap_estimand",
+  "frozen_before_recomputation": true,
+  "prose": "Price per GPU episode equals the runtime-enforced decision call cap multiplied by the frozen per-combo maximum observed probe call time (probe bound_seconds divided by the 1.5 margin), summed over the admitted matrix. For each learned cell (best_first_add_greedy or best_first_add_w3 x modality) the cap is 2 x reference decisions for that variant and algorithm. The pretrained_base cell is priced at exactly 1 call x per-combo max observed call time, justified by its measured 288/288 first-decision invalid terminations on the frozen baseline panel (docs/experiments/expanded-study/baseline-evaluation.json, by_condition.pretrained_base: 288 episodes, 288 decisions, 288 invalid operations, 0 successes). random_valid and exact_reference controls are CPU-only and priced at 0. The matrix sum is multiplied by 1.25 safety, plus the measured worker overhead per planned worker job, plus 0 for probe spend because the probe 0.627256 GPU-h is already inside the ledger branch spend; the v1 admission's separate +0.6273 GPU-h probe term was a recorded double-count nit and is not repeated.",
+  "equation": "required_gpu_hours = (sum_{t in admitted} (sum_{a in learned} 2*ref_decisions(t,a)*maxobs(a,*) + sum_{a in learned} maxobs(a,*)) / 3600) * 1.25 + planned_worker_jobs * planned_worker_overhead_seconds / 3600",
+  "parameters": {
+   "decision_cap_multiplier": 2,
+   "per_combo_price": "max_observed_call_seconds from probe.json per_combo_bounds (bound_seconds / 1.5)",
+   "per_algo_modality_summed_max_observed_seconds": {
+    "best_first_add_greedy": 49.11179646663368,
+    "best_first_add_w3": 49.45515729859471
+   },
+   "pretrained_base_calls_per_episode": 1,
+   "pretrained_base_justification": "baseline pretrained_base terminated on an invalid first operation in 288/288 episodes, exactly 1 decision each",
+   "control_price_gpu_hours": 0,
+   "safety_factor": 1.25,
+   "planned_worker_jobs": 2,
+   "planned_worker_overhead_seconds": 112.25402885861695,
+   "probe_spend_added": 0
+  },
+  "not_a_completion_guarantee": "This estimand is a budget reservation, not a completion guarantee. Scheduler-enforced runtime caps turn estimand overruns into explicit missingness: failed or cutoff attempts retain their ledger GPU hours and are reported as missing per family and stratum, never as silent scope reduction. Missingness is reported and the gate is not claimed closed by partial coverage."
+ },
+ "membership_rule": {
+  "frozen_before_recomputation": true,
+  "rule": "Keep all five variant families represented. Within each family, rank eligible variants by (reference_costs.best_first_add_greedy.decisions + reference_costs.best_first_add_w3.decisions, then variant_id) and take the cheapest prefix of size k per family. Choose the single uniform k maximizing total admitted variants subject to the frozen estimand fitting the branch remainder (31.372744334340094 GPU-h); if no k fits, a transfer request of at most 11.89 GPU-h may be proposed with exact arithmetic for design-gate ratification. STOP and report instead of freezing if even k=1 per family (5 variants) does not fit, or if the largest remainder-feasible scope is trivially small (under k=2 per family, i.e. fewer than 10 variants).",
+  "chosen_k": 5,
+  "total_variants": 25,
+  "membership_sha256": "008deaf35b710a941aa31d447d456b7d681c581760c28df4130c72a21adb2d60",
+  "membership_canonical_form": "sha256 of json.dumps(sorted(variant_ids), sort_keys=True, separators=(',', ':'))",
+  "membership": {
+   "scale-up": ["ferry-scale-up-930011", "ferry-scale-up-930010", "grid-scale-up-930012", "logistics-scale-up-930016", "depot-scale-up-930005"],
+   "shifted-init": ["gripper-shifted-init-940014", "storage-shifted-init-940019", "elevators-shifted-init-940009", "depot-shifted-init-940004", "ferry-shifted-init-940011"],
+   "object-renaming": ["storage-object-renaming-950054", "elevators-object-renaming-950024", "ferry-object-renaming-950030", "15puzzle-object-renaming-950000", "towers_of_hanoi-object-renaming-950060"],
+   "render-restyle": ["storage-render-restyle-950055", "elevators-render-restyle-950025", "ferry-render-restyle-950031", "15puzzle-render-restyle-950001", "towers_of_hanoi-render-restyle-950061"],
+   "name-compression": ["storage-name-compression-950056", "elevators-name-compression-950026", "ferry-name-compression-950032", "15puzzle-name-compression-950002", "towers_of_hanoi-name-compression-950062"]
+  }
+ },
+ "evaluation": {
+  "conditions": ["learned_adapter", "pretrained_base", "random_valid", "exact_reference"],
+  "learned_cells": 6,
+  "matrix_per_task": {"gpu_episodes": 12, "cpu_control_episodes": 36},
+  "matrix_totals": {
+   "tasks": 25,
+   "learned_episodes": 150,
+   "pretrained_base_episodes": 150,
+   "gpu_model_episodes": 300,
+   "exact_reference_episodes": 150,
+   "random_valid_episodes": 750,
+   "cpu_control_episodes": 900,
+   "logical_bindings": 1200
+  },
+  "reference_decision_multiplier": 2,
+  "decoding": {"do_sample": false},
+  "expansion_limit_exhaustion": "A decision-call or expansion-limit exhaustion is retained as a valid unsuccessful episode, matching visual_episode result semantics.",
+  "rollouts": {"learned_adapter": 1, "pretrained_base": 1, "exact_reference": 1, "random_valid": 5},
+  "random_valid_rollout_seeds": [17, 1013, 2027, 3041, 4001],
+  "identical_task_sets_across_conditions": true
+ },
+ "fixed_adapters": [
+  {
+   "modality": "text-state",
+   "algorithm": "best_first_add_w3",
+   "checkpoint": "outputs/matched_modalities/v3/training/text-state/best_first_add_w3/final",
+   "adapter_model_sha256": "sha256:9f11702d2d6c333b849edd8ad6c6465423691dd9240d91be945eeac125be6459",
+   "adapter_config_sha256": "sha256:32c10de5c2e8976f8009748fa826eb47de01c09ab004a4d05e52e4395a12b5d3",
+   "seed": 17,
+   "steps": 16,
+   "tensors": 504,
+   "parameters": 174587904,
+   "adapter_bytes": 698427288
+  },
+  {
+   "modality": "text-state",
+   "algorithm": "best_first_add_greedy",
+   "checkpoint": "outputs/matched_modalities/v3/training/text-state/best_first_add_greedy/final",
+   "adapter_model_sha256": "sha256:8a4f17eca2f76090f86e3b5c55ad831df30b9156234519ed3b0e8007ce77add1",
+   "adapter_config_sha256": "sha256:260d25e343183cb3abe5afa8a2498027b5fb6909a6a41217b901bb631b4019ca",
+   "seed": 17,
+   "steps": 16,
+   "tensors": 504,
+   "parameters": 174587904,
+   "adapter_bytes": 698427288
+  },
+  {
+   "modality": "visual-state",
+   "algorithm": "best_first_add_w3",
+   "checkpoint": "outputs/matched_modalities/v5/training/visual-state/best_first_add_w3/final",
+   "adapter_model_sha256": "sha256:f5cb900cc5cdc0a7cd1fdbde3e4dce02984525cf4b9f1c17a27a8fdaa6fb27cf",
+   "adapter_config_sha256": "sha256:66db0c7cf5fa5edf26e69067b699c8bf71ed4dda034a6c297f38faf64a7cf004",
+   "seed": 17,
+   "steps": 16,
+   "tensors": 504,
+   "parameters": 174587904,
+   "adapter_bytes": 698427288
+  },
+  {
+   "modality": "visual-state",
+   "algorithm": "best_first_add_greedy",
+   "checkpoint": "outputs/matched_modalities/v5/training/visual-state/best_first_add_greedy/final",
+   "adapter_model_sha256": "sha256:41dc46e74ed4d9fe70c7714474329a6fdee9b435060facecf2e49dc4edf8f2e2",
+   "adapter_config_sha256": "sha256:2078b82addbe45a9b1f90ee4a2ab8f646d0774bb17324a32a927eee13b9aac9c",
+   "seed": 17,
+   "steps": 16,
+   "tensors": 504,
+   "parameters": 174587904,
+   "adapter_bytes": 698427288
+  },
+  {
+   "modality": "multimodal-state",
+   "algorithm": "best_first_add_w3",
+   "checkpoint": "outputs/matched_modalities/v5/training/multimodal-state/best_first_add_w3/final",
+   "adapter_model_sha256": "sha256:574b31378f5e65e63ba621090cdddd20f502d52ea670010081dd2c431808b0b",
+   "adapter_config_sha256": "sha256:9e1a4a337f8ccbac48c14eb7986e3a3abb01fb35ae5a09264592f9dffc6619c8",
+   "seed": 17,
+   "steps": 16,
+   "tensors": 504,
+   "parameters": 174587904,
+   "adapter_bytes": 698427288
+  },
+  {
+   "modality": "multimodal-state",
+   "algorithm": "best_first_add_greedy",
+   "checkpoint": "outputs/matched_modalities/v5/training/multimodal-state/best_first_add_greedy/final",
+   "adapter_model_sha256": "sha256:c0a2a61eea1dec6102923976f744d5c8697b32c5e472ef7c387b7f68869dab2e",
+   "adapter_config_sha256": "sha256:61635ca264eb30c10c959591558c8edfab24bf5186c7dca4d852809d8ea84c45",
+   "seed": 17,
+   "steps": 16,
+   "tensors": 504,
+   "parameters": 174587904,
+   "adapter_bytes": 698427288
+  }
+ ],
+ "analysis": {
+  "paired_unit": "whole task instance x algorithm x modality across conditions on identical tasks",
+  "strata": ["domain", "stratum-origin", "variant-family"],
+  "lossy_p3_handling": "Name-compression (P3) is never pooled with semantics-preserving variants. Measured classifications on the frozen 24-variant P3 family: text-state 24/24 lossy, multimodal-state 18/24 lossy, visual-state 0/24 lossy. Lossy P3 cells are reported as a separate stratum and excluded from pooled semantics-preserving contrasts.",
+  "primary_contrasts": {
+   "source_vs_shift_degradation": "Learned on derived versus learned on its source panel problem, paired by domain, stratum-origin and variant family.",
+   "learned_vs_best_control": "Learned versus max of pretrained_base and per-task random_valid success frequency; exact_reference is an oracle upper bound reported separately.",
+   "validity_and_cost": "Report invariant-valid success versus goal_reached, invalid-operation rate, decisions, expansions, model calls and wall time."
+  },
+  "missingness": "Report per family and stratum; cutoff attempts are explicit missingness, never silent scope reduction.",
+  "random_valid_aggregation": "Per-task success frequency over the five frozen rollout seeds.",
+  "bootstrap": {"unit": "whole task instance within frozen domain x family strata", "seed": 90717, "resamples": 10000, "confidence": 0.95, "interval": "percentile", "materiality": "interval excludes 0"},
+  "tiny_subgroup_rule": "Strata with fewer than 8 paired instances are descriptive-only; no interval claims.",
+  "lossy_pooling": "Lossy variants are never pooled with semantics-preserving variants.",
+  "saturation_rule": "Per issue #54, when the best control is at ceiling, make no structural-advantage claim.",
+  "training_seed_variance_claimed": false
+ },
+ "budget": {
+  "budget_branch": "generalization_robustness",
+  "branch_cap_gpu_hours": 32,
+  "branch_spent_gpu_hours": 0.6272556656599044,
+  "branch_remainder_gpu_hours": 31.372744334340094,
+  "matrix_gpu_hours": 23.54569166405799,
+  "planned_worker_overhead_gpu_hours": 0.0623633493658983,
+  "required_gpu_hours": 29.494477929438386,
+  "headroom_gpu_hours": 1.8782664049017086,
+  "transfer_request": null,
+  "max_available_with_transfer_gpu_hours": 43.2627443343401,
+  "next_rung_note": "k=6 (30 variants) requires 42.260267427504424 GPU-h, i.e. a 10.88752309316433 GPU-h transfer; not proposed because k=5 fits the branch remainder alone and transfers are reserved for scopes that cannot otherwise fit."
+ },
+ "admission": {
+  "artifact": "outputs/expanded-study/v1/generalization-robustness/admission-v2.json",
+  "recompute_script": "scripts/qualify_expanded_generalization_v2.py",
+  "schema_version": "expanded_generalization_admission_v2",
+  "selection_timing": "Membership and estimand are frozen before any derived-task model outcome; the admission artifact is computed only from qualification, probe, baseline and ledger evidence.",
+  "no_test_driven_retraining": true,
+  "no_outcome_selected_reruns": true,
+  "no_favourable_replacement_tasks": true
+ },
+ "execution_contract": {
+  "deterministic_rounds": true,
+  "batched_generation": true,
+  "shared_backbone_per_gpu": true,
+  "adapter_switching": true,
+  "isolated_caching": true,
+  "max_requests_per_active_episode_per_round": 1,
+  "runtime_enforced_caps": "Every GPU episode is hard-capped at its priced decision-call cap (2 x reference decisions for learned cells, 1 call for pretrained_base). A cap hit is recorded as an explicit unsuccessful/missing episode; its ledger GPU hours are retained.",
+  "missingness_policy": "Estimand overruns become explicit missingness (failed or cutoff attempts), reported per family and stratum; coverage is never silently reduced.",
+  "resume": "Persist each raw output before trusted-runtime submission; replay committed events and pending output before continuing.",
+  "partial_coverage_satisfies_gate": false,
+  "independent_replay_every_completed_episode": true,
+  "gpu_cutoff_utc": "2026-09-21T11:55:19Z"
+ },
+ "inference": {
+  "dtype": "float32",
+  "attention": "visual_sdpa",
+  "do_sample": false,
+  "max_batch_size": 2,
+  "max_padded_batch_input_tokens": 24000,
+  "allow_qualified_single_input_above_batch_cap": true,
+  "output_cache": "none",
+  "kv_cache": "per_call_only"
+ },
+ "derived_task_assets": "outputs/expanded-study/v1/generalization-robustness/candidates/<family>/<variant_id>/ (task.json, task-with-views.json, reference-<algorithm>.json.gz, views/)"
+}
