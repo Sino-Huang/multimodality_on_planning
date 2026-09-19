@@ -68,6 +68,7 @@ PROTOCOL_IDENTITIES = {
         "comparator_episodes": 144,
         "budget_gpu_hours": 40,
         "cap_source": "schedule",
+        "job_id_prefix": "second-backbone",
     },
     "expanded-second-backbone-v2": {
         "schema_version": "expanded_second_backbone_protocol_v2",
@@ -79,8 +80,17 @@ PROTOCOL_IDENTITIES = {
         "comparator_episodes": 72,
         "budget_gpu_hours": 52.11,
         "cap_source": "ledger",
+        "job_id_prefix": "sb-v2",
     },
 }
+
+
+def job_id_prefix(protocol: Mapping[str, Any]) -> str:
+    """Scheduler job-id prefix for the protocol's train/evaluate workers."""
+    identity = PROTOCOL_IDENTITIES.get(protocol.get("protocol_id"))
+    if identity is None:
+        raise ValueError("unknown second-backbone protocol identity")
+    return identity["job_id_prefix"]
 
 
 def _branch_spent(ledger: Mapping[str, Any], branch: str = "second_backbone") -> float:

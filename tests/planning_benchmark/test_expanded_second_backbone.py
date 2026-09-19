@@ -133,6 +133,13 @@ def test_repository_protocol_accepts_and_rejects_material_drift():
             branch.validate_protocol(ROOT, changed)
 
 
+def test_job_id_prefix_maps_frozen_identities():
+    assert branch.job_id_prefix({"protocol_id": "expanded-second-backbone-v1"}) == "second-backbone"
+    assert branch.job_id_prefix({"protocol_id": "expanded-second-backbone-v2"}) == "sb-v2"
+    with pytest.raises(ValueError, match="unknown second-backbone protocol identity"):
+        branch.job_id_prefix({"protocol_id": "test-second-backbone"})
+
+
 def test_repository_comparator_sources_bind_pinned_baseline_audits():
     protocol = repository_protocol()
     result = branch.validate_comparator_sources(ROOT, protocol)

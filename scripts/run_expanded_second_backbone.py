@@ -201,7 +201,7 @@ def _fresh_init_evidence(cells):
 
 def finalize_training(protocol, context):
     ledger = read(ROOT / branch.LEDGER_PATH)
-    attempts = [_latest(ledger, f"second-backbone-train-{worker}") for worker in range(2)]
+    attempts = [_latest(ledger, f"{branch.job_id_prefix(protocol)}-train-{worker}") for worker in range(2)]
     if any(
         row["status"] != "succeeded" or read(Path(row["directory"]) / "hook-result.json").get("returncode") != 0
         for row in attempts
@@ -274,7 +274,7 @@ def evaluate(protocol, worker):
         if row.get("job_id") == producing_attempt["job_id"] and row.get("attempt") == attempt_number
     ]
     if (
-        producing_attempt["job_id"] != f"second-backbone-evaluate-{worker}"
+        producing_attempt["job_id"] != f"{branch.job_id_prefix(protocol)}-evaluate-{worker}"
         or not recorded
         or recorded[-1].get("status") not in {"reserved", "running"}
         or recorded[-1].get("gpus") != [protocol["launch"]["devices"][worker]]
@@ -410,7 +410,7 @@ def evaluate(protocol, worker):
 
 def _evaluation_attempts(protocol):
     ledger = read(ROOT / branch.LEDGER_PATH)
-    attempts = [_latest(ledger, f"second-backbone-evaluate-{worker}") for worker in range(2)]
+    attempts = [_latest(ledger, f"{branch.job_id_prefix(protocol)}-evaluate-{worker}") for worker in range(2)]
     for worker, attempt in enumerate(attempts):
         terminal = read(Path(attempt["directory"]) / "terminal.json")
         hook = read(Path(attempt["directory"]) / "hook-result.json")
