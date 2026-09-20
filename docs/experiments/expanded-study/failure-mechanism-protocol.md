@@ -46,8 +46,12 @@ to always be the terminal event for invalid-operation terminations). Search
 policies (baseline, generalization v2, dagger, curriculum and their
 comparators) classify the first failure as:
 
-1. `malformed_output` — raw output not parseable or missing the operation
-   payload the algorithm schema requires.
+1. `malformed_output` — raw output not parseable, or the parsed operation
+   incomplete against its schema payload (compact best-first: missing
+   `action`/`source_state_id`; typed-operation schemas: an action operation
+   missing `source_state_id`, `frontier_intent`, `visit_target` or
+   `evaluate_target`, or neither an action nor a well-formed frontier
+   operation present).
 2. `source_state_mismatch` — parsed action whose `source_state_id` differs
    from the current state.
 3. `unknown_operator` — action name absent from every candidate set of the
@@ -61,6 +65,15 @@ comparators) classify the first failure as:
    still rejected.
 7. `expansion_budget_exhausted` — budget ran out with every emitted
    operation valid; failure position is the final decision count.
+
+Three event-input schemas occur across the stores, identified structurally:
+**compact best-first** (`best_first_add_greedy`, `best_first_add_w3`; input
+carries `current`; payload `action` + `source_state_id`), **BFS observation**
+(`bfs`; `input.observation.state_id`; typed-operation payload), and **width
+observation** (`best_first_width`; `input.observation.state/candidates`;
+typed-operation payload; candidate action args are integer-encoded and
+decoded through `input.task_context.objects`).
+
 
 Successor-prediction episodes use the event's own
 `verification.failure_kind` verbatim: `schema`, `static_context`,

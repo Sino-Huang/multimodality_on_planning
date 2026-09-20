@@ -121,10 +121,15 @@
   },
   "failure_taxonomy": {
     "first_failure_event": "The first episode event with accepted == false; verified to always be the terminal event for invalid-operation terminations. Episodes terminating in expansion_budget_exhausted have no rejected event; their failure position is the final decision_count.",
+    "event_input_schemas": {
+      "compact_best_first": "Events whose input carries 'current' (best_first_add_greedy, best_first_add_w3). Required operation payload: action plus source_state_id; current state id is input.current.state_id; candidates are input.successor_candidates.rows with name-prefixed action arrays.",
+      "bfs_observation": "Events whose input.observation carries state_id (bfs). Required operation payload: typed_operation with either action (plus source_state_id, frontier_intent, visit_target, evaluate_target) or a frontier operation (operation_type plus state_id); current state id is input.observation.state_id; candidates are input.search_memory.successor_candidates with grounded_action name/args.",
+      "width_observation": "Events whose input.observation carries state/candidates (best_first_width). Required operation payload as for bfs_observation; current state id is input.observation.state.state_id; candidates are input.observation.candidates whose integer-encoded action args are decoded through input.task_context.objects (index -> object name)."
+    },
     "search_policy_kinds": [
       {
         "kind": "malformed_output",
-        "definition": "raw_output is not a parseable JSON object or lacks the operation payload required by the algorithm schema (best-first: action plus source_state_id; bfs: typed_operation with either action or operation_type)."
+        "definition": "raw_output is not a parseable JSON object, or the parsed operation is incomplete against its event_input_schemas payload (compact_best_first: missing action/name or source_state_id; typed-operation schemas: an action operation missing any of source_state_id, frontier_intent, visit_target or evaluate_target, or neither action nor a well-formed frontier operation present)."
       },
       {
         "kind": "source_state_mismatch",
