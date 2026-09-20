@@ -253,8 +253,8 @@ def train_visual(config, root, algorithm, output, *, deadline, progress, resume=
         bf16=True,
         gradient_checkpointing=True,
         gradient_checkpointing_kwargs={"use_reentrant": False},
-        seed=17,
-        data_seed=17,
+        seed=config["training_seed"],
+        data_seed=config["training_seed"],
         logging_steps=1,
         save_steps=max(1, total // 3),
         save_total_limit=3,
@@ -277,7 +277,7 @@ def train_visual(config, root, algorithm, output, *, deadline, progress, resume=
     trainer.state.save_to_json(str(output / "training_state.json"))
     return {
         "algorithm": algorithm,
-        "seed": 17,
+        "seed": config["training_seed"],
         "steps": total,
         "final_checkpoint": str((output / "final").relative_to(root)),
         "train_records": len(dataset),

@@ -1,0 +1,16 @@
+{
+  "job_id": "sr-chain",
+  "branch": "dagger",
+  "gpus": [],
+  "max_seconds": 43200,
+  "total": 1,
+  "command": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/expanded-study/v1/seed-replication-chain/chain.py"
+  ],
+  "completion_hook": [
+    "/usr/bin/test",
+    "-f",
+    "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/expanded-study/v1/seed-replication-chain/complete.json"
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "job_id": "sr-baseline-train-1",
+  "branch": "expanded_baseline",
+  "gpus": [
+    1
+  ],
+  "max_seconds": 7200,
+  "total": 16,
+  "command": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/run_expanded_seed_replication.py",
+    "train-baseline",
+    "--worker",
+    "1"
+  ],
+  "completion_hook": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/run_expanded_seed_replication.py",
+    "audit-train-baseline",
+    "--worker",
+    "1"
+  ]
+}

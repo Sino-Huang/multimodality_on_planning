@@ -1,0 +1,23 @@
+{
+  "job_id": "sr-baseline-evaluate-0",
+  "branch": "expanded_baseline",
+  "gpus": [
+    0
+  ],
+  "max_seconds": 7200,
+  "total": 24,
+  "command": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/run_expanded_seed_replication.py",
+    "evaluate-baseline",
+    "--worker",
+    "0"
+  ],
+  "completion_hook": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/run_expanded_seed_replication.py",
+    "audit-evaluate-baseline",
+    "--worker",
+    "0"
+  ]
+}

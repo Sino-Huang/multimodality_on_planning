@@ -1,0 +1,27 @@
+{
+  "job_id": "sr-dagger-evaluate-17-0",
+  "branch": "dagger",
+  "gpus": [
+    0
+  ],
+  "max_seconds": 10800,
+  "total": 108,
+  "command": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/run_expanded_seed_replication.py",
+    "evaluate-dagger",
+    "--seed",
+    "17",
+    "--worker",
+    "0"
+  ],
+  "completion_hook": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/run_expanded_seed_replication.py",
+    "audit-evaluate-dagger",
+    "--seed",
+    "17",
+    "--worker",
+    "0"
+  ]
+}

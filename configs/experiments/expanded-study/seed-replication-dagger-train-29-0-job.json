@@ -1,0 +1,27 @@
+{
+  "job_id": "sr-dagger-train-29-0",
+  "branch": "dagger",
+  "gpus": [
+    0
+  ],
+  "max_seconds": 10800,
+  "total": 64,
+  "command": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/run_expanded_seed_replication.py",
+    "train-dagger",
+    "--seed",
+    "29",
+    "--worker",
+    "0"
+  ],
+  "completion_hook": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/run_expanded_seed_replication.py",
+    "audit-train-dagger",
+    "--seed",
+    "29",
+    "--worker",
+    "0"
+  ]
+}

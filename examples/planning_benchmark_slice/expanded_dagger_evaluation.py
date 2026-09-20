@@ -142,7 +142,7 @@ def run_cell(
     progress,
 ) -> list[dict[str, Any]]:
     """Evaluate one arm in deterministic task rounds with batches of at most two."""
-    if arm not in ARMS:
+    if arm not in tuple(protocol["evaluation"].get("new_arms", ARMS)):
         raise ValueError("DAgger evaluation arm is outside the frozen final checkpoints")
     finished = []
     active = []
