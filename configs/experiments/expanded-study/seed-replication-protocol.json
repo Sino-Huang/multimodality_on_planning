@@ -1,0 +1,187 @@
+{
+ "schema_version": "expanded_seed_replication_protocol_v1",
+ "protocol_id": "expanded-seed-replication-v1",
+ "program_id": "expanded-nine-day-v1",
+ "status": "frozen_before_any_seed29_or_seed71_artifact",
+ "frozen_at_utc": "2026-09-20T15:50:00Z",
+ "issues": [127],
+ "parent_issue": 38,
+ "amendment_of": {
+  "document": "docs/experiments/expanded-study/plan.md",
+  "lines": "67-69",
+  "quoted_rule": "Use training seed 17 per cell; do not automatically add independent seeds ... Any extra seeds require a prospective allocation and complete accounting.",
+  "lineage": "Partial honouring of the historical proposal's statistical protocol (docs/research_proposal.md section 6.4 'at least five training seeds'; spec issue #38 'Headline cells use five seeds'). This protocol is the prospective amendment required by plan.md:67-69; it lets the headline contrasts report seed robustness instead of claiming no training-seed variance (synthesis-v1/README.md claim boundary)."
+ },
+ "training_seeds": {
+  "original": 17,
+  "additional_prospective": [29, 71],
+  "selection_rule": "Arbitrary primes disjoint from every seed used by the expanded-nine-day-v1 program (17 training/evaluation, 64 curriculum shuffled ordering, 1729 analysis bootstrap, 90717 modality-stress bootstrap, 42613 corruption master, 1013/2027/3041/4001 random-valid rollout seeds). Seeds 29 and 71 appear in the deprecated CGAS-era issue54 bfs_phase outputs (different corpus, trainer and cells, predating this program); that unrelated historical usage shares no data or cell with this amendment and cannot taint the selection. Frozen before launch: no seed-29 or seed-71 artifact exists for either selected cell family (every expanded-program cell was trained with seed 17 only), so no outcome was observed for either seed on the selected cells.",
+  "no_seed_dropped_after_outcomes": true,
+  "null_or_noisy_outcomes_reported_as_is": true
+},
+ "seed_effects": {
+  "baseline_process_sft_fresh_adapter": "The new seed drives the fresh LoRA A/B initialization (set_seed(training_seed) immediately before get_peft_model in load_training_model) and the lora_dropout 0.05 RNG. Data order is seed-independent: SequentialSampler over the frozen membership.json record order. Everything else (512 records, one epoch, 16 updates, all hyperparameters) is identical to the original v5 cell.",
+  "dagger_iteration_1_continuation": "The new seed drives only the lora_dropout 0.05 RNG: starting adapter weights are loaded from the verified seed-17 checkpoints (never re-initialized), the sampler is SequentialSampler over the verified seed-17 memberships, and each cell starts a new optimizer and scheduler. 512 records, one epoch, 16 updates, all hyperparameters identical to the original cells.",
+  "evaluation": "Evaluation seed 17 with greedy decoding (do_sample false) in every arm and seed, identical to the original frozen evaluation contracts; the evaluation seed is inert under greedy decoding and is kept for contract identity."
+ },
+ "cells": {
+  "baseline_process_sft": {
+   "branch": "expanded_baseline",
+   "selection": "best_first_add_greedy x multimodal-state: the headline algorithm family of the expanded matched baseline's primary positive contrast (process_sft - pretrained_base = +0.903 pooled, synthesis-v1 section 2) in the program's titular modality. Selected by decision relevance, not by outcome.",
+   "count_cells_per_seed": 1,
+   "algorithms": ["best_first_add_greedy"],
+   "modalities": ["multimodal-state"],
+   "arm": "process_sft",
+   "training": {
+    "source_study": "configs/experiments/matched-modalities/study-v5.json",
+    "source_study_sha256": "1f15184667b5076edc808838f450500bc6ac502cfb61c3d972cdc5ebb211d72b",
+    "membership": "configs/experiments/matched-modalities/membership.json",
+    "membership_sha256": "f939f864befd29e87cc899718b9635e6927c464d341d0f460545911604bfbc23",
+    "corpus_report": "outputs/modality_corpus/issue74-matched-32k-v1/release-001/report.json",
+    "records": 512,
+    "epochs": 1,
+    "optimizer_updates": 16,
+    "global_batch_size": 32,
+    "microbatch_size": 1,
+    "gradient_accumulation_steps": 32,
+    "learning_rate": 0.0001,
+    "optimizer": "adamw_torch",
+    "warmup_ratio": 0.03,
+    "lr_scheduler": "cosine",
+    "weight_decay": 0,
+    "max_grad_norm": 1,
+    "lora_rank": 64,
+    "lora_alpha": 128,
+    "lora_dropout": 0.05,
+    "lora_target_modules": "all-linear",
+    "lora_exclude_modules": ".*visual.*",
+    "freeze_vision": true,
+    "dtype": "bfloat16",
+    "attention": "sdpa",
+    "sampler": "sequential_membership_order",
+    "checkpoint_selection": "final_update_16_only",
+    "fresh_adapter_per_seed": true
+   },
+   "evaluation": {
+    "panel": "configs/experiments/expanded-study/final-panel.json",
+    "panel_id": "expanded-panel-v2-qualified",
+    "panel_sha256": "f888c1b2106d438f442b39da89d9727fd14c3756a6be6f7cfa824f53d6b837cc",
+    "tasks": 24,
+    "episodes_per_seed": 24,
+    "evaluation_seed": 17,
+    "call_limit": "2x matching exact-reference decisions per episode, independent of expansions",
+    "seed17_evidence": "docs/experiments/expanded-study/baseline-evaluation.json (process_sft best_first_add_greedy multimodal-state 21/24, already replay-verified; no re-run)",
+    "comparators": "pretrained_base, random_valid, exact_reference reused from the replay-verified baseline episodes at zero new GPU cost"
+   }
+  },
+  "dagger_iteration_1": {
+   "branch": "dagger",
+   "selection": "The DAgger iteration-1 vs exposure-matched continued-SFT comparison (ticket #127 candidate b). The estimand is defined within each modality across both arms from the same starting adapter, so all six cells (3 modalities x 2 arms) are required; dropping any arm or modality would break the frozen estimand.",
+   "count_cells_per_seed": 6,
+   "algorithm": "bfs",
+   "modalities": ["text-state", "visual-state", "multimodal-state"],
+   "arms": ["dagger", "continued_sft"],
+   "starting_checkpoints": {
+    "text-state": "outputs/matched_modalities/v3/training/text-state/bfs/final",
+    "visual-state": "outputs/matched_modalities/v5/training/visual-state/bfs/final",
+    "multimodal-state": "outputs/matched_modalities/v5/training/multimodal-state/bfs/final"
+   },
+   "training": {
+    "source_protocol": "configs/experiments/expanded-study/dagger-protocol.json",
+    "source_protocol_sha256": "9789bf3a81823240bb8a1a17277110ae8b5176c85cba0649ad406c5dd649f26e",
+    "dagger_memberships": {
+     "text-state": "outputs/expanded-study/v1/dagger/collection/iteration-1/text-state/aggregation.json.gz",
+     "visual-state": "outputs/expanded-study/v1/dagger/collection/iteration-1/visual-state/aggregation.json.gz",
+     "multimodal-state": "outputs/expanded-study/v1/dagger/collection/iteration-1/multimodal-state/aggregation.json.gz"
+     },
+    "continued_sft_memberships": {
+     "text-state": "outputs/expanded-study/v1/dagger/training/membership/text-state/continued-sft/iteration-1.json.gz",
+     "visual-state": "outputs/expanded-study/v1/dagger/training/membership/visual-state/continued-sft/iteration-1.json.gz",
+     "multimodal-state": "outputs/expanded-study/v1/dagger/training/membership/multimodal-state/continued-sft/iteration-1.json.gz"
+    },
+    "membership_integrity": "Every replicated cell consumes exactly the 512 record IDs in exactly the order recorded under training_record_ids of the matching verified seed-17 cell report (outputs/expanded-study/v1/dagger/training/{modality}/{arm}/iteration-1/report.json); the runner hard-fails on any difference. Verified memberships are read, never rewritten or re-stamped.",
+    "records": 512,
+    "epochs": 1,
+    "optimizer_updates": 16,
+    "global_batch_size": 32,
+    "microbatch_size": 1,
+    "gradient_accumulation_steps": 32,
+    "learning_rate": 0.0001,
+    "optimizer": "adamw_torch",
+    "warmup_ratio": 0.03,
+    "lr_scheduler": "cosine",
+    "weight_decay": 0,
+    "max_grad_norm": 1,
+    "lora_rank": 64,
+    "lora_alpha": 128,
+    "lora_dropout": 0.05,
+    "freeze_vision": true,
+    "dtype": "bfloat16",
+    "sampler": "sequential_frozen_membership_order",
+    "trainer_reshuffling": false,
+    "optimizer_state": "new optimizer and scheduler per cell; load adapter weights only",
+    "checkpoint_selection": "final_update_16_only"
+   },
+   "evaluation": {
+    "development_panel": "outputs/matched_modalities/v5/preparation/final-panel.json",
+    "development_panel_sha256": "11e35ce0c606116c5d18e39c1b23a91007e2ab74200ff662280e065dddf648ca",
+    "unseen_panel": "configs/experiments/expanded-study/final-panel.json",
+    "unseen_panel_sha256": "f888c1b2106d438f442b39da89d9727fd14c3756a6be6f7cfa824f53d6b837cc",
+    "tasks": "3 development + 24 unseen per modality",
+    "episodes_per_seed": 162,
+    "evaluation_seed": 17,
+    "call_limit": "2x matching exact-reference decisions per episode",
+    "seed17_note": "The original program evaluated only iteration-two final checkpoints (goal6-completion-audit.json fixed_evaluation); the verified seed-17 iteration-1 checkpoints were never panel-evaluated. They are evaluated here inference-only under the same frozen contract so the comparison's seed-17 point exists; no seed-17 artifact is retrained or modified.",
+    "comparators": "original_process_sft, random_valid, exact_reference reused from the replay-verified original DAgger evaluation episodes at zero new GPU cost"
+   }
+  }
+ },
+ "independent_replay": {
+  "required_for_every_new_episode": true,
+  "machinery": "replay_visual_episode over read-only persisted views (examples/planning_benchmark_slice/visual_episode.py), via independently_replay (baseline cell) and verify_episode (DAgger cells); CPU-only, no model calls",
+  "new_episode_totals": {"baseline_process_sft": 48, "dagger_iteration_1": 486, "total": 534}
+ },
+ "analysis": {
+  "per_seed": "Every seed reported individually: per-cell successes, invalid operations, decisions, expansions; per-seed paired whole-problem contrasts (baseline cell: process_sft - pretrained_base over 24 tasks; DAgger: dagger_iteration_1 - continued_sft_iteration_1 per modality and pooled over the 72 unseen + 9 development rows).",
+  "aggregated": "Mean and min-max range across the three seeds for every reported rate and contrast; cross-seed aggregation is descriptive only (n = 3 seeds).",
+  "bootstrap": "Paired whole-problem bootstrap per seed, 10,000 resamples, 95% percentile intervals, seed 1729 (the program convention).",
+  "tiny_subgroup_rule": "Cells and strata below 8 paired units are descriptive-only.",
+  "publication": "docs/experiments/expanded-study/synthesis-v1/seed-variance-addendum.md + seed-variance.json (+ CSV); synthesis-v1/README.md and every closed-ticket verdict remain byte-untouched (the synthesis regeneration anchors pin the pre-#126 ledger); this addendum appends seed-variance evidence only."
+ },
+ "budget": {
+  "measured_basis": {
+   "dagger_iteration_1_training_per_round_of_6_cells_gpu_hours": 1.5938946,
+   "dagger_evaluation_per_162_fresh_episodes_gpu_hours": 2.3913864,
+   "baseline_training_per_image_cell_gpu_hours": 0.36,
+   "baseline_model_episode_gpu_hours": 0.0101
+  },
+  "estimated_gpu_hours": {
+   "baseline_process_sft": {"training": 0.72, "evaluation": 0.49, "total": 1.21, "branch": "expanded_baseline", "branch_remainder": 49.4711},
+   "dagger_iteration_1": {"training": 3.19, "evaluation": 7.17, "total": 10.36, "branch": "dagger", "branch_remainder": 37.0908},
+   "total": 11.57
+  },
+  "transfer": "None: both branch remainders exceed the frozen estimates with wide margin; the ticket's 6-15 GPU-h envelope holds; total program cap 336 GPU-h unchanged.",
+  "cutoff": "The scheduler admits a GPU job only if now + max_seconds precedes the 2026-09-21T11:55:19Z program cutoff. The ticket's not-bound-by-the-cutoff clause is a VALID_STOP safety valve, not a schedule amendment (identical reading to #126): if the frozen scope cannot launch inside the admissible window, the ticket declares VALID_STOP without partial-outcome harvesting.",
+  "failures_retain_hours": true
+ },
+ "execution": {
+  "scheduler": "scripts/run_expanded_study.py launch against the shared production ledger outputs/expanded-study/v1/budget.json; one model worker per GPU; MASTER_PORT from the frozen pool 18800-18805; per-stage CPU completion audit hooks; a CPU chain job advances stages exactly once and never relaunches a completed attempt",
+  "backend_endpoints": ["http://127.0.0.1:18092", "http://127.0.0.1:18093"],
+  "output_root": "outputs/expanded-study/v1/seed-replication",
+  "per_seed_output_roots": "outputs/expanded-study/v1/seed-replication/{baseline,dagger}/seed-{17,29,71} so no replicated artifact ever collides with or overwrites an original artifact",
+  "worker_modalities": {"0": ["text-state", "multimodal-state"], "1": ["visual-state"]},
+  "runner": "scripts/run_expanded_seed_replication.py",
+  "declared_code_changes": [
+   "examples/planning_benchmark_slice/visual_model.py train_visual: TrainingArguments seed/data_seed and the report seed field read config['training_seed'] instead of the hardcoded 17 (byte-identical behavior for every seed-17 study config; no historical artifact is re-run or altered)",
+   "examples/planning_benchmark_slice/expanded_dagger_evaluation.py run_cell: the frozen arm gate reads protocol['evaluation'].get('new_arms', ARMS) instead of the module constant alone (the original dagger protocol declares new_arms equal to ARMS, so its behavior is unchanged)",
+   "new scripts/run_expanded_seed_replication.py + job configs configs/experiments/expanded-study/seed-replication-*-job.json + chain driver; no frozen gate of the original protocols is loosened"
+  ]
+ },
+ "execution_rules": {
+  "no_outcome_based_cell_swapping": true,
+  "no_favourable_reruns": true,
+  "only_final_checkpoints_enter_evaluation": true,
+  "closed_ticket_verdicts_untouched": true,
+  "design_gate": "GPU launches require explicit user authorization after this frozen amendment is presented; CPU preparation (validate stages, the 18093 backend service) is not a GPU launch."
+ }
+}
