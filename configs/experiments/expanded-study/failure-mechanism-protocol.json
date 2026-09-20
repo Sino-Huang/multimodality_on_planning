@@ -1,0 +1,231 @@
+{
+  "schema_version": "expanded_failure_mechanism_protocol_v1",
+  "protocol_id": "expanded-failure-mechanism-v1",
+  "program_id": "expanded-nine-day-v1",
+  "status": "frozen_before_outcome_computation",
+  "issues": [
+    125
+  ],
+  "parent_issue": 38,
+  "feeds_issue": 121,
+  "budget": {
+    "gpu_hours": 0,
+    "cpu_only": true,
+    "new_model_outcomes": false,
+    "retraining": false,
+    "re_rendering": false
+  },
+  "fixed_inputs": {
+    "rule": "Only the episode stores and replay anchors below are consumed. Episode files are deduplicated by repository-relative path; an episode reused as a comparator by another branch is mined once and carries all of its branch memberships.",
+    "branches": [
+      {
+        "branch": "expanded_baseline",
+        "issue": 118,
+        "episode_stores": [
+          "outputs/expanded-study/v1/baseline/episodes"
+        ],
+        "expected_episodes": 1152,
+        "replay_anchors": [
+          "docs/experiments/expanded-study/baseline-evaluation.json",
+          "docs/experiments/expanded-study/baseline-independent-replay.json"
+        ]
+      },
+      {
+        "branch": "generalization_robustness_v2",
+        "issue": 124,
+        "episode_stores": [
+          "outputs/expanded-study/v1/generalization-robustness/episodes"
+        ],
+        "expected_episodes": 1200,
+        "replay_anchors": [
+          "outputs/expanded-study/v1/generalization-robustness/evaluation.json",
+          "docs/experiments/expanded-study/issue-124-closeout.md"
+        ]
+      },
+      {
+        "branch": "dagger",
+        "issue": 84,
+        "episode_stores": [
+          "outputs/expanded-study/v1/dagger/evaluation"
+        ],
+        "reused_comparators": {
+          "unseen": "outputs/expanded-study/v1/baseline/episodes/<modality>/expanded-final__<task>/bfs-<arm>.json.gz for arm in process_sft, random_valid, exact_reference",
+          "development": "outputs/matched_modalities/v5/evaluation/<modality>/matched-final__<task>/bfs-<arm>.json.gz for arm in process_sft, random_valid, exact_reference"
+        },
+        "expected_episodes": 405,
+        "replay_anchors": [
+          "docs/experiments/expanded-study/dagger-comparison.json"
+        ]
+      },
+      {
+        "branch": "successor_prediction",
+        "issue": [
+          89,
+          99
+        ],
+        "episode_stores": [
+          "outputs/expanded-study/v1/successor/evaluation/episodes"
+        ],
+        "expected_episodes": 90,
+        "replay_anchors": [
+          "docs/experiments/expanded-study/successor-evaluation.json"
+        ]
+      },
+      {
+        "branch": "curriculum_modality",
+        "issue": 119,
+        "episode_stores": [
+          "outputs/expanded-study/v1/curriculum/evaluation"
+        ],
+        "reused_comparators": "comparator_provenance.sources of docs/experiments/expanded-study/curriculum-evaluation.json (288 baseline-store + 36 v5-store bindings)",
+        "expected_episodes": 567,
+        "replay_anchors": [
+          "docs/experiments/expanded-study/curriculum-evaluation.json"
+        ]
+      }
+    ],
+    "exclusions": [
+      "view bundles: any path containing '-views' or '/views/'",
+      "transfer, second-backbone and historical v5/v4 branches: outside the issue's five named sources",
+      "v5 development-task comparator episodes enter only through their dagger/curriculum branch membership"
+    ]
+  },
+  "arm_classification": {
+    "learned": [
+      "process_sft",
+      "learned_adapter",
+      "dagger_iteration_2",
+      "continued_sft_iteration_2",
+      "model_generated_successor",
+      "text-state__staged",
+      "text-state__shuffled",
+      "text-state__mixed_order",
+      "visual-state__staged",
+      "visual-state__shuffled",
+      "visual-state__mixed_order",
+      "multimodal-state__staged",
+      "multimodal-state__shuffled",
+      "multimodal-state__mixed_order"
+    ],
+    "base": [
+      "pretrained_base"
+    ],
+    "oracle_control": [
+      "random_valid"
+    ],
+    "reference": [
+      "exact_reference",
+      "trusted_successor"
+    ],
+    "notes": "random_valid is an oracle-assisted valid-operation control, never a learned policy; exact_reference and trusted_successor are reference bounds. Curriculum arms embed modality__ordering; modality is taken from the episode field, ordering from the arm suffix."
+  },
+  "failure_taxonomy": {
+    "first_failure_event": "The first episode event with accepted == false; verified to always be the terminal event for invalid-operation terminations. Episodes terminating in expansion_budget_exhausted have no rejected event; their failure position is the final decision_count.",
+    "search_policy_kinds": [
+      {
+        "kind": "malformed_output",
+        "definition": "raw_output is not a parseable JSON object or lacks the operation payload required by the algorithm schema (best-first: action plus source_state_id; bfs: typed_operation with either action or operation_type)."
+      },
+      {
+        "kind": "source_state_mismatch",
+        "definition": "Parsed action operation whose source_state_id differs from the failing event's current state id."
+      },
+      {
+        "kind": "unknown_operator",
+        "definition": "Action name never appears in any successor_candidates set of any event of the episode."
+      },
+      {
+        "kind": "inapplicable_grounded_action",
+        "definition": "Action name appears among episode candidate names, but the grounded (name, args) operation is not in the failing event's successor_candidates."
+      },
+      {
+        "kind": "invalid_frontier_operation",
+        "definition": "Parsed frontier operation (typed_operation with operation_type/state_id) that was rejected; the precise BFS invariant violated is not recoverable from the episode log alone."
+      },
+      {
+        "kind": "other_invariant_violation",
+        "definition": "Parsed action operation passing all checks above but still rejected (e.g. frontier_intent inconsistencies not decidable from the log)."
+      },
+      {
+        "kind": "expansion_budget_exhausted",
+        "definition": "Termination without any rejected operation: the expansion budget ran out before the goal."
+      }
+    ],
+    "successor_prediction_kinds": [
+      "schema",
+      "static_context",
+      "source_identity",
+      "action_identity",
+      "applicability",
+      "state_identity",
+      "effect"
+    ],
+    "successor_kind_rule": "Taken verbatim from the episode event verification.failure_kind.",
+    "escape_kind": "unclassified is an explicit escape that must remain zero; any nonzero count is reported as an analysis defect, never silently dropped."
+  },
+  "grouping_keys": {
+    "algorithm_family": [
+      "bfs",
+      "best_first_width",
+      "best_first_add_greedy",
+      "best_first_add_w3"
+    ],
+    "modality": [
+      "text-state",
+      "visual-state",
+      "multimodal-state"
+    ],
+    "arm_class": [
+      "learned",
+      "base",
+      "oracle_control",
+      "reference"
+    ],
+    "horizon_position": "first-failure decision index (0-based); distribution reported over frozen buckets",
+    "horizon_buckets": [
+      "0",
+      "1",
+      "2",
+      "3-4",
+      "5-8",
+      "9-16",
+      "17-32",
+      "33+"
+    ],
+    "horizon_ratio": "first_failure_step / reference_decisions, where reference_decisions is the same task+algorithm+modality exact_reference decision_count in the same store (successor episodes carry their own reference_decisions); missing reference yields null and is counted",
+    "operation_type": "Action name of the first failing operation; frontier:<operation_type> for rejected BFS frontier operations; null for expansion_budget_exhausted",
+    "frontier_branching_difficulty": "At the first-failure event (final event for budget exhaustions): frontier_size, branching_factor (successor candidate count), visited/known-state count, and current g/h where the best-first schema logs them; reported over frozen buckets",
+    "frontier_size_buckets": [
+      "0",
+      "1-2",
+      "3-5",
+      "6-10",
+      "11+"
+    ],
+    "branching_factor_buckets": [
+      "0-1",
+      "2-3",
+      "4-6",
+      "7-12",
+      "13+"
+    ]
+  },
+  "tiny_strata_rule": {
+    "min_stratum_episodes": 8,
+    "rule": "Any stratum with fewer than 8 episodes is reported as descriptive-only, listed explicitly in the analysis document, and never silently pooled across strata or dropped."
+  },
+  "missingness_rule": "Coverage and missingness are stated per source branch in the analysis document, including scope reductions frozen by the source branches (generalization v2: 2 of 4 algorithm families, 25 of 120 variants, 6 of 12 adapters, base arm capped at one call; successor: 15 of 27 panel tasks; dagger: bfs only; curriculum: best_first_add_greedy only).",
+  "claim_discipline": [
+    "Descriptive only: no causal claims beyond what the underlying verified experiments established.",
+    "random_valid is oracle-assisted; controls are bounds, not learned ability.",
+    "P3 name-compression lossy strata are reported separately and never pooled with semantics-preserving variants.",
+    "v5 development-task comparator episodes carry no schema_version but entered only via replay-verified dagger/curriculum audits.",
+    "Single training seed 17 and evaluation seed 17 underlie all learned arms; no seed-variance claims."
+  ],
+  "outputs": {
+    "matrix": "docs/experiments/expanded-study/failure-mechanism-matrix.json",
+    "tables": "docs/experiments/expanded-study/failure-mechanism-tables/",
+    "document": "docs/experiments/expanded-study/failure-mechanism-analysis.md",
+    "script": "scripts/failure_mechanism_analysis.py"
+  }
+}
