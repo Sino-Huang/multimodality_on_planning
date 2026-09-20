@@ -1,0 +1,16 @@
+{
+  "job_id": "ms-v1-chain",
+  "branch": "generalization_robustness",
+  "gpus": [],
+  "max_seconds": 86400,
+  "total": 1,
+  "command": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/expanded-study/v1/modality-stress-chain/chain.py"
+  ],
+  "completion_hook": [
+    "/usr/bin/test",
+    "-f",
+    "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/expanded-study/v1/modality-stress-chain/complete.json"
+  ]
+}

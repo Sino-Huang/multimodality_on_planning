@@ -1,0 +1,17 @@
+{
+  "job_id": "ms-v1-evaluate-final",
+  "branch": "generalization_robustness",
+  "gpus": [],
+  "max_seconds": 21600,
+  "total": 504,
+  "command": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/run_expanded_modality_stress.py",
+    "evaluate-finalize"
+  ],
+  "completion_hook": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/run_expanded_modality_stress.py",
+    "audit-evaluate-final"
+  ]
+}

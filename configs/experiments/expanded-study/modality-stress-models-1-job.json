@@ -1,0 +1,28 @@
+{
+  "job_id": "ms-v1-models-1",
+  "branch": "generalization_robustness",
+  "gpus": [
+    1
+  ],
+  "master_port": 18803,
+  "max_seconds": 48600,
+  "total": 144,
+  "command": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/run_expanded_modality_stress.py",
+    "evaluate-worker",
+    "--worker",
+    "1",
+    "--kind",
+    "models"
+  ],
+  "completion_hook": [
+    "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+    "scripts/run_expanded_modality_stress.py",
+    "audit-evaluate-worker",
+    "--worker",
+    "1",
+    "--kind",
+    "models"
+  ]
+}

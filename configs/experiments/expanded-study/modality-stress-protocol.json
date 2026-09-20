@@ -1,0 +1,297 @@
+{
+ "schema_version": "expanded_modality_stress_protocol_v1",
+ "protocol_id": "expanded-modality-stress-v1",
+ "program_id": "expanded-nine-day-v1",
+ "status": "frozen_before_derived_task_model_outcomes",
+ "issues": [126],
+ "parent_issue": 38,
+ "parent_links": {
+  "parent_issue": 38,
+  "related_issues": [96, 98, 124],
+  "lineage": "Recasts the historical CGAS proposal's secondary stress tests (docs/research_proposal.md section 6.1 'observation corruption or removal' and P3 'vision-only/language-only stress tests') onto the Search-Process-Policy target. Executed branches (#124, v1 #96/#98) perturbed names, render style, scale and initial states but never the observation modalities themselves; this protocol extends robustness evidence along the modality axis with no CGAS machinery. Does not close or modify #96/#98."
+ },
+ "panel": "configs/experiments/expanded-study/final-panel.json",
+ "panel_id": "expanded-panel-v2-qualified",
+ "panel_sha256": "f888c1b2106d438f442b39da89d9727fd14c3756a6be6f7cfa824f53d6b837cc",
+ "panel_view_report": "outputs/expanded-study/v1/panel-v2/reference-views.json",
+ "panel_view_report_sha256": "72df0a98f29044685ddc5a7f6f642045302684ebcfa9f938336a53b33bbd42a9",
+ "output_root": "outputs/expanded-study/v1/modality-stress",
+ "model_id": "Qwen/Qwen3-VL-8B-Instruct",
+ "model_revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+ "checkpoint_readiness": "docs/experiments/expanded-study/readiness.json",
+ "new_training": false,
+ "training_seed": 17,
+ "training_seed_variance_claimed": false,
+ "learned_algorithms": ["best_first_add_greedy", "best_first_add_w3"],
+ "corruption_families": {
+  "visual-blank": {
+   "applicable_modalities": ["visual-state", "multimodal-state"],
+   "channel": "visual",
+   "strength": "removal",
+   "definition": "Every observation image attached to the user message (static task-context pages, initial-state and current-state 128px scenes, goal pages) is replaced by a uniform RGB (128,128,128) image of identical dimensions and mode. Page structure, page count, image sizes and all text parts are unchanged, so image token counts are preserved exactly.",
+   "deterministic": true,
+   "seeded": false
+  },
+  "visual-degraded": {
+   "applicable_modalities": ["visual-state", "multimodal-state"],
+   "channel": "visual",
+   "strength": "corruption",
+   "definition": "Every observation image is replaced by its 16x16 mosaic: PIL resize to (16,16) with BILINEAR sampling, then resize back to the original dimensions with NEAREST. Destroys drawn fact text and fine scene geometry while preserving coarse colour layout; dimensions and mode unchanged, so image token counts are preserved exactly.",
+   "deterministic": true,
+   "seeded": false
+  },
+  "text-shuffled": {
+   "applicable_modalities": ["text-state", "multimodal-state"],
+   "channel": "language",
+   "strength": "corruption",
+   "definition": "Every text part of the user message content (the serialized canonical-JSON payload including representation, view_legend, algorithm, current, search_memory with successor_candidates, and semantic_blocks where present, plus each 'Page role: <role>' label for multimodal-state) is split on whitespace and its token list permuted by a Fisher-Yates shuffle driven by random.Random(seed), then rejoined with single spaces. The system message (the standing one-line output contract) and all image parts are unchanged.",
+   "deterministic": true,
+   "seeded": true,
+   "seed_rule": "seed = int.from_bytes(sha256(('42613|text-shuffled|' + sha256_hex(clean_text)).encode()).digest()[:8], 'big'); identical clean text always corrupts identically, so independent replay reproduces the corrupted observation and its recomputed input_tokens exactly."
+  },
+  "text-masked": {
+   "applicable_modalities": ["text-state", "multimodal-state"],
+   "channel": "language",
+   "strength": "corruption",
+   "definition": "In every text part of the user message content, each maximal run of [A-Za-z0-9] characters is replaced by the single mask character U+25AE. Punctuation, whitespace, JSON syntax and part structure are preserved; the system message and all image parts are unchanged. Removes all lexical content (keys, object names, predicate names, numbers) while preserving the observation's structural silhouette.",
+   "deterministic": true,
+   "seeded": false
+  }
+ },
+ "corruption_master_seed": 42613,
+ "corruption_application": {
+  "injection_point": "examples/planning_benchmark_slice/expanded_modality_stress.py StressTaskViews.observe: corruption is applied to the observe() result (user-message text parts for language families, attached images for visual families) before the model call; binding.input_tokens is recomputed on the corrupted messages and the 32K context gate is re-checked. The trusted search runtime, event journal, and page bindings are untouched.",
+  "replay_consistency": "replay_visual_episode compares request model_input, page binding (state, input_pages, input_tokens) and committed events, never pixel or text content. Corruption is a deterministic function of the clean observation and the frozen seed rule, so replay recomputes identical input_tokens; visual families never change token counts.",
+  "task_invariance": "The underlying PDDL task, reference costs, decision caps and page structure are identical to the clean panel evaluation; only the model-facing observation changes."
+ },
+ "estimand": {
+  "name": "modality_stress_runtime_cap_estimand",
+  "frozen_before_recomputation": true,
+  "prose": "Price per GPU episode equals the runtime-enforced decision call cap multiplied by the frozen per-(algorithm, modality) maximum observed probe call time (probe.json per_combo_bounds max_observed_call_seconds), summed over the admitted matrix. For each learned cell (algorithm x applicable modality x family) the cap is 2 x reference decisions for that source task and algorithm, matching the frozen reference_decision_multiplier. Each pretrained_base cell is priced at exactly 1 call x per-combo max observed call time, justified by the frozen baseline evidence (docs/experiments/expanded-study/baseline-evaluation.json by_condition.pretrained_base: 288 episodes, 288 decisions, 288 invalid operations, 0 successes) and hard-enforced by the one-call cap. Corruption preserves image dimensions, page structure and (for visual families) token counts exactly, and masked/shuffled text length is bounded by the clean length plus a small constant, so the clean-observation probe maxima remain valid per-combo price bounds; runtime-enforced caps turn any estimand overrun into explicit missingness, never silent scope reduction. random_valid and exact_reference controls are CPU-only and priced at zero. The clean-observation comparator evidence is reused from the replay-verified baseline store at zero new GPU cost.",
+  "equation": "required_gpu_hours = (sum_{t in admitted} sum_{f in families} sum_{a in learned} (2*ref_decisions(t,a) + 1) * sum_{d in arms(f)} maxobs(a,d)) / 3600 * 1.25 + planned_worker_jobs * planned_worker_overhead_seconds / 3600",
+  "parameters": {
+   "decision_cap_multiplier": 2,
+   "per_combo_price": "max_observed_call_seconds from probe.json per_combo_bounds",
+   "per_algo_modality_max_observed_seconds": {
+    "best_first_add_greedy__text-state": 10.655530326068401,
+    "best_first_add_greedy__visual-state": 16.738146394491196,
+    "best_first_add_greedy__multimodal-state": 21.71811974607408,
+    "best_first_add_w3__text-state": 10.69150853715837,
+    "best_first_add_w3__visual-state": 16.740871593356133,
+    "best_first_add_w3__multimodal-state": 22.02277716808021
+   },
+   "pretrained_base_calls_per_episode": 1,
+   "pretrained_base_justification": "baseline pretrained_base terminated on an invalid first operation in 288/288 episodes, exactly 1 decision each",
+   "control_price_gpu_hours": 0,
+   "comparator_price_gpu_hours": 0,
+   "safety_factor": 1.25,
+   "planned_worker_jobs": 2,
+   "planned_worker_overhead_seconds": 112.25402885861695,
+   "probe_spend_added": 0
+  },
+  "not_a_completion_guarantee": "This estimand is a budget reservation, not a completion guarantee. Scheduler-enforced runtime caps turn estimand overruns into explicit missingness: failed or cutoff attempts retain their ledger GPU hours and are reported as missing per family and stratum, never as silent scope reduction. Missingness is reported and the gate is not claimed closed by partial coverage."
+ },
+ "membership_rule": {
+  "frozen_before_recomputation": true,
+  "rule": "Source tasks are the 24 frozen expanded-panel-v2-qualified problems; every admitted source task yields all four corruption families on every applicable modality (16 task x family variant cells per task). Rank source tasks by (estimand seconds, task_id) and take the cheapest prefix of size k. Choose the single uniform k maximizing admitted source tasks subject to the frozen estimand fitting the branch remainder (28.181063522166676 GPU-h). If no k >= 4 fits the remainder, a transfer request of at most 11.89 GPU-h from recovery_reserve may be proposed with exact arithmetic for design-gate ratification, only for the minimum k=4 meaningful scope. STOP and report instead of freezing if even k=4 with the maximum transfer does not fit.",
+  "chosen_k": 9,
+  "total_source_tasks": 9,
+  "variant_cells": 144,
+  "membership_sha256": "20ea888d5199d53bbbe2e7cfa14aeee11e3c4cd7cff956103147ed1a7328e854",
+  "membership_canonical_form": "sha256 of json.dumps(sorted(task_ids), sort_keys=True, separators=(',', ':'))",
+  "membership": [
+   "expanded-final/storage-compact-919000",
+   "expanded-final/elevators-compact-914002",
+   "expanded-final/ferry-compact-915000",
+   "expanded-final/15puzzle-compact-910000",
+   "expanded-final/towers_of_hanoi-compact-920000",
+   "expanded-final/visitall-compact-921000",
+   "expanded-final/depot-compact-912000",
+   "expanded-final/blocksworld-expanded-911101",
+   "expanded-final/15puzzle-expanded-910109"
+  ]
+ },
+ "evaluation": {
+  "conditions": ["learned_adapter", "pretrained_base", "random_valid", "exact_reference"],
+  "new_gpu_conditions": ["learned_adapter", "pretrained_base"],
+  "new_cpu_conditions": ["random_valid"],
+  "learned_cells_per_task": 16,
+  "matrix_per_task": {"gpu_episodes": 32, "cpu_control_episodes": 8},
+  "matrix_totals": {
+   "source_tasks": 9,
+   "variant_cells": 144,
+   "new_learned_episodes": 144,
+   "new_pretrained_base_episodes": 144,
+   "new_gpu_model_episodes": 288,
+   "new_random_valid_episodes": 72,
+   "new_cpu_control_episodes": 72,
+   "new_logical_bindings": 360,
+   "reused_comparator_episodes": 144
+  },
+  "reference_decision_multiplier": 2,
+  "decoding": {"do_sample": false},
+  "expansion_limit_exhaustion": "A decision-call or expansion-limit exhaustion is retained as a valid unsuccessful episode, matching visual_episode result semantics.",
+  "rollouts": {"learned_adapter": 1, "pretrained_base": 1, "exact_reference": 1, "random_valid": 5},
+  "random_valid_rollout_seeds": [17, 1013, 2027, 3041, 4001],
+  "random_valid_seed17_source": "reused replay-verified baseline episode per (task, algorithm); seeds 1013/2027/3041/4001 are new CPU episodes",
+  "identical_task_sets_across_conditions": true,
+  "control_invariance": {
+   "claim": "random_valid and exact_reference decisions are computed by the authoritative session from the trusted search state (VisualSession.reference_output), never from the observed messages or images; their outcomes are invariant to the observation modality and to any observation corruption.",
+   "evidence": "All 96 (task x algorithm x condition) baseline triples verified arm-invariant: identical decision_count, invariant_valid_success, invalid_operation_count and expansion_count across text-state, visual-state and multimodal-state arms; re-verified by the admission script.",
+   "consequence": "CPU controls are bound per (task, algorithm, seed), shared across corruption families and modalities; reused seed-17 episodes are taken from the text-state arm of the baseline store."
+  }
+ },
+ "fixed_adapters": [
+  {
+   "modality": "text-state",
+   "algorithm": "best_first_add_w3",
+   "checkpoint": "outputs/matched_modalities/v3/training/text-state/best_first_add_w3/final",
+   "adapter_model_sha256": "sha256:9f11702d2d6c333b849edd8ad6c6465423691dd9240d91be945eeac125be6459",
+   "adapter_config_sha256": "sha256:32c10de5c2e8976f8009748fa826eb47de01c09ab004a4d05e52e4395a12b5d3",
+   "seed": 17,
+   "steps": 16,
+   "tensors": 504,
+   "parameters": 174587904,
+   "adapter_bytes": 698427288
+  },
+  {
+   "modality": "text-state",
+   "algorithm": "best_first_add_greedy",
+   "checkpoint": "outputs/matched_modalities/v3/training/text-state/best_first_add_greedy/final",
+   "adapter_model_sha256": "sha256:8a4f17eca2f76090f86e3b5c55ad831df30b9156234519ed3b0e8007ce77add1",
+   "adapter_config_sha256": "sha256:260d25e343183cb3abe5afa8a2498027b5fb6909a6a41217b901bb631b4019ca",
+   "seed": 17,
+   "steps": 16,
+   "tensors": 504,
+   "parameters": 174587904,
+   "adapter_bytes": 698427288
+  },
+  {
+   "modality": "visual-state",
+   "algorithm": "best_first_add_w3",
+   "checkpoint": "outputs/matched_modalities/v5/training/visual-state/best_first_add_w3/final",
+   "adapter_model_sha256": "sha256:f5cb900cc5cdc0a7cd1fdbde3e4dce02984525cf4b9f1c17a27a8fdaa6fb27cf",
+   "adapter_config_sha256": "sha256:66db0c7cf5fa5edf26e69067b699c8bf71ed4dda034a6c297f38faf64a7cf004",
+   "seed": 17,
+   "steps": 16,
+   "tensors": 504,
+   "parameters": 174587904,
+   "adapter_bytes": 698427288
+  },
+  {
+   "modality": "visual-state",
+   "algorithm": "best_first_add_greedy",
+   "checkpoint": "outputs/matched_modalities/v5/training/visual-state/best_first_add_greedy/final",
+   "adapter_model_sha256": "sha256:41dc46e74ed4d9fe70c7714474329a6fdee9b435060facecf2e49dc4edf8f2e2",
+   "adapter_config_sha256": "sha256:2078b82addbe45a9b1f90ee4a2ab8f646d0774bb17324a32a927eee13b9aac9c",
+   "seed": 17,
+   "steps": 16,
+   "tensors": 504,
+   "parameters": 174587904,
+   "adapter_bytes": 698427288
+  },
+  {
+   "modality": "multimodal-state",
+   "algorithm": "best_first_add_w3",
+   "checkpoint": "outputs/matched_modalities/v5/training/multimodal-state/best_first_add_w3/final",
+   "adapter_model_sha256": "sha256:574b31378f5e65e63ba621090cdddd20f502d52ea670010081dd2c431808b0b",
+   "adapter_config_sha256": "sha256:9e1a4a337f8ccbac48c14eb7986e3a3abb01fb35ae5a09264592f9dffc6619c8",
+   "seed": 17,
+   "steps": 16,
+   "tensors": 504,
+   "parameters": 174587904,
+   "adapter_bytes": 698427288
+  },
+  {
+   "modality": "multimodal-state",
+   "algorithm": "best_first_add_greedy",
+   "checkpoint": "outputs/matched_modalities/v5/training/multimodal-state/best_first_add_greedy/final",
+   "adapter_model_sha256": "sha256:c0a2a61eea1dec6102923976f744d5c8697b32c5e472ef7c387b7f68869dab2e",
+   "adapter_config_sha256": "sha256:61635ca264eb30c10c959591558c8edfab24bf5186c7dca4d852809d8ea84c45",
+   "seed": 17,
+   "steps": 16,
+   "tensors": 504,
+   "parameters": 174587904,
+   "adapter_bytes": 698427288
+  }
+ ],
+ "comparator_audit": {
+  "baseline_protocol": "configs/experiments/expanded-study/baseline-protocol.json",
+  "baseline_protocol_sha256": "2f805417f5de2d6c841915e95c0df4e21d174ad2373de7da7f7e150d19c0b9a8",
+  "baseline_evaluation": "docs/experiments/expanded-study/baseline-evaluation.json",
+  "baseline_evaluation_sha256": "ba470dd4498e11a21fba8e9f61611c8f7be6ddcb167ad02a7fbed6e1516eb03a",
+  "baseline_independent_replay": "docs/experiments/expanded-study/baseline-independent-replay.json",
+  "baseline_independent_replay_sha256": "7f78b9d2cbda99446be52690b796975b77010522bd768c0d77cce6858cf4a366",
+  "baseline_episodes_root": "outputs/expanded-study/v1/baseline/episodes",
+  "reused_conditions": ["process_sft", "pretrained_base", "random_valid", "exact_reference"],
+  "reused_episodes": {
+   "process_sft": "per (task, modality, algorithm): 54 clean learned comparators, the clean arm of every degradation contrast",
+   "pretrained_base": "per (task, modality, algorithm): 54 clean base comparators",
+   "random_valid": "per (task, algorithm) from the text-state arm: 18 seed-17 control rollouts",
+   "exact_reference": "per (task, algorithm) from the text-state arm: 18 oracle upper-bound episodes"
+  },
+  "verification": "Every reused episode is independently replayed under its producing processor at finalize and its identity fields (task_id, modality, algorithm, arm, seed 17, model_id, model_revision, baseline protocol_id) are checked against the frozen binding; any mismatch fails the finalize audit."
+ },
+ "analysis": {
+  "paired_unit": "whole source task instance x algorithm x modality x corruption family across conditions on identical tasks",
+  "strata": ["domain", "stratum-origin", "corruption-family"],
+  "primary_contrasts": {
+   "degradation": "Learned on corrupted observation versus learned on the clean observation (reused baseline process_sft), paired by source task, modality, algorithm and family; the headline estimand is the per-family success degradation.",
+   "channel_isolation": "Within the multimodal-state arm, text-channel corruption (text-shuffled, text-masked) versus visual-channel corruption (visual-blank, visual-degraded), paired by source task and algorithm: which channel the multimodal policy relies on.",
+   "learned_vs_best_control": "Learned corrupted versus max of corrupted pretrained_base and per-task random_valid success frequency over the five frozen rollout seeds; exact_reference is an oracle upper bound reported separately.",
+   "validity_and_cost": "Report invariant-valid success versus goal_reached, invalid-operation rate, decisions, expansions, model calls and wall time."
+  },
+  "missingness": "Report per family and stratum; cutoff attempts are explicit missingness, never silent scope reduction.",
+  "random_valid_aggregation": "Per-task success frequency over the five frozen rollout seeds.",
+  "bootstrap": {"unit": "whole source task instance within corruption family", "seed": 90717, "resamples": 10000, "confidence": 0.95, "interval": "percentile", "materiality": "interval excludes 0"},
+  "tiny_subgroup_rule": "Strata with fewer than 8 paired instances are descriptive-only; no interval claims.",
+  "saturation_rule": "Per issue #54, when the best control is at ceiling, make no structural-advantage claim.",
+  "training_seed_variance_claimed": false
+ },
+ "budget": {
+  "budget_branch": "generalization_robustness",
+  "branch_cap_gpu_hours": 32,
+  "branch_spent_gpu_hours": 3.8189364778333237,
+  "branch_remainder_gpu_hours": 28.181063522166676,
+  "matrix_gpu_hours": 20.950878016686893,
+  "planned_worker_overhead_gpu_hours": 0.0623633493658983,
+  "required_gpu_hours": 26.250960870224514,
+  "headroom_gpu_hours": 1.9301026519421605,
+  "transfer_request": null,
+  "next_rung_note": "k=10 (10 source tasks, 160 variant cells) requires 30.500431411344973 GPU-h, exceeding the branch remainder; k=9 fits the remainder alone so no transfer is proposed. Exact values are recomputed and pinned by the admission artifact."
+ },
+ "admission": {
+  "artifact": "outputs/expanded-study/v1/modality-stress/admission.json",
+  "recompute_script": "scripts/qualify_expanded_modality_stress.py",
+  "schema_version": "expanded_modality_stress_admission_v1",
+  "selection_timing": "Membership and estimand are frozen before any corrupted-observation model outcome; the admission artifact is computed only from panel, probe, baseline, ledger and reused comparator evidence.",
+  "no_test_driven_retraining": true,
+  "no_outcome_selected_reruns": true,
+  "no_favourable_replacement_tasks": true
+ },
+ "execution_contract": {
+  "deterministic_rounds": true,
+  "batched_generation": true,
+  "shared_backbone_per_gpu": true,
+  "adapter_switching": true,
+  "isolated_caching": true,
+  "max_requests_per_active_episode_per_round": 1,
+  "runtime_enforced_caps": "Every GPU episode is hard-capped at its priced decision-call cap (2 x reference decisions for learned cells, 1 call for pretrained_base). A cap hit is recorded as an explicit unsuccessful/missing episode; its ledger GPU hours are retained.",
+  "missingness_policy": "Estimand overruns become explicit missingness (failed or cutoff attempts), reported per family and stratum; coverage is never silently reduced.",
+  "resume": "Persist each raw output before trusted-runtime submission; replay committed events and pending output before continuing.",
+  "partial_coverage_satisfies_gate": false,
+  "independent_replay_every_completed_episode": true,
+  "gpu_cutoff_utc": "2026-09-21T11:55:19Z",
+  "cutoff_note": "Issue #126 states this ticket is not bound by the nine-day program's absolute GPU cutoff; scheduler admission still enforces the schedule cutoff, and if the frozen scope cannot launch or complete inside the admissible window the ticket declares VALID_STOP without partial-outcome harvesting rather than amending the program schedule."
+ },
+ "inference": {
+  "dtype": "float32",
+  "attention": "visual_sdpa",
+  "do_sample": false,
+  "max_batch_size": 2,
+  "max_padded_batch_input_tokens": 24000,
+  "allow_qualified_single_input_above_batch_cap": true,
+  "output_cache": "none",
+  "kv_cache": "per_call_only"
+ }
+}
