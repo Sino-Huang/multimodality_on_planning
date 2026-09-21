@@ -707,6 +707,13 @@ def b_armseeds_for(seed: int) -> tuple[str, str]:
     return (f"dagger_iteration_1_seed{seed}", f"continued_sft_iteration_1_seed{seed}")
 
 
+COMPARATOR_FILE_CONDITIONS = {
+    "original_process_sft": "process_sft",
+    "random_valid": "random_valid",
+    "exact_reference": "exact_reference",
+}
+
+
 def evaluate_dagger(seed: int, worker: int) -> int:
     require_worker_environment(worker)
     from transformers import set_seed
@@ -823,7 +830,15 @@ def audit_evaluation_dagger(seed: int, worker: int) -> int:
                     replayed += 1
             for task in tasks:
                 for condition in COMPARATORS:
-                    verify_comparator(ROOT, eval_protocol, panel_name, modality, task, condition, ENDPOINTS[0])
+                    verify_comparator(
+                        ROOT,
+                        eval_protocol,
+                        panel_name,
+                        modality,
+                        task,
+                        COMPARATOR_FILE_CONDITIONS[condition],
+                        ENDPOINTS[0],
+                    )
                     comparators += 1
     result = {
         "outcome": "PASS",
@@ -950,7 +965,15 @@ def collect_dagger_comparators(*, replay: bool) -> list[dict]:
         for panel_name, tasks in loaded.items():
             for task in tasks:
                 for condition in COMPARATORS:
-                    report = verify_comparator(ROOT, eval_protocol, panel_name, modality, task, condition, ENDPOINTS[0])
+                    report = verify_comparator(
+                        ROOT,
+                        eval_protocol,
+                        panel_name,
+                        modality,
+                        task,
+                        COMPARATOR_FILE_CONDITIONS[condition],
+                        ENDPOINTS[0],
+                    )
                     rows.append(
                         {
                             "modality": modality,
