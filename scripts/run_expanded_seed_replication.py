@@ -716,35 +716,39 @@ def evaluate_dagger(seed: int, worker: int) -> int:
 
     eval_protocol = b_eval_protocol()
     loaded = panels(ROOT, eval_protocol)
-    modalities = B_WORKER_MODALITIES[worker]
     armseeds = b_armseeds_for(seed)
-    worker_total = sum(len(tasks) for tasks in loaded.values()) * len(armseeds) * len(modalities)
+    selected = {
+        panel_name: [task for index, task in enumerate(tasks) if index % 2 == worker]
+        for panel_name, tasks in loaded.items()
+    }
+    worker_total = sum(len(tasks) for tasks in selected.values()) * len(armseeds) * len(B_MODALITIES)
     completed_before = 0
     rows = []
-    for modality in modalities:
-        set_seed(eval_protocol["evaluation"]["seed"])
-        adapter_paths = {
-            armseed: ROOT / eval_protocol["checkpoint_lineage"][armseed].format(modality=modality)
+    set_seed(eval_protocol["evaluation"]["seed"])
+    policy = VisualPolicy(
+        model_id=eval_protocol["model"]["id"],
+        revision=eval_protocol["model"]["revision"],
+        adapter_paths={
+            f"{armseed}@{modality}": ROOT
+            / eval_protocol["checkpoint_lineage"][armseed].format(modality=modality)
+            for modality in B_MODALITIES
             for armseed in armseeds
-        }
-        policy = VisualPolicy(
-            model_id=eval_protocol["model"]["id"],
-            revision=eval_protocol["model"]["revision"],
-            adapter_paths=adapter_paths,
-            device="cuda:0",
-            max_context_tokens=eval_protocol["model"]["context_tokens"],
-            max_new_tokens=eval_protocol["model"]["output_tokens"],
-            max_batch_size=2,
-            max_batch_input_tokens=24000,
-            inference_dtype=eval_protocol["model"]["inference_dtype"],
-        )
-        configure_visual_attention(policy.model, eval_protocol["model"]["attention"])
-        policy.identity.update(memoize_identical_inputs=False)
-        for panel_name, tasks in loaded.items():
+        },
+        device="cuda:0",
+        max_context_tokens=eval_protocol["model"]["context_tokens"],
+        max_new_tokens=eval_protocol["model"]["output_tokens"],
+        max_batch_size=2,
+        max_batch_input_tokens=24000,
+        inference_dtype=eval_protocol["model"]["inference_dtype"],
+    )
+    configure_visual_attention(policy.model, eval_protocol["model"]["attention"])
+    policy.identity.update(memoize_identical_inputs=False)
+    for modality in B_MODALITIES:
+        for panel_name, tasks in selected.items():
             for armseed in armseeds:
 
-                def generate(examples, armseed=armseed, policy=policy):
-                    outputs = policy.generate(examples, armseed)
+                def generate(examples, armseed=armseed, modality=modality, policy=policy):
+                    outputs = policy.generate(examples, f"{armseed}@{modality}")
                     tokens = policy.last_generation_usage["generated_sequence_tokens"]
                     return outputs, [tokens] * len(outputs)
 
@@ -790,11 +794,11 @@ def evaluate_dagger(seed: int, worker: int) -> int:
                     }
                 )
                 completed_before += len(tasks)
-        del policy
-        gc.collect()
-        import torch
+    del policy
+    gc.collect()
+    import torch
 
-        torch.cuda.empty_cache()
+    torch.cuda.empty_cache()
     progress_write(worker_total, worker_total, terminal=True)
     attempt_dir = os.environ.get("EXPANDED_ATTEMPT_DIR")
     if attempt_dir:
@@ -807,8 +811,12 @@ def audit_evaluation_dagger(seed: int, worker: int) -> int:
     loaded = panels(ROOT, eval_protocol)
     replayed = 0
     comparators = 0
-    for modality in B_WORKER_MODALITIES[worker]:
-        for panel_name, tasks in loaded.items():
+    selected = {
+        panel_name: [task for index, task in enumerate(tasks) if index % 2 == worker]
+        for panel_name, tasks in loaded.items()
+    }
+    for modality in B_MODALITIES:
+        for panel_name, tasks in selected.items():
             for armseed in b_armseeds_for(seed):
                 for task in tasks:
                     verify_episode(ROOT, eval_protocol, panel_name, modality, task, armseed, ENDPOINTS[0])

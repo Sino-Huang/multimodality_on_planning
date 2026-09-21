@@ -5,7 +5,7 @@
     1
   ],
   "max_seconds": 7200,
-  "total": 54,
+  "total": 81,
   "command": [
     "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
     "scripts/run_expanded_seed_replication.py",
