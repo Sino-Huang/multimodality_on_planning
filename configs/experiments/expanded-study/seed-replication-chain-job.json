@@ -12,5 +12,6 @@
     "/usr/bin/test",
     "-f",
     "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning/outputs/expanded-study/v1/seed-replication-chain/complete.json"
-  ]
+  ],
+  "resume_reason": "attempt 1 stopped when the wave-1 train workers crashed on the runner progress-callback TypeError; fixed and resumed workers under attempt 2; the chain preserves those attempts"
 }
