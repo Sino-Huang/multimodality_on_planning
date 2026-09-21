@@ -308,6 +308,8 @@ def train_baseline(worker: int) -> int:
         if stage == "training":
             progress_write(fields.get("completed", 0), 16, stage=stage, seed=seed)
         else:
+            fields.pop("completed", None)
+            fields.pop("total", None)
             progress_write(0, 16, stage=stage, seed=seed, **fields)
 
     result = train_worker(

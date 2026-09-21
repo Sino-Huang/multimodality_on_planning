@@ -18,7 +18,7 @@
   "completion_hook": [
     "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
     "scripts/run_expanded_seed_replication.py",
-    "audit-train-dagger",
+    "audit-training-dagger",
     "--seed",
     "29",
     "--worker",

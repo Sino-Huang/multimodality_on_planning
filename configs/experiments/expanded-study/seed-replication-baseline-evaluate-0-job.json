@@ -16,7 +16,7 @@
   "completion_hook": [
     "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
     "scripts/run_expanded_seed_replication.py",
-    "audit-evaluate-baseline",
+    "audit-evaluation-baseline",
     "--worker",
     "0"
   ]

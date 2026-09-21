@@ -16,8 +16,9 @@
   "completion_hook": [
     "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
     "scripts/run_expanded_seed_replication.py",
-    "audit-train-baseline",
+    "audit-training-baseline",
     "--worker",
     "0"
-  ]
+  ],
+  "resume_reason": "attempt 1 crashed on a runner progress-callback TypeError fixed in the recovery commit; resume from the retained checkpoints with unchanged branch, GPUs and total"
 }
