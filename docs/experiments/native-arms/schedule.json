@@ -1,0 +1,45 @@
+{
+  "program_id": "followup-native-arms-v1",
+  "status": "authorized_followup_window",
+  "issue": 128,
+  "authorization": {
+    "granted_by": "user instruction in the #128 execution session, 2026-09-21/22 (Melbourne 2026-09-22)",
+    "quote": "present the frozen design and DO NOT WAIT for my authorization, just start GPU use as I am going to AFK",
+    "window_gpu_hours_cap": 12.0,
+    "basis": "issue #128 Budget section prospective estimate (~6 training + ~2.5 clean + ~1.5 corruption GPU-h); no transfer from expanded-nine-day-v1 remainders is claimed or implied"
+  },
+  "start_utc": "2026-09-21T15:00:00Z",
+  "gpu_cutoff_utc": "2026-09-24T00:00:00Z",
+  "handoff_deadline_utc": "2026-09-25T00:00:00Z",
+  "deadline_kind": "internal follow-up window; not an ICLR deadline",
+  "hardware": {
+    "gpus": 2,
+    "model": "NVIDIA A100 80GB",
+    "preserve_unrelated_processes": true,
+    "max_own_model_workers_per_gpu": 1
+  },
+  "experiment_gpu_hours_cap": 12.0,
+  "allocations_gpu_hours": {
+    "native_arms": 12.0
+  },
+  "accounting": {
+    "metric": "sum of own allocated model-worker GPU durations across devices; include model loading, saves, failures and retries",
+    "also_record": "elapsed wall time, CPU work and actual available VRAM",
+    "ledger": "outputs/native-arms/v1/budget.json",
+    "preserve_prior_ledgers": true,
+    "reset_on_resume": false,
+    "automatic_total_extension": false,
+    "transfers": "none; this window is independent of expanded-nine-day-v1"
+  },
+  "master_port_pool": [18806, 18807, 18808, 18809],
+  "default_training_seed": 17,
+  "qualification_safety_factor": 1.25,
+  "state_images": {
+    "size": [128, 128],
+    "text_annotations": false,
+    "goal_context": "separate complete pages",
+    "semantic_information_equivalence_claimed": false
+  },
+  "execution_authorization": "GPU launches in this window run only after configs/experiments/native-arms/native-arms-protocol.json and its design document are committed.",
+  "issues": {"native_arms": 128}
+}

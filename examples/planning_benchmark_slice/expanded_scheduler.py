@@ -153,8 +153,9 @@ def admit(ledger, job, now):
     return dict(job, attempt=len(previous) + 1, status="reserved", master_port=port, admitted=now, gpu_hours=0)
 
 
-def launch(path, schedule, job):
-    if job["gpus"] and Path(path).resolve() != LEDGER.resolve():
+def launch(path, schedule, job, *, production_ledger=None):
+    production = Path(production_ledger) if production_ledger is not None else LEDGER
+    if job["gpus"] and Path(path).resolve() != production.resolve():
         raise ValueError("GPU launches must use the shared production ledger")
     with locked(path, schedule) as ledger:
         attempt = admit(ledger, job, time.time())
@@ -383,6 +384,15 @@ def main():
     parser = argparse.ArgumentParser(__doc__)
     parser.add_argument("action", choices=("init", "launch", "status", "reconcile", "transfer", "_worker"))
     parser.add_argument("--ledger", type=Path, default=LEDGER)
+    parser.add_argument(
+        "--schedule",
+        type=Path,
+        default=None,
+        help=(
+            "Explicitly designate a follow-up program schedule; the --ledger then becomes "
+            "that program's production ledger for GPU launches (#128 follow-up window)."
+        ),
+    )
     parser.add_argument("--job", type=Path)
     parser.add_argument("--job-id")
     parser.add_argument("--attempt", type=int)
@@ -391,12 +401,13 @@ def main():
     parser.add_argument("--hours", type=float)
     parser.add_argument("--reason")
     args = parser.parse_args()
-    schedule = read(SCHEDULE)
+    schedule = read(args.schedule) if args.schedule is not None else read(SCHEDULE)
     if args.action == "_worker":
         supervise(args.ledger, args.job_id, args.attempt)
         return
+    production_ledger = args.ledger if args.schedule is not None else None
     if args.action == "launch":
-        result = launch(args.ledger, schedule, read(args.job))
+        result = launch(args.ledger, schedule, read(args.job), production_ledger=production_ledger)
     elif args.action == "reconcile":
         result = reconcile(args.ledger, schedule)
     elif args.action == "transfer":

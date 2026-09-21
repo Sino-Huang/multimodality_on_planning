@@ -155,30 +155,31 @@ def load_training_model(config, adapter_path=None):
     return model
 
 
-def train_visual(config, root, algorithm, output, *, deadline, progress, resume=False):
-    from torch.utils.data import SequentialSampler
-    from transformers import Trainer, TrainerCallback, TrainingArguments
+def _default_dataset_factory(root, config, algorithm, split):
+    """The frozen v3/v5 dataset construction (unchanged for existing studies)."""
 
     from .scene_assets import read_json
 
     pilot = read_json(root / config["pilot_manifest"]) if config.get("pilot_manifest") else None
-    dataset = VisualDataset(
+    key = "training_record_ids" if split == "train" else "diagnostic_record_ids"
+    return VisualDataset(
         root,
         root / config["corpus_report"],
         algorithm,
-        record_ids=pilot["training_record_ids"][algorithm] if pilot else None,
+        split=split,
+        record_ids=pilot[key][algorithm] if pilot else None,
         modality=config["modality"],
         scene_views=config.get("scene_views"),
     )
-    diagnostics = VisualDataset(
-        root,
-        root / config["corpus_report"],
-        algorithm,
-        split="dev",
-        record_ids=pilot["diagnostic_record_ids"][algorithm] if pilot else None,
-        modality=config["modality"],
-        scene_views=config.get("scene_views"),
-    )
+
+
+def train_visual(config, root, algorithm, output, *, deadline, progress, resume=False, dataset_factory=None):
+    from torch.utils.data import SequentialSampler
+    from transformers import Trainer, TrainerCallback, TrainingArguments
+
+    factory = dataset_factory or _default_dataset_factory
+    dataset = factory(root, config, algorithm, "train")
+    diagnostics = factory(root, config, algorithm, "dev")
     training = config["training"]
     total = math.ceil(len(dataset) / training["global_batch_size"]) * training["epochs"]
     started = time.monotonic()
