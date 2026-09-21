@@ -1,0 +1,16 @@
+cell,seed,arm,panel,successes,episodes,invalid_operations,decisions
+best_first_add_greedy/multimodal-state,17,process_sft,unseen,21,24,3,617
+best_first_add_greedy/multimodal-state,29,process_sft,unseen,21,24,3,639
+best_first_add_greedy/multimodal-state,71,process_sft,unseen,22,24,2,644
+bfs/dagger-iteration-1,17,dagger,development,0,9,9,27
+bfs/dagger-iteration-1,17,dagger,unseen,0,72,72,269
+bfs/dagger-iteration-1,17,continued_sft,development,0,9,9,31
+bfs/dagger-iteration-1,17,continued_sft,unseen,0,72,72,259
+bfs/dagger-iteration-1,29,dagger,development,0,9,9,24
+bfs/dagger-iteration-1,29,dagger,unseen,0,72,72,217
+bfs/dagger-iteration-1,29,continued_sft,development,0,9,9,23
+bfs/dagger-iteration-1,29,continued_sft,unseen,0,72,72,221
+bfs/dagger-iteration-1,71,dagger,development,0,9,9,26
+bfs/dagger-iteration-1,71,dagger,unseen,0,72,72,225
+bfs/dagger-iteration-1,71,continued_sft,development,0,9,9,31
+bfs/dagger-iteration-1,71,continued_sft,unseen,0,72,72,213

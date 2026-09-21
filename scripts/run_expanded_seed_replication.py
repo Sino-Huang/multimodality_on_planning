@@ -1330,6 +1330,8 @@ def render_addendum(result: dict, evidence_sha: str) -> str:
         "95% percentile intervals):"
     )
     lines.append("")
+    lines.append("| Contrast | Seed 17 | Seed 29 | Seed 71 |")
+    lines.append("| --- | ---: | ---: | ---: |")
     for contrast in (
         "process_sft_minus_pretrained_base",
         "process_sft_minus_random_valid",

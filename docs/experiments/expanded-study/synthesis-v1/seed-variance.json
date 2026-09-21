@@ -1,0 +1,692 @@
+{
+  "schema_version": "expanded_seed_replication_analysis_v1",
+  "protocol_id": "expanded-seed-replication-v1",
+  "seeds": {
+    "original": 17,
+    "additional_prospective": [
+      29,
+      71
+    ]
+  },
+  "bootstrap": {
+    "seed": 1729,
+    "resamples": 10000,
+    "confidence": 0.95
+  },
+  "cross_seed_aggregation": "descriptive only (n = 3 seeds); every seed reported individually; no seed dropped",
+  "baseline_process_sft": {
+    "per_seed": {
+      "17": {
+        "successes": 21,
+        "episodes": 24,
+        "invalid_operations": 3,
+        "decisions": 617,
+        "expansions": 179,
+        "contrasts": {
+          "process_sft_minus_pretrained_base": {
+            "difference": 0.875,
+            "lower": 0.7083333333333334,
+            "upper": 1.0,
+            "wins": 21,
+            "losses": 0,
+            "ties": 3,
+            "units": 24
+          },
+          "process_sft_minus_random_valid": {
+            "difference": -0.125,
+            "lower": -0.2916666666666667,
+            "upper": 0.0,
+            "wins": 0,
+            "losses": 3,
+            "ties": 21,
+            "units": 24
+          },
+          "process_sft_minus_exact_reference": {
+            "difference": -0.125,
+            "lower": -0.2916666666666667,
+            "upper": 0.0,
+            "wins": 0,
+            "losses": 3,
+            "ties": 21,
+            "units": 24
+          }
+        }
+      },
+      "29": {
+        "successes": 21,
+        "episodes": 24,
+        "invalid_operations": 3,
+        "decisions": 639,
+        "expansions": 185,
+        "contrasts": {
+          "process_sft_minus_pretrained_base": {
+            "difference": 0.875,
+            "lower": 0.75,
+            "upper": 1.0,
+            "wins": 21,
+            "losses": 0,
+            "ties": 3,
+            "units": 24
+          },
+          "process_sft_minus_random_valid": {
+            "difference": -0.125,
+            "lower": -0.25,
+            "upper": 0.0,
+            "wins": 0,
+            "losses": 3,
+            "ties": 21,
+            "units": 24
+          },
+          "process_sft_minus_exact_reference": {
+            "difference": -0.125,
+            "lower": -0.25,
+            "upper": 0.0,
+            "wins": 0,
+            "losses": 3,
+            "ties": 21,
+            "units": 24
+          }
+        }
+      },
+      "71": {
+        "successes": 22,
+        "episodes": 24,
+        "invalid_operations": 2,
+        "decisions": 644,
+        "expansions": 189,
+        "contrasts": {
+          "process_sft_minus_pretrained_base": {
+            "difference": 0.9166666666666666,
+            "lower": 0.7916666666666666,
+            "upper": 1.0,
+            "wins": 22,
+            "losses": 0,
+            "ties": 2,
+            "units": 24
+          },
+          "process_sft_minus_random_valid": {
+            "difference": -0.08333333333333333,
+            "lower": -0.20833333333333334,
+            "upper": 0.0,
+            "wins": 0,
+            "losses": 2,
+            "ties": 22,
+            "units": 24
+          },
+          "process_sft_minus_exact_reference": {
+            "difference": -0.08333333333333333,
+            "lower": -0.20833333333333334,
+            "upper": 0.0,
+            "wins": 0,
+            "losses": 2,
+            "ties": 22,
+            "units": 24
+          }
+        }
+      }
+    },
+    "aggregated": {
+      "successes_per_seed": {
+        "17": 21,
+        "29": 21,
+        "71": 22
+      },
+      "episodes_per_seed": {
+        "17": 24,
+        "29": 24,
+        "71": 24
+      },
+      "success_rate_mean": 0.8888888888888888,
+      "success_rate_min": 0.875,
+      "success_rate_max": 0.9166666666666666,
+      "contrast_point_estimates_per_seed": {
+        "process_sft_minus_pretrained_base": {
+          "17": 0.875,
+          "29": 0.875,
+          "71": 0.9166666666666666
+        },
+        "process_sft_minus_random_valid": {
+          "17": -0.125,
+          "29": -0.125,
+          "71": -0.08333333333333333
+        },
+        "process_sft_minus_exact_reference": {
+          "17": -0.125,
+          "29": -0.125,
+          "71": -0.08333333333333333
+        }
+      }
+    }
+  },
+  "dagger_iteration_1": {
+    "per_seed": {
+      "17": {
+        "arms": {
+          "dagger": {
+            "development": {
+              "successes": 0,
+              "episodes": 9,
+              "invalid_operations": 9,
+              "decisions": 27,
+              "invalid_operation_rate": 0.3333333333333333,
+              "per_modality": {
+                "text-state": {
+                  "successes": 0,
+                  "episodes": 3
+                },
+                "visual-state": {
+                  "successes": 0,
+                  "episodes": 3
+                },
+                "multimodal-state": {
+                  "successes": 0,
+                  "episodes": 3
+                }
+              }
+            },
+            "unseen": {
+              "successes": 0,
+              "episodes": 72,
+              "invalid_operations": 72,
+              "decisions": 269,
+              "invalid_operation_rate": 0.26765799256505574,
+              "per_modality": {
+                "text-state": {
+                  "successes": 0,
+                  "episodes": 24
+                },
+                "visual-state": {
+                  "successes": 0,
+                  "episodes": 24
+                },
+                "multimodal-state": {
+                  "successes": 0,
+                  "episodes": 24
+                }
+              }
+            }
+          },
+          "continued_sft": {
+            "development": {
+              "successes": 0,
+              "episodes": 9,
+              "invalid_operations": 9,
+              "decisions": 31,
+              "invalid_operation_rate": 0.2903225806451613,
+              "per_modality": {
+                "text-state": {
+                  "successes": 0,
+                  "episodes": 3
+                },
+                "visual-state": {
+                  "successes": 0,
+                  "episodes": 3
+                },
+                "multimodal-state": {
+                  "successes": 0,
+                  "episodes": 3
+                }
+              }
+            },
+            "unseen": {
+              "successes": 0,
+              "episodes": 72,
+              "invalid_operations": 72,
+              "decisions": 259,
+              "invalid_operation_rate": 0.277992277992278,
+              "per_modality": {
+                "text-state": {
+                  "successes": 0,
+                  "episodes": 24
+                },
+                "visual-state": {
+                  "successes": 0,
+                  "episodes": 24
+                },
+                "multimodal-state": {
+                  "successes": 0,
+                  "episodes": 24
+                }
+              }
+            }
+          }
+        },
+        "contrasts": {
+          "dagger_minus_continued_sft_development": {
+            "difference": 0.0,
+            "lower": 0.0,
+            "upper": 0.0,
+            "wins": 0,
+            "losses": 0,
+            "ties": 9,
+            "units": 9
+          },
+          "dagger_minus_original_process_sft_development": {
+            "difference": -0.1111111111111111,
+            "lower": -0.3333333333333333,
+            "upper": 0.0,
+            "wins": 0,
+            "losses": 1,
+            "ties": 8,
+            "units": 9
+          },
+          "dagger_minus_random_valid_development": {
+            "difference": -0.6666666666666666,
+            "lower": -1.0,
+            "upper": -0.3333333333333333,
+            "wins": 0,
+            "losses": 6,
+            "ties": 3,
+            "units": 9
+          },
+          "dagger_minus_exact_reference_development": {
+            "difference": -1.0,
+            "lower": -1.0,
+            "upper": -1.0,
+            "wins": 0,
+            "losses": 9,
+            "ties": 0,
+            "units": 9
+          },
+          "dagger_minus_continued_sft_unseen": {
+            "difference": 0.0,
+            "lower": 0.0,
+            "upper": 0.0,
+            "wins": 0,
+            "losses": 0,
+            "ties": 72,
+            "units": 72
+          },
+          "dagger_minus_original_process_sft_unseen": {
+            "difference": 0.0,
+            "lower": 0.0,
+            "upper": 0.0,
+            "wins": 0,
+            "losses": 0,
+            "ties": 72,
+            "units": 72
+          },
+          "dagger_minus_random_valid_unseen": {
+            "difference": -0.625,
+            "lower": -0.7361111111111112,
+            "upper": -0.5138888888888888,
+            "wins": 0,
+            "losses": 45,
+            "ties": 27,
+            "units": 72
+          },
+          "dagger_minus_exact_reference_unseen": {
+            "difference": -1.0,
+            "lower": -1.0,
+            "upper": -1.0,
+            "wins": 0,
+            "losses": 72,
+            "ties": 0,
+            "units": 72
+          }
+        }
+      },
+      "29": {
+        "arms": {
+          "dagger": {
+            "development": {
+              "successes": 0,
+              "episodes": 9,
+              "invalid_operations": 9,
+              "decisions": 24,
+              "invalid_operation_rate": 0.375,
+              "per_modality": {
+                "text-state": {
+                  "successes": 0,
+                  "episodes": 3
+                },
+                "visual-state": {
+                  "successes": 0,
+                  "episodes": 3
+                },
+                "multimodal-state": {
+                  "successes": 0,
+                  "episodes": 3
+                }
+              }
+            },
+            "unseen": {
+              "successes": 0,
+              "episodes": 72,
+              "invalid_operations": 72,
+              "decisions": 217,
+              "invalid_operation_rate": 0.3317972350230415,
+              "per_modality": {
+                "text-state": {
+                  "successes": 0,
+                  "episodes": 24
+                },
+                "visual-state": {
+                  "successes": 0,
+                  "episodes": 24
+                },
+                "multimodal-state": {
+                  "successes": 0,
+                  "episodes": 24
+                }
+              }
+            }
+          },
+          "continued_sft": {
+            "development": {
+              "successes": 0,
+              "episodes": 9,
+              "invalid_operations": 9,
+              "decisions": 23,
+              "invalid_operation_rate": 0.391304347826087,
+              "per_modality": {
+                "text-state": {
+                  "successes": 0,
+                  "episodes": 3
+                },
+                "visual-state": {
+                  "successes": 0,
+                  "episodes": 3
+                },
+                "multimodal-state": {
+                  "successes": 0,
+                  "episodes": 3
+                }
+              }
+            },
+            "unseen": {
+              "successes": 0,
+              "episodes": 72,
+              "invalid_operations": 72,
+              "decisions": 221,
+              "invalid_operation_rate": 0.3257918552036199,
+              "per_modality": {
+                "text-state": {
+                  "successes": 0,
+                  "episodes": 24
+                },
+                "visual-state": {
+                  "successes": 0,
+                  "episodes": 24
+                },
+                "multimodal-state": {
+                  "successes": 0,
+                  "episodes": 24
+                }
+              }
+            }
+          }
+        },
+        "contrasts": {
+          "dagger_minus_continued_sft_development": {
+            "difference": 0.0,
+            "lower": 0.0,
+            "upper": 0.0,
+            "wins": 0,
+            "losses": 0,
+            "ties": 9,
+            "units": 9
+          },
+          "dagger_minus_original_process_sft_development": {
+            "difference": -0.1111111111111111,
+            "lower": -0.3333333333333333,
+            "upper": 0.0,
+            "wins": 0,
+            "losses": 1,
+            "ties": 8,
+            "units": 9
+          },
+          "dagger_minus_random_valid_development": {
+            "difference": -0.6666666666666666,
+            "lower": -1.0,
+            "upper": -0.3333333333333333,
+            "wins": 0,
+            "losses": 6,
+            "ties": 3,
+            "units": 9
+          },
+          "dagger_minus_exact_reference_development": {
+            "difference": -1.0,
+            "lower": -1.0,
+            "upper": -1.0,
+            "wins": 0,
+            "losses": 9,
+            "ties": 0,
+            "units": 9
+          },
+          "dagger_minus_continued_sft_unseen": {
+            "difference": 0.0,
+            "lower": 0.0,
+            "upper": 0.0,
+            "wins": 0,
+            "losses": 0,
+            "ties": 72,
+            "units": 72
+          },
+          "dagger_minus_original_process_sft_unseen": {
+            "difference": 0.0,
+            "lower": 0.0,
+            "upper": 0.0,
+            "wins": 0,
+            "losses": 0,
+            "ties": 72,
+            "units": 72
+          },
+          "dagger_minus_random_valid_unseen": {
+            "difference": -0.625,
+            "lower": -0.7361111111111112,
+            "upper": -0.5138888888888888,
+            "wins": 0,
+            "losses": 45,
+            "ties": 27,
+            "units": 72
+          },
+          "dagger_minus_exact_reference_unseen": {
+            "difference": -1.0,
+            "lower": -1.0,
+            "upper": -1.0,
+            "wins": 0,
+            "losses": 72,
+            "ties": 0,
+            "units": 72
+          }
+        }
+      },
+      "71": {
+        "arms": {
+          "dagger": {
+            "development": {
+              "successes": 0,
+              "episodes": 9,
+              "invalid_operations": 9,
+              "decisions": 26,
+              "invalid_operation_rate": 0.34615384615384615,
+              "per_modality": {
+                "text-state": {
+                  "successes": 0,
+                  "episodes": 3
+                },
+                "visual-state": {
+                  "successes": 0,
+                  "episodes": 3
+                },
+                "multimodal-state": {
+                  "successes": 0,
+                  "episodes": 3
+                }
+              }
+            },
+            "unseen": {
+              "successes": 0,
+              "episodes": 72,
+              "invalid_operations": 72,
+              "decisions": 225,
+              "invalid_operation_rate": 0.32,
+              "per_modality": {
+                "text-state": {
+                  "successes": 0,
+                  "episodes": 24
+                },
+                "visual-state": {
+                  "successes": 0,
+                  "episodes": 24
+                },
+                "multimodal-state": {
+                  "successes": 0,
+                  "episodes": 24
+                }
+              }
+            }
+          },
+          "continued_sft": {
+            "development": {
+              "successes": 0,
+              "episodes": 9,
+              "invalid_operations": 9,
+              "decisions": 31,
+              "invalid_operation_rate": 0.2903225806451613,
+              "per_modality": {
+                "text-state": {
+                  "successes": 0,
+                  "episodes": 3
+                },
+                "visual-state": {
+                  "successes": 0,
+                  "episodes": 3
+                },
+                "multimodal-state": {
+                  "successes": 0,
+                  "episodes": 3
+                }
+              }
+            },
+            "unseen": {
+              "successes": 0,
+              "episodes": 72,
+              "invalid_operations": 72,
+              "decisions": 213,
+              "invalid_operation_rate": 0.3380281690140845,
+              "per_modality": {
+                "text-state": {
+                  "successes": 0,
+                  "episodes": 24
+                },
+                "visual-state": {
+                  "successes": 0,
+                  "episodes": 24
+                },
+                "multimodal-state": {
+                  "successes": 0,
+                  "episodes": 24
+                }
+              }
+            }
+          }
+        },
+        "contrasts": {
+          "dagger_minus_continued_sft_development": {
+            "difference": 0.0,
+            "lower": 0.0,
+            "upper": 0.0,
+            "wins": 0,
+            "losses": 0,
+            "ties": 9,
+            "units": 9
+          },
+          "dagger_minus_original_process_sft_development": {
+            "difference": -0.1111111111111111,
+            "lower": -0.3333333333333333,
+            "upper": 0.0,
+            "wins": 0,
+            "losses": 1,
+            "ties": 8,
+            "units": 9
+          },
+          "dagger_minus_random_valid_development": {
+            "difference": -0.6666666666666666,
+            "lower": -1.0,
+            "upper": -0.3333333333333333,
+            "wins": 0,
+            "losses": 6,
+            "ties": 3,
+            "units": 9
+          },
+          "dagger_minus_exact_reference_development": {
+            "difference": -1.0,
+            "lower": -1.0,
+            "upper": -1.0,
+            "wins": 0,
+            "losses": 9,
+            "ties": 0,
+            "units": 9
+          },
+          "dagger_minus_continued_sft_unseen": {
+            "difference": 0.0,
+            "lower": 0.0,
+            "upper": 0.0,
+            "wins": 0,
+            "losses": 0,
+            "ties": 72,
+            "units": 72
+          },
+          "dagger_minus_original_process_sft_unseen": {
+            "difference": 0.0,
+            "lower": 0.0,
+            "upper": 0.0,
+            "wins": 0,
+            "losses": 0,
+            "ties": 72,
+            "units": 72
+          },
+          "dagger_minus_random_valid_unseen": {
+            "difference": -0.625,
+            "lower": -0.7361111111111112,
+            "upper": -0.5138888888888888,
+            "wins": 0,
+            "losses": 45,
+            "ties": 27,
+            "units": 72
+          },
+          "dagger_minus_exact_reference_unseen": {
+            "difference": -1.0,
+            "lower": -1.0,
+            "upper": -1.0,
+            "wins": 0,
+            "losses": 72,
+            "ties": 0,
+            "units": 72
+          }
+        }
+      }
+    },
+    "aggregated": {
+      "dagger_unseen_successes_per_seed": {
+        "17": 0,
+        "29": 0,
+        "71": 0
+      },
+      "continued_sft_unseen_successes_per_seed": {
+        "17": 0,
+        "29": 0,
+        "71": 0
+      },
+      "dagger_unseen_rate_mean": 0.0,
+      "dagger_unseen_rate_min": 0.0,
+      "dagger_unseen_rate_max": 0.0,
+      "continued_sft_unseen_rate_mean": 0.0,
+      "continued_sft_unseen_rate_min": 0.0,
+      "continued_sft_unseen_rate_max": 0.0,
+      "contrast_point_estimates_per_seed": {
+        "dagger_minus_continued_sft_unseen": {
+          "17": 0.0,
+          "29": 0.0,
+          "71": 0.0
+        }
+      }
+    }
+  },
+  "source_evidence": {
+    "path": "outputs/expanded-study/v1/seed-replication/evidence.json",
+    "sha256": "76f99253f73c083122d097bf3c4e31282e8026d144dfd0a244facacc6501dbdb"
+  }
+}
