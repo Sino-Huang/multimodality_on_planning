@@ -1,0 +1,27 @@
+{
+ "job_id": "na-v1-models-1",
+ "branch": "native_arms",
+ "gpus": [
+  1
+ ],
+ "max_seconds": 12600,
+ "total": 72,
+ "command": [
+  "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+  "scripts/run_expanded_native_arms.py",
+  "evaluate-worker",
+  "--worker",
+  "1",
+  "--kind",
+  "models"
+ ],
+ "completion_hook": [
+  "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+  "scripts/run_expanded_native_arms.py",
+  "audit-evaluate-worker",
+  "--worker",
+  "1",
+  "--kind",
+  "models"
+ ]
+}

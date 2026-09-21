@@ -1,0 +1,23 @@
+{
+ "job_id": "na-v1-train-seq",
+ "branch": "native_arms",
+ "gpus": [
+  1
+ ],
+ "max_seconds": 14400,
+ "total": 2,
+ "command": [
+  "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+  "scripts/run_expanded_native_arms.py",
+  "train",
+  "--arm",
+  "visual-seq-state"
+ ],
+ "completion_hook": [
+  "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+  "scripts/run_expanded_native_arms.py",
+  "audit-train",
+  "--arm",
+  "visual-seq-state"
+ ]
+}

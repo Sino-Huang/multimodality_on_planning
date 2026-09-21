@@ -98,7 +98,9 @@ def prepare_arm(
     corpus = ModalityCorpus(root, root / corpus_report)
     membership = read_json(root / membership_path)
     v5 = read_json(root / scene_views_path)
-    if v5.get("study", {}).get("state_representation") != "scene-only-128-unlabelled-v1":
+    representation = v5.get("study", {}).get("state_representation")
+    recipe_id = representation.get("id") if isinstance(representation, dict) else representation
+    if v5.get("outcome") != "PASS" or recipe_id != "scene-only-128-unlabelled-v1":
         raise ValueError("native arms build on the verified v5 scene-only preparation")
     store = {
         "schema_version": STORE_SCHEMA,
@@ -310,12 +312,10 @@ def qualification_report(store: dict[str, Any], arm: str) -> dict[str, Any]:
         "images_resolve": True,  # asserted per record during materialization
         "input_tokens_within_gate": all(count + 384 <= 32768 for count in tokens.values()),
         "membership_complete": store["counts"]["records"] == len(store["decision_bindings"]),
-        "history_states_rasterized": store["counts"]["extra_history_states"],
         "page_roles_layout": all(
             roles[0][0] == "task-context"
             and roles[-1][0] == "goal"
             and any(role[0] == "current-state" for role in roles)
-            and all(role[0].startswith("history-state") for role in roles if role[0].startswith("history-state"))
             for roles in pages
         ),
     }

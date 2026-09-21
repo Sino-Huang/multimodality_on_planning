@@ -1,0 +1,17 @@
+{
+ "job_id": "na-v1-finalize",
+ "branch": "native_arms",
+ "gpus": [],
+ "max_seconds": 7200,
+ "total": 1,
+ "command": [
+  "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+  "scripts/run_expanded_native_arms.py",
+  "finalize"
+ ],
+ "completion_hook": [
+  "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+  "scripts/run_expanded_native_arms.py",
+  "audit-final"
+ ]
+}
