@@ -13,5 +13,6 @@
     "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
     "scripts/run_expanded_seed_replication.py",
     "audit-final"
-  ]
+  ],
+  "resume_reason": "attempt 1 ran while later evaluation stages were pending after a chain thread died on the since-fixed comparator audit; rerun after all evaluation audits pass"
 }
