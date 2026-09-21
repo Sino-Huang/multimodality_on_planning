@@ -67,9 +67,16 @@ PHASES = ("clean", "corruption")
 
 
 def write(path: Path, value) -> None:
+    import gzip
+
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_name(path.name + ".partial")
-    temporary.write_text(json.dumps(value, indent=1, sort_keys=False))
+    payload = json.dumps(value, indent=1, sort_keys=False)
+    if path.suffix == ".gz":
+        with gzip.open(temporary, "wt") as stream:
+            stream.write(payload)
+    else:
+        temporary.write_text(payload)
     temporary.replace(path)
 
 
@@ -367,10 +374,10 @@ def admission_stage() -> dict:
         for task in tasks
         for algorithm in protocol["learned_algorithms"]
     }
-    cap_multiplier = int(estimates["decision_cap_multiplier"])
-    safety = float(estimates["safety_factor"])
-    overhead_jobs = int(estimates["planned_worker_jobs"])
-    overhead_seconds = float(estimates["planned_worker_overhead_seconds"])
+    cap_multiplier = int(estimates["parameters"]["decision_cap_multiplier"])
+    safety = float(estimates["parameters"]["safety_factor"])
+    overhead_jobs = int(estimates["parameters"]["planned_worker_jobs"])
+    overhead_seconds = float(estimates["parameters"]["planned_worker_overhead_seconds"])
     cell_basis = V5_TRAINING_SECONDS_PER_CELL_BASIS
 
     def episode_seconds(arm: str, corrupted: bool) -> float:
