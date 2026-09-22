@@ -527,6 +527,9 @@ class ChoiceFrontierTrainingDataset:
         key = "training_record_ids" if split == "train" else "diagnostic_record_ids"
         self.record_ids = list(membership[key][algorithm])
         self.store = store
+        # Interface parity with NativeArmTrainingDataset: train_visual reads
+        # ``dataset.records`` for the membership-ordered training record ids.
+        self.records = [store.records[record_id] for record_id in self.record_ids]
         for record_id in self.record_ids:
             if record_id not in store.records:
                 raise ValueError("choice-frontier dataset record lacks a frozen binding")
