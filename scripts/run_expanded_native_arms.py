@@ -97,8 +97,12 @@ def progress_writer():
     return emit
 
 
+V2_PROTOCOL_PATH = Path("configs/experiments/native-arms/native-arms-v2-protocol.json")
+
+
 def load_protocol() -> dict:
-    protocol = read_json(ROOT / PROTOCOL_PATH)
+    path = V2_PROTOCOL_PATH if V2_PROTOCOL_PATH.is_file() else PROTOCOL_PATH
+    protocol = read_json(ROOT / path)
     protocol["root"] = str(ROOT)
     return protocol
 
@@ -518,6 +522,216 @@ def audit_train_stage(arm: str) -> dict:
         ok = ok and cell["steps"] == 16 and cell["seed"] == 17 and cell["train_records"] == 512
     return {"schema_version": "native_arms_train_audit_v1", "arm": arm, "ok": ok}
 
+def arm_smoke_gate(protocol: dict, arm: str) -> str | None:
+    """PASS/FAIL from the arm's frozen smoke report; None when absent."""
+
+    path = output_root(protocol) / "smoke" / arm / "smoke.json"
+    if not path.is_file():
+        return None
+    return read_json(path)["gate"]
+
+
+def smoke_stage(arm: str, endpoint: str) -> dict:
+    """Post-training held-out smoke gate: learned adapter, clean contract."""
+
+    if os.environ.get("CUDA_VISIBLE_DEVICES") is None:
+        raise ValueError("native-arm smoke requires CUDA_VISIBLE_DEVICES isolation")
+    if not os.environ.get("MASTER_PORT"):
+        raise ValueError("native-arm smoke requires an explicit scheduler MASTER_PORT")
+    protocol = load_protocol()
+    gate_spec = protocol["smoke_gate"]
+    if arm not in ARMS:
+        raise ValueError(f"unknown arm: {arm}")
+    all_tasks = {task["row"]["task_id"]: task for task in load_tasks(protocol)}
+    tasks = [all_tasks[task_id] for task_id in gate_spec["subset"]]
+    if len(tasks) != len(gate_spec["subset"]):
+        raise ValueError("smoke subset differs from the frozen panel membership")
+    adapters = {
+        algorithm: str(output_root(protocol) / "training" / arm / algorithm / "final")
+        for algorithm in protocol["learned_algorithms"]
+    }
+    for path in adapters.values():
+        if not (ROOT / path / "adapter_model.safetensors").is_file():
+            raise ValueError(f"native-arm adapter checkpoint missing: {path}")
+    from examples.planning_benchmark_slice.visual_attention import configure_visual_attention
+    from examples.planning_benchmark_slice.visual_model import VisualPolicy
+
+    progress = progress_writer()
+    policy = VisualPolicy(
+        model_id=protocol["model_id"],
+        revision=protocol["model_revision"],
+        adapter_paths={key: ROOT / value for key, value in adapters.items()},
+        device="cuda:0",
+        max_context_tokens=32768,
+        max_new_tokens=384,
+        max_batch_size=protocol["inference"]["max_batch_size"],
+        max_batch_input_tokens=protocol["inference"]["max_padded_batch_input_tokens"],
+        inference_dtype=protocol["inference"]["dtype"],
+    )
+    configure_visual_attention(policy.model, protocol["inference"]["attention"])
+    policy.identity.update(memoize_identical_inputs=False)
+    from transformers import set_seed
+
+    set_seed(int(protocol["training_seed"]))
+    reports = []
+    index = 0
+    total_calls = 0
+    valid_calls = 0
+    for task in tasks:
+        for algorithm in protocol["learned_algorithms"]:
+            binding = {
+                "index": index,
+                "worker": 0,
+                "kind": "models",
+                "phase": "smoke",
+                "arm": arm,
+                "family": None,
+                "task_id": task["row"]["task_id"],
+                "algorithm": algorithm,
+                "condition": "learned_adapter",
+                "seed": int(protocol["training_seed"]),
+            }
+            index += 1
+
+            def generate(example, algorithm=algorithm, policy=policy):
+                output = policy.generate([example], algorithm)[0]
+                return output, policy.last_generation_usage["generated_sequence_tokens"]
+
+            report, _ = run_binding(ROOT, protocol, task, binding, adapters[binding["algorithm"]], endpoint, generate)
+            reports.append(report)
+            total_calls += len(report["events"])
+            valid_calls += sum(1 for event in report["events"] if event["accepted"])
+            progress("smoke", completed=len(reports), total=len(tasks) * len(protocol["learned_algorithms"]), arm=arm)
+    del policy
+    gc.collect()
+    import torch
+
+    torch.cuda.empty_cache()
+    rate = valid_calls / max(1, total_calls)
+    result = {
+        "schema_version": "native_arms_smoke_v1",
+        "protocol_id": protocol["protocol_id"],
+        "arm": arm,
+        "subset": gate_spec["subset"],
+        "episodes": [report["output"] for report in reports],
+        "model_calls": total_calls,
+        "schema_valid_grounded_calls": valid_calls,
+        "schema_valid_grounded_rate": rate,
+        "threshold": gate_spec["minimum_schema_valid_grounded_rate"],
+        "gate": "PASS" if rate >= gate_spec["minimum_schema_valid_grounded_rate"] else "FAIL",
+        "cuda_visible_devices": os.environ.get("CUDA_VISIBLE_DEVICES"),
+        "master_port": os.environ.get("MASTER_PORT"),
+    }
+    write(output_root(protocol) / "smoke" / arm / "smoke.json", result)
+    progress("smoke", completed=len(reports), total=len(reports), terminal=True, arm=arm)
+    return result
+
+
+def audit_smoke_stage(arm: str) -> dict:
+    protocol = load_protocol()
+    smoke = read_json(output_root(protocol) / "smoke" / arm / "smoke.json")
+    episodes = list((output_root(protocol) / "evaluation" / "episodes" / "smoke" / arm).rglob("*.json.gz"))
+    ok = (
+        len(episodes) == 6
+        and smoke["model_calls"] > 0
+        and abs(
+            smoke["schema_valid_grounded_rate"] - smoke["schema_valid_grounded_calls"] / smoke["model_calls"]
+        )
+        < 1e-12
+        and smoke["gate"] in ("PASS", "FAIL")
+    )
+    summary = {
+        "schema_version": "native_arms_smoke_audit_v1",
+        "arm": arm,
+        "ok": ok,
+        "gate": smoke["gate"],
+        "rate": smoke["schema_valid_grounded_rate"],
+    }
+    write(output_root(protocol) / "smoke" / arm / "audit.json", summary)
+    return summary
+
+
+def admission_v2_stage() -> dict:
+    """v2 admission: corpus/budget gates only; the smoke gate adjudicates after training."""
+
+    protocol = load_protocol()
+    tasks = load_tasks(protocol)
+    estimates = protocol["estimand_v2"]
+    prep = {arm: read_json(output_root(protocol) / "preparation" / arm / "report.json") for arm in ARMS}
+    for arm in ARMS:
+        if prep[arm]["outcome"] != "PASS":
+            raise ValueError(f"preparation for {arm} did not pass its structural gates")
+    ledger = read_json(LEDGER_PATH)
+    spent = sum(attempt.get("gpu_hours", 0) for attempt in ledger["attempts"])
+    cap = float(protocol["budget"]["window_gpu_hours_cap"])
+    remainder = cap - spent
+    ref_decisions = {
+        (task["row"]["task_id"], algorithm): task["row"]["reference_costs"][algorithm]["decisions"]
+        for task in tasks
+        for algorithm in protocol["learned_algorithms"]
+    }
+    safety = float(estimates["safety_factor"])
+    cell_basis = V5_TRAINING_SECONDS_PER_CELL_BASIS
+
+    def train_hours() -> float:
+        total = 0.0
+        for arm in ARMS:
+            ratio = 1.0
+            if arm == SEQ_ARM:
+                histogram = prep[arm]["history_page_count_histogram"]
+                frames = sum(int(count) * int(size) for size, count in histogram.items())
+                ratio = 1.0 + (frames / max(1, prep[arm]["counts"]["records"])) / 4.0
+            total += cell_basis * ratio * len(protocol["learned_algorithms"])
+        return total * safety
+
+    def episode_seconds(arms: list[str], price_key: str = "probe_max_call_seconds") -> float:
+        price = float(estimates[price_key])
+        return sum(
+            (2 * ref_decisions[(task["row"]["task_id"], algorithm)] + 1) * price * instances
+            for task in tasks
+            for algorithm in protocol["learned_algorithms"]
+            for instances in [len(arms)]
+        )
+
+    smoke_subset = protocol["smoke_gate"]["subset"]
+    smoke_seconds = sum(
+        (2 * ref_decisions[(task_id, algorithm)] + 1) * float(estimates["probe_max_call_seconds"]) * 2
+        for task_id in smoke_subset
+        for algorithm in protocol["learned_algorithms"]
+        for _ in [0]
+    )
+    training_hours = train_hours()
+    smoke_hours = smoke_seconds / 3600 * safety
+    clean_hours = episode_seconds(list(ARMS)) / 3600 * safety
+    corruption_hours = episode_seconds([SEQ_ARM]) / 3600 * safety
+    overhead = int(estimates["planned_worker_jobs"]) * float(estimates["planned_worker_overhead_seconds"]) / 3600
+    required = training_hours + smoke_hours + clean_hours + corruption_hours + overhead
+    admission = {
+        "schema_version": "native_arms_admission_v2",
+        "protocol_id": protocol["protocol_id"],
+        "decision": "PASS" if required <= remainder else "VALID_STOP",
+        "budget": {
+            "window_gpu_hours_cap": cap,
+            "spent_gpu_hours": spent,
+            "remainder_gpu_hours": remainder,
+            "training_gpu_hours": training_hours,
+            "smoke_gpu_hours": smoke_hours,
+            "clean_evaluation_gpu_hours": clean_hours,
+            "corruption_evaluation_gpu_hours": corruption_hours,
+            "worker_overhead_gpu_hours": overhead,
+            "required_gpu_hours": required,
+        },
+        "gate_note": (
+            "pretrained-base format compliance is not a v2 admission condition; each arm's rung "
+            "is adjudicated post-training by the frozen smoke gate"
+        ),
+        "no_test_driven_retraining": True,
+        "no_outcome_selected_reruns": True,
+        "no_favourable_replacement_tasks": True,
+    }
+    write(output_root(protocol) / "admission-v2.json", admission)
+    return admission
+
 
 # --------------------------------------------------------------------------- #
 # evaluation
@@ -831,7 +1045,14 @@ def evaluate_worker(worker: int, kind: str, endpoint: str) -> dict:
     groups = []
     if kind == "models":
         for arm in ARMS:
+            gate = arm_smoke_gate(protocol, arm)
+            if gate is None:
+                raise ValueError(f"native-arm evaluation requires the frozen smoke gate for {arm}")
+            if gate == "FAIL":
+                continue
             for phase in PHASES:
+                if phase == "corruption" and arm != SEQ_ARM:
+                    continue
                 group = [row for row in rows if row["arm"] == arm and row["phase"] == phase]
                 if group:
                     groups.append(((arm, phase), group))
@@ -1004,8 +1225,13 @@ def finalize_stage(endpoint: str) -> dict:
     task_by_id = {task["row"]["task_id"]: task for task in tasks}
     new_reports = []
     missing = []
+    gated_out = []
+    failed_arms = {arm for arm in ARMS if arm_smoke_gate(protocol, arm) == "FAIL"}
     for binding in manifest["bindings"]:
         episode, _, _ = episode_paths(protocol, binding)
+        if binding["kind"] == "models" and binding["arm"] in failed_arms:
+            gated_out.append(binding["index"])
+            continue
         if not episode.exists():
             missing.append(binding["index"])
             continue
@@ -1051,6 +1277,8 @@ def finalize_stage(endpoint: str) -> dict:
         "episodes_replayed": len(new_reports),
         "comparator_episodes_replayed": len(comparators),
         "missing_bindings": missing,
+        "gated_out_by_smoke": gated_out,
+        "smoke_gates": {arm: arm_smoke_gate(protocol, arm) for arm in ARMS},
     }
     write(output_root(protocol) / "evaluation" / "evaluation.json", evaluation)
     analysis = analyze(protocol, tasks, manifest, new_reports, comparators)
@@ -1132,48 +1360,57 @@ def analyze(protocol, tasks, manifest, new_reports, comparators) -> dict:
                     }
             cells[f"{key[0]}|{key[1]}"] = cell
 
-    def paired(fn) -> list[int]:
-        return [
-            fn(cells[f"{task['row']['task_id']}|{algorithm}"])
-            for task in tasks
-            for algorithm in protocol["learned_algorithms"]
-            if f"{task['row']['task_id']}|{algorithm}" in cells
-        ]
+    def paired(fn, requires=()) -> list[int]:
+        return [fn(cell) for cell in cells.values() if all(cell.get(key) for key in requires)]
 
     contrasts = {
         "nomem_vs_published_visual": bootstrap_delta(
-            paired(lambda c: c.get(NOMEM_ARM, {}).get("learned", 0) - c["published_visual_learned"])
+            paired(
+                lambda c: c[NOMEM_ARM]["learned"] - c["published_visual_learned"],
+                requires=(NOMEM_ARM,),
+            )
         ),
         "seq_vs_published_visual": bootstrap_delta(
-            paired(lambda c: c.get(SEQ_ARM, {}).get("learned", 0) - c["published_visual_learned"])
+            paired(
+                lambda c: c[SEQ_ARM]["learned"] - c["published_visual_learned"],
+                requires=(SEQ_ARM,),
+            )
         ),
         "ladder_seq_minus_nomem": bootstrap_delta(
-            paired(lambda c: c.get(SEQ_ARM, {}).get("learned", 0) - c.get(NOMEM_ARM, {}).get("learned", 0))
+            paired(
+                lambda c: c[SEQ_ARM]["learned"] - c[NOMEM_ARM]["learned"],
+                requires=(NOMEM_ARM, SEQ_ARM),
+            )
         ),
         "nomem_learned_minus_base": bootstrap_delta(
-            paired(lambda c: c.get(NOMEM_ARM, {}).get("learned", 0) - c.get(NOMEM_ARM, {}).get("base", 0))
+            paired(
+                lambda c: c[NOMEM_ARM]["learned"] - c[NOMEM_ARM]["base"],
+                requires=(NOMEM_ARM,),
+            )
         ),
         "seq_learned_minus_base": bootstrap_delta(
-            paired(lambda c: c.get(SEQ_ARM, {}).get("learned", 0) - c.get(SEQ_ARM, {}).get("base", 0))
+            paired(lambda c: c[SEQ_ARM]["learned"] - c[SEQ_ARM]["base"], requires=(SEQ_ARM,))
         ),
     }
     for family in protocol["corruption"]["families"]:
         contrasts[f"corruption:{family}:seq_corrupted_minus_clean"] = bootstrap_delta(
             paired(
-                lambda c, family=family: c.get(f"seq:{family}", {}).get("learned", 0)
-                - c.get(SEQ_ARM, {}).get("learned", 0)
+                lambda c, family=family: c[f"seq:{family}"]["learned"] - c[SEQ_ARM]["learned"],
+                requires=(SEQ_ARM, f"seq:{family}"),
             )
         )
+    present_arms = [arm for arm in ARMS if any(cell.get(arm) for cell in cells.values())]
     best_control_at_ceiling = all(
-        max(cell["random_valid_frequency"], cell.get(SEQ_ARM, {}).get("base", 0)) >= 1.0
+        max(cell["random_valid_frequency"], *[cell[arm]["base"] for arm in present_arms if cell.get(arm)])
+        >= 1.0
         for cell in cells.values()
+        if any(cell.get(arm) for arm in present_arms)
     )
     summary = {
         "clean_learned_success": {
-            arm: (
-                sum(cell.get(arm, {}).get("learned", 0) for cell in cells.values()) / max(1, len(cells))
-            )
-            for arm in ARMS
+            arm: sum(cell[arm]["learned"] for cell in cells.values() if cell.get(arm))
+            / max(1, sum(1 for cell in cells.values() if cell.get(arm)))
+            for arm in present_arms
         },
         "published_visual_learned_success": sum(
             cell["published_visual_learned"] for cell in cells.values()
@@ -1204,9 +1441,10 @@ def analyze(protocol, tasks, manifest, new_reports, comparators) -> dict:
 def audit_final_stage() -> dict:
     protocol = load_protocol()
     evaluation = read_json(output_root(protocol) / "evaluation" / "evaluation.json")
+    gated = len(evaluation.get("gated_out_by_smoke", []))
     ok = (
         evaluation["outcome"] == "PASS"
-        and evaluation["episodes_replayed"] == evaluation["bindings_total"]
+        and evaluation["episodes_replayed"] + gated == evaluation["bindings_total"]
         and evaluation["comparator_episodes_replayed"] == 72
         and not evaluation["missing_bindings"]
     )
@@ -1226,6 +1464,9 @@ def main(argv=None) -> int:
             "probe",
             "audit-probe",
             "admit",
+            "admit-v2",
+            "smoke",
+            "audit-smoke",
             "train",
             "audit-train",
             "evaluate-inputs",
@@ -1250,6 +1491,12 @@ def main(argv=None) -> int:
         result = audit_probe_stage(args.arm)
     elif args.stage == "admit":
         result = admission_stage()
+    elif args.stage == "admit-v2":
+        result = admission_v2_stage()
+    elif args.stage == "smoke":
+        result = smoke_stage(args.arm, args.endpoint)
+    elif args.stage == "audit-smoke":
+        result = audit_smoke_stage(args.arm)
     elif args.stage == "train":
         result = train_stage(args.arm)
     elif args.stage == "audit-train":
@@ -1266,6 +1513,7 @@ def main(argv=None) -> int:
         result = audit_final_stage()
     print(json.dumps(result, indent=1, default=str))
     return 0
+
 
 
 if __name__ == "__main__":

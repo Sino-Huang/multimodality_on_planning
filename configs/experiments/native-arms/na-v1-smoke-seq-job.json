@@ -1,23 +1,23 @@
 {
- "job_id": "na-v1-train-nomem",
+ "job_id": "na-v1-smoke-seq",
  "branch": "native_arms",
  "gpus": [
-  0
+  1
  ],
- "max_seconds": 16200,
- "total": 2,
+ "max_seconds": 3600,
+ "total": 6,
  "command": [
   "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
   "scripts/run_expanded_native_arms.py",
-  "train",
+  "smoke",
   "--arm",
-  "visual-nomem-state"
+  "visual-seq-state"
  ],
  "completion_hook": [
   "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
   "scripts/run_expanded_native_arms.py",
-  "audit-train",
+  "audit-smoke",
   "--arm",
-  "visual-nomem-state"
+  "visual-seq-state"
  ]
 }

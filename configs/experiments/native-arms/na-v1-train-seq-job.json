@@ -4,7 +4,7 @@
  "gpus": [
   1
  ],
- "max_seconds": 14400,
+ "max_seconds": 16200,
  "total": 2,
  "command": [
   "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
