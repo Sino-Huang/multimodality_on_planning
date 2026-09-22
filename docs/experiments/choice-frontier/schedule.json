@@ -1,0 +1,46 @@
+{
+  "program_id": "choice-frontier-v1",
+  "status": "authorized_followup_window",
+  "issue": 132,
+  "authorization": {
+    "granted_by": "user directed issue #132 execution in the 2026-09-23 session: 'Follow the ticket's execution rules and commit it before any launch, present the frozen design and DO NOT WAIT for my authorization if they have, just start GPU use as I am going to AFK'",
+    "window_gpu_hours_cap": 12.0,
+    "basis": "issue #132 execution rules: corpus CPU-only; training 2 cells + evaluation, ticket realized estimate 4-8 GPU-h; frozen estimand 2.86 GPU-h planned, conservative reservation inside the cap"
+  },
+  "start_utc": "2026-09-23T16:00:00Z",
+  "gpu_cutoff_utc": "2026-09-26T00:00:00Z",
+  "handoff_deadline_utc": "2026-09-27T00:00:00Z",
+  "deadline_kind": "soft_handoff",
+  "hardware": {
+    "gpus": 2,
+    "model": "NVIDIA A100 80GB",
+    "preserve_unrelated_processes": true,
+    "max_own_model_workers_per_gpu": 1
+  },
+  "experiment_gpu_hours_cap": 12.0,
+  "allocations_gpu_hours": {
+    "choice_frontier": 12.0
+  },
+  "accounting": {
+    "metric": "sum of own allocated model-worker GPU durations across devices; include model loading, saves, failures and retries",
+    "also_record": ["wall time", "CPU work", "actual VRAM"],
+    "ledger": "outputs/choice-frontier/v1/budget.json",
+    "preserve_prior_ledgers": true,
+    "reset_on_resume": false,
+    "automatic_total_extension": false,
+    "transfers": "none; independent of every prior window"
+  },
+  "master_port_pool": [18814, 18815, 18816, 18817],
+  "default_training_seed": 17,
+  "qualification_safety_factor": 1.25,
+  "state_images": {
+    "size": [128, 128],
+    "text_annotations": false,
+    "goal_context": "partial-goal pages from the frozen 32k view manifests",
+    "semantic_information_equivalence_claimed": false
+  },
+  "execution_authorization": "protocol frozen and committed before any launch; no outcome-selected variants; independent replay of every episode; complete coverage or explicit missingness; commit/push and close only against verified evidence",
+  "issues": {
+    "132": "O3: audit-driven contract redesign - choice-sensitive additive arm"
+  }
+}

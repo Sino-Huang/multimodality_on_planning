@@ -1,0 +1,301 @@
+{
+  "schema_version": "choice_frontier_protocol_v1",
+  "protocol_id": "choice-frontier-v1",
+  "program_id": "choice-frontier-v1",
+  "status": "frozen_before_any_corpus_materialization_model_outcome_or_gpu_launch",
+  "issues": [
+    132
+  ],
+  "parent_links": {
+    "parent_issue": 38,
+    "lineage_issues": [
+      130,
+      131
+    ],
+    "lineage": "pre-registered follow-through of the #130 identity-audit finding (ZERO_DECISION_HEADROOM); W3 frames it as audit-driven benchmark design"
+  },
+  "schedule": "docs/experiments/choice-frontier/schedule.json",
+  "design_doc": "docs/experiments/choice-frontier/issue-132-design.md",
+  "ledger": "outputs/choice-frontier/v1/budget.json",
+  "budget_branch": "choice_frontier",
+  "output_root": "outputs/choice-frontier/v1",
+  "model_id": "Qwen/Qwen3-VL-8B-Instruct",
+  "model_revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+  "training_seed": 17,
+  "training_seed_variance_claimed": false,
+  "learned_algorithms": [
+    "best_first_add_greedy",
+    "best_first_add_w3"
+  ],
+  "algorithm_naming": "the ticket's 'best_first_add_astar' is the frozen study's weighted-A* additive arm, registered as best_first_add_w3",
+  "arms": {
+    "visual-choice-frontier": {
+      "recipe_id": "visual-choice-frontier-v1",
+      "schema": "choice_frontier_model_input_v1",
+      "representation": "visual-choice-frontier",
+      "legend": "Static task context, the initial-state scene and the partial-goal pages are attached, followed by one unlabelled 128px scene per frontier state in menu order, each labelled frontier-choice (label c<i>). Initial/current states are unlabelled 128px scenes without text annotations. Black robot silhouettes identify the agent. Goal constraints do not describe a complete solved state: unspecified facts are unconstrained. Goal blocks ALL, ANY, NOT, FOR EVERY and THERE EXISTS retain their labelled variable scopes. The frontier menu lists one choice label per live frontier state, unscored, in a seeded permuted order; no state identifiers, scalar search values, scores, membership flags, search memory, accepted deltas or search history are provided. The policy selects which frontier state the trusted runtime expands next; selecting the goal state solves the task.",
+      "system_message": "Emit exactly one frontier expansion choice. The trusted runtime owns h_add, scalar priority, duplicate detection, the frontier, and state transitions. Your choice selects which frontier state the runtime expands next; selecting the goal state solves the task.",
+      "output_contract": {
+        "canonical_json_keys": [
+          "expand_choice"
+        ],
+        "example": "{\"expand_choice\":\"c3\"}"
+      },
+      "payload_keys": [
+        "algorithm",
+        "frontier_menu",
+        "representation",
+        "schema_version",
+        "view_legend"
+      ],
+      "forbidden_user_text_markers": [
+        "\"search_memory\"",
+        "\"accepted_deltas\"",
+        "\"semantic_blocks\"",
+        "\"successor_candidates\"",
+        "\"frontier_head\"",
+        "\"frontier_count\"",
+        "\"visited_count\"",
+        "\"closed_count\"",
+        "\"best_cost\"",
+        "\"dominated\"",
+        "\"pruned\"",
+        "\"closed\"",
+        "\"priority\"",
+        "\"target_state_id\"",
+        "\"state_facts\"",
+        "\"state_id\"",
+        "\"goal_atoms\"",
+        "\"task_context\"",
+        "\"current\"",
+        "\"history_window\"",
+        "\"generation_serial\"",
+        "\"g\"",
+        "\"h\""
+      ],
+      "context_tokens": 32768,
+      "output_tokens": 384
+    }
+  },
+  "contract": {
+    "rule": "the trusted runtime owns the frontier; the policy selects which live frontier state to expand next; on acceptance the runtime performs the expansion atomically, inheriting candidate generation order, serial assignment and admission from BestFirstController; selecting a goal state solves the task",
+    "expansion_atomicity": "ChoiceFrontierController.expand_member pops the chosen member from _frontier_entries and runs the same candidate/serial/admission path as start_expansion + apply_operation + finish_expansion; per-candidate admissions are runtime-internal, not policy decisions",
+    "decision_semantics": "one submitted choice = one decision",
+    "termination_reasons": [
+      "goal_reached",
+      "frontier_exhausted",
+      "decision_budget_exhausted",
+      "expansion_budget_exhausted",
+      "deterministic_invalid_operation"
+    ],
+    "first_rejection_terminates": true,
+    "menu": {
+      "master_seed": 51131,
+      "family": "choice-frontier-menu",
+      "seed_derivation": "int.from_bytes(sha256(f\"{master}|choice-frontier-menu|{sha256(canonical(serial_state_ids))}\").digest()[:8], \"big\")",
+      "permutation": "seeded Fisher-Yates over the generation-serial member order; labels c0..cK assigned after permutation",
+      "binding_visibility": "refs never enter the payload; binding is stored per decision in the episode events and used by the views layer to bind scenes to labels"
+    },
+    "budget": {
+      "decision_cap_multiplier": 2,
+      "rule": "decision_cap = expansion_cap = 2 x reference_expansions; controller max_budget charges expansions and rejections"
+    },
+    "goal_at_selection": "selecting a live frontier member that satisfies the goal terminates the episode goal_reached without an expansion",
+    "frozen_controller_unmodified": true
+  },
+  "corpus": {
+    "membership": "configs/experiments/choice-frontier/membership.json",
+    "membership_sha256": "20811cb8014b1aa66df291896510c37a0b2da96f902af9d8f4e98bd60cd60460",
+    "source_membership": "configs/experiments/matched-modalities/membership.json",
+    "source_membership_sha256": "f939f864befd29e87cc899718b9635e6927c464d341d0f460545911604bfbc23",
+    "selection_rule": "old-contract decisions map to expansions via the stored trace's per-event decision cumsum; unique (task, expansion) in first-occurrence order is the base set; round-robin top-up over the frozen task order to 512; diagnostics are the unique-expansion set without top-up",
+    "records_per_algorithm": 512,
+    "diagnostic_records_per_algorithm": 11,
+    "trace_source": "data/best_first_paired_phase_v3/exact-traces/pairs",
+    "corpus_report": "outputs/modality_corpus/issue74-matched-32k-v1/release-001/report.json",
+    "v5_scene_views": "outputs/matched_modalities/v5/preparation/scene-views.json",
+    "gates": [
+      "exact-trace: every derived episode matches its stored exact trace expansion for expansion (expanded state order, candidate actions in grounded order, trusted runtime fields per admission, expansion and reopen totals)",
+      "token: every record input_tokens + 384 <= 32768",
+      "leak: assert_no_text_leak per record",
+      "image-resolve: every bound scene/page resolves",
+      "membership: materialized ids == frozen membership ids"
+    ],
+    "store": "outputs/choice-frontier/v1/preparation/visual-choice-frontier/store.json",
+    "report": "outputs/choice-frontier/v1/preparation/visual-choice-frontier/report.json"
+  },
+  "training": {
+    "study": "configs/experiments/matched-modalities/study-v5.json",
+    "study_sha256": "1f15184667b5076edc808838f450500bc6ac502cfb61c3d972cdc5ebb211d72b",
+    "records_per_algorithm": 512,
+    "epochs": 1,
+    "optimizer_updates": 16,
+    "training_seed": 17,
+    "recipe": "byte-identical to the study-v5 training block (LoRA r64/alpha128/dropout0.05 all-linear excl. visual, lr 1e-4 cosine, warmup 0.03, global batch 32, microbatch 1, bf16, sequential membership order, final checkpoint at update 16 only)",
+    "cells": [
+      "visual-choice-frontier/best_first_add_greedy",
+      "visual-choice-frontier/best_first_add_w3"
+    ],
+    "max_seconds_per_cell": 7200,
+    "audit": "post-hoc audit enforces r==64, alpha==128, steps==16, seed==17, 512 train records per cell"
+  },
+  "smoke_gate": {
+    "frozen_before_any_trained_arm_outcome": true,
+    "subset": [
+      "expanded-final/storage-compact-919000",
+      "expanded-final/elevators-compact-914002",
+      "expanded-final/ferry-compact-915000"
+    ],
+    "subset_rule": "three cheapest tasks of the frozen 9-task panel (same subset as the native-arms v3 smoke gate)",
+    "episodes": 6,
+    "condition": "learned_adapter",
+    "seed": 17,
+    "decision_cap_multiplier": 2,
+    "decoding": {
+      "do_sample": false
+    },
+    "measure": "schema_valid_grounded_rate = accepted calls / total calls across the 6 episodes",
+    "threshold": 0.5,
+    "rule": "PASS iff rate >= 0.5; FAIL gates the arm's model evaluation out and that is the reported outcome"
+  },
+  "evaluation": {
+    "membership": [
+      "expanded-final/storage-compact-919000",
+      "expanded-final/elevators-compact-914002",
+      "expanded-final/ferry-compact-915000",
+      "expanded-final/15puzzle-compact-910000",
+      "expanded-final/towers_of_hanoi-compact-920000",
+      "expanded-final/visitall-compact-921000",
+      "expanded-final/depot-compact-912000",
+      "expanded-final/blocksworld-expanded-911101",
+      "expanded-final/15puzzle-expanded-910109"
+    ],
+    "membership_sha256": "20ea888d5199d53bbbe2e7cfa14aeee11e3c4cd7cff956103147ed1a7328e854",
+    "membership_canonical_form": "sha256 of json.dumps(sorted(task_ids), sort_keys=True, separators=(',', ':'))",
+    "panel": "configs/experiments/expanded-study/final-panel.json",
+    "panel_sha256": "f888c1b2106d438f442b39da89d9727fd14c3756a6be6f7cfa824f53d6b837cc",
+    "conditions": [
+      "learned_adapter",
+      "pretrained_base",
+      "random_valid",
+      "exact_reference"
+    ],
+    "matrix": "9 tasks x 2 algorithms x {learned 1, base 1, exact 1, random 5 seeds}",
+    "gpu_episodes": 36,
+    "cpu_control_episodes": 108,
+    "seeds": {
+      "learned": [
+        17
+      ],
+      "pretrained_base": [
+        17
+      ],
+      "exact_reference": [
+        17
+      ],
+      "random_valid": [
+        17,
+        5077,
+        6131,
+        7409,
+        8527
+      ]
+    },
+    "seed_selection_rule": "frozen prime set from the native-arms v3 protocol, disjoint from every prior frozen seed",
+    "pretrained_base_call_cap": 1,
+    "decision_cap_multiplier": 2,
+    "decoding": {
+      "do_sample": false
+    },
+    "identical_task_sets_across_conditions": true
+  },
+  "identity_audit": {
+    "stage": "identity-audit",
+    "scope": "the new arm's 18 (task, algorithm) control pairs: seed-17 random_valid vs exact_reference",
+    "divergence_rule": "a pair diverges iff the expanded-state sequences or the decision/expansion counts differ",
+    "verdicts": {
+      "CHOICE_SENSITIVE": ">= 1 divergent pair; report per-pair divergence plus the exact-episode headroom profile (decisions with menu size >= 2)",
+      "ZERO_DECISION_HEADROOM": "0 divergent pairs; the redesign failed and that is the reported outcome; no re-runs, no variant shopping"
+    },
+    "pre_registered": true
+  },
+  "analysis": {
+    "paired_unit": "whole problem (task x algorithm cell)",
+    "primary_measure": "invariant_valid_success",
+    "secondary_measures": [
+      "decision_count",
+      "expansion_count"
+    ],
+    "contrasts": [
+      "learned_minus_pretrained_base",
+      "learned_minus_random_valid",
+      "random_valid_minus_exact_reference"
+    ],
+    "random_valid_aggregation": "frequency over the 5 seeds",
+    "bootstrap": {
+      "seed": 61813,
+      "resamples": 10000,
+      "confidence": 0.95,
+      "interval": "percentile",
+      "materiality": "interval excludes 0"
+    },
+    "tiny_subgroup_rule": "strata with < 8 cells are descriptive-only",
+    "missingness": "complete coverage or explicit missingness"
+  },
+  "execution_contract": {
+    "protocol_frozen_before_launch": true,
+    "no_outcome_selected_variants": true,
+    "independent_replay_every_completed_episode": true,
+    "complete_coverage_or_explicit_missingness": true,
+    "commit_push_close_only_against_verified_evidence": true,
+    "does_not_modify_frozen_arms_protocols_or_published_evidence": true,
+    "runtime_enforced_caps": "2 x reference_expansions for decisions and expansions; pretrained_base hard 1-call cap",
+    "resume": "partial-episode journals resume interrupted bindings; completed episodes retain only after identity check + replay",
+    "master_port_pool": [
+      18814,
+      18815,
+      18816,
+      18817
+    ],
+    "scheduler": "scripts/run_expanded_study.py launch --ledger outputs/choice-frontier/v1/budget.json --schedule docs/experiments/choice-frontier/schedule.json"
+  },
+  "inference": {
+    "dtype": "float32",
+    "attention": "visual_sdpa",
+    "do_sample": false,
+    "max_batch_size": 2,
+    "max_padded_batch_input_tokens": 24000,
+    "output_cache": "none",
+    "kv_cache": "per_call_only"
+  },
+  "estimand": {
+    "name": "choice_frontier_window_estimand_v1",
+    "frozen_before_recomputation": true,
+    "training_cell_basis_gpu_hours": 0.73,
+    "training_cells": 2,
+    "smoke_gpu_hours": 0.1,
+    "evaluation_gpu_hours": 1.0,
+    "overhead_gpu_hours": 0.3,
+    "planned_total_gpu_hours": 2.86,
+    "ticket_realized_estimate_gpu_hours": "4-8",
+    "not_a_completion_guarantee": true
+  },
+  "budget": {
+    "window_gpu_hours_cap": 12.0,
+    "authorization": "user selected issue #132 execution with GPU authorization in the 2026-09-23 session ('DO NOT WAIT for my authorization ... just start GPU use')",
+    "no_transfer_from_other_programs": true
+  },
+  "declared_code_surface": [
+    "examples/planning_benchmark_slice/choice_frontier.py",
+    "examples/planning_benchmark_slice/choice_frontier_views.py",
+    "examples/planning_benchmark_slice/choice_frontier_corpus.py",
+    "scripts/run_choice_frontier.py",
+    "configs/experiments/choice-frontier/choice-frontier-protocol-v1.json",
+    "configs/experiments/choice-frontier/membership.json",
+    "configs/experiments/choice-frontier/*-job.json",
+    "docs/experiments/choice-frontier/issue-132-design.md",
+    "docs/experiments/choice-frontier/schedule.json",
+    "docs/experiments/choice-frontier/issue-132-closeout.md",
+    "outputs/choice-frontier/v1/**"
+  ]
+}
