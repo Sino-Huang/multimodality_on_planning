@@ -1,0 +1,45 @@
+{
+  "program_id": "followup-reviewer-v1",
+  "status": "authorized_followup_window",
+  "issue": 130,
+  "authorization": {
+    "granted_by": "user selected '执行 R1–R4' in the #128/#129 execution session after reviewing the paper-review verdict",
+    "window_gpu_hours_cap": 20.0,
+    "basis": "reviewer-ranked blocking experiments R1-R4; realized estimate 6-12 GPU-h, conservative frozen reservations inside the cap"
+  },
+  "start_utc": "2026-09-21T20:30:00Z",
+  "gpu_cutoff_utc": "2026-09-25T00:00:00Z",
+  "handoff_deadline_utc": "2026-09-26T00:00:00Z",
+  "deadline_kind": "internal follow-up window; not an ICLR deadline",
+  "hardware": {
+    "gpus": 2,
+    "model": "NVIDIA A100 80GB",
+    "preserve_unrelated_processes": true,
+    "max_own_model_workers_per_gpu": 1
+  },
+  "experiment_gpu_hours_cap": 20.0,
+  "allocations_gpu_hours": {
+    "reviewer_stress": 6.0,
+    "second_backbone": 14.0
+  },
+  "accounting": {
+    "metric": "sum of own allocated model-worker GPU durations across devices; include model loading, saves, failures and retries",
+    "also_record": "elapsed wall time, CPU work and actual available VRAM",
+    "ledger": "outputs/reviewer-v130/v1/budget.json",
+    "preserve_prior_ledgers": true,
+    "reset_on_resume": false,
+    "automatic_total_extension": false,
+    "transfers": "none; independent of expanded-nine-day-v1 and followup-native-arms-v1"
+  },
+  "master_port_pool": [18810, 18811, 18812, 18813],
+  "default_training_seed": 17,
+  "qualification_safety_factor": 1.25,
+  "state_images": {
+    "size": [128, 128],
+    "text_annotations": false,
+    "goal_context": "separate complete pages",
+    "semantic_information_equivalence_claimed": false
+  },
+  "execution_authorization": "GPU launches in this window run only after the #130 protocol(s) and design docs are committed.",
+  "issues": {"reviewer_stress": 130, "second_backbone_v3": 130}
+}

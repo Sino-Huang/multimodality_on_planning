@@ -1,0 +1,17 @@
+{
+ "job_id": "r130-stress-final",
+ "branch": "reviewer_stress",
+ "gpus": [],
+ "max_seconds": 7200,
+ "total": 170,
+ "command": [
+  "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+  "scripts/run_expanded_native_arms.py",
+  "stress-finalize"
+ ],
+ "completion_hook": [
+  "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+  "scripts/run_expanded_native_arms.py",
+  "stress-audit"
+ ]
+}

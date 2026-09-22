@@ -98,13 +98,19 @@ def progress_writer():
 
 
 V2_PROTOCOL_PATH = Path("configs/experiments/native-arms/native-arms-v2-protocol.json")
+V3_PROTOCOL_PATH = Path("configs/experiments/native-arms/native-arms-v3-protocol.json")
 
 
 def load_protocol() -> dict:
-    path = V2_PROTOCOL_PATH if V2_PROTOCOL_PATH.is_file() else PROTOCOL_PATH
-    protocol = read_json(ROOT / path)
+    for path in (V3_PROTOCOL_PATH, V2_PROTOCOL_PATH):
+        if path.is_file():
+            protocol = read_json(ROOT / path)
+            protocol["root"] = str(ROOT)
+            return protocol
+    protocol = read_json(ROOT / PROTOCOL_PATH)
     protocol["root"] = str(ROOT)
     return protocol
+
 
 
 def output_root(protocol: dict) -> Path:
@@ -860,12 +866,12 @@ def _identity(protocol: dict, binding: dict, episode: Path, view_output: Path, c
     }
 
 
-def run_binding(root, protocol, task, binding, checkpoint, endpoint, generate):
+def run_binding(root, protocol, task, binding, checkpoint, endpoint, generate, *, paths=None, views=None):
     from examples.planning_benchmark_slice.expanded_baseline import _commit_pending, _restore_events
     from examples.planning_benchmark_slice.expanded_generalization_eval import V2VisualSession
     from examples.planning_benchmark_slice.native_arm_views import NativeArmTaskViews
 
-    episode, partial_path, view_output = episode_paths(protocol, binding)
+    episode, partial_path, view_output = paths or episode_paths(protocol, binding)
     expected = _identity(protocol, binding, episode, view_output, checkpoint)
     arm = binding["arm"] or NOMEM_ARM
     corruption = binding["family"] if binding["kind"] == "models" and binding["phase"] == "corruption" else None
@@ -877,7 +883,7 @@ def run_binding(root, protocol, task, binding, checkpoint, endpoint, generate):
             raise ValueError("retained episode binding differs")
         independently_replay(root, protocol, task, report, endpoint)
         return report, True
-    views = NativeArmTaskViews(
+    views = views or NativeArmTaskViews(
         ROOT,
         task,
         view_output,
@@ -972,19 +978,8 @@ def run_binding(root, protocol, task, binding, checkpoint, endpoint, generate):
 
 def independently_replay(root, protocol, task, report, endpoint):
     from examples.planning_benchmark_slice.expanded_generalization_eval import V2VisualSession
-    from examples.planning_benchmark_slice.native_arm_views import NativeArmTaskViews
 
-    corruption = report.get("family") if report.get("phase") == "corruption" else None
-    views = NativeArmTaskViews(
-        ROOT,
-        task,
-        ROOT / report["view_output"],
-        endpoint,
-        read_only=True,
-        arm=report["arm"] or NOMEM_ARM,
-        corruption=corruption,
-        master_seed=int(protocol["corruption"]["master_seed"]),
-    )
+    views = replay_views(protocol, task, report, endpoint)
     replay_report = dict(report, arm=ENGINE_ARM[report["condition"]], contract_id=report["protocol_id"])
     return replay_visual_episode(
         ROOT,
@@ -994,6 +989,49 @@ def independently_replay(root, protocol, task, report, endpoint):
         session_class=lambda *args, **kwargs: V2VisualSession(
             *args, model_call_cap=int(report["result"]["model_call_limit"]), **kwargs
         ),
+    )
+
+
+def replay_views(protocol, task, report, endpoint):
+    """Rebuild the exact frozen views class for an episode's phase."""
+
+    phase = report.get("phase")
+    if phase == "menu":
+        from examples.planning_benchmark_slice.native_arm_stress import MenuStressTaskViews
+
+        return MenuStressTaskViews(
+            ROOT,
+            task,
+            ROOT / report["view_output"],
+            endpoint,
+            read_only=True,
+            arm=report["arm"],
+            menu_family=report["family"],
+        )
+    if phase == "textmask":
+        from examples.planning_benchmark_slice.expanded_modality_stress import StressTaskViews
+
+        return StressTaskViews(
+            ROOT,
+            task,
+            ROOT / report["view_output"],
+            endpoint,
+            read_only=True,
+            corruption="text-masked",
+            master_seed=int(protocol["corruption"]["master_seed"]),
+        )
+    from examples.planning_benchmark_slice.native_arm_views import NativeArmTaskViews
+
+    corruption = report.get("family") if phase == "corruption" else None
+    return NativeArmTaskViews(
+        ROOT,
+        task,
+        ROOT / report["view_output"],
+        endpoint,
+        read_only=True,
+        arm=report["arm"] or NOMEM_ARM,
+        corruption=corruption,
+        master_seed=int(protocol["corruption"]["master_seed"]),
     )
 
 
@@ -1448,6 +1486,409 @@ def analyze(protocol, tasks, manifest, new_reports, comparators) -> dict:
     }
 
 
+# --------------------------------------------------------------------------- #
+# reviewer blockers (#130): R1 menu stress, R2 text-corruption, R4 strains
+# --------------------------------------------------------------------------- #
+
+
+def stress_paths(protocol: dict, binding: dict) -> tuple[Path, Path, Path]:
+    evaluation = output_root(protocol) / "evaluation"
+    task_name = binding["task_id"].replace("/", "__")
+    name = f"{binding['algorithm']}-{binding['family']}-{binding['condition']}"
+    group = binding["phase"]
+    episode = evaluation / "episodes" / group / binding["arm"] / task_name / f"{name}.json.gz"
+    view_output = evaluation / "views" / group / binding["arm"] / task_name / name
+    partial = episode.with_name(episode.name + ".partial.json.gz")
+    return episode, partial, view_output
+
+
+def menu_bindings(protocol: dict, tasks: list[dict]) -> list[dict]:
+    from examples.planning_benchmark_slice.native_arm_stress import MENU_FAMILIES
+
+    rows = []
+    index = 0
+    for task in tasks:
+        for family in MENU_FAMILIES:
+            for arm in ARMS:
+                for algorithm in protocol["learned_algorithms"]:
+                    rows.append(
+                        {
+                            "index": index,
+                            "worker": (index // 2) % 2,
+                            "kind": "models",
+                            "phase": "menu",
+                            "arm": arm,
+                            "family": family,
+                            "task_id": task["row"]["task_id"],
+                            "algorithm": algorithm,
+                            "condition": "learned_adapter",
+                            "seed": int(protocol["training_seed"]),
+                        }
+                    )
+                    index += 1
+    return rows
+
+
+def load_suite_tasks(protocol: dict, families: list[str]) -> list[dict]:
+    admission = read_json(ROOT / protocol["r4"]["admission"])
+    suite = read_json(ROOT / protocol["r4"]["suite"])
+    by_id = {task["variant_id"]: task for task in suite["tasks"]}
+    tasks = []
+    for family in families:
+        for variant_id in admission["membership"][family]:
+            task = dict(by_id[variant_id])
+            task["family"] = family
+            tasks.append(task)
+    return tasks
+
+
+def r4_bindings(protocol: dict, tasks: list[dict]) -> list[dict]:
+    rows = []
+    index = 0
+    for task in tasks:
+        for arm in ARMS:
+            for algorithm in protocol["learned_algorithms"]:
+                for condition in ("learned_adapter", "pretrained_base"):
+                    rows.append(
+                        {
+                            "index": index,
+                            "worker": (index // 2) % 2,
+                            "kind": "models",
+                            "phase": "variants",
+                            "arm": arm,
+                            "family": task["family"],
+                            "task_id": task["row"]["task_id"],
+                            "algorithm": algorithm,
+                            "condition": condition,
+                            "seed": int(protocol["training_seed"]),
+                        }
+                    )
+                    index += 1
+    return rows
+
+
+def stress_worker(worker: int, group: str, endpoint: str) -> dict:
+    """Shared GPU worker for the menu (R1), text-mask cross (R2) and strain (R4) cells."""
+
+    if os.environ.get("CUDA_VISIBLE_DEVICES") is None:
+        raise ValueError("native-arm stress worker requires CUDA_VISIBLE_DEVICES isolation")
+    if not os.environ.get("MASTER_PORT"):
+        raise ValueError("native-arm stress worker requires an explicit scheduler MASTER_PORT")
+    protocol = load_protocol()
+    attempt_dir = Path(os.environ["EXPANDED_ATTEMPT_DIR"])
+    progress_path = Path(os.environ["EXPANDED_PROGRESS_PATH"])
+    if group == "menu":
+        tasks = load_tasks(protocol)
+        rows = [row for row in menu_bindings(protocol, tasks) if row["worker"] == worker]
+        task_by_id = {task["row"]["task_id"]: task for task in tasks}
+    elif group == "textmask":
+        tasks = load_tasks(protocol)
+        rows = []
+        index = 0
+        for task in tasks:
+            for algorithm in protocol["learned_algorithms"]:
+                rows.append(
+                    {
+                        "index": index,
+                        "worker": (index // 2) % 2,
+                        "kind": "models",
+                        "phase": "textmask",
+                        "arm": "visual-state",
+                        "family": "text-masked",
+                        "task_id": task["row"]["task_id"],
+                        "algorithm": algorithm,
+                        "condition": "learned_adapter",
+                        "seed": int(protocol["training_seed"]),
+                    }
+                )
+                index += 1
+        rows = [row for row in rows if row["worker"] == worker]
+        task_by_id = {task["row"]["task_id"]: task for task in tasks}
+    else:
+        tasks = load_suite_tasks(protocol, list(protocol["r4"]["families"]))
+        rows = [row for row in r4_bindings(protocol, tasks) if row["worker"] == worker]
+        task_by_id = {task["row"]["task_id"]: task for task in tasks}
+    adapters = {}
+    from examples.planning_benchmark_slice.visual_attention import configure_visual_attention
+    from examples.planning_benchmark_slice.visual_model import VisualPolicy
+
+    if group == "textmask":
+        stress_protocol = read_json(ROOT / protocol["r2"]["stress_protocol"])
+        adapters = {
+            row["algorithm"]: row["checkpoint"]
+            for row in stress_protocol["fixed_adapters"]
+            if row["modality"] == "visual-state"
+        }
+    else:
+        for arm in ARMS:
+            for algorithm in protocol["learned_algorithms"]:
+                adapters[f"{arm}|{algorithm}"] = str(
+                    output_root(protocol) / "training" / arm / algorithm / "final"
+                )
+    for path in adapters.values():
+        if not (ROOT / path / "adapter_model.safetensors").is_file():
+            raise ValueError(f"adapter checkpoint missing: {path}")
+    from transformers import set_seed
+
+    set_seed(int(protocol["training_seed"]))
+    policy = VisualPolicy(
+        model_id=protocol["model_id"],
+        revision=protocol["model_revision"],
+        adapter_paths={key: ROOT / value for key, value in adapters.items()},
+        device="cuda:0",
+        max_context_tokens=32768,
+        max_new_tokens=384,
+        max_batch_size=protocol["inference"]["max_batch_size"],
+        max_batch_input_tokens=protocol["inference"]["max_padded_batch_input_tokens"],
+        inference_dtype=protocol["inference"]["dtype"],
+    )
+    configure_visual_attention(policy.model, protocol["inference"]["attention"])
+    policy.identity.update(memoize_identical_inputs=False)
+    completed = 0
+    retained = 0
+    model_calls = 0
+    reports = []
+    started = time.monotonic()
+    for binding in rows:
+        task = task_by_id[binding["task_id"]]
+        adapter_key = (
+            binding["algorithm"]
+            if group == "textmask"
+            else f"{binding['arm']}|{binding['algorithm']}"
+        )
+        checkpoint = adapters[adapter_key] if binding["condition"] == "learned_adapter" else None
+        episode, partial, view_output = stress_paths(protocol, binding)
+        views = None
+        if group == "menu":
+            from examples.planning_benchmark_slice.native_arm_stress import MenuStressTaskViews
+
+            views = MenuStressTaskViews(
+                ROOT, task, view_output, endpoint, arm=binding["arm"], menu_family=binding["family"]
+            )
+        elif group == "textmask":
+            from examples.planning_benchmark_slice.expanded_modality_stress import StressTaskViews
+
+            views = StressTaskViews(
+                ROOT,
+                task,
+                view_output,
+                endpoint,
+                corruption="text-masked",
+                master_seed=int(protocol["corruption"]["master_seed"]),
+            )
+        else:
+            from examples.planning_benchmark_slice.native_arm_views import NativeArmTaskViews
+
+            views = NativeArmTaskViews(ROOT, task, view_output, endpoint, arm=binding["arm"])
+
+        def generate(example, adapter_key=adapter_key, binding=binding, policy=policy):
+            nonlocal model_calls
+            adapter = adapter_key if binding["condition"] == "learned_adapter" else None
+            output = policy.generate([example], adapter)[0]
+            model_calls += 1
+            return output, policy.last_generation_usage["generated_sequence_tokens"]
+
+        report, was_retained = run_binding(
+            ROOT,
+            protocol,
+            task,
+            binding,
+            checkpoint,
+            endpoint,
+            generate,
+            paths=(episode, partial, view_output),
+            views=views,
+        )
+        retained += int(was_retained)
+        reports.append(report["output"])
+        completed += 1
+        write(
+            progress_path,
+            {"completed": completed, "total": len(rows), "retained": retained, "group": group},
+        )
+        print(
+            {
+                "stage": "native_arms_stress",
+                "group": group,
+                "worker": worker,
+                "completed": completed,
+                "total": len(rows),
+                "result": report["result"]["termination_reason"],
+            },
+            flush=True,
+        )
+    del policy
+    gc.collect()
+    import torch
+
+    torch.cuda.empty_cache()
+    result = {
+        "schema_version": "native_arms_stress_worker_v1",
+        "outcome": "PASS",
+        "group": group,
+        "worker": worker,
+        "episodes": reports,
+        "completed": completed,
+        "retained": retained,
+        "model_calls": model_calls,
+        "cuda_visible_devices": os.environ.get("CUDA_VISIBLE_DEVICES"),
+        "master_port": os.environ.get("MASTER_PORT"),
+        "elapsed_seconds": time.monotonic() - started,
+    }
+    write(attempt_dir / "worker-result.json", result)
+    write(progress_path, {"completed": completed, "total": len(rows), "terminal": True})
+    return result
+
+
+def r2_decompose_stage() -> dict:
+    """CPU termination-mode decomposition of the published #126 corrupted episodes."""
+
+    stress_root = ROOT / "outputs/expanded-study/v1/modality-stress/episodes"
+    summary: dict[str, dict] = {}
+    total = 0
+    for episode in sorted(stress_root.rglob("*-learned_adapter.json.gz")):
+        report = read_json(episode)
+        if report.get("family") not in ("text-shuffled", "text-masked"):
+            continue
+        total += 1
+        result = report["result"]
+        decisions = max(1, result["decision_count"])
+        invalid = result["invalid_operation_count"]
+        mode = (
+            "all_invalid"
+            if invalid == decisions
+            else ("goal_reached" if result.get("invariant_valid_success") else "partial_valid")
+        )
+        key = f"{report['family']}|{report['modality']}"
+        cell = summary.setdefault(
+            key,
+            {"episodes": 0, "all_invalid": 0, "partial_valid": 0, "goal_reached": 0, "decisions": 0, "invalid": 0},
+        )
+        cell["episodes"] += 1
+        cell[mode] += 1
+        cell["decisions"] += decisions
+        cell["invalid"] += invalid
+    protocol = load_protocol()
+    report = {
+        "schema_version": "native_arms_r2_decomposition_v1",
+        "protocol_id": protocol["protocol_id"],
+        "episodes_decomposed": total,
+        "cells": summary,
+        "note": (
+            "all_invalid = every emitted operation was schema-invalid (output-contract destruction); "
+            "partial_valid = the policy emitted valid operations but the search failed — the "
+            "information-loss signature the #126 claim needs"
+        ),
+    }
+    write(output_root(protocol) / "r2-decomposition.json", report)
+    return report
+
+
+def stress_audit_stage() -> dict:
+    protocol = load_protocol()
+    path = output_root(protocol) / "stress-evaluation.json"
+    ok = False
+    detail = "missing stress-evaluation.json"
+    if path.is_file():
+        analysis = read_json(path)
+        expected = 170
+        ok = not analysis["missing"] and analysis["episodes_replayed"] == expected
+        detail = f"replayed {analysis['episodes_replayed']}/{expected}, missing {len(analysis['missing'])}"
+    summary = {"schema_version": "native_arms_stress_audit_v1", "ok": ok, "detail": detail}
+    write(output_root(protocol) / "stress-audit.json", summary)
+    return summary
+
+
+def stress_finalize_stage(endpoint: str) -> dict:
+    """Independent replay of every R1/R2/R4 episode + the frozen paired analysis."""
+
+    protocol = load_protocol()
+    panel_tasks = {task["row"]["task_id"]: task for task in load_tasks(protocol)}
+    suite_tasks = {
+        task["row"]["task_id"]: task for task in load_suite_tasks(protocol, list(protocol["r4"]["families"]))
+    }
+    textmask_rows = []
+    index = 0
+    for task in load_tasks(protocol):
+        for algorithm in protocol["learned_algorithms"]:
+            textmask_rows.append(
+                {
+                    "index": index,
+                    "worker": (index // 2) % 2,
+                    "kind": "models",
+                    "phase": "textmask",
+                    "arm": "visual-state",
+                    "family": "text-masked",
+                    "task_id": task["row"]["task_id"],
+                    "algorithm": algorithm,
+                    "condition": "learned_adapter",
+                    "seed": int(protocol["training_seed"]),
+                }
+            )
+            index += 1
+    all_rows = (
+        menu_bindings(protocol, load_tasks(protocol))
+        + r4_bindings(protocol, load_suite_tasks(protocol, list(protocol["r4"]["families"])))
+        + textmask_rows
+    )
+    reports = []
+    missing = []
+    for binding in all_rows:
+        episode, _, _ = stress_paths(protocol, binding)
+        if not episode.exists():
+            missing.append(binding["index"])
+            continue
+        report = read_json(episode)
+        task = panel_tasks.get(binding["task_id"]) or suite_tasks[binding["task_id"]]
+        independently_replay(ROOT, protocol, task, report, endpoint)
+        reports.append(report)
+
+    def cell_key(report):
+        return (report["phase"], report.get("family"), report.get("arm"), report["algorithm"])
+
+    cells: dict[str, dict] = {}
+    for report in reports:
+        key = "|".join(str(part) for part in cell_key(report))
+        cell = cells.setdefault(key, {"episodes": 0, "successes": 0, "invalid": 0, "decisions": 0})
+        cell["episodes"] += 1
+        cell["successes"] += _success(report)
+        cell["invalid"] += report["result"]["invalid_operation_count"]
+        cell["decisions"] += report["result"]["decision_count"]
+    distractor_picks = 0
+    distractor_decisions = 0
+    for report in reports:
+        if report.get("phase") != "menu" or report.get("family") != "distractor-injection":
+            continue
+        for event in report["events"]:
+            # injected sets live per-event in the view bindings
+            binding = event.get("view") or {}
+            injected_set = {tuple(entry) for entry in binding.get("injected_distractors", [])}
+            if not injected_set:
+                continue
+            try:
+                action = json.loads(event["raw_output"])["action"]
+                entry = (action["name"], *action["args"])
+            except Exception:
+                entry = None
+            distractor_decisions += 1
+            if entry is not None and entry in injected_set:
+                distractor_picks += 1
+    analysis = {
+        "schema_version": "native_arms_stress_analysis_v1",
+        "protocol_id": protocol["protocol_id"],
+        "episodes_replayed": len(reports),
+        "missing": missing,
+        "cells": cells,
+        "distractor": {
+            "decisions_with_injection": distractor_decisions,
+            "distractor_picks": distractor_picks,
+            "pick_rate": distractor_picks / max(1, distractor_decisions),
+        },
+    }
+    write(output_root(protocol) / "stress-evaluation.json", analysis)
+    return analysis
+
+
 def audit_final_stage() -> dict:
     protocol = load_protocol()
     evaluation = read_json(output_root(protocol) / "evaluation" / "evaluation.json")
@@ -1462,8 +1903,6 @@ def audit_final_stage() -> dict:
 
 
 # --------------------------------------------------------------------------- #
-
-
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(__doc__)
     parser.add_argument(
@@ -1484,11 +1923,16 @@ def main(argv=None) -> int:
             "audit-evaluate-worker",
             "finalize",
             "audit-final",
+            "stress-worker",
+            "r2-decompose",
+            "stress-finalize",
+            "stress-audit",
         ],
     )
     parser.add_argument("--arm", choices=list(ARMS))
     parser.add_argument("--worker", type=int)
     parser.add_argument("--kind", choices=["models", "controls"])
+    parser.add_argument("--group", choices=["menu", "textmask", "variants"])
     parser.add_argument("--endpoint", default="http://127.0.0.1:18092")
     args = parser.parse_args(argv)
     if args.stage == "validate":
@@ -1519,6 +1963,14 @@ def main(argv=None) -> int:
         result = audit_evaluate_worker(args.worker, args.kind)
     elif args.stage == "finalize":
         result = finalize_stage(args.endpoint)
+    elif args.stage == "stress-worker":
+        result = stress_worker(args.worker, args.group, args.endpoint)
+    elif args.stage == "r2-decompose":
+        result = r2_decompose_stage()
+    elif args.stage == "stress-finalize":
+        result = stress_finalize_stage(args.endpoint)
+    elif args.stage == "stress-audit":
+        result = stress_audit_stage()
     else:
         result = audit_final_stage()
     print(json.dumps(result, indent=1, default=str))

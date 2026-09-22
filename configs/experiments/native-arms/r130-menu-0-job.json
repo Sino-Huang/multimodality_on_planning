@@ -1,0 +1,23 @@
+{
+ "job_id": "r130-menu-0",
+ "branch": "reviewer_stress",
+ "gpus": [
+  0
+ ],
+ "max_seconds": 5400,
+ "total": 36,
+ "command": [
+  "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+  "scripts/run_expanded_native_arms.py",
+  "stress-worker",
+  "--group",
+  "menu",
+  "--worker",
+  "0"
+ ],
+ "completion_hook": [
+  "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+  "scripts/run_expanded_native_arms.py",
+  "stress-audit"
+ ]
+}

@@ -1,0 +1,18 @@
+{
+ "schema_version": "expanded_second_backbone_selection_v3",
+ "protocol_id": "expanded-second-backbone-v3",
+ "issue": 130,
+ "basis": "#123's cross-backbone null is algorithm-confounded: the v2 cells ran BFS, the family where the primary backbone's process-SFT is itself 0/24. v3 runs the headline family (best_first_add_greedy) on the same pinned InternVL3.5-8B backbone with the frozen recipe; the L1 key-cell scope is re-derived from the additive reference costs.",
+ "model": {
+  "backbone_key": "internvl3_5-8b",
+  "model_id": "OpenGVLab/InternVL3_5-8B-HF",
+  "revision": "741a7d03020411e666c6109218ab71e08151ef86",
+  "processor_class": "InternVLProcessor",
+  "model_class": "transformers.InternVLForConditionalGeneration",
+  "processor_overrides": {},
+  "license": "apache-2.0",
+  "historical_checkpoint_reuse": false,
+  "selected_by": "official capability/license documentation and measured capacity; never final-test performance"
+ },
+ "recipe": "byte-identical to v2 (512 frozen membership records for best_first_add_greedy, 16 updates, seed 17)"
+}

@@ -1,0 +1,23 @@
+{
+ "job_id": "r130-textmask-1",
+ "branch": "reviewer_stress",
+ "gpus": [
+  1
+ ],
+ "max_seconds": 2700,
+ "total": 9,
+ "command": [
+  "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+  "scripts/run_expanded_native_arms.py",
+  "stress-worker",
+  "--group",
+  "textmask",
+  "--worker",
+  "1"
+ ],
+ "completion_hook": [
+  "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+  "scripts/run_expanded_native_arms.py",
+  "stress-audit"
+ ]
+}

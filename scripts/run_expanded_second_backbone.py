@@ -116,7 +116,7 @@ def admit(protocol, context):
 
 
 def run_training(protocol, context, worker):
-    if time.time() >= timestamp(read(ROOT / branch.SCHEDULE_DOC)["gpu_cutoff_utc"]):
+    if time.time() >= timestamp(read(ROOT / branch.schedule_doc(protocol))["gpu_cutoff_utc"]):
         raise RuntimeError("VALID_STOP: second-backbone training cutoff has passed")
     branch.require_admission_gate(ROOT, protocol)
     port = require_worker_environment(protocol, worker)
@@ -200,7 +200,7 @@ def _fresh_init_evidence(cells):
 
 
 def finalize_training(protocol, context):
-    ledger = read(ROOT / branch.LEDGER_PATH)
+    ledger = read(ROOT / branch.ledger_path(protocol))
     attempts = [_latest(ledger, f"{branch.job_id_prefix(protocol)}-train-{worker}") for worker in range(2)]
     if any(
         row["status"] != "succeeded" or read(Path(row["directory"]) / "hook-result.json").get("returncode") != 0
@@ -267,7 +267,7 @@ def evaluate(protocol, worker):
         "attempt": attempt_number,
         "directory": str(attempt_dir),
     }
-    ledger = read(ROOT / branch.LEDGER_PATH)
+    ledger = read(ROOT / branch.ledger_path(protocol))
     recorded = [
         row
         for row in ledger["attempts"]
@@ -300,7 +300,7 @@ def evaluate(protocol, worker):
     completed_paths = []
     policy_identities = {}
     started = time.monotonic()
-    cutoff = timestamp(read(ROOT / branch.SCHEDULE_DOC)["gpu_cutoff_utc"])
+    cutoff = timestamp(read(ROOT / branch.schedule_doc(protocol))["gpu_cutoff_utc"])
     progress_path = Path(os.environ["EXPANDED_PROGRESS_PATH"])
     for modality in modalities:
         if time.time() >= cutoff:
@@ -409,7 +409,7 @@ def evaluate(protocol, worker):
 
 
 def _evaluation_attempts(protocol):
-    ledger = read(ROOT / branch.LEDGER_PATH)
+    ledger = read(ROOT / branch.ledger_path(protocol))
     attempts = [_latest(ledger, f"{branch.job_id_prefix(protocol)}-evaluate-{worker}") for worker in range(2)]
     for worker, attempt in enumerate(attempts):
         terminal = read(Path(attempt["directory"]) / "terminal.json")

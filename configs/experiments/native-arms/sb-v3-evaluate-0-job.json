@@ -1,0 +1,27 @@
+{
+ "job_id": "sb-v3-evaluate-0",
+ "branch": "second_backbone",
+ "gpus": [
+  0
+ ],
+ "max_seconds": 12600,
+ "total": 36,
+ "command": [
+  "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+  "scripts/run_expanded_second_backbone.py",
+  "--protocol",
+  "configs/experiments/expanded-study/second-backbone-protocol-v3.json",
+  "evaluate",
+  "--worker",
+  "0"
+ ],
+ "completion_hook": [
+  "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+  "scripts/run_expanded_second_backbone.py",
+  "--protocol",
+  "configs/experiments/expanded-study/second-backbone-protocol-v3.json",
+  "audit-evaluate-worker",
+  "--worker",
+  "0"
+ ]
+}

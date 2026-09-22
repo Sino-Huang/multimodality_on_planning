@@ -55,6 +55,18 @@ COMPARATOR_CONDITIONS = ("random_valid", "exact_reference")
 PANEL_NAME = "unseen"
 SCHEDULE_DOC = "docs/experiments/expanded-study/schedule.json"
 LEDGER_PATH = "outputs/expanded-study/v1/budget.json"
+
+
+def schedule_doc(protocol: Mapping[str, Any]) -> str:
+    """Follow-up windows may pin their own schedule/ledger (#130 R3)."""
+
+    return protocol.get("schedule_doc", SCHEDULE_DOC)
+
+
+def ledger_path(protocol: Mapping[str, Any]) -> str:
+    return protocol.get("ledger_path", LEDGER_PATH)
+
+
 EXPECTED_ADAPTER_TENSORS = 504
 BASELINE_PANEL_ID = "expanded-panel-v2-qualified"
 PROTOCOL_IDENTITIES = {
@@ -69,6 +81,19 @@ PROTOCOL_IDENTITIES = {
         "budget_gpu_hours": 40,
         "cap_source": "schedule",
         "job_id_prefix": "second-backbone",
+    },
+    "expanded-second-backbone-v3": {
+        "schema_version": "expanded_second_backbone_protocol_v3",
+        "status": "frozen_before_qualification",
+        "issues": [130],
+        "algorithm": "best_first_add_greedy",
+        "output_root": "outputs/expanded-study/v1/second-backbone-v3",
+        "logical_bindings": 144,
+        "model_episodes": 72,
+        "comparator_episodes": 72,
+        "budget_gpu_hours": 14,
+        "cap_source": "ledger",
+        "job_id_prefix": "sb-v3",
     },
     "expanded-second-backbone-v2": {
         "schema_version": "expanded_second_backbone_protocol_v2",
@@ -225,7 +250,7 @@ def _source_files(root: Path, protocol: Mapping[str, Any], corpus: ModalityCorpu
 
 def validate_protocol(root: Path, protocol: Mapping[str, Any]) -> dict[str, Any]:
     """Hard-fail unless every frozen protocol reference still matches reality."""
-    schedule = read_json(root / SCHEDULE_DOC)
+    schedule = read_json(root / schedule_doc(protocol))
     pinned_sha256 = {
         "selection_doc": protocol["selection_doc"],
         "source_study": protocol["source_study"],
@@ -319,7 +344,7 @@ def validate_protocol(root: Path, protocol: Mapping[str, Any]) -> dict[str, Any]
         or protocol.get("status") != identity["status"]
         or protocol.get("issues") != identity["issues"]
         or protocol.get("parent_issue") != 38
-        or protocol.get("algorithm") != "bfs"
+        or protocol.get("algorithm") != identity.get("algorithm", "bfs")
         or protocol.get("modalities") != ["text-state", "visual-state", "multimodal-state"]
         or protocol.get("source_study") != "configs/experiments/matched-modalities/study-v5.json"
         or protocol.get("source_membership") != "configs/experiments/matched-modalities/membership.json"
@@ -384,9 +409,9 @@ def validate_protocol(root: Path, protocol: Mapping[str, Any]) -> dict[str, Any]
         or not study.get("model_id")
     ):
         raise ValueError("second-backbone protocol differs from the frozen study")
-    ledger_path = root / LEDGER_PATH
-    if ledger_path.is_file():
-        ledger = read_json(ledger_path)
+    ledger_file = root / ledger_path(protocol)
+    if ledger_file.is_file():
+        ledger = read_json(ledger_file)
         ledger_allocations = ledger.get("allocations_gpu_hours") or {}
         expected_allocations = _transfer_adjusted_allocations(schedule, ledger)
         if ledger.get("schedule") != schedule or not _allocations_match(
@@ -1142,7 +1167,7 @@ def decide_admission(
     step_costs = {modality: probe["training_step"][modality]["wall_seconds"] for modality in modalities}
     training_seconds = sum(step_costs.values()) * training["optimizer_updates"]
     latency = {modality: probe["throughput"][modality]["latency_seconds"]["p95"] for modality in modalities}
-    reference_decisions = [cost["bfs"]["decisions"] for cost in panel_task_costs]
+    reference_decisions = [cost[protocol["algorithm"]]["decisions"] for cost in panel_task_costs]
     if len(panel_task_ids) != len(reference_decisions) or len(set(panel_task_ids)) != len(panel_task_ids):
         raise ValueError("second-backbone admission task identities differ from panel costs")
     tasks_by_cost = sorted(range(len(reference_decisions)), key=lambda index: reference_decisions[index])
@@ -1229,7 +1254,7 @@ def admit_stage(root: Path, protocol: Mapping[str, Any], context: Mapping[str, A
         raise RuntimeError("second-backbone admission requires a complete PASS qualification")
     if probe.get("outcome") != "PASS":
         raise RuntimeError("second-backbone admission requires a PASS probe")
-    ledger = read_json(root / LEDGER_PATH)
+    ledger = read_json(root / ledger_path(protocol))
     spent = _branch_spent(ledger)
     costs = [task["row"]["reference_costs"] for task in context["panel_tasks"]]
     task_ids = [task["row"]["task_id"] for task in context["panel_tasks"]]
@@ -2284,7 +2309,7 @@ def build_evidence(
         bucket["successes"] += int(report["result"]["invariant_valid_success"])
         bucket["decisions"] += report["result"]["decision_count"]
         bucket["invalid_operations"] += report["result"]["invalid_operation_count"]
-    ledger = read_json(root / LEDGER_PATH)
+    ledger = read_json(root / ledger_path(protocol))
     spent = _branch_spent(ledger)
     paired = (
         paired_rows(
@@ -2775,7 +2800,7 @@ def _publish_valid_stop(root: Path, protocol: Mapping[str, Any]) -> Path:
     qualification = read_json(qualification_json_path(root, protocol))
     probe = read_json(probe_path(root, protocol))
     admission = read_json(root / protocol["output_root"] / "admission.json")
-    ledger = read_json(root / LEDGER_PATH)
+    ledger = read_json(root / ledger_path(protocol))
     cutoff = read_json(root / SCHEDULE_DOC)["gpu_cutoff_utc"]
     attempts = [row for row in ledger.get("attempts", []) if row.get("branch") == "second_backbone"]
     probe_attempts = [row for row in attempts if row.get("job_id") == "second-backbone-probe"]

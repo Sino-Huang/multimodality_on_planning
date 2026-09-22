@@ -1,0 +1,21 @@
+{
+ "job_id": "sb-v3-qualify",
+ "branch": "second_backbone",
+ "gpus": [],
+ "max_seconds": 7200,
+ "total": 1560,
+ "command": [
+  "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+  "scripts/run_expanded_second_backbone.py",
+  "--protocol",
+  "configs/experiments/expanded-study/second-backbone-protocol-v3.json",
+  "qualify-inputs"
+ ],
+ "completion_hook": [
+  "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+  "scripts/run_expanded_second_backbone.py",
+  "--protocol",
+  "configs/experiments/expanded-study/second-backbone-protocol-v3.json",
+  "audit-qualify"
+ ]
+}

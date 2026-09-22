@@ -1,0 +1,439 @@
+{
+ "schema_version": "native_arms_protocol_v3",
+ "protocol_id": "native-arms-v3",
+ "program_id": "followup-native-arms-v1",
+ "status": "frozen_before_any_menu_stress_or_strain_outcome",
+ "issues": [
+  130
+ ],
+ "parent_issue": 128,
+ "parent_links": {
+  "parent_issue": 129,
+  "related_issues": [
+   38,
+   126,
+   128
+  ],
+  "lineage": "#129 left the menu-sufficiency interpretation under-determined (an elimination argument with the menu never manipulated) and the #126 language-channel claim confounded by output-contract copyability; the external review (#130) ranks four blocking cells. This protocol freezes R1/R2/R4 on the frozen #129 adapters; R3 (InternVL x additive) runs under its own versioned second-backbone protocol."
+ },
+ "schedule": "docs/experiments/native-arms/schedule.json",
+ "reference_protocols": {
+  "modality_stress": "configs/experiments/expanded-study/modality-stress-protocol.json",
+  "modality_stress_sha256": "fbf50b498f910263ce6ef2add0603a4fff73c69feca732779f83fa9e35c5c992"
+ },
+ "ledger": "outputs/native-arms/v1/budget.json",
+ "budget_branch": "native_arms",
+ "panel": "configs/experiments/expanded-study/final-panel.json",
+ "panel_id": "expanded-panel-v2-qualified",
+ "panel_sha256": "f888c1b2106d438f442b39da89d9727fd14c3756a6be6f7cfa824f53d6b837cc",
+ "panel_view_report": "outputs/expanded-study/v1/panel-v2/reference-views.json",
+ "panel_view_report_sha256": "72df0a98f29044685ddc5a7f6f642045302684ebcfa9f938336a53b33bbd42a9",
+ "output_root": "outputs/native-arms/v1",
+ "model_id": "Qwen/Qwen3-VL-8B-Instruct",
+ "model_revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+ "training_seed": 17,
+ "training_seed_variance_claimed": false,
+ "learned_algorithms": [
+  "best_first_add_greedy",
+  "best_first_add_w3"
+ ],
+ "arms": {
+  "visual-nomem-state": {
+   "recipe_id": "visual-nomem-state-v1",
+   "history_k": 0,
+   "legend": "Static task context, initial-state scene, current-state scene and partial-goal pages are attached. Initial/current states are unlabelled 128px scenes without text annotations. Infer dynamic state from the scene; no symbolic initial/current-state fact panels are included. Black robot silhouettes identify the agent. Goal constraints do not describe a complete solved state: unspecified facts are unconstrained. Goal blocks ALL, ANY, NOT, FOR EVERY and THERE EXISTS retain their labelled variable scopes. No Search Memory, accepted-delta window, scalar search values, candidate scores or membership flags are provided: the candidate menu lists each successor's action name and arguments only, unscored, in grounded order. No search history is provided."
+  },
+  "visual-seq-state": {
+   "recipe_id": "visual-seq-state-v1",
+   "history_k": 8,
+   "legend": "Static task context, initial-state scene, current-state scene and partial-goal pages are attached. Initial/current states are unlabelled 128px scenes without text annotations. Infer dynamic state from the scene; no symbolic initial/current-state fact panels are included. Black robot silhouettes identify the agent. Goal constraints do not describe a complete solved state: unspecified facts are unconstrained. Goal blocks ALL, ANY, NOT, FOR EVERY and THERE EXISTS retain their labelled variable scopes. No Search Memory, accepted-delta window, scalar search values, candidate scores or membership flags are provided: the candidate menu lists each successor's action name and arguments only, unscored, in grounded order. The current search path's most recent visited states precede the current state, attached in visit order before the current-state scene, each labelled with its absolute path position (the initial state is position 0); the current state itself is the current-state scene."
+  }
+ },
+ "payload_reduction": {
+  "frozen_source": "the compact live/teacher input (schema best_first_compact_model_input_v2) built by the trusted additive session",
+  "removed_keys": [
+   "search_memory",
+   "accepted_deltas",
+   "task_context",
+   "goal_atoms",
+   "observation",
+   "expanded_state",
+   "semantic_blocks"
+  ],
+  "removed_current_keys": [
+   "g",
+   "h",
+   "priority",
+   "state_facts",
+   "state_atoms"
+  ],
+  "retained_current_keys": [
+   "state_id"
+  ],
+  "removed_candidate_columns": [
+   "g",
+   "h",
+   "priority",
+   "best_cost",
+   "best_cost_before",
+   "closed",
+   "frontier",
+   "dominated",
+   "pruned",
+   "target_state_id"
+  ],
+  "candidate_menu": "list of per-candidate {name, args} only, in the trusted grounded order",
+  "retained_keys": [
+   "algorithm",
+   "current",
+   "representation",
+   "schema_version",
+   "successor_candidates",
+   "view_legend"
+  ],
+  "system_message_unchanged": true,
+  "state_id_rationale": "the standing output contract requires the operation to echo the popped frontier head; current.state_id is retained so the target remains learnable, while every g/h/priority scalar and all candidate scores/membership flags are removed"
+ },
+ "history_window": {
+  "k": 8,
+  "definition": "path(current) is the chain of first-acceptance provenance (views registry parents, equivalently the recorded trace path for corpus records) from the initial state to the current state; the window is the last k predecessor states of path(current), in visit order, excluding the current state",
+  "label": "Page role: history-state (visit ordinal {position}) with position the absolute path depth (initial state = 0)",
+  "page_order": [
+   "task-context pages",
+   "initial-state",
+   "history frames in visit order",
+   "current-state",
+   "goal pages"
+  ],
+  "frame_source": "the same unlabelled 128px current-state rendering as the frozen visual-state arm; corpus windows rasterize retained catalog VFG vector stages on demand (CPU-only, no new rendering pipeline)",
+  "tokens_note": "K=8 at the frozen 128px unlabelled rendering is approximately +4.9k input tokens, inside the 32384-token cap; the 32K gate is re-checked per observation"
+ },
+ "training": {
+  "study": "configs/experiments/matched-modalities/study-v5.json",
+  "study_sha256": "1f15184667b5076edc808838f450500bc6ac502cfb61c3d972cdc5ebb211d72b",
+  "membership": "configs/experiments/matched-modalities/membership.json",
+  "membership_sha256": "f939f864befd29e87cc899718b9635e6927c464d341d0f460545911604bfbc23",
+  "corpus_report": "outputs/modality_corpus/issue74-matched-32k-v1/release-001/report.json",
+  "scene_views": "outputs/matched_modalities/v5/preparation/scene-views.json",
+  "records_per_algorithm": 512,
+  "epochs": 1,
+  "optimizer_updates": 16,
+  "training_seed": 17,
+  "recipe": "byte-identical to the study-v5 training block (LoRA r64/alpha128/dropout0.05 all-linear excl. visual, lr 1e-4 cosine, warmup 0.03, global batch 32, microbatch 1, bf16, sequential membership order, final checkpoint at update 16 only)",
+  "cells": [
+   "visual-nomem-state x best_first_add_greedy",
+   "visual-nomem-state x best_first_add_w3",
+   "visual-seq-state x best_first_add_greedy",
+   "visual-seq-state x best_first_add_w3"
+  ],
+  "max_seconds_per_cell": 7200,
+  "structural_gates": [
+   "removed payload keys absent (serialized user text scanned for every removed key marker)",
+   "frame counts <= K",
+   "window states strictly precede the current state and are visit-ordered",
+   "every image reference resolves",
+   "candidate menu equals the trusted grounded order",
+   "membership identical to the frozen v5 512-record + diagnostic lists per algorithm",
+   "input tokens + 384 <= 32768",
+   "assistant target unchanged (canonical record target)"
+  ]
+ },
+ "admission_gate": {
+  "probe": {
+   "model": "pretrained base (no adapter)",
+   "subset": "the frozen 9-task membership x both algorithms x the first decision of each task",
+   "calls_per_arm": 18,
+   "arm_contracts": [
+    "visual-nomem-state",
+    "visual-seq-state"
+   ],
+   "measure": "share of first decisions the trusted runtime accepts (schema-valid, grounded in the unscored candidate menu, correct source_state_id)",
+   "cap": "hard 1 call per probe episode (pretrained_base)"
+  },
+  "minimum_schema_valid_grounded_rate": 0.5,
+  "rule": "at or above threshold the rung proceeds; below threshold that rung declares VALID_STOP with the probe evidence published, and visual-seq-state proceeds only if its own gate passes",
+  "minimum_meaningful_scope": "one arm passing its gate plus its complete clean evaluation; if that scope cannot fit the authorized window budget the ticket declares VALID_STOP without partial-outcome harvesting"
+ },
+ "estimand": {
+  "name": "native_arms_window_estimand",
+  "frozen_before_recomputation": true,
+  "equation": "required_gpu_hours = (training_basis + clean_eval_seconds/3600 + corruption_eval_seconds/3600) * 1.25 + planned_worker_jobs * planned_worker_overhead_seconds / 3600",
+  "parameters": {
+   "decision_cap_multiplier": 2,
+   "per_episode_price": "max_observed_call_seconds from this protocol's own probe.json per arm",
+   "pretrained_base_calls_per_episode": 1,
+   "training_cell_basis_gpu_hours": 0.3633388888888889,
+   "training_seq_scale": "1 + mean_history_frames/4 (v5 cells carry 4 images per record; the seq arm carries 4 + window frames)",
+   "safety_factor": 1.25,
+   "planned_worker_jobs": 4,
+   "planned_worker_overhead_seconds": 120.0,
+   "control_price_gpu_hours": 0,
+   "comparator_price_gpu_hours": 0,
+   "probe_spend_charged_in_ledger": true
+  },
+  "matrix_totals": {
+   "clean_gpu_episodes": 72,
+   "corruption_gpu_episodes": 72,
+   "new_gpu_model_episodes": 144
+  },
+  "not_a_completion_guarantee": "runtime-enforced caps turn estimand overruns into explicit missingness; failed or cutoff attempts retain their ledger GPU hours and are reported as missing, never as silent scope reduction"
+ },
+ "evaluation": {
+  "membership": [
+   "expanded-final/storage-compact-919000",
+   "expanded-final/elevators-compact-914002",
+   "expanded-final/ferry-compact-915000",
+   "expanded-final/15puzzle-compact-910000",
+   "expanded-final/towers_of_hanoi-compact-920000",
+   "expanded-final/visitall-compact-921000",
+   "expanded-final/depot-compact-912000",
+   "expanded-final/blocksworld-expanded-911101",
+   "expanded-final/15puzzle-expanded-910109"
+  ],
+  "membership_sha256": "20ea888d5199d53bbbe2e7cfa14aeee11e3c4cd7cff956103147ed1a7328e854",
+  "membership_canonical_form": "sha256 of json.dumps(sorted(task_ids), sort_keys=True, separators=(',', ':'))",
+  "conditions": [
+   "learned_adapter",
+   "pretrained_base",
+   "random_valid",
+   "exact_reference"
+  ],
+  "clean_matrix": {
+   "arms": [
+    "visual-nomem-state",
+    "visual-seq-state"
+   ],
+   "per_task": "2 arms x 2 algorithms x {learned_adapter, pretrained_base} = 8 GPU episodes",
+   "gpu_episodes": 72
+  },
+  "corruption_matrix": {
+   "arm": "visual-seq-state",
+   "families": [
+    "visual-blank",
+    "visual-degraded"
+   ],
+   "per_task": "2 families x 2 algorithms x {learned_adapter, pretrained_base} = 8 GPU episodes",
+   "gpu_episodes": 72
+  },
+  "new_gpu_model_episodes": 144,
+  "new_cpu_control_episodes": 72,
+  "reference_decision_multiplier": 2,
+  "decoding": {
+   "do_sample": false
+  },
+  "expansion_limit_exhaustion": "a decision-call or expansion-limit exhaustion is retained as a valid unsuccessful episode",
+  "rollouts": {
+   "learned_adapter": 1,
+   "pretrained_base": 1,
+   "exact_reference": 1,
+   "random_valid": 5
+  },
+  "random_valid_rollout_seeds": [
+   17,
+   5077,
+   6131,
+   7409,
+   8527
+  ],
+  "new_control_seeds": [
+   5077,
+   6131,
+   7409,
+   8527
+  ],
+  "seed_selection_rule": "primes disjoint from every seed used by expanded-nine-day-v1 and #127 (17, 29, 71, 64, 1729, 90717, 42613, 1013, 2027, 3041, 4001)",
+  "identical_task_sets_across_conditions": true,
+  "control_invariance": {
+   "claim": "random_valid and exact_reference decisions are computed by the authoritative session from the trusted search state, never from the observed messages or images; outcomes are invariant to the observation contract",
+   "consequence": "new-seed controls are bound per (task, algorithm, seed) with no arm; seed-17 and exact_reference comparators are reused from the replay-verified baseline store"
+  }
+ },
+ "corruption": {
+  "families": [
+   "visual-blank",
+   "visual-degraded"
+  ],
+  "master_seed": 42613,
+  "source_protocol": "configs/experiments/expanded-study/modality-stress-protocol.json",
+  "definitions": "identical to the frozen #126 family definitions (visual-blank uniform RGB(128,128,128) removal; visual-degraded 16x16 BILINEAR-down/NEAREST-up mosaic), applied to every attached image of the visual-seq-state observation (including history frames) at observe() time with the token count recomputed and the 32K gate re-checked",
+  "null_result_interpretation": "under this contract images are the only state+history channel, so a non-material corruption effect is itself a leak signal and is reported as such"
+ },
+ "comparators": {
+  "baseline_episodes_root": "outputs/expanded-study/v1/baseline/episodes",
+  "baseline_protocol_id": "expanded-matched-baseline-v1",
+  "reused": {
+   "visual-state process_sft": "per (task, algorithm): the clean learned arm of every new-arm contrast",
+   "visual-state pretrained_base": "per (task, algorithm): the clean base comparator",
+   "text-state random_valid seed 17": "per (task, algorithm): the reused seed-17 control rollout",
+   "text-state exact_reference": "per (task, algorithm): the oracle upper bound"
+  },
+  "reused_episodes": 72,
+  "verification": "every reused episode is independently replayed under its producing processor at finalize and its identity fields are checked against the frozen binding; any mismatch fails the finalize audit"
+ },
+ "analysis": {
+  "paired_unit": "whole source task instance x algorithm across conditions on identical tasks",
+  "strata": [
+   "domain",
+   "stratum-origin",
+   "arm",
+   "family"
+  ],
+  "primary_contrasts": {
+   "arm_vs_published_visual": "per arm: new-arm learned clean versus the published frozen visual-state learned clean (reused baseline process_sft), paired by task x algorithm (n = 18)",
+   "ladder": "learned visual-seq-state minus learned visual-nomem-state, paired by task x algorithm (n = 18): the value of the image-only history window",
+   "corruption_degradation": "per family: corrupted versus clean learned visual-seq-state, paired by task x algorithm (n = 18); a null effect is reported as a leak signal",
+   "learned_vs_controls": "learned versus pretrained_base under the same contract; random_valid five-seed frequency; exact_reference reported separately as the oracle bound"
+  },
+  "missingness": "reported per arm, family and stratum; cutoff attempts are explicit missingness, never silent scope reduction",
+  "random_valid_aggregation": "per-task success frequency over the five frozen rollout seeds",
+  "bootstrap": {
+   "unit": "whole source task instance",
+   "seed": 61813,
+   "resamples": 10000,
+   "confidence": 0.95,
+   "interval": "percentile",
+   "materiality": "interval excludes 0"
+  },
+  "tiny_subgroup_rule": "strata with fewer than 8 paired instances are descriptive-only; no interval claims",
+  "saturation_rule": "per issue #54, when the best control is at ceiling, make no structural-advantage claim",
+  "training_seed_variance_claimed": false
+ },
+ "budget": {
+  "window_gpu_hours_cap": 12.0,
+  "authorization": "user selection of the v2 continuation in the #128 execution session (issue #129)",
+  "no_transfer_from_expanded_program": true,
+  "spent_at_amendment_gpu_hours": 0.0926,
+  "remainder_gpu_hours": 11.9074
+ },
+ "admission": {
+  "artifact": "outputs/native-arms/v1/admission-v2.json",
+  "recompute_script": "scripts/run_expanded_native_arms.py admit-v2",
+  "schema_version": "native_arms_admission_v2",
+  "selection_timing": "corpus/budget admission is recomputed from preparation reports, ledger spend and frozen bases only; each arm is adjudicated post-training by the frozen smoke gate",
+  "no_test_driven_retraining": true,
+  "no_outcome_selected_reruns": true,
+  "no_favourable_replacement_tasks": true
+ },
+ "execution_contract": {
+  "deterministic_rounds": true,
+  "batched_generation": true,
+  "shared_backbone_per_gpu": true,
+  "adapter_switching": true,
+  "isolated_caching": true,
+  "max_requests_per_active_episode_per_round": 1,
+  "runtime_enforced_caps": "every GPU episode is hard-capped at its priced decision-call cap (2 x reference decisions for learned cells, 1 call for pretrained_base); a cap hit is an explicit unsuccessful episode and its ledger GPU hours are retained",
+  "missingness_policy": "estimand overruns become explicit missingness, reported per arm/family/stratum; coverage is never silently reduced",
+  "resume": "persist each raw output before trusted-runtime submission; replay committed events and pending output before continuing",
+  "partial_coverage_satisfies_gate": false,
+  "independent_replay_every_completed_episode": true,
+  "master_port_pool": [
+   18806,
+   18807,
+   18808,
+   18809
+  ],
+  "scheduler": "scripts/run_expanded_study.py with --ledger outputs/native-arms/v1/budget.json --schedule docs/experiments/native-arms/schedule.json (declared follow-up-window scheduler extension)"
+ },
+ "inference": {
+  "dtype": "float32",
+  "attention": "visual_sdpa",
+  "do_sample": false,
+  "max_batch_size": 2,
+  "max_padded_batch_input_tokens": 24000,
+  "allow_qualified_single_input_above_batch_cap": true,
+  "output_cache": "none",
+  "kv_cache": "per_call_only"
+ },
+ "declared_code_changes": [
+  "examples/planning_benchmark_slice/native_arm_views.py and native_arm_corpus.py (new): the frozen observation contracts, CPU materialization and structural gates",
+  "scripts/run_expanded_native_arms.py (new): stage runner, audit hooks and frozen analysis",
+  "examples/planning_benchmark_slice/visual_model.py: train_visual gains an optional dataset_factory hook; the default path is byte-identical for every existing study config",
+  "examples/planning_benchmark_slice/expanded_scheduler.py: launch/main gain an explicit --schedule override designating a follow-up program's production ledger; behavior without --schedule is unchanged and the expanded-nine-day-v1 ledger and cutoffs are untouched"
+ ],
+ "amendment": {
+  "amends": "configs/experiments/native-arms/native-arms-protocol.json",
+  "amends_sha256": "aa8c654899f4808b66aca022c76764449a8c67b1ecfaa3fa65f651f58a68e36c",
+  "issue": 129,
+  "authorization": "user selected the v2 continuation in the #128 execution session after reviewing the VALID_STOP diagnosis; GPU use within the remaining followup-native-arms-v1 window is authorized",
+  "unchanged": [
+   "observation contracts and legends",
+   "history window K=8",
+   "training recipe and membership",
+   "evaluation matrices, seeds and caps",
+   "corruption families",
+   "comparators",
+   "analysis constants (bootstrap 61813, tiny-strata, saturation)"
+  ]
+ },
+ "smoke_gate": {
+  "frozen_before_any_trained_arm_outcome": true,
+  "timing": "the subset, threshold and measure are frozen in this protocol before any adapter of either arm exists",
+  "subset": [
+   "expanded-final/storage-compact-919000",
+   "expanded-final/elevators-compact-914002",
+   "expanded-final/ferry-compact-915000"
+  ],
+  "subset_rule": "the three cheapest tasks of the frozen 9-task membership (cheapest-prefix order of #126)",
+  "episodes_per_arm": 6,
+  "condition": "learned_adapter, clean contract, 2x reference decision cap, seed 17, greedy decoding",
+  "measure": "schema-valid grounded call rate = trusted-runtime-accepted model calls / total model calls across the arm's smoke episodes",
+  "minimum_schema_valid_grounded_rate": 0.5,
+  "rule": "at or above threshold the arm proceeds to the full frozen evaluation; below threshold that rung declares VALID_STOP with the smoke evidence published; the full panel evaluation runs only for arms passing their own gate; corruption runs only if visual-seq-state passes; gated-out bindings are published as gated_out_by_smoke, never silently dropped",
+  "minimum_meaningful_scope": "one arm passing its smoke gate plus its complete clean evaluation"
+ },
+ "admission_gate_v1_superseded": {
+  "probe": {
+   "model": "pretrained base (no adapter)",
+   "subset": "the frozen 9-task membership x both algorithms x the first decision of each task",
+   "calls_per_arm": 18,
+   "arm_contracts": [
+    "visual-nomem-state",
+    "visual-seq-state"
+   ],
+   "measure": "share of first decisions the trusted runtime accepts (schema-valid, grounded in the unscored candidate menu, correct source_state_id)",
+   "cap": "hard 1 call per probe episode (pretrained_base)"
+  },
+  "minimum_schema_valid_grounded_rate": 0.5,
+  "rule": "at or above threshold the rung proceeds; below threshold that rung declares VALID_STOP with the probe evidence published, and visual-seq-state proceeds only if its own gate passes",
+  "minimum_meaningful_scope": "one arm passing its gate plus its complete clean evaluation; if that scope cannot fit the authorized window budget the ticket declares VALID_STOP without partial-outcome harvesting",
+  "superseded_by": "smoke_gate (v2); the v1 probe evidence is published at outputs/native-arms/v1/probe/ and its 0/18 outcome motivated this amendment"
+ },
+ "estimand_v2": {
+  "name": "native_arms_window_estimand_v2",
+  "frozen_before_recomputation": true,
+  "equation": "required_gpu_hours = training_basis*1.25 + (smoke_seconds + clean_eval_seconds + corruption_eval_seconds)/3600*1.25 + planned_worker_jobs*planned_worker_overhead_seconds/3600",
+  "probe_max_call_seconds": 7.070369618013501,
+  "probe_max_call_seconds_basis": "max observed call seconds across both v1 probe reports (published evidence)",
+  "safety_factor": 1.25,
+  "planned_worker_jobs": 6,
+  "planned_worker_overhead_seconds": 120.0,
+  "training_cell_basis_gpu_hours": 0.3633388888888889,
+  "training_seq_scale": "1 + mean_history_frames/4",
+  "not_a_completion_guarantee": "runtime-enforced caps turn estimand overruns into explicit missingness; failed or cutoff attempts retain their ledger GPU hours and are reported as missing, never as silent scope reduction"
+ },
+ "menu_stress": {
+  "frozen_before_any_outcome": true,
+  "families": {
+   "menu-permutation": "entries of the unscored candidate menu permuted by seeded Fisher-Yates; seed = int(sha256(f\"{51121}|menu-permutation|{sha256(canonical(clean_menu))}\")[:8]); entries intact and copyable",
+   "distractor-injection": "up to k=3 schema-valid but currently inapplicable grounded actions, harvested from the task catalog producing actions minus the applicable set, injected at seeded positions; the trusted runtime still validates, so a distractor pick is an invalid operation"
+  },
+  "master_seed": 51121,
+  "matrix": "9 tasks x 2 families x 2 arms x 2 algorithms x learned_adapter = 72 GPU episodes, clean images, frozen adapters from #129",
+  "report": "success and distractor pick-rate per cell"
+ },
+ "r2": {
+  "stress_protocol": "configs/experiments/expanded-study/modality-stress-protocol.json",
+  "decomposition": "CPU recompute over the 72 published text-corrupted learned episodes (#126): all_invalid vs partial_valid vs goal_reached",
+  "textmask_cross_cell": "text-masked x visual-state x 2 algorithms x 9 tasks = 18 GPU episodes on the frozen v5 visual-state adapters via the #126 corruption seam"
+ },
+ "r4": {
+  "families": [
+   "shifted-init",
+   "scale-up"
+  ],
+  "admission": "outputs/expanded-study/v1/generalization-robustness/admission-v2.json",
+  "suite": "outputs/expanded-study/v1/generalization-robustness/suite.json",
+  "matrix": "2 families x 5 variants x 2 arms x 2 algorithms x {learned_adapter, pretrained_base} = 80 GPU episodes on the frozen #129 adapters",
+  "comparators": "the published gen-v2 learned rates for the same variants (19/30 shifted-init, 26/30 scale-up, full scaffold) are the reference contrast"
+ }
+}
