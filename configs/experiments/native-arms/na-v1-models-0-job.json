@@ -23,5 +23,6 @@
   "0",
   "--kind",
   "models"
- ]
+ ],
+ "resume_reason": "attempt 1 crashed at the corruption group: the worker built its policy with an empty adapter bank (adapters were only wired for the clean phase); fixed by loading the arm adapters for every models group. All 72 clean learned episodes completed and are retained; resume replays them and runs the 36 remaining corruption learned episodes."
 }

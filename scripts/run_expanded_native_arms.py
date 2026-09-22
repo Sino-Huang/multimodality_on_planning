@@ -1062,19 +1062,21 @@ def evaluate_worker(worker: int, kind: str, endpoint: str) -> dict:
     for (arm, phase), group in groups:
         pending = [row for row in group if not episode_paths(protocol, row)[0].exists()]
         policy = None
-        adapters = {}
-        if kind == "models" and pending:
-            from examples.planning_benchmark_slice.visual_attention import configure_visual_attention
-            from examples.planning_benchmark_slice.visual_model import VisualPolicy
-
-            adapters = {
-                algorithm: str(output_root(protocol) / "training" / arm / algorithm / "final")
-                for algorithm in protocol["learned_algorithms"]
-            }
+        adapters = {
+            algorithm: str(output_root(protocol) / "training" / arm / algorithm / "final")
+            for algorithm in protocol["learned_algorithms"]
+        }
+        if kind == "models":
             for path in adapters.values():
                 if not (ROOT / path / "adapter_model.safetensors").is_file():
                     raise ValueError(f"native-arm adapter checkpoint missing: {path}")
+        else:
+            adapters = {}
+        if kind == "models" and pending:
             from transformers import set_seed
+
+            from examples.planning_benchmark_slice.visual_attention import configure_visual_attention
+            from examples.planning_benchmark_slice.visual_model import VisualPolicy
 
             set_seed(int(protocol["training_seed"]))
             policy = VisualPolicy(
