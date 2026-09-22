@@ -1067,14 +1067,13 @@ def evaluate_worker(worker: int, kind: str, endpoint: str) -> dict:
             from examples.planning_benchmark_slice.visual_attention import configure_visual_attention
             from examples.planning_benchmark_slice.visual_model import VisualPolicy
 
-            if phase == "clean":
-                adapters = {
-                    algorithm: str(output_root(protocol) / "training" / arm / algorithm / "final")
-                    for algorithm in protocol["learned_algorithms"]
-                }
-                for path in adapters.values():
-                    if not (ROOT / path / "adapter_model.safetensors").is_file():
-                        raise ValueError(f"native-arm adapter checkpoint missing: {path}")
+            adapters = {
+                algorithm: str(output_root(protocol) / "training" / arm / algorithm / "final")
+                for algorithm in protocol["learned_algorithms"]
+            }
+            for path in adapters.values():
+                if not (ROOT / path / "adapter_model.safetensors").is_file():
+                    raise ValueError(f"native-arm adapter checkpoint missing: {path}")
             from transformers import set_seed
 
             set_seed(int(protocol["training_seed"]))
