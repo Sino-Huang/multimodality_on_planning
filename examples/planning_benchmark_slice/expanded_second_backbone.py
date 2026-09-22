@@ -1204,7 +1204,7 @@ def decide_admission(
         decision = "L1"
         outcome = "PASS"
         reduced = (
-            "reduced key-cell panel selected by lowest reference bfs decision count only "
+            "reduced key-cell panel selected by lowest reference algorithm decision count only "
             f"(tasks ranked by reference_costs.bfs.decisions; kept {key_cell_count}/{len(reference_decisions)} tasks); "
             "documented fallback because L0 exceeded the branch remainder"
         )
@@ -1223,7 +1223,7 @@ def decide_admission(
             "selection": (
                 "full qualified panel"
                 if decision == "L0"
-                else "lowest reference bfs decision count only, frozen before any model outcome"
+                else "lowest reference algorithm decision count only, frozen before any model outcome"
             ),
         }
     return {
