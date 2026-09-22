@@ -1,0 +1,21 @@
+{
+ "job_id": "cf-v1-train-1",
+ "branch": "choice_frontier",
+ "gpus": [
+  1
+ ],
+ "max_seconds": 9000,
+ "total": 1,
+ "command": [
+  "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+  "scripts/run_choice_frontier.py",
+  "train",
+  "--worker",
+  "1"
+ ],
+ "completion_hook": [
+  "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+  "scripts/run_choice_frontier.py",
+  "audit-train"
+ ]
+}

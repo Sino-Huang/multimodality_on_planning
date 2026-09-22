@@ -1,0 +1,21 @@
+{
+ "job_id": "cf-v1-evaluate-controls-1",
+ "branch": "choice_frontier",
+ "gpus": [],
+ "max_seconds": 7200,
+ "total": 1,
+ "command": [
+  "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+  "scripts/run_choice_frontier.py",
+  "evaluate-worker",
+  "--worker",
+  "1",
+  "--kind",
+  "controls"
+ ],
+ "completion_hook": [
+  "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+  "scripts/run_choice_frontier.py",
+  "audit-evaluate-worker"
+ ]
+}
