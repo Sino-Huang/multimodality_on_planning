@@ -1,0 +1,48 @@
+% STATUS: REVISED R3a 2026-09-22 for finding #26. Three paragraphs
+% covering frozen protocol discipline with episode-level replay verification,
+% released artifacts with exact corpus counts, and the compute envelope with
+% statistical procedures. Single TODO marker for pending public release URLs
+% (#122). No new citations.
+\section*{Reproducibility Statement}
+
+% Paragraph purpose: State the frozen protocol discipline, seed policy, and episode-level replay verification via the replay-determinative interface.
+Every stage of the study runs under a frozen outcome-blind protocol.
+Development panels and held-out manifests are frozen before any model outcome.
+Preregistered gates close each stage with a recorded receipt (\textsc{pass},
+\textsc{valid\_stop}, \textsc{invalid}, or \textsc{ancestor\_stop}), and no gate was revised after
+observing results.  Training seeds are frozen pre-launch: seed~17 for every
+cell after the historical pilot, with seeds~29 and~71 added for the two
+prospective replication cells.  No seed was dropped after outcomes.  The
+replay-determinative interface makes every episode independently verifiable
+from its raw emissions alone.  The policy emits Typed Search Operations with
+explicit operands, and the Trusted Search Runtime validates and applies each
+operation without filling omitted choices or repairing outputs. Every episode
+record (model and control) across the seven branches, the observation-corruption
+suite (360 new + 144 reused bindings), and the \#127 amendment (534 episodes)
+was independently replayed with zero missingness. The 1,152 expanded-baseline
+bindings include 576 model episodes and 576 CPU control/reference episodes.
+
+% Paragraph purpose: Identify the released artifacts and their exact counts.
+Two process corpora supply the training data.  The BFS text-state corpus
+contains 90 replay-verified traces and 25,109 process rows.  The BFWS corpus
+covers 105 tasks and 69,019 replay-verified teacher decisions, projecting to a
+47,780-train / 21,239-dev split.  Both passed no-overlap, no-conflict,
+live-parity, and token-budget audits before use.  Per-cell training
+configurations, evaluation manifests, LoRA adapter weights with checkpoint
+digests, and the synthesis claims inventory are recorded for each executed
+stage.
+
+% Paragraph purpose: State the compute envelope, statistical procedures, and the pending public-release TODO.
+The program consumed 68.5244 of a capped 336 GPU-hours on
+$2\times$NVIDIA A100 80\,GB, with a per-branch ledger that retains failed and
+cutoff attempts at their recorded cost.  Paired contrasts use whole-instance
+bootstrap with 10,000 resamples at seed~1729 and 95\% percentile intervals.
+Transfer comparisons use exact McNemar tests with Holm correction across the
+36 adapter--base pairs.  Strata with fewer than 8 instances are reported as
+descriptive only.  All seeds, panel memberships, corruption parameters, and
+frozen protocols are stated in the evaluation manifests.
+[TODO: release] Public release URLs and artifact DOIs have not yet been
+assigned and will appear in the final version when the release and handoff are
+complete.
+% TODO(release): issue #122 (release/handoff) is open; no public URLs or
+% artifact DOIs exist yet. Update this paragraph when #122 closes.

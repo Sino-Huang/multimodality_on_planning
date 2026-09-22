@@ -1,0 +1,354 @@
+% STATUS: REVISED R3a 2026-09-22 for findings #2, #4a, #9, and #25. Full evidence-contract
+% appendix with sections A--H per D14, Section Blueprint, and the 2026-09-21
+% amendments. Sources: manuscript/CONTEXT.md, manuscript/content_brief.md,
+% manuscript/writing_design_tree.md (D14 + Blueprint + amendments),
+% synthesis-v1/README.md, failure-mechanism-analysis.md (#125),
+% issue-126-closeout.md (#126), seed-variance-addendum.md (#127). No new
+% packages or macros; pseudocode uses tabbing (no algorithm package in the hub
+% preamble). All numbers copied from the audited sources; unpinned details
+% carry TODO markers per contract rule 6. No citations needed beyond those
+% already in sibling bib files; no appendix-specific bib created.
+
+% Cross-references from body sections (e.g.\ Appendix~\ref{appendix} in
+% Section~\ref{sec:policy}) point here as the appendix entry point.
+% Sections number A through H under the hub's \appendix switch.
+
+\section{Operation Schemas}
+\label{appendix}
+
+% Paragraph purpose: Introduce the typed operation vocabulary and the operand ownership rule that governs all schemas.
+Each declared algorithm defines a vocabulary of operation types $\tau$. A policy emission $u_t = (\tau_t, \theta_t)$ pairs a type from that vocabulary with an operand vector $\theta_t$ carrying every exploration-determining argument. The runtime rejects any emission whose type falls outside the declared vocabulary or whose operand vector omits a required field. Every operand that determines exploration must originate from the policy (Section~\ref{sec:policy}).
+
+% Paragraph purpose: Describe the BFS operation schema at the level pinned by the sources.
+\paragraph{BFS.}
+The primary operation is node expansion. Its operands name the source state (the current frontier head), the grounded successors selected for insertion, the action producing each successor, and the enqueue position for each. The runtime checks that the named source matches the FIFO frontier head, that each successor results from an applicable grounded action in the source state, that the successor is unvisited, and that each insertion targets the FIFO tail. A goal-test operation names the state to test. The BFS pilot corpus (\#111) exposes exact grounded successor candidates and full visited membership at each step.
+% TODO: The exact BFS operation-type enumeration and per-field schema (field
+% names, types, serialization format) are not recorded in any audited
+% document; pin them from the codebase before release.
+
+% Paragraph purpose: Describe the BFWS operation schema at the level pinned by the sources.
+\paragraph{BFWS (complete unpruned).}
+Expansion operands carry the novelty value and goal-count priority of the source state alongside the fields above. Insertion operands carry each candidate's duplicate membership, novelty, and priority. The runtime checks that the selected source has the declared best priority, that duplicate membership is correctly reported, and that insertions follow the declared ordering. The BFWS corpus (\#57--\#58) exposes candidate duplicate, novelty, priority, insertion, and enqueue facts at every training observation.
+% TODO: The exact BFWS operation-type enumeration, per-field schema, and the
+% precise novelty computation (tuple arity, width parameter) are not pinned
+% in audited documents; record them before release.
+
+% Paragraph purpose: Describe the additive best-first operation schema at the level pinned by the sources.
+\paragraph{Additive best-first.}
+Operands carry the source state's accumulated path cost $g$, heuristic estimate $h_{\rm add}$, and composite value $f = g + w \cdot h_{\rm add}$ with $w = 3$ for the weighted variant, or $f = h_{\rm add}$ for the greedy variant. Insertion operands carry per-successor $g$, $h_{\rm add}$, and $f$. The runtime checks that the expanded state has the minimum $f$ in the frontier under the declared tie-breaking rule and that all arithmetic is consistent.
+% TODO: Per-field schema for additive best-first operation types and the exact
+% tie-breaking rule are not pinned in audited sources; see Section~B.
+
+% Paragraph purpose: State the validity preconditions as an ordered rejection hierarchy.
+\paragraph{Validity preconditions.}
+An emission passes through a fixed sequence of checks. Failure at any step rejects the emission with the corresponding kind and terminates the episode. The checks, in order:
+
+\begin{enumerate}[leftmargin=*, itemsep=1pt, parsep=1pt]
+\item \textbf{Parse.} The raw output must parse into a well-formed Typed Search Operation with a recognized type and complete operand vector. Failure: \texttt{malformed\_output}.
+\item \textbf{Source identity.} The named source state must match the state the algorithm expects. Failure: \texttt{source\_state\_mismatch}.
+\item \textbf{Action applicability.} Every grounded action in the operands must be applicable in the source state. Failure: \texttt{inapplicable\_grounded\_action}.
+\item \textbf{Successor schema.} Any named successor state must satisfy the domain schema. Failure: \texttt{schema}.
+\item \textbf{Successor effects.} The named successor must match the declared effects of the applied action. Failure: \texttt{effect}.
+\item \textbf{Static context.} Referenced predicates, objects, and constants must be consistent with the task instance. Failure: \texttt{static\_context}.
+\item \textbf{Frontier discipline.} The frontier manipulation must respect the declared ordering (FIFO for BFS, priority for BFWS, $f$-order for additive best-first). Failure: \texttt{invalid\_frontier\_operation}.
+\item \textbf{Algorithm invariant.} Any remaining algorithm-specific constraint not covered above. Failure: \texttt{other\_invariant\_violation}.
+\end{enumerate}
+
+The two broad categories are \emph{malformed-output} rejections, where the emission never reaches the operation checker, and \emph{post-parse rejections}, where the emission parses but fails a runtime check. The oracle-assisted random-valid control, which emits only runtime-accepted operations, has a single failure kind: \texttt{expansion\_budget\_exhausted}, recorded when the frozen episode budget runs out before a goal is reached.
+
+% Paragraph purpose: Present the #125 rejection taxonomy table.
+\paragraph{Rejection counts.}
+Table~\ref{tab:appendix-rejection} gives the counts from the failure-mechanism calibration (\#125), which classified all 905 failures across 2,910 replay-verified episodes with zero unclassified. The \texttt{effect}, \texttt{schema}, and \texttt{static\_context} kinds arise in successor-prediction episodes, where the model generates a dynamic-state successor.
+
+\begin{table}[t]
+\caption{Rejection taxonomy from the failure-mechanism calibration (\#125). Counts are failures per arm class across 2,910 replay-verified episodes (905 total failures, 0 unclassified). Share is within the arm class.}
+\label{tab:appendix-rejection}
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{llrr}
+\hline
+Arm class & Rejection kind & Failures & Share \\
+\hline
+Base (447 ep., 447 fail.) & \texttt{malformed\_output} & 379 & 84.8\% \\
+ & \texttt{invalid\_frontier\_operation} & 67 & 15.0\% \\
+ & \texttt{other\_invariant\_violation} & 1 & 0.2\% \\
+\hline
+Learned (906 ep., 407 fail.) & \texttt{other\_invariant\_violation} & 229 & 56.3\% \\
+ & \texttt{malformed\_output} & 72 & 17.7\% \\
+ & \texttt{inapplicable\_grounded\_action} & 56 & 13.8\% \\
+ & \texttt{effect} & 27 & 6.6\% \\
+ & \texttt{schema} & 16 & 3.9\% \\
+ & \texttt{invalid\_frontier\_operation} & 5 & 1.2\% \\
+ & \texttt{source\_state\_mismatch} & 1 & 0.2\% \\
+ & \texttt{static\_context} & 1 & 0.2\% \\
+\hline
+Oracle control (51 fail.) & \texttt{expansion\_budget\_exhausted} & 51 & 100.0\% \\
+\hline
+\end{tabular}
+\end{table}
+
+
+\section{Algorithm Invariant Definitions}
+
+% Paragraph purpose: State each active algorithm's invariants as checked by the runtime.
+The Trusted Search Runtime checks the following invariants on every operation. Stepwise validity and invariant compliance do not establish termination, completeness, optimality, or episode success (Section~\ref{sec:policy}).
+
+% Paragraph purpose: BFS invariant.
+\paragraph{BFS.}
+The frontier is a FIFO queue. Every expansion must select the queue head as its source. Every insertion must target the queue tail. A state already in the visited set must not be re-inserted. This invariant is sufficient for completeness in finite state spaces with unit-cost transitions.
+
+% Paragraph purpose: BFWS invariant.
+\paragraph{BFWS (complete unpruned).}
+The frontier is a priority queue ordered first by novelty rank (lower is better), then by goal count among states with equal novelty. No generated successor is pruned. A successor whose state already appears in the frontier or visited set is not re-inserted.
+% TODO: The exact novelty definition (tuple arity, width parameter, and
+% tie-breaking within equal novelty and equal goal count) is not pinned in
+% any audited document. Record the precise rule before release.
+
+% Paragraph purpose: Weighted additive best-first invariant.
+\paragraph{Additive best-first, weighted ($w = 3$).}
+The frontier is a priority queue ordered by $f(s) = g(s) + 3 \cdot h_{\rm add}(s)$, where $g(s)$ is the accumulated path cost and $h_{\rm add}(s)$ is the additive heuristic. The expanded state must have the minimum $f$ in the frontier. When a successor is generated with a lower $g$ than an existing frontier entry for the same state, the entry is reopened with the improved cost.
+% TODO: Tie-breaking among equal-f states is not pinned in any audited source.
+% Record the exact rule before release.
+
+% Paragraph purpose: Greedy additive best-first invariant.
+\paragraph{Additive best-first, greedy.}
+The frontier is ordered by $h_{\rm add}(s)$ alone, with no path-cost component. The expanded state must have the minimum $h_{\rm add}$. Reopen and duplicate rules follow the same convention as the weighted variant.
+% TODO: Tie-breaking rule not pinned; same note as the weighted variant.
+
+
+\section{Trusted Search Runtime}
+
+% Paragraph purpose: State the three guarantees of the runtime.
+The runtime provides three guarantees that hold across all declared algorithms.
+
+\begin{enumerate}[leftmargin=*, itemsep=1pt, parsep=1pt]
+\item \textbf{No-repair property.} The runtime validates, applies, persists to Search Memory, or rejects each emission. It never chooses omitted operands, reorders candidates, silently repairs an invalid emission, or substitutes a default search decision.
+\item \textbf{Reject-and-terminate.} On the first rejected emission the episode terminates with the rejection kind recorded. There is no retry path.
+\item \textbf{Replay determinism.} Replaying the raw emissions $u_{1:T}$ against the same task instance and the same initial Search Memory reproduces the explored trace. Any step whose outcome depends on runtime repair would violate this property.
+\end{enumerate}
+
+% Paragraph purpose: Present the per-step and episode-level pseudocode using tabbing.
+The procedures below specify the per-step check and the episode loop. No \texttt{algorithm} package is loaded. The listing uses \LaTeX\ tabbing.
+
+\begin{quote}
+\small
+\begin{tabbing}
+\hspace{1.5em}\=\hspace{1.5em}\=\hspace{1.5em}\=\kill
+\textbf{procedure} \textsc{Step}($u_t$, $M_{t-1}$, $A$, $x$) \\
+\> \textit{// Phase 1: Parse the raw emission} \\
+\> \textbf{if} $u_t$ does not parse as $(\tau, \theta)$ with $\tau \in \mathrm{vocab}(A)$ \textbf{then} \\
+\>\> \textbf{return} \textsc{Reject}(\texttt{malformed\_output}) \\[2pt]
+\> \textit{// Phase 2: Validate source identity} \\
+\> \textbf{if} $\theta.\mathrm{source} \neq \mathrm{expected}(A, M_{t-1})$ \textbf{then} \\
+\>\> \textbf{return} \textsc{Reject}(\texttt{source\_state\_mismatch}) \\[2pt]
+\> \textit{// Phase 3: Validate operands against the task and state} \\
+\> \textbf{for each} grounded action $a$ named in $\theta$ \textbf{do} \\
+\>\> \textbf{if} $a$ is not applicable in $\theta.\mathrm{source}$ under $x.D$ \textbf{then} \\
+\>\>\> \textbf{return} \textsc{Reject}(\texttt{inapplicable\_grounded\_action}) \\
+\> \textbf{for each} successor state $s'$ named in $\theta$ \textbf{do} \\
+\>\> \textbf{if} $s'$ violates the domain schema \textbf{then} \\
+\>\>\> \textbf{return} \textsc{Reject}(\texttt{schema}) \\
+\>\> \textbf{if} $s' \neq \mathrm{effects}(a, \theta.\mathrm{source})$ \textbf{then} \\
+\>\>\> \textbf{return} \textsc{Reject}(\texttt{effect}) \\
+\> \textbf{if} any static-context reference in $\theta$ is inconsistent with $x$ \textbf{then} \\
+\>\> \textbf{return} \textsc{Reject}(\texttt{static\_context}) \\[2pt]
+\> \textit{// Phase 4: Check Algorithm Invariant} \\
+\> \textbf{if} frontier discipline of $A$ is violated by $(\tau, \theta, M_{t-1})$ \textbf{then} \\
+\>\> \textbf{return} \textsc{Reject}(\texttt{invalid\_frontier\_operation}) \\
+\> \textbf{if} any other invariant of $A$ is violated \textbf{then} \\
+\>\> \textbf{return} \textsc{Reject}(\texttt{other\_invariant\_violation}) \\[2pt]
+\> \textit{// Phase 5: Apply and persist} \\
+\> $M_t \leftarrow \mathrm{apply}(\tau, \theta, M_{t-1})$ \\
+\> \textbf{return} \textsc{Accept}($M_t$)
+\end{tabbing}
+\end{quote}
+
+\begin{quote}
+\small
+\begin{tabbing}
+\hspace{1.5em}\=\hspace{1.5em}\=\hspace{1.5em}\=\kill
+\textbf{procedure} \textsc{Episode}($x$, $A$, $\phi_m$, $B$) \\
+\> $M_0 \leftarrow \mathrm{InitSearchMemory}(A, x)$ \\
+\> \textbf{for} $t = 1, 2, \ldots, B$ \textbf{do} \\
+\>\> $o_t \leftarrow \phi_m\bigl(c_t(x, M_{t-1})\bigr)$ \hspace{2em} \textit{// build observation} \\
+\>\> $u_t \leftarrow \pi(o_t)$ \hspace{6.4em} \textit{// policy emission} \\
+\>\> $r \leftarrow$ \textsc{Step}($u_t$, $M_{t-1}$, $A$, $x$) \\
+\>\> \textbf{if} $r$ is \textsc{Reject}(\textit{kind}) \textbf{then} \\
+\>\>\> \textbf{return} $(t, \textsc{Fail}, \textit{kind})$ \\
+\>\> $M_t \leftarrow r.M$ \\
+\>\> \textbf{if} $\mathrm{GoalTest}(M_t, x.G) = \textsc{True}$ \textbf{then} \\
+\>\>\> \textbf{return} $(t, \textsc{Success})$ \\
+\> \textbf{return} $(B, \textsc{Fail}, \texttt{expansion\_budget\_exhausted})$
+\end{tabbing}
+\end{quote}
+
+% Paragraph purpose: Note budget enforcement.
+Each call to \textsc{Step} consumes one unit of the frozen episode budget $B$, whether the emission is accepted or rejected. Invalid operations are therefore charged to the budget (Section~\ref{sec:design}).
+
+
+\section{Data and Split Procedures}
+
+% Paragraph purpose: State the whole-instance split rule and the audit contract.
+All training and evaluation splits are by whole task instance. No state, decision, or target from an evaluation task appears in any training row. Every released corpus passed no-overlap, no-conflict, live/training-parity, and token-budget audits before use.
+
+% Paragraph purpose: Give BFS corpus details.
+\paragraph{BFS pilot corpus (\#111).}
+The v6 text-state process corpus holds 25,109 process rows split into 12,994 train and 12,115 dev rows, drawn from 90 replay-verified trusted traces covering 90 distinct tasks. The release assigns splits by semantic task identity, with zero cross-split task overlap. The v8 evaluation panel selects 15 tasks from this corpus's development set, not its training set. No v8 evaluation-panel task contributes training rows, consistent with the whole-instance rule above. Corpus observations expose the canonical task context, exact grounded successor candidates, and full visited membership. Release audits recorded zero semantic, input, and input-target overlap, zero conflicting identical-input labels, zero teacher-operation rejections, and zero live/corpus mismatches, all within an 8,192-token input cap and a 384-token output allowance.
+% Evidence: data/bfs_pilot_v6/qualification-attempt-004/qualification-report.json
+% (90 tasks, zero semantic split overlap), process-release/manifests/bfs-text-corpus.json
+% (split_unit=semantic_task_identity), process-release/audits/leakage.json,
+% ms-swift-process/manifest.json, and docs/issue-54-operator-runbook.md L161--168.
+
+% Paragraph purpose: Give BFWS corpus details.
+\paragraph{BFWS corpus (\#57--\#58).}
+The corpus covers the frozen 105-task development panel with 69,019 replay-verified teacher decisions. Its release contains 69,019 process records, 67,215 operational records, and a process projection of 47,780 train and 21,239 dev rows. Each step's observation exposes candidate duplicate membership, novelty values, goal-count priorities, insertion positions, and enqueue facts. Audit counters recorded zero overlap, mismatch, rejection, or held-out-access violations.
+
+% Paragraph purpose: State the evaluation manifests and their discipline.
+\paragraph{Evaluation manifests.}
+The BFS pilot uses a frozen 15-task outcome-blind development panel. The BFWS structural gate froze a 105-task development panel and a separate 45-task held-out manifest. The held-out manifest has never been accessed, and no model prediction, training decision, or analysis references it. The expanded baseline evaluates 24 tasks from 12 domains under 4 algorithms, 3 modalities, and 4 arms (1,152 logical bindings, 576 model episodes, all independently replayed). The curriculum stage evaluates 27 unseen tasks. The generalization-v2 protocol admits 25 derived tasks from 93 eligible semantics-preserving variants (uniform $k{=}5$ cheapest-prefix per family, membership frozen before execution).
+% TODO(release): Release URLs for published corpora and evidence bundles are
+% pending handoff (issue #122). Insert URLs on release.
+% TODO(final-eval): Held-out final primary evaluation unexecuted; no final
+% efficacy finding exists. The preregistration prerequisites in
+% Section~\ref{sec:design} are undecided.
+
+
+\section{Receipt Tables}
+
+% Paragraph purpose: Present the branch-level gate receipts.
+Table~\ref{tab:appendix-receipts} gives the per-branch gate receipts from the synthesis ledger (\#120). Five branches executed to completion at v1 scope. Two stopped at their frozen v1 cost-admission gates with terminal \textsc{valid\_stop} receipts and later completed at reduced scope under new v2 protocols. Every branch reconciles with zero missing evidence.
+
+\begin{table}[t]
+\caption{Per-branch gate receipts for the expanded study program (through \#126/\#127 addenda). Program spending is 68.52 of the 336 GPU-h cap. Entries and the total are rounded independently from the ledger. One prospective budget transfer (12.11 GPU-h from recovery reserve to second backbone, ratified 2026-09-19) is reflected in the branch caps. The \#127 row draws on existing baseline and DAgger caps, not an additional allocation.}
+\label{tab:appendix-receipts}
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lllrr}
+\hline
+Branch & Tickets & Terminal state & Coverage & GPU-h / cap \\
+\hline
+Expanded baseline & \#116--\#118 & complete & 1,152/1,152 & 6.53 / 56 \\
+DAgger & \#78--\#84 & complete & 405/405 & 10.91 / 48 \\
+Successor prediction & \#85--\#89, \#99 & complete & 90/90 & 10.85 / 64 \\
+Curriculum by modality & \#119 & complete & 567/567 & 11.78 / 48 \\
+Transfer & \#104--\#107 & complete & 39/39 & 3.60 / 24 \\
+Second backbone & \#101--\#103, \#123 & v2 complete & 144/144 & 6.03 / 52.11 \\
+Generalization/robustness & \#96, \#98, \#124, \#126 & v2 complete & 1,200 + 360 & 6.04 / 32 \\
+Recovery reserve & -- & reduced & -- & 0.00 / 11.89 \\
+Training-seed replication & \#127 & complete & 534/534 & 12.79 / -- \\
+\hline
+\textbf{Total} & & & & \textbf{68.52 / 336} \\
+\hline
+\end{tabular}
+\end{table}
+
+% Paragraph purpose: Preserve the #120 attempt snapshot and account for both later addenda.
+At the \#120 synthesis snapshot, the program recorded 135 attempts (96 succeeded, 36 failed, 3 cutoff). Failed and cutoff attempts retain their hours in the ledger. Every attempt ended before the absolute scheduler cutoff of 2026-09-21T11:55:19Z.
+
+% Paragraph purpose: Credit the #126 and #127 additions to the program ledger.
+The observation-corruption suite (\#126) added 2.22 GPU-h to the generalization branch. The training-seed replication addendum (\#127, closed 2026-09-21) added 12.79 GPU-h and 534 independently replayed episodes covering two cells. Together these addenda brought the program total to 68.52/336 GPU-h. See Section~F for the seed-variance results.
+% Evidence: docs/experiments/expanded-study/issue-126-closeout.md records
+% 2.2215 GPU-h added and 6.0404/32 branch spend. issue-127-closeout.md records
+% 12.7863 GPU-h added and 68.5244/336 total. Table precision follows the review.
+% TODO(v1-full): The v1 full scopes for generalization/robustness (#96/#98)
+% and second backbone (#102/#103) remain unexecuted and open. Only the
+% reduced v2 scopes have executed evidence.
+
+
+\section{Statistics}
+
+% Paragraph purpose: State the default contrast procedure.
+\paragraph{Default contrast procedure.}
+Contrasts are paired by whole task instance. Paired differences use a bootstrap with 10,000 resamples at seed 1729 and 95\% percentile intervals. Under one training seed and panels of 24 or fewer instances, these intervals are descriptive bounds. They do not support broad superiority claims.
+
+% Paragraph purpose: Pin the BFWS gate bound to its two-sided percentile interval.
+The BFWS gate (\#59) used confidence level 0.95 with 10,000 paired whole-instance resamples (bootstrap seed 1729). Its reported lower bound is the 0.025 quantile, i.e., the lower endpoint of a two-sided 95\% percentile interval.
+
+% Paragraph purpose: State the tiny-strata rule.
+\paragraph{Tiny-strata rule.}
+Strata with fewer than 8 episodes are reported as descriptive only. No intervals are computed over such strata. They are listed explicitly and never silently pooled or dropped.
+
+% Paragraph purpose: State the transfer test procedure.
+\paragraph{Transfer tests.}
+Transfer comparisons use McNemar exact tests against the per-example base predictions, with Holm correction across all 36 adapter-by-benchmark comparisons. The minimum adjusted $p$ in the executed transfer branch is 0.8156. None survives correction.
+
+% Paragraph purpose: Document the seed-variance addendum protocol and Cell A results.
+\paragraph{Seed-variance addendum (\#127).}
+A prospective training-seed replication measured variance for exactly two cells. Seeds 17, 29, and 71 were frozen before any seed-29 or seed-71 artifact existed. All 534 new episodes were independently replayed. Cross-seed aggregation is descriptive ($n = 3$ seeds).
+
+Cell~A is the headline process-SFT cell (\texttt{best\_first\_add\_greedy} $\times$ multimodal-state) evaluated on the 24-problem panel. Each seed trained a fresh LoRA adapter with new initialization and dropout randomness on the identical frozen 512-record membership. Table~\ref{tab:appendix-seeds} gives the per-seed results.
+
+\begin{table}[t]
+\caption{Seed-variance replication for Cell~A (headline process-SFT cell). Contrasts are paired whole-instance bootstrap (24 tasks, 10,000 resamples, seed 1729). The primary contrast (SFT $-$ base) is positive at every seed with no sign flip.}
+\label{tab:appendix-seeds}
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{rccc}
+\hline
+Seed & Successes / 24 & SFT $-$ base & SFT $-$ random-valid \\
+\hline
+17 & 21/24 & $+0.875$ & $-0.125$ \\
+29 & 21/24 & $+0.875$ & $-0.125$ \\
+71 & 22/24 & $+0.917$ & $-0.083$ \\
+\hline
+\end{tabular}
+\end{table}
+
+% Paragraph purpose: Cell B results and boundary.
+Cell set~B covers DAgger iteration-1 versus the exposure-matched continued-SFT control under BFS across all three modalities. The null replicates: 0/72 unseen successes for every arm and every seed. The paired contrast (DAgger minus continued SFT) is $+0.000$ $[0.000, 0.000]$ at each seed.
+
+This addendum supersedes the blanket single-training-seed boundary for these two cells only. Every other cell in the program remains single-seed (seed 17) evidence.
+% TODO(seed-coverage): Seed replication beyond these two cells is not
+% authorized under the current program. All remaining cells are single-seed.
+
+
+\section{Modality Adapters and Observation Contract}
+
+% Paragraph purpose: Define each adapter and the decision-sufficiency requirement.
+Three fixed Modality Observation adapters are declared. Each maps a decision context $c_t$ (the canonical task context plus the decision-relevant view of Search Memory $M_t$) to an observation $o_t = \phi_m(c_t)$ presented to the policy. The adapter is fixed for an entire training or evaluation cell. The adapter contract requires decision sufficiency: $o_t$ must expose every fact the exact teacher uses to resolve step $t$ under the declared algorithm.
+
+% Paragraph purpose: text-state adapter.
+\paragraph{text-state.}
+The state, goal, and search context are serialized as a compact relational representation. Object identities, predicate names, and all Search Memory contents (frontier, visited set, algorithm-specific state) appear as structured text.
+
+% Paragraph purpose: visual-state adapter.
+\paragraph{visual-state.}
+The state and goal are rendered as a pair of 128$\times$128 pixel images: a rendered state image and a partial-goal constraint image. Object labels are not embedded in the rendered image. Search Memory contents and the grounded candidate list remain in the textual serialization, even in this adapter.
+
+% Paragraph purpose: multimodal-state adapter.
+\paragraph{multimodal-state.}
+The observation combines the text-state serialization and the visual-state rendered images. The policy receives the relational text and the image pair jointly.
+
+% Paragraph purpose: State the text-scaffold caveat.
+\paragraph{Text-scaffold caveat.}
+Search Memory contents and the candidate list are serialized as structured text in all three adapters, including visual-state. Rendered images carry the planning state and goal visuals, but search bookkeeping (frontier, visited set, novelty counters, candidate list) always travels through the text channel. The observation-corruption suite (\#126) confirms this empirically: corrupting the text channel drops success by up to $-0.944$, while corrupting the visual channel moves success by at most $-0.111$ with intervals that include zero.
+
+% Paragraph purpose: State information-loss and parity boundaries.
+\paragraph{Information-loss boundaries.}
+The 128-pixel unlabelled rendered views can lose symbolic identities. The P3 name-compression family in the generalization-v2 suite is information-lossy: 24/24 variants are text-lossy, 18/24 are multimodal-lossy, and 0/24 are visual-lossy. Modality matching between training and evaluation ensures identical observation format, not information parity. Static-context and goal fields of the observation contain text in every adapter. The available evidence does not establish semantic parity across adapters or an intrinsic modality effect.
+% TODO(image-only): Issue #128 proposes visual-nomem-state and
+% visual-seq-state arms that would test image-only state and history channels
+% without the shared textual serialization. It is a frozen-protocol proposal
+% with no outcomes and no GPU authorization under the current program.
+
+
+\section{Retained-Infrastructure Feasibility Notes}
+
+% Paragraph purpose: Scope the section: feasibility evidence, not efficacy.
+The terms below describe verified infrastructure components that support corpus generation, evaluation, and evidence production. They constitute feasibility evidence for the runtime and rendering pipeline. They cannot support a Search Process Policy efficacy claim.
+
+% Paragraph purpose: Define the plan pipeline terms.
+\paragraph{Plan pipeline.}
+\textbf{Plan Submission} transmits a supplied plan from the project adapter to a planning or rendering backend. \textbf{Plan Interpretation} converts the submitted plan into the backend's ordered action representation. An \textbf{Action Sequence} is the canonical identity of a supplied plan as a normalized, ordered sequence of grounded action predicates. Casing and whitespace are not part of its identity.
+
+% Paragraph purpose: Define the rendering pipeline terms.
+\paragraph{Rendering pipeline.}
+\textbf{Render Production} creates a visualisation output and its rendered image for a planning state. \textbf{Render Validation} confirms that the produced visualisation and image satisfy declared structural and semantic checks. \textbf{Plan Provenance} links a produced visualisation to the exact supplied plan that the backend interpreted.
+
+% Paragraph purpose: Define the certification and evidence terms.
+\paragraph{Certification and evidence.}
+\textbf{Integration Certification} is the finding that Plan Submission, Plan Interpretation, Plan Provenance, Render Production, Render Validation, and required execution-isolation checks all passed. An \textbf{Attempt} is one authorized, immutable execution with its own identity and retained outcome, whether successful or not. An \textbf{Evidence Bundle} is the self-contained records from an Attempt that allow an independent reproducer to verify its claims offline. Issue \#110 supplies deterministic compact delta/event evidence with semantic replay while preserving search semantics, serving the replay-determinism requirement of the Trusted Search Runtime.
+
+% Paragraph purpose: Note historical CGAS terms and their claim boundary.
+\paragraph{Historical terms.}
+Planning Certificate, Joint Action-and-Certificate SFT, Adaptive Scaffolding, Support Route, Live Memory, Verified Joint Step, and Route Label are historical CGAS terms. They describe retained infrastructure internals. They cannot support any current Search Process Policy efficacy claim and are not referenced elsewhere in this manuscript.

@@ -1,0 +1,73 @@
+% STATUS: REVISED R3b for findings #11 and #16. Runtime boundary now leads.
+% sec:discussion and sec:conclusion written per D7/D13 + Section Blueprint.
+% Structure: runtime boundary, what was demonstrated (tied to receipts),
+% what was not, threats to validity with #127 seed-variance nuance (two
+% replicated cells, rest single-seed, descriptive n=3). Conclusion:
+% gate-bounded answer, unsupported claims, single next gated step. Numbers
+% from content_brief.md (lines 32-33), synthesis-v1/seed-variance-addendum.md,
+% and sibling Results section. No new bib entries required; this section
+% interprets results already cited in sibling sections.
+\section{Discussion and Limitations}
+\label{sec:discussion}
+
+% Paragraph purpose: Frame the discussion around the boundary between
+% trusted-successor competence and its limits.
+The results in Section~\ref{sec:results} trace a conditional boundary around learned search execution. Under trusted successors, the trained Search Process Policy produces valid, invariant-compliant traces for certain algorithm families and fails in localizable ways for others. This section interprets those findings, states the runtime boundary that limits every claim, and identifies the threats to validity that bind the current evidence.
+
+% Paragraph purpose: State the runtime boundary and its consequences for
+% interpretation.
+\paragraph{Runtime boundary.}
+Every positive result depends on the Trusted Search Runtime. The runtime validates emissions, applies transitions, maintains Search Memory, and checks Algorithm Invariants on every operation. It does not choose omitted operands, reorder candidates, or repair invalid emissions. The replay-determinative test attributes each exploration decision to the model. This separation enables clean attribution and equally constrains what the evidence can claim. The contract does not establish that the model conducts unassisted internal search, holds unbounded frontier state, or possesses general planning autonomy. The model issues Typed Search Operations into an external executor. Structural and process competence under this contract means emitting correct operations under external state management. The successor-prediction null confirms the runtime dependence: with model-generated transitions, success drops from 45/45 to 1/45, and structural control collapses.
+
+% Paragraph purpose: State each positive finding tied to its gate receipt.
+\paragraph{What the evidence demonstrates.}
+The BFWS structural gate provides the single positive learned-control comparison. On its frozen 15-task text-state development panel, process SFT achieved 0.933 success versus 0.467 for random-valid, with a paired bootstrap lower bound of 0.2 (Section~\ref{sec:results}). This is a development-stage finding from one training seed on one algorithm. It shows that process supervision can train a policy whose full-episode traces exceed the oracle-assisted validity control on the tested panel.
+
+The expanded 24-task baseline marks the boundary. Learned success appears only in the additive best-first cells (125/288 versus 240/288 for random-valid, 0/288 for the base). BFS and width-based best-first score 0/24 in every modality. The pattern is algorithm-specific, not modality-specific. Process SFT succeeds under weighted A* and greedy best-first regardless of observation modality, and it fails under the queue-discipline algorithms in all three.
+
+Failure-mechanism calibration localizes where learned execution breaks. The base fails on its first decision in every episode (447/447), producing malformed outputs or rejected frontier operations. Learned arms fail later. The dominant learned failure kind is \texttt{other\_invariant\_violation}: parsed, source-correct operations rejected because they violate the declared search invariant (229 of 407 learned failures). Learned first failures cluster in steps 0--2 (137/88/46), while oracle-control failures are all late expansion-budget exhaustion. Process supervision teaches the policy to emit well-formed operations but not to maintain invariant-consistent frontier ordering across a full episode.
+
+The observation-corruption suite identifies which input channel carries the learned control. Masking or shuffling the text channel drops success by up to $-0.944$. Blanking or degrading the visual channel costs at most $-0.111$, with intervals including zero. The multimodal text-minus-visual isolation contrast is $-0.694$ $[-0.889, -0.472]$. Under the frozen observation contract, the learned controller depends on the textual search-memory serialization.
+
+% Paragraph purpose: Report the reduced-scope generalization finding.
+Reduced-scope generalization testing (128/150 under 25 semantics-preserving perturbation variants, versus 0/150 for the base) shows that the learned adapters survive surface-level input variation on the additive best-first family.
+
+% Paragraph purpose: State each null or negative finding tied to its branch.
+\paragraph{What the evidence does not demonstrate.}
+Five executed branches returned null or negative results. Model-generated successors collapsed success from 45/45 to 1/45 (Section~\ref{sec:results}). Two DAgger iterations on BFS added no advantage over exposure-matched continued SFT (1/72 versus 1/72 unseen successes), and DAgger carried the higher invalid-operation rate. Zero-shot transfer to FOLIO, GSM8K, and HumanEval left no comparison surviving Holm correction (0/36, minimum adjusted $p$ 0.8156). The reduced second-backbone evaluation with InternVL3.5-8B reached no goals (0/36 for both base and process SFT). Because InternVL3.5-8B shares the Qwen3-8B LLM family, this contrast isolates the vision tower, connector, image tokenization, and multimodal recipe rather than the language model. Curriculum-by-modality produced no ordering interaction, with all four paired interaction intervals including zero. The matched-modality evidence (process SFT at 5/12 text, 6/12 visual, 6/12 multimodal versus 10/12 random-valid in each modality) does not support an intrinsic modality effect.
+
+% Paragraph purpose: Itemize threats to validity with seed-variance nuance,
+% development-stage status, saturation, and text-scaffold confound.
+\paragraph{Threats to validity.}
+
+\emph{Training-seed coverage.}
+Most cells rest on a single training seed (17). A prospective replication (issue \#127, closed 2026-09-21) measured seed variance for exactly two cells using seeds 17, 29, and 71, with 534 new episodes independently replayed. The headline process-SFT cell (greedy best-first $\times$ multimodal-state, 24-problem panel) replicated at 21/24, 21/24, 22/24 (mean 0.889, range $[0.875, 0.917]$). The primary positive contrast against the pretrained base was positive at every seed ($+0.875$/$+0.875$/$+0.917$) with no sign flip, and the contrast against random-valid stayed negative at every seed ($-0.125$/$-0.125$/$-0.083$). The DAgger iteration-1 versus continued-SFT null replicated at every seed (0/72 both arms, paired contrast $+0.000$ $[0, 0]$). The published iteration-2 verdict (1/72 versus 1/72, seed 17 only) is unchanged. Cross-seed aggregation is descriptive ($n = 3$). Cell A tested one modality (multimodal-state), so two of the three headline modalities remain unreplicated. Every other cell remains single-seed. Stability on three seeds in one cell does not guarantee stability elsewhere, and the descriptive aggregation is not a powered significance test.
+
+\emph{Development-stage protocols.}
+All panels are development panels. The held-out 45-task manifest was frozen before outcomes and has never been accessed [TODO: held-out final primary evaluation]. Preregistration prerequisites for that evaluation remain undecided (Section~\ref{sec:design}). Until it executes, the BFWS comparison and the algorithm-specific pattern are bounded development-stage findings.
+% TODO: held-out final primary evaluation remains unexecuted.
+
+\emph{Saturating controls as bounds.}
+Random-valid saturates at 100\% on BFS and both additive best-first panels. Where it saturates, the learned-to-control gain is unmeasurable rather than zero. The BFWS development panel is the only panel where random-valid falls below 1.0, and it is the only one that reports a positive learned-control comparison. Saturation bounds measurability, not policy quality.
+
+\emph{Text-scaffold confound in the corruption finding.}
+The corruption result shows that the learned policy depends on the language channel. It does not show that rendered images are inherently uninformative. All three adapters share the same textual search-memory and candidate serialization, so the visual channel is dispensable given that shared scaffold. An image-only observation arm (issue \#128) that removes the shared serialization would test whether the visual channel carries independent decision-relevant information, but that arm is a frozen-protocol proposal with no outcomes and no GPU authorization [TODO: image-only arms, issue \#128].
+% TODO: #128 proposal only; no image-only arm outcomes exist.
+
+The full-scope v1 generalization and second-backbone branches remain open under terminal \textsc{valid\_stop} receipts [TODO: full-scope v1, issues \#96/\#98/\#102/\#103]. Release URLs for evidence bundles are pending handoff [TODO: release URLs, issue \#122].
+% TODO: #96/#98/#102/#103 open; only reduced v2 scopes executed.
+% TODO: #122 release/handoff open.
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+% Paragraph purpose: Give a gate-bounded answer to the title question.
+Can vision-language models learn to execute classical search algorithms? The evidence supports a conditional, development-stage answer. On the BFWS structural-gate development panel, process SFT exceeded random-valid (0.933 versus 0.467, bootstrap lower bound 0.2). On the expanded baseline, learned success appeared only in the additive best-first cells, always below saturating controls. BFS and width-based best-first showed zero learned success. Failure-mechanism analysis places learned failures at invariant violations in early decisions, not at malformed outputs. Observation-corruption analysis places the learned control in the textual search scaffold, not in the rendered visual channel. These findings map where execution is learnable under the tested interface. They do not constitute a general efficacy claim.
+
+% Paragraph purpose: Name the claims the evidence does not support.
+Several claims remain unsupported. No final comparative efficacy finding exists because the held-out manifest has not been accessed [TODO: held-out final primary evaluation]. Model-generated successors collapse structural control (45/45 to 1/45). DAgger adds no advantage. Transfer is null. A second backbone reaches no goals. The evidence does not establish an intrinsic modality effect or general planning autonomy. Training-seed variance has been measured for two cells (three seeds each, descriptive aggregation). Every other cell is single-seed.
+% TODO: held-out final primary evaluation unexecuted.
+
+% Paragraph purpose: State the single next gated step.
+The next gated step is the held-out final primary evaluation on the frozen 45-task manifest, under a preregistered protocol with decided estimands, budget rules, and statistical tests (Section~\ref{sec:design}). Release URLs for evidence bundles are pending [TODO: release URLs, issue \#122].
+% TODO: #122 release/handoff open.

@@ -1,0 +1,88 @@
+% STATUS: PROSE-PASS 2026-09-22: forward-referenced BFWS 'only positive' claim to Section 4.2.
+% STATUS: REVISED 2026-09-22 for R1: training scopes, panel provenance, citations, and issue/list formatting. Full section
+% text for D11 as amended 2026-09-21: three checkpoint conditions (base,
+% process SFT, process SFT plus DAgger), random-valid and exact-classical
+% references as oracle-assisted controls, whole-instance splits, budget
+% parity, the staged gated sequence with exact panel counts, and the seed
+% policy (historical five-seed BFS v8 pilot, one seed per cell, two-cell prospective replication per \#127).
+% The D11 "paired A* variants" heuristic-representation stage is recorded as
+% obsolete (issue-62 VALID_STOP retired the optimal A* h_max/landmark-count
+% pair); the active additive arms are weighted A* (weight 3) and greedy
+% best-first over h_add. Unmeasured items carry visible TODO markers with
+% %-level TODO comments per contract rule 6. Citations live in
+% iclr2026_conference_design_refs.bib (all entries verified against arXiv or
+% CrossRef on 2026-09-21).
+\section{Experimental Design}
+\label{sec:design}
+
+% Paragraph purpose: State the comparative question, the staged gate logic, and the development-stage boundary that governs every executed stage.
+The study is organized around one comparative question per cell, asked of every algorithm-by-modality-by-condition combination: whether a trained Search Process Policy exceeds an oracle-assisted validity control on full-episode budgeted success under the ownership contract of Section~\ref{sec:policy}. Training and evaluation run under frozen protocols and a 336 GPU-hour program cap, so the work proceeds as a staged sequence in which each stage is admitted by a cost gate and closed by a prespecified outcome (PASS, VALID\_STOP, INVALID, or ANCESTOR\_STOP) that is preserved as a receipt. Every executed stage is development-stage evidence. Panels are frozen and outcome-blind, the held-out manifest has never been accessed, and all model comparisons use a single training seed per cell except the two cells replicated under issue \#127. We report the design with its gate statuses intact, including the stages that stopped early, because the stop receipts bound what the evidence supports.
+
+% Paragraph purpose: Define the active algorithm matrix and record the retired optimal A* pair with its reason.
+Four declared algorithms form the active matrix. Breadth-first search (BFS) provides the minimal frontier discipline. The structural gate uses the complete unpruned variant of best-first width search \citep{lipovetzky2017bestfirst}, which orders the frontier by novelty and goal count without pruning. Two additive best-first variants complete the matrix, weighted A* with weight 3 \citep{pohl1970heuristic} and greedy best-first, both over the additive heuristic $h_{\rm add}$ \citep{bonet2001planning} and named \texttt{astar\_w3} and \texttt{astar\_greedy} in the transfer branch. An earlier stage paired two optimal A* variants that differed in heuristic representation, one over $h_{\max}$ and one over a landmark-count heuristic. That pair is retired. A governed VALID\_STOP under issue \#62 ended the stage before corpus construction, its heuristic-representation estimand remains unidentified, and no optimal A* arm participates in the active design.
+
+% Paragraph purpose: Define the three checkpoint conditions and distinguish gate-era from expanded-program training recipes, including backbones.
+Each algorithm-by-modality cell holds three checkpoint conditions. The base condition is the pretrained model with no task-specific optimization. In the expanded program, the process-SFT condition trains a fresh LoRA adapter \citep{hu2022lora} on replay-verified Search-Trace Segments, using 512 unique records for one epoch (16 optimizer updates) per cell. Targets are the exact teacher's Typed Search Operations. The BFWS structural-gate checkpoint predates this recipe. It trained on the full 47,780-record training corpus for two epochs (seed 17). The additive development panels (issues \#65 and \#66) likewise used two-epoch full-corpus runs. The third condition continues a process-SFT checkpoint with two iterations of DAgger \citep{ross2011dagger}, in which the exact teacher relabels the states that the learned policy actually visits. An exposure-matched continued-SFT arm receives the same added training exposure and controls for it. The primary backbone is Qwen3-VL-8B-Instruct \citep{bai2025qwen3vl} at pinned revision \texttt{0c351dd0}, and the second-backbone stage trains InternVL3.5-8B \citep{wang2025internvl35} under the same expanded-program cell recipe.
+
+% Paragraph purpose: State the seed policy and separate the historical five-seed pilot from it.
+Exactly one training seed is authorized per model/cell configuration under the supervisor budget, and every executed cell after the pilot uses seed 17, except the two cells selected for prospective training-seed replication (issue \#127, protocol frozen 2026-09-20) that added seeds 29 and 71. The historical BFS pilot predates this policy. It trained five process-SFT seeds on the bounded v8 corpus and evaluated all five on its development panel. That five-seed run is retained as pilot history and is not a template for later cells. Outside the pilot and the two replication cells, no cell estimates training-seed variance, and repeated rollout or reference seeds do not substitute for a training seed.
+
+% Paragraph purpose: Define the random-valid and exact-classical references as oracle-assisted bounds, with the missing random-valid specification marked.
+Two programmatic references bracket every learned arm. The exact-classical reference is the declared algorithm itself, executed by the Trusted Search Runtime with replay verification under the same budget, and it bounds perfect operation-level decision-making. The random-valid reference is an oracle-assisted control that proposes only operations the runtime will accept as valid, so it bounds what valid-operation bookkeeping alone achieves without learned state evaluation. Neither reference is a learned ability. When a reference saturates a panel, the learned-to-control gain on that panel is unmeasurable rather than zero. [TODO: random-valid definition] The frozen protocol has not yet pinned the validity-constrained sampling distribution, the candidate access granted to the control, the runtime filtering step, or the explicit absence of retry and repair. These details are owed to the evidence contract before the final evaluation can freeze.
+% TODO(random-valid): content_brief.md open item "random-valid definition" --
+% sampling distribution, candidate access, runtime filtering, budget parity
+% rule, and no-retry/no-repair are not specified in any audited source yet.
+
+% Paragraph purpose: Specify whole-instance splits and give the frozen panel inventory with exact counts.
+All splits are by whole task instance, so no state, decision, or target from an evaluation task appears in any training row, and each released corpus passed no-overlap, no-conflict, live-parity, and token-budget audits before use. The panel inventory is frozen. The BFS pilot used an outcome-blind 15-task development panel. Its released text-state process corpus holds 25,109 process rows (12,994 train, 12,115 dev) drawn from 90 replay-verified traces. The BFWS gate froze a 105-task development panel and a 45-task held-out manifest that remains unaccessed, and its 69,019 replay-verified teacher decisions project to 47,780 train and 21,239 dev process rows. The modality matrix evaluates 24 tasks from 12 domains under three Modality Observations (text-state, visual-state, multimodal-state), which gives 288 episodes per arm across the four algorithms and 1,152 bindings across the four arms. The generalization stage admits 25 frozen semantics-preserving perturbation variants, yielding 150 learned-adapter episodes inside 1,200 replayed episodes. The observation-corruption suite freezes $k=9$ source tasks. The transfer stage runs 36 paired comparisons.
+
+% Paragraph purpose: Fix the budget unit, budget parity, the termination rule, and the separated measures.
+Episodes are budgeted in decision calls, and invalid operations are charged to the budget. Budget parity holds inside each cell. Learned adapters are capped at twice the exact-reference decision count of the task, the base condition is priced at one call per episode, and the programmatic references run on CPU under the same frozen rollout rules. Under those rules an episode terminates on its first invalid emission, so model arms have no retry or repair path. A model episode counts only after an independent replay of its raw emissions reproduces the recorded trace. Full-episode budgeted success is the primary measure. Operation validity, Algorithm Invariant compliance, invalid-operation rate, and charged budget are reported separately, and no stage combines them into one score.
+
+% Paragraph purpose: Fix the analysis contract: paired bootstrap, corrected transfer tests, and the tiny-strata rule.
+Contrasts are paired by whole task instance. Unless a stage's frozen protocol states otherwise, paired differences use a bootstrap over instances with 10,000 resamples at seed 1729 and 95\% percentile intervals, transfer comparisons use exact McNemar tests against the base with Holm correction across the 36 comparisons, and strata with fewer than 8 instances are reported as descriptive only. Under one training seed per cell (three in the two replicated cells) and panels of this size, these intervals are descriptive bounds and cannot support broad superiority claims.
+
+% Paragraph purpose: Walk the staged sequence in order with gate status and frozen scope per stage, marking pending stages visibly.
+The staged sequence, with the status of each stage at the evidence snapshot of 2026-09-21, is as follows.
+
+\begin{enumerate}[leftmargin=*,itemsep=1pt,parsep=2pt]
+\item \textbf{Bounded BFS pilot (executed, closed as history).} Five process-SFT seeds on the bounded v8 corpus reached invariant-valid success on the frozen 15-task outcome-blind panel, but random-valid matched them, so the stage closed with a governed VALID\_STOP and downstream work was gated-not-run. Capped-iteration width search survives from this era as qualification history and plays no role in the active gate.
+
+\item \textbf{BFWS structural gate (executed, development-panel PASS).} The complete unpruned BFWS successor replaced capped iteration width after independent IW(1), IW(2), and IW(3) attempts proved not corpus-complete. The 105-task panel, the replay-verified traces, and the released process corpus qualify this stage, and a frozen 15-task text-state development panel under BFWS supplies what Section~\ref{sec:results-primary} identifies as the study's only positive learned-control contrast to date.
+The BFWS gate evaluated a preregistered exact-cost fallback panel. It selected the cheapest exact-decision task in each of the 15 domains from the 35-task development pool before any model outcome, breaking ties by difficulty and instance ID. The BFS pilot's 15-task v8 panel instead came from the v6 development set, with one task per domain (11 easy, 3 medium, 1 hard). [TODO: evidence] The runbooks do not pin the task overlap between these panels or its count.
+% TODO(panel-overlap): issue-54-operator-runbook.md and issue-59-bfws-structural-gate.md pin the selection rules but not their shared task identities. Establish the overlap relation and count from the retained panel manifests.
+
+\item \textbf{Modality matrix (executed).} The expanded matched baseline crosses the 24 tasks, 12 domains, four algorithms, and three modalities described above. Two ablations sit beside it. Curriculum-by-modality trains nine cells (three modalities under staged, shuffled, and mixed orderings of greedy best-first records) and evaluates 27 unseen tasks. The successor-prediction stage replaces trusted successors with model-generated ones over 90 episodes in 15 modality-by-panel cells on a 12-task fallback panel, separating end-to-end competence from structural control under trusted successors.
+
+\item \textbf{DAgger (executed).} Two iterations on BFS, evaluated against the exposure-matched continued-SFT control on 3 development and 24 unseen modality-task pairs per modality (72 unseen rows).
+
+\item \textbf{Generalization and robustness v2 (executed at reduced frozen scope).} The frozen admission selected 25 of 93 eligible variants as a uniform cheapest-prefix sample of five per family. [TODO: full-scope v1] The full v1 suites stopped at their cost-admission gates and remain unexecuted (issues \#96 and \#98 open).
+% TODO(full-scope-v1): issues #96/#98 (generalization/robustness) and
+% #102/#103 (second backbone) remain open; only reduced v2 scopes executed.
+
+\item \textbf{Second backbone v2 (executed at reduced frozen scope).} InternVL3.5-8B (pinned \texttt{OpenGVLab/InternVL3\_5-8B-HF} revision \texttt{741a7d03}) was trained on a 12-task key-cell panel selected by lowest reference BFS decision count and frozen before any outcome. Because this backbone shares the Qwen3-8B language-model family with the primary model, the contrast isolates the vision tower, connector, image tokenization, and multimodal recipe rather than the language model. The full-scope v1 branch remains unexecuted (issues \#102 and \#103 open).
+
+\item \textbf{Failure-mechanism calibration (executed, CPU-only).} A frozen failure taxonomy was applied to 2,910 replay-verified episodes, classifying 905 failures with zero unclassified, to locate where learned execution fails relative to the base and the oracle-assisted control.
+
+\item \textbf{Observation-corruption suite (executed).} Frozen checkpoints, with no retraining, were evaluated under four deterministic corruption families applied at observation time (visual blanking, visual degradation, seeded text shuffling, and text masking) on the $k=9$ frozen tasks, probing which Modality Observation channel carries the learned control.
+
+\item \textbf{Zero-shot transfer (executed).} All 12 verified planning adapters plus the base were evaluated on frozen subsets of FOLIO (200 items), GSM8K (200 items), and HumanEval (164 items) under the 36-comparison paired contract described above.
+
+\item \textbf{Final primary evaluation (pending).} [TODO: final evaluation] No authorized held-out evaluation exists. Freezing one requires recorded decisions on the following prerequisites.
+\begin{itemize}
+\item The condition-level data source and Search-Trace Segment construction with per-algorithm allocation.
+\item Compute parity and checkpoint-selection rules.
+\item The episode-budget unit, the whole-instance split procedure, and the fixed Search Memory capacity.
+\item The estimand, the uncertainty interval or test, the success threshold, the invariant-compliance rule, and the validity and invalid-operation denominators for every cell.
+\end{itemize}
+Until these choices are set, the manuscript is a result-ready empirical skeleton rather than a preregistered evaluation protocol.
+% TODO(final-eval): held-out final primary evaluation unexecuted; the
+% preregistration prerequisites in writing_design_tree.md are undecided.
+
+\item \textbf{Training-seed replication (executed).} A prospective amendment (protocol \texttt{expanded-seed-replication-v1}, issue \#127, frozen 2026-09-20 before any seed artifact existed) added training seeds 29 and 71 to two cells selected by decision relevance, not by outcome: cell~A, the headline process-SFT cell (\texttt{best\_first\_add\_greedy} $\times$ multimodal-state, 24-problem unseen panel), and cell set~B, DAgger iteration-1 versus exposure-matched continued-SFT across three modalities (72 unseen rows per seed). Seeds, cell selection, evaluation contracts, and analysis were frozen before launch. No outcome-based cell swapping occurred and no seed was dropped after outcomes. All 534 new episodes (48 baseline, 486 DAgger) were independently replayed under the original frozen evaluation contracts. Cross-seed aggregation is descriptive ($n = 3$), and all cells outside these two remain single-seed (17).
+\end{enumerate}
+
+% Paragraph purpose: Close with the remaining unmeasured arms and hand off measurements to Results.
+One further arm is specified but unmeasured: image-only state-history observation conditions (visual-nomem-state and visual-seq-state, issue \#128) exist as a frozen-protocol proposal without GPU authorization under the current program. [TODO: image-only arms] Measurements for every executed stage, including the nulls and the stop receipts, are reported in Section~\ref{sec:results}.
+% TODO(image-only): issue #128 is a proposal only, with no outcomes and no
+% GPU authorization under the current program.

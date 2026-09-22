@@ -1,0 +1,166 @@
+% Related Work bibliography — owned by sec:related writer.
+% Keys follow author+year+slug convention.
+% Every entry verified against arXiv API, publisher pages, or proceedings
+% as documented in /tmp/rw_scout_report.md (2026-09-21).
+% Legacy keys reused via \citep without re-declaration:
+%   valmeekam2023critical, stein2025autoplanbench,
+%   kokel2026acpbenchhard, huang2026twodistinct.
+
+% --- Thread 1: classical planning/search and LLM benchmarks ---
+
+@article{hart1968formal,
+  author  = {Hart, Peter E. and Nilsson, Nils J. and Raphael, Bertram},
+  title   = {A Formal Basis for the Heuristic Determination of Minimum Cost Paths},
+  journal = {IEEE Transactions on Systems Science and Cybernetics},
+  volume  = {4},
+  number  = {2},
+  pages   = {100--107},
+  year    = {1968},
+  doi     = {10.1109/TSSC.1968.300136}
+}
+
+@inproceedings{lipovetzky2017bestfirst,
+  author    = {Lipovetzky, Nir and Geffner, H\'{e}ctor},
+  title     = {Best-First Width Search: Exploration and Exploitation in Classical Planning},
+  booktitle = {Proceedings of the AAAI Conference on Artificial Intelligence},
+  volume    = {31},
+  pages     = {3590--3596},
+  year      = {2017},
+  doi       = {10.1609/aaai.v31i1.11027}
+}
+
+@inproceedings{valmeekam2023planbench,
+  author    = {Valmeekam, Karthik and Marquez, Matthew and Olmo, Alberto and Sreedharan, Sarath and Kambhampati, Subbarao},
+  title     = {{PlanBench}: An Extensible Benchmark for Evaluating Large Language Models on Planning and Reasoning about Change},
+  booktitle = {Advances in Neural Information Processing Systems 36 ({NeurIPS} 2023), Datasets and Benchmarks Track},
+  year      = {2023},
+  note      = {arXiv:2206.10498}
+}
+
+@inproceedings{kambhampati2024llms,
+  author    = {Kambhampati, Subbarao and Valmeekam, Karthik and Guan, Lin and Verma, Mudit and Stechly, Kaya and Bhambri, Siddhant and Saldyt, Lucas and Murthy, Anil},
+  title     = {{LLMs} Can't Plan, But Can Help Planning in {LLM}-Modulo Frameworks},
+  booktitle = {Proceedings of the 41st International Conference on Machine Learning},
+  series    = {Proceedings of Machine Learning Research},
+  volume    = {235},
+  year      = {2024},
+  publisher = {PMLR},
+  note      = {arXiv:2402.01817}
+}
+
+% --- Thread 2: neural algorithm execution ---
+
+@misc{zaremba2014learning,
+  author        = {Zaremba, Wojciech and Sutskever, Ilya},
+  title         = {Learning to Execute},
+  year          = {2014},
+  eprint        = {1410.4615},
+  archiveprefix = {arXiv},
+  primaryclass  = {cs.NE}
+}
+
+@inproceedings{velickovic2020neural,
+  author    = {Veli\v{c}kovi\'{c}, Petar and Ying, Rex and Padovano, Matilde and Hadsell, Raia and Blundell, Charles},
+  title     = {Neural Execution of Graph Algorithms},
+  booktitle = {International Conference on Learning Representations ({ICLR} 2020)},
+  year      = {2020},
+  note      = {arXiv:1910.10593}
+}
+
+@misc{lehnert2024beyond,
+  author        = {Lehnert, Lucas and Sukhbaatar, Sainbayar and Su, DiJia and Zheng, Qinqing and Mcvay, Paul and Rabbat, Michael and Tian, Yuandong},
+  title         = {Beyond {A*}: Better Planning with Transformers via Search Dynamics Bootstrapping},
+  year          = {2024},
+  eprint        = {2402.14083},
+  archiveprefix = {arXiv},
+  primaryclass  = {cs.AI}
+}
+
+@inproceedings{gandhi2024stream,
+  author    = {Gandhi, Kanishk and Lee, Denise and Grand, Gabriel and Liu, Muxin and Cheng, Winson and Sharma, Archit and Goodman, Noah D.},
+  title     = {Stream of Search ({SoS}): Learning to Search in Language},
+  booktitle = {Conference on Language Modeling ({COLM} 2024)},
+  year      = {2024},
+  note      = {Spotlight. arXiv:2404.03683}
+}
+
+% --- Thread 3: LLM/VLM planning and step/process supervision ---
+
+@inproceedings{yao2023tree,
+  author    = {Yao, Shunyu and Yu, Dian and Zhao, Jeffrey and Shafran, Izhak and Griffiths, Thomas L. and Cao, Yuan and Narasimhan, Karthik},
+  title     = {Tree of Thoughts: Deliberate Problem Solving with Large Language Models},
+  booktitle = {Advances in Neural Information Processing Systems 36 ({NeurIPS} 2023)},
+  year      = {2023},
+  note      = {arXiv:2305.10601}
+}
+
+@inproceedings{hao2023reasoning,
+  author    = {Hao, Shibo and Gu, Yi and Ma, Haodi and Hong, Joshua Jiahua and Wang, Zhen and Wang, Daisy Zhe and Hu, Zhiting},
+  title     = {Reasoning with Language Model is Planning with World Model},
+  booktitle = {Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing ({EMNLP} 2023)},
+  year      = {2023},
+  note      = {arXiv:2305.14992}
+}
+
+% Venue note: verified at iclr.cc/virtual/2022/7445; arXiv is the safe
+% fallback per scout report (main-conference vs DL4C-workshop ambiguity).
+@misc{nye2021show,
+  author        = {Nye, Maxwell and Andreassen, Anders Johan and Gur-Ari, Guy and Michalewski, Henryk and Austin, Jacob and Bieber, David and Dohan, David and Lewkowycz, Aitor and Bosma, Maarten and Luan, David and Sutton, Charles and Odena, Augustus},
+  title         = {Show Your Work: Scratchpads for Intermediate Computation with Language Models},
+  year          = {2021},
+  eprint        = {2112.00114},
+  archiveprefix = {arXiv},
+  primaryclass  = {cs.LG},
+  note          = {Presented at ICLR 2022}
+}
+
+@inproceedings{lightman2023lets,
+  author    = {Lightman, Hunter and Kosaraju, Vineet and Burda, Yura and Edwards, Harri and Baker, Bowen and Lee, Teddy and Leike, Jan and Schulman, John and Sutskever, Ilya and Cobbe, Karl},
+  title     = {Let's Verify Step by Step},
+  booktitle = {International Conference on Learning Representations ({ICLR} 2024)},
+  year      = {2024},
+  note      = {arXiv:2305.20050}
+}
+
+@inproceedings{hu2024visual,
+  author    = {Hu, Yushi and Shi, Weijia and Fu, Xingyu and Roth, Dan and Ostendorf, Mari and Zettlemoyer, Luke and Smith, Noah A. and Krishna, Ranjay},
+  title     = {Visual Sketchpad: Sketching as a Visual Chain of Thought for Multimodal Language Models},
+  booktitle = {Advances in Neural Information Processing Systems 37 ({NeurIPS} 2024)},
+  year      = {2024},
+  note      = {arXiv:2406.09403}
+}
+
+@inproceedings{li2025imagine,
+  author    = {Li, Chengzu and Wu, Wenshan and Zhang, Huanyu and Xia, Yan and Mao, Shaoguang and Dong, Li and Vuli\'{c}, Ivan and Wei, Furu},
+  title     = {Imagine while Reasoning in Space: Multimodal Visualization-of-Thought},
+  booktitle = {Proceedings of the 42nd International Conference on Machine Learning ({ICML} 2025)},
+  year      = {2025},
+  note      = {arXiv:2501.07542}
+}
+
+% --- Thread 4: runtime verification / constrained generation ---
+
+@inproceedings{scholak2021picard,
+  author    = {Scholak, Torsten and Schucher, Nathan and Bahdanau, Dzmitry},
+  title     = {{PICARD}: Parsing Incrementally for Constrained Auto-Regressive Decoding from Language Models},
+  booktitle = {Proceedings of the 2021 Conference on Empirical Methods in Natural Language Processing ({EMNLP} 2021)},
+  year      = {2021},
+  note      = {arXiv:2109.05093}
+}
+
+@misc{willard2023efficient,
+  author        = {Willard, Brandon T. and Louf, R\'{e}mi},
+  title         = {Efficient Guided Generation for Large Language Models},
+  year          = {2023},
+  eprint        = {2307.09702},
+  archiveprefix = {arXiv},
+  primaryclass  = {cs.CL}
+}
+
+@inproceedings{madaan2023selfrefine,
+  author    = {Madaan, Aman and Tandon, Niket and Gupta, Prakhar and Hallinan, Skyler and Gao, Luyu and Wiegreffe, Sarah and Alon, Uri and Dziri, Nouha and Prabhumoye, Shrimai and Yang, Yiming and Gupta, Shashank and Majumder, Bodhisattwa Prasad and Hermann, Katherine and Welleck, Sean and Yazdanbakhsh, Amir and Clark, Peter},
+  title     = {Self-Refine: Iterative Refinement with Self-Feedback},
+  booktitle = {Advances in Neural Information Processing Systems 36 ({NeurIPS} 2023)},
+  year      = {2023},
+  note      = {arXiv:2303.17651}
+}

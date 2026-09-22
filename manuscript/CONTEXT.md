@@ -16,7 +16,7 @@ This manuscript-local glossary preserves the #38 canonical planning-research lan
 
 **Search Memory**: The external runtime/data boundary that holds frontier, visited or best-depth, novelty, and landmark state for the runtime; it is not internal unbounded model state.
 
-**Algorithm Invariant**: A deterministic property of the declared algorithm, such as BFS FIFO order, BFWS novelty/goal-count priority and duplicate handling, or A* frontier order under h_max or landmark-count, checked by the Trusted Search Runtime on every operation.
+**Algorithm Invariant**: A deterministic property of the declared algorithm, such as BFS FIFO order, BFWS novelty/goal-count priority and duplicate handling, or additive best-first frontier order under h_add (weighted w3 or greedy), checked by the Trusted Search Runtime on every operation.
 
 **Modality Observation**: A task state rendered in one declared modality (text, image, or paired) and presented to the policy under a fixed adapter contract.
 
@@ -62,7 +62,7 @@ Planning Certificate, Joint Action-and-Certificate SFT, Adaptive Scaffolding, Su
 
 **Planned method component**: A specified mechanism without training or evaluation evidence. It must be described as proposed, not as an established result.
 
-**Bounded empirical finding**: A comparative model result supported within one governed development panel but not licensed as a final or general efficacy conclusion. Issue #54's outcome-blind 15-task BFS v8 panel is the current example: process SFT achieved 1.0 invariant-valid success with zero invalid operations, the base model achieved 0.0, and random-valid also achieved 1.0. The zero gain over the best control produced `VALID_STOP` with `scientific_completion=false`.
+**Bounded empirical finding**: A comparative model result supported within one governed development panel but not licensed as a final or general efficacy conclusion. Issue #54's outcome-blind 15-task BFS v8 panel is the current example: process SFT achieved 1.0 invariant-valid success with zero invalid operations, the base model achieved 0.0, and random-valid also achieved 1.0. The zero gain over the best control produced `VALID_STOP` with `scientific_completion=false`. Further examples: the 2026-09 expanded matched baseline (issue #118: process SFT 125/288 versus random-valid 240/288, successes only in additive best-first cells), the reduced-scope v2 branches (issues #123/#124), and the bounded descriptive observation-corruption channel finding (issue #126), which is a contract-bound channel-reliance result, not an efficacy finding.
 
 **Final empirical efficacy finding**: A comparative result from the authorized final primary evaluation. None exists in the current evidence base.
 

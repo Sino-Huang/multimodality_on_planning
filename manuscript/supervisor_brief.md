@@ -1,6 +1,6 @@
 # Supervisor Brief on the Planning and Multimodality Study
 
-> **Historical status notice (2026-08-31).** This brief records the pre-Search-Process-Policy decision context from 2026-08-17. It is retained to explain why the program moved beyond CGAS, but its repository-status statements are superseded by `manuscript/content_brief.md`, `manuscript/writing_design_tree.md`, and GitHub issues #54--#111. In particular, issue #54 now retains trained BFS process-SFT checkpoints and a governed v8 development-panel `VALID_STOP`; issues #55--#58 establish the BFWS successor path, exact traces, and released text corpus. Statements below that no trained model or structural-search infrastructure exists must not be used as current evidence.
+> **Historical status notice (2026-08-31).** This brief records the pre-Search-Process-Policy decision context from 2026-08-17. It is retained to explain why the program moved beyond CGAS, but its repository-status statements are superseded by `manuscript/content_brief.md`, `manuscript/writing_design_tree.md`, and GitHub issues #54--#128. In particular, issue #54 now retains trained BFS process-SFT checkpoints and a governed v8 development-panel `VALID_STOP`; issues #55--#58 establish the BFWS successor path, exact traces, and released text corpus. Statements below that no trained model or structural-search infrastructure exists must not be used as current evidence.
 
 ## 1. Purpose and executive summary
 
