@@ -19,5 +19,6 @@
   "audit-smoke",
   "--arm",
   "visual-nomem-state"
- ]
+ ],
+ "resume_reason": "attempt 1 crashed in _commit_pending on the missing modality identity field (fixed: episode identity carries modality=arm); no committed model output survived; stale partial journals deleted"
 }

@@ -846,6 +846,7 @@ def _identity(protocol: dict, binding: dict, episode: Path, view_output: Path, c
         "phase": binding["phase"],
         "family": binding["family"],
         "arm": binding["arm"],
+        "modality": binding["arm"] or NOMEM_ARM,
         "task_id": binding["task_id"],
         "algorithm": binding["algorithm"],
         "condition": binding["condition"],
@@ -980,7 +981,7 @@ def independently_replay(root, protocol, task, report, endpoint):
         ROOT / report["view_output"],
         endpoint,
         read_only=True,
-        arm=report["arm"],
+        arm=report["arm"] or NOMEM_ARM,
         corruption=corruption,
         master_seed=int(protocol["corruption"]["master_seed"]),
     )
