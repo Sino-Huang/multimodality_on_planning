@@ -1009,7 +1009,7 @@ def verify_comparator(root, protocol, task, arm, algorithm, condition, seed, exp
     if (
         report["task_id"] != task["row"]["task_id"]
         or report["algorithm"] != algorithm
-        or report["arm"] != ENGINE_ARM[condition]
+        or report["arm"] != condition
         or report["seed"] != seed
         or report["model_id"] != protocol["model_id"]
         or report["model_revision"] != protocol["model_revision"]
@@ -1291,8 +1291,16 @@ def finalize_stage(endpoint: str) -> dict:
 def analyze(protocol, tasks, manifest, new_reports, comparators) -> dict:
     by_key = {}
     for report in new_reports:
-        key = (report["task_id"], report["algorithm"], report.get("arm"), report.get("phase"), report.get("family"))
-        by_key[(key, report["condition"])] = report
+        by_key[
+            (
+                report["task_id"],
+                report["algorithm"],
+                report.get("arm"),
+                report.get("phase"),
+                report.get("family"),
+                report["condition"],
+            )
+        ] = report
     comparator_by_key = {}
     for report in comparators:
         comparator_by_key[(report["task_id"], report["algorithm"], report["arm"])] = report
@@ -1341,8 +1349,8 @@ def analyze(protocol, tasks, manifest, new_reports, comparators) -> dict:
                 "exact_reference": _success(exact[key]),
             }
             for arm in ARMS:
-                clean_learned = by_key.get(((key, arm, "clean", None), "learned_adapter"))
-                clean_base = by_key.get(((key, arm, "clean", None), "pretrained_base"))
+                clean_learned = by_key.get((key[0], key[1], arm, "clean", None, "learned_adapter"))
+                clean_base = by_key.get((key[0], key[1], arm, "clean", None, "pretrained_base"))
                 if clean_learned and clean_base:
                     cell[arm] = {
                         "learned": _success(clean_learned),
@@ -1351,8 +1359,8 @@ def analyze(protocol, tasks, manifest, new_reports, comparators) -> dict:
                         "learned_invalid": clean_learned["result"]["invalid_operation_count"],
                     }
             for family in protocol["corruption"]["families"]:
-                corrupted = by_key.get(((key, SEQ_ARM, "corruption", family), "learned_adapter"))
-                corrupted_base = by_key.get(((key, SEQ_ARM, "corruption", family), "pretrained_base"))
+                corrupted = by_key.get((key[0], key[1], SEQ_ARM, "corruption", family, "learned_adapter"))
+                corrupted_base = by_key.get((key[0], key[1], SEQ_ARM, "corruption", family, "pretrained_base"))
                 if corrupted and corrupted_base:
                     cell[f"seq:{family}"] = {
                         "learned": _success(corrupted),

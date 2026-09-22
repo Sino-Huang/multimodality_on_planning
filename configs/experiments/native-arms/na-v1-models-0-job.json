@@ -24,5 +24,5 @@
   "--kind",
   "models"
  ],
- "resume_reason": "attempt 1 crashed at the corruption group: the worker built its policy with an empty adapter bank (adapters were only wired for the clean phase); fixed by loading the arm adapters for every models group. All 72 clean learned episodes completed and are retained; resume replays them and runs the 36 remaining corruption learned episodes."
+ "resume_reason": "attempt 2 failed in 7s: with the whole first group retained, the adapter map was built only when pending work existed, so retained learned episodes failed the checkpoint identity check; fixed by building the static per-arm adapter map per group before the pending check"
 }
