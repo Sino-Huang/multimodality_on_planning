@@ -66,6 +66,46 @@ bfs; schedule/ledger paths are protocol-overridable with the old program
 constants as defaults. Qualification and probe run fresh (the v1/v2 probe
 evidence measured BFS inputs; reusing it for additive inputs would be
 unsound).
+## Alignment update (post-review arbitration, same session)
+
+The external arbitration accepted the reviewer's C1/C2/C3 with two sharpenings,
+both now reflected in the evidence:
+
+1. **C1 is structural, not a panel deficiency — and that is the headline.**
+   The new `identity-audit` stage (cheap hygiene check over any episode
+   store) shows random_valid is decision- AND expansion-identical to
+   exact_reference on **48/48** additive (task, algorithm) pairs
+   (`outputs/native-arms/v1/identity-audit.json`), and the structural basis
+   is in the trusted runtime: every decision submits one remaining candidate,
+   `finish_expansion()` requires the complete candidate set, and heap serials
+   are assigned from the deterministic sorted candidate order at
+   `start_expansion` — frontier evolution is submission-order invariant. Under
+   this contract the policy is a candidate *enumerator*; choice quality is
+   unmeasurable by construction, so no headroom panel can exist without a
+   contract change. The paper framing therefore flips to
+   **measurement methodology**: any VLM planning evaluation that exposes a
+   grounded action menu under an enumeration contract may be measuring
+   menu-reading validity, not planning — and we ship the audit (identity
+   test + menu manipulation) that detects it, plus a demonstrated failure.
+2. **C2's constructive probe is R1, and R2 is already decided.** The
+   published-episode decomposition (CPU, `outputs/native-arms/v1/
+   r2-decomposition.json`) separates the #126 confound cleanly: text-masked
+   destroys copyability and 36/36 episodes terminate all-invalid (output-
+   contract destruction), while copyability-preserving text-shuffled leaves
+   valid operations flowing in 34/36 episodes that still fail the search —
+   the information-loss signature. R1's distractor pick-rate remains the
+   direct measurement of menu-reading.
+
+**O3 redefined (pre-registered follow-through, out of this window's scope):**
+not "build a headroom panel" (impossible under the enumeration contract) but
+an **audit-driven contract redesign**: a choice-sensitive additive arm where
+the policy selects which frontier state to expand under a binding budget
+(random-valid then wastes budget, exact does not, and learned choice quality
+becomes measurable). Two outcomes both publishable under the methodology
+framing: learned beats random-valid (a planner emerged), or it does not (the
+system was a menu-rider, revealed the moment the contract allowed choice).
+Requires a new trusted-runtime variant, corpus regeneration and its own
+frozen protocol/window.
 
 ## R4 — Native arms on the degraded strains
 

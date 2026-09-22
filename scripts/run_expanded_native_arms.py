@@ -1799,6 +1799,69 @@ def stress_audit_stage() -> dict:
     return summary
 
 
+
+
+def identity_audit_stage() -> dict:
+    """Cheap hygiene check: random_valid vs exact_reference enumeration identity.
+
+    Under the additive Search-Process contract every decision submits one
+    remaining candidate and finish_expansion() requires the complete set, so
+    decision and expansion counts are contract-determined and the search
+    outcome is invariant to the policy's submission order. This audit makes
+    that property measurable on any episode store: where random_valid is
+    decision- and expansion-identical to exact_reference, the evaluation
+    measures operation validity, not choice quality.
+    """
+    import gzip
+
+    protocol = load_protocol()
+    root = ROOT / protocol["comparators"]["baseline_episodes_root"]
+    pairs: dict[tuple[str, str], dict[str, tuple[int, int]]] = {}
+    for modality in ("text-state", "visual-state", "multimodal-state"):
+        for algdir in sorted(p for p in root.glob(f"{modality}/*") if p.is_dir()):
+            for f in algdir.glob("*.json.gz"):
+                algorithm, _, condition = f.name.removesuffix(".json.gz").rpartition("-")
+                if not algorithm.startswith("best_first_add"):
+                    continue
+                report = json.loads(gzip.open(f, "rt").read())
+                entry = pairs.setdefault((algdir.name, algorithm), {})
+                entry[condition] = (
+                    report["result"]["decision_count"],
+                    report["result"]["expansion_count"],
+                )
+    checked = identical = 0
+    mismatches = []
+    for _key, entry in sorted(pairs.items()):
+        if "random_valid" not in entry or "exact_reference" not in entry:
+            continue
+        checked += 1
+        if entry["random_valid"] == entry["exact_reference"]:
+            identical += 1
+        else:
+            mismatches.append({str(k): v for k, v in entry.items()})
+    audit = {
+        "schema_version": "native_arms_identity_audit_v1",
+        "protocol_id": protocol["protocol_id"],
+        "store": protocol["comparators"]["baseline_episodes_root"],
+        "pairs_checked": checked,
+        "pairs_identical": identical,
+        "mismatches": mismatches,
+        "verdict": (
+            "ZERO_DECISION_HEADROOM: random_valid is decision- and expansion-identical to "
+            "exact_reference on every additive pair; the contract measures operation "
+            "validity (enumeration), not choice quality"
+            if checked and identical == checked
+            else "PARTIAL_HEADROOM"
+        ),
+        "structural_basis": (
+            "each decision submits one remaining candidate; finish_expansion() requires the "
+            "complete candidate set; heap serials are assigned from the deterministic sorted "
+            "candidate order at start_expansion, so frontier evolution is submission-order "
+            "invariant"
+        ),
+    }
+    write(output_root(protocol) / "identity-audit.json", audit)
+    return audit
 def stress_finalize_stage(endpoint: str) -> dict:
     """Independent replay of every R1/R2/R4 episode + the frozen paired analysis."""
 
@@ -1927,6 +1990,7 @@ def main(argv=None) -> int:
             "r2-decompose",
             "stress-finalize",
             "stress-audit",
+            "identity-audit",
         ],
     )
     parser.add_argument("--arm", choices=list(ARMS))
@@ -1971,6 +2035,8 @@ def main(argv=None) -> int:
         result = stress_finalize_stage(args.endpoint)
     elif args.stage == "stress-audit":
         result = stress_audit_stage()
+    elif args.stage == "identity-audit":
+        result = identity_audit_stage()
     else:
         result = audit_final_stage()
     print(json.dumps(result, indent=1, default=str))
