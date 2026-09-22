@@ -207,7 +207,10 @@
     "decoding": {
       "do_sample": false
     },
-    "identical_task_sets_across_conditions": true
+    "identical_task_sets_across_conditions": true,
+    "panel_id": "expanded-panel-v2-qualified",
+    "panel_view_report": "outputs/expanded-study/v1/panel-v2/reference-views.json",
+    "panel_view_report_sha256": "72df0a98f29044685ddc5a7f6f642045302684ebcfa9f938336a53b33bbd42a9"
   },
   "identity_audit": {
     "stage": "identity-audit",

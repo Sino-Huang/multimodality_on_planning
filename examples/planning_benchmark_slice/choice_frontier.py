@@ -404,6 +404,8 @@ def replay_choice_episode(
         session.submit_output(event["raw_output"])
         if session.events[-1]["trusted_runtime_result"] != event["trusted_runtime_result"]:
             raise ValueError("choice-frontier replay trusted runtime result differs")
+    if session.next_request() is not None:
+        raise ValueError("choice-frontier replay continued past the stored events")
     if not session.complete:
         raise ValueError("choice-frontier replay remained incomplete")
     if session.result() != report["result"]:
