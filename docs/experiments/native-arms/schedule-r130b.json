@@ -1,0 +1,62 @@
+{
+  "program_id": "followup-reviewer-v2",
+  "status": "authorized_followup_window",
+  "issue": 130,
+  "authorization": {
+    "granted_by": "user selected '\u6267\u884c R1\u2013R4' in the #128/#129 execution session after reviewing the paper-review verdict",
+    "window_gpu_hours_cap": 36.0,
+    "basis": "reviewer-ranked blocking experiments R1-R4; realized estimate 6-12 GPU-h, conservative frozen reservations inside the cap",
+    "amendment_1": "2026-09-21/22 window resize (pre-outcome, execution mechanics only): the frozen worst-case admission for R3/L1 requires 27.04 GPU-h including spent (conservative: full-cap episodes x measured p95 InternVL latency x 1.25 safety; realized expectation ~7 GPU-h on the #123 measured basis). second_backbone 14 -> 30, window 20 -> 36, under the user standing R1-R4 authorization (the reviewed plan the user approved cited the conservative frozen estimand at ~30-45 GPU-h). No scientific scope changed; no prior program touched."
+  },
+  "gpu_cutoff_utc": "2026-09-25T00:00:00Z",
+  "handoff_deadline_utc": "2026-09-26T00:00:00Z",
+  "deadline_kind": "internal follow-up window; not an ICLR deadline",
+  "hardware": {
+    "gpus": 2,
+    "model": "NVIDIA A100 80GB",
+    "preserve_unrelated_processes": true,
+    "max_own_model_workers_per_gpu": 1
+  },
+  "experiment_gpu_hours_cap": 36.0,
+  "allocations_gpu_hours": {
+    "reviewer_stress": 6.0,
+    "second_backbone": 30.0
+  },
+  "accounting": {
+    "metric": "sum of own allocated model-worker GPU durations across devices; include model loading, saves, failures and retries",
+    "also_record": "elapsed wall time, CPU work and actual available VRAM",
+    "ledger": "outputs/reviewer-v130/v2/budget.json",
+    "preserve_prior_ledgers": true,
+    "reset_on_resume": false,
+    "automatic_total_extension": false,
+    "transfers": "none; independent of expanded-nine-day-v1 and followup-native-arms-v1",
+    "carryover_opening_spent": {
+      "note": "final spend of the superseded v1 window ledger (outputs/reviewer-v130/v1/budget.json) is retained there and reported together with this ledger at closeout",
+      "reviewer_stress_gpu_hours": 1.898,
+      "second_backbone_gpu_hours": 1.333
+    }
+  },
+  "master_port_pool": [
+    18810,
+    18811,
+    18812,
+    18813
+  ],
+  "default_training_seed": 17,
+  "qualification_safety_factor": 1.25,
+  "state_images": {
+    "size": [
+      128,
+      128
+    ],
+    "text_annotations": false,
+    "goal_context": "separate complete pages",
+    "semantic_information_equivalence_claimed": false
+  },
+  "execution_authorization": "GPU launches in this window run only after the #130 protocol(s) and design docs are committed.",
+  "issues": {
+    "reviewer_stress": 130,
+    "second_backbone_v3": 130
+  },
+  "start_utc": "2026-09-21T22:30:00Z"
+}

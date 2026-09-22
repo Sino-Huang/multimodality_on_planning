@@ -688,7 +688,7 @@
  },
  "budget": {
   "branch": "second_backbone",
-  "gpu_hours": 14,
+  "gpu_hours": 30,
   "qualification_safety_factor": 1.25,
   "admission_rule": "measured probe throughput and training cell cost times 1.25 must fit the branch remainder; otherwise a documented reference-cost-only reduced scope or VALID_STOP",
   "estimated_probe_gpu_hours": 1.5,
@@ -739,6 +739,6 @@
   }
  },
  "output_root": "outputs/expanded-study/v1/second-backbone-v3",
- "schedule_doc": "docs/experiments/native-arms/schedule-r130.json",
- "ledger_path": "outputs/reviewer-v130/v1/budget.json"
+ "schedule_doc": "docs/experiments/native-arms/schedule-r130b.json",
+ "ledger_path": "outputs/reviewer-v130/v2/budget.json"
 }

@@ -1,28 +1,23 @@
 {
- "job_id": "sb-v3-train-0",
+ "job_id": "sb-v3-probe-g1",
  "branch": "second_backbone",
  "gpus": [
-  0
+  1
  ],
- "max_seconds": 10800,
- "total": 1024,
+ "max_seconds": 7200,
+ "total": 1,
  "command": [
   "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
   "scripts/run_expanded_second_backbone.py",
   "--protocol",
   "configs/experiments/expanded-study/second-backbone-protocol-v3.json",
-  "run",
-  "--worker",
-  "0"
+  "probe"
  ],
  "completion_hook": [
   "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
   "scripts/run_expanded_second_backbone.py",
   "--protocol",
   "configs/experiments/expanded-study/second-backbone-protocol-v3.json",
-  "audit-training-worker",
-  "--worker",
-  "0"
- ],
- "resume_reason": "attempt 1 failed on the admission gate: the v1 window branch cap (14) could not cover the frozen worst-case L1 estimand (27.04 incl. spent); the window was resized pre-outcome to a v2 ledger (second_backbone 30, documented carry-over), admission re-run L1 PASS"
+  "audit-probe"
+ ]
 }

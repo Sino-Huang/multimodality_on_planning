@@ -91,7 +91,7 @@ PROTOCOL_IDENTITIES = {
         "logical_bindings": 144,
         "model_episodes": 72,
         "comparator_episodes": 72,
-        "budget_gpu_hours": 14,
+        "budget_gpu_hours": 30,
         "cap_source": "ledger",
         "job_id_prefix": "sb-v3",
     },
