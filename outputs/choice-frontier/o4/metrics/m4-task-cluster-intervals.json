@@ -1,0 +1,161 @@
+{
+ "schema_version": "choice_frontier_o4_m4_task_cluster_intervals_v1",
+ "issue": 134,
+ "protocol": "docs/experiments/choice-frontier/issue-134-protocol.md",
+ "generated_by": "scripts/analyze_choice_frontier_o4_m4_intervals.py",
+ "classification": "post-hoc diagnostics; M4 has diagnostic (non-confirmatory) status under the frozen #133 protocol and these intervals do not change that classification",
+ "source_records": "outputs/choice-frontier/o4/metrics/all-episode-metrics.json",
+ "subset": {
+  "arm": "learned_adapter",
+  "episodes": 18,
+  "tasks": 9,
+  "algorithms": [
+   "best_first_add_greedy",
+   "best_first_add_w3"
+  ],
+  "multiplier": 2,
+  "seed": 17,
+  "note": "the 18 stored #132 learned_adapter episodes (9 task clusters x 2 algorithms)"
+ },
+ "pooled_point_estimates": {
+  "on_policy_decisions_k_ge_2": 132,
+  "observed_agreement": 0.17424242424242425,
+  "chance": 0.26928162325889593,
+  "observed_minus_chance": -0.0950391990164717,
+  "selected_last_count": 72,
+  "selected_last_rate": 0.5454545454545454,
+  "matches_analysis_json_m4": true
+ },
+ "bootstrap": {
+  "unit": "task cluster (nine tasks; both algorithms pooled inside the cluster)",
+  "task_order": "choice-frontier-protocol-v1.json evaluation.membership",
+  "seed": 133,
+  "resamples": 10000,
+  "confidence": 0.95,
+  "interval": "percentile",
+  "convention": "scripts/analyze_choice_frontier_o4.py bootstrap()/percentile()"
+ },
+ "statistics": {
+  "observed_minus_chance_agreement": {
+   "task_cluster_point": -0.06943706868550542,
+   "pooled_point": -0.09503919901647175,
+   "task_cluster_95pct_ci_10000_seed133": [
+    -0.16094372732179368,
+    0.03228947980030231
+   ],
+   "per_task": {
+    "expanded-final/storage-compact-919000": 0.23333333333333334,
+    "expanded-final/elevators-compact-914002": -0.16666666666666666,
+    "expanded-final/ferry-compact-915000": 0.027777777777777752,
+    "expanded-final/15puzzle-compact-910000": -0.2442176870748299,
+    "expanded-final/towers_of_hanoi-compact-920000": -0.18981481481481477,
+    "expanded-final/visitall-compact-921000": 0.013092617259283963,
+    "expanded-final/depot-compact-912000": 0.038461538461538464,
+    "expanded-final/blocksworld-expanded-911101": -0.24437229437229435,
+    "expanded-final/15puzzle-expanded-910109": -0.09252742207287659
+   }
+  },
+  "last_label_minus_chance": {
+   "task_cluster_point": 0.27748144489967486,
+   "pooled_point": 0.2761729221956495,
+   "task_cluster_95pct_ci_10000_seed133": [
+    0.12569245195507822,
+    0.4020735608698572
+   ],
+   "per_task": {
+    "expanded-final/storage-compact-919000": -0.19523809523809524,
+    "expanded-final/elevators-compact-914002": 0.5,
+    "expanded-final/ferry-compact-915000": 0.5277777777777778,
+    "expanded-final/15puzzle-compact-910000": 0.32721088435374146,
+    "expanded-final/towers_of_hanoi-compact-920000": 0.42129629629629634,
+    "expanded-final/visitall-compact-921000": 0.17975928392595064,
+    "expanded-final/depot-compact-912000": 0.34615384615384615,
+    "expanded-final/blocksworld-expanded-911101": 0.3010822510822511,
+    "expanded-final/15puzzle-expanded-910109": 0.08929075974530522
+   }
+  }
+ },
+ "per_task": {
+  "expanded-final/storage-compact-919000": {
+   "episodes": 2,
+   "teacher_decisions": 7,
+   "observed_agreement": 0.5714285714285714,
+   "chance_rate": 0.3380952380952381,
+   "observed_minus_chance_agreement": 0.23333333333333334,
+   "last_label_rate": 0.14285714285714285,
+   "last_label_minus_chance": -0.19523809523809524
+  },
+  "expanded-final/elevators-compact-914002": {
+   "episodes": 2,
+   "teacher_decisions": 6,
+   "observed_agreement": 0.3333333333333333,
+   "chance_rate": 0.5,
+   "observed_minus_chance_agreement": -0.16666666666666666,
+   "last_label_rate": 1.0,
+   "last_label_minus_chance": 0.5
+  },
+  "expanded-final/ferry-compact-915000": {
+   "episodes": 2,
+   "teacher_decisions": 12,
+   "observed_agreement": 0.5,
+   "chance_rate": 0.47222222222222227,
+   "observed_minus_chance_agreement": 0.027777777777777752,
+   "last_label_rate": 1.0,
+   "last_label_minus_chance": 0.5277777777777778
+  },
+  "expanded-final/15puzzle-compact-910000": {
+   "episodes": 2,
+   "teacher_decisions": 14,
+   "observed_agreement": 0.0,
+   "chance_rate": 0.2442176870748299,
+   "observed_minus_chance_agreement": -0.2442176870748299,
+   "last_label_rate": 0.5714285714285714,
+   "last_label_minus_chance": 0.32721088435374146
+  },
+  "expanded-final/towers_of_hanoi-compact-920000": {
+   "episodes": 2,
+   "teacher_decisions": 18,
+   "observed_agreement": 0.05555555555555555,
+   "chance_rate": 0.24537037037037035,
+   "observed_minus_chance_agreement": -0.18981481481481477,
+   "last_label_rate": 0.6666666666666666,
+   "last_label_minus_chance": 0.42129629629629634
+  },
+  "expanded-final/visitall-compact-921000": {
+   "episodes": 2,
+   "teacher_decisions": 18,
+   "observed_agreement": 0.16666666666666666,
+   "chance_rate": 0.1535740494073827,
+   "observed_minus_chance_agreement": 0.013092617259283963,
+   "last_label_rate": 0.3333333333333333,
+   "last_label_minus_chance": 0.17975928392595064
+  },
+  "expanded-final/depot-compact-912000": {
+   "episodes": 2,
+   "teacher_decisions": 13,
+   "observed_agreement": 0.46153846153846156,
+   "chance_rate": 0.4230769230769231,
+   "observed_minus_chance_agreement": 0.038461538461538464,
+   "last_label_rate": 0.7692307692307693,
+   "last_label_minus_chance": 0.34615384615384615
+  },
+  "expanded-final/blocksworld-expanded-911101": {
+   "episodes": 2,
+   "teacher_decisions": 22,
+   "observed_agreement": 0.0,
+   "chance_rate": 0.24437229437229435,
+   "observed_minus_chance_agreement": -0.24437229437229435,
+   "last_label_rate": 0.5454545454545454,
+   "last_label_minus_chance": 0.3010822510822511
+  },
+  "expanded-final/15puzzle-expanded-910109": {
+   "episodes": 2,
+   "teacher_decisions": 22,
+   "observed_agreement": 0.045454545454545456,
+   "chance_rate": 0.13798196752742206,
+   "observed_minus_chance_agreement": -0.09252742207287659,
+   "last_label_rate": 0.22727272727272727,
+   "last_label_minus_chance": 0.08929075974530522
+  }
+ }
+}

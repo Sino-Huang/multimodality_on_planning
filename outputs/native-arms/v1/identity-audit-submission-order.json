@@ -1,0 +1,2258 @@
+{
+ "schema_version": "native_arms_identity_audit_submission_order_v1",
+ "issue": 134,
+ "protocol": "docs/experiments/choice-frontier/issue-134-protocol.md",
+ "generated_by": "scripts/run_identity_audit_submission_order.py",
+ "base_audit": "outputs/native-arms/v1/identity-audit.json",
+ "store": "outputs/expanded-study/v1/baseline/episodes",
+ "panel": "configs/experiments/expanded-study/final-panel.json",
+ "evaluation_seed": 17,
+ "serial_rules": {
+  "sorted_candidate_order": "executed rule: heap serials assigned at start_expansion from the deterministic sorted candidate order (unmodified BestFirstController)",
+  "submission_order": "counterfactual variant: each target's heap serial assigned at apply_operation time, in candidate submission order; everything else unchanged"
+ },
+ "policies": {
+  "exact_reference": "submit candidate row 0 (frozen control policy)",
+  "random_valid": "uniform random candidate row, random.Random(17) per episode (frozen control policy)"
+ },
+ "validation": {
+  "stored_episode_counts_checked": 288,
+  "stored_raw_output_sequences_checked": 96,
+  "mismatches": [],
+  "exact_reference_rule_invariance": {
+   "pairs_checked": 48,
+   "pairs_identical": 48
+  }
+ },
+ "pairs_checked": 48,
+ "rules": {
+  "sorted_candidate_order": {
+   "pairs_checked": 48,
+   "pairs_identical": 48,
+   "pairs_divergent": 0
+  },
+  "submission_order": {
+   "pairs_checked": 48,
+   "pairs_identical": 29,
+   "pairs_divergent": 19
+  }
+ },
+ "divergence_definition": "a pair diverges at the first decision index whose active expansion source (canonical state id) differs between random_valid and exact_reference; an episode-length difference counts as divergence at the shorter length",
+ "preregistered_prediction": {
+  "source": "manuscript App B (review 18, finding 49)",
+  "executed_rule_stays_identical": true,
+  "variant_diverges_in_most_pairs": false,
+  "held": false
+ },
+ "verdict": "PREDICTION_FAILED: see preregistered_prediction",
+ "pairs": [
+  {
+   "task_id": "expanded-final/15puzzle-compact-910000",
+   "algorithm": "best_first_add_greedy",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 12,
+       "expansion_count": 4,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 12,
+       "expansion_count": 4,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 12,
+       "expansion_count": 4,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 12,
+       "expansion_count": 4,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/15puzzle-compact-910000",
+   "algorithm": "best_first_add_w3",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 12,
+       "expansion_count": 4,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 12,
+       "expansion_count": 4,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 12,
+       "expansion_count": 4,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 12,
+       "expansion_count": 4,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/15puzzle-expanded-910109",
+   "algorithm": "best_first_add_greedy",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 19,
+       "expansion_count": 6,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 19,
+       "expansion_count": 6,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 19,
+       "expansion_count": 6,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 19,
+       "expansion_count": 6,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/15puzzle-expanded-910109",
+   "algorithm": "best_first_add_w3",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 19,
+       "expansion_count": 6,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 19,
+       "expansion_count": 6,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 19,
+       "expansion_count": 6,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 19,
+       "expansion_count": 6,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/blocksworld-compact-911000",
+   "algorithm": "best_first_add_greedy",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 44,
+       "expansion_count": 15,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 44,
+       "expansion_count": 15,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 44,
+       "expansion_count": 15,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 44,
+       "expansion_count": 15,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/blocksworld-compact-911000",
+   "algorithm": "best_first_add_w3",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 49,
+       "expansion_count": 17,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 49,
+       "expansion_count": 17,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 49,
+       "expansion_count": 17,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 49,
+       "expansion_count": 17,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/blocksworld-expanded-911101",
+   "algorithm": "best_first_add_greedy",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 18,
+       "expansion_count": 6,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 18,
+       "expansion_count": 6,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 18,
+       "expansion_count": 6,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 18,
+       "expansion_count": 6,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/blocksworld-expanded-911101",
+   "algorithm": "best_first_add_w3",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 18,
+       "expansion_count": 6,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 18,
+       "expansion_count": 6,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 18,
+       "expansion_count": 6,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 18,
+       "expansion_count": 6,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/depot-compact-912000",
+   "algorithm": "best_first_add_greedy",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 17,
+       "expansion_count": 5,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 17,
+       "expansion_count": 5,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 17,
+       "expansion_count": 5,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 17,
+       "expansion_count": 5,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/depot-compact-912000",
+   "algorithm": "best_first_add_w3",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 17,
+       "expansion_count": 5,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 17,
+       "expansion_count": 5,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 17,
+       "expansion_count": 5,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 17,
+       "expansion_count": 5,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/depot-expanded-912100",
+   "algorithm": "best_first_add_greedy",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 23,
+       "expansion_count": 6,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 23,
+       "expansion_count": 6,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 23,
+       "expansion_count": 6,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 23,
+       "expansion_count": 6,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/depot-expanded-912100",
+   "algorithm": "best_first_add_w3",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 23,
+       "expansion_count": 6,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 23,
+       "expansion_count": 6,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 23,
+       "expansion_count": 6,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 23,
+       "expansion_count": 6,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/driverlog-compact-913001",
+   "algorithm": "best_first_add_greedy",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 43,
+       "expansion_count": 14,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 43,
+       "expansion_count": 14,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "divergent",
+     "first_divergence_decision_index": 31,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 43,
+       "expansion_count": 14,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 43,
+       "expansion_count": 14,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/driverlog-compact-913001",
+   "algorithm": "best_first_add_w3",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 43,
+       "expansion_count": 14,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 43,
+       "expansion_count": 14,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "divergent",
+     "first_divergence_decision_index": 31,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 43,
+       "expansion_count": 14,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 43,
+       "expansion_count": 14,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/driverlog-expanded-913103",
+   "algorithm": "best_first_add_greedy",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 29,
+       "expansion_count": 7,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 29,
+       "expansion_count": 7,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 29,
+       "expansion_count": 7,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 29,
+       "expansion_count": 7,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/driverlog-expanded-913103",
+   "algorithm": "best_first_add_w3",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 29,
+       "expansion_count": 7,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 29,
+       "expansion_count": 7,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 29,
+       "expansion_count": 7,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 29,
+       "expansion_count": 7,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/elevators-compact-914002",
+   "algorithm": "best_first_add_greedy",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 11,
+       "expansion_count": 4,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 11,
+       "expansion_count": 4,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 11,
+       "expansion_count": 4,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 11,
+       "expansion_count": 4,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/elevators-compact-914002",
+   "algorithm": "best_first_add_w3",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 11,
+       "expansion_count": 4,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 11,
+       "expansion_count": 4,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 11,
+       "expansion_count": 4,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 11,
+       "expansion_count": 4,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/elevators-expanded-914105",
+   "algorithm": "best_first_add_greedy",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 33,
+       "expansion_count": 9,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 33,
+       "expansion_count": 9,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "divergent",
+     "first_divergence_decision_index": 6,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 33,
+       "expansion_count": 9,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 33,
+       "expansion_count": 9,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/elevators-expanded-914105",
+   "algorithm": "best_first_add_w3",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 33,
+       "expansion_count": 9,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 33,
+       "expansion_count": 9,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "divergent",
+     "first_divergence_decision_index": 6,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 33,
+       "expansion_count": 9,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 33,
+       "expansion_count": 9,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/ferry-compact-915000",
+   "algorithm": "best_first_add_greedy",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 11,
+       "expansion_count": 4,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 11,
+       "expansion_count": 4,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 11,
+       "expansion_count": 4,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 11,
+       "expansion_count": 4,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/ferry-compact-915000",
+   "algorithm": "best_first_add_w3",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 11,
+       "expansion_count": 4,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 11,
+       "expansion_count": 4,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 11,
+       "expansion_count": 4,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 11,
+       "expansion_count": 4,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/ferry-expanded-915109",
+   "algorithm": "best_first_add_greedy",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 25,
+       "expansion_count": 8,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 25,
+       "expansion_count": 8,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "divergent",
+     "first_divergence_decision_index": 4,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 24,
+       "expansion_count": 8,
+       "goal_reached": false,
+       "invariant_valid_success": false,
+       "termination_reason": "expansion_budget_exhausted"
+      },
+      "exact_reference": {
+       "decision_count": 25,
+       "expansion_count": 8,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/ferry-expanded-915109",
+   "algorithm": "best_first_add_w3",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 25,
+       "expansion_count": 8,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 25,
+       "expansion_count": 8,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "divergent",
+     "first_divergence_decision_index": 4,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 24,
+       "expansion_count": 8,
+       "goal_reached": false,
+       "invariant_valid_success": false,
+       "termination_reason": "expansion_budget_exhausted"
+      },
+      "exact_reference": {
+       "decision_count": 25,
+       "expansion_count": 8,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/grid-compact-916000",
+   "algorithm": "best_first_add_greedy",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 23,
+       "expansion_count": 8,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 23,
+       "expansion_count": 8,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 23,
+       "expansion_count": 8,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 23,
+       "expansion_count": 8,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/grid-compact-916000",
+   "algorithm": "best_first_add_w3",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 23,
+       "expansion_count": 8,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 23,
+       "expansion_count": 8,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 23,
+       "expansion_count": 8,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 23,
+       "expansion_count": 8,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/grid-expanded-916100",
+   "algorithm": "best_first_add_greedy",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 33,
+       "expansion_count": 12,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 33,
+       "expansion_count": 12,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 33,
+       "expansion_count": 12,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 33,
+       "expansion_count": 12,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/grid-expanded-916100",
+   "algorithm": "best_first_add_w3",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 33,
+       "expansion_count": 12,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 33,
+       "expansion_count": 12,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 33,
+       "expansion_count": 12,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 33,
+       "expansion_count": 12,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/gripper-compact-917000",
+   "algorithm": "best_first_add_greedy",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 30,
+       "expansion_count": 7,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 30,
+       "expansion_count": 7,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "divergent",
+     "first_divergence_decision_index": 8,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 30,
+       "expansion_count": 7,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 30,
+       "expansion_count": 7,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/gripper-compact-917000",
+   "algorithm": "best_first_add_w3",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 30,
+       "expansion_count": 7,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 30,
+       "expansion_count": 7,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "divergent",
+     "first_divergence_decision_index": 8,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 30,
+       "expansion_count": 7,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 30,
+       "expansion_count": 7,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/gripper-expanded-917101",
+   "algorithm": "best_first_add_greedy",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 42,
+       "expansion_count": 8,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 42,
+       "expansion_count": 8,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "divergent",
+     "first_divergence_decision_index": 12,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 30,
+       "expansion_count": 6,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 42,
+       "expansion_count": 8,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/gripper-expanded-917101",
+   "algorithm": "best_first_add_w3",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 42,
+       "expansion_count": 8,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 42,
+       "expansion_count": 8,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "divergent",
+     "first_divergence_decision_index": 12,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 30,
+       "expansion_count": 6,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 42,
+       "expansion_count": 8,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/logistics-compact-918000",
+   "algorithm": "best_first_add_greedy",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 21,
+       "expansion_count": 4,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 21,
+       "expansion_count": 4,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 21,
+       "expansion_count": 4,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 21,
+       "expansion_count": 4,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/logistics-compact-918000",
+   "algorithm": "best_first_add_w3",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 21,
+       "expansion_count": 4,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 21,
+       "expansion_count": 4,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 21,
+       "expansion_count": 4,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 21,
+       "expansion_count": 4,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/logistics-expanded-918100",
+   "algorithm": "best_first_add_greedy",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 33,
+       "expansion_count": 5,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 33,
+       "expansion_count": 5,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "divergent",
+     "first_divergence_decision_index": 6,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 33,
+       "expansion_count": 5,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 33,
+       "expansion_count": 5,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/logistics-expanded-918100",
+   "algorithm": "best_first_add_w3",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 33,
+       "expansion_count": 5,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 33,
+       "expansion_count": 5,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "divergent",
+     "first_divergence_decision_index": 6,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 33,
+       "expansion_count": 5,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 33,
+       "expansion_count": 5,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/storage-compact-919000",
+   "algorithm": "best_first_add_greedy",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 9,
+       "expansion_count": 3,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 9,
+       "expansion_count": 3,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 9,
+       "expansion_count": 3,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 9,
+       "expansion_count": 3,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/storage-compact-919000",
+   "algorithm": "best_first_add_w3",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 9,
+       "expansion_count": 3,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 9,
+       "expansion_count": 3,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 9,
+       "expansion_count": 3,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 9,
+       "expansion_count": 3,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/storage-expanded-919100",
+   "algorithm": "best_first_add_greedy",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 62,
+       "expansion_count": 17,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 62,
+       "expansion_count": 17,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "divergent",
+     "first_divergence_decision_index": 50,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 62,
+       "expansion_count": 17,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 62,
+       "expansion_count": 17,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/storage-expanded-919100",
+   "algorithm": "best_first_add_w3",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 51,
+       "expansion_count": 14,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 51,
+       "expansion_count": 14,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 51,
+       "expansion_count": 14,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 51,
+       "expansion_count": 14,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/towers_of_hanoi-compact-920000",
+   "algorithm": "best_first_add_greedy",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 15,
+       "expansion_count": 5,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 15,
+       "expansion_count": 5,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 15,
+       "expansion_count": 5,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 15,
+       "expansion_count": 5,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/towers_of_hanoi-compact-920000",
+   "algorithm": "best_first_add_w3",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 15,
+       "expansion_count": 5,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 15,
+       "expansion_count": 5,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 15,
+       "expansion_count": 5,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 15,
+       "expansion_count": 5,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/towers_of_hanoi-expanded-920100",
+   "algorithm": "best_first_add_greedy",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 71,
+       "expansion_count": 24,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 71,
+       "expansion_count": 24,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "divergent",
+     "first_divergence_decision_index": 6,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 68,
+       "expansion_count": 23,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 71,
+       "expansion_count": 24,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/towers_of_hanoi-expanded-920100",
+   "algorithm": "best_first_add_w3",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 98,
+       "expansion_count": 33,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 98,
+       "expansion_count": 33,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "divergent",
+     "first_divergence_decision_index": 6,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 95,
+       "expansion_count": 32,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 98,
+       "expansion_count": 33,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/visitall-compact-921000",
+   "algorithm": "best_first_add_greedy",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 16,
+       "expansion_count": 5,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 16,
+       "expansion_count": 5,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "divergent",
+     "first_divergence_decision_index": 2,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 16,
+       "expansion_count": 5,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 16,
+       "expansion_count": 5,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/visitall-compact-921000",
+   "algorithm": "best_first_add_w3",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 16,
+       "expansion_count": 5,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 16,
+       "expansion_count": 5,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "divergent",
+     "first_divergence_decision_index": 2,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 16,
+       "expansion_count": 5,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 16,
+       "expansion_count": 5,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/visitall-expanded-921100",
+   "algorithm": "best_first_add_greedy",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 33,
+       "expansion_count": 12,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 33,
+       "expansion_count": 12,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "divergent",
+     "first_divergence_decision_index": 2,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 29,
+       "expansion_count": 10,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 33,
+       "expansion_count": 12,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  },
+  {
+   "task_id": "expanded-final/visitall-expanded-921100",
+   "algorithm": "best_first_add_w3",
+   "rules": {
+    "sorted_candidate_order": {
+     "verdict": "identical",
+     "first_divergence_decision_index": null,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 33,
+       "expansion_count": 12,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 33,
+       "expansion_count": 12,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    },
+    "submission_order": {
+     "verdict": "divergent",
+     "first_divergence_decision_index": 2,
+     "conditions": {
+      "random_valid": {
+       "decision_count": 29,
+       "expansion_count": 10,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      },
+      "exact_reference": {
+       "decision_count": 33,
+       "expansion_count": 12,
+       "goal_reached": true,
+       "invariant_valid_success": true,
+       "termination_reason": "goal_reached"
+      }
+     }
+    }
+   }
+  }
+ ]
+}
