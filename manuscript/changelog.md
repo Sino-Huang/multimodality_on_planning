@@ -2,6 +2,19 @@
 
 The record of what changed in the ICLR 2026 manuscript and why. Newest first. Each entry names the commit, the scope of the change, and the review or ticket it answered. Review findings and their status live in `review-log.md`; claim vocabulary and boundaries live in `CONTEXT.md`.
 
+## 2026-09-23 — review 18 wave 3, compliance and hygiene (WAVE3)
+
+- Findings 53, 56, 57, 61, 63, 64, 65 and the finding 44 and 45 remainders are CLOSED.
+- Finding 53: every numeric paragraph and table the finding listed now has an adjacent `% Evidence` line naming its pinned file and key. `content_brief.md` sources are replaced by the pinned JSON or README they summarized. The `descriptive_only=false` artifact flag against the one-task descriptive rule gets a source-conflict comment in the Abstract, Results, and App R.
+- Finding 56: the 5.2 mechanism pointer names the Algorithm Invariant Definitions appendix, and the Reproducibility Statement uses prose appendix names.
+- Finding 57: the second-backbone control denominator is explained in the text ("24/24 control entries per modality, two per task").
+- Finding 63: the ledger wording names three GPU windows plus the CPU-only zoo.
+- Finding 64: the Design freeze-timing sentence says each follow-up was frozen before its own outcome but after earlier outcomes on the same nine tasks.
+- Finding 65: mid-clause colons are removed across Results and the Appendix. The design run-on sentences are split, artifact-speak is removed, and the Imitation-target item and Cell A wording follow the prescribed fixes (44, 45 remainders).
+- Finding 61: Related Work cites Zheng et al. (ICLR 2024) on label-position selection bias (`zheng2024robust`). The entry is verified against arXiv:2309.03882 and the ICLR 2024 proceedings, with DBLP as a cross-check, and the fixed-versus-random-position distractor test is named as the unrun diagnostic.
+- The one remaining prose semicolon is in the author-dictated LLM-usage sentence (finding 40, WONTFIX).
+- Build: 29 pages, 0 errors, 0 undefined, 0 overfull, 0 bibtex warnings; the Conclusion ends on p.9.
+
 ## 2026-09-23 — review 18 wave 2, title, figures, and the two-contract audit (`83e30c2`)
 
 - Finding 50 CLOSED. The hub title is now "When Random-Valid Equals the Reference: A Per-Decision Identity Audit for Search-Execution Evaluation of Vision-Language Models" (author decision). fig:contracts is regenerated in a wide side-by-side layout, with numbers read by the script from identity-audit.json (both contracts) and analysis.json, and placed as Figure 1 in Results 5.2. fig:zoo-m1 moved to App R, and Table 2 stays in 5.10. The Design reference drops "(Appendix)".
