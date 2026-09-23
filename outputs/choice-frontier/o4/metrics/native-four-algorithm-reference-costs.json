@@ -1,0 +1,203 @@
+{
+  "note": "Native trace decisions/expansions are not shortest solution costs; C* computed independently with unit-cost PDDL BFS.",
+  "per_task": {
+    "expanded-final/15puzzle-compact-910000": {
+      "best_first_add_greedy": {
+        "decisions": 12,
+        "expansions": 4,
+        "source_path": "outputs/expanded-study/v1/panel-v2/candidates/15puzzle-compact-910000/reference-best_first_add_greedy.json.gz"
+      },
+      "best_first_add_w3": {
+        "decisions": 12,
+        "expansions": 4,
+        "source_path": "outputs/expanded-study/v1/panel-v2/candidates/15puzzle-compact-910000/reference-best_first_add_w3.json.gz"
+      },
+      "best_first_width": {
+        "decisions": 9,
+        "expansions": 4,
+        "source_path": "outputs/expanded-study/v1/panel-v2/candidates/15puzzle-compact-910000/reference-best_first_width.json.gz"
+      },
+      "bfs": {
+        "decisions": 33,
+        "expansions": 18,
+        "source_path": "outputs/expanded-study/v1/panel-v2/candidates/15puzzle-compact-910000/reference-bfs.json.gz"
+      }
+    },
+    "expanded-final/15puzzle-expanded-910109": {
+      "best_first_add_greedy": {
+        "decisions": 19,
+        "expansions": 6,
+        "source_path": "outputs/expanded-study/v1/panel-v2/candidates/15puzzle-expanded-910109/reference-best_first_add_greedy.json.gz"
+      },
+      "best_first_add_w3": {
+        "decisions": 19,
+        "expansions": 6,
+        "source_path": "outputs/expanded-study/v1/panel-v2/candidates/15puzzle-expanded-910109/reference-best_first_add_w3.json.gz"
+      },
+      "best_first_width": {
+        "decisions": 17,
+        "expansions": 8,
+        "source_path": "outputs/expanded-study/v1/panel-v2/candidates/15puzzle-expanded-910109/reference-best_first_width.json.gz"
+      },
+      "bfs": {
+        "decisions": 135,
+        "expansions": 74,
+        "source_path": "outputs/expanded-study/v1/panel-v2/candidates/15puzzle-expanded-910109/reference-bfs.json.gz"
+      }
+    },
+    "expanded-final/blocksworld-expanded-911101": {
+      "best_first_add_greedy": {
+        "decisions": 18,
+        "expansions": 6,
+        "source_path": "outputs/expanded-study/v1/panel-v2/candidates/blocksworld-expanded-911101/reference-best_first_add_greedy.json.gz"
+      },
+      "best_first_add_w3": {
+        "decisions": 18,
+        "expansions": 6,
+        "source_path": "outputs/expanded-study/v1/panel-v2/candidates/blocksworld-expanded-911101/reference-best_first_add_w3.json.gz"
+      },
+      "best_first_width": {
+        "decisions": 16,
+        "expansions": 8,
+        "source_path": "outputs/expanded-study/v1/panel-v2/candidates/blocksworld-expanded-911101/reference-best_first_width.json.gz"
+      },
+      "bfs": {
+        "decisions": 143,
+        "expansions": 77,
+        "source_path": "outputs/expanded-study/v1/panel-v2/candidates/blocksworld-expanded-911101/reference-bfs.json.gz"
+      }
+    },
+    "expanded-final/depot-compact-912000": {
+      "best_first_add_greedy": {
+        "decisions": 17,
+        "expansions": 5,
+        "source_path": "outputs/expanded-study/v1/panel-v2/candidates/depot-compact-912000/reference-best_first_add_greedy.json.gz"
+      },
+      "best_first_add_w3": {
+        "decisions": 17,
+        "expansions": 5,
+        "source_path": "outputs/expanded-study/v1/panel-v2/candidates/depot-compact-912000/reference-best_first_add_w3.json.gz"
+      },
+      "best_first_width": {
+        "decisions": 9,
+        "expansions": 7,
+        "source_path": "outputs/expanded-study/v1/panel-v2/candidates/depot-compact-912000/reference-best_first_width.json.gz"
+      },
+      "bfs": {
+        "decisions": 10,
+        "expansions": 8,
+        "source_path": "outputs/expanded-study/v1/panel-v2/candidates/depot-compact-912000/reference-bfs.json.gz"
+      }
+    },
+    "expanded-final/elevators-compact-914002": {
+      "best_first_add_greedy": {
+        "decisions": 11,
+        "expansions": 4,
+        "source_path": "outputs/expanded-study/v1/panel-v2/candidates/elevators-compact-914002/reference-best_first_add_greedy.json.gz"
+      },
+      "best_first_add_w3": {
+        "decisions": 11,
+        "expansions": 4,
+        "source_path": "outputs/expanded-study/v1/panel-v2/candidates/elevators-compact-914002/reference-best_first_add_w3.json.gz"
+      },
+      "best_first_width": {
+        "decisions": 7,
+        "expansions": 5,
+        "source_path": "outputs/expanded-study/v1/panel-v2/candidates/elevators-compact-914002/reference-best_first_width.json.gz"
+      },
+      "bfs": {
+        "decisions": 8,
+        "expansions": 6,
+        "source_path": "outputs/expanded-study/v1/panel-v2/candidates/elevators-compact-914002/reference-bfs.json.gz"
+      }
+    },
+    "expanded-final/ferry-compact-915000": {
+      "best_first_add_greedy": {
+        "decisions": 11,
+        "expansions": 4,
+        "source_path": "outputs/expanded-study/v1/panel-v2/candidates/ferry-compact-915000/reference-best_first_add_greedy.json.gz"
+      },
+      "best_first_add_w3": {
+        "decisions": 11,
+        "expansions": 4,
+        "source_path": "outputs/expanded-study/v1/panel-v2/candidates/ferry-compact-915000/reference-best_first_add_w3.json.gz"
+      },
+      "best_first_width": {
+        "decisions": 10,
+        "expansions": 7,
+        "source_path": "outputs/expanded-study/v1/panel-v2/candidates/ferry-compact-915000/reference-best_first_width.json.gz"
+      },
+      "bfs": {
+        "decisions": 10,
+        "expansions": 7,
+        "source_path": "outputs/expanded-study/v1/panel-v2/candidates/ferry-compact-915000/reference-bfs.json.gz"
+      }
+    },
+    "expanded-final/storage-compact-919000": {
+      "best_first_add_greedy": {
+        "decisions": 9,
+        "expansions": 3,
+        "source_path": "outputs/expanded-study/v1/panel-v2/candidates/storage-compact-919000/reference-best_first_add_greedy.json.gz"
+      },
+      "best_first_add_w3": {
+        "decisions": 9,
+        "expansions": 3,
+        "source_path": "outputs/expanded-study/v1/panel-v2/candidates/storage-compact-919000/reference-best_first_add_w3.json.gz"
+      },
+      "best_first_width": {
+        "decisions": 7,
+        "expansions": 5,
+        "source_path": "outputs/expanded-study/v1/panel-v2/candidates/storage-compact-919000/reference-best_first_width.json.gz"
+      },
+      "bfs": {
+        "decisions": 10,
+        "expansions": 6,
+        "source_path": "outputs/expanded-study/v1/panel-v2/candidates/storage-compact-919000/reference-bfs.json.gz"
+      }
+    },
+    "expanded-final/towers_of_hanoi-compact-920000": {
+      "best_first_add_greedy": {
+        "decisions": 15,
+        "expansions": 5,
+        "source_path": "outputs/expanded-study/v1/panel-v2/candidates/towers_of_hanoi-compact-920000/reference-best_first_add_greedy.json.gz"
+      },
+      "best_first_add_w3": {
+        "decisions": 15,
+        "expansions": 5,
+        "source_path": "outputs/expanded-study/v1/panel-v2/candidates/towers_of_hanoi-compact-920000/reference-best_first_add_w3.json.gz"
+      },
+      "best_first_width": {
+        "decisions": 9,
+        "expansions": 6,
+        "source_path": "outputs/expanded-study/v1/panel-v2/candidates/towers_of_hanoi-compact-920000/reference-best_first_width.json.gz"
+      },
+      "bfs": {
+        "decisions": 27,
+        "expansions": 19,
+        "source_path": "outputs/expanded-study/v1/panel-v2/candidates/towers_of_hanoi-compact-920000/reference-bfs.json.gz"
+      }
+    },
+    "expanded-final/visitall-compact-921000": {
+      "best_first_add_greedy": {
+        "decisions": 16,
+        "expansions": 5,
+        "source_path": "outputs/expanded-study/v1/panel-v2/candidates/visitall-compact-921000/reference-best_first_add_greedy.json.gz"
+      },
+      "best_first_add_w3": {
+        "decisions": 16,
+        "expansions": 5,
+        "source_path": "outputs/expanded-study/v1/panel-v2/candidates/visitall-compact-921000/reference-best_first_add_w3.json.gz"
+      },
+      "best_first_width": {
+        "decisions": 18,
+        "expansions": 7,
+        "source_path": "outputs/expanded-study/v1/panel-v2/candidates/visitall-compact-921000/reference-best_first_width.json.gz"
+      },
+      "bfs": {
+        "decisions": 132,
+        "expansions": 64,
+        "source_path": "outputs/expanded-study/v1/panel-v2/candidates/visitall-compact-921000/reference-bfs.json.gz"
+      }
+    }
+  }
+}

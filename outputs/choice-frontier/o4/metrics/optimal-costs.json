@@ -1,0 +1,116 @@
+{
+  "expanded-final/15puzzle-compact-910000": {
+    "cost": 4,
+    "plan": [
+      "move(t_1,p_2_1,p_1_1)",
+      "move(t_4,p_2_2,p_2_1)",
+      "move(t_5,p_2_3,p_2_2)",
+      "move(t_6,p_3_3,p_2_3)"
+    ],
+    "states_discovered": 34,
+    "states_expanded": 19,
+    "verified_pddl_transitions": true
+  },
+  "expanded-final/15puzzle-expanded-910109": {
+    "cost": 6,
+    "plan": [
+      "move(t_2,p_2_3,p_2_2)",
+      "move(t_5,p_1_3,p_2_3)",
+      "move(t_3,p_1_2,p_1_3)",
+      "move(t_2,p_2_2,p_1_2)",
+      "move(t_5,p_2_3,p_2_2)",
+      "move(t_6,p_3_3,p_2_3)"
+    ],
+    "states_discovered": 135,
+    "states_expanded": 75,
+    "verified_pddl_transitions": true
+  },
+  "expanded-final/blocksworld-expanded-911101": {
+    "cost": 6,
+    "plan": [
+      "unstack(b1,b4)",
+      "putdown(b1)",
+      "unstack(b4,b2)",
+      "stack(b4,b3)",
+      "pickup(b2)",
+      "stack(b2,b4)"
+    ],
+    "states_discovered": 137,
+    "states_expanded": 78,
+    "verified_pddl_transitions": true
+  },
+  "expanded-final/depot-compact-912000": {
+    "cost": 5,
+    "plan": [
+      "lift(hoist1,crate0,pallet1,distributor0)",
+      "load(hoist1,crate0,truck0,distributor0)",
+      "drive(truck0,distributor0,depot0)",
+      "unload(hoist0,crate0,truck0,depot0)",
+      "drop(hoist0,crate0,pallet0,depot0)"
+    ],
+    "states_discovered": 10,
+    "states_expanded": 9,
+    "verified_pddl_transitions": true
+  },
+  "expanded-final/elevators-compact-914002": {
+    "cost": 4,
+    "plan": [
+      "up(f0,f1)",
+      "board(f1,p0)",
+      "down(f1,f0)",
+      "depart(f0,p0)"
+    ],
+    "states_discovered": 7,
+    "states_expanded": 7,
+    "verified_pddl_transitions": true
+  },
+  "expanded-final/ferry-compact-915000": {
+    "cost": 4,
+    "plan": [
+      "sail(l1,l2)",
+      "board(c0,l2)",
+      "sail(l2,l1)",
+      "debark(c0,l1)"
+    ],
+    "states_discovered": 10,
+    "states_expanded": 8,
+    "verified_pddl_transitions": true
+  },
+  "expanded-final/storage-compact-919000": {
+    "cost": 3,
+    "plan": [
+      "go-out(hoist0,depot48-2-2,loadarea)",
+      "lift(hoist0,crate0,container-0-0,loadarea,container0)",
+      "drop(hoist0,crate0,depot48-2-2,loadarea,depot48)"
+    ],
+    "states_discovered": 9,
+    "states_expanded": 7,
+    "verified_pddl_transitions": true
+  },
+  "expanded-final/towers_of_hanoi-compact-920000": {
+    "cost": 5,
+    "plan": [
+      "move(d1,d3,d2)",
+      "move(d3,peg1,peg3)",
+      "move(d1,d2,peg1)",
+      "move(d2,peg2,d3)",
+      "move(d1,peg1,d2)"
+    ],
+    "states_discovered": 24,
+    "states_expanded": 20,
+    "verified_pddl_transitions": true
+  },
+  "expanded-final/visitall-compact-921000": {
+    "cost": 5,
+    "plan": [
+      "move(loc-x0-y2,loc-x0-y1)",
+      "move(loc-x0-y1,loc-x0-y0)",
+      "move(loc-x0-y0,loc-x1-y0)",
+      "move(loc-x1-y0,loc-x1-y1)",
+      "move(loc-x1-y1,loc-x2-y1)"
+    ],
+    "states_discovered": 127,
+    "states_expanded": 65,
+    "verified_pddl_transitions": true
+  }
+}

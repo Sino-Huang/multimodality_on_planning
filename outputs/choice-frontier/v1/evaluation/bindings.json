@@ -1,0 +1,1306 @@
+{
+  "schema_version": "choice_frontier_evaluation_inputs_v1",
+  "protocol_id": "choice-frontier-v1",
+  "bindings": [
+    {
+      "index": 0,
+      "worker": 0,
+      "kind": "models",
+      "task_id": "expanded-final/storage-compact-919000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "learned_adapter",
+      "seed": 17
+    },
+    {
+      "index": 1,
+      "worker": 1,
+      "kind": "models",
+      "task_id": "expanded-final/storage-compact-919000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "pretrained_base",
+      "seed": 17
+    },
+    {
+      "index": 2,
+      "worker": 0,
+      "kind": "models",
+      "task_id": "expanded-final/storage-compact-919000",
+      "algorithm": "best_first_add_w3",
+      "condition": "learned_adapter",
+      "seed": 17
+    },
+    {
+      "index": 3,
+      "worker": 1,
+      "kind": "models",
+      "task_id": "expanded-final/storage-compact-919000",
+      "algorithm": "best_first_add_w3",
+      "condition": "pretrained_base",
+      "seed": 17
+    },
+    {
+      "index": 4,
+      "worker": 0,
+      "kind": "models",
+      "task_id": "expanded-final/elevators-compact-914002",
+      "algorithm": "best_first_add_greedy",
+      "condition": "learned_adapter",
+      "seed": 17
+    },
+    {
+      "index": 5,
+      "worker": 1,
+      "kind": "models",
+      "task_id": "expanded-final/elevators-compact-914002",
+      "algorithm": "best_first_add_greedy",
+      "condition": "pretrained_base",
+      "seed": 17
+    },
+    {
+      "index": 6,
+      "worker": 0,
+      "kind": "models",
+      "task_id": "expanded-final/elevators-compact-914002",
+      "algorithm": "best_first_add_w3",
+      "condition": "learned_adapter",
+      "seed": 17
+    },
+    {
+      "index": 7,
+      "worker": 1,
+      "kind": "models",
+      "task_id": "expanded-final/elevators-compact-914002",
+      "algorithm": "best_first_add_w3",
+      "condition": "pretrained_base",
+      "seed": 17
+    },
+    {
+      "index": 8,
+      "worker": 0,
+      "kind": "models",
+      "task_id": "expanded-final/ferry-compact-915000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "learned_adapter",
+      "seed": 17
+    },
+    {
+      "index": 9,
+      "worker": 1,
+      "kind": "models",
+      "task_id": "expanded-final/ferry-compact-915000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "pretrained_base",
+      "seed": 17
+    },
+    {
+      "index": 10,
+      "worker": 0,
+      "kind": "models",
+      "task_id": "expanded-final/ferry-compact-915000",
+      "algorithm": "best_first_add_w3",
+      "condition": "learned_adapter",
+      "seed": 17
+    },
+    {
+      "index": 11,
+      "worker": 1,
+      "kind": "models",
+      "task_id": "expanded-final/ferry-compact-915000",
+      "algorithm": "best_first_add_w3",
+      "condition": "pretrained_base",
+      "seed": 17
+    },
+    {
+      "index": 12,
+      "worker": 0,
+      "kind": "models",
+      "task_id": "expanded-final/15puzzle-compact-910000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "learned_adapter",
+      "seed": 17
+    },
+    {
+      "index": 13,
+      "worker": 1,
+      "kind": "models",
+      "task_id": "expanded-final/15puzzle-compact-910000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "pretrained_base",
+      "seed": 17
+    },
+    {
+      "index": 14,
+      "worker": 0,
+      "kind": "models",
+      "task_id": "expanded-final/15puzzle-compact-910000",
+      "algorithm": "best_first_add_w3",
+      "condition": "learned_adapter",
+      "seed": 17
+    },
+    {
+      "index": 15,
+      "worker": 1,
+      "kind": "models",
+      "task_id": "expanded-final/15puzzle-compact-910000",
+      "algorithm": "best_first_add_w3",
+      "condition": "pretrained_base",
+      "seed": 17
+    },
+    {
+      "index": 16,
+      "worker": 0,
+      "kind": "models",
+      "task_id": "expanded-final/towers_of_hanoi-compact-920000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "learned_adapter",
+      "seed": 17
+    },
+    {
+      "index": 17,
+      "worker": 1,
+      "kind": "models",
+      "task_id": "expanded-final/towers_of_hanoi-compact-920000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "pretrained_base",
+      "seed": 17
+    },
+    {
+      "index": 18,
+      "worker": 0,
+      "kind": "models",
+      "task_id": "expanded-final/towers_of_hanoi-compact-920000",
+      "algorithm": "best_first_add_w3",
+      "condition": "learned_adapter",
+      "seed": 17
+    },
+    {
+      "index": 19,
+      "worker": 1,
+      "kind": "models",
+      "task_id": "expanded-final/towers_of_hanoi-compact-920000",
+      "algorithm": "best_first_add_w3",
+      "condition": "pretrained_base",
+      "seed": 17
+    },
+    {
+      "index": 20,
+      "worker": 0,
+      "kind": "models",
+      "task_id": "expanded-final/visitall-compact-921000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "learned_adapter",
+      "seed": 17
+    },
+    {
+      "index": 21,
+      "worker": 1,
+      "kind": "models",
+      "task_id": "expanded-final/visitall-compact-921000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "pretrained_base",
+      "seed": 17
+    },
+    {
+      "index": 22,
+      "worker": 0,
+      "kind": "models",
+      "task_id": "expanded-final/visitall-compact-921000",
+      "algorithm": "best_first_add_w3",
+      "condition": "learned_adapter",
+      "seed": 17
+    },
+    {
+      "index": 23,
+      "worker": 1,
+      "kind": "models",
+      "task_id": "expanded-final/visitall-compact-921000",
+      "algorithm": "best_first_add_w3",
+      "condition": "pretrained_base",
+      "seed": 17
+    },
+    {
+      "index": 24,
+      "worker": 0,
+      "kind": "models",
+      "task_id": "expanded-final/depot-compact-912000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "learned_adapter",
+      "seed": 17
+    },
+    {
+      "index": 25,
+      "worker": 1,
+      "kind": "models",
+      "task_id": "expanded-final/depot-compact-912000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "pretrained_base",
+      "seed": 17
+    },
+    {
+      "index": 26,
+      "worker": 0,
+      "kind": "models",
+      "task_id": "expanded-final/depot-compact-912000",
+      "algorithm": "best_first_add_w3",
+      "condition": "learned_adapter",
+      "seed": 17
+    },
+    {
+      "index": 27,
+      "worker": 1,
+      "kind": "models",
+      "task_id": "expanded-final/depot-compact-912000",
+      "algorithm": "best_first_add_w3",
+      "condition": "pretrained_base",
+      "seed": 17
+    },
+    {
+      "index": 28,
+      "worker": 0,
+      "kind": "models",
+      "task_id": "expanded-final/blocksworld-expanded-911101",
+      "algorithm": "best_first_add_greedy",
+      "condition": "learned_adapter",
+      "seed": 17
+    },
+    {
+      "index": 29,
+      "worker": 1,
+      "kind": "models",
+      "task_id": "expanded-final/blocksworld-expanded-911101",
+      "algorithm": "best_first_add_greedy",
+      "condition": "pretrained_base",
+      "seed": 17
+    },
+    {
+      "index": 30,
+      "worker": 0,
+      "kind": "models",
+      "task_id": "expanded-final/blocksworld-expanded-911101",
+      "algorithm": "best_first_add_w3",
+      "condition": "learned_adapter",
+      "seed": 17
+    },
+    {
+      "index": 31,
+      "worker": 1,
+      "kind": "models",
+      "task_id": "expanded-final/blocksworld-expanded-911101",
+      "algorithm": "best_first_add_w3",
+      "condition": "pretrained_base",
+      "seed": 17
+    },
+    {
+      "index": 32,
+      "worker": 0,
+      "kind": "models",
+      "task_id": "expanded-final/15puzzle-expanded-910109",
+      "algorithm": "best_first_add_greedy",
+      "condition": "learned_adapter",
+      "seed": 17
+    },
+    {
+      "index": 33,
+      "worker": 1,
+      "kind": "models",
+      "task_id": "expanded-final/15puzzle-expanded-910109",
+      "algorithm": "best_first_add_greedy",
+      "condition": "pretrained_base",
+      "seed": 17
+    },
+    {
+      "index": 34,
+      "worker": 0,
+      "kind": "models",
+      "task_id": "expanded-final/15puzzle-expanded-910109",
+      "algorithm": "best_first_add_w3",
+      "condition": "learned_adapter",
+      "seed": 17
+    },
+    {
+      "index": 35,
+      "worker": 1,
+      "kind": "models",
+      "task_id": "expanded-final/15puzzle-expanded-910109",
+      "algorithm": "best_first_add_w3",
+      "condition": "pretrained_base",
+      "seed": 17
+    },
+    {
+      "index": 36,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/storage-compact-919000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 17
+    },
+    {
+      "index": 37,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/storage-compact-919000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 5077
+    },
+    {
+      "index": 38,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/storage-compact-919000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 6131
+    },
+    {
+      "index": 39,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/storage-compact-919000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 7409
+    },
+    {
+      "index": 40,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/storage-compact-919000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 8527
+    },
+    {
+      "index": 41,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/storage-compact-919000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "exact_reference",
+      "seed": 17
+    },
+    {
+      "index": 42,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/storage-compact-919000",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 17
+    },
+    {
+      "index": 43,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/storage-compact-919000",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 5077
+    },
+    {
+      "index": 44,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/storage-compact-919000",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 6131
+    },
+    {
+      "index": 45,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/storage-compact-919000",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 7409
+    },
+    {
+      "index": 46,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/storage-compact-919000",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 8527
+    },
+    {
+      "index": 47,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/storage-compact-919000",
+      "algorithm": "best_first_add_w3",
+      "condition": "exact_reference",
+      "seed": 17
+    },
+    {
+      "index": 48,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/elevators-compact-914002",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 17
+    },
+    {
+      "index": 49,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/elevators-compact-914002",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 5077
+    },
+    {
+      "index": 50,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/elevators-compact-914002",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 6131
+    },
+    {
+      "index": 51,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/elevators-compact-914002",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 7409
+    },
+    {
+      "index": 52,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/elevators-compact-914002",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 8527
+    },
+    {
+      "index": 53,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/elevators-compact-914002",
+      "algorithm": "best_first_add_greedy",
+      "condition": "exact_reference",
+      "seed": 17
+    },
+    {
+      "index": 54,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/elevators-compact-914002",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 17
+    },
+    {
+      "index": 55,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/elevators-compact-914002",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 5077
+    },
+    {
+      "index": 56,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/elevators-compact-914002",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 6131
+    },
+    {
+      "index": 57,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/elevators-compact-914002",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 7409
+    },
+    {
+      "index": 58,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/elevators-compact-914002",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 8527
+    },
+    {
+      "index": 59,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/elevators-compact-914002",
+      "algorithm": "best_first_add_w3",
+      "condition": "exact_reference",
+      "seed": 17
+    },
+    {
+      "index": 60,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/ferry-compact-915000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 17
+    },
+    {
+      "index": 61,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/ferry-compact-915000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 5077
+    },
+    {
+      "index": 62,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/ferry-compact-915000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 6131
+    },
+    {
+      "index": 63,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/ferry-compact-915000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 7409
+    },
+    {
+      "index": 64,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/ferry-compact-915000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 8527
+    },
+    {
+      "index": 65,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/ferry-compact-915000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "exact_reference",
+      "seed": 17
+    },
+    {
+      "index": 66,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/ferry-compact-915000",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 17
+    },
+    {
+      "index": 67,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/ferry-compact-915000",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 5077
+    },
+    {
+      "index": 68,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/ferry-compact-915000",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 6131
+    },
+    {
+      "index": 69,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/ferry-compact-915000",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 7409
+    },
+    {
+      "index": 70,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/ferry-compact-915000",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 8527
+    },
+    {
+      "index": 71,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/ferry-compact-915000",
+      "algorithm": "best_first_add_w3",
+      "condition": "exact_reference",
+      "seed": 17
+    },
+    {
+      "index": 72,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/15puzzle-compact-910000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 17
+    },
+    {
+      "index": 73,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/15puzzle-compact-910000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 5077
+    },
+    {
+      "index": 74,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/15puzzle-compact-910000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 6131
+    },
+    {
+      "index": 75,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/15puzzle-compact-910000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 7409
+    },
+    {
+      "index": 76,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/15puzzle-compact-910000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 8527
+    },
+    {
+      "index": 77,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/15puzzle-compact-910000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "exact_reference",
+      "seed": 17
+    },
+    {
+      "index": 78,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/15puzzle-compact-910000",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 17
+    },
+    {
+      "index": 79,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/15puzzle-compact-910000",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 5077
+    },
+    {
+      "index": 80,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/15puzzle-compact-910000",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 6131
+    },
+    {
+      "index": 81,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/15puzzle-compact-910000",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 7409
+    },
+    {
+      "index": 82,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/15puzzle-compact-910000",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 8527
+    },
+    {
+      "index": 83,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/15puzzle-compact-910000",
+      "algorithm": "best_first_add_w3",
+      "condition": "exact_reference",
+      "seed": 17
+    },
+    {
+      "index": 84,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/towers_of_hanoi-compact-920000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 17
+    },
+    {
+      "index": 85,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/towers_of_hanoi-compact-920000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 5077
+    },
+    {
+      "index": 86,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/towers_of_hanoi-compact-920000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 6131
+    },
+    {
+      "index": 87,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/towers_of_hanoi-compact-920000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 7409
+    },
+    {
+      "index": 88,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/towers_of_hanoi-compact-920000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 8527
+    },
+    {
+      "index": 89,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/towers_of_hanoi-compact-920000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "exact_reference",
+      "seed": 17
+    },
+    {
+      "index": 90,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/towers_of_hanoi-compact-920000",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 17
+    },
+    {
+      "index": 91,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/towers_of_hanoi-compact-920000",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 5077
+    },
+    {
+      "index": 92,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/towers_of_hanoi-compact-920000",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 6131
+    },
+    {
+      "index": 93,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/towers_of_hanoi-compact-920000",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 7409
+    },
+    {
+      "index": 94,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/towers_of_hanoi-compact-920000",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 8527
+    },
+    {
+      "index": 95,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/towers_of_hanoi-compact-920000",
+      "algorithm": "best_first_add_w3",
+      "condition": "exact_reference",
+      "seed": 17
+    },
+    {
+      "index": 96,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/visitall-compact-921000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 17
+    },
+    {
+      "index": 97,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/visitall-compact-921000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 5077
+    },
+    {
+      "index": 98,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/visitall-compact-921000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 6131
+    },
+    {
+      "index": 99,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/visitall-compact-921000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 7409
+    },
+    {
+      "index": 100,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/visitall-compact-921000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 8527
+    },
+    {
+      "index": 101,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/visitall-compact-921000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "exact_reference",
+      "seed": 17
+    },
+    {
+      "index": 102,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/visitall-compact-921000",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 17
+    },
+    {
+      "index": 103,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/visitall-compact-921000",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 5077
+    },
+    {
+      "index": 104,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/visitall-compact-921000",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 6131
+    },
+    {
+      "index": 105,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/visitall-compact-921000",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 7409
+    },
+    {
+      "index": 106,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/visitall-compact-921000",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 8527
+    },
+    {
+      "index": 107,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/visitall-compact-921000",
+      "algorithm": "best_first_add_w3",
+      "condition": "exact_reference",
+      "seed": 17
+    },
+    {
+      "index": 108,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/depot-compact-912000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 17
+    },
+    {
+      "index": 109,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/depot-compact-912000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 5077
+    },
+    {
+      "index": 110,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/depot-compact-912000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 6131
+    },
+    {
+      "index": 111,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/depot-compact-912000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 7409
+    },
+    {
+      "index": 112,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/depot-compact-912000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 8527
+    },
+    {
+      "index": 113,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/depot-compact-912000",
+      "algorithm": "best_first_add_greedy",
+      "condition": "exact_reference",
+      "seed": 17
+    },
+    {
+      "index": 114,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/depot-compact-912000",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 17
+    },
+    {
+      "index": 115,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/depot-compact-912000",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 5077
+    },
+    {
+      "index": 116,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/depot-compact-912000",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 6131
+    },
+    {
+      "index": 117,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/depot-compact-912000",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 7409
+    },
+    {
+      "index": 118,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/depot-compact-912000",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 8527
+    },
+    {
+      "index": 119,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/depot-compact-912000",
+      "algorithm": "best_first_add_w3",
+      "condition": "exact_reference",
+      "seed": 17
+    },
+    {
+      "index": 120,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/blocksworld-expanded-911101",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 17
+    },
+    {
+      "index": 121,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/blocksworld-expanded-911101",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 5077
+    },
+    {
+      "index": 122,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/blocksworld-expanded-911101",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 6131
+    },
+    {
+      "index": 123,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/blocksworld-expanded-911101",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 7409
+    },
+    {
+      "index": 124,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/blocksworld-expanded-911101",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 8527
+    },
+    {
+      "index": 125,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/blocksworld-expanded-911101",
+      "algorithm": "best_first_add_greedy",
+      "condition": "exact_reference",
+      "seed": 17
+    },
+    {
+      "index": 126,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/blocksworld-expanded-911101",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 17
+    },
+    {
+      "index": 127,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/blocksworld-expanded-911101",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 5077
+    },
+    {
+      "index": 128,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/blocksworld-expanded-911101",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 6131
+    },
+    {
+      "index": 129,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/blocksworld-expanded-911101",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 7409
+    },
+    {
+      "index": 130,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/blocksworld-expanded-911101",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 8527
+    },
+    {
+      "index": 131,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/blocksworld-expanded-911101",
+      "algorithm": "best_first_add_w3",
+      "condition": "exact_reference",
+      "seed": 17
+    },
+    {
+      "index": 132,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/15puzzle-expanded-910109",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 17
+    },
+    {
+      "index": 133,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/15puzzle-expanded-910109",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 5077
+    },
+    {
+      "index": 134,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/15puzzle-expanded-910109",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 6131
+    },
+    {
+      "index": 135,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/15puzzle-expanded-910109",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 7409
+    },
+    {
+      "index": 136,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/15puzzle-expanded-910109",
+      "algorithm": "best_first_add_greedy",
+      "condition": "random_valid",
+      "seed": 8527
+    },
+    {
+      "index": 137,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/15puzzle-expanded-910109",
+      "algorithm": "best_first_add_greedy",
+      "condition": "exact_reference",
+      "seed": 17
+    },
+    {
+      "index": 138,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/15puzzle-expanded-910109",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 17
+    },
+    {
+      "index": 139,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/15puzzle-expanded-910109",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 5077
+    },
+    {
+      "index": 140,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/15puzzle-expanded-910109",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 6131
+    },
+    {
+      "index": 141,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/15puzzle-expanded-910109",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 7409
+    },
+    {
+      "index": 142,
+      "worker": 0,
+      "kind": "controls",
+      "task_id": "expanded-final/15puzzle-expanded-910109",
+      "algorithm": "best_first_add_w3",
+      "condition": "random_valid",
+      "seed": 8527
+    },
+    {
+      "index": 143,
+      "worker": 1,
+      "kind": "controls",
+      "task_id": "expanded-final/15puzzle-expanded-910109",
+      "algorithm": "best_first_add_w3",
+      "condition": "exact_reference",
+      "seed": 17
+    }
+  ],
+  "counts": {
+    "models": 36,
+    "controls": 108
+  }
+}
