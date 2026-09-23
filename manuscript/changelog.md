@@ -2,6 +2,13 @@
 
 The record of what changed in the ICLR 2026 manuscript and why. Newest first. Each entry names the commit, the scope of the change, and the review or ticket it answered. Review findings and their status live in `review-log.md`; claim vocabulary and boundaries live in `CONTEXT.md`.
 
+## 2026-09-23 — review 16 wave 1, claim scoping (`1c559e7`)
+
+- Findings 1-5, 7-11, 13, 16-17, 20, 26, 28-29, 31, 33-36 CLOSED. Headline sentences in Abstract, Introduction, Discussion, and Conclusion are scoped to the additive best-first cells, with submission-order invariance named as the cause and the choice-registering BFS/BFWS cells (random-valid 15/24 and 17/24, learned 0/24) stated alongside.
+- The "rules out order-riding" and "reads menu content / cannot ground actions in state" rulings are replaced by the scoped behavioral statement (does not reject schema-valid inapplicable menu entries, pick-rate 0.6 at the 0.592-0.625 chance band), per the user's Phase 0 decision. The distractor receipt is corrected to "every episode ends on a distractor pick, 20/36 on the first decision" with a source-conflict comment.
+- Results reordered: the identity audit now follows the gate receipts as Section 5.2, ahead of the primary matrix, which references it directly. Comparator-zoo claims report point estimates with overlapping intervals and no Pareto dominance. The choice-frontier corpus provenance sentence is now identical in Results, Design, and Appendix, and the enumeration-contract random-valid sampler is pinned from the executed code.
+- Build: 39 pages, 0 errors, 0 undefined, 0 overfull.
+
 ## 2026-09-23 — documentation consolidation (this commit)
 
 - `changelog.md` moved from `iclr2026/` to the manuscript root (the LaTeX directory holds build inputs only).
