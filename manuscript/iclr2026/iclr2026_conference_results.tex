@@ -35,12 +35,24 @@ The expanded study program spent 68.5244 of its 336 GPU-hour cap (2 A100 80GB GP
 \label{sec:results-identity}
 
 % Paragraph purpose: Report the per-decision identity audit on the enumeration contract, with its structural basis and additive-only scope, before any additive row is read.
-The identity audit compares random-valid against exact reference decision by decision on every additive cell of the expanded baseline, because it fixes what the additive rows of the primary matrix measure. Under the enumeration contract the two controls are decision- and expansion-identical on 48/48 additive pairs: each expansion requires the complete candidate set, and heap serials are assigned in deterministic sorted candidate order before submissions, making frontier evolution invariant to submission order. This is a property of this controller, not additive best-first search in general (Appendix~\ref{appendix}). The BFS and BFWS cells instead register choice, with random-valid at 15/24 and 17/24 against exact at 24/24 (Table~\ref{tab:results-primary-matrix}).
+The identity audit compares random-valid against exact reference decision by decision on every additive cell of the expanded baseline. Under the enumeration contract the two controls are decision- and expansion-identical on 48/48 additive pairs: each expansion requires the complete candidate set, and heap serials are assigned in deterministic sorted candidate order before submissions, making frontier evolution invariant to submission order. This is a property of this controller, not additive best-first search in general (Appendix~\ref{appendix}). The BFS and BFWS cells instead register choice, with random-valid at 15/24 and 17/24 against exact at 24/24 (Table~\ref{tab:results-primary-matrix}). The same check returns the opposite verdict under the choice-frontier contract, 18/18 divergent pairs (Figure~\ref{fig:contracts}), a divergence that holds by construction whenever a menu offers two or more states, and the submission-order-serial counterfactual on this runtime has not been run.
 % Evidence: identity audit executed under issue #130.
 % Evidence: outputs/native-arms/v1/identity-audit.json (pairs_checked 48, pairs_identical 48, verdict ZERO_DECISION_HEADROOM,
 % structural_basis: finish_expansion() requires the complete candidate set; heap serials from the deterministic sorted candidate
 % order; frontier evolution submission-order invariant). Moved here from the former choice-frontier subsection per review 16 I13.
 % Evidence (executed controller): examples/planning_benchmark_slice/pddl_state.py PDDLStateAuthority.applicable_actions; best_first_controller.py BestFirstController.start_expansion, apply_operation, finish_expansion.
+% Evidence (opposite verdicts): outputs/native-arms/v1/identity-audit.json pairs_identical 48; outputs/choice-frontier/v1/evaluation/identity-audit.json
+% pairs_divergent 18. Counterfactual = App B "serials in submission order" prediction (review 18 finding 49).
+% Pending: issue #134 R1
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/fig_contracts.pdf}
+\caption{Enumeration versus choice-frontier contract. Under the enumeration contract random-valid is decision-identical to the exact reference on 48/48 additive pairs. Under the choice-frontier contract the identity gate diverges on 18/18 cells and random-valid minus exact is $-0.644$ $[-0.856, -0.422]$.}
+\label{fig:contracts}
+% Evidence: outputs/native-arms/v1/identity-audit.json (pairs_identical 48); outputs/choice-frontier/v1/evaluation/identity-audit.json
+% (pairs_divergent 18); analysis.json contrasts.random_valid_minus_exact_reference (-0.644 [-0.856, -0.422]). Moved from App T (finding 50).
+\end{figure}
 
 \subsection{Primary Matrix: Success by Algorithm and Condition}
 \label{sec:results-primary}
@@ -102,7 +114,7 @@ The native arms see state only as rendered images plus the grounded, unscored ca
 \label{sec:results-choice-frontier}
 
 % Paragraph purpose: Describe the pre-registered choice-frontier redesign and its gate result, with receipts pointed to the appendix.
-The choice-frontier contract, frozen before launch, lets the policy select which runtime-owned frontier state to expand next, under a budget of 2$\times$ the additive exact-reference expansion count with goal selection uncharged. Its pre-registered identity gate passes on 9/9 tasks, a sanity check that holds by construction whenever a menu offers two or more states, and Table~\ref{tab:results-cf} gives the first measurement from two seed-17 adapters (Appendix~\ref{app:results-cf}).
+The choice-frontier contract, frozen before launch, lets the policy select which runtime-owned frontier state to expand next, under a budget of 2$\times$ the additive exact-reference expansion count with goal selection uncharged. Its pre-registered identity gate passes on 9/9 tasks (Section~\ref{sec:results-identity}), and Table~\ref{tab:results-cf} gives the first measurement from two seed-17 adapters (Appendix~\ref{app:results-cf}).
 % Evidence: choice-frontier contract is issue #132.
 % Evidence: outputs/choice-frontier/v1/evaluation/identity-audit.json (pairs_checked 18, pairs_divergent 18, pre_registered true);
 % outputs/choice-frontier/v1/evaluation/final-audit.json (episodes_replayed 144, CHOICE_SENSITIVE, ok true);
@@ -161,13 +173,6 @@ Novelty-first selection & .1250 [0, .2778] & 6/18 & 8/18 & 12/18 & 1.452 & 1.000
 % Evidence: #133 closing comment (M1 points, 2x/3x/4x counts, M2, M3); outputs/choice-frontier/o4/metrics/analysis.json arms.*
 % (m1_task_cluster_95pct_ci_10000_seed133 endpoints, shown to four decimals from the stored floats; m2/m3 base null = undefined).
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.75\columnwidth]{figures/fig_zoo_m1.pdf}
-\caption{Solve-versus-budget AUC (M1) on the frozen 9-task choice-frontier panel at multipliers 1 to 2. Exact reference .8472, random-valid uniform-choice reference .1389, learned adapter .1042 [.0278, .2014], novelty-first .1250, bfs-order .0694, worst-first .0556, pretrained base 0. Intervals of all non-exact arms overlap and the Holm family licenses no ordering. Under the enumeration contract, the BFS/BFWS random-valid rows (15/24 and 17/24 versus exact 24/24) already registered choice.}
-\label{fig:zoo-m1}
-\end{figure}
-% Evidence: caption fixed by local wave2-contract (figure contract item 2); values from outputs/choice-frontier/o4/metrics/analysis.json arms.*.m1_auc.
 
 % Paragraph purpose: Report the M1 position, the Holm/Pareto outcome with the non-equivalence sentence, and the descriptive-only M5 subset.
 On M1 the learned adapter falls between \texttt{bfs-order} and random-valid and below novelty-first selection (Table~\ref{tab:results-zoo}, Figure~\ref{fig:zoo-m1}). No comparator between random-valid and exact exists on this panel, so the zoo bounds the adapter only against weaker-than-random rules and cannot calibrate choice quality. Post-hoc M4 finds 17.4\% heap-head agreement against 26.9\% chance and 54.5\% last-menu-label emissions under per-decision seeded permutation, with no last-label comparator and no equivalence claim. Across the fifteen-test Holm family no comparison supports positive learned Pareto dominance, with three co-solved tests undefined. Non-significance is neither equivalence nor a generalized negative capability claim, and the one-task M5 subset is descriptive only (Appendix~\ref{app:results-cf}).
