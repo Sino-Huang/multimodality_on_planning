@@ -11,32 +11,33 @@
 % Paragraph purpose: State the frozen protocol discipline, seed policy, and episode-level replay verification via the replay-determinative interface.
 Every stage of the study runs under a frozen outcome-blind protocol.
 Development panels and held-out manifests are frozen before any model outcome.
-Preregistered gates close each stage with a recorded receipt (\textsc{pass},
+Pre-registered gates close each stage with a recorded receipt (\textsc{pass},
 \textsc{valid\_stop}, \textsc{invalid}, or \textsc{ancestor\_stop}), and no gate was revised after
 observing results.  Training seeds are frozen pre-launch: seed~17 for every
 cell after the historical pilot, with seeds~29 and~71 added for the two
 prospective replication cells.  The follow-up windows likewise train one
-seed-17 run per cell unless a protocol states otherwise, and the \#130 R1,
-R2, and R4 tests run on frozen checkpoints without retraining.  No seed was
+seed-17 run per cell unless a protocol states otherwise, and stress tests R1,
+R2, and R4 run on frozen checkpoints without retraining.  No seed was
 dropped after outcomes.  The
 replay-determinative interface makes every episode independently verifiable
 from its raw emissions alone.  The policy emits Typed Search Operations with
 explicit operands, and the Trusted Search Runtime validates and applies each
 operation without filling omitted choices or repairing outputs. Every episode
 record (model and control) across the seven branches, the observation-corruption
-suite (360 new + 144 reused bindings), and the \#127 amendment (534 episodes)
+suite (360 new + 144 reused bindings), and the seed-replication amendment (534 episodes)
 was independently replayed with zero missingness. The 1,152 expanded-baseline
 bindings include 576 model episodes and 576 CPU control/reference episodes.
 
 % Paragraph purpose: Give the replay receipts for the follow-up branches, window by window.
 Every follow-up branch was replayed with the same discipline and zero
-missingness.  The native arms (\#129) replayed 216/216 new bindings plus
-72/72 reused comparators.  The reviewer stress tests (\#130 R1, R2, and R4)
-replayed 170/170 episodes, and the second-backbone v3 cell (\#130 R3)
+missingness.  The native arms replayed 216/216 new bindings plus
+72/72 reused comparators.  Stress tests R1, R2, and R4
+replayed 170/170 episodes, and the second-backbone v3 cell (stress test R3)
 replayed 72/72 model episodes plus 72/72 comparators.  The choice-frontier
-evaluation (\#132) replayed 144/144 episodes, and its 58 preparation episodes
-were re-derived bit-exact.  The comparator zoo (\#133) replayed 432/432
+evaluation replayed 144/144 episodes, and its 58 preparation episodes
+were re-derived bit-exact.  The comparator zoo replayed 432/432
 bindings, 342 of them new CPU episodes.
+% Window ids: native arms #129, stress tests R1-R4 #130, choice frontier #132, comparator zoo #133; seed replication #127.
 % Evidence: docs/experiments/native-arms/issue-129-closeout.md (216/216 + 72/72);
 % outputs/native-arms/v1/stress-evaluation.json (episodes_replayed 170); issue-130-closeout.md (R3 72/72 + 72/72);
 % outputs/choice-frontier/v1/evaluation/final-audit.json (144) and preparation/visual-choice-frontier/audit.json (58);
@@ -57,12 +58,12 @@ The program consumed 68.5244 of a capped 336 GPU-hours on
 $2\times$NVIDIA A100 80\,GB, with a per-branch ledger that retains failed and
 cutoff attempts at their recorded cost.  The follow-up windows ran on separate
 ledgers with their own caps, and their spend is not added to the program
-total.  The native-arms window spent 3.2086 of 12 GPU-hours, the reviewer
-window 7.7998 of 36, and the choice-frontier window 1.069 of 12.  The
+total.  The native-arms window spent 3.2086 of 12 GPU-hours, the R1-R4
+follow-up window 7.7998 of 36, and the choice-frontier window 1.069 of 12.  The
 choice-frontier corpus derivation and controls ran on CPU, and the comparator
 zoo ran on CPU only.  Paired contrasts use whole-instance
 bootstrap with 10,000 resamples at seed~1729 and 95\% percentile intervals,
-except where a follow-up protocol fixes its own seed (Appendix~\ref{appendix}).
+except where a follow-up protocol fixes its own seed (Statistics appendix).
 Transfer comparisons use exact McNemar tests with Holm correction across the
 36 adapter--base pairs.  Strata with fewer than 8 instances are reported as
 descriptive only.  All seeds, panel memberships, corruption parameters, and
@@ -73,8 +74,9 @@ frozen protocols are stated in the evaluation manifests.
 
 % Paragraph purpose: Keep the public-release status pending under issue #122.
 Public release URLs and artifact DOIs have not yet been assigned
-[TODO: release URLs, issue \#122].  The existing \texttt{deadline-study-v1}
-release predates the follow-up evidence, and no successor release is
+[TODO: release URLs, issue \#122].  An earlier release of the study
+predates the follow-up evidence, and no successor release is
 published.
+% Evidence: the earlier release is the internal deadline-study-v1 release (name withheld for anonymity, review 16 I18).
 % TODO(release): issue #122 (release/handoff) is open; no public URLs or
 % artifact DOIs exist for this evidence. Update this paragraph when #122 closes.

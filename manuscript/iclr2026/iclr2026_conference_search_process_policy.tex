@@ -14,7 +14,7 @@ An episode fixes $(x, A, m, B)$: a task $x = (D, s_0, G)$ with deterministic gro
 
 % Paragraph purpose: Define Typed Search Operation, Search Memory, Algorithm Invariant, and Trusted Search Runtime with the ownership rule.
 \textbf{Typed Search Operation.} The policy emits $u_t = (\tau_t, \theta_t)$, a type from $A$'s vocabulary plus every exploration-determining operand, and an emission that omits one is invalid. \textbf{Search Memory.} $M_t$ is bounded runtime-held state (frontier, visited table, BFWS novelty counters), not model state, and $o_t$ is the policy's only channel to history.
-% TODO: the fixed Search Memory capacity value is an open preregistration
+% TODO: the fixed Search Memory capacity value is an open pre-registration
 % prerequisite (writing_design_tree.md); pin the value here once frozen.
 \textbf{Algorithm Invariant.} Deterministic per-algorithm properties are checked on every operation, namely FIFO order (BFS), novelty and goal-count priority (BFWS \citep{lipovetzky2017bestfirst}), and $g + 3h_{\rm add}$ or $h_{\rm add}$ order under a declared tie-break (weighted A* \citep{hart1968formal,pohl1970heuristic} and greedy best-first over $h_{\rm add}$ \citep{bonet2001planning}), and compliance establishes neither termination, completeness, optimality, nor success.
 % TODO: the per-algorithm tie-breaking convention must be recorded in the
