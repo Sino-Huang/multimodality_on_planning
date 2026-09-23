@@ -104,8 +104,8 @@ Ledger: Verified: 37, 38, 39, 41, 42, 43, 46, 47, 48, 9 (remainder), 11 (remaind
 | 41 | MINOR | VERIFIED | Intro p.2 L064-065 "125 of 288, all of them in the additive cells, against 240 for random-valid (96 in the choice-registering BFS/BFWS cells)". Tallied: 45+51 = 96. |
 | 42 | MINOR | VERIFIED | Intro p.2 L066-067 and Contribution 3 p.2 L099-100 "the dominant learned failure (229/407) is an invariant rejection of a parsed, applicable operation". |
 | 43 | MINOR | VERIFIED | Discussion p.9 L437-439 "the menu is the only retained input that could carry the operation-validity signal on this panel". |
-| 44 | MINOR | **PARTIAL** | Fixed: (a) the caption says "Intervals of all non-exact arms overlap" (p.8 L400-401); (c) the enumeration-contract note moved to the caption; the figure uses prose names. **Remaining (b):** discussion.tex L28 `\texttt{exact\_reference} solves by construction of the budget` renders as a code identifier with a lowercase item start (p.9 L447 "Imitation target. exact reference solves…"). Fix under finding 65. Remainder severity MINOR. |
-| 45 | MINOR | **PARTIAL** | Fixed: one seed table (Table 6), one receipts table (Table 4), Cell A renamed "the greedy × multimodal replication cell" (p.18 L918, L963). **Remaining:** App S p.28 L1485 (appendix.tex L850) still says "Cell A covers one of the three pooled headline modalities", the same legacy "headline" framing for a cell whose SFT − random-valid is negative at every seed. Fix under finding 65. Remainder severity MINOR. |
+| 44 | MINOR | **PARTIAL** → CLOSED (`640467b`) | Fixed: (a) the caption says "Intervals of all non-exact arms overlap" (p.8 L400-401); (c) the enumeration-contract note moved to the caption; the figure uses prose names. **Remaining (b):** discussion.tex L28 `\texttt{exact\_reference} solves by construction of the budget` renders as a code identifier with a lowercase item start (p.9 L447 "Imitation target. exact reference solves…"). Fix under finding 65. Remainder severity MINOR. |
+| 45 | MINOR | **PARTIAL** → CLOSED (`640467b`) | Fixed: one seed table (Table 6), one receipts table (Table 4), Cell A renamed "the greedy × multimodal replication cell" (p.18 L918, L963). **Remaining:** App S p.28 L1485 (appendix.tex L850) still says "Cell A covers one of the three pooled headline modalities", the same legacy "headline" framing for a cell whose SFT − random-valid is negative at every seed. Fix under finding 65. Remainder severity MINOR. |
 | 46 | MINOR | VERIFIED | No "[TODO" in the PDF text. The markers are converted to prose (Design p.5 L222-223 "The BFWS-to-BFS panel overlap is not pinned in the retained manifests"; 5.11 p.7 L409-410, Discussion p.9 L452-453, and Repro p.9 L469-470 "Code and evidence bundles will be provided as anonymous supplementary material"). Ticket references are kept in `%` comments. |
 | 47 | MINOR | VERIFIED | The Reproducibility Statement is one pointer paragraph (p.9 L466-470). It hard-codes appendix letters (finding 56). |
 | 48 | MINOR | VERIFIED | fig_contracts.png shows no clipped boxes. `ax.set_xlim(-0.03, 1.03)` is at fig_contracts.py L33. |
@@ -163,7 +163,7 @@ Ledger: Verified: 37, 38, 39, 41, 42, 43, 46, 47, 48, 9 (remainder), 11 (remaind
 - **Issue:** The brief makes the adjacent artifact comment binding for every number. Roughly twenty numeric paragraphs and tables do not meet it, and the uncovered ones are exactly the appendix blocks migrated in Wave 2. A reproducer checking App M or App N has no path to the JSON. Where the artifact and the text disagree on a flag (descriptive_only), the disagreement is undocumented.
 - **Fix:** Add one `% Evidence:` line per paragraph or table naming the pinned file and key. Examples: `outputs/expanded-study/v1/seed-replication/…` for Table 6; `outputs/expanded-study/v1/dagger/…`, `…/successor/…`, `…/curriculum/…`, `…/transfer-paired-analysis.json` for App M; `docs/experiments/expanded-study/failure-mechanism-analysis.md` with its table for App N and Table 3; `docs/issue-59-bfws-structural-gate.md` L250-253 for the 0.933/0.467 abstract line; `choice-frontier/v1/evaluation/analysis.json` contrasts.* for abstract L18-19. Replace every `content_brief.md` source with the synthesis README or JSON it summarized. Add `% Source conflict: analysis.json descriptive_only false; the Erratum item 3 one-task rule governs the prose` at results.tex L129.
 - **Fix class:** WORDING
-- **Status:** OPEN (r18)
+- **Status:** CLOSED (`640467b`)
 
 #### 54 · MAJOR · Axis 4 / claim discipline (absence claim without a margin) / Axis 3 · `iclr2026_conference_results.tex (5.4)`
 
@@ -187,7 +187,7 @@ Ledger: Verified: 37, 38, 39, 41, 42, 43, 46, 47, 48, 9 (remainder), 11 (remaind
 - **Issue:** The one sentence that answers finding 39 sends the reader to the wrong appendix. App A says only "under the declared tie-breaking rule". Hard-coded letters in the Reproducibility Statement break silently on any appendix reorder, against the prose-name convention adopted for finding 24.
 - **Fix:** results.tex L38: "(Algorithm Invariant Definitions appendix)", matching App R L839. This avoids adding a label, which the hub's frozen-label rule (hub L67-68) forbids for cross-file references. Replace the letters in reproducibility.tex with prose names ("the Trusted Search Runtime, Data and Split Procedures, Receipt Tables, and Statistics appendices").
 - **Fix class:** WORDING
-- **Status:** OPEN (r18)
+- **Status:** CLOSED (`640467b`)
 
 #### 57 · MINOR · Axis 3 / Axis 5 (incommensurate denominators in the main text) · `iclr2026_conference_introduction.tex; iclr2026_conference_results.tex (5.4)`
 
@@ -195,7 +195,7 @@ Ledger: Verified: 37, 38, 39, 41, 42, 43, 46, 47, 48, 9 (remainder), 11 (remaind
 - **Issue:** Next to 31/36 (12 tasks × 3 modalities), "24/24 per modality" invites the reading 72/72 on 36. The actual basis is 12 tasks per modality, each counted twice from one episode. Review 17 recorded this as the residual of finding 29 but did not reopen it. It is the only main-text count whose denominator cannot be reconstructed from the text.
 - **Fix:** Intro and 5.4: "random-valid solves every panel task (24/24 control entries per modality, two per task)". Keep the artifact figure and move the explanation into the text.
 - **Fix class:** WORDING
-- **Status:** OPEN (r18)
+- **Status:** CLOSED (`640467b`)
 
 #### 58 · MINOR · Axis 4 (causal verb from a descriptive calibration) · `iclr2026_conference_results.tex (5.5); iclr2026_conference_appendix.tex (App N); iclr2026_conference_discussion.tex`
 
@@ -227,7 +227,7 @@ Ledger: Verified: 37, 38, 39, 41, 42, 43, 46, 47, 48, 9 (remainder), 11 (remaind
 - **Issue:** Option-ID selection bias in LLM multiple-choice selection is established and permutation-diagnosed: Zheng et al., "Large Language Models Are Not Robust Multiple Choice Selectors", ICLR 2024, arXiv:2309.03882. The abstract, fetched via Semantic Scholar on 2026-09-23 (https://arxiv.org/abs/2309.03882), reports that "LLMs are vulnerable to option position changes in MCQs due to their inherent 'selection bias'" arising from token bias. Both the last-label finding and the unrun fixed-versus-random-position test are applications of this known phenomenon, and the paper does not position against it.
 - **Fix:** Add to the evaluation-validity paragraph: "Label-position selection bias is documented for LLM multiple-choice selectors \citep{zheng2024robust}, and the fixed-versus-random-position distractor test in Section 5.7 is the corresponding diagnostic for menu-based search." Add a verified bib entry.
 - **Fix class:** WORDING
-- **Status:** OPEN (r18)
+- **Status:** CLOSED (`640467b`)
 
 #### 62 · MINOR · Axis 3 (claim contradicted by the paper's own map) / Axis 5 (garbled sentence) · `iclr2026_conference_discussion.tex`
 
@@ -243,7 +243,7 @@ Ledger: Verified: 37, 38, 39, 41, 42, 43, 46, 47, 48, 9 (remainder), 11 (remaind
 - **Issue:** Three GPU ledgers exist (native-arms/v1, reviewer-v130/v1+v2, choice-frontier/v1). The zoo has no GPU ledger. "Each on its own GPU ledger" contradicts the next sentence.
 - **Fix:** App J: "Four follow-up windows executed after the program: three on their own GPU ledgers and the CPU-only comparator zoo". 5.1: "the three separately ledgered GPU follow-up windows and the CPU-only comparator zoo".
 - **Fix class:** WORDING
-- **Status:** OPEN (r18)
+- **Status:** CLOSED (`640467b`)
 
 #### 64 · MINOR · Axis 3 (freeze timing overstated) · `iclr2026_conference_experimental_design.tex`
 
@@ -251,7 +251,7 @@ Ledger: Verified: 37, 38, 39, 41, 42, 43, 46, 47, 48, 9 (remainder), 11 (remaind
 - **Issue:** "Before first outcomes" reads as outcome-blind design, but each follow-up was frozen after earlier outcomes on the same nine tasks. The sentence also points to App P-R for protocols, while the choice-frontier contract is defined in App I.
 - **Fix:** "Follow-up protocols (Appendices I and P–R) were each frozen before their own first outcome, on separate ledgers, but after earlier outcomes on the same nine tasks (Section 5.11)".
 - **Fix class:** WORDING
-- **Status:** OPEN (r18)
+- **Status:** CLOSED (`640467b`)
 
 #### 65 · MINOR · Style rules (per-file sweep) · `iclr2026_conference_results.tex; iclr2026_conference_discussion.tex; iclr2026_conference_experimental_design.tex; iclr2026_conference_appendix.tex; iclr2026_conference.tex`
 
@@ -273,7 +273,7 @@ Ledger: Verified: 37, 38, 39, 41, 42, 43, 46, 47, 48, 9 (remainder), 11 (remaind
   - appendix.tex L843: "The final audit returns CHOICE\_SENSITIVE and passes over 144 replayed episodes."
   - appendix.tex L850: "Cell A covers one of the three modalities of the greedy additive cell."
 - **Fix class:** WORDING
-- **Status:** OPEN (r18)
+- **Status:** CLOSED (`640467b`)
 
 ### What would change the verdict
 

@@ -2,7 +2,7 @@
 
 The record of what changed in the ICLR 2026 manuscript and why. Newest first. Each entry names the commit, the scope of the change, and the review or ticket it answered. Review findings and their status live in `review-log.md`; claim vocabulary and boundaries live in `CONTEXT.md`.
 
-## 2026-09-23 — review 18 wave 3, compliance and hygiene (WAVE3)
+## 2026-09-23 — review 18 wave 3, compliance and hygiene (`640467b`)
 
 - Findings 53, 56, 57, 61, 63, 64, 65 and the finding 44 and 45 remainders are CLOSED.
 - Finding 53: every numeric paragraph and table the finding listed now has an adjacent `% Evidence` line naming its pinned file and key. `content_brief.md` sources are replaced by the pinned JSON or README they summarized. The `descriptive_only=false` artifact flag against the one-task descriptive rule gets a source-conflict comment in the Abstract, Results, and App R.
