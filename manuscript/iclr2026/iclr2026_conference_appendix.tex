@@ -501,3 +501,429 @@ Each selector's choice is mapped back to the menu binding, and every candidate s
 \paragraph{Metric computation (\#133).}
 Under M1 an episode solves at multiplier $m$ when its first goal selection occurs within $\lfloor m R_t \rfloor$ decisions with at most $\lfloor m R_t \rfloor$ preceding expansions, where $R_t$ is the additive exact-reference expansion count. Unsolved 2$\times$ runs count as failures at every $m$, and the same prefix truncation applies to every arm. Task and algorithm weights are equal. M2 also has a censored form, in which failures are right-censored at the budget rather than assigned a fictitious expansion count. M3 counts transitions along the selected goal state's trusted predecessor chain and is undefined, never imputed, for unsolved episodes. M4 measures agreement with the current additive heap head over decisions with at least two live choices, against a chance rate equal to the decision-weighted mean of $1/K$. M5 restricts to tasks where the mean 2$\times$ random-valid solve indicator lies strictly between 0 and 1.
 % Evidence: docs/experiments/choice-frontier/issue-133-protocol.md, Pre-registered metrics and claims.
+
+% Sections below migrated verbatim from Results in #131 round 2 Wave 2 (review 16 finding 6). Table labels kept;
+% body subsections keep one-paragraph summaries pointing here.
+
+\section{Results Detail: Gate Receipts and Qualification Gates}
+\label{app:results-gates}
+
+% Paragraph purpose: Summarize the expanded program's branch-level receipts, budget ledger, and reconciliation status before any effect is discussed.
+The expanded study program ran on 2 A100 80GB GPUs under a 336 GPU-hour cap with an absolute scheduler cutoff, and spent 53.52 of those hours (15.9\%) at the \#120 synthesis snapshot, before the \#126/\#127 addenda, and 68.5244 after the \#126/\#127 addenda. Seven branches were admitted. Five executed to completion at v1 scope, and two (second backbone, generalization/robustness) stopped with terminal \textsc{valid\_stop} receipts at their frozen v1 cost-admission gates and later completed at reduced scope under new versioned protocols. Table~\ref{tab:results-gates} lists the per-branch receipts with their frozen scopes. Every executed branch reconciles with zero missing evidence: 1,152/1,152 baseline episodes independently replayed, 405/405 DAgger episodes, 90/90 successor episodes, 243/243 curriculum model episodes with 324/324 comparator bindings, 39/39 transfer cells, 72/72 second-backbone-v2 model episodes with 72 hash-pinned comparators, and 1,200/1,200 generalization-v2 episodes. The v1 full scopes of the two reduced branches were never executed. Their terminal \textsc{valid\_stop} evidence is retained as history, and the corresponding issues remain open [TODO: full-scope v1 branches \#96/\#98/\#102/\#103].
+% Evidence: 68.5244 / 336 program total after the addenda per docs/experiments/expanded-study/issue-127-closeout.md
+% (12.7863 GPU-h added, 68.5244/336 total); same value as the Reproducibility statement and Appendix tab:appendix-receipts (68.52).
+% Status 2026-09-21: issues #96/#98/#102/#103 are CLOSED (supervisor decision, v1 scope withdrawn). The marker is Wave 3 (review 16 I12).
+
+% Paragraph purpose: Record the follow-up windows' receipts on their own ledgers, reported separately from the main program.
+Four follow-up tickets executed after the program, each on its own GPU window. These windows are reported separately and never summed with the main program ledger. The native-arms window (\#128/\#129) spent 3.2086 of 12 GPU-hours, the reviewer-blocker window (\#130) spent 7.7998 of 36, and the choice-frontier window (\#132) spent 1.069 of 12. The comparator zoo (\#133) ran on CPU only.
+% Evidence: ledger numbers from the #131 round-1 brief ledger; docs/experiments/native-arms/issue-129-closeout.md (3.2086 / 12.0);
+% docs/experiments/native-arms/issue-130-closeout.md (states 7.80 GPU-h, i.e. the 7.7998 ledger value rounded; cap 36);
+% docs/experiments/choice-frontier/issue-132-closeout.md and outputs/choice-frontier/v1/budget.json (1.069 / 12.0);
+% issue Sino-Huang/multimodality_on_planning#133 closing comment (no GPU launched).
+The reviewer window was resized from 20 to 36 GPU-hours before any outcome, because its frozen worst-case estimate of 27.04 GPU-hours including spend exceeded the initial cap, and realized cost landed at 29\% of that estimate. Each follow-up closed with complete coverage and independent replay (Table~\ref{tab:results-gates}).
+% Evidence: docs/experiments/native-arms/issue-130-closeout.md, Verification & budget (27.04 GPU-h estimand, 29%).
+
+\begin{table}[t]
+\caption{Gate receipts for the expanded study program and its follow-up tickets, before effect interpretation. Terminal states and frozen scopes are copied from the branch reconciliation ledger and the follow-up closeouts. The two reduced-scope branches closed on v2 evidence, and their v1 scopes stay open as \textsc{valid\_stop} history. Rows below the middle rule are follow-up windows on separate ledgers.}
+\label{tab:results-gates}
+\centering\footnotesize
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{@{}p{0.17\linewidth}p{0.14\linewidth}p{0.22\linewidth}p{0.25\linewidth}p{0.16\linewidth}@{}}
+\hline
+Branch & Tickets & Terminal state & Frozen scope executed & Coverage \\
+\hline
+Expanded baseline & \#116--\#118 & complete & 1,152 bindings, 576 model episodes & 1,152/1,152 replayed \\
+DAgger & \#78--\#84 & complete & 405 episodes + 81 paired rows & 405/405 \\
+Successor prediction & \#85--\#89, \#99 & complete & 90 episodes, 15 modality-panel cells & 90/90 \\
+Curriculum by modality & \#119 & complete & 243 model + 324 comparator bindings & all present \\
+Transfer & \#104--\#107 & complete & 39 cells: 12 v1 + 27 v2 & 39/39 \\
+Second backbone & \#101--\#103, \#123 & v1 \textsc{valid\_stop}. v2 complete & 72 model episodes + 72 comparators & 72/72 \\
+Generalization/\newline robustness & \#96, \#98, \#124 & v1 \textsc{valid\_stop}. v2 complete & 1,200 episodes: 300 model + 900 controls & 1,200/1,200 \\
+Observation corruption & \#126 & complete & 360 new bindings & 360/360 replayed \\
+Training-seed replication & \#127 & complete & 534 new episodes & 534/534 replayed \\
+\hline
+Native arms & \#128, \#129 & \#128 v1 gate history. v2 complete & 216 new bindings + 72 comparators & 216/216 + 72/72 \\
+Reviewer stress R1/R2/R4 & \#130 & complete & 170 episodes: 72 menu, 80 variant, 18 cross-cell & 170/170 \\
+Second backbone v3 (R3) & \#130 & complete & 72 model episodes + 72 comparators & 72/72 + 72/72 \\
+Choice frontier & \#132 & complete,\newline \textsc{choice\_sensitive} & 144 panel episodes. 58 preparation episodes re-derived & 144/144 \\
+Comparator zoo & \#133 & complete, CPU only & 432 zoo bindings, 342 new episodes & 432/432 \\
+\hline
+\end{tabular}
+% Evidence (follow-up rows): issue-129-closeout.md (216/216 + 72/72); outputs/native-arms/v1/stress-evaluation.json
+% (episodes_replayed 170, missing []; R1 72, R4 80, R2 18 per issue-130-closeout.md);
+% outputs/expanded-study/v1/second-backbone-v3/evaluation/evidence.json (72 model episodes, complete_coverage true;
+% the file lists comparator_episodes 144 against expected 72; the closeout states 72/72 comparators replayed, used here);
+% outputs/choice-frontier/v1/evaluation/final-audit.json (144 replayed, CHOICE_SENSITIVE, ok true),
+% outputs/choice-frontier/v1/preparation/visual-choice-frontier/audit.json (episodes_rederived 58, PASS);
+% outputs/choice-frontier/o4/metrics/analysis.json episode_accounting (replay_passed 432, new_cpu 342, missing []).
+\end{table}
+
+% Paragraph purpose: Record the qualification gates that precede the program: the BFS pilot VALID_STOP, the BFWS structural gate PASS with its untouched held-out manifest, and the retired optimal A* arm.
+Three earlier gates frame the active algorithm matrix. The bounded BFS pilot closed with a governed \textsc{valid\_stop}: on a frozen outcome-blind 15-task BFS development panel, final checkpoints from five process-SFT seeds achieved 1.0 invariant-valid success with a 0.0 invalid-operation rate, but the base achieved 0.0 and random-valid achieved 1.0, so the learned policy showed executable BFS behavior with zero gain over the strongest control and downstream work was gated off. The BFWS structural gate then passed on its frozen development panel (Section~\ref{sec:results-primary}). The companion 45-task held-out manifest was frozen before outcomes and has never been accessed.
+% TODO: the authorized held-out final primary evaluation on the frozen
+% 45-task manifest remains unexecuted; no final efficacy number exists.
+The optimal A* arm over $h_{\max}$ with landmark counting was retired after its own governed \textsc{valid\_stop} and is superseded by the two additive best-first variants. Its original heuristic-representation estimand remains unidentified. The historical five-seed BFS pilot predates the current budget rule, which authorizes one training run at seed 17 per model and cell (Section~\ref{sec:design}).
+
+\section{Results Detail: Primary-Matrix Tables}
+\label{app:results-primary}
+
+% Paragraph purpose: Point to the two migrated primary tables and state the measurement separation they keep.
+Table~\ref{tab:results-bfws} gives the BFWS development panel and Table~\ref{tab:results-primary-matrix} the expanded 24-task baseline by algorithm and modality, both summarized in Section~\ref{sec:results-primary}. Measures are reported separately and never combined.
+% Evidence: tables migrated verbatim from Results in #131 round 2 Wave 2 second pass; sources synthesis-v1/README.md and content_brief.md.
+
+\begin{table}[t]
+\caption{Frozen 15-task text-state BFWS development panel: full-episode budgeted success by condition. The learned-to-best-control gain over random-valid is 0.467 with a paired whole-instance bootstrap 95\% interval lower bound 0.2 (10,000 resamples). Single fixed training seed, development stage, held-out manifest not accessed.}
+\label{tab:results-bfws}
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lc}
+\hline
+Condition & Success (15 tasks) \\
+\hline
+Pretrained base & 0.0 \\
+Process SFT & 0.933 \\
+Random-valid (oracle-assisted control) & 0.467 \\
+Exact execution & 1.0 \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+\caption{Primary matrix: expanded 24-task baseline by algorithm and modality. Measures are reported separately and never combined. Columns give full-episode budgeted success out of 24 for each condition, process-SFT invalid operations over decisions (inv/dec), process-SFT expansions, and exact-reference decisions as the budget reference. The pretrained base terminates on its first invalid operation in every cell (24/24 inv/dec, 0 expansions). Random-valid (RV) is an oracle-assisted programmatic control and exact execution is the oracle upper bound, and both are references rather than model abilities.}
+\label{tab:results-primary-matrix}
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{llccccccc}
+\hline
+Algorithm & Modality & Base & SFT & RV & Exact & SFT inv/dec & SFT exp. & Exact dec. \\
+\hline
+BFS & text & 0/24 & 0/24 & 15/24 & 24/24 & 24/66 & 15 & 1969 \\
+BFS & visual & 0/24 & 0/24 & 15/24 & 24/24 & 24/69 & 17 & 1969 \\
+BFS & multimodal & 0/24 & 0/24 & 15/24 & 24/24 & 24/63 & 15 & 1969 \\
+BFWS & text & 0/24 & 0/24 & 17/24 & 24/24 & 24/24 & 0 & 974 \\
+BFWS & visual & 0/24 & 0/24 & 17/24 & 24/24 & 24/24 & 0 & 974 \\
+BFWS & multimodal & 0/24 & 0/24 & 17/24 & 24/24 & 24/24 & 0 & 974 \\
+Weighted A* ($w{=}3$) & text & 0/24 & 20/24 & 24/24 & 24/24 & 4/609 & 179 & 694 \\
+Weighted A* ($w{=}3$) & visual & 0/24 & 18/24 & 24/24 & 24/24 & 6/499 & 143 & 694 \\
+Weighted A* ($w{=}3$) & multimodal & 0/24 & 22/24 & 24/24 & 24/24 & 2/666 & 196 & 694 \\
+Greedy best-first & text & 0/24 & 22/24 & 24/24 & 24/24 & 2/614 & 179 & 673 \\
+Greedy best-first & visual & 0/24 & 22/24 & 24/24 & 24/24 & 2/643 & 189 & 673 \\
+Greedy best-first & multimodal & 0/24 & 21/24 & 24/24 & 24/24 & 3/617 & 179 & 673 \\
+\hline
+\end{tabular}
+\end{table}
+
+\section{Results Detail: Primary-Matrix Paired Contrasts}
+\label{app:results-contrasts}
+
+% Paragraph purpose: Give the paired whole-problem contrasts as the learned-to-control-gain measurement, kept separate from the success counts.
+Paired whole-problem contrasts supply the learned-to-best-control gain, kept separate from the success counts (Table~\ref{tab:results-contrasts}). Against the base, process SFT gains only in the additive cells ($+0.833$ for weighted A*, $+0.903$ for greedy) and gains nothing under BFS or BFWS. Against random-valid, process SFT loses in every algorithm column and wins zero of the 72 problem-modality units in any column. Random-valid itself ties exact execution in both additive columns, so those cells cannot measure any advantage beyond valid bookkeeping. These contrasts are tiny-subgroup descriptive bounds over 24 problems and one training seed. They do not support modality or algorithm superiority claims beyond the executed panel. The development-panel BFWS positive does not reappear on this suite. The complete six-measure matrix for the frozen final protocol, including per-cell Algorithm Invariant compliance and charged-budget columns, belongs to the held-out evaluation.
+% TODO: same pending evaluation as above; the final protocol's full
+% six-measure matrix is part of that unexecuted slot.
+
+\begin{table}[t]
+\caption{Paired whole-problem success contrasts on the expanded baseline (10,000 paired resamples over the 24 problems, seed 1729). Entries give the point contrast with wins/losses/ties over the 72 problem-modality units. Contrasts are descriptive bounds over a tiny subgroup and a single training seed \citep{efron1979bootstrap}.}
+\label{tab:results-contrasts}
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lcccc}
+\hline
+Contrast & BFS & BFWS & Weighted A* ($w{=}3$) & Greedy \\
+\hline
+SFT $-$ base & $+0.000$ (0/0/72) & $+0.000$ (0/0/72) & $+0.833$ (60/0/12) & $+0.903$ (65/0/7) \\
+SFT $-$ random-valid & $-0.625$ (0/45/27) & $-0.708$ (0/51/21) & $-0.167$ (0/12/60) & $-0.097$ (0/7/65) \\
+SFT $-$ exact & $-1.000$ (0/72/0) & $-1.000$ (0/72/0) & $-0.167$ (0/12/60) & $-0.097$ (0/7/65) \\
+Random-valid $-$ exact & $-0.375$ (0/27/45) & $-0.292$ (0/21/51) & $+0.000$ (0/0/72) & $+0.000$ (0/0/72) \\
+\hline
+\end{tabular}
+\end{table}
+
+\section{Results Detail: Secondary Panels}
+\label{app:results-secondary}
+
+% Paragraph purpose: Report the matched-modality evidence, including the separate historical v5 matrix, and state the modality claim boundary.
+\paragraph{Modality.} The per-modality rows of Table~\ref{tab:results-primary-matrix} show the same qualitative profile in all three adapters: zero learned success under BFS and BFWS, learned success below the saturating controls in the additive cells. The earlier matched-modality study, a 3-problem panel on its own ledger that is never pooled with the expanded baseline, gives process-SFT success of 5/12 in text-state, 6/12 in visual-state, and 6/12 in multimodal-state, versus 10/12 for random-valid in each modality, 0/12 for the base, and 12/12 for exact execution. The evidence does not support an intrinsic modality effect. Two caveats bound any such claim: the unlabelled 128px rendered views can lose symbolic identities, and the static and goal pages still contain text in every modality, so semantic parity across adapters is not established.
+
+% Paragraph purpose: Report generalization/robustness v2 at its frozen reduced scope, with the lossy stratum kept separate and controls named as bounds.
+\paragraph{Generalization and robustness v2.} The reduced v2 protocol admitted a uniform cheapest-prefix sample of 5 variants per family over 5 perturbation families (25 of 93 eligible semantics-preserving variants, membership frozen before execution) and evaluated the learned additive-best-first adapters. Learned adapters succeeded on 128/150 episodes versus 0/150 for the pretrained base, where every base episode is a one-call invalid termination (150 decisions total). By family, learned success was 29/30 on object-renaming, 27/30 on name-compression, 27/30 on render-restyle, 26/30 on scale-up, and 19/30 on shifted-init. By modality the split was text 44/50, multimodal 43/50, visual 41/50; by algorithm, greedy 67/75 and weighted A* 61/75. All 22 learned failures are single-invalid-operation terminations, 11 of them in shifted-init. Controls saturate (random-valid 750/750, exact 150/150) and remain bounds, not learned ability. The lossy name-compression stratum is reported separately and never pooled: all 5 admitted variants are text-lossy, 3 multimodal-lossy, and 0 visual-lossy, with learned success on that stratum of text 9/10, visual 8/10, multimodal 10/10. Family strata hold 5 problems each, so family-level rates are descriptive only. The v1 full suite remains unexecuted [TODO: full-scope v1 generalization branches \#96/\#98].
+% Status 2026-09-21: issues #96/#98 CLOSED (supervisor decision, v1 scope withdrawn); the executed evidence is the reduced
+% v2 scope only. The "[TODO: ...]" marker in the prose above is Wave 3 (review 16 I12), not changed here.
+
+% Paragraph purpose: Report the DAgger null against the exposure-matched continued-SFT control, including invalid-operation rates.
+\paragraph{DAgger.} Two DAgger iterations \citep{ross2011dagger} on BFS were compared against an exposure-matched continued-SFT control on 3 development and 24 unseen modality-task pairs (Table~\ref{tab:results-dagger}). On the unseen panel, DAgger and continued SFT each achieve 1/72 invariant-valid successes (paired over whole problems: one DAgger win, one loss, 70 ties), both far below random-valid at 45/72 and exact execution at 72/72, while the original process-SFT checkpoint achieves 0/72. The result is null. DAgger also carries the higher unseen invalid-operation rate of the two iterated arms (0.316 versus 0.175). Final cumulative unique training corrections were text 201, visual 203, multimodal 181, accumulated over 12 training cells of 512 records and 16 optimizer updates per cell-iteration.
+
+\begin{table}[t]
+\caption{DAgger on BFS: development and unseen success with unseen invalid-operation rates, against the exposure-matched continued-SFT control and the two references.}
+\label{tab:results-dagger}
+\centering\small
+\begin{tabular}{lccc}
+\hline
+Arm & Dev success /9 & Unseen success /72 & Unseen invalid rate \\
+\hline
+DAgger iteration 2 & 3/9 & 1/72 & 0.316 \\
+Continued SFT iteration 2 & 2/9 & 1/72 & 0.175 \\
+Original process SFT & 1/9 & 0/72 & 0.364 \\
+Random-valid & 6/9 & 45/72 & 0.000 \\
+Exact reference & 9/9 & 72/72 & 0.000 \\
+\hline
+\end{tabular}
+\end{table}
+
+% Paragraph purpose: Report the model-generated-successor arm versus the trusted-successor arm, localizing failures to state identity and effects rather than schema.
+\paragraph{Model-generated successors.} Replacing trusted successors with model-generated dynamic-state successors collapses goal success from 45/45 to 1/45 on the evaluated panel, with zero trusted-state substitutions in the trusted arm. The single success is the one multimodal unseen cell. The trained successor model is exactly correct on 65/109 retained raw predictions, with 93 schema-valid and 66 effect-valid, and downstream failure kinds are dominated by exact state-identity and effect failures (27 effect, 16 schema, 1 static-context) rather than schema failures. Collection-time verification of the untrained exact-successor accepted 119/1,536 predictions (text 43, visual 52, multimodal 24). Coverage is partial by design: the frozen outcome-blind admission accepted a 12-task fallback panel after the full 24-task unseen panel was priced at 147.66 GPU-hours against the 64 GPU-hour branch cap, so full unseen coverage remains missing.
+
+% Paragraph purpose: Report the curriculum-by-modality null with the four interaction intervals and the saturation caveat.
+\paragraph{Curriculum by modality.} Nine training cells (three modalities under staged, shuffled, and mixed ordering, all under greedy additive best-first and trained fresh from the same base on identical record sets) were evaluated on 27 unseen whole problems. Successes were 24/24/25 (staged/shuffled/mixed) in text-state, 24/27/26 in visual-state, and 25/27/27 in multimodal-state. A sequential-SFT comparator reached 24/27, 25/27, and 24/27 in text, visual, and multimodal cells respectively, the base stayed at 0/27, and random-valid and exact execution saturated at 27/27 in every modality. All four paired interaction intervals include zero: $-0.111$ $[-0.259, +0.037]$ and $-0.074$ $[-0.259, +0.074]$ for the visual and multimodal staged-minus-shuffled contrasts against text, and $-0.074$ $[-0.259, +0.111]$ and $-0.037$ $[-0.185, +0.111]$ for the corresponding mixed-minus-shuffled contrasts. No material ordering-by-modality interaction emerged. Because both references saturate and the base sits at floor, ceiling and floor effects bound the observable differences.
+
+% Paragraph purpose: Report zero-shot transfer with the per-adapter accuracies, the Holm-corrected paired verdict, and the leakage screen.
+\paragraph{Transfer.} All 12 verified planning adapters plus the base were evaluated zero-shot on frozen subsets of FOLIO \citep{han2022folio} (200 items), GSM8K \citep{cobbe2021gsm8k} (200), and HumanEval \citep{chen2021humaneval} (164). Table~\ref{tab:results-transfer} gives the per-adapter accuracies. The paired verdict uses McNemar exact comparisons \citep{mcnemar1947note} of each adapter against the per-example base predictions, Holm-corrected across all 36 comparisons \citep{holm1979simple}. None survives correction: the minimum adjusted $p$ is 0.8156, and the smallest raw $p$ is 0.0227 (FOLIO with the text width-based adapter, at $+12$ examples). Leakage screening over the frozen 8-gram window finds 7/564 benchmark items sharing only trivial numeric 8-grams with the planning corpus and zero content overlap. The transfer result is a null.
+
+\begin{table}[t]
+\caption{Zero-shot transfer accuracy on frozen benchmark subsets (FOLIO 200, GSM8K 200, HumanEval 164). Adapter rows follow the transfer ledger names: \texttt{bfs}, \texttt{iw} (width-based best-first, BFWS), \texttt{astar\_w3}, and \texttt{astar\_greedy}, each in text (t), visual (v), and multimodal (m) training cells. No comparison against the base survives Holm correction (0/36; minimum adjusted $p$ 0.8156).}
+\label{tab:results-transfer}
+\centering\small
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{lccc}
+\hline
+Adapter & FOLIO & GSM8K & HumanEval \\
+\hline
+Base & 0.600 & 0.955 & 0.780 \\
+\texttt{bfs} t / v / m & 0.600 / 0.605 / 0.605 & 0.950 / 0.945 / 0.965 & 0.793 / 0.799 / 0.780 \\
+\texttt{iw} t / v / m & 0.660 / 0.645 / 0.645 & 0.960 / 0.965 / 0.960 & 0.768 / 0.762 / 0.756 \\
+\texttt{astar\_w3} t / v / m & 0.590 / 0.575 / 0.590 & 0.950 / 0.965 / 0.945 & 0.817 / 0.799 / 0.774 \\
+\texttt{astar\_greedy} t / v / m & 0.590 / 0.590 / 0.590 & 0.950 / 0.955 / 0.950 & 0.799 / 0.811 / 0.793 \\
+\hline
+\end{tabular}
+\end{table}
+
+% Paragraph purpose: Report both executed InternVL3.5-8B cells with their algorithms, and connect the v3 replication to the identity audit as contract fluency rather than choice.
+\paragraph{Second backbone.} Two reduced-scope cells trained and evaluated InternVL3.5-8B \citep{wang2025internvl35}. Each used a frozen 12-task key-cell panel selected by lowest reference decision count before any model outcome, with one seed-17 training run per modality cell. The earlier cell (protocol v2) ran BFS, and neither arm reached a goal. The pretrained base scored 0/36 at 1 decision per episode (36 total), process SFT scored 0/36 at 1 to 4 decisions (59 total), and the reused BFS controls scored random-valid 54/72 (18/24 per modality, oracle-assisted) and exact 72/72.
+% Evidence: outputs/expanded-study/v1/second-backbone-v2/evaluation/{evidence,analysis}.json (protocol expanded-second-backbone-v2;
+% comparator sources are bfs-* baseline episodes; 12 tasks; complete_coverage true).
+The replication cell (protocol v3, issue \#130 R3) ran greedy additive best-first with the same backbone, recipe, and panel shape. Process SFT succeeds on 11/12 text-state, 10/12 visual-state, and 10/12 multimodal-state problems (31/36), while the base scores 0/36 with one invalid call per episode. Process-SFT invalid-operation rates are 0.00546, 0.01220, and 0.01258, and decision usage is 183, 164, and 159 of a 390-call allowance (text, visual, multimodal). Random-valid and exact reference both score 24/24 per modality. These control counts hold two entries per panel task, and both entries of a task come from its one reused, hash-pinned greedy baseline control episode per condition and modality. Paired whole-problem contrasts (seed 1729, 10,000 resamples) give SFT minus base $+0.917$ $[+0.750, +1.000]$ in text-state and $+0.833$ $[+0.583, +1.000]$ in both visual-state and multimodal-state. SFT minus random-valid is $-0.083$ $[-0.250, +0.000]$, $-0.167$ $[-0.417, +0.000]$, and $-0.167$ $[-0.417, +0.000]$ in the same order. Coverage is complete, with 72/72 model episodes and 72/72 comparators replayed.
+% Evidence: outputs/expanded-study/v1/second-backbone-v3/evaluation/evidence.json (by_condition: process_sft 31/36, base 0/36 with
+% 36 invalid over 36 decisions; comparator sources best_first_add_greedy-*) and analysis.json (by_modality successes, invalid_operation_rates
+% 0.00546448 / 0.01219512 / 0.01257862, decision_usage 183 / 164 / 159 of 390; contrasts; bootstrap seed 1729, 10000).
+% Source conflict: issue-130-closeout.md summarizes rates as "0.5-1.2%" and usage as "164-183 of 390"; neither covers the
+% multimodal cell (0.01258, 159). The per-cell artifact values are used. The artifact reduced_scope string reads "bfs decision
+% count"; issue-130-closeout.md records this as an inherited template string and states selection used additive reference decision
+% counts (task lists of v2 and v3 differ), so the prose says "reference decision count" without naming the algorithm.
+% Control denominators: analysis.json by_modality lists episodes 12 and random_valid_successes 24 / exact_reference_successes 24;
+% evidence.json comparator_provenance.sources lists 72 files, while by_condition counts 72 episodes per control and comparator_episodes
+% 144 against expected 72. Source conflict: the artifacts count each reused control episode twice; the prose states the
+% two-entries-per-task basis and does not print a deduplicated count.
+Learned success under the enumeration contract appears only in the additive cells, where the identity audit shows no decision to make (Section~\ref{sec:results-identity}), and the InternVL v3 cell replicates that contract fluency (31/36 versus 0/36 base, below random-valid 24/24 per modality). The earlier total null on this backbone is consistent with an algorithm (choice-requirement) difference rather than a backbone null. The cross-backbone contrast against the pinned Qwen3-VL process-SFT rate is descriptive rather than paired, because the InternVL panel is the key-cell subset while the Qwen rate is the pinned full-panel aggregate. It is $+0.000$ $[-0.167, +0.083]$ in text-state, $-0.083$ $[-0.333, +0.083]$ in visual-state, and $-0.042$ $[-0.292, +0.125]$ in multimodal-state. InternVL3.5-8B shares the Qwen3-8B LLM family \citep{yang2025qwen3}, so both cells isolate the vision tower, connector, image tokenization, and multimodal recipe, not the LLM backbone. The v1 full-panel scope stopped at its \textsc{valid\_stop} gate and is retained as retired history, with its issues still open [TODO: full-scope v1 second-backbone branches \#102/\#103].
+% Evidence: second-backbone-v3/evaluation/analysis.json cross_backbone (Qwen rates 0.917 / 0.917 / 0.875; method string states
+% descriptive, not paired); issue-130-closeout.md R3 (algorithm-confound reading).
+% Status 2026-09-21: issues #102/#103 CLOSED; the marker above is Wave 3 (review 16 I12), not changed here.
+
+\section{Results Detail: Failure-Mechanism Calibration}
+\label{app:results-failures}
+
+% Paragraph purpose: Localize failures by arm class using the frozen CPU-only calibration over replay-verified episodes, with exact counts.
+A frozen CPU-only calibration mined 2,910 unique replay-verified episodes across the five executed model branches and classified all 905 failures with zero unclassified. The protocol was frozen before any outcomes were computed, and the analysis is descriptive. Three arm-level profiles emerge. The base policy fails in 447 of 447 episodes, always on the first decision: 379 emit a malformed output that never reaches the operation checker, and 67 issue rejected BFS frontier operations. Learned arms fail in 407 of 906 episodes, and the dominant learned failure kind is \texttt{other\_invariant\_violation} with 229 occurrences (56.3\% of learned failures): parsed, source-correct, applicable operations that the runtime rejects because they violate the declared search invariant. The remaining learned failures are 72 malformed outputs, 56 inapplicable grounded actions, 27 effect failures, 16 schema failures, and smaller kinds. First failures cluster early, at decision indices 0, 1, and 2 with counts 137, 88, and 46. The oracle control fails 51 times, all late and all by expansion-budget exhaustion (buckets 5--8, 9--16, 17--32, and 33+ hold 9, 9, 3, and 30). Table~\ref{tab:appendix-rejection} gives the rejection taxonomy.
+
+% Paragraph purpose: Connect the failure localization to the primary matrix: where learned arms fail, and what process supervision does and does not teach.
+Every baseline process-SFT episode under BFS or BFWS fails (144/144). The DAgger-iteration BFS arms fail 155/162, while the learned additive best-first families fail 56 of 546 episodes (10.3\%). This pattern matches the primary matrix (Section~\ref{sec:results-primary}). Read together with the horizon profile, process supervision teaches the policy to emit well-formed, source-correct operations, but not to maintain invariant-consistent frontier intent over a full episode: the learned policy fails early on invariant grounds, whereas the oracle control, which always emits valid operations, fails only when its expansion budget runs out late in the episode.
+
+\section{Results Detail: Observation-Corruption Channel Tests}
+\label{app:results-corruption}
+
+% Paragraph purpose: Report the corruption suite design and the exact per-cell deltas with intervals.
+The observation-corruption suite evaluated frozen checkpoints, with no retraining, on a prospectively frozen set of $k{=}9$ admitted tasks under four deterministic corruption families applied at observation time. Clean learned success on these tasks is 0.917 (text-state 0.944, visual-state 0.889, multimodal-state 0.889; 9 tasks $\times$ 2 algorithms per cell). Table~\ref{tab:results-corruption} gives the paired whole-problem deltas. Text-channel corruption produces the largest drops. Masking or shuffling the text channel lowers success by up to $-0.944$ $[-1.000, -0.833]$, and the multimodal arm retains at most 0.167 success under shuffled text. Visual-channel corruption is not material. Blanking or degrading the rendered state costs at most $-0.111$ $[-0.278, +0.000]$, and every visual interval includes zero. The multimodal channel-isolation contrast, paired by task and algorithm ($n{=}18$), is $-0.806$ for text-channel corruption versus $-0.111$ for visual-channel corruption, giving text minus visual $-0.694$ with 95\% interval $[-0.889, -0.472]$, which is material under the frozen rule. Controls behave as the contract predicts: the corrupted base stays at floor (0/144, all first-decision invalid), random-valid succeeds 72/72 on the new frozen seeds, so per the saturation rule no structural-advantage claim is made, and exact execution remains at 18/18.
+
+\begin{table}[t]
+\caption{Observation corruption on frozen checkpoints ($k{=}9$ admitted tasks, paired whole-problem deltas against clean runs, strata below 8 descriptive-only under the frozen rule). ``Material'' is the frozen protocol's interval-based verdict.}
+\label{tab:results-corruption}
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{llccccc}
+\hline
+Corruption & Arm & Corrupted & Clean & $\Delta$ & 95\% interval & Material \\
+\hline
+Text-masked & text & 0.000 & 0.944 & $-0.944$ & $[-1.000, -0.833]$ & yes \\
+Text-masked & multimodal & 0.000 & 0.889 & $-0.889$ & $[-1.000, -0.722]$ & yes \\
+Text-shuffled & text & 0.000 & 0.944 & $-0.944$ & $[-1.000, -0.833]$ & yes \\
+Text-shuffled & multimodal & 0.167 & 0.889 & $-0.722$ & $[-0.889, -0.500]$ & yes \\
+Visual-blank & visual & 0.833 & 0.889 & $-0.056$ & $[-0.167, +0.000]$ & no \\
+Visual-blank & multimodal & 0.778 & 0.889 & $-0.111$ & $[-0.278, +0.000]$ & no \\
+Visual-degraded & visual & 0.833 & 0.889 & $-0.056$ & $[-0.167, +0.000]$ & no \\
+Visual-degraded & multimodal & 0.778 & 0.889 & $-0.111$ & $[-0.278, +0.000]$ & no \\
+\hline
+\end{tabular}
+\end{table}
+
+% Paragraph purpose: Decompose the text-channel drop into output-contract destruction and information loss (#130 R2), and report the new cross cell.
+A decomposition of the 72 published text-corruption episodes (issue \#130, R2) separates two regimes that the success deltas pool together. Under text masking, every episode of the text-state and multimodal-state cells is all-invalid (18/18 in each, 18 invalid operations over 18 decisions). Each emitted operation fails the schema, so the policy never enters the search. This is output-contract destruction, not information loss. Copyability-preserving text shuffling behaves differently, because valid operations keep flowing while the search fails. In the text-state cell 16/18 episodes are partial-valid, 2/18 are all-invalid, and none reaches the goal (18 invalid operations over 49 decisions). In the multimodal-state cell 15/18 are partial-valid, none is all-invalid, and 3/18 reach the goal (15 invalid operations over 105 decisions). This partial-valid pattern is the information-loss signature. A new cross cell applies text masking to the frozen visual-state arm, whose nominal state channel is the image, and it scores 0/18 with every episode all-invalid. Masking the text scaffold destroys the output contract even when images are the nominal state channel.
+% Evidence: outputs/native-arms/v1/r2-decomposition.json (per-cell all_invalid / partial_valid / goal_reached / decisions / invalid);
+% cross cell: outputs/native-arms/v1/stress-evaluation.json textmask|text-masked|visual-state cells and issue-130-closeout.md ("0/18, all-invalid").
+% Source conflict: issue-130-closeout.md reports shuffled "34/36 partial_valid"; the JSON records partial_valid 16 + 15 with 3 goal-reached
+% and 2 all-invalid episodes. Per-cell JSON counts are used; no pooled shuffled count is printed.
+
+% Paragraph purpose: State the channel finding in its surviving form, with its scope limit and no intrinsic modality claim.
+The language-channel claim survives only in its shuffled form. The masked catastrophe in Table~\ref{tab:results-corruption} is mostly a loss of the copyable output format rather than a loss of state information. Shuffling the text leaves operations copyable and still stops the search, so under the frozen observation contract the textual serialization carries decision-relevant information for these adapters. Removing or degrading the visual channel barely moves success, including on the visual-state arm whose only rendered-semantics channel was corrupted. Sections~\ref{sec:results-menu} and~\ref{sec:results-native} probe the grounded candidate menu directly. This is a channel finding about the trained controller under the declared adapters, not evidence about intrinsic modality value.
+% Evidence: docs/experiments/native-arms/issue-130-closeout.md R2 ("survives only in the shuffled form; the masked catastrophe was mostly copyability").
+% The published #126 numbers in the table above are unchanged by the decomposition.
+
+\section{Results Detail: Menu-Manipulation Receipts}
+\label{app:results-menu}
+
+% Paragraph purpose: Describe the menu-manipulation audit and its receipts on the frozen #129 adapters.
+Menu manipulation probes how the trained policy responds to changes in the grounded menu (issue \#130, R1). It runs on the frozen \#129 image-only adapters of both native arms (Section~\ref{sec:results-native}), with no retraining, under two families. Menu permutation reorders the candidate menu. Distractor injection adds $k{=}3$ schema-valid but inapplicable actions to it. Table~\ref{tab:results-menu} reports the 72 episodes, all independently replayed within the 170/170 stress-evaluation episodes. Section~\ref{sec:results-menu} states what the two receipts identify.
+% Evidence: docs/experiments/native-arms/issue-130-closeout.md R1; outputs/native-arms/v1/stress-evaluation.json (episodes_replayed 170);
+% outputs/native-arms/v1/evaluation/episodes/menu/. k=3 per the #131 brief vocabulary contract.
+
+\begin{table}[t]
+\caption{Menu manipulation on the frozen \#129 native adapters (both arms, two additive algorithms). Invalid operations are counted over emitted operations. The distractor pick-rate is counted over decisions with injected distractors.}
+\label{tab:results-menu}
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lccc}
+\hline
+Family & Success & Invalid ops & Distractor picks \\
+\hline
+Menu permutation & 36/36 & 0/512 & n/a \\
+Distractor injection & 0/36 & 36/60 & 36/60 (0.6) \\
+\hline
+\end{tabular}
+\end{table}
+% Evidence: issue-130-closeout.md R1 table; stress-evaluation.json distractor block (decisions_with_injection 60, distractor_picks 36, pick_rate 0.6).
+% stress-evaluation.json: 9 episodes and 15 decisions per distractor-injection cell, 60 decisions over 36 episodes; episodes terminate
+% on the first invalid operation. 16/36 episodes open with one or two accepted operations (8 with two decisions, 8 with three).
+% Source conflict: docs/experiments/native-arms/issue-130-closeout.md L13 states "the first emitted operation of every episode is a
+% distractor" (and L16 "every episode's first operation picks an injected ... action"). stress-evaluation.json and the episode
+% records contradict it; e.g. visual-nomem-state/expanded-final__ferry-compact-915000/
+% best_first_add_greedy-distractor-injection-learned_adapter.json.gz accepts events 0 and 1 (sail l1 l0, sail l1 l2) and rejects
+% event 2 (debark c0 l1). The pinned JSON and episode records are used.
+% The closeout's "rules out order-riding" and "rules out state grounding / reads menu CONTENT" rulings are dropped per the
+% Phase 0 headline-scope decision and review 16 I2.
+
+\section{Results Detail: Image-Only Native Arms}
+\label{app:results-native}
+
+% Paragraph purpose: Give the native-arms v2 contract, gate, and coverage receipts before any effect.
+The native-arms follow-up (issues \#128/\#129, contract v2) trained two image-only observation arms. In \texttt{visual-nomem-state} (nomem) and \texttt{visual-seq-state} (seq), state facts arrive only as rendered images, and seq adds a window of $K{=}8$ history frames. Neither arm receives textual search memory, $g$/$h$/priority scalars, candidate scores, or membership flags. The grounded, unscored candidate menu is still presented. The \#128 v1 admission gate measured pretrained-base format compliance and is retained as history. The v2 amendment, frozen before any trained-arm outcome, replaced it with a pre-registered post-training smoke gate, which both arms passed with 62/62 schema-valid grounded calls against a threshold of 0.5. Four adapters (two arms by two additive best-first algorithms) used the frozen recipe with 512 records, 16 updates, and seed 17. All 216/216 new bindings were recorded and independently replayed, together with 72/72 reused replay-verified comparators. The window spent 3.2086 of 12 GPU-hours.
+% Evidence: docs/experiments/native-arms/issue-129-closeout.md (Delivered, Interpretation: K=8 window, smoke gate 62/62, threshold 0.5,
+% 216/216 + 72/72, 3.2086 / 12.0); docs/experiments/native-arms/native-arms-v2-amendment.md; docs/experiments/native-arms/issue-128-closeout.md (v1 gate history).
+
+% Paragraph purpose: Report clean success and the paired whole-problem contrasts for the native arms, with the saturation caveat.
+On the clean panel, both arms nominally succeed on 18/18 with zero invalid operations, against 16/18 for the published frozen \texttt{visual-state} arm. The pretrained base scores 0/36 under both new contracts and exact reference scores 18/18. Random-valid is at ceiling on its five frozen seeds, so under the saturation rule no structural-advantage claim is made. Paired whole-problem contrasts ($n{=}18$, bootstrap seed 61813, 10,000 resamples, 95\%) give nomem minus \texttt{visual-state} $+0.111$ $[0.000, +0.278]$ and seq minus \texttt{visual-state} $+0.111$ $[0.000, +0.278]$, neither material. The history window changes nothing on these tasks (seq minus nomem $0.000$ $[0.000, 0.000]$). Learned minus pretrained base is $+1.000$ $[+1.000, +1.000]$ for each arm, which is material.
+% Evidence: issue-129-closeout.md Results table and clean-success paragraph; outputs/native-arms/v1/evaluation/{evaluation,analysis}.json (outcome PASS, 144 paired cells).
+
+% Paragraph purpose: Report the pre-registered corruption null, then give the menu reading as a labelled post-hoc interpretation bounded by the identity audit.
+The pre-registered corruption payoff is a null. Under seq the images are the only state and history channel, yet blanking every attached image gives a seq corrupted-minus-clean contrast of $0.000$ $[0.000, 0.000]$, and degrading every image gives $0.000$ $[0.000, 0.000]$. The images-only hypothesis is therefore answered in the negative on this panel. As a post-hoc interpretation, the grounded unscored candidate menu is the remaining channel that could carry the signal, since neither the rendered scenes nor the removed scalar scaffold is necessary once the menu is present. On these additive cells the identity audit (Section~\ref{sec:results-identity}) makes any listed candidate a correct emission, so the null is equally consistent with a policy that uses no state information.
+% Evidence: issue-129-closeout.md Results (corruption rows) and Interpretation.
+
+% Paragraph purpose: Report the native arms on the degraded generalization strains (#130 R4) against the published full-scaffold rates, with the comparison labelled post-hoc and unpaired.
+The degraded-strain test (issue \#130, R4) evaluated the same frozen native adapters on the two generalization families where the full-scaffold adapters had degraded. The learned adapters succeed on 10/10 shifted-init and 10/10 scale-up episodes for both arms, and the pretrained base scores 0/20 on each strain (0/40 in total). The published full-scaffold rates on the same variants are 19/30 for shifted-init and 26/30 for scale-up (Appendix~\ref{app:results-secondary}). The two rates come from different episode sets and are not paired. The reduced contract sits at ceiling where the full scaffold degraded. A post-hoc, unpaired reading, with 10 visual-only episodes per arm against 30 full-scaffold episodes pooled over three modalities, suggests that the scaffold's scalar and bookkeeping text carried no useful signal on these variants.
+% Evidence: outputs/native-arms/v1/stress-evaluation.json variants|* cells (8 cells of 10 episodes, each pooling learned and base
+% episodes: 5 successes, 5 invalid); the episode store holds 40 learned_adapter and 40 pretrained_base variant files (80 total,
+% matching Table tab:results-gates "80 variant"); learned/base split per docs/experiments/native-arms/issue-130-closeout.md R4
+% ("base 0/20" per strain). Base total 0/40 per review 16 I20.
+
+\section{Results Detail: Choice-Frontier and Comparator-Zoo Receipts}
+\label{app:results-cf}
+
+% Paragraph purpose: Give the #132 preparation, training, replay, and budget receipts.
+The training corpus was derived on CPU by replaying the frozen exact traces through the new contract and verified expansion-for-expansion against them (58 episodes bit-exact). It covers 29 training tasks and holds 1,046 records (512 training plus 11 diagnostic per algorithm) with 3,544 scenes. Every corpus episode carries at least one decision whose menu offers two or more states (up to 315 such decisions in one episode, menus of up to 222 states). Two adapters, one per additive algorithm, were trained with the frozen recipe at seed 17 (16 updates, 512 records each), and the smoke gate accepted 40/40 model calls. All 144/144 panel episodes were independently replayed with complete coverage. The window spent 1.069 of 12 GPU-hours (training 0.81, smoke 0.052, model evaluation 0.208), and corpus and controls ran on CPU.
+% Evidence: issue-132-closeout.md Execution record and Budget accounting; outputs/choice-frontier/v1/preparation/visual-choice-frontier/{report,audit}.json
+% (episodes_rederived 58, PASS; report.json expansion_gate "every derived episode matched its stored exact trace expansion for
+% expansion", menu_size_range max 222; audit.json headroom_present true, headroom_decisions_per_episode max 315 at
+% astar-pair-68102553...:best_first_add_w3); outputs/choice-frontier/v1/budget.json; train/smoke/evaluation split per the #131 brief ledger.
+% Source conflict: issue-132-closeout.md L66 says the corpus was "derived independently of the stored exact traces" and gives
+% "max menu 315"; report.json records replay with an expansion-for-expansion gate and a maximum menu of 222. The artifact wording is used.
+
+% Paragraph purpose: Record the repeated-measures structure and the second post-hoc task-clustered interval of the first measurement.
+The control expansion sequences coincide across the two algorithms on every panel task. Post-hoc task-clustered intervals with the same seed and resample count are $[0.000, +0.100]$ for learned minus random-valid and $[-0.889, -0.333]$ for random-valid minus exact reference.
+% Evidence: issue-132-closeout.md Erratum items 2 and 3.
+
+% Paragraph purpose: Give the #133 protocol facts, coverage, replay, and optimal-cost receipts moved from the body.
+Random-valid is the zoo floor and exact reference the imitation target. Random-valid and the three selectors also ran at 3$\times$ and 4$\times$ caps, outside the primary metric. Because the CPU selectors operate on the additive frontier, novelty-first selection does not reproduce BFWS pruning. Selector episodes replay the frozen model input, randomized menu, actions, admission, and budget, but do not generate or replay image view bindings. All 432/432 zoo bindings were observed and independently replayed, with 342 new CPU episodes, 90 original 2$\times$ random-valid controls reused, and none missing. The nine unit-cost optimal costs $C^*$ come from one offline planner computation per task with replay-verified plans: storage 3; elevators, ferry, and 15puzzle-compact 4; depot, hanoi, and visitall 5; blocksworld and 15puzzle-expanded 6.
+% Evidence: docs/experiments/choice-frontier/issue-133-protocol.md; #133 closing comment (coverage and C* values);
+% outputs/choice-frontier/o4/metrics/analysis.json episode_accounting; outputs/choice-frontier/o4/metrics/optimal-costs.json.
+
+% Paragraph purpose: Record the selector definitions and M1 positions moved from the body.
+The selectors are \texttt{bfs-order} (minimum frontier $g$, then earliest serial), novelty-first selection (lowest width-1 then width-2 novelty over positive PDDL atoms), and \texttt{worst-first} as a negative control. The 144 stored \#132 episodes enter the metric set post-hoc. On the primary M1 metric the learned adapter scores .1042, between \texttt{bfs-order} at .0694 and random-valid at .1389, and below novelty-first selection at .1250. The fifteen-test Holm family pairs the learned adapter with each of five comparators on three metrics.
+% Evidence: docs/experiments/choice-frontier/issue-133-protocol.md (selector definitions); #133 closing comment (M1 points, 15-test family);
+% outputs/choice-frontier/o4/metrics/analysis.json arms.*.m1_auc.
+
+% Paragraph purpose: Record the exploratory M4 agreement and label-position numbers, the post-hoc #132 diagnostic, and the descriptive M5 values.
+Exploratory M4 on the stored episodes shows the learned adapter selecting the teacher's heap-head state on 23/132 multi-option decisions (17.4\%) against an on-policy chance rate of 26.9\%, and emitting the last menu label on 72/132 (54.5\%). The post-hoc \#132 diagnostic records a first-label rate of 2.3\% and a teacher-corpus last-label rate of 12.0\% (chance 10.4\%, 978 records). Menus are permuted per decision with a seed, so a last-label habit acts operationally as a random picker. M5 restricts to tasks where random-valid solves at a 2$\times$ rate strictly between 0 and 1. That subset holds one task (storage-compact-919000, random-valid rate .2), so M5 is descriptive only. On it the learned adapter's M1 AUC is .3125, against .075 for random-valid and .625 for exact reference.
+% Evidence: #133 closing comment (M4, M5); outputs/choice-frontier/o4/metrics/stored-posthoc-analysis.json; analysis.json m5_informative_tasks_D
+% and m5_D_descriptive (0.3125 / 0.075 / 0.625); issue-132-closeout.md Erratum item 4 (first label 2.3%, teacher 12.0%, chance 10.4%, 978 records).
+
+% Paragraph purpose: Record the enumeration-contract identity-audit mechanism moved from Section 5.2.
+The enumeration-contract identity audit records its structural basis in the artifact. Each decision submits one remaining candidate, \texttt{finish\_expansion()} requires the complete candidate set, and heap serials follow the deterministic sorted candidate order at \texttt{start\_expansion}, so frontier evolution is invariant to submission order.
+% Evidence: outputs/native-arms/v1/identity-audit.json structural_basis (moved from Results 5.2 in Wave 2 pass 6).
+
+% Paragraph purpose: Record the #132 contrast protocol details moved from the body.
+The \#132 contrasts use percentile 95\% intervals with the frozen bootstrap resampling cells. Random-valid's seed frequency on storage is 0.2. The final audit returns \texttt{CHOICE\_SENSITIVE} with \texttt{ok} over 144 replayed episodes.
+% Evidence: outputs/choice-frontier/v1/evaluation/analysis.json; final-audit.json (episodes_replayed 144, CHOICE_SENSITIVE, ok true); issue-132-closeout.md Erratum item 3.
+
+\section{Results Detail: Seed Replication and Follow-Up Limits}
+\label{app:results-boundary}
+
+% Paragraph purpose: Report the executed seed-replication result for two cells.
+The prospective training-seed replication (issue \#127, seeds 17/29/71 frozen pre-launch, 534 new episodes independently replayed) executed on two cells (Table~\ref{tab:results-seed-variance}). On the headline process-SFT cell (greedy best-first $\times$ multimodal-state, 24-problem unseen panel), per-seed success is 21/24, 21/24, 22/24 (mean 0.889, range $[0.875, 0.917]$). The contrast against the pretrained base is positive at every seed ($+0.875$/$+0.875$/$+0.917$, no sign flip). The contrast against random-valid stays negative ($-0.125$/$-0.125$/$-0.083$). On the DAgger iteration-1 cell set (BFS $\times$ three modalities, DAgger and continued-SFT arms), every arm and seed scores 0/72 unseen, with paired contrast $+0.000$ $[+0.000, +0.000]$ at each seed. The published iteration-2 verdict (1/72 vs 1/72, seed 17) is unchanged. Both cells replicate across all three seeds. Cell A covers one of the three pooled headline modalities. The remaining two modalities and all other cells use seed 17 only. Cross-seed aggregation is descriptive ($n{=}3$). The \#128 image-only-arm proposal has since executed under the \#129 v2 amendment (Section~\ref{sec:results-native}), and its v1 gate remains as history.
+% #127 closed 2026-09-21. #128 TODO retired: superseded by #129 (executed) and #130 (stress tests); see issue-129-closeout.md.
+
+\begin{table}[t]
+\caption{Prospective training-seed replication for the headline process-SFT cell (greedy best-first $\times$ multimodal-state, 24-problem unseen panel). Seeds 17/29/71 frozen pre-launch; 534 new episodes independently replayed; aggregation descriptive ($n{=}3$).}
+\label{tab:results-seed-variance}
+\centering\small
+\begin{tabular}{lccc}
+\hline
+Measure & Seed 17 & Seed 29 & Seed 71 \\
+\hline
+Success /24 & 21/24 & 21/24 & 22/24 \\
+SFT $-$ base & $+0.875$ & $+0.875$ & $+0.917$ \\
+SFT $-$ random-valid & $-0.125$ & $-0.125$ & $-0.083$ \\
+\hline
+\end{tabular}
+\end{table}
+
+% Paragraph purpose: List the follow-up windows' development-stage limits separately from the main program.
+The follow-up windows share this development-stage status, and we list their limits separately. The native-arms window (\#129) evaluates an 18-unit clean panel with one training seed per cell. The reviewer-blocker window (\#130) reuses the frozen \#129 adapters for R1, R2, and R4, and trains one seed-17 run per cell for R3. The choice-frontier window (\#132) trains one seed per algorithm on a 9-task panel whose discriminative subset holds one task. The comparator zoo (\#133) is a CPU-only exploratory analysis. None of these windows accessed the held-out manifest. The shared nine-task panel draws from 8 domains with 7 compact and 2 expanded variants.
+% Evidence: issue-129-closeout.md, issue-130-closeout.md, issue-132-closeout.md (Erratum item 3), #133 closing comment; held-out manifest
+% status per the #131 brief; panel composition per outputs/choice-frontier/o4/metrics/optimal-costs.json.
+
+% Paragraph purpose: State the undecided prerequisites that must be recorded before the held-out final primary evaluation can be frozen.
+% Migrated verbatim from Experimental Design (staged item "Final primary evaluation (pending)", HEAD 648973a) in #131 round 2 Wave 2.
+\paragraph{Final primary evaluation prerequisites.}
+No authorized held-out evaluation exists. Freezing one requires recorded decisions on the following prerequisites. (1) The condition-level data source and Search-Trace Segment construction with per-algorithm allocation. (2) Compute parity and checkpoint-selection rules. (3) The episode-budget unit, the whole-instance split procedure, and the fixed Search Memory capacity. (4) The estimand, the uncertainty interval or test, the success threshold, the invariant-compliance rule, and the validity and invalid-operation denominators for every cell. Until these choices are recorded, the held-out evaluation cannot be frozen and no final comparative efficacy finding exists.
+% Held-out final primary evaluation: no open ticket; stated in prose with no visible marker per the round-2 TODO convention.
+% The preregistration prerequisites in writing_design_tree.md are undecided.
+
+\section{Decision Contracts}
+\label{app:design-contracts}
+
+% Paragraph purpose: Hold the row-by-row comparison of the two decision contracts migrated from Experimental Design (Wave 2, finding 6).
+Table~\ref{tab:design-contracts} compares the enumeration and choice-frontier contracts defined in Section~\ref{sec:design}.
+
+\begin{table}[t]
+\caption{The two decision contracts. Rows compare what the policy emits, who owns the frontier, what the observation carries, how the budget binds, and the role of the identity audit. Results under the two contracts are not comparable as performance rows.}
+\label{tab:design-contracts}
+\centering\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}p{0.16\linewidth}p{0.40\linewidth}p{0.40\linewidth}@{}}
+\hline
+ & Enumeration contract & Choice-frontier contract (\#132) \\
+\hline
+Policy emits & One Typed Search Operation per step, taken from a grounded, unscored candidate action menu & One opaque label from a menu of frontier states, naming the state to expand next \\
+Frontier & Kept in textual Search Memory with visited and score state, advanced by submitted operations & Owned by the runtime. Menu labels are reassigned per decision by a seeded permutation \\
+Observation & Set by the Modality Observation adapter & Visual only, with task pages, the initial scene, one unlabelled 128px scene per frontier state, and goal pages \\
+Budget & Learned arms capped at 2$\times$ the exact-reference decision count, base at one call & Decisions and expansions capped at 2$\times$ the additive exact-reference expansion count, goal selection uncharged \\
+Identity audit & Diagnostic run under \#130 on the expanded-baseline additive cells & Pre-registered pass condition over 18 control pairs \\
+\hline
+\end{tabular}
+% Evidence: docs/experiments/choice-frontier/issue-132-design.md sections 2 and 6 (menu permutation master seed 51131,
+% visual-only payload, 18 (task, algorithm) control pairs); outputs/native-arms/v1/identity-audit.json (enumeration-contract audit).
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.65\columnwidth]{figures/fig_contracts.pdf}
+\caption{Two decision contracts on the same additive task family. Under the enumeration contract each decision submits one remaining candidate and the heap ignores submission order, so random-valid and the exact reference are decision- and expansion-identical (48/48 pairs). Under the choice-frontier contract the policy selects which frontier state to expand under a binding budget, and random-valid separates from exact ($-0.644$, 95\% CI $[-0.856, -0.422]$).}
+\label{fig:contracts}
+% Evidence: outputs/native-arms/v1/identity-audit.json (48/48); outputs/choice-frontier/v1/evaluation/{identity-audit,analysis}.json (-0.644 [-0.856, -0.422]).
+\end{figure}

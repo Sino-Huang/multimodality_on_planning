@@ -1,120 +1,15 @@
 % STATUS: R1 revised: axis-table layout/citations and comparison sentence split.
-% Scope (D9 + Section Blueprint): four threads --- classical planning/search,
-% neural algorithm execution, LLM/VLM planning, and runtime verification/tool
-% use --- plus a compact axis table (algorithm conditioning, model-owned
-% exploration, no-repair runtime, invariant-checked episodes, matched
-% modalities, transfer). New citations in iclr2026_conference_related_refs.bib.
+% STATUS: #131 round 2 Wave 2 (finding 6, page limit). Four threads compressed to one paragraph each; tab:axis removed
+% and replaced by a two-sentence prose naming of its six axes (tab:axis was referenced only in this file). Evaluation-validity
+% paragraph kept verbatim for the Wave-3 admissible-action citations.
 \section{Related Work}
 \label{sec:related}
 
-% Paragraph purpose: Thread 1 --- classical planning/search and LLM benchmarks.
-\paragraph{Classical planning and search as LLM benchmarks.}
-A* search~\citep{hart1968formal} and its descendants define the family of heuristic best-first algorithms whose execution semantics our policy learns.
-Best-First Width Search (BFWS) combines goal-count exploitation with width-based exploration over a novelty measure~\citep{lipovetzky2017bestfirst} and supplies the structural gate in our evaluation (Section~\ref{sec:design}).
-Recent benchmarks have tested whether LLMs can generate plans or reason about change in formal planning domains.
-PlanBench~\citep{valmeekam2023planbench} found LLM plan generation far below classical solvers.
-A broader critical investigation showed that LLMs fail to plan even in simple domains where chain-of-thought prompting should suffice~\citep{valmeekam2023critical}.
-AutoPlanBench~\citep{stein2025autoplanbench} and ACPBench Hard~\citep{kokel2026acpbenchhard} extend these probes with automated prompt generation and harder reasoning tasks, confirming the gap.
-The observational study that motivates our intervention~\citep{huang2026twodistinct} diagnosed two non-compensatory competencies: operational reasoning improved with scale and prompting, but structural enumeration did not.
-All of these evaluate plans or plan-relevant judgments as end products.
-None asks the model to execute a declared search algorithm step by step.
+% Paragraph purpose: Position against planning benchmarks and neural algorithm execution in one paragraph.
+Planning benchmarks~\citep{valmeekam2023planbench,valmeekam2023critical,stein2025autoplanbench,kokel2026acpbenchhard} score plans or plan judgments rather than step-by-step execution of a declared algorithm such as A*~\citep{hart1968formal} or BFWS~\citep{lipovetzky2017bestfirst}, and trace-trained models~\citep{lehnert2024beyond,gandhi2024stream} and step imitators~\citep{velickovic2020neural,zaremba2014learning} lack typed operations and in-episode validation.
 
-% Paragraph purpose: Thread 2 --- neural algorithm execution.
-\paragraph{Neural algorithm execution.}
-Searchformer~\citep{lehnert2024beyond} is the nearest prior work in this thread.
-It trains a transformer to emit A* search dynamics as serialized state add/remove tokens, then bootstraps to shorter-than-A* traces on Sokoban.
-Searchformer operates on a single algorithm and domain family, serializes trace tokens without a typed-operation interface, and has no mechanism to validate or reject emissions during an episode.
-Stream of Search~\citep{gandhi2024stream} serializes symbolic search processes, including backtracking and fruitless paths, into a unified language.
-A transformer pretrained on solver streams outperforms training on optimal trajectories alone.
-The model internalizes the full search process, but training and evaluation provide no per-operation validation or invariant checking.
-Earlier work established the broader thread.
-\citet{velickovic2020neural} trained GNNs with step-level imitation on individual BFS and Bellman--Ford steps, showing positive transfer across algorithms, though the setup used teacher-shaped per-node targets on synthetic graph encodings with no external runtime.
-\citet{zaremba2014learning} trained LSTMs to predict the output of short programs, showing that curriculum design was critical for length generalization.
-Our work differs from this thread in its typed operations, whose explicit operands fully determine exploration.
-A runtime validates each operation against algorithm-specific invariants during the episode.
-The evaluation reports operation validity, invariant compliance, and episode success as separate measurements.
-
-% Paragraph purpose: Thread 3 --- LLM/VLM planning and step/process supervision.
-\paragraph{LLM/VLM planning and step-level supervision.}
-Several frameworks have the LLM participate in search by contributing local proposals while an external scaffold controls exploration.
-Tree of Thoughts~\citep{yao2023tree} scaffolds tree-structured exploration with LM-based evaluation and backtracking, but the expansion and pruning decisions belong to the scaffold, not the model.
-RAP~\citep{hao2023reasoning} places the LLM inside Monte Carlo Tree Search as both world model and reasoning agent, yet the UCT policy owns exploration.
-In our formulation, the model itself issues the operations that determine which states are expanded and which successors are generated.
-
-Step-level and process supervision have shown advantages over outcome-only training.
-Scratchpads~\citep{nye2021show} train transformers to emit intermediate computation steps for algorithmic tasks, improving accuracy on long addition and program execution.
-Let's Verify Step by Step~\citep{lightman2023lets} demonstrated that per-step human labels outperform outcome supervision for mathematical reasoning at scale.
-These results support our choice of per-decision teacher labels.
-The distinction is that scratchpad tokens and human correctness judgments are unchecked free-form annotations.
-Our operations are typed and runtime-validated, bound to replay-verified positions in the search trace.
-
-Recent work uses visual intermediate states in VLM reasoning.
-Visual Sketchpad~\citep{hu2024visual} gives multimodal LMs drawing tools so reasoning proceeds over self-generated visual artifacts, improving mathematical and visual tasks.
-MVoT~\citep{li2025imagine} trains MLLMs to generate image visualizations of their reasoning traces.
-Our matched-modality arms serve a different purpose: they test which observation channel (text, rendered image, or both) carries the learned search controller, with corruption-based attribution (Section~\ref{sec:results}) rather than model-generated imagery.
-
-% Paragraph purpose: Thread 4 --- runtime verification and constrained tool use.
-\paragraph{Runtime verification and constrained generation.}
-The LLM-Modulo framework~\citep{kambhampati2024llms} couples LLM generation with an external verifier in a generate--critique--regenerate loop, arguing that LLMs cannot self-verify.
-The verifier feeds corrections back, so the loop participates in choosing the next attempt.
-Our Trusted Search Runtime does not repair: it validates, applies, or rejects each operation and charges the budget, without choosing omitted operands or reordering candidates for the policy.
-Self-Refine~\citep{madaan2023selfrefine} is the explicit single-model repair paradigm our runtime declines.
-
-Constrained-decoding methods enforce structural well-formedness during generation.
-PICARD~\citep{scholak2021picard} rejects inadmissible tokens at each decoding step, substantially improving text-to-SQL accuracy on Spider.
-Guided generation via FSM-indexed vocabulary~\citep{willard2023efficient} provides analogous guarantees model-agnostically.
-Both enforce syntactic structure without maintaining algorithmic state.
-Our runtime differs in kind.
-It maintains search-episode state (frontier, visited set, novelty counters, priority queue) and checks algorithm-specific invariants on every operation.
-Validity and invariant compliance are reported as separate episode-level measurements, not as a single accept/reject decision on a completed output string.
+% Paragraph purpose: Position against model-in-the-loop search, step supervision, visual reasoning, and verification or constrained decoding in one paragraph.
+In Tree of Thoughts~\citep{yao2023tree} and RAP~\citep{hao2023reasoning} a scaffold or UCT policy owns exploration, whereas our model issues the operations that determine it, and Scratchpads~\citep{nye2021show}, per-step labels~\citep{lightman2023lets}, Visual Sketchpad~\citep{hu2024visual}, and MVoT~\citep{li2025imagine} supervise or generate unchecked free-form steps and imagery rather than attributing control to an observation channel. Unlike repair loops~\citep{kambhampati2024llms,madaan2023selfrefine} and syntax-only constrained decoding~\citep{scholak2021picard,willard2023efficient}, our runtime never repairs and checks algorithmic invariants on every operation.
 
 % Paragraph purpose: Position the audit against benchmark validity, shortcut analysis, and search-selector calibration.
-Evaluation-validity work in planning and reasoning warns that common-sense tasks can confound planning with retrieval~\citep{valmeekam2023planbench}. Embodied evaluation broadens task coverage with suites such as BEHAVIOR-1K, which defines long-horizon household activities in realistic simulation~\citep{li2024behavior1k}. Research on multimodal training documents VQA models relying on language priors rather than image content, and video-language evaluation reports selection bias toward answer positions~\citep{zhu2020overcoming,loginova2025addressing}. Work auditing LVLM chain-of-thought finds that visual or format cues can influence answers without appearing in reasoning traces~\citep{balasubramanian2025closer}. Process supervision supplies feedback on intermediate reasoning steps~\citep{lightman2023lets}, but that training signal alone does not test whether a grounded action menu makes frontier choices identifiable. The menu manipulations in this paper target this interface by testing whether a trained search policy follows menu surface rather than grounding its operation in state. Classical search provides a stronger calibration precedent. Levin tree search bounds expansion effort and is tested against a domain-independent planner, while policy-guided heuristic search compares solved-problem counts and search time against A*, weighted A*, greedy best-first, LevinTS, and PUCT~\citep{orseau2018singleagent,orseau2021policyguided}. Learned-heuristic work measures solved-task coverage and expanded states across A* and greedy best-first variants, while Neural A* reports a search-efficiency and solution-quality tradeoff against named planners~\citep{chrestien2023optimize,yonetani2021path}. Searchformer compares its search dynamics with A*~\citep{lehnert2024beyond}. Our audit first checks decision identity under the menu contract, then assesses the redesigned frontier selector against named algorithms rather than treating random-valid as a capability ceiling (Section~\ref{sec:results}).
-
-% Paragraph purpose: Axis table comparing closest prior systems on the six design axes.
-\begin{table}[t]
-\caption{Design-axis comparison of closest prior systems.
-\textbf{Algo.\ cond.}: policy conditioned on a declared algorithm's step semantics.
-\textbf{Model expl.}: the model's emissions determine exploration order.
-\textbf{No-repair RT}: the runtime rejects invalid operations without correction.
-\textbf{Inv.\ episodes}: full episodes checked against algorithm-specific invariants.
-\textbf{Match.\ mod.}: observations include non-textual modalities matched to the task.
-\textbf{Transfer}: cross-domain or cross-task generalization evaluated.}
-\label{tab:axis}
-\centering
-\footnotesize
-\setlength{\tabcolsep}{3pt}
-\begin{tabular}{lcccccc}
-\hline
- & Algo. & Model & No-repair & Inv. & Match. & Transfer \\
-\hline
-Searchformer~\citep{lehnert2024beyond}   & Partial\textsuperscript{a} & Yes & No  & No  & No  & No  \\
-Stream of Search~\citep{gandhi2024stream} & Partial\textsuperscript{b} & Yes & No  & No  & No  & Partial\textsuperscript{c} \\
-Neural execution~\citep{velickovic2020neural} & Yes & No  & No  & No  & No  & Yes \\
-Process supervision~\citep{lightman2023lets} & No  & No  & No  & Partial\textsuperscript{d} & No  & No  \\
-LLM-Modulo~\citep{kambhampati2024llms}   & No  & No  & No  & Partial\textsuperscript{e} & No  & No  \\
-PICARD~\citep{scholak2021picard}          & No  & Yes & Yes & No  & No  & No  \\
-Sketchpad~\citep{hu2024visual}            & No  & Yes & No  & No  & Yes & No  \\
-\textbf{Ours}                             & \textbf{Yes} & \textbf{Yes} & \textbf{Yes} & \textbf{Yes} & \textbf{Yes} & Null\textsuperscript{f} \\
-\hline
-\end{tabular}
-
-\vspace{2pt}
-{\footnotesize
-\textsuperscript{a}A* dynamics serialized as tokens without typed operations or explicit operands.
-\textsuperscript{b}Search streams serialized including mistakes without operation typing.
-\textsuperscript{c}Self-improvement across search strategies, not cross-domain evaluation.
-\textsuperscript{d}Per-step human labels for correctness, not algorithm-specific invariants.
-\textsuperscript{e}External verifier provides correction feedback in a repair loop.
-\textsuperscript{f}Zero-shot cross-task transfer evaluated with null result (Section~\ref{sec:results}).
-}
-\end{table}
-
-% Paragraph purpose: Scoped novelty positioning derived from the axis table (D6: scoped, citation-supported, no broad priority assertion).
-Table~\ref{tab:axis} compares the closest prior systems on six design axes.
-Searchformer~\citep{lehnert2024beyond} is closest, training a transformer on A* search dynamics, but it operates on a single algorithm without typed operations or runtime validation.
-\citet{velickovic2020neural} provide step-level algorithm imitation with cross-algorithm transfer but no runtime that checks operations during execution.
-PICARD~\citep{scholak2021picard} rejects inadmissible outputs during decoding but enforces syntax on a single output string, not algorithm invariants over a stateful episode.
-No prior system in the table combines all six properties.
-This work combines algorithm-conditioned typed operations, a no-repair runtime with per-operation invariant checking, matched-modality observations, and cross-task transfer evaluation in a single system.
-Sections~\ref{sec:design}--\ref{sec:results} report where this combination succeeds and where it does not.
+Evaluation-validity work in planning and reasoning warns that common-sense tasks can confound planning with retrieval~\citep{valmeekam2023planbench}, and embodied suites such as BEHAVIOR-1K broaden task coverage~\citep{li2024behavior1k}. Research on multimodal training documents VQA models relying on language priors rather than image content, video-language evaluation reports selection bias toward answer positions~\citep{zhu2020overcoming,loginova2025addressing}, and LVLM chain-of-thought audits find that visual or format cues can influence answers without appearing in reasoning traces~\citep{balasubramanian2025closer}. Process supervision supplies feedback on intermediate reasoning steps~\citep{lightman2023lets}, but that training signal alone does not test whether a grounded action menu makes frontier choices identifiable. The menu manipulations in this paper target this interface by testing whether a trained search policy follows menu surface rather than grounding its operation in state. As calibration precedent, Levin tree search bounds expansion effort and is tested against a domain-independent planner, while policy-guided heuristic search compares solved-problem counts and search time against A*, weighted A*, greedy best-first, LevinTS, and PUCT~\citep{orseau2018singleagent,orseau2021policyguided}. Learned-heuristic work measures solved-task coverage and expanded states across A* and greedy best-first variants, while Neural A* reports a search-efficiency and solution-quality tradeoff against named planners~\citep{chrestien2023optimize,yonetani2021path}. Our audit first checks decision identity under the menu contract, then assesses the redesigned frontier selector against named algorithms rather than treating random-valid as a capability ceiling (Section~\ref{sec:results}).

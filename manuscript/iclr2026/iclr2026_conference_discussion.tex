@@ -1,147 +1,41 @@
-% STATUS: REVISED R3b for findings #11 and #16. Runtime boundary now leads.
-% STATUS: REVISED #131 round 1 (2026-09-23). Opening restructured around the
-% W3 measurement-methodology arc (finding, audit, fix, first measurement).
-% Folded in #129 native arms, #130 R1-R4, #132 choice-frontier (Erratum
-% binding), #133 comparator zoo. #128 image-only TODO retired (executed by
-% #129). Added critic-15 finding #1 training-exposure threat. Conclusion
-% opening recast as declarative. No new bib entries.
-% sec:discussion and sec:conclusion written per D7/D13 + Section Blueprint.
-% Structure: measurement arc, runtime boundary, what was demonstrated (tied to
-% receipts), what was not, threats to validity with #127 seed-variance nuance
-% (two replicated cells, rest single-seed, descriptive n=3). Conclusion:
-% gate-bounded answer, unsupported claims, single next gated step. Numbers
-% from content_brief.md (lines 32-33), synthesis-v1/seed-variance-addendum.md,
-% the #129/#130/#132/#133 closeouts and pinned JSON artifacts, and the sibling
-% Results section.
+% STATUS: COMPRESSED #131 round 2 Wave 2 pass 5 2026-09-23 (review 16 finding 6): Discussion+Conclusion cut to
+% ~1.1 pages. Arc paragraphs merged; threats as one-line itemize; Conclusion 4 sentences. Kept every claim boundary
+% (development stage, single seed except two cells, saturation, one discriminative task, no equivalence without a
+% pre-registered margin, no planning-ability claim for the redesigned arm, selectors not information-matched,
+% panel reuse with the fresh-panel requirement) and the scoped finding-1/2 wording.
+% STATUS: REVISED #131 round 1 (2026-09-23); REVISED R3b for findings #11 and #16. No new bib entries.
+% Numbers from content_brief.md, synthesis-v1/seed-variance-addendum.md, the #129/#130/#132/#133 closeouts and
+% pinned JSON artifacts, and the sibling Results section.
 \section{Discussion and Limitations}
 \label{sec:discussion}
 
-% Paragraph purpose: State the measurement-methodology arc (finding, audit,
-% fix, first measurement), each step scoped to its receipt reported in Results.
-% Evidence: outputs/native-arms/v1/identity-audit.json (48/48, additive pairs only);
-% outputs/native-arms/v1/stress-evaluation.json (menu manipulation; 9 episodes and 15 decisions per distractor cell);
-% distractor episode records outputs/native-arms/v1/evaluation/episodes/menu/*/*/*distractor-injection-learned_adapter.json.gz
-% (20/36 end on decision 0; chance pick-rate 0.592 to 0.625 recomputed in review 16, finding 2);
-% outputs/choice-frontier/v1/evaluation/{identity-audit,final-audit,analysis}.json.
-% Source conflict: issue-130-closeout.md R1 says the first emitted operation of every episode is a distractor;
-% stress-evaluation.json (60 decisions over 36 episodes) and the episode records show 16/36 episodes open with one
-% or two accepted operations. Manuscript follows the JSON and the records.
-The results in Section~\ref{sec:results} report a measurement finding, the audit that exposed it, and an audit-driven fix. On the additive best-first cells of the enumeration contract, choice quality is unmeasurable by construction. The identity audit finds \texttt{random\_valid} and \texttt{exact\_reference} decision- and expansion-identical on 48/48 additive pairs, because an expansion must submit its complete candidate set and heap order ignores submission order. The BFS and width-based best-first cells of the same contract do register choice (\texttt{random\_valid} 15/24 and 17/24 versus 24/24 for \texttt{exact\_reference}), and the learned policy scores 0/24 on each. Menu permutation leaves the learned policy at 36/36 success with zero invalid operations, which is uninformative about order under submission-order invariance. Distractor injection collapses success to 0/36, and every episode ends on a distractor pick, 20/36 of them on the first decision. The distractor pick-rate of 0.6 is at chance (0.592 to 0.625), so the policy does not reject schema-valid inapplicable menu entries. The choice-frontier redesign lets the policy select which runtime-owned frontier state to expand under a binding decision budget. Its pre-registered identity gate is a sanity check that holds by construction whenever a menu offers two or more states, and it passes on 9/9 tasks (18 cells, control sequences coincide across the two algorithms). \texttt{random\_valid} and \texttt{exact\_reference} separate ($-0.644$ $[-0.856, -0.422]$). The first measurement under the new contract shows contract fluency rather than choice quality. The \texttt{learned\_adapter} gains $+0.389$ $[+0.167, +0.611]$ over the base with zero invalid operations, and its contrast against \texttt{random\_valid} is $+0.033$ $[-0.033, +0.133]$, which is not material and rests on one discriminative task. The two contracts use different panels, so the identity finding and the new-contract rows form a finding and its fix, not comparable performance rows.
+% Paragraph purpose: State the measurement arc (finding, audit, fix, first measurement) and what it does and does not show, with the scoped finding-1/2 wording.
+% Evidence: outputs/native-arms/v1/identity-audit.json (48/48, additive pairs only); outputs/native-arms/v1/stress-evaluation.json
+% and the distractor episode records (pick-rate at chance, review 16 finding 2); outputs/choice-frontier/v1/evaluation/{identity-audit,analysis}.json.
+The results form a measurement finding, the audit that exposed it, and an audit-driven fix. On the additive best-first cells of the enumeration contract, choice quality is unmeasurable by construction, because an expansion must submit its complete candidate set and heap order ignores submission order, while the BFS and width-based best-first cells register choice and the learned policy never succeeds there (Section~\ref{sec:results-identity}). Menu permutation is therefore uninformative about order, and distractor injection shows only that the policy does not reject schema-valid inapplicable menu entries (pick-rate at chance). The choice-frontier redesign separates \texttt{random\_valid} from \texttt{exact\_reference}, and its first measurement shows contract fluency rather than choice quality. Its contrast against \texttt{random\_valid} rests on one discriminative task, so policy-level resolution currently rests on that task, and without a pre-registered margin it licenses neither superiority nor equivalence. The evidence supports no learning-to-plan claim for the redesigned arm.
 
-% Paragraph purpose: State the runtime boundary and its consequences for
-% interpretation.
-\paragraph{Runtime boundary.}
-Every positive result depends on the Trusted Search Runtime. The runtime validates emissions, applies transitions, maintains Search Memory, and checks Algorithm Invariants on every operation. It does not choose omitted operands, reorder candidates, or repair invalid emissions. The replay-determinative test attributes each exploration decision to the model. This separation enables clean attribution and equally constrains what the evidence can claim. The contract does not establish that the model conducts unassisted internal search, holds unbounded frontier state, or possesses general planning autonomy. The model issues Typed Search Operations into an external executor. Structural and process competence under this contract means emitting correct operations under external state management. The successor-prediction null is consistent with this runtime dependence. With model-generated transitions, success drops from 45/45 to 1/45, and structural control collapses. The same ownership rule holds under the choice-frontier contract, where the runtime owns the frontier and the policy only names which state to expand.
+% Paragraph purpose: Interpret the enumeration-contract evidence and the runtime boundary that limits every positive result.
+Every positive result depends on the Trusted Search Runtime, which validates and applies emissions but never chooses operands or repairs them, so decisions are attributable to the model and the evidence does not establish unassisted internal search or general planning autonomy. Within that boundary the output contract and candidate enumeration are learnable, a second backbone replicates this contract fluency on the additive cells, and the one positive learned-control contrast (the BFWS development panel) remains a single-seed development-stage finding. Process supervision yields well-formed operations but not invariant-consistent frontier ordering, and the trained controller depends on the textual serialization only in its copyability-preserving shuffled form. As a post-hoc interpretation the candidate menu, the input every arm retains, carries the decision-relevant signal on this panel. The DAgger, transfer, and curriculum studies returned nulls, the evidence does not support an intrinsic modality effect, and the comparator zoo finds no positive learned Pareto dominance, which is not a general negative capability claim.
 
-% Paragraph purpose: Demote the BFWS development-panel positive to one
-% positive contrast, keep its qualifications, and state the cross-backbone
-% cell as replicated contract fluency on the additive cells (#130 R3).
-% Evidence: outputs/expanded-study/v1/second-backbone-v3/evaluation/{evidence,analysis}.json;
-% docs/experiments/native-arms/issue-130-closeout.md (R3).
-\paragraph{What the evidence demonstrates.}
-One positive learned-control contrast exists. On the frozen 15-task text-state BFWS development panel, process SFT achieved 0.933 success versus 0.467 for random-valid, with a paired bootstrap lower bound of 0.2 (Section~\ref{sec:results}). This is a development-stage finding from one training seed on one algorithm, and it is the only development panel on which random-valid falls below saturation and a positive learned contrast is reported. The expanded-baseline BFS and BFWS cells are also unsaturated (random-valid 15/24 and 17/24), and the learned policy scores 0/24 on them. Elsewhere the constructive finding is that the output contract and candidate enumeration are learnable. Learned success under the enumeration contract appears only in the additive cells, where the identity audit shows no decision to make. The InternVL3.5-8B cell replicates that contract fluency, with process SFT at 31/36 episodes (text 11/12, visual 10/12, multimodal 10/12) against 0/36 for its base and below random-valid at 24/24 per modality. The earlier reduced InternVL3.5-8B cell, which reached 0/36 on BFS with the same recipe and panel shape, is consistent with an algorithm (choice-requirement) difference rather than a backbone null.
-
-% Paragraph purpose: Report the algorithm-specific pattern of the expanded
-% baseline.
-The expanded 24-task baseline marks the boundary. Learned success appears only in the additive best-first cells (125/288 versus 240/288 for random-valid, 0/288 for the base). BFS and width-based best-first score 0/24 in every modality, the cells where random-valid falls below exact execution and choice registers. Process SFT succeeds under weighted A* and greedy best-first regardless of observation modality, and it fails under the queue-discipline algorithms in all three.
-
-% Paragraph purpose: Localize where learned execution breaks, from the
-% failure-mechanism calibration.
-Failure-mechanism calibration localizes where learned execution breaks. The base fails on its first decision in every episode (447/447), producing malformed outputs or rejected frontier operations. Learned arms fail early but mostly after parsing. The dominant learned failure kind is \texttt{other\_invariant\_violation}, meaning parsed, source-correct operations rejected because they violate the declared search invariant (229 of 407 learned failures). Learned first failures cluster in steps 0--2 (137/88/46), while oracle-control failures are all late expansion-budget exhaustion. Process supervision teaches the policy to emit well-formed operations but not to maintain invariant-consistent frontier ordering across a full episode.
-
-% Paragraph purpose: Report the shuffled-only channel result, separate the two
-% text-corruption regimes, and state the menu-signal reading as post-hoc.
-% Evidence: docs/experiments/native-arms/issue-129-closeout.md;
-% outputs/native-arms/v1/r2-decomposition.json (text-shuffled partial_valid 16+15, goal_reached 0+3;
-% text-masked all_invalid 18+18);
-% outputs/native-arms/v1/stress-evaluation.json (textmask|text-masked|visual-state cross cell, 18 episodes, 0 successes, 18 invalid over 18 decisions);
-% Results Table tab:results-corruption (Text-shuffled rows -0.944 text, -0.722 multimodal; visual rows at most -0.111).
-On the frozen checkpoints, copyability-preserving text shuffling lowers success by $-0.944$ (text) and $-0.722$ (multimodal), while blanking or degrading the visual channel costs at most $-0.111$ with intervals including zero. The multimodal text-minus-visual isolation contrast of $-0.694$ $[-0.889, -0.472]$ pools the masked regime, which destroys the output contract, so it does not isolate the channel. The termination-mode decomposition separates the two regimes. Copyability-preserving shuffling is the information-loss regime. There 31/36 episodes are partial-valid without reaching the goal, and 3/36 reach it. Masking is output-contract destruction, with 36/36 episodes all-invalid. The new text-masked visual-state cross cell scores 0/18 with every episode all-invalid. The native arms remove the textual search state. Trained with no textual search memory and no candidate scores, \texttt{visual-nomem-state} and \texttt{visual-seq-state} each solve the clean panel (18/18 and 18/18, zero invalid operations). Under \texttt{visual-seq-state}, blanking or mosaicking every attached image, history frames included, leaves success unchanged (contrast 0.000 $[0.000, 0.000]$). A post-hoc interpretation is that the menu, the remaining input, carries the decision-relevant signal on this panel. Menu manipulation is consistent with that reading only in its scoped form, since the policy does not reject schema-valid inapplicable menu entries (pick-rate at chance).
-
-% Paragraph purpose: Report the reduced-scope generalization finding.
-Reduced-scope generalization testing (128/150 under 25 semantics-preserving perturbation variants, versus 0/150 for the base) shows that the learned adapters survive surface-level input variation on the additive best-first family.
-
-% Paragraph purpose: State each null or negative finding tied to its branch.
-\paragraph{What the evidence does not demonstrate.}
-Several executed branches returned null or negative results. Model-generated successors collapsed success from 45/45 to 1/45 (Section~\ref{sec:results}). Two DAgger iterations on BFS added no advantage over exposure-matched continued SFT (1/72 versus 1/72 unseen successes), and DAgger carried the higher invalid-operation rate. Zero-shot transfer to FOLIO, GSM8K, and HumanEval left no comparison surviving Holm correction (0/36, minimum adjusted $p$ 0.8156). Because InternVL3.5-8B shares the Qwen3-8B LLM family, the cross-backbone replication isolates the vision tower, connector, image tokenization, and multimodal recipe rather than the language model. Curriculum-by-modality produced no ordering interaction, with all four paired interaction intervals including zero. The matched-modality evidence (process SFT at 5/12 text, 6/12 visual, 6/12 multimodal versus 10/12 random-valid in each modality) does not support an intrinsic modality effect.
-
-% Paragraph purpose: Bound the choice-frontier first measurement and the
-% comparator-zoo calibration, labelling the post-hoc diagnostic.
-% Evidence: docs/experiments/choice-frontier/issue-132-closeout.md (Erratum
-% items 3-4 binding); outputs/choice-frontier/v1/evaluation/analysis.json;
-% outputs/choice-frontier/o4/metrics/analysis.json; #133 closing comment.
-The redesigned arm does not establish choice quality beyond the named references. The \texttt{learned\_adapter} minus \texttt{random\_valid} contrast is $+0.033$ $[-0.033, +0.133]$, and its signal rests on one discriminative task (storage). This interval licenses neither superiority nor equivalence, since no equivalence margin was pre-registered. The comparator-zoo calibration found no positive learned Pareto dominance over any comparator under its pre-registered fifteen-test Holm family, and this non-significance is not a general negative capability claim. The zoo rules (\texttt{bfs-order}, novelty-first selection, \texttt{worst-first}) are selectors on the additive frontier, not native BFS or BFWS, and they read privileged $g$/$h$ scalars or PDDL atoms while the model sees only scenes. Their contrast with the learned policy is therefore not information-matched. An exploratory post-hoc diagnostic on the stored episodes finds that the learned policy selects the teacher's heap-head state in 23/132 multi-option decisions (17.4\%, against an on-policy chance rate of 26.9\%) and emits the last menu label in 72/132 (54.5\%). This diagnostic was not pre-registered for the \#132 arm and carries no inferential weight.
-
-% Paragraph purpose: Itemize threats to validity with seed-variance nuance,
-% development-stage status, saturation, training exposure, redesign-specific
-% threats, and the text-scaffold confound.
+% Paragraph purpose: List the threats to validity, one line each.
+% Evidence: seed-variance-addendum.md (#127); issue-132-closeout.md Erratum items 3 and 5; #133 closing comment;
+% issue-129-closeout.md; design-section training-exposure sentence (critic-15 finding #1).
 \paragraph{Threats to validity.}
-
-% Paragraph purpose: Training-seed coverage and the #127 replication.
-\emph{Training-seed coverage.}
-Most cells rest on a single training seed (17). A prospective replication (issue \#127, closed 2026-09-21) measured seed variance for exactly two cells using seeds 17, 29, and 71, with 534 new episodes independently replayed. The headline process-SFT cell (greedy best-first $\times$ multimodal-state, 24-problem panel) replicated at 21/24, 21/24, 22/24 (mean 0.889, range $[0.875, 0.917]$). The primary positive contrast against the pretrained base was positive at every seed ($+0.875$/$+0.875$/$+0.917$) with no sign flip, and the contrast against random-valid stayed negative at every seed ($-0.125$/$-0.125$/$-0.083$). The DAgger iteration-1 versus continued-SFT null replicated at every seed (0/72 both arms, paired contrast $+0.000$ $[0, 0]$). The published iteration-2 verdict (1/72 versus 1/72, seed 17 only) is unchanged. Cross-seed aggregation is descriptive ($n = 3$). Cell A tested one modality (multimodal-state), so two of the three headline modalities remain unreplicated. Every other cell remains single-seed. Stability on three seeds in one cell does not guarantee stability elsewhere, and the descriptive aggregation is not a powered significance test.
-
-% Paragraph purpose: Development-stage status and the unaccessed held-out
-% manifest.
-\emph{Development-stage protocols.}
-All panels are development panels. The held-out 45-task manifest was frozen before outcomes and has never been accessed. Preregistration prerequisites for that evaluation remain undecided (Section~\ref{sec:design}). Until it executes, the BFWS comparison and the algorithm-specific pattern are bounded development-stage findings.
-% TODO: held-out final primary evaluation remains unexecuted.
-
-% Paragraph purpose: Saturating controls bound measurability.
-\emph{Saturating controls as bounds.}
-Random-valid saturates at 100\% on the additive best-first panels and on the BFS development panel. Where it saturates, the learned-to-control gain is unmeasurable rather than zero. The BFWS development panel is the only development panel on which random-valid falls below saturation and a positive learned contrast is reported. The expanded-baseline BFS and BFWS cells are unsaturated (random-valid 15/24 and 17/24), and the learned policy scores 0/24 on them. Saturation bounds measurability, not policy quality.
-
-% Paragraph purpose: Unmatched training exposure between gate-era and
-% expanded-program cells (critic-15 finding #1; design-section scope sentence).
-\emph{Unmatched training exposure.}
-Training exposure is unmatched between gate-era cells and expanded-program cells. The BFWS structural-gate checkpoint trained on the full 47,780-record training corpus for two epochs (seed 17), and the additive development panels (issues \#65 and \#66) likewise used two-epoch full-corpus runs, while each expanded-program cell trained on 512 unique records for one epoch (Section~\ref{sec:design}). The absence of the BFWS positive on the expanded suite is therefore confounded by training scale.
-
-% Paragraph purpose: The choice-frontier reference is an imitation target
-% scored by construction.
-% Evidence: docs/experiments/choice-frontier/issue-132-closeout.md, Erratum item 5.
-\emph{The exact reference as imitation target.}
-The redesigned arm is distilled from \texttt{exact\_reference}, so that reference is the imitation target rather than ground-truth planning ability. The frozen decision budget is capped at twice the reference expansion count with goal selection uncharged, so the reference's 18/18 holds by construction under a budget calibrated to it.
-
-% Paragraph purpose: The choice-quality contrast rests on one task.
-% Evidence: docs/experiments/choice-frontier/issue-132-closeout.md, Erratum
-% item 3; #133 closing comment (M5 discriminative subset).
-\emph{Single discriminative task.}
-On the nine-task panel, \texttt{random\_valid} solves every seed on some tasks and none on others, and only storage sits between. The choice-quality contrast therefore rests on one discriminative task, below the frozen rule that strata with fewer than 8 units are descriptive only.
-
-% Paragraph purpose: Comparator-zoo selectors hold privileged access.
-% Evidence: #133 closing comment; outputs/choice-frontier/o4/zoo/manifest.json.
-\emph{Privileged comparator access.}
-The comparator-zoo selectors read $g$/$h$ scalars or PDDL atoms that the model never receives, and their CPU episodes do not generate or replay image view bindings. Their ranking against the learned policy is not a matched-information comparison.
-
-% Paragraph purpose: Native-arm corruption nulls are absence of measurable
-% effect, not proof of irrelevance.
-% Evidence: docs/experiments/native-arms/issue-129-closeout.md.
-\emph{Degenerate corruption nulls.}
-The two reported native-arm corruption cells (visual blanking and visual degradation on \texttt{visual-seq-state}) are pre-registered nulls with degenerate $[0.000, 0.000]$ intervals over 18 paired units, on a panel where the clean arms already sit at ceiling. They show absence of measurable effect at this panel, not that the images are irrelevant in general.
-
-% Paragraph purpose: Text-scaffold confound, now tested by the executed
-% native arms; #128 v1 gate kept as history.
-% Evidence: docs/experiments/native-arms/issue-129-closeout.md; #131 comment 1
-% (v1 pretrained-base gate 0/18 kept as gate history).
-\emph{Text-scaffold confound in the corruption finding.}
-The corruption result on the frozen checkpoints shows that the learned policy depends on the language channel. It does not show that rendered images are inherently uninformative. All three frozen adapters share the same textual search-memory and candidate serialization, so the visual channel is dispensable given that shared scaffold. The image-only arms proposed in issue \#128 were executed under the v2 admission of issue \#129, after the v1 gate had measured pretrained-base format compliance (0/18) rather than rung feasibility. Those arms remove the textual search state and still solve the clean panel, which moves the confound from the textual scaffold to the candidate menu that every arm retains. No arm here removes the menu.
-
-% Paragraph purpose: Remaining open branches and release handoff.
-The full-scope v1 generalization and second-backbone branches remain open under terminal \textsc{valid\_stop} receipts [TODO: full-scope v1, issues \#96/\#98/\#102/\#103]. Release URLs for evidence bundles are pending handoff [TODO: release URLs, issue \#122].
-% TODO: #96/#98/#102/#103 open; only reduced v2 scopes executed.
-% TODO: #122 release/handoff open.
+\begin{itemize}
+\item \emph{Development stage.} Held-out manifest unaccessed, single seed except two cells ($n{=}3$).
+\item \emph{Saturation.} Saturating controls bound measurability, not policy quality.
+\item \emph{Exposure.} Longer gate-era training confounds the missing BFWS positive.
+\item \emph{Imitation target.} \texttt{exact\_reference} solves by construction of the budget.
+\item \emph{Comparators.} Zoo selectors read privileged inputs, so ranking is not information-matched.
+\item \emph{Menu and nulls.} No arm removes the menu, and ceiling nulls do not show image irrelevance.
+\item \emph{Panel reuse.} Adaptive-overfitting risk on one reused panel requires a fresh frozen panel.
+\end{itemize}
+Full-scope v1 branches remain open [TODO: full-scope v1, issues \#96/\#98/\#102/\#103], and release URLs are pending [TODO: release URLs, issue \#122].
+% TODO: #96/#98/#102/#103 open (Wave 3, review 16 I12); #122 release/handoff open; held-out final primary evaluation unexecuted.
 
 \section{Conclusion}
 \label{sec:conclusion}
 
-% Paragraph purpose: Give a gate-bounded answer under the measurement framing
-% (finding, audit, fix, first measurement).
-This paper reports a development-stage measurement result about grounded-menu search evaluations. On the additive best-first cells of the enumeration contract, submission-order invariance makes choice quality unmeasurable by construction, while the BFS and width-based best-first cells of the same contract register choice and the learned policy scores 0/24 there. The identity audit and menu manipulation that exposed this are cheap checks. On the tested panel, the trained policy solves tasks without textual scores or informative images and does not reject schema-valid inapplicable menu entries (pick-rate at chance). The choice-frontier redesign passes its pre-registered identity gate, a sanity check that holds by construction, and random-valid and exact separate. Its first measurement shows that the adapter learns to emit valid choices and has not demonstrated choice quality beyond the named references, and the comparator zoo finds no positive learned Pareto dominance. One positive enumeration-contract contrast exists, on the BFWS structural-gate development panel (0.933 versus 0.467, bootstrap lower bound 0.2). On the expanded baseline, learned success appeared only in the additive best-first cells, always below saturating controls, and a second backbone replicates that contract fluency. These findings map what the tested interfaces measure. They do not constitute a general efficacy claim.
-
-% Paragraph purpose: Name the claims the evidence does not support.
-Several claims remain unsupported. No final comparative efficacy finding exists because the held-out manifest has not been accessed. Model-generated successors collapse structural control (45/45 to 1/45). DAgger adds no advantage. Transfer is null. The comparator zoo licenses no positive learned dominance. The evidence does not establish an intrinsic modality effect or general planning autonomy. Training-seed variance has been measured for two cells (three seeds each, descriptive aggregation). Every other cell is single-seed.
+% Paragraph purpose: Give the gate-bounded answer and the single next gated step in four sentences.
+Grounded-menu search evaluations can leave choice quality unmeasurable by construction, and cheap identity and menu audits expose this. A redesigned choice-frontier contract separates the controls, and its first measurement shows that the adapter learns to emit valid choices without demonstrating choice quality beyond the named references. These are development-stage findings, not a general efficacy claim, and they establish neither an intrinsic modality effect nor planning autonomy. The next gated step is the preregistered held-out evaluation on the frozen 45-task manifest, together with a fresh choice-frontier panel (Section~\ref{sec:design}).
 % TODO: held-out final primary evaluation unexecuted.
-
-% Paragraph purpose: State the single next gated step.
-The next gated step is the held-out final primary evaluation on the frozen 45-task manifest, under a preregistered protocol with decided estimands, budget rules, and statistical tests (Section~\ref{sec:design}). Release URLs for evidence bundles are pending [TODO: release URLs, issue \#122].
-% TODO: #122 release/handoff open.

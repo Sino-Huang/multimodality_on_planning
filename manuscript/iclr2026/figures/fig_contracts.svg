@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="234pt" height="237.6pt" viewBox="0 0 234 237.6" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-09-23T18:25:12.341002</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.10.8, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 237.6 
+L 234 237.6 
+L 234 0 
+L 0 0 
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 6.890665 71.733 
+L 63.21354 71.733 
+Q 67.71937 71.733 67.71937 69.427 
+L 67.71937 32.531 
+Q 67.71937 30.225 63.21354 30.225 
+L 6.890665 30.225 
+Q 2.384835 30.225 2.384835 32.531 
+L 2.384835 69.427 
+Q 2.384835 71.733 6.890665 71.733 
+z
+" clip-path="url(#pc0b0afea99)" style="fill: #dcebf5; stroke: #555555; stroke-width: 0.7; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 90.24852 65.968 
+L 135.30682 65.968 
+Q 139.81265 65.968 139.81265 63.662 
+L 139.81265 38.296 
+Q 139.81265 35.99 135.30682 35.99 
+L 90.24852 35.99 
+Q 85.74269 35.99 85.74269 38.296 
+L 85.74269 63.662 
+Q 85.74269 65.968 90.24852 65.968 
+z
+" clip-path="url(#pc0b0afea99)" style="fill: #ffffff; stroke: #555555; stroke-width: 0.7; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 162.3418 71.733 
+L 227.676335 71.733 
+Q 232.182165 71.733 232.182165 69.427 
+L 232.182165 32.531 
+Q 232.182165 30.225 227.676335 30.225 
+L 162.3418 30.225 
+Q 157.83597 30.225 157.83597 32.531 
+L 157.83597 69.427 
+Q 157.83597 71.733 162.3418 71.733 
+z
+" clip-path="url(#pc0b0afea99)" style="fill: #eeeeee; stroke: #555555; stroke-width: 0.7; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 67.465807 50.979 
+Q 76.729528 50.979 85.098821 50.979 
+" clip-path="url(#pc0b0afea99)" style="fill: none; stroke: #555555; stroke-width: 0.8; stroke-linecap: round"/>
+    <path d="M 82.298821 49.579 
+L 85.098821 50.979 
+L 82.298821 52.379 
+z
+" clip-path="url(#pc0b0afea99)" style="fill: #555555; stroke: #555555; stroke-width: 0.8; stroke-linecap: round"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 139.559087 50.979 
+Q 148.822808 50.979 157.192101 50.979 
+" clip-path="url(#pc0b0afea99)" style="fill: none; stroke: #555555; stroke-width: 0.8; stroke-linecap: round"/>
+    <path d="M 154.392101 49.579 
+L 157.192101 50.979 
+L 154.392101 52.379 
+z
+" clip-path="url(#pc0b0afea99)" style="fill: #555555; stroke: #555555; stroke-width: 0.8; stroke-linecap: round"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 18.15524 113.241 
+L 216.41176 113.241 
+Q 220.91759 113.241 220.91759 110.935 
+L 220.91759 87.875 
+Q 220.91759 85.569 216.41176 85.569 
+L 18.15524 85.569 
+Q 13.64941 85.569 13.64941 87.875 
+L 13.64941 110.935 
+Q 13.64941 113.241 18.15524 113.241 
+z
+" clip-path="url(#pc0b0afea99)" style="fill: #ffffff; stroke: #0072b2; stroke-width: 0.7; stroke-linejoin: miter"/>
+   </g>
+   <g id="text_1">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'DejaVu Sans'; text-anchor: start" x="4.63775" y="10.93775" transform="rotate(-0 4.63775 10.93775)">(a) Enumeration contract</text>
+   </g>
+   <g id="text_2">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'" transform="translate(17.804759 45.072094)">Grounded</text>
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'" transform="translate(17.677884 52.910562)">candidate</text>
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'" transform="translate(25.05304 60.749031)">menu</text>
+   </g>
+   <g id="text_3">
+    <text style="font-weight: 700; font-size: 7px; font-family: 'DejaVu Sans'; text-anchor: middle" x="112.77767" y="52.883219" transform="rotate(-0 112.77767 52.883219)">Policy</text>
+   </g>
+   <g id="text_4">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'" transform="translate(164.325005 48.991328)">Submission-order</text>
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'" transform="translate(169.605083 56.829797)">invariant heap</text>
+   </g>
+   <g id="text_5">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #555555" x="148.82431" y="46.064219" transform="rotate(-0 148.82431 46.064219)">one op</text>
+   </g>
+   <g id="text_6">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; text-anchor: middle" x="117.2835" y="101.336563" transform="rotate(-0 117.2835 101.336563)">random-valid ≡ exact reference, 48/48 additive pairs</text>
+   </g>
+  </g>
+  <g id="axes_2">
+   <g id="patch_8">
+    <path d="M 6.890665 191.233 
+L 63.21354 191.233 
+Q 67.71937 191.233 67.71937 188.927 
+L 67.71937 152.031 
+Q 67.71937 149.725 63.21354 149.725 
+L 6.890665 149.725 
+Q 2.384835 149.725 2.384835 152.031 
+L 2.384835 188.927 
+Q 2.384835 191.233 6.890665 191.233 
+z
+" clip-path="url(#p279e2c03e5)" style="fill: #fbebcb; stroke: #555555; stroke-width: 0.7; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 90.24852 185.468 
+L 135.30682 185.468 
+Q 139.81265 185.468 139.81265 183.162 
+L 139.81265 157.796 
+Q 139.81265 155.49 135.30682 155.49 
+L 90.24852 155.49 
+Q 85.74269 155.49 85.74269 157.796 
+L 85.74269 183.162 
+Q 85.74269 185.468 90.24852 185.468 
+z
+" clip-path="url(#p279e2c03e5)" style="fill: #ffffff; stroke: #555555; stroke-width: 0.7; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_10">
+    <path d="M 162.3418 191.233 
+L 227.676335 191.233 
+Q 232.182165 191.233 232.182165 188.927 
+L 232.182165 152.031 
+Q 232.182165 149.725 227.676335 149.725 
+L 162.3418 149.725 
+Q 157.83597 149.725 157.83597 152.031 
+L 157.83597 188.927 
+Q 157.83597 191.233 162.3418 191.233 
+z
+" clip-path="url(#p279e2c03e5)" style="fill: #eeeeee; stroke: #555555; stroke-width: 0.7; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_11">
+    <path d="M 67.465807 170.479 
+Q 76.729528 170.479 85.098821 170.479 
+" clip-path="url(#p279e2c03e5)" style="fill: none; stroke: #555555; stroke-width: 0.8; stroke-linecap: round"/>
+    <path d="M 82.298821 169.079 
+L 85.098821 170.479 
+L 82.298821 171.879 
+z
+" clip-path="url(#p279e2c03e5)" style="fill: #555555; stroke: #555555; stroke-width: 0.8; stroke-linecap: round"/>
+   </g>
+   <g id="patch_12">
+    <path d="M 139.559087 170.479 
+Q 148.822808 170.479 157.192101 170.479 
+" clip-path="url(#p279e2c03e5)" style="fill: none; stroke: #555555; stroke-width: 0.8; stroke-linecap: round"/>
+    <path d="M 154.392101 169.079 
+L 157.192101 170.479 
+L 154.392101 171.879 
+z
+" clip-path="url(#p279e2c03e5)" style="fill: #555555; stroke: #555555; stroke-width: 0.8; stroke-linecap: round"/>
+   </g>
+   <g id="patch_13">
+    <path d="M 18.15524 232.741 
+L 216.41176 232.741 
+Q 220.91759 232.741 220.91759 230.435 
+L 220.91759 207.375 
+Q 220.91759 205.069 216.41176 205.069 
+L 18.15524 205.069 
+Q 13.64941 205.069 13.64941 207.375 
+L 13.64941 230.435 
+Q 13.64941 232.741 18.15524 232.741 
+z
+" clip-path="url(#p279e2c03e5)" style="fill: #ffffff; stroke: #e69f00; stroke-width: 0.7; stroke-linejoin: miter"/>
+   </g>
+   <g id="text_7">
+    <text style="font-weight: 700; font-size: 8px; font-family: 'DejaVu Sans'; text-anchor: start" x="4.63775" y="130.43775" transform="rotate(-0 4.63775 130.43775)">(b) Choice-frontier contract</text>
+   </g>
+   <g id="text_8">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'" transform="translate(7.508196 164.572094)">Runtime-owned</text>
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'" transform="translate(22.163352 172.410562)">frontier</text>
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'" transform="translate(24.362884 180.249031)">states</text>
+   </g>
+   <g id="text_9">
+    <text style="font-weight: 700; font-size: 7px; font-family: 'DejaVu Sans'; text-anchor: middle" x="112.77767" y="172.383219" transform="rotate(-0 112.77767 172.383219)">Policy</text>
+   </g>
+   <g id="text_10">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'" transform="translate(168.327583 164.572094)">Expand chosen</text>
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'" transform="translate(170.618442 172.410562)">state (binding</text>
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'" transform="translate(165.693833 180.249031)">decision budget)</text>
+   </g>
+   <g id="text_11">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #555555" x="148.82431" y="165.564219" transform="rotate(-0 148.82431 165.564219)">select</text>
+   </g>
+   <g id="text_12">
+    <text style="font-size: 7px; font-family: 'DejaVu Sans'; text-anchor: middle" x="117.2835" y="220.836563" transform="rotate(-0 117.2835 220.836563)">random − exact = −0.644 [−0.856, −0.422]</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="pc0b0afea99">
+   <rect x="4.63775" y="1.4" width="225.2915" height="115.3"/>
+  </clipPath>
+  <clipPath id="p279e2c03e5">
+   <rect x="4.63775" y="120.9" width="225.2915" height="115.3"/>
+  </clipPath>
+ </defs>
+</svg>
