@@ -1,22 +1,25 @@
 % STATUS: R2a findings 6, 9, 13, 15, and 23 addressed. Bootstrap level checked against the frozen BFWS threshold and its adjudicator.
 % STATUS: #131 round 2 (2026-09-23). Rewritten around the measurement-methodology frame. Numbers copied from iclr2026_conference_results.tex (round-1 commit 2569773).
 \begin{abstract}
-% Paragraph purpose: State the measurement finding under the enumeration contract with its receipt pair, then the audit-driven redesign and its pre-registered gate.
-We train vision-language models to execute declared classical search algorithms step by step against a no-repair runtime, and ask whether such training can be measured to improve search choice.
-Under the original enumeration contract, where the policy picks each operation from a grounded candidate menu, the answer is that it cannot be measured.
-A per-decision identity audit finds a random-valid control and the exact classical reference decision- and expansion-identical on 48/48 additive pairs, so choice quality is unmeasurable by construction.
-Menu manipulation shows what trained policies read instead: permuting the menu leaves 36/36 successes with 0/512 invalid operations, while injecting schema-valid but inapplicable distractors collapses success to 0/36 at a distractor pick-rate of 0.6.
-% Evidence: outputs/native-arms/v1/identity-audit.json; issue-130-closeout.md R1 (see Results, menu manipulation and identity audit).
+% Paragraph purpose: State the scoped measurement finding on the additive best-first cells of the enumeration contract with its cause and receipt pair, then the audit-driven redesign and its sanity-check gate.
+We train vision-language models to execute declared classical search algorithms step by step against a no-repair runtime and test whether such training can be measured to improve search choice.
+On the additive best-first cells of the original enumeration contract, where an expansion must submit its complete candidate set and heap order ignores submission order, a random-valid control is decision- and expansion-identical to the exact classical reference on 48/48 pairs, so choice quality is unmeasurable there by construction.
+% Evidence: outputs/native-arms/v1/identity-audit.json (pairs_checked 48, additive pairs only).
+The BFS and width-based best-first cells of the same contract do register choice (random-valid 15/24 and 17/24 versus exact 24/24), and the learned policy scores 0/24 on each.
+% Evidence: expanded 24-task baseline, Results Table tab:results-primary-matrix (BFS/BFWS rows, per modality).
+Menu permutation leaves 36/36 successes with 0/512 invalid operations, which is uninformative about order under submission-order invariance. Injecting schema-valid but inapplicable distractors collapses success to 0/36 at a distractor pick-rate of 0.6, against a chance rate of 0.592 to 0.625, so the policy does not reject such entries.
+% Evidence: outputs/native-arms/v1/stress-evaluation.json; chance rate recomputed from outputs/native-arms/v1/evaluation/episodes/menu/*/*/*distractor-injection-learned_adapter.json.gz (review 16, finding 2).
 We therefore redesign the decision as a choice-frontier contract, in which the policy selects which runtime-owned frontier state to expand under a binding decision budget.
-Its own identity audit was a pre-registered pass condition and passes with 18/18 control pairs divergent, and headroom becomes measurable (random-valid minus exact reference $-0.644$, 95\% CI $[-0.856, -0.422]$).
+Its pre-registered identity gate is a sanity check that holds by construction whenever a menu offers two or more states. It passes on 9/9 tasks (18 cells, control sequences coincide across the two algorithms), and random-valid and exact separate (random-valid minus exact reference $-0.644$, 95\% CI $[-0.856, -0.422]$).
 % Evidence: outputs/choice-frontier/v1/evaluation/{identity-audit,analysis}.json.
 
 % Paragraph purpose: Report the first measurement and its calibration boundary, the demoted BFWS contrast, the development-stage qualifications, and the reusable audit.
 In the first measurement the adapter learns to operate the contract, solving 7/18 cells with zero invalid operations ($+0.389$ $[+0.167, +0.611]$ over the pretrained base).
-Choice quality beyond the named references is not established: the contrast against random-valid is $+0.033$ $[-0.033, +0.133]$, rests on a single task, and an exploratory comparator zoo places the adapter's solve-versus-budget score (.1042) below novelty-first selection (.1250) with no positive learned Pareto dominance.
+Choice quality beyond the named references is not established. The contrast against random-valid is $+0.033$ $[-0.033, +0.133]$ and rests on a single task. An exploratory comparator zoo finds no positive learned Pareto dominance, and the adapter's solve-versus-budget score (.1042) lies between \texttt{bfs-order} (.0694) and novelty-first selection (.1250) (point estimates, intervals overlap).
+% Evidence: outputs/choice-frontier/o4/metrics/analysis.json (arms.*.m1_auc).
 This is not evidence of equivalence, since no equivalence margin was pre-registered.
-Under the enumeration contract one positive contrast exists, a 15-task width-based best-first development panel (0.933 versus 0.467 for random-valid).
+The single positive learned contrast is on a 15-task width-based best-first development panel of the enumeration contract (0.933 versus 0.467 for random-valid).
 All results are development-stage and single-seed except two replication cells, saturating controls bound measurability rather than policy quality, and the held-out final evaluation has not been run.
 % Held-out final primary evaluation has no open ticket; stated in prose per the round-2 TODO convention.
-The paper reports a measurement result, not planning ability, together with two cheap benchmark-hygiene checks that any grounded-menu evaluation can run: the per-decision identity test and menu manipulation.
+The paper reports a measurement result, not planning ability, together with two cheap benchmark-hygiene checks, the per-decision identity test and menu manipulation.
 \end{abstract}
