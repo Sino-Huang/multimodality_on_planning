@@ -44,9 +44,6 @@ Address \\
 % puts 3 of 4 authors names on the first line, and the last on the second
 % line, try using \AND instead of \And before the third author name.
 
-\newcommand{\fix}{\marginpar{FIX}}
-\newcommand{\new}{\marginpar{NEW}}
-
 %\iclrfinalcopy % Uncomment for camera-ready version, but NOT for submission.
 \begin{document}
 
@@ -56,8 +53,10 @@ Address \\
 % ---------------------------------------------------------------------------
 % Multi-file layout (2026-09-21, reviewer-ratified): one owner per section
 % file. This hub is prose-free and owns only the preamble, title/author
-% block, shared macros (\fix, \new), input order, bibliography list, and the
+% block, input order, bibliography list, and the
 % \appendix switch. Section agents never edit this file.
+% The \fix and \new margin annotations were removed on 2026-09-23 (#131 W4);
+% no section file uses them.
 %
 % Frozen section labels (cross-section \ref must use these; never add a
 % label that another file references):
