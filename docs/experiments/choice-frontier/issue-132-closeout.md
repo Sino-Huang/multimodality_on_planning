@@ -55,9 +55,11 @@ claim from earlier revisions of this section.)
 2. **Training teaches the contract**: 16 updates on the 512-record frozen corpus takes the base
    model from 0/18 (cannot emit one parseable in-menu choice) to 7/18 with a 100% valid-choice
    rate — the +0.389 over base is a contract-fluency gain.
-3. **Choice quality above uniform is not yet demonstrated**: learned ≈ random (+0.033,
-   non-material) on this panel at this recipe. The arm now exposes this as a measurable gap
-   rather than an invariant — the follow-up lever is recipe/data scale, not contract surgery.
+3. **Choice quality above uniform is not established at the frozen cap**: the learned − random
+   success contrast is +0.033 (non-material). Per the post-close review this establishes neither
+   superiority nor equivalence (no pre-registered equivalence margin), and the contrast rests on
+   one discriminative task. No remedy (recipe, data scale) is implied by this evidence; see the
+   erratum below.
 
 ## Execution record
 

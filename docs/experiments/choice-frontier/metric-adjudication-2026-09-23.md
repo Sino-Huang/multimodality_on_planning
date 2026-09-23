@@ -79,6 +79,51 @@ Recommended manuscript paragraph (reviewer-drafted, style-checked against #131 r
 > show that the instrument lacks sensitivity. We make no claim relative to other search
 > algorithms.
 
+## Reviewer 2 verdict (general reviewer agent, independent)
+
+Reviewer 2 (general `task` agent, run blind to Reviewer 1) converged on the core adjudication and
+diverged on mechanism. Verdict: **reframe now (option b); pre-register a small comparator /
+efficiency follow-up (option c) before any generalized claim in either direction.** Convergence:
+random is a sanity floor, not the capability ceiling; the task is the cluster unit (18 cells = 9
+tasks with algorithms as repeated measures; 90 random episodes = 5 Monte Carlo seeds within
+task); the +0.033 contrast is single-task-driven; a CI crossing zero establishes neither
+superiority nor equivalence (an "≈ random" claim needs a pre-registered equivalence margin); no
+remedy prescription is licensed by this evidence. Its manuscript paragraph is more conservative
+than Reviewer 1's: it treats the arm as evidence the redesign makes frontier choice consequential
+and the adapter learns to operate the contract, and explicitly declines the label-position
+mechanism claim (it did not compute one).
+
+Its independent recomputations (read-only, over all 144 episodes; convergent where overlapping):
+
+- Coverage-curve truncation (replay-free, prefix-valid): stored successes at 1.5x reference
+  expansions: learned 1/18, random 6/90, exact 18/18; at 1.75x: 3/18, 26/90, 18/18; at 2x: 7/18,
+  32/90, 18/18 (curves cannot extrapolate past the stored 2x cap).
+- First discretionary disagreement: learned departs from the exact selected-state order at the
+  first multi-option decision in 12/18 cells (after 2 in 4, after 4 in 2; 1/18 follows the full
+  order). Framed as an imitation diagnostic, not proof of inferiority.
+- Survivor-conditioned expansion ratio 1.529 (learned) vs 1.436 (random) vs reference — labelled
+  descriptive/selection-conditioned, not a population efficiency estimate.
+- 45/45 paired random runs produce identical result dictionaries and expanded-state sequences
+  across greedy and w3 — independent confirmation that the two algorithm cells are not
+  independent evidence for the controls.
+- Task-cluster (9 tasks) exploratory bootstrap of learned − random: [0.000, +0.100]; it declines
+  to present this as confirmatory and keeps the frozen 18-cell interval primary.
+
+Implementation qualification for the follow-up (Reviewer 2 only): `ChoiceFrontierController`
+subclasses an additive-only BestFirstController, so BFS/BFWS-order comparators are NOT a config
+flag — their CPU selectors must be integrated and audited under the same
+observation/action/budget contract, any changed frontier-admission bookkeeping disclosed, and the
+shared primary cap kept at the frozen 2x additive reference (no per-comparator cap rescaling).
+
+## Where the two reviewers disagree
+
+- Mechanism: Reviewer 1 names a label-position shortcut (independently re-verified above);
+  Reviewer 2 makes no mechanism claim. Manuscript wording should follow Reviewer 1's numbers but
+  frame the mechanism as exploratory, per its own label.
+- Negative-claim licensing: Reviewer 1 reads the effort/agreement metrics as sufficient for an
+  exploratory "imitation failure" reading; Reviewer 2 requires the pre-registered follow-up
+  before even a generalized negative claim. The closeout erratum adopts the stricter rule.
+
 ## Follow-up scoping (from the review)
 
 - **Ticket A (CPU-only, pre-registered before it runs)**: M1–M5 on stored episodes with
@@ -90,6 +135,3 @@ Recommended manuscript paragraph (reviewer-drafted, style-checked against #131 r
   matched train/eval horizon. No GPU run is justified to defend the current adapter, given the
   shortcut finding.
 
-## Reviewer 2 verdict (general reviewer agent, independent)
-
-[to be appended on delivery]
