@@ -2,7 +2,7 @@
 
 The record of what changed in the ICLR 2026 manuscript and why. Newest first. Each entry names the commit, the scope of the change, and the review or ticket it answered. Review findings and their status live in `review-log.md`; claim vocabulary and boundaries live in `CONTEXT.md`.
 
-## 2026-09-23 — review 19 and consolidation (CONS)
+## 2026-09-23 — review 19 and consolidation (`c08ef50`)
 
 - Review 19 (paper-reviewer, re-review at `1281c1b`) returned WEAK REJECT, with 0 CRITICAL, 1 MAJOR (finding 49, blocked on #134), and 8 MINOR findings. Every number in the rendered PDF matches its pinned artifact, and the 16 sampled `% Evidence` comments resolve. zheng2024robust matches its primary sources. The main text is 9 pages. Full text is in `review-log.md`.
 - Consolidation closed the WORDING items:
@@ -119,7 +119,7 @@ The record of what changed in the ICLR 2026 manuscript and why. Newest first. Ea
 bash manuscript/build_pdf.sh          # writes manuscript/manuscript.pdf
 ```
 
-Last verified build (CONS): 29 pages, 0 errors, 0 undefined references or citations, 0 overfull boxes, 0 bibtex warnings; main text through the Conclusion is 9 pages. Headline numbers were re-checked in the rendered PDF text against the pinned artifacts listed in `review-log.md`.
+Last verified build (`c08ef50`): 29 pages, 0 errors, 0 undefined references or citations, 0 overfull boxes, 0 bibtex warnings; main text through the Conclusion is 9 pages. Headline numbers were re-checked in the rendered PDF text against the pinned artifacts listed in `review-log.md`.
 
 ## Open items
 
