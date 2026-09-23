@@ -27,9 +27,9 @@ Single record of every review the manuscript has received: what draft state it r
 | 13 | 2026-09-19 | paper-reviewer | Concise abstract review (164 words). | not recorded in header | SUPERSEDED |
 | 14 | 2026-09-21 | paper-reviewer | Alignment audit of abstract and introduction against issues #115--#128. | not recorded in header | SUPERSEDED |
 | 15 | 2026-09-22 | paper-reviewer | Full-draft audit of the assembled 25-page draft; verdict FIXLIST (1 CRITICAL, 9 MAJOR, 16 MINOR), gating the last revision round. | FIXLIST (1 CRITICAL, 9 MAJOR, 16 MINOR) | CLOSED (`4d5842e`) |
-| 16 | 2026-09-23 | paper-reviewer (area-chair tier) | Full manuscript: 9 sections, hub, 6 bibs, build log, rendered 37-page PDF at commits `2569773`, `1b49ecb`, `059028f` | REJECT (6 CRITICAL, 14 MAJOR, 16 MINOR) | **OPEN** → SUPERSEDED by 17 (34 verified, findings 9 and 11 partial and carried into 17) |
+| 16 | 2026-09-23 | paper-reviewer (area-chair tier) | Full manuscript: 9 sections, hub, 6 bibs, build log, rendered 37-page PDF at commits `2569773`, `1b49ecb`, `059028f` | REJECT (6 CRITICAL, 14 MAJOR, 16 MINOR) | SUPERSEDED by 17 (34 verified, findings 9 and 11 partial and carried into 17, remainders CLOSED in `e5c4c09`) |
 | A | 2026-09-23 | related-work-scout | Citation pass over all sections and the six bibs at commit `1b49ecb` | 0 placeholders, 8 entries added, 42 cited keys resolving, 2 entries restored after an audit error | CLOSED (`059028f`) |
-| 17 | 2026-09-23 | paper-reviewer (area-chair tier) | Round-2 re-review at `c42277c`: nine section files, hub, six bibs, log/blg, rendered 30-page PDF, both figures, re-check of headline numbers against the pinned JSONs and episode stores | WEAK REJECT (0 CRITICAL, 4 MAJOR, 10 MINOR, counting the 2 carried partials) | **OPEN** |
+| 17 | 2026-09-23 | paper-reviewer (area-chair tier) | Round-2 re-review at `c42277c`: nine section files, hub, six bibs, log/blg, rendered 30-page PDF, both figures, re-check of headline numbers against the pinned JSONs and episode stores | WEAK REJECT (0 CRITICAL, 4 MAJOR, 10 MINOR, counting the 2 carried partials) | CLOSED (`e5c4c09`; finding 40 WONTFIX by author decision) |
 
 ## Live fixlist — review 17 (2026-09-23)
 
@@ -179,7 +179,7 @@ Ledger: Verified: 1-8, 10, 12-36 · Partial (carried, MINOR remainder): 9, 11 ·
 - **Location:** Figure 2 (App T, p.30): the left and right node boxes of both panels are clipped at the canvas edge (visible in fig_contracts.png).
 - **Issue:** Cosmetic, but it is one of only two figures.
 - **Fix:** Widen the axes limits or add padding in fig_contracts.py and regenerate.
-- **Status:** OPEN (r17)
+- **Status:** CLOSED (`e5c4c09`; axes padded in fig_contracts.py and the figure regenerated, verified in fig_contracts.png)
 
 ## Live fixlist — review 16 (2026-09-23)
 

@@ -2,6 +2,11 @@
 
 The record of what changed in the ICLR 2026 manuscript and why. Newest first. Each entry names the commit, the scope of the change, and the review or ticket it answered. Review findings and their status live in `review-log.md`; claim vocabulary and boundaries live in `CONTEXT.md`.
 
+## 2026-09-23 — round 3 opening, review 17 bookkeeping
+
+- `review-log.md`: finding 48 flipped to CLOSED (`e5c4c09`, fix verified in fig_contracts.png), review 17 index row to CLOSED, review 16 index row to SUPERSEDED. No manuscript text changed.
+- Round 3 Phase 0 decisions (author, 2026-09-23): commission review 18 and resolve its fixlist; main text through the Conclusion stays within 9 pages; finding 40 LLM-usage wording stays WONTFIX, and any new finding contesting it gets the same disposition; figure work, if requested, is drawn by a paper-writer from the pinned JSONs; the ICLR 2026 style file stays.
+
 ## 2026-09-23 — review 17 and consolidation (`e5c4c09`)
 
 - Review 17 (paper-reviewer, adversarial verification at `c42277c`): WEAK REJECT, 0 CRITICAL, 4 MAJOR, 10 MINOR. It re-checked every headline number against the pinned JSONs and episode stores (all match), confirmed the 9-page main text and the clean build, and verified 34 of 36 review-16 findings with 2 partial (9, 11) and 0 regressed. Full text in `review-log.md`.
@@ -73,9 +78,9 @@ The record of what changed in the ICLR 2026 manuscript and why. Newest first. Ea
 bash manuscript/build_pdf.sh          # writes manuscript/manuscript.pdf
 ```
 
-Last verified build: 37 pages, 0 errors, 0 undefined references or citations, 0 overfull boxes. Headline numbers were re-checked in the rendered PDF text against the pinned artifacts listed in `review-log.md`.
+Last verified build (`e5c4c09`): 29 pages, 0 errors, 0 undefined references or citations, 0 overfull boxes, 0 bibtex warnings; main text through the Conclusion is 9 pages. Headline numbers were re-checked in the rendered PDF text against the pinned artifacts listed in `review-log.md`.
 
 ## Open items
 
-- `review-log.md` holds the live fixlist from review 16, including the main-text length against the ICLR 2026 nine-page limit, the headline-scope and menu-manipulation adjudications, the closed-ticket TODO cleanup, and the anonymity items.
-- Genuinely unexecuted work stays marked in the section files with its ticket number: full-scope v1 branches and public release URLs (#122).
+- The active fixlist is the last `OPEN` entry in `review-log.md`.
+- Release URLs (#122) and the BFWS-to-BFS panel overlap (post-#126 retention manifest) are stated as prose in the section files, with their ticket references in `%` comments.
