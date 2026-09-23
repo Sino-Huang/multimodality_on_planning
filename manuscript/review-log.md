@@ -30,7 +30,173 @@ Single record of every review the manuscript has received: what draft state it r
 | 16 | 2026-09-23 | paper-reviewer (area-chair tier) | Full manuscript: 9 sections, hub, 6 bibs, build log, rendered 37-page PDF at commits `2569773`, `1b49ecb`, `059028f` | REJECT (6 CRITICAL, 14 MAJOR, 16 MINOR) | SUPERSEDED by 17 (34 verified, findings 9 and 11 partial and carried into 17, remainders CLOSED in `e5c4c09`) |
 | A | 2026-09-23 | related-work-scout | Citation pass over all sections and the six bibs at commit `1b49ecb` | 0 placeholders, 8 entries added, 42 cited keys resolving, 2 entries restored after an audit error | CLOSED (`059028f`) |
 | 17 | 2026-09-23 | paper-reviewer (area-chair tier) | Round-2 re-review at `c42277c`: nine section files, hub, six bibs, log/blg, rendered 30-page PDF, both figures, re-check of headline numbers against the pinned JSONs and episode stores | WEAK REJECT (0 CRITICAL, 4 MAJOR, 10 MINOR, counting the 2 carried partials) | CLOSED (`e5c4c09`; finding 40 WONTFIX by author decision) |
-| 18 | 2026-09-23 | paper-reviewer (area-chair tier) | Round-3 re-review at `19a641b` (clean tree): nine section files, hub, six bibs, log/blg, rendered 29-page PDF, both figure assets and scripts, headline numbers re-derived from the pinned JSONs, ledgers, and episode stores | WEAK REJECT (0 CRITICAL, 6 MAJOR, 13 MINOR, counting the 2 partial remainders) | **OPEN** |
+| 18 | 2026-09-23 | paper-reviewer (area-chair tier) | Round-3 re-review at `19a641b` (clean tree): nine section files, hub, six bibs, log/blg, rendered 29-page PDF, both figure assets and scripts, headline numbers re-derived from the pinned JSONs, ledgers, and episode stores | WEAK REJECT (0 CRITICAL, 6 MAJOR, 13 MINOR, counting the 2 partial remainders) | SUPERSEDED by 19 (all findings closed except 49 and 60, carried into 19 and blocked on issue #134) |
+| 19 | 2026-09-23 | paper-reviewer (area-chair tier) | Round-3 re-review at `1281c1b` (clean tree): nine section files, hub, six bibs, log/blg, rendered 29-page PDF, both figure assets and scripts, numbers re-checked against the pinned JSONs, CSVs, and ledgers, and a sample of the new `%` Evidence comments checked for path and key | WEAK REJECT (0 CRITICAL, 1 MAJOR, 8 MINOR) | **OPEN** |
+
+## Live fixlist — review 19 (2026-09-23)
+
+**Verdict:** WEAK REJECT. 0 CRITICAL, 1 MAJOR, 8 MINOR.
+- MAJOR: finding 49, carried and blocked on #134.
+- MINOR: the remainders of 51, 53, and 56; finding 60, which is open and blocked on #134; the regressed review-16 finding 15; and new findings 66-68.
+
+Most damaging issue: **finding 49**. The value anchor is still unestablished. The two-contract text is accurate in 5.2, but Contribution 1 and Figure 1 present "48/48 identical versus 18/18 divergent" as a discriminating verdict of one check. Nothing on the page shows the check can return "identical" on a runtime where choice matters, or "divergent" where it does not. That submission-order-serial counterfactual is ticketed as #134 and has not been run.
+
+Genre: BENCHMARK (+ FINDINGS)
+Δbelief: The update comes from the authors' own additive best-first runtime. There, the grounded-menu enumeration contract makes random-valid decision-identical to exact (48/48), so its success rows measure operation validity. A choice-frontier redesign separates the controls (−0.644), and the first adapter does not beat uniform frontier choice. The new title and Figure 1 now surface this update on p.1 and p.6.
+Ledger: Verified: 44 (remainder), 45 (remainder), 50, 52, 54, 55, 57, 58, 59, 61, 62, 63, 64, 65 · Partial: 49 (text part), 51, 53, 56 · Open-blocked (#134): 49, 60 · Regressed: 15 (review 16, Related Work positioning sentence) · Not addressed: none · Wontfix: 40 (unchanged, App U p.28 L1550) · New: 66-68
+
+**Reviewer summary:**
+
+> Round-3 re-review of HEAD `1281c1b`, covering the three review-18 waves (`9de44ad`, `83e30c2`, `640467b`) and their bookkeeping. I read the rendered PDF text in full (29 pages), all diffs since `19a641b`, both figure PNGs, and both scripts. The build is clean. The Conclusion ends on p.9, so the main text is 9 pages.
+>
+> The pinned artifacts have not changed since review 18: the evidence tree is clean, and the last `outputs/` commit is `bd57324`. Every number in the rendered PDF, including every number touched this round, matches its artifact. That covers 5.2, Contribution 1, Figure 1, 5.4, 5.5, App M/N/O/Q/R, and the Conclusion. This round also confirmed the synthesis CSVs directly: DAgger, successors (65/109, 93, 66 recomputed from the per-cell rows), curriculum, transfer, and baseline contrasts. It confirmed modality-stress/analysis.json for Table 12 and the −0.694 channel contrast, and seed-replication/analysis.json for Table 6 and Cell B.
+>
+> I sampled 16 of the new `%` Evidence comments. All paths exist and all named keys resolve. The claim wording was fixed as prescribed in 52, 54, 55, 58, 59, 62, 63, and 64. The zheng2024robust entry matches arXiv and the ICLR 2024 proceedings.
+>
+> What remains:
+> - The finding-49 text overstates what the two opposite verdicts show. Contribution 1 and Figure 1 drop the "by construction" hedge and re-inflate 9 tasks to "18/18" (see 49).
+> - One Related Work sentence still credits the menu probe with testing surface-following against grounding (51).
+> - Four numeric blocks still lack artifact comments (53).
+> - Section 3 still points invariants to Appendix A (56).
+> - The wave-3 rewrite of Related Work deleted the "this paper operationalizes the known admissible-action handicap" positioning sentence, which regresses review-16 finding 15.
+> - The new Figure 1 mixes units and panels (66).
+> - The abstract's last sentence is garbled (67).
+> - The finding-61 insertion left a comma splice (68).
+
+### Build, page count, figures
+
+- **Build:** iclr2026_conference.log (23:01:36) and .blg (23:01:35) are newer than every .tex and .bib file. The newest source is related_refs.bib at 22:59:44. Counts:
+  - 0 errors (`^!` count 0)
+  - 0 LaTeX warnings and 0 package warnings
+  - 0 undefined references or citations
+  - 0 overfull boxes (46 underfull)
+  - 0 BibTeX `Warning--` lines
+  - 41 entries used (40 + zheng2024robust) and 41 `\bibitem`s
+  - "Output written on iclr2026_conference.pdf (29 pages, 377980 bytes)"
+
+  PDF Title/Author metadata is empty. **PASS.**
+- **Page count:** The Conclusion ends on **PDF p.9** (L452), and the Reproducibility Statement and References begin on p.9. Main text = **9 pages** against the 9-page limit. **PASS**, with zero slack.
+- **fig:contracts (now Figure 1, p.6, in 5.3's float slot, first cited in Intro p.2 L076 and 5.2 L262):** `fig_contracts.py` L27-43 now reads its numbers from the JSONs rather than hard-coding them. It renders 48/48 from native-arms/v1/identity-audit.json pairs_identical/pairs_checked, 18/18 from choice-frontier/v1/evaluation/identity-audit.json pairs_divergent/pairs_checked, and −0.644 [−0.856, −0.422] from analysis.json contrasts.random_valid_minus_exact_reference (f3 rounding). All three match. The PNG has no clipping. Content defects are in finding 66.
+- **fig:zoo-m1 (now Figure 2, App R p.28, cited from 5.10 p.7 L376):** the script and values are unchanged and match o4/metrics/analysis.json (see review 18). The body-to-appendix figure reference resolves.
+
+### Numbers re-check
+
+The artifacts are byte-unchanged since review 18: the evidence repo's `git status` is clean, the last commit touching `outputs/` is `bd57324` (14:15), and the md5 of identity-audit.json, v1 analysis.json, and o4 analysis.json is stable. Review 18's re-derivations therefore still hold: the chance band 0.5919/0.6252 from the 36 distractor episodes, the episode-length histogram {1: 20, 2: 8, 3: 8}, the 1,152-file baseline tally, and the four ledger sums. The table below re-checks the rendered PDF text against those artifacts and adds the sources touched this round.
+
+| claim | PDF location | artifact : key | match |
+|---|---|---|---|
+| 48/48 identical (additive enumeration) | p.1 L019, p.2 L061/L093, p.5 L257, Fig. 1(a) | `outputs/native-arms/v1/identity-audit.json` : pairs_checked 48, pairs_identical 48 | yes |
+| 18/18 divergent (choice frontier), 9/9 tasks | p.1 L027-028, p.2 L078-079/L093, p.5 L261, Fig. 1(b) | `outputs/choice-frontier/v1/evaluation/identity-audit.json` : pairs_checked 18, pairs_divergent 18, verdict CHOICE_SENSITIVE; pairs[] exact/random_valid_seed17 identical across greedy/w3 for each task | yes (units: finding 49/66) |
+| −0.644 frozen [−0.856, −0.422]; task-clustered [−0.889, −0.333] | p.1 L029-030, p.2 L080, p.7 L358-359, Fig. 1(b) | `choice-frontier/v1/evaluation/analysis.json` : contrasts.random_valid_minus_exact_reference.{mean, ci95}; issue-132-closeout.md Erratum item 2 | yes |
+| +0.389 [+0.167, +0.611]; +0.033 [−0.033, +0.133] | p.1 L032-034, p.2 L081-082, p.7 L360-361 | same file : contrasts.learned_minus_pretrained_base, contrasts.learned_minus_random_valid (descriptive_only false; source-conflict comment now present at results.tex and appendix.tex) | yes |
+| Table 1: 18/18, 7/18, 0/18, 32/90 | p.7 | `choice-frontier/o4/metrics/all-episode-metrics.json` : records[multiplier=2].solves["2"] | yes |
+| permutation 36/36, 0/512; distractor 0/36, 36/60, 0.6; chance 0.592-0.625; 20/36 | p.1 L022-025, p.7 L334-338 | `native-arms/v1/stress-evaluation.json` : cells["menu\|*"], distractor.*; distractor episode records (review-18 recomputation) | yes |
+| BFS/BFWS RV 15/24, 17/24; SFT 125/288, RV 240 (96), base 0, exact 288 | p.1 L020-022, p.2 L066-068, p.6 L289-292 | `expanded-study/v1/baseline/episodes/*/*/*.json.gz` : result.goal_reached (review-18 tally); `synthesis-v1/baseline-summary.csv` | yes |
+| App L +0.833 (w3), +0.903 (greedy) SFT − base | p.22 | `synthesis-v1/baseline-contrasts.csv` : process_sft_minus_pretrained_base rows (w3 0.833/0.750/0.917, greedy 0.917/0.917/0.875; modality means 0.833, 0.903) | yes |
+| 5.4 matched modality 5/12, 6/12, 6/12 vs 10/12 | p.6 L300 | `synthesis-v1/README.md` L52 "Historical v5, kept separate" | yes |
+| 5.4 generalization 128/150 vs 0/150; families 29/27/27/26/19 of 30; RV 750/750 | p.6 L302, App M p.23 | `synthesis-v1/README.md` L113-124 generalization table | yes |
+| 5.4 / App M DAgger 1/72 each; Table 10 3/9, 2/9, 1/9, 6/9, 9/9; 45/72; rates .316/.175/.364 | p.6 L302, p.23 Table 10 | `synthesis-v1/dagger-summary.csv` : development/unseen rows (0.31556, 0.17488, 0.36364) | yes |
+| successors 45/45 → 1/45; 65/109; 93 schema-valid; 66 effect-valid | p.6 L303, App M p.23-24 | `synthesis-v1/successor-summary.csv` : Σ downstream_successes (model-generated 1, trusted 45), Σ predictions_accepted 65, Σ validity_schema_valid 93, Σ(schema valid + invalid) 109, Σ validity_effect_valid 66 | yes |
+| curriculum 24/24/25, 24/27/26, 25/27/27; sequential 24/25/24; intervals −0.111 [−0.259, +0.037] … −0.037 [−0.185, +0.111] | App M p.24 | `synthesis-v1/curriculum-summary.csv`; `synthesis-v1/README.md` L102-105; `synthesis-v1/analysis.json` (values present) | yes |
+| transfer 0/36, min Holm p 0.8156, min raw p 0.0227 | p.6 L304, App F/M | `outputs/expanded-study/v1/transfer-paired-analysis.json` : min_holm_p 0.81561, min_raw_p 0.02266, len(comparisons) 36 | yes |
+| R3 31/36, base 0/36, "24/24 control entries per modality, two per task" | p.2 L071-072, p.6 L304-306 | `second-backbone-v3/evaluation/analysis.json` : by_modality.*.internvl (process_sft_successes 11/10/10, random_valid_successes 24, episodes 12); architecture_note "…architecture-difference limitation" | yes |
+| 5.5 / App N 905, 447/447, 229/407, 72/407; 137/88/46; 9/9/3/30; 144/144; 155/162; 56/546 | p.6 L312-315, p.25 L1305-1321 | `docs/experiments/expanded-study/failure-mechanism-analysis.md` L180-190, L203-204, L240-255 | yes |
+| Table 12 and channel isolation −0.806 / −0.111 / −0.694 [−0.889, −0.472] | p.25-26 | `outputs/expanded-study/v1/modality-stress/analysis.json` : contrasts.degradation_by_family_modality[] (learned_corrupted_success, learned_clean_success, mean_degradation, degradation_interval_95), contrasts.multimodal_channel_isolation.* | yes |
+| Table 6 and Cell B (21/21/22; +0.875/+0.875/+0.917; −0.125/−0.125/−0.083; 0/72, +0.000 [0, 0]) | p.18 | `outputs/expanded-study/v1/seed-replication/analysis.json` : baseline_process_sft.per_seed.{17,29,71}.{successes, contrasts.*.difference}; dagger_iteration_1.per_seed.*.contrasts.dagger_minus_continued_sft_unseen | yes |
+| App Q native arms 18/18, +0.111 [0, +0.278], 0.000 [0, 0]; R4 10/10, 0/40 | p.26-27 | `native-arms/v1/evaluation/analysis.json` : contrasts.*; stress-evaluation.json : cells["variants\|*"] | yes |
+| App R M4 23/132 (17.4%), 26.9%, 72/132 (54.5%); M5 .3125/.075/.625 | p.27-28 | `o4/metrics/analysis.json` : arms.learned_adapter.m4_teacher_agreement.*, m5_D_descriptive.* | yes |
+| zoo M1 / Table 2 / Figure 2 | p.1 L036-038, p.8, p.28 | `o4/metrics/analysis.json` : arms.*.m1_auc, m1_task_cluster_95pct_ci_10000_seed133, m2/m3 keys | yes |
+| Conclusion −0.035 [−0.150, +0.061]; 54.5% | p.9 L450-451 | `o4/metrics/analysis.json` : m1_m2_m3_dominance_holm.comparisons.random_valid.m1_auc.{difference_favoring_learned −0.03472, cluster_bootstrap_95pct_ci}; arms.learned_adapter.m4_teacher_agreement.selected_last_rate 0.5455 | yes |
+| ledgers 68.5244/336, 53.52 (15.9%), 3.2086/12, 7.7998/36, 1.069/12 | p.5 L242, App E/J | Σ attempts[].gpu_hours in the four budget files (review 18); `synthesis-v1/README.md` §8 total 53.5166/336, "15.9% of cap" | yes |
+| BFS pilot 1.0 / RV 1.0 / base 0.0, five seeds | App J p.21-22 | `docs/experiments/deadline-study/prior-evidence.json` : historical_bfs_stages[stage v8].metrics (outcome VALID_STOP, per_seed 17/29/43/71/101) | yes |
+
+**Evidence-comment spot-check (16 sampled, all resolve):**
+1. appendix.tex L70-71 → failure-mechanism-analysis.md taxonomy rows (L203-204)
+2. L216-217 → issue-58 L39-46 (69,019 / 67,215 / 47,780 / 21,239), issue-57 L6, and issue-56 L19 (69,019)
+3. L380-381 → seed-replication/analysis.json seeds.{original, additional_prospective}, cross_seed_aggregation
+4. L400-401 → baseline_process_sft.per_seed.*.successes / contrasts.*.difference
+5. L406-407 → dagger_iteration_1.per_seed.*.arms.*.unseen, contrasts.dagger_minus_continued_sft_unseen, aggregated.contrast_point_estimates_per_seed (key present)
+6. L537-538 → synthesis-v1 README §8, branch-reconciliation.csv, verification.json (files present)
+7. L547-548 → Σ gpu_hours in the three GPU ledgers
+8. L558-559 → prior-evidence.json historical_bfs_stages[v8]
+9. L569-570 → baseline-summary.csv and baseline-contrasts.csv
+10. L644-645 → README "Historical v5, kept separate"
+11. L649-651 → README generalization table, issue-124-closeout.md, generalization-robustness/evaluation.json (present)
+12. L657 and L674 → dagger-summary.csv
+13. L679-680 → successor-summary.csv
+14. L684-685 → curriculum-summary.csv and synthesis-v1/analysis.json
+15. L689-690 and L708 → transfer-paired-analysis.json, transfer/leakage.json, transfer-accuracy.csv
+16. L750-753 and L773-774 → modality-stress/analysis.json contrasts.* (key names match exactly)
+
+Also checked: abstract.tex comments for 7/18, +0.389, +0.033, and 0.933 (all-episode-metrics.json, v1 analysis.json contrasts, issue-59 L250-253), and results.tex Table 1 (`cells.json` has top-level key `cells`).
+
+One imprecision: the App D comment cites issue-56 L19 for "105-task panel", but L19 carries only the 69,019 count. The 105-task figure is not on that line. This is not a mismatch in the prose number, which issue-58 L42 supports ("105 immutable semantic-task split assignments").
+
+**zheng2024robust:** Checked against the arXiv abstract (https://arxiv.org/abs/2309.03882, fetched 2026-09-23) and the ICLR 2024 proceedings page (https://proceedings.iclr.cc/paper_files/paper/2024/hash/54dd9e0cff6d9214e20d97eb2a3bae49-Abstract-Conference.html, fetched 2026-09-23). Authors (Zheng, Zhou, Meng, Zhou, Huang), title, venue, and year match. The proceedings list pp. 19426-19454, which the entry could add but need not. The Related Work paraphrase ("Label-position selection bias is documented for LLM multiple-choice selectors") is faithful to the abstract: "they prefer to select specific option IDs as answers … token bias". **PASS.**
+
+### Verification of review-18 findings
+
+| # | sev (r18) | r19 result | evidence at `1281c1b` |
+|---|---|---|---|
+| 44 (remainder) | MINOR | VERIFIED | Discussion p.9 L436 "Imitation target. The exact reference solves by construction of the budget" (discussion.tex L28). No `\texttt{exact\_reference}` in reader prose. |
+| 45 (remainder) | MINOR | VERIFIED | App S p.28 L1507-1508 "Cell A covers one of the three modalities of the greedy additive cell". No "headline" left in the PDF. |
+| 49 | MAJOR | **PARTIAL (text part) · OPEN-blocked (#134)** | Accurate as written: 5.2 p.5 L261-263 (results.tex L38) says "The same check returns the opposite verdict under the choice-frontier contract, 18/18 divergent pairs (Figure 1), a divergence that holds by construction whenever a menu offers two or more states, and the submission-order-serial counterfactual on this runtime has not been run". The numbers match both identity-audit.json files, and the hedge and the unrun counterfactual are stated. **Overclaiming remainder (MINOR, WORDING):** (i) Contribution 1 p.2 L091-093 (introduction.tex L31) "and the same check finds 18/18 divergent pairs under the choice-frontier contract" has no by-construction hedge. It presents the pair as evidence that the audit discriminates, though the divergence could not have failed. (ii) 5.2, Contribution 1, and Fig. 1(b) print "18/18" with no 9-task qualifier, while the Abstract, Intro ¶3, Contribution 2, and 5.9 say "9/9 tasks (18 cells, coincident control sequences)". This reintroduces, in new text, the unit inflation that review-16 finding 9 fixed at its original sites; those sites are intact. (iii) The two verdicts come from different panels (24-task baseline vs 9-task panel) and different random-valid definitions (Design p.4 L191-192 "share a name but not a distribution"), which the new sentences do not say. (iv) Intro p.2 L107 "a reusable audit" still asserts portability that #134 has yet to test. **Fix:** Contribution 1 → "…(48/48 pairs), while under the choice-frontier contract the same check diverges on all 9 tasks (18 pairs), as it must whenever a menu offers two or more states." 5.2 → "18/18 divergent pairs (9 tasks)". Intro L107 → "a per-decision audit whose portability beyond this runtime is untested". The experimental part stays blocked on #134. |
+| 50 | MAJOR | VERIFIED | Title (hub L19): "When Random-Valid Equals the Reference: A Per-Decision Identity Audit for Search-Execution Evaluation of Vision-Language Models". fig:contracts is Figure 1 in the body (p.6), and fig:zoo-m1 moved to App R (p.28) with Table 2 kept in the body (p.8). Main text is still 9 pages. The Figure 1 content defect is finding 66. |
+| 51 | MAJOR | **PARTIAL** | Fixed as prescribed: Abstract p.1 L042-044, Contribution 1 p.2 L093-094, and the Conclusion p.9 L447-448 ("a cheap per-decision identity audit exposes this") demote the probe and say the discriminating variant is unrun. 5.7 p.7 L341 matches. **Remaining:** Related Work p.3 L139-140 (related_work.tex L14) "The menu manipulations in this paper target this interface by testing whether a trained search policy follows menu surface rather than grounding its operation in state". This credits the probe with the very discrimination that 5.7 says it cannot make. **Fix:** "The menu manipulations in this paper probe this interface, and only the unrun fixed-versus-random-position variant would separate surface-following from state grounding." Remainder MINOR, WORDING. |
+| 52 | MAJOR | VERIFIED | Conclusion p.9 L448-451 carries the prescribed wording, including "(paired −0.035 [−0.150, +0.061], which is not equivalence), and a post-hoc label audit finds 54.5% last-label emissions". 5.10 p.8 L390-391 reads "with no last-label comparator and no equivalence claim". App R p.28 L1485-1486 reads "no last-label comparator was run, so these post-hoc rates do not establish a position habit". Every "habit" occurrence in the PDF is now hedged. |
+| 53 | MAJOR | **PARTIAL** | Most of it is fixed: the 16 sampled comments resolve (see spot-check), the content_brief.md sources are replaced, and both descriptive_only source-conflict comments are present (results.tex L152, appendix.tex L890). **Remaining** blocks with numbers but no adjacent artifact comment: experimental_design.tex L18 (512 records, 16 updates, 47,780-record corpus, revision 0c351dd0); appendix.tex L341 (BFWS gate 0.95 / 10,000 / 1729 / 0.025; the adjacent comment names only "issue #59"); L350 (transfer min adjusted p 0.8156); L618 (App L +0.833 / +0.903, whose source is baseline-contrasts.csv). **Fix:** add `% Evidence:` lines: design L18 → the BFWS gate training config / docs/issue-59-bfws-structural-gate.md and the expanded-study recipe; L341 → docs/issue-59-bfws-structural-gate.md L110-111, L250-253; L350 → outputs/expanded-study/v1/transfer-paired-analysis.json min_holm_p; L618 → synthesis-v1/baseline-contrasts.csv process_sft_minus_pretrained_base (modality means). Remainder MINOR, WORDING. |
+| 54 | MAJOR | VERIFIED | 5.4 p.6 L300-301 reads "(…, a 3-problem panel) does not support an intrinsic modality effect, and non-significance is not equivalence". |
+| 55 | MINOR | VERIFIED | 5.4 p.6 L306-307 "an unpaired comparison because the backbones differ in vision tower, connector, tokenization, and multimodal training". App M p.25 L1296-1298 "…reported as an architecture-difference limitation". "isolat" no longer occurs in reader prose about the backbone. |
+| 56 | MINOR | **PARTIAL** | Fixed: 5.2 p.5 L259 "(Algorithm Invariant Definitions appendix)". The Reproducibility Statement uses prose names plus `\ref`-resolved "Appendix R" (p.9 L457-459). **Remaining:** Section 3 p.3 L161 (search_process_policy.tex L21) "schemas and invariants in Appendix A". The invariants are in App B, and `\ref{appendix}` resolves to Operation Schemas. **Fix:** "(schemas in Appendix A, invariants in the Algorithm Invariant Definitions appendix)". Remainder MINOR, WORDING. |
+| 57 | MINOR | VERIFIED | Intro p.2 L071-072 and 5.4 p.6 L305-306 read "random-valid solves every panel task with 24/24 control entries per modality, two per task". App M p.24 L1291 keeps "24/24 per modality", but App M explains the two-entries basis at L1283-1285. |
+| 58 | MINOR | VERIFIED | 5.5 p.6 L313-315, App N p.25 L1319-1321, and Discussion p.8 L426-427 use the descriptive wording ("After process supervision, most learned failures (229/407 …) … and 72/407 remain malformed outputs"). "teaches" and "frontier intent" are gone. |
+| 59 | MINOR | VERIFIED | App Q p.27 L1422-1425 "is consistent with the reduced contract removing scalar operands whose emission the full-scaffold adapters failed, and it does not measure whether that text carried signal". |
+| 60 | MINOR | OPEN-blocked (#134) | Unchanged by author decision: 5.10 p.7 L377-p.8 L390 and App R p.27 L1456-1458 still give bare proportions. The interim clause "(no interval computed; decisions are clustered within 9 tasks)" was not added. It would be a zero-cost WORDING stopgap until #134 lands. |
+| 61 | MINOR | VERIFIED | Related Work p.3 L130-132 cites Zheng et al. (2024). The entry is verified above. The insertion left a comma splice (finding 68). |
+| 62 | MINOR | VERIFIED | Discussion p.8 L423-424 "the additive-cell output contract is learnable (BFS and BFWS cells score 0/24)" and L427-428 "The language-channel dependence is supported only by the copyability-preserving shuffled condition". |
+| 63 | MINOR | VERIFIED | 5.1 p.5 L243-244 "the three separately ledgered GPU follow-up windows, and the CPU-only comparator zoo". App J p.21 "three on their own GPU ledgers and the CPU-only comparator zoo". This matches the three budget files. |
+| 64 | MINOR | VERIFIED | Design p.4 L206-208 "(the Choice-Frontier Contract appendix and Appendices P–R) were each frozen before their own first outcome, on separate ledgers, but after earlier outcomes on the same nine tasks (Section 5.11)". |
+| 65 | MINOR | VERIFIED | All 14 listed colons are replaced (appendix.tex L397, L408, L416, L526, L544, L627 ×2, L630, L661, L706 ×2, L709, and results.tex L38). "behaviour" is gone. Design L47 and L54 are split. App R L843 reads "returns CHOICE_SENSITIVE and passes". App S L850 is fixed. The main text has no prose semicolons (all 9 hits are citation separators) and no em-dashes. The paragraph-purpose census passes. |
+| 40 | MAJOR | WONTFIX (unchanged) | App U p.28 L1550 / appendix.tex L945 is verbatim as dictated. Not re-argued. |
+| 1-36 (spot-check) | — | **15 REGRESSED**, others no regression | **Finding 15** (review 16, CLOSED `afec954`). The closing fix was to "reframe the contribution as operationalizing a per-decision identity check for that known handicap in search-execution evaluation". Wave 3 (`640467b`) replaced "This paper operationalizes the known admissible-action handicap in search-execution evaluation with a per-decision identity audit of random-valid against the exact reference…" with the subjectless "Per-decision identity audits compare random-valid with the exact reference on additive best-first cells under the grounded-menu contract, then assess the redesigned frontier selector against named algorithms (Section 5)" (Related Work p.3 L140-143). The Jericho/CALM citations remain, but the sentence that ties this paper's audit to the known handicap is gone. The new sentence reads as a description of existing practice. It also says the zoo "assess[es]" the adapter against named algorithms, though 5.10 says the zoo "cannot calibrate choice quality". **Fix:** restore "This paper operationalizes the known admissible-action handicap in search-execution evaluation with a per-decision identity audit of random-valid against the exact reference on the additive best-first cells of the grounded-menu contract, and bounds the redesigned frontier selector against named rules (Section 5)." Remainder MINOR, WORDING. Others checked with no regression: #1 additive scoping (p.1 L016-020), #2/#3 (p.7 L335-341), #4 (p.1 L036-038), #5 (App O), #6 (9 pages), #7 (App M L1292-1293), #9 (Abstract, Intro ¶3, and Contribution 2 intact; the new instance is tracked under 49), #10 (identical provenance sentence in Design L215, App I, App R L1429-1430), #12, #13, #18 (no GitHub or institution in the PDF), #20, #23, #33, #36. |
+
+**Tally:** 14 verified (44r, 45r, 50, 52, 54, 55, 57, 58, 59, 61, 62, 63, 64, 65), 4 partial (49 text part, 51, 53, 56), 2 open-blocked on #134 (49, 60), 1 regressed from review 16 (15), 0 not addressed, 1 WONTFIX unchanged (40).
+
+### New findings
+
+#### 66 · MINOR · Axis 3 (units and panels conflated in the 10-minute figure) · `figures/fig_contracts.py; iclr2026_conference_results.tex (fig:contracts caption)`
+
+- **Location:** Figure 1, p.6 L270-284: panel (a) "48/48 additive pairs identical"; panel (b) "18/18 cells divergent / random-valid − exact reference = −0.644 [−0.856, −0.422]"; right node of (a) "Order-invariant heap"; caption "Under the choice-frontier contract the identity gate diverges on 18/18 cells". Script fig_contracts.py L39-43, L77.
+- **Issue:** The paper's belief-setting figure puts two verdicts side by side as if they came from one panel.
+  - The units differ: "pairs" in (a), "cells" in (b).
+  - The panels differ: 48 pairs from the 24-task expanded baseline in (a), 9 tasks × 2 algorithms in (b), whose control sequences coincide, so 9 independent units.
+  - The random-valid samplers differ by definition (Design p.4 L190-192).
+  - Only (b) carries a success contrast. The matching enumeration-contract number, random-valid − exact = +0.000 on both additive columns (Table 9), is missing from (a), so the reader compares an identity count against a success gap.
+  - "Order-invariant heap" misnames the mechanism. The heap is priority-ordered, and what is invariant is frontier evolution under submission order. The previous label, "Submission-order invariant heap", was accurate.
+  - The old caption's "on the same additive task family" was dropped, and nothing now says the panels differ.
+- **Fix:** In fig_contracts.py, set (a) to "48/48 additive pairs identical (24 tasks)\nrandom-valid − exact = +0.000", read from Table 9's source `synthesis-v1/baseline-contrasts.csv` random_valid_minus_exact_reference for the additive rows. Set (b) to "18/18 pairs divergent (9 tasks)\nrandom-valid − exact = −0.644 [−0.856, −0.422]". Relabel the (a) node "Submission-order-\ninvariant frontier". Caption: "…on 48/48 additive pairs of the 24-task baseline. Under the choice-frontier contract, on a separate 9-task panel with its own uniform-menu control, the identity gate diverges on 18/18 pairs (9 tasks), and random-valid minus exact is −0.644 [−0.856, −0.422]."
+- **Fix class:** WORDING
+- **Status:** OPEN (r19)
+
+#### 67 · MINOR · Axis 5 (garbled headline sentence) · `iclr2026_conference_abstract.tex`
+
+- **Location:** Abstract p.1 L042-044 (abstract.tex L26) "The paper offers a measurement result, not planning ability, with a per-decision identity check, plus a menu-manipulation probe whose discriminating variant (fixed versus random distractor position) remains unrun."
+- **Issue:** The trailing "with a per-decision identity check" attaches to "planning ability". The last sentence of the abstract can be read as "not planning ability with an identity check", and a tired reviewer has to re-read the sentence that states what the paper offers.
+- **Fix:** "The paper offers a measurement result and a per-decision identity check, not planning ability. Its menu-manipulation probe is reported, but the discriminating variant (fixed versus random distractor position) remains unrun."
+- **Fix class:** WORDING
+- **Status:** OPEN (r19)
+
+#### 68 · MINOR · Style rules (comma splice introduced by the finding-61 insertion) · `iclr2026_conference_related_work.tex`
+
+- **Location:** Related Work p.3 L128-130 (related_work.tex L14) "Research on multimodal training documents VQA models relying on language priors rather than image content, video-language evaluation reports selection bias toward answer positions (Zhu et al., 2020; Loginova et al., 2025)."
+- **Issue:** Splitting the sentence for the Zheng citation removed its coordinating "and". What is left is two independent clauses joined by a comma, and it cites two works for two claims without saying which supports which.
+- **Fix:** "Research on multimodal training documents VQA models relying on language priors rather than image content \citep{zhu2020overcoming}, and video-language evaluation reports selection bias toward answer positions \citep{loginova2025addressing}."
+- **Fix class:** WORDING
+- **Status:** OPEN (r19)
+
+### What would change the verdict
+
+The paper is now honest almost everywhere. The claim wording from review 18 landed. Every number, including those in the newly commented appendix blocks, traces to a pinned artifact. The title and Figure 1 now carry the real update. The only thing still holding it at WEAK REJECT is finding 49's value anchor, and that waits on #134. The same-runtime counterfactual, with serials assigned in submission order, would show whether the per-decision identity check can return "divergent" on the additive cells when frontier choice becomes consequential. Once that result is reported with its divergence counts, and the Contribution 1, Figure 1, and 5.2 wording is narrowed as prescribed under 49 and 66, the paper moves to BORDERLINE. The M4 task-cluster intervals (finding 60, also #134) would then settle whether the post-hoc label reading survives clustering. The remaining MINOR items (51, 53, 56, 15-regression, 66-68) are all WORDING and cost no page budget. Moving past BORDERLINE still requires what 5.11 names: a fresh frozen choice-frontier panel with at least eight discriminative tasks, and one comparator between random-valid and exact.
 
 ## Live fixlist — review 18 (2026-09-23)
 
