@@ -1,3 +1,8 @@
+% STATUS: REVISED #131 round 2 2026-09-23: follow-up windows added to tab:appendix-receipts (per window,
+% never summed; main program stays 68.5244 / 336); follow-up statistics conventions; artifact index;
+% native-arms v2 arms in the modality-adapter section (#128 proposal marker retired); new final section
+% with choice-frontier contract, corpus derivation, and #133 selector operations. Panel-overlap manifest
+% search recorded (not found). No new bib keys.
 % STATUS: REVISED R3a 2026-09-22 for findings #2, #4a, #9, and #25. Full evidence-contract
 % appendix with sections A--H per D14, Section Blueprint, and the 2026-09-21
 % amendments. Sources: manuscript/CONTEXT.md, manuscript/content_brief.md,
@@ -11,7 +16,7 @@
 
 % Cross-references from body sections (e.g.\ Appendix~\ref{appendix} in
 % Section~\ref{sec:policy}) point here as the appendix entry point.
-% Sections number A through H under the hub's \appendix switch.
+% Sections number A through I under the hub's \appendix switch (I added in #131 round 2).
 
 \section{Operation Schemas}
 \label{appendix}
@@ -210,7 +215,9 @@ The BFS pilot uses a frozen 15-task outcome-blind development panel. The BFWS st
 % pending handoff (issue #122). Insert URLs on release.
 % TODO(final-eval): Held-out final primary evaluation unexecuted; no final
 % efficacy finding exists. The preregistration prerequisites in
-% Section~\ref{sec:design} are undecided.
+% Section~\ref{sec:design} are undecided. No open ticket, so prose only.
+% Panel-overlap search (round 2, 2026-09-23): outputs/ and docs/experiments/ hold no pinned post-#126
+% retention manifest; the BFS-v8 / BFWS-fallback overlap count stays a TODO in Section~\ref{sec:design} under #131.
 
 
 \section{Receipt Tables}
@@ -219,7 +226,7 @@ The BFS pilot uses a frozen 15-task outcome-blind development panel. The BFWS st
 Table~\ref{tab:appendix-receipts} gives the per-branch gate receipts from the synthesis ledger (\#120). Five branches executed to completion at v1 scope. Two stopped at their frozen v1 cost-admission gates with terminal \textsc{valid\_stop} receipts and later completed at reduced scope under new v2 protocols. Every branch reconciles with zero missing evidence.
 
 \begin{table}[t]
-\caption{Per-branch gate receipts for the expanded study program (through \#126/\#127 addenda). Program spending is 68.52 of the 336 GPU-h cap. Entries and the total are rounded independently from the ledger. One prospective budget transfer (12.11 GPU-h from recovery reserve to second backbone, ratified 2026-09-19) is reflected in the branch caps. The \#127 row draws on existing baseline and DAgger caps, not an additional allocation.}
+\caption{Per-branch gate receipts for the expanded study program (through \#126/\#127 addenda) and the follow-up windows. Program spending is 68.52 of the 336 GPU-h cap. Entries and the total are rounded independently from the ledger. One prospective budget transfer (12.11 GPU-h from recovery reserve to second backbone, ratified 2026-09-19) is reflected in the branch caps. The \#127 row draws on existing baseline and DAgger caps, not an additional allocation. Rows below the total are follow-up windows, each on its own ledger with its own cap, listed at ledger precision and never added to the total. The reviewer-window spend covers both \#130 rows.}
 \label{tab:appendix-receipts}
 \centering\small
 \setlength{\tabcolsep}{4pt}
@@ -239,7 +246,21 @@ Training-seed replication & \#127 & complete & 534/534 & 12.79 / -- \\
 \hline
 \textbf{Total} & & & & \textbf{68.52 / 336} \\
 \hline
+\multicolumn{5}{l}{\emph{Follow-up windows (separate ledgers, not summed with the total)}} \\
+\hline
+Native arms & \#128, \#129 & v2 complete & 216/216 + 72/72 & 3.2086 / 12 \\
+Reviewer stress R1/R2/R4 & \#130 & complete & 170/170 & 7.7998 / 36 \\
+Second backbone v3 (R3) & \#130 & complete & 72/72 + 72/72 & same window \\
+Choice frontier & \#132 & \textsc{choice\_sensitive} & 144/144 & 1.069 / 12 \\
+Comparator zoo & \#133 & complete & 432/432 & CPU only \\
+\hline
 \end{tabular}
+% Evidence (follow-up rows): docs/experiments/native-arms/issue-129-closeout.md (216/216 + 72/72; 3.2086 / 12.0);
+% outputs/native-arms/v1/stress-evaluation.json (episodes_replayed 170) and issue-130-closeout.md (R3 72/72 + 72/72);
+% window followup-reviewer-v1+v2 7.7998 / 36 per the #131 status comment (ledgers outputs/reviewer-v130/v{1,2}/budget.json;
+% the closeout rounds it to 7.80); outputs/choice-frontier/v1/evaluation/final-audit.json (144 replayed, CHOICE_SENSITIVE)
+% and outputs/choice-frontier/v1/budget.json (1.069 / 12.0); outputs/choice-frontier/o4/metrics/analysis.json
+% episode_accounting (replay_passed 432) and the #133 closing comment (no GPU launched).
 \end{table}
 
 % Paragraph purpose: Preserve the #120 attempt snapshot and account for both later addenda.
@@ -253,6 +274,50 @@ The observation-corruption suite (\#126) added 2.22 GPU-h to the generalization 
 % TODO(v1-full): The v1 full scopes for generalization/robustness (#96/#98)
 % and second backbone (#102/#103) remain unexecuted and open. Only the
 % reduced v2 scopes have executed evidence.
+
+% Paragraph purpose: Give each follow-up window's ledger and coverage detail, kept separate from the program total.
+\paragraph{Follow-up windows.}
+Each follow-up window keeps its own ledger, and none is added to the program's 68.52/336 GPU-h. The native-arms window (\#128 probes and \#129 training and evaluation) spent 3.2086 of 12 GPU-h. Its 216 new bindings (144 model episodes and 72 CPU random-valid episodes) and 72 reused comparators were all independently replayed. The reviewer window (\#130) spent 7.7998 of 36 GPU-h across two ledgers. It was resized from 20 GPU-h before any outcome, because its frozen worst-case estimate of 27.04 GPU-h including spend exceeded the initial cap, and realized cost landed at 29\% of that estimate. The choice-frontier window (\#132) spent 1.069 of 12 GPU-h (training 0.81, smoke 0.052, model evaluation 0.208), with corpus derivation and controls on CPU. Its 144 panel episodes were replayed and its 58 preparation episodes re-derived bit-exact. The comparator zoo (\#133) launched no GPU job. It replayed all 432 zoo bindings, of which 342 are new CPU episodes and 90 are reused 2$\times$ random-valid controls. Failed attempts retain their hours in every window.
+% Evidence: issue-129-closeout.md (Delivered: 144 GPU model episodes, 72 CPU random_valid, 72/72 comparators, 3.2086 / 12.0);
+% issue-130-closeout.md Verification & budget (27.04 GPU-h estimand, 29%) and the #131 status comment (7.7998 / 36, resized from 20);
+% outputs/choice-frontier/v1/budget.json and the #131 #132-status comment (train 0.81 + smoke 0.052 + model eval 0.208);
+% outputs/choice-frontier/v1/preparation/visual-choice-frontier/audit.json (episodes_rederived 58);
+% #133 closing comment (432/432, 342 new, 90 reused, no GPU).
+
+% Paragraph purpose: Map each new pinned evidence path to the claim class it supports.
+\paragraph{Artifact index.}
+Table~\ref{tab:appendix-artifacts} maps each pinned follow-up evidence path to the class of claim it supports. Paths are relative to the evidence repository.
+
+\begin{table}[t]
+\caption{Artifact index for the follow-up evidence. Each row names a pinned path and the claim class that rests on it.}
+\label{tab:appendix-artifacts}
+\centering\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}p{0.55\linewidth}p{0.42\linewidth}@{}}
+\hline
+Pinned path & Claim class \\
+\hline
+\path|outputs/native-arms/v1/evaluation/| (\path|evaluation.json|, \path|analysis.json|) & Native-arms clean and corruption success, paired contrasts \\
+\path|outputs/native-arms/v1/identity-audit.json| & Identity finding on the enumeration contract \\
+\path|outputs/native-arms/v1/stress-evaluation.json| & Menu manipulation, degraded strains, R2 cross cell, stress replay \\
+\path|outputs/native-arms/v1/r2-decomposition.json| & Text-corruption termination modes \\
+\path|outputs/native-arms/v1/budget.json|, \path|outputs/reviewer-v130/v1/budget.json|, \path|outputs/reviewer-v130/v2/budget.json| & Native-arms and reviewer window ledgers \\
+\path|outputs/expanded-study/v1/second-backbone-v2/evaluation/| & Second-backbone BFS cell \\
+\path|outputs/expanded-study/v1/second-backbone-v3/evaluation/| & Second-backbone additive replication and its contrasts \\
+\path|outputs/choice-frontier/v1/evaluation/| (\path|evaluation|, \path|identity-audit|, \path|analysis|, \path|final-audit|) & Choice-frontier gate, panel rows, contrasts, replay \\
+\path|outputs/choice-frontier/v1/preparation/visual-choice-frontier/| (\path|report|, \path|audit|) & Choice-frontier corpus derivation \\
+\path|outputs/choice-frontier/v1/budget.json| & Choice-frontier window ledger \\
+\path|outputs/choice-frontier/o4/zoo/manifest.json| & Zoo coverage and replay \\
+\path|outputs/choice-frontier/o4/metrics/| (\path|analysis|, \path|stored-posthoc-analysis|, \path|optimal-costs|, \path|native-four-algorithm-reference-costs|) & Exploratory M1--M5 metrics, Holm family, optimal costs, native reference costs \\
+\path|docs/experiments/native-arms/issue-129-closeout.md|, \path|issue-130-closeout.md| & Native-arms and reviewer-test interpretation \\
+\path|docs/experiments/choice-frontier/issue-132-closeout.md| & Choice-frontier outcome and its binding erratum \\
+\path|docs/experiments/choice-frontier/metric-adjudication-2026-09-23.md| & Post-close metric adjudication \\
+Issue \#133 closing comment (comment 5788941573) & Zoo numbers table and claim boundary \\
+\hline
+\end{tabular}
+% Evidence: paths confirmed present in the evidence repository on 2026-09-23; the #133 closing comment is
+% https://github.com/Sino-Huang/multimodality_on_planning/issues/133#issuecomment-5788941573.
+\end{table}
 
 
 \section{Statistics}
@@ -271,6 +336,30 @@ Strata with fewer than 8 episodes are reported as descriptive only. No intervals
 % Paragraph purpose: State the transfer test procedure.
 \paragraph{Transfer tests.}
 Transfer comparisons use McNemar exact tests against the per-example base predictions, with Holm correction across all 36 adapter-by-benchmark comparisons. The minimum adjusted $p$ in the executed transfer branch is 0.8156. None survives correction.
+
+% Paragraph purpose: State the follow-up bootstrap seeds separately from the main-program default.
+\paragraph{Follow-up bootstrap conventions.}
+The follow-up windows fix their own bootstrap seeds, separate from the main program's seed 1729 default. The native-arms contrasts (\#129) and the choice-frontier contrasts (\#132) use a paired whole-problem bootstrap at seed 61813 with 10,000 resamples and 95\% percentile intervals. The second-backbone v3 contrasts (\#130 R3) use seed 1729 with 10,000 resamples. The comparator-zoo metrics (\#133) use a task-cluster bootstrap that draws nine tasks with replacement at seed 133 for 10,000 draws. Both additive cells and all random seeds stay inside their task cluster.
+% Evidence: configs/experiments/native-arms/native-arms-v2-protocol.json analysis.bootstrap (seed 61813, 10000, percentile);
+% docs/experiments/choice-frontier/issue-132-design.md section 6 (seed 61813); outputs/expanded-study/v1/second-backbone-v3/evaluation/analysis.json
+% (bootstrap seed 1729, 10000); docs/experiments/choice-frontier/issue-133-protocol.md (nine tasks, seed 133, 10,000 draws).
+
+% Paragraph purpose: State the materiality rule and the non-equivalence sentence requirement.
+\paragraph{Materiality and non-equivalence.}
+A follow-up contrast is material when its 95\% interval excludes zero. No follow-up protocol pre-registered an equivalence margin, so a non-material contrast supports neither superiority nor equivalence. Wherever the text reports a non-material contrast or a comparison that fails Holm correction, an adjacent sentence states that non-significance is not equivalence.
+% Evidence: native-arms-v2-protocol.json analysis.bootstrap.materiality ("interval excludes 0"); issue-132-design.md section 6;
+% issue-132-closeout.md Read of the evidence item 3; issue-133-protocol.md ("no equivalence or generalized negative capability claim").
+
+% Paragraph purpose: Apply the tiny-strata rule to the single-task-driven contrast and the one-task M5 subset.
+\paragraph{Tiny strata in the follow-ups.}
+The fewer-than-8 rule also governs discriminative subsets. The \#132 learned-minus-random-valid contrast is computed over 18 cells, but it rests entirely on storage, the only panel task where random-valid's seed frequency lies strictly between 0 and 1 (0.2). A one-task discriminative subset falls under the rule, so that contrast is descriptive. The \#133 M5 subset, defined from controls only, holds the same single task and is reported descriptively.
+% Evidence: issue-132-closeout.md Erratum item 3 (storage 0.2, one discriminative task, below the <8 rule);
+% outputs/choice-frontier/o4/metrics/analysis.json m5_informative_tasks_D (storage-compact-919000) and the #133 closing comment.
+
+% Paragraph purpose: State the #133 Holm and dominance test procedure.
+\paragraph{Zoo dominance tests.}
+Any positive learned-versus-comparator dominance claim in \#133 uses paired task-cluster bootstrap one-sided $p$ values with Holm step-down correction over five comparators and three metrics, fifteen tests in all. Undefined or uninformative co-solved contrasts prohibit a positive dominance claim and never count as wins. All \#133 metrics are exploratory, and those computed on the stored \#132 episodes are post-hoc.
+% Evidence: docs/experiments/choice-frontier/issue-133-protocol.md (claim unit, 15 tests, undefined contrasts, post-hoc labelling).
 
 % Paragraph purpose: Document the seed-variance addendum protocol and Cell A results.
 \paragraph{Seed-variance addendum (\#127).}
@@ -313,23 +402,32 @@ The state, goal, and search context are serialized as a compact relational repre
 
 % Paragraph purpose: visual-state adapter.
 \paragraph{visual-state.}
-The state and goal are rendered as a pair of 128$\times$128 pixel images: a rendered state image and a partial-goal constraint image. Object labels are not embedded in the rendered image. Search Memory contents and the grounded candidate list remain in the textual serialization, even in this adapter.
+The state and goal are rendered as a pair of 128$\times$128 pixel images: a rendered state image and a partial-goal constraint image. Object labels are not embedded in the rendered image. Search Memory contents and the grounded candidate list remain in the textual serialization, even in this adapter. This is the published frozen \texttt{visual-state} arm that the native arms below are compared against.
 
 % Paragraph purpose: multimodal-state adapter.
 \paragraph{multimodal-state.}
 The observation combines the text-state serialization and the visual-state rendered images. The policy receives the relational text and the image pair jointly.
 
+% Paragraph purpose: Record the executed native-arms v2 adapters and how they reduce the textual payload.
+\paragraph{Native image-only arms (\#129).}
+Two further adapters executed under the native-arms v2 contract. \texttt{visual-nomem-state} keeps only the static task interface and the grounded, unscored candidate menu as text, and carries state facts in the current rendered scene alone. \texttt{visual-seq-state} adds up to $K{=}8$ rendered history frames, each labelled with its absolute path depth. Neither receives textual Search Memory, accepted deltas, $g$/$h$/priority scalars, candidate scores, or membership flags.
+% Evidence: docs/experiments/native-arms/native-arms-design.md (removed and retained keys, history frame labels);
+% configs/experiments/native-arms/native-arms-v2-protocol.json history_window.
+
 % Paragraph purpose: State the text-scaffold caveat.
 \paragraph{Text-scaffold caveat.}
-Search Memory contents and the candidate list are serialized as structured text in all three adapters, including visual-state. Rendered images carry the planning state and goal visuals, but search bookkeeping (frontier, visited set, novelty counters, candidate list) always travels through the text channel. The observation-corruption suite (\#126) confirms this empirically: corrupting the text channel drops success by up to $-0.944$, while corrupting the visual channel moves success by at most $-0.111$ with intervals that include zero.
+Search Memory contents and the candidate list are serialized as structured text in all three declared adapters, including visual-state. Rendered images carry the planning state and goal visuals, but search bookkeeping (frontier, visited set, novelty counters, candidate list) always travels through the text channel. The observation-corruption suite (\#126) confirms this empirically: corrupting the text channel drops success by up to $-0.944$, while corrupting the visual channel moves success by at most $-0.111$ with intervals that include zero.
+
+% Paragraph purpose: State what the executed native arms changed in the text-scaffold caveat.
+The native arms narrow this caveat to the candidate menu. With the textual bookkeeping and scalars removed, both arms solve 18/18 clean tasks with zero invalid operations, and blanking or degrading every image of the seq arm gives a corrupted-minus-clean contrast of $0.000$ $[0.000, 0.000]$. The remaining text channel, the grounded unscored menu, is the channel these policies use. Menu manipulation then shows the policies read menu content without checking applicability against the scene. The caveat therefore still holds for every adapter that presents the menu, and no executed adapter isolates an image-only decision channel.
+% Evidence: docs/experiments/native-arms/issue-129-closeout.md (18/18 per arm, zero invalid, corruption 0.000 [0.000, 0.000],
+% menu-leak interpretation); docs/experiments/native-arms/issue-130-closeout.md R1. Same numbers as Section~\ref{sec:results}.
 
 % Paragraph purpose: State information-loss and parity boundaries.
 \paragraph{Information-loss boundaries.}
 The 128-pixel unlabelled rendered views can lose symbolic identities. The P3 name-compression family in the generalization-v2 suite is information-lossy: 24/24 variants are text-lossy, 18/24 are multimodal-lossy, and 0/24 are visual-lossy. Modality matching between training and evaluation ensures identical observation format, not information parity. Static-context and goal fields of the observation contain text in every adapter. The available evidence does not establish semantic parity across adapters or an intrinsic modality effect.
-% TODO(image-only): Issue #128 proposes visual-nomem-state and
-% visual-seq-state arms that would test image-only state and history channels
-% without the shared textual serialization. It is a frozen-protocol proposal
-% with no outcomes and no GPU authorization under the current program.
+% #128 image-only proposal marker retired: visual-nomem-state and visual-seq-state executed under the #129 v2
+% amendment (issue-129-closeout.md); the #128 v1 gate is retained as history.
 
 
 \section{Retained-Infrastructure Feasibility Notes}
@@ -352,3 +450,49 @@ The terms below describe verified infrastructure components that support corpus 
 % Paragraph purpose: Note historical CGAS terms and their claim boundary.
 \paragraph{Historical terms.}
 Planning Certificate, Joint Action-and-Certificate SFT, Adaptive Scaffolding, Support Route, Live Memory, Verified Joint Step, and Route Label are historical CGAS terms. They describe retained infrastructure internals. They cannot support any current Search Process Policy efficacy claim and are not referenced elsewhere in this manuscript.
+
+
+\section{Choice-Frontier Contract and Comparator Selectors}
+
+% Paragraph purpose: Specify the choice-frontier menu and observation payload at the level the design pins.
+\paragraph{Menu and observation.}
+At each decision the runtime exposes the live frontier as an unscored menu of opaque labels $c_0, \ldots, c_K$. Labels are assigned after a seeded Fisher--Yates permutation of the generation-serial member order, with a per-decision seed derived from master seed 51131 and a hash of the member state identifiers, so a label carries no positional information. The observation holds static task-context pages, the unlabelled 128px initial-state scene, one unlabelled 128px scene per frontier state in menu order, and the partial-goal pages. Its text payload carries only the algorithm name, the label list, the representation tag, the schema version, and the frozen legend. A leak check fails closed on any forbidden key marker.
+% Evidence: docs/experiments/choice-frontier/issue-132-design.md section 2 (menu, seed rule, payload, assert_no_text_leak).
+
+% Paragraph purpose: Specify the output contract, validation, and termination rules.
+\paragraph{Output and validation.}
+The policy emits canonical JSON with the single key \texttt{expand\_choice} and a label value. The runtime rejects malformed JSON, a wrong key set, a non-string label, a label not offered by the pending menu, and a label bound to a non-live member. The first rejection ends the episode as \texttt{deterministic\_invalid\_operation}. Other terminations are \texttt{goal\_reached}, \texttt{frontier\_exhausted}, \texttt{decision\_budget\_exhausted}, and \texttt{expansion\_budget\_exhausted}.
+% Evidence: issue-132-design.md section 2 (output contract, rejections, termination reasons).
+
+% Paragraph purpose: Specify the atomic expansion, goal-at-selection, and budget accounting.
+\paragraph{Expansion and budget.}
+On acceptance the runtime removes the chosen member from the frontier and expands it atomically. Candidate generation, serial assignment, admission, duplicate detection, reopening, and expansion bookkeeping are inherited unchanged from the frozen additive best-first controller, which is not modified. Per-candidate admissions are runtime-internal, so one submitted choice is one decision. Selecting a member that satisfies the goal solves the task without an expansion and without budget charge, so the exact episode takes its reference expansion count plus one decisions. Decision and expansion caps both equal 2$\times$ the reference expansion count.
+% Evidence: issue-132-design.md section 2 (expand_member, inherited BestFirstController internals, goal at selection,
+% decision_cap = expansion_cap = 2 x reference_expansions); issue-132-closeout.md Erratum items 1 and 5.
+
+% Paragraph purpose: Specify the corpus derivation rule and its gates, with the pinned counts.
+\paragraph{Corpus derivation.}
+The corpus replays the frozen paired-phase exact traces through the new contract on CPU. The frozen matched-modalities membership indexes enumeration-contract decisions. Each such decision maps to the expansion whose candidate set it submitted into, unique (task, expansion) pairs in first-occurrence order form the base set, and a round-robin over the frozen task order tops the set up to 512 training records per algorithm. Diagnostics are the unique expansions of the frozen diagnostic identifiers, with no top-up. The teacher target is the label bound to the heap head. Five fail-closed gates run before training. They check expansion-for-expansion agreement with the stored exact traces, a token budget of measured input plus 384 within 32,768, the text-leak check, image resolution, and identity with the frozen membership. The pinned preparation report records 29 tasks, 1,046 records (512 training and 11 diagnostic per algorithm), 3,544 scenes, and 58 episodes re-derived bit-exact, with outcome PASS. The smoke gate accepted 40/40 model calls.
+% Evidence: issue-132-design.md section 3 (membership freeze rule, teacher target, five gates);
+% outputs/choice-frontier/v1/preparation/visual-choice-frontier/report.json counts (records 1046, tasks 29, scenes 3544,
+% episodes_verified 58, outcome PASS) and audit.json (episodes_rederived 58); issue-132-closeout.md (smoke 40/40).
+% Source conflict: issue-132-design.md anticipated 26 training tasks plus 1 diagnostic-only task and a 54/54 exact-trace gate;
+% the pinned report records 29 tasks and 58 verified episodes. The artifact values are used, matching Section~\ref{sec:results}.
+
+% Paragraph purpose: Record the training recipe and the recovered-report receipt.
+\paragraph{Training and replay.}
+Each of the two cells trains a LoRA adapter (rank 64, $\alpha$ 128) for 16 updates on its 512 records at seed 17 with the frozen expanded-program recipe. Both training jobs completed all 16 steps and saved final adapters, then failed in post-save summary construction. Their reports were recovered from the primary training-state artifacts with provenance marked, no retraining was needed, and the training audit passes on the recovered reports. At finalize, independent replay re-derives every menu binding, payload, and trusted transition from the stored events, and checks pixel bindings against the retained scenes.
+% Evidence: issue-132-design.md sections 4 and 6; issue-132-closeout.md Execution record and Budget accounting (failed train attempts,
+% recovered reports, audit-train PASS); outputs/choice-frontier/v1/training/visual-choice-frontier/audit.json.
+
+% Paragraph purpose: Specify how the #133 selectors run inside the same contract and what their replay covers.
+\paragraph{Comparator selectors (\#133).}
+Each selector's choice is mapped back to the menu binding, and every candidate still enters through the additive admission path. Frontier admission, duplicate detection, $h_{\rm add}$ computation, reopening, and serial ordering therefore stay additive for \texttt{bfs-order} and novelty-first selection alike. The novelty features of novelty-first selection are positive PDDL state atoms, and its seen-feature sets advance only when a state is expanded, including the initial expansion. Each new episode is re-run against an independently constructed PDDL authority, which checks menus, decisions, admissions, and result dictionaries. Selector episodes replay the model input, menu, actions, admissions, and budget, but they neither generate nor replay image bindings. The optimal costs $C^*$ come from one offline shortest-plan computation per task with replay-verified plans, and the native four-algorithm reference costs are recorded separately from the zoo.
+% Evidence: docs/experiments/choice-frontier/issue-133-protocol.md (label mapping, additive admission path, novelty features,
+% independent PDDL authority, one offline C* computation per task); #133 closing comment (no image-binding replay, native references
+% checked separately); outputs/choice-frontier/o4/metrics/{optimal-costs,native-four-algorithm-reference-costs}.json.
+
+% Paragraph purpose: Specify the metric computations the protocol pins beyond the Experimental Design summary.
+\paragraph{Metric computation (\#133).}
+Under M1 an episode solves at multiplier $m$ when its first goal selection occurs within $\lfloor m R_t \rfloor$ decisions with at most $\lfloor m R_t \rfloor$ preceding expansions, where $R_t$ is the additive exact-reference expansion count. Unsolved 2$\times$ runs count as failures at every $m$, and the same prefix truncation applies to every arm. Task and algorithm weights are equal. M2 also has a censored form, in which failures are right-censored at the budget rather than assigned a fictitious expansion count. M3 counts transitions along the selected goal state's trusted predecessor chain and is undefined, never imputed, for unsolved episodes. M4 measures agreement with the current additive heap head over decisions with at least two live choices, against a chance rate equal to the decision-weighted mean of $1/K$. M5 restricts to tasks where the mean 2$\times$ random-valid solve indicator lies strictly between 0 and 1.
+% Evidence: docs/experiments/choice-frontier/issue-133-protocol.md, Pre-registered metrics and claims.

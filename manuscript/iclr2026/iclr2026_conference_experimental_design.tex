@@ -1,3 +1,8 @@
+% STATUS: REVISED #131 round 2 2026-09-23: defined the follow-up protocol elements Results reports
+% (native-arms v2 observation contract and smoke gate, menu manipulation, enumeration vs choice-frontier
+% contracts with the identity audit as a named pre-registered check, #133 comparator-zoo protocol); added
+% executed stages #128/#129, #130, #132, #133; retired the #128 proposal marker; final evaluation stated in
+% prose with a % comment; BFWS wording matched to Discussion's "one positive contrast exists".
 % STATUS: PROSE-PASS 2026-09-22: forward-referenced BFWS 'only positive' claim to Section 4.2.
 % STATUS: REVISED 2026-09-22 for R1: training scopes, panel provenance, citations, and issue/list formatting. Full section
 % text for D11 as amended 2026-09-21: three checkpoint conditions (base,
@@ -28,10 +33,11 @@ Each algorithm-by-modality cell holds three checkpoint conditions. The base cond
 Exactly one training seed is authorized per model/cell configuration under the supervisor budget, and every executed cell after the pilot uses seed 17, except the two cells selected for prospective training-seed replication (issue \#127, protocol frozen 2026-09-20) that added seeds 29 and 71. The historical BFS pilot predates this policy. It trained five process-SFT seeds on the bounded v8 corpus and evaluated all five on its development panel. That five-seed run is retained as pilot history and is not a template for later cells. Outside the pilot and the two replication cells, no cell estimates training-seed variance, and repeated rollout or reference seeds do not substitute for a training seed.
 
 % Paragraph purpose: Define the random-valid and exact-classical references as oracle-assisted bounds, with the missing random-valid specification marked.
-Two programmatic references bracket every learned arm. The exact-classical reference is the declared algorithm itself, executed by the Trusted Search Runtime with replay verification under the same budget, and it bounds perfect operation-level decision-making. The random-valid reference is an oracle-assisted control that proposes only operations the runtime will accept as valid, so it bounds what valid-operation bookkeeping alone achieves without learned state evaluation. Neither reference is a learned ability. When a reference saturates a panel, the learned-to-control gain on that panel is unmeasurable rather than zero. [TODO: random-valid definition] The frozen protocol has not yet pinned the validity-constrained sampling distribution, the candidate access granted to the control, the runtime filtering step, or the explicit absence of retry and repair. These details are owed to the evidence contract before the final evaluation can freeze.
+Two programmatic references bracket every learned arm. The exact-classical reference is the declared algorithm itself, executed by the Trusted Search Runtime with replay verification under the same budget, and it bounds perfect operation-level decision-making. The random-valid reference is an oracle-assisted control that proposes only operations the runtime will accept as valid, so it bounds what valid-operation bookkeeping alone achieves without learned state evaluation. Neither reference is a learned ability. When a reference saturates a panel, the learned-to-control gain on that panel is unmeasurable rather than zero. The frozen protocol has not yet pinned the validity-constrained sampling distribution, the candidate access granted to the control, the runtime filtering step, or the explicit absence of retry and repair. These details are owed to the evidence contract before the final evaluation can freeze.
 % TODO(random-valid): content_brief.md open item "random-valid definition" --
 % sampling distribution, candidate access, runtime filtering, budget parity
 % rule, and no-retry/no-repair are not specified in any audited source yet.
+% Round 2: visible marker dropped per the TODO convention (no open ticket; the prose states the gap).
 
 % Paragraph purpose: Specify whole-instance splits and give the frozen panel inventory with exact counts.
 All splits are by whole task instance, so no state, decision, or target from an evaluation task appears in any training row, and each released corpus passed no-overlap, no-conflict, live-parity, and token-budget audits before use. The panel inventory is frozen. The BFS pilot used an outcome-blind 15-task development panel. Its released text-state process corpus holds 25,109 process rows (12,994 train, 12,115 dev) drawn from 90 replay-verified traces. The BFWS gate froze a 105-task development panel and a 45-task held-out manifest that remains unaccessed, and its 69,019 replay-verified teacher decisions project to 47,780 train and 21,239 dev process rows. The modality matrix evaluates 24 tasks from 12 domains under three Modality Observations (text-state, visual-state, multimodal-state), which gives 288 episodes per arm across the four algorithms and 1,152 bindings across the four arms. The generalization stage admits 25 frozen semantics-preserving perturbation variants, yielding 150 learned-adapter episodes inside 1,200 replayed episodes. The observation-corruption suite freezes $k=9$ source tasks. The transfer stage runs 36 paired comparisons.
@@ -42,21 +48,89 @@ Episodes are budgeted in decision calls, and invalid operations are charged to t
 % Paragraph purpose: Fix the analysis contract: paired bootstrap, corrected transfer tests, and the tiny-strata rule.
 Contrasts are paired by whole task instance. Unless a stage's frozen protocol states otherwise, paired differences use a bootstrap over instances with 10,000 resamples at seed 1729 and 95\% percentile intervals, transfer comparisons use exact McNemar tests against the base with Holm correction across the 36 comparisons, and strata with fewer than 8 instances are reported as descriptive only. Under one training seed per cell (three in the two replicated cells) and panels of this size, these intervals are descriptive bounds and cannot support broad superiority claims.
 
+% Paragraph purpose: State that the follow-up protocols run on separate ledgers and introduce the definitions that follow.
+Four follow-up protocols (issues \#128/\#129, \#130, \#132, and \#133) extend the program after its main stages. The follow-up windows run on their own ledgers with their own caps, and their spend is never summed with the 336 GPU-hour program ledger (Appendix~\ref{appendix}). Each was frozen before its first outcome. The paragraphs below define the protocol elements that Section~\ref{sec:results} reports for them.
+% Evidence: docs/experiments/native-arms/native-arms-design.md (independent ledger outputs/native-arms/v1/budget.json);
+% docs/experiments/choice-frontier/issue-132-design.md section 7 (program choice-frontier-v1, own cap);
+% docs/experiments/choice-frontier/issue-133-protocol.md (CPU-only, no GPU authorized).
+
+% Paragraph purpose: Define the native-arms v2 observation contract.
+The native-arms protocol (issues \#128/\#129) adds two image-only observation arms to the additive cells. Both reduce the textual payload to the static task interface plus the grounded, unscored candidate menu in trusted grounded order. Textual Search Memory, accepted deltas, the current $g$, $h$, and priority scalars, and every candidate score and membership column are removed, and a structural gate scans the serialized text for each removed key before use. In \texttt{visual-nomem-state} (nomem), state facts arrive only as the current rendered scene. \texttt{visual-seq-state} (seq) adds a history window of $K{=}8$ rendered predecessor states from the current state's first-acceptance provenance path, in visit order. Each arm and algorithm trains one adapter under the frozen expanded-program recipe at seed 17.
+% Evidence: docs/experiments/native-arms/native-arms-design.md (removed keys, retained keys, K=8 window, structural gates);
+% configs/experiments/native-arms/native-arms-v2-protocol.json history_window.k = 8;
+% docs/experiments/native-arms/issue-129-closeout.md (4 adapters, 512 records, 16 updates, seed 17).
+
+% Paragraph purpose: Define the superseded v1 gate and the pre-registered v2 smoke gate, plus the corruption leak rule.
+The \#128 v1 admission gate required the pretrained base to emit schema-valid grounded first actions at a rate of at least 0.5 on an 18-call probe. It measured base format compliance, stopped both arms with \textsc{valid\_stop}, and is retained as gate history. The v2 amendment, frozen before any trained adapter existed, replaced it with a pre-registered post-training smoke gate. Each trained arm runs the three cheapest tasks of the frozen 9-task membership under both algorithms, and the arm proceeds only if its schema-valid grounded call rate (runtime-accepted calls over model calls) is at least 0.5. The clean panel crosses the 9 tasks with both algorithms. The corruption cells apply the \#126 visual-blank and visual-degraded families to every attached image of the seq arm, including history frames. Because images are then the only state and history channel, the protocol declared in advance that a non-material corruption effect would be reported as a leak signal.
+% Evidence: configs/experiments/native-arms/native-arms-v2-protocol.json (admission_gate_v1_superseded, smoke_gate subset
+% and minimum_schema_valid_grounded_rate 0.5, null_result_interpretation); docs/experiments/native-arms/native-arms-v2-amendment.md.
+
+% Paragraph purpose: Define the menu-manipulation protocol and its endpoint.
+Menu manipulation (issue \#130, R1) tests what a trained policy reads from the grounded menu. It evaluates the frozen \#129 adapters of both native arms, with no retraining, on the 9-task panel under both additive algorithms. Menu permutation reorders the menu entries with a seeded Fisher--Yates shuffle and keeps every entry intact and copyable. Distractor injection inserts up to $k{=}3$ schema-valid but currently inapplicable grounded actions per decision at seeded positions, drawn from the task's scene-catalog actions minus the applicable set. The runtime still validates against the true state, so emitting a distractor is an invalid operation and ends the episode. The endpoint is the distractor pick-rate over emitted operations at decisions that carry injected distractors, and the episode's first emitted operation is recorded with it.
+% Evidence: docs/experiments/native-arms/issue-130-design.md (menu-permutation seed rule, distractor-injection up to k=3,
+% pick-rate); outputs/native-arms/v1/stress-evaluation.json distractor block (decisions_with_injection, distractor_picks, pick_rate).
+
+% Paragraph purpose: Set the two decision contracts side by side.
+Table~\ref{tab:design-contracts} sets the enumeration contract, under which every main-program stage runs, beside the choice-frontier contract of issue \#132. The redesign inverts ownership of the frontier. The policy no longer enumerates candidate actions into a frontier kept in textual Search Memory. It selects which runtime-owned frontier state to expand next, and the runtime performs that expansion atomically with the frozen additive admission, duplicate, and reopen rules. The binding budget caps decisions and expansions at 2$\times$ the additive exact-reference expansion count, and selecting a goal state ends the episode without charge, so exact reference solves by construction and serves as the imitation target.
+% Evidence: docs/experiments/choice-frontier/issue-132-design.md section 2 (contract inversion, atomic expansion, goal at
+% selection, decision_cap = expansion_cap = 2 x reference_expansions); issue-132-closeout.md Erratum item 5.
+
+\begin{table}[t]
+\caption{The two decision contracts. Rows compare what the policy emits, who owns the frontier, what the observation carries, how the budget binds, and the role of the identity audit. Results under the two contracts are not comparable as performance rows.}
+\label{tab:design-contracts}
+\centering\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}p{0.16\linewidth}p{0.40\linewidth}p{0.40\linewidth}@{}}
+\hline
+ & Enumeration contract & Choice-frontier contract (\#132) \\
+\hline
+Policy emits & One Typed Search Operation per step, taken from a grounded, unscored candidate action menu & One opaque label from a menu of frontier states, naming the state to expand next \\
+Frontier & Kept in textual Search Memory with visited and score state, advanced by submitted operations & Owned by the runtime. Menu labels are reassigned per decision by a seeded permutation \\
+Observation & Set by the Modality Observation adapter & Visual only, with task pages, the initial scene, one unlabelled 128px scene per frontier state, and goal pages \\
+Budget & Learned arms capped at 2$\times$ the exact-reference decision count, base at one call & Decisions and expansions capped at 2$\times$ the additive exact-reference expansion count, goal selection uncharged \\
+Identity audit & Diagnostic run under \#130 on the expanded-baseline additive cells & Pre-registered pass condition over 18 control pairs \\
+\hline
+\end{tabular}
+% Evidence: docs/experiments/choice-frontier/issue-132-design.md sections 2 and 6 (menu permutation master seed 51131,
+% visual-only payload, 18 (task, algorithm) control pairs); outputs/native-arms/v1/identity-audit.json (enumeration-contract audit).
+\end{table}
+
+% Paragraph purpose: Define the per-decision identity audit as a named check and its pre-registered verdict rule.
+The identity audit is the check both contracts share. For each (task, algorithm) control pair it compares the random-valid episode against the exact-reference episode, and a pair is divergent when the expanded-state sequences or the decision and expansion counts differ. On the enumeration contract it runs over the additive cells of the expanded baseline. On the choice-frontier contract it is the redesign's own pre-registered pass condition. The seed-17 random-valid episode of each of the 18 control pairs is compared with exact reference, one or more divergent pairs return \texttt{CHOICE\_SENSITIVE}, and zero divergent pairs return \texttt{ZERO\_DECISION\_HEADROOM} as the reported outcome with no re-runs or variant search.
+% Evidence: docs/experiments/choice-frontier/issue-132-design.md section 6 (identity-audit gate, verdict rule);
+% outputs/native-arms/v1/identity-audit.json (verdict vocabulary on the enumeration contract).
+
+% Paragraph purpose: Define the choice-frontier panel, conditions, and gates.
+The choice-frontier evaluation reuses the frozen 9-task native-arms membership under both additive algorithms. Each (task, algorithm) cell runs the learned adapter and exact reference at seed 17, the pretrained base under a hard one-call cap, and random-valid under five frozen rollout seeds, for 144 episodes. Two adapters, one per algorithm, train on a corpus re-derived through the new contract on CPU from the stored exact traces, with the teacher target set to the label of the heap-head state. The smoke gate repeats the native-arms rule on the three cheapest panel tasks at threshold 0.5. Contrasts use the paired conventions of Appendix~\ref{appendix}.
+% Evidence: docs/experiments/choice-frontier/issue-132-design.md sections 3--6 (teacher target, 36 GPU + 108 CPU = 144 episodes,
+% smoke gate subset and threshold 0.5); configs/experiments/choice-frontier/choice-frontier-protocol-v1.json.
+
+% Paragraph purpose: Define the #133 comparator-zoo arms, cap, and oracle-access asymmetry.
+The comparator zoo (issue \#133) is a CPU-only exploratory protocol, frozen before any comparator episode existed, that calibrates the choice-frontier measurement against named selectors. Its unit is the nine panel tasks, and the two additive cells are repeated measures inside each task cluster. Every primary episode runs at the frozen shared cap of 2$\times$ the additive exact-reference expansion count, never rescaled to a comparator's own reference cost. Three deterministic selectors run at seed 17 through the learned adapter's menu, admission, and budget path: \texttt{bfs-order} (minimum frontier $g$, then earliest generation serial), novelty-first selection (lowest width-1 then width-2 novelty over positive PDDL state atoms, then earliest serial), and \texttt{worst-first} (maximum additive priority, then earliest serial) as a negative control. Novelty-first is a selection rule only and never BFWS, because it performs no novelty pruning. Random-valid is the floor and exact reference the imitation target. Random-valid and the three selectors also run at 3$\times$ and 4$\times$ caps as control runs outside the primary metric. The selectors read trusted $g$/$h$ scalars or PDDL atoms that the model never sees, so the comparison is not information-matched. They also act on the additive frontier and are not the native BFS or BFWS algorithms.
+% Evidence: docs/experiments/choice-frontier/issue-133-protocol.md (arms, tie-breaks, frozen 2x cap, 3x/4x runs, oracle-access asymmetry).
+
+% Paragraph purpose: Define the #133 primary metric, uncertainty, claim unit, and test family.
+The primary metric M1 is the trapezoidal area under the solve fraction over budget multipliers 1, 1.25, 1.5, 1.75, and 2, with random seeds averaged within cell. Its uncertainty comes from a task-cluster bootstrap that draws nine tasks with replacement at seed 133 for 10,000 draws. M2 (expansion overhead against the reference) and M3 (plan cost against an offline optimum) are reported on co-solved cells and are selection-conditioned. The claim unit is Pareto dominance across M1, M2, and M3. A positive claim requires weak superiority on all three paired measures and strict superiority on one, and it is tested against five comparators on three metrics with Holm correction across the resulting fifteen tests. The remaining metrics are diagnostics, all \#133 metrics on the stored \#132 episodes are post-hoc exploratory, and non-significance licenses no equivalence claim.
+% Evidence: docs/experiments/choice-frontier/issue-133-protocol.md (M1 multipliers, seed 133, 10,000 draws, M2/M3 definitions,
+% claim unit, 5 comparators x 3 metrics = 15 tests, post-hoc labelling, no equivalence from non-significance).
+
 % Paragraph purpose: Walk the staged sequence in order with gate status and frozen scope per stage, marking pending stages visibly.
-The staged sequence, with the status of each stage at the evidence snapshot of 2026-09-21, is as follows.
+The staged sequence, with the status of each stage at the evidence snapshot of 2026-09-23, is as follows.
 
 \begin{enumerate}[leftmargin=*,itemsep=1pt,parsep=2pt]
 \item \textbf{Bounded BFS pilot (executed, closed as history).} Five process-SFT seeds on the bounded v8 corpus reached invariant-valid success on the frozen 15-task outcome-blind panel, but random-valid matched them, so the stage closed with a governed VALID\_STOP and downstream work was gated-not-run. Capped-iteration width search survives from this era as qualification history and plays no role in the active gate.
 
-\item \textbf{BFWS structural gate (executed, development-panel PASS).} The complete unpruned BFWS successor replaced capped iteration width after independent IW(1), IW(2), and IW(3) attempts proved not corpus-complete. The 105-task panel, the replay-verified traces, and the released process corpus qualify this stage, and a frozen 15-task text-state development panel under BFWS supplies what Section~\ref{sec:results-primary} identifies as the study's only positive learned-control contrast to date.
-The BFWS gate evaluated a preregistered exact-cost fallback panel. It selected the cheapest exact-decision task in each of the 15 domains from the 35-task development pool before any model outcome, breaking ties by difficulty and instance ID. The BFS pilot's 15-task v8 panel instead came from the v6 development set, with one task per domain (11 easy, 3 medium, 1 hard). [TODO: evidence] The runbooks do not pin the task overlap between these panels or its count.
-% TODO(panel-overlap): issue-54-operator-runbook.md and issue-59-bfws-structural-gate.md pin the selection rules but not their shared task identities. Establish the overlap relation and count from the retained panel manifests.
+\item \textbf{BFWS structural gate (executed, development-panel PASS).} The complete unpruned BFWS successor replaced capped iteration width after independent IW(1), IW(2), and IW(3) attempts proved not corpus-complete. The 105-task panel, the replay-verified traces, and the released process corpus qualify this stage. A frozen 15-task text-state development panel under BFWS supplies the one positive learned-control contrast that exists in the program (Section~\ref{sec:results}).
+The BFWS gate evaluated a preregistered exact-cost fallback panel. It selected the cheapest exact-decision task in each of the 15 domains from the 35-task development pool before any model outcome, breaking ties by difficulty and instance ID. The BFS pilot's 15-task v8 panel instead came from the v6 development set, with one task per domain (11 easy, 3 medium, 1 hard). The runbooks do not pin the task overlap between these panels or its count [TODO: panel overlap, needs the post-\#126 retention manifest, issue \#131].
+% TODO(panel-overlap): issue-54-operator-runbook.md and issue-59-bfws-structural-gate.md pin the selection rules but not their
+% shared task identities. Round-2 search (2026-09-23) of outputs/ and docs/experiments/ found no pinned post-#126 retention
+% manifest (outputs/expanded-study/v1/panel{,-v2}/ hold expanded-study panel selections only). Count stays open under #131 W4.
 
 \item \textbf{Modality matrix (executed).} The expanded matched baseline crosses the 24 tasks, 12 domains, four algorithms, and three modalities described above. Two ablations sit beside it. Curriculum-by-modality trains nine cells (three modalities under staged, shuffled, and mixed orderings of greedy best-first records) and evaluates 27 unseen tasks. The successor-prediction stage replaces trusted successors with model-generated ones over 90 episodes in 15 modality-by-panel cells on a 12-task fallback panel, separating end-to-end competence from structural control under trusted successors.
 
 \item \textbf{DAgger (executed).} Two iterations on BFS, evaluated against the exposure-matched continued-SFT control on 3 development and 24 unseen modality-task pairs per modality (72 unseen rows).
 
-\item \textbf{Generalization and robustness v2 (executed at reduced frozen scope).} The frozen admission selected 25 of 93 eligible variants as a uniform cheapest-prefix sample of five per family. [TODO: full-scope v1] The full v1 suites stopped at their cost-admission gates and remain unexecuted (issues \#96 and \#98 open).
+\item \textbf{Generalization and robustness v2 (executed at reduced frozen scope).} The frozen admission selected 25 of 93 eligible variants as a uniform cheapest-prefix sample of five per family. [TODO: full-scope v1, issues \#96/\#98] The full v1 suites stopped at their cost-admission gates and remain unexecuted (issues \#96 and \#98 open).
 % TODO(full-scope-v1): issues #96/#98 (generalization/robustness) and
 % #102/#103 (second backbone) remain open; only reduced v2 scopes executed.
 
@@ -68,7 +142,7 @@ The BFWS gate evaluated a preregistered exact-cost fallback panel. It selected t
 
 \item \textbf{Zero-shot transfer (executed).} All 12 verified planning adapters plus the base were evaluated on frozen subsets of FOLIO (200 items), GSM8K (200 items), and HumanEval (164 items) under the 36-comparison paired contract described above.
 
-\item \textbf{Final primary evaluation (pending).} [TODO: final evaluation] No authorized held-out evaluation exists. Freezing one requires recorded decisions on the following prerequisites.
+\item \textbf{Final primary evaluation (pending).} No authorized held-out evaluation exists. Freezing one requires recorded decisions on the following prerequisites.
 \begin{itemize}
 \item The condition-level data source and Search-Trace Segment construction with per-algorithm allocation.
 \item Compute parity and checkpoint-selection rules.
@@ -76,13 +150,24 @@ The BFWS gate evaluated a preregistered exact-cost fallback panel. It selected t
 \item The estimand, the uncertainty interval or test, the success threshold, the invariant-compliance rule, and the validity and invalid-operation denominators for every cell.
 \end{itemize}
 Until these choices are set, the manuscript is a result-ready empirical skeleton rather than a preregistered evaluation protocol.
-% TODO(final-eval): held-out final primary evaluation unexecuted; the
-% preregistration prerequisites in writing_design_tree.md are undecided.
+% Held-out final primary evaluation: no open ticket; stated in prose with no visible marker per the round-2
+% TODO convention. The preregistration prerequisites in writing_design_tree.md are undecided.
 
 \item \textbf{Training-seed replication (executed).} A prospective amendment (protocol \texttt{expanded-seed-replication-v1}, issue \#127, frozen 2026-09-20 before any seed artifact existed) added training seeds 29 and 71 to two cells selected by decision relevance, not by outcome: cell~A, the headline process-SFT cell (\texttt{best\_first\_add\_greedy} $\times$ multimodal-state, 24-problem unseen panel), and cell set~B, DAgger iteration-1 versus exposure-matched continued-SFT across three modalities (72 unseen rows per seed). Seeds, cell selection, evaluation contracts, and analysis were frozen before launch. No outcome-based cell swapping occurred and no seed was dropped after outcomes. All 534 new episodes (48 baseline, 486 DAgger) were independently replayed under the original frozen evaluation contracts. Cross-seed aggregation is descriptive ($n = 3$), and all cells outside these two remain single-seed (17).
+
+\item \textbf{Image-only native arms (issues \#128/\#129, executed, v2 complete).} The \#128 v1 admission gate stopped both arms with \textsc{valid\_stop} on pretrained-base format compliance and is kept as gate history. Under the v2 amendment both arms passed the post-training smoke gate and completed their clean and corruption evaluations with full replayed coverage (Section~\ref{sec:results}).
+% Evidence: docs/experiments/native-arms/issue-128-closeout.md (v1 VALID_STOP); issue-129-closeout.md (delivered, zero missingness).
+
+\item \textbf{Reviewer stress tests (issue \#130, executed).} Four frozen tests closed with complete replayed coverage. Menu manipulation (R1) and a termination-mode decomposition of the published \#126 text-corruption episodes with one new text-masked visual-state cell (R2) ran on frozen checkpoints. A second-backbone replication on greedy additive best-first (R3, protocol \texttt{expanded-second-backbone-v3}) trained one seed-17 adapter per modality cell on a 12-task key-cell panel. The frozen native adapters were evaluated on the shifted-init and scale-up strains (R4). The same window ran the identity audit on the enumeration contract (Section~\ref{sec:results}).
+% Evidence: docs/experiments/native-arms/issue-130-closeout.md (R1--R4, identity audit); docs/experiments/native-arms/issue-130-design.md.
+
+\item \textbf{Choice-frontier redesign (issue \#132, executed, \texttt{CHOICE\_SENSITIVE}).} The redesigned contract passed its pre-registered identity-audit gate and its smoke gate, and the frozen panel evaluation completed with every episode independently replayed (Section~\ref{sec:results}).
+% Evidence: docs/experiments/choice-frontier/issue-132-closeout.md; outputs/choice-frontier/v1/evaluation/final-audit.json.
+
+\item \textbf{Comparator zoo (issue \#133, executed, CPU-only, exploratory).} The frozen selectors and the longer-cap controls completed with full replayed coverage, and the fifteen-test family was evaluated as pre-registered (Section~\ref{sec:results}).
+% Evidence: issue Sino-Huang/multimodality_on_planning#133 closing comment; outputs/choice-frontier/o4/metrics/analysis.json.
 \end{enumerate}
 
 % Paragraph purpose: Close with the remaining unmeasured arms and hand off measurements to Results.
-One further arm is specified but unmeasured: image-only state-history observation conditions (visual-nomem-state and visual-seq-state, issue \#128) exist as a frozen-protocol proposal without GPU authorization under the current program. [TODO: image-only arms] Measurements for every executed stage, including the nulls and the stop receipts, are reported in Section~\ref{sec:results}.
-% TODO(image-only): issue #128 is a proposal only, with no outcomes and no
-% GPU authorization under the current program.
+Every specified arm has now executed at the scope its protocol froze, except the held-out final primary evaluation and the full-scope v1 branches of issues \#96, \#98, \#102, and \#103. Measurements for every executed stage, including the nulls and the stop receipts, are reported in Section~\ref{sec:results}.
+% #128 image-only marker retired: the arms executed under the #129 v2 amendment (issue-129-closeout.md); the v1 gate is history.
