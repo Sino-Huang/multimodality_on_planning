@@ -2,6 +2,13 @@
 
 The record of what changed in the ICLR 2026 manuscript and why. Newest first. Each entry names the commit, the scope of the change, and the review or ticket it answered. Review findings and their status live in `review-log.md`; claim vocabulary and boundaries live in `CONTEXT.md`.
 
+## 2026-09-23 — review 16 wave 2, 9-page restructure and figures (`3c558bf`)
+
+- Findings 6 and 14 CLOSED. Main text compressed from about 25 pages to 9: the Conclusion ends on page 9, with References and the Reproducibility Statement after. Seven operational tables (gates, contrasts, DAgger, transfer, corruption, menu, seed-variance) and the design-contracts table migrated to the appendix with labels intact, along with the secondary-panel, failure-calibration, corruption, and native-arm detail; the body keeps the identity audit, the primary-matrix prose, menu manipulation, the choice-frontier contract with its table, and the comparator-zoo table.
+- Two figures added, drawn from the pinned JSONs by a paper-writer with reproducible scripts under `iclr2026/figures/`: `fig:zoo-m1` (comparator-zoo M1 positions with task-clustered intervals, in Results 5.10) and `fig:contracts` (enumeration versus choice-frontier contract contrast, in Appendix "Decision Contracts" per the reviewer's one-body-figure keep list).
+- Hub: graphicx loaded, float and caption spacing tightened. The `tab:axis` related-work table was compressed to prose. The final-evaluation prerequisites list migrated from Design to the appendix.
+- Build: 31 pages total, 0 errors, 0 undefined, 0 overfull. Headline numbers re-checked in the rendered PDF text (48/48, -0.644 [-0.856, -0.422], 0.592-0.625 chance band, .1042 zoo position, 0.933 BFWS contrast, 20/36 first-decision distractors).
+
 ## 2026-09-23 — review 16 wave 1, claim scoping (`1c559e7`)
 
 - Findings 1-5, 7-11, 13, 16-17, 20, 26, 28-29, 31, 33-36 CLOSED. Headline sentences in Abstract, Introduction, Discussion, and Conclusion are scoped to the additive best-first cells, with submission-order invariance named as the cause and the choice-registering BFS/BFWS cells (random-valid 15/24 and 17/24, learned 0/24) stated alongside.
