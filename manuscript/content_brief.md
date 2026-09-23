@@ -1,5 +1,7 @@
 # Content Brief
 
+> **Superseded (2026-09-23).** Pre-#129 evidence snapshot with an audit boundary of 2026-09-21, kept as the drafting record. Its progress list and numbers no longer describe the draft. Authoritative sources now: `changelog.md`, `review-log.md`, `CONTEXT.md`, and the pinned closeouts and artifacts under `docs/experiments/` and `outputs/` in the main repository. Do not take status or numbers from this file.
+
 ## Progress
 - Manuscript genre and central contribution: REVISED to a development-stage map of when executable search control is learnable and when it fails to generalize.
 - Evidence audit: UPDATED on 2026-09-21 through `origin/main` issues #115-#128: synthesis #120 (`eb0a79d3`), second-backbone v2 #123 and generalization v2 #124 (`fdfb78a`), failure-mechanism calibration #125 (`2f31b82d`), observation-corruption suite #126 (`2221b1a`), with #127 (training-seed replication) and #128 (image-only observation arms) open proposals without outcomes.

@@ -1,5 +1,7 @@
 # Manuscript Design Tree
 
+> **Historical (2026-09-23 note).** Written against the evidence boundary of 2026-08-31 and kept as the record of the drafting plan and of the unexecuted held-out evaluation's prerequisites. Issue statuses and open-branch statements inside are historical; current status lives in `changelog.md`, `review-log.md`, and the GitHub issues.
+
 ## Evidence Boundary
 
 - Issue #38 is the ratified, still-open authority for the Search Process Policy program. A direct audit on 2026-08-31 inspected every issue and substantive comment from #54 through #111. Seven issues are closed (#54--#58, #110, #111); #59 and #60--#109 remain open.

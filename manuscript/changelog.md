@@ -1,0 +1,54 @@
+# Manuscript Changelog
+
+The record of what changed in the ICLR 2026 manuscript and why. Newest first. Each entry names the commit, the scope of the change, and the review or ticket it answered. Review findings and their status live in `review-log.md`; claim vocabulary and boundaries live in `CONTEXT.md`.
+
+## 2026-09-23 — documentation consolidation (this commit)
+
+- `changelog.md` moved from `iclr2026/` to the manuscript root (the LaTeX directory holds build inputs only).
+- `review-log.md` created as the single authoritative review record. The 16 per-review files under `manuscript/critics/` were folded into it and the folder was removed; the originals remain in git history at `5357a65`.
+- Removed the stale "result-ready empirical skeleton" sentence from `iclr2026_conference_experimental_design.tex` (review 16, finding 27).
+- `content_brief.md` marked superseded: it is the pre-#129 evidence snapshot and its progress list no longer describes the draft.
+
+## 2026-09-23 — full-draft review, review 16 (`5357a65`)
+
+- Area-chair-tier review of the assembled 37-page draft: all nine sections, the hub, the six bibs, the build log, and the rendered PDF text. Verdict REJECT with 6 CRITICAL, 14 MAJOR, and 16 MINOR findings.
+- Findings are the live fixlist in `review-log.md`. The review confirmed the number transcription against the pinned artifacts and located the problems in what those numbers license, not in their transcription.
+
+## 2026-09-23 — citation pass (`059028f`)
+
+- Related Work gained a scoped paragraph positioning the audit against evaluation-validity work, multimodal shortcut and position-bias findings, and search-selector calibration; eight entries added, each verified against its primary source (`manuscript/critics/2026-09-23-scout-citations.md` before the consolidation).
+- Bibliography audited: 42 cited keys over 45 entries, every key resolving exactly once, no duplicate works. Two entries (`bai2025qwen3vl`, `yang2025qwen3`) were restored after the audit had removed them while they were still cited.
+- Removed an inaccurate parenthetical in Results ("confirmed by the expanded baseline below").
+
+## 2026-09-23 — writing round 2 (`1b49ecb`)
+
+- Abstract rewritten around the measurement-methodology arc; Introduction headline and results map restructured with the BFWS development-panel positive demoted to one positive contrast.
+- Experimental Design extended with the native-arms v2 observation contract, the menu-manipulation protocol, the two-contract table, the identity audit, the choice-frontier panel, and the #133 metric and test-family definitions; staged sequence extended through #128–#133.
+- Appendix extended with follow-up receipt rows on separate ledgers, an artifact index, follow-up bootstrap conventions, and a choice-frontier operations section. Reproducibility Statement extended with per-window compute and the new replay receipts.
+
+## 2026-09-23 — writing round 1 (`2569773`)
+
+- Results integrated the closed tickets #129 (native-arms v2), #130 (R1–R4 and the identity audit), #132 (choice-frontier redesign), and #133 (comparator zoo and metric set), under the measurement-methodology reframe the ticket records as user-approved.
+- Discussion restructured around the same arc, with the menu-leak reading, the choice-quality boundaries, five new threat items, and a declarative conclusion.
+- Hub: the unused `\fix` and `\new` annotation macros were removed.
+
+## 2026-09-22 — full draft (`4d5842e`)
+
+- Multi-file layout: prose-free hub plus nine per-section files and per-section bibliography namespaces; all sections written; review 15's fixlist applied; prose pass.
+
+## Earlier (2026-08-19 to 2026-09-21)
+
+- `112061d` condense deadline abstract; `35e205d` update abstract with expanded evidence; `ae52649` rewrite introduction narrative; `8dd985b`, `45fa9f1` citation work in the introduction; `55f0635` clarify search-training motivation; `f0bc656`, `4f79241`, `84af891`, `b50a82e`, `accc068` skeleton, corpus alignment, and manuscript initialization.
+
+## Build and verification
+
+```bash
+bash manuscript/build_pdf.sh          # writes manuscript/manuscript.pdf
+```
+
+Last verified build: 37 pages, 0 errors, 0 undefined references or citations, 0 overfull boxes. Headline numbers were re-checked in the rendered PDF text against the pinned artifacts listed in `review-log.md`.
+
+## Open items
+
+- `review-log.md` holds the live fixlist from review 16, including the main-text length against the ICLR 2026 nine-page limit, the headline-scope and menu-manipulation adjudications, the closed-ticket TODO cleanup, and the anonymity items.
+- Genuinely unexecuted work stays marked in the section files with its ticket number: full-scope v1 branches and public release URLs (#122).
