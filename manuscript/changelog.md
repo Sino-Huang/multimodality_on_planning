@@ -2,7 +2,7 @@
 
 The record of what changed in the ICLR 2026 manuscript and why. Newest first. Each entry names the commit, the scope of the change, and the review or ticket it answered. Review findings and their status live in `review-log.md`; claim vocabulary and boundaries live in `CONTEXT.md`.
 
-## 2026-09-23 — review 18 wave 2, title, figures, and the two-contract audit (WAVE2)
+## 2026-09-23 — review 18 wave 2, title, figures, and the two-contract audit (`83e30c2`)
 
 - Finding 50 CLOSED. The hub title is now "When Random-Valid Equals the Reference: A Per-Decision Identity Audit for Search-Execution Evaluation of Vision-Language Models" (author decision). fig:contracts is regenerated in a wide side-by-side layout, with numbers read by the script from identity-audit.json (both contracts) and analysis.json, and placed as Figure 1 in Results 5.2. fig:zoo-m1 moved to App R, and Table 2 stays in 5.10. The Design reference drops "(Appendix)".
 - Finding 49, text part: the author asked for existing evidence first. An evidence search found that the identity check already returns opposite verdicts on the two contracts (48/48 identical, 18/18 divergent), and 5.2 and Contribution 1 now say so. 5.2 states that the choice-frontier divergence holds by construction and that the same-runtime submission-order-serial counterfactual has not been run. That counterfactual and the M4 intervals (finding 60) are filed as evidence ticket #134. Both findings stay OPEN until it closes.
