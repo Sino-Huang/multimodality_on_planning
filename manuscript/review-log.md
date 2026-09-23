@@ -122,7 +122,7 @@ Single record of every review the manuscript has received: what draft state it r
 - **Location:** Intro L48 '[TODO: issues \#96/\#98/\#102/\#103]'; Design L133 'remain unexecuted (issues #96 and #98 open)' with '[TODO: full-scope v1, issues \#96/\#98]'; Results L36 'the corresponding issues remain open [TODO: ...]'; Results L171, L233 'with its issues still open [TODO: ...]'; Results L449; Discussion L123
 - **Issue:** TODO hygiene and a false factual statement. `gh issue view` (2026-09-23) returns #96, #98, #102, #103 all CLOSED on 2026-09-21 (stateReason COMPLETED), each with a closing comment 'Supervisor decision: v1 scope withdrawn — closing'. Seven visible markers and at least six prose sentences tie the manuscript to tickets that no longer exist as open work. The brief's rule requires every visible TODO to be tied to an open ticket, and the round-2 rule drops markers that the prose already states (Design L133 and Results L171 do both).
 - **Fix:** Delete all seven markers and the stale % TODO comments (Results L172, L236, L450, Design L135, Intro L49). Rewrite the prose as 'the full-scope v1 branches were withdrawn after their terminal VALID_STOP receipts (issues #96/#98/#102/#103, closed 2026-09-21) and will not be executed'.
-- **Status:** OPEN
+- **Status:** CLOSED (`afec954`)
 
 #### 13 · MAJOR · `iclr2026_conference_results.tex`
 
@@ -143,7 +143,7 @@ Single record of every review the manuscript has received: what draft state it r
 - **Location:** Related Work 'Evaluation-validity work in planning and reasoning ...' paragraph (L70ff), which cites PlanBench, BEHAVIOR-1K, VQA priors, and video MCQ position bias but no action-candidate literature
 - **Issue:** Citation failure on the headline claim's anchor. That grounded admissible-action lists are privileged information which changes what an agent's success measures is published practice in text-based game RL: Jericho's valid-action handicap (Hausknecht et al., 2020, arXiv:1909.05398). CALM (Yao et al., EMNLP 2020, arXiv:2010.02903, abstract fetched 2026-09-23) states that its generator 'is competitive with or better than other models that have access to ground truth admissible actions'. Multiple-choice position bias in LLM selectors is also directly relevant to the last-label finding. Without these, the 'measurement finding' reads as a discovery when it is a known handicap in a new setting.
 - **Fix:** Add a sentence citing Jericho's valid-action handicap and CALM (verified keys in related_refs.bib) and reframe the contribution as operationalizing a per-decision identity check for that known handicap in search-execution evaluation.
-- **Status:** OPEN
+- **Status:** CLOSED (`afec954`)
 
 #### 16 · MAJOR · `iclr2026_conference_experimental_design.tex`
 
@@ -164,14 +164,14 @@ Single record of every review the manuscript has received: what draft state it r
 - **Location:** Appendix L315 'Issue \#133 closing comment (comment 5788941573)'; Reproducibility L76 'The existing \texttt{deadline-study-v1} release'; Design L161 'Reviewer stress tests (issue \#130, executed)'
 - **Issue:** Double-blind risk. A GitHub comment ID resolves to one public repository and its author (#131 cites it as https://github.com/Sino-Huang/multimodality_on_planning/issues/133#issuecomment-5788941573). Named internal releases and 'reviewer stress tests' / 'reviewer-blocker window' (Results L643, Table 3) also expose the project's prior review history.
 - **Fix:** Remove the comment ID and internal release name from the submission (keep them in the % Evidence comments). Rename 'Reviewer stress tests' / 'reviewer-blocker window' to neutral protocol names (e.g. 'stress tests R1-R4').
-- **Status:** OPEN
+- **Status:** CLOSED (`afec954`)
 
 #### 19 · MAJOR · `iclr2026_conference.tex (no section)`
 
 - **Location:** No LLM-usage section anywhere in the nine section files or the appendix
 - **Issue:** Submission compliance. The ICLR 2026 Author Guide (URL in I6) requires a separate LLM-usage section when LLMs 'played a significant role in research ideation and/or writing' and warns 'Not disclosing significant LLM usage can lead to desk rejection.' [INFERENCE] The #131 briefs and the section STATUS banners record agent-driven writing rounds, which meets that threshold.
 - **Fix:** Add an appendix section 'LLM Usage' describing the agent-assisted writing, citation, and review passes and the human verification applied.
-- **Status:** OPEN
+- **Status:** CLOSED (`afec954`)
 
 #### 20 · MAJOR · `iclr2026_conference_results.tex`
 
@@ -185,35 +185,35 @@ Single record of every review the manuscript has received: what draft state it r
 - **Location:** Abstract L5-6 '... and ask whether such training can be measured to improve search choice. Under the original enumeration contract, ..., the answer is that it cannot be measured.'
 - **Issue:** Style rule: rhetorical question followed by its answer.
 - **Fix:** State the finding declaratively (and scoped per I1).
-- **Status:** OPEN
+- **Status:** CLOSED (`afec954`)
 
 #### 22 · MINOR · `iclr2026_conference_appendix.tex; iclr2026_conference_related_work.tex`
 
 - **Location:** Paragraphs without a preceding '% Paragraph purpose:' comment: Appendix L62 ('The two broad categories are ...'), L368 ('Cell~A is the headline ...'), L389 ('This addendum supersedes ...'); Related Work L44 ('Step-level and process supervision ...'), L51 ('Recent work uses visual intermediate states ...'), L63 ('Constrained-decoding methods ...')
 - **Issue:** Paragraph-purpose convention violated in six paragraphs.
 - **Fix:** Add a '% Paragraph purpose:' line before each.
-- **Status:** OPEN
+- **Status:** CLOSED (`afec954`)
 
 #### 23 · MINOR · `iclr2026_conference_results.tex`
 
 - **Location:** Results L434 caption 'Seeds 17/29/71 frozen pre-launch; 534 new episodes independently replayed; aggregation descriptive ($n{=}3$).'; Results L171 'visual 41/50; by algorithm, greedy 67/75'
 - **Issue:** Prose semicolons outside comma-lists (8 semicolons in Results. The L251 and L388 ones are list separators and acceptable).
 - **Fix:** Split into sentences or use commas.
-- **Status:** OPEN
+- **Status:** CLOSED (`afec954`)
 
 #### 24 · MINOR · `iclr2026_conference_experimental_design.tex; iclr2026_conference_reproducibility.tex`
 
 - **Location:** Design L52 'never summed with the 336 GPU-hour program ledger (Appendix~\ref{appendix})'; Design L104 'Contrasts use the paired conventions of Appendix~\ref{appendix}'; Reproducibility L65 '(Appendix~\ref{appendix})'
 - **Issue:** The frozen label resolves to Appendix A (Operation Schemas), but the ledger is in Appendix E and the bootstrap conventions in Appendix F. Rendered text reads 'Appendix A' in all three places.
 - **Fix:** Write 'Appendix~\ref{appendix}, Receipt Tables' / 'Statistics' or add named in-appendix labels owned by the appendix file.
-- **Status:** OPEN
+- **Status:** CLOSED (`afec954`)
 
 #### 25 · MINOR · `iclr2026_conference_related_refs.bib`
 
 - **Location:** iclr2026_conference.blg L11 'Warning--can't use both volume and number fields in orseau2021policyguided'
 - **Issue:** BibTeX warning, the same class critic-15 fixed for the BFWS entry.
 - **Fix:** Drop `number` from orseau2021policyguided.
-- **Status:** OPEN
+- **Status:** CLOSED (`afec954`)
 
 #### 26 · MINOR · `iclr2026_conference_results.tex`
 
@@ -227,7 +227,7 @@ Single record of every review the manuscript has received: what draft state it r
 - **Location:** Design L152 'Until these choices are set, the manuscript is a result-ready empirical skeleton rather than a preregistered evaluation protocol.'
 - **Issue:** Leftover planning-document sentence. It calls the paper a skeleton and contradicts the pre-registered follow-up protocols reported elsewhere. Spelling alternates 'preregistered' (Design L124, L152, Discussion L139) and 'pre-registered' (everywhere else).
 - **Fix:** Replace with 'Until these choices are recorded, the held-out evaluation cannot be frozen.' and normalize to 'pre-registered'.
-- **Status:** OPEN
+- **Status:** CLOSED (`afec954`)
 
 #### 28 · MINOR · `iclr2026_conference_appendix.tex; iclr2026_conference_results.tex`
 
@@ -248,7 +248,7 @@ Single record of every review the manuscript has received: what draft state it r
 - **Location:** Intro L27 'which the closeout reads as a menu leak'; Results L299 'This null licenses the leak interpretation the closeout records'
 - **Issue:** Internal project documents ('the closeout') cited as interpretive authority in reader-facing prose. About 94 internal issue numbers appear in the body.
 - **Fix:** State the interpretation as the paper's own and move ticket numbers into % Evidence comments or one appendix index.
-- **Status:** OPEN
+- **Status:** CLOSED (`afec954`)
 
 #### 31 · MINOR · `iclr2026_conference_discussion.tex`
 
@@ -262,7 +262,7 @@ Single record of every review the manuscript has received: what draft state it r
 - **Location:** Intro L7 'instances to be generated systematically, solutions verified automatically, and difficulty controlled precisely'; Discussion L29 'conducts unassisted internal search, holds unbounded frontier state, or possesses general planning autonomy'
 - **Issue:** Rule-of-three constructions.
 - **Fix:** Cut to two items or restructure.
-- **Status:** OPEN
+- **Status:** CLOSED (`afec954`)
 
 #### 33 · MINOR · `iclr2026_conference_results.tex`
 

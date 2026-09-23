@@ -2,6 +2,12 @@
 
 The record of what changed in the ICLR 2026 manuscript and why. Newest first. Each entry names the commit, the scope of the change, and the review or ticket it answered. Review findings and their status live in `review-log.md`; claim vocabulary and boundaries live in `CONTEXT.md`.
 
+## 2026-09-23 — review 16 wave 3, compliance and hygiene (`afec954`)
+
+- Findings 12, 15, 18, 19, 21-25, 27, 30, 32 CLOSED. The withdrawn v1 scopes (#96/#98/#102/#103, closed 2026-09-21) replace every "remain open" sentence and marker; the panel-overlap (#126 manifest) and release-URL (#122) TODOs stay as the only visible markers, each tied to its ticket.
+- Anonymity: comment IDs, internal release and branch names, and "reviewer window" naming scrubbed from reader-facing prose and tables (kept in % Evidence comments); the R1-R4 window ledgers row in the artifact index uses a neutral name. The appendix receipt tables retain their ticket-index columns as the sanctioned internal index.
+- Appendix "Use of LLM Statement" section added with author-dictated wording. Related Work anchors the audit in the admissible-action literature with verified Jericho (hausknecht2020interactive) and CALM (yao2020keep) entries; orseau2021policyguided bibtex warning fixed. Paragraph-purpose census completed; prose semicolons, rule-of-three remnants, "preregistered" spellings, hard-coded "Section F", and the pooled -0.944 "confirms" caveat in the appendix fixed. Build: 30 pages, 0 errors, 0 undefined, 0 overfull, 0 bibtex warnings; main text ends p.9.
+
 ## 2026-09-23 — review 16 wave 2, 9-page restructure and figures (`3c558bf`)
 
 - Findings 6 and 14 CLOSED. Main text compressed from about 25 pages to 9: the Conclusion ends on page 9, with References and the Reproducibility Statement after. Seven operational tables (gates, contrasts, DAgger, transfer, corruption, menu, seed-variance) and the design-contracts table migrated to the appendix with labels intact, along with the secondary-panel, failure-calibration, corruption, and native-arm detail; the body keeps the identity audit, the primary-matrix prose, menu manipulation, the choice-frontier contract with its table, and the comparator-zoo table.
