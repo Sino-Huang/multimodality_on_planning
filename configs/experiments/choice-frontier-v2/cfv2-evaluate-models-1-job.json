@@ -1,0 +1,23 @@
+{
+ "job_id": "cfv2-evaluate-models-1",
+ "branch": "choice_frontier",
+ "gpus": [
+  1
+ ],
+ "max_seconds": 7200,
+ "total": 1,
+ "command": [
+  "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+  "scripts/run_choice_frontier_v2.py",
+  "evaluate-worker",
+  "--worker",
+  "1",
+  "--kind",
+  "models"
+ ],
+ "completion_hook": [
+  "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+  "scripts/run_choice_frontier_v2.py",
+  "audit-evaluate-worker"
+ ]
+}
