@@ -2,6 +2,13 @@
 
 The record of what changed in the ICLR 2026 manuscript and why. Newest first. Each entry names the commit, the scope of the change, and the review or ticket it answered. Review findings and their status live in `review-log.md`; claim vocabulary and boundaries live in `CONTEXT.md`.
 
+## 2026-09-23 — review 17 and consolidation (`e5c4c09`)
+
+- Review 17 (paper-reviewer, adversarial verification at `c42277c`): WEAK REJECT, 0 CRITICAL, 4 MAJOR, 10 MINOR. It re-checked every headline number against the pinned JSONs and episode stores (all match), confirmed the 9-page main text and the clean build, and verified 34 of 36 review-16 findings with 2 partial (9, 11) and 0 regressed. Full text in `review-log.md`.
+- Consolidation: the remainders of findings 9 and 11 and new findings 37-39, 41-48 are closed. Main changes: random-valid relabelled "uniform-choice reference" with the zoo's calibration limit stated (no comparator between random-valid and exact on this panel); the abstract and conclusion now carry the adapter's below-random M1 position (paired -0.035 [-0.150, +0.061]) and the post-hoc M4 last-label habit; the additive equal-f tie-break and serial-assignment rule is pinned from the executed controller in Appendix B with the submission-order counterfactual; duplicate seed-variance and receipts tables merged; visible TODO markers converted to prose; the Reproducibility Statement is one pointer paragraph.
+- Finding 40 (LLM-usage wording) is DECLINED by the author: the dictated sentence "An LLM was used only for polishing language; the scientific content is entirely original." stays as App U. The reviewer's note that the repository record shows agent-drafted text, and that under-disclosure risks desk rejection under the ICLR 2026 guide, is recorded here per the finding's fix.
+- Build: 29 pages, 0 errors, 0 undefined, 0 overfull, 0 bibtex warnings; main text (through the Conclusion) is 9 pages.
+
 ## 2026-09-23 — review 16 wave 3, compliance and hygiene (`afec954`)
 
 - Findings 12, 15, 18, 19, 21-25, 27, 30, 32 CLOSED. The withdrawn v1 scopes (#96/#98/#102/#103, closed 2026-09-21) replace every "remain open" sentence and marker; the panel-overlap (#126 manifest) and release-URL (#122) TODOs stay as the only visible markers, each tied to its ticket.

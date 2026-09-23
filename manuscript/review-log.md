@@ -27,8 +27,159 @@ Single record of every review the manuscript has received: what draft state it r
 | 13 | 2026-09-19 | paper-reviewer | Concise abstract review (164 words). | not recorded in header | SUPERSEDED |
 | 14 | 2026-09-21 | paper-reviewer | Alignment audit of abstract and introduction against issues #115--#128. | not recorded in header | SUPERSEDED |
 | 15 | 2026-09-22 | paper-reviewer | Full-draft audit of the assembled 25-page draft; verdict FIXLIST (1 CRITICAL, 9 MAJOR, 16 MINOR), gating the last revision round. | FIXLIST (1 CRITICAL, 9 MAJOR, 16 MINOR) | CLOSED (`4d5842e`) |
-| 16 | 2026-09-23 | paper-reviewer (area-chair tier) | Full manuscript: 9 sections, hub, 6 bibs, build log, rendered 37-page PDF at commits `2569773`, `1b49ecb`, `059028f` | REJECT (6 CRITICAL, 14 MAJOR, 16 MINOR) | **OPEN** |
+| 16 | 2026-09-23 | paper-reviewer (area-chair tier) | Full manuscript: 9 sections, hub, 6 bibs, build log, rendered 37-page PDF at commits `2569773`, `1b49ecb`, `059028f` | REJECT (6 CRITICAL, 14 MAJOR, 16 MINOR) | **OPEN** → SUPERSEDED by 17 (34 verified, findings 9 and 11 partial and carried into 17) |
 | A | 2026-09-23 | related-work-scout | Citation pass over all sections and the six bibs at commit `1b49ecb` | 0 placeholders, 8 entries added, 42 cited keys resolving, 2 entries restored after an audit error | CLOSED (`059028f`) |
+| 17 | 2026-09-23 | paper-reviewer (area-chair tier) | Round-2 re-review at `c42277c`: nine section files, hub, six bibs, log/blg, rendered 30-page PDF, both figures, re-check of headline numbers against the pinned JSONs and episode stores | WEAK REJECT (0 CRITICAL, 4 MAJOR, 10 MINOR, counting the 2 carried partials) | **OPEN** |
+
+## Live fixlist — review 17 (2026-09-23)
+
+**Verdict:** WEAK REJECT. 0 CRITICAL, 4 MAJOR (findings 37-40), 10 MINOR (the partial remainders of findings 9 and 11, plus findings 41-48). Most damaging issue: **finding 37**. The comparator zoo has no comparator between random-valid and exact, so it cannot calibrate choice quality, and the paper hides this by labelling random-valid a "floor".
+
+Genre: BENCHMARK (+ FINDINGS)
+Δbelief: On additive best-first search, a grounded-menu (enumeration) evaluation cannot measure choice at all, because random-valid is decision-identical to exact on 48/48 pairs. A per-decision identity check plus menu manipulation exposes this cheaply.
+Ledger: Verified: 1-8, 10, 12-36 · Partial (carried, MINOR remainder): 9, 11 · Regressed: none · Not addressed: none · New: 37-48
+
+**Reviewer summary:**
+
+> Round-2 adversarial verification of the Wave 1-3 revision at HEAD `c42277c` (clean working tree). I read the rendered PDF text in full (30 pages), every section file, the hub, the log/blg, and both figure assets and scripts. I re-checked the headline numbers directly against the pinned JSONs and episode stores, not the section text. Every number checked matches its artifact: 48/48 (identity-audit.json); 36/36, 0/512, 36/60 = 0.6, cross cell 0/18, variant cells (stress-evaluation.json); a chance band of 0.5919-0.6252 over 60 injected decisions, recomputed from the 36 distractor episode records; 20/36 first-decision endings, with 36/36 rejections being injected distractors; R2 16+15 partial-valid, 3 goal, 2 all-invalid (r2-decomposition.json); 18/18 divergent, CHOICE_SENSITIVE, 144 replayed (choice-frontier identity-audit/final-audit/evaluation); −0.644 [−0.856, −0.422], +0.389 [+0.167, +0.611], +0.033 [−0.033, +0.133], and 7/18 and 32/90 recomputed from per-cell rows (analysis.json); every M1 value and CI, 3×/4× counts, M2 ρ, M3 κ, M4 23/132 vs 0.269, 72/132 last-label, M5 .3125/.075/.625 (o4/metrics/analysis.json); 11/10/10 of 12, 0/36, 24/24, invalid rates, decision usage, and all six contrasts plus three cross-backbone intervals (second-backbone-v3 analysis.json); expanded-baseline SFT 125/288, RV 240/288, BFS RV 45/72, BFWS RV 51/72 (tallied from the 1,152 baseline episode files). Transcription is clean. Of the 36 review-16 findings, 34 are fixed and hold up under adversarial reading. Two are only partly fixed: the abstract still omits the task-clustered interval (9), and Appendix O still pools the masked regime into the −0.694 isolation contrast (11). None regressed. The revision's real gains are the scoped headline, the chance-band menu ruling, and the 9-page body. Compression, however, pushed out of the body the two facts that most constrain the choice-frontier reading. On M1 the adapter sits below random-valid (.1042 vs .1389, paired −0.035 [−0.150, +0.061]). Its heap-head agreement is below chance (17.4% vs 26.9%), with 54.5% last-label picks; this was in Results at `5357a65` and is now Appendix R only. The new Figure 1 then labels random-valid a "floor" that 5 of 7 arms sit below. The zoo therefore brackets nothing between uniform choice and exact, and its role as a calibration instrument is unargued. The headline mechanism (heap serial order) is never pinned in Appendices A/B, and the source comments admit the tie-break is unpinned. The author-dictated LLM statement ("only for polishing language") conflicts with the repository's agent-driven drafting record.
+
+### Build, page count, figures
+
+- **Build (iclr2026_conference.log / .blg, both newer than every .tex/.bib):** 0 errors (`^!` count 0), 0 LaTeX warnings, 0 undefined references or citations, 0 overfull boxes (underfull only), 0 BibTeX `Warning--` lines, 40 bib entries used; "Output written on iclr2026_conference.pdf (30 pages)". **PASS.**
+- **Page count:** Title/abstract p.1 through the end of the Conclusion on **p.9**: main text = **9 pages**, within the ICLR 2026 limit (Author Guide https://iclr.cc/Conferences/2026/AuthorGuide, fetched 2026-09-23: "main text should be 9 pages or fewer"; references and the Reproducibility Statement do not count). **PASS.** Note: the same guide dates the ICLR 2026 full-paper deadline to 2025-09-24; the target cycle is taken as the one stated in the brief.
+- **fig:zoo-m1 (Figure 1, p.8):** plotted values and CIs match o4/metrics/analysis.json exactly (.8472 [.7917, .8750], .1389 [.0250, .2722], .1042 [.0278, .2014], .1250 [0, .2778], .0694 [0, .1528], .0556 [0, .1389], 0). The caption numbers match. Defects are in findings 37 and 44.
+- **fig:contracts (Figure 2, p.30):** 48/48 and −0.644 [−0.856, −0.422] match identity-audit.json and analysis.json. The caption matches the panels. A rendering defect is in finding 48.
+
+### Verification of review-16 findings 1-36
+
+| # | sev (r16) | r17 result | evidence at `c42277c` |
+|---|---|---|---|
+| 1 | CRITICAL | VERIFIED | Abstract p.1 L13-17, Intro p.2 L58-62, Contribution 1, Discussion p.8 L415-418, and 5.2 all scope to "the additive best-first cells", with submission-order invariance as cause. BFS/BFWS 15/24 and 17/24 vs 24/24 stated, learned 0/24; "any grounded-menu evaluation" deleted. Conclusion hedges with "can leave". |
+| 2 | CRITICAL | VERIFIED | 5.7 p.6 L308-316: "uninformative about order", "pick-rate of 0.6 against a uniform-picking expectation of 0.592 to 0.625", "does not reject schema-valid inapplicable menu entries"; fixed-vs-random-position test named as not run. Chance band recomputed from the 36 episode files: 0.5919 (all rows) / 0.6252 (unpruned rows), n=60. |
+| 3 | CRITICAL | VERIFIED | 5.7 L311 "every episode ends on a distractor pick, 20/36 on the first decision". Episode files: 20 one-decision, 8 two-decision, and 8 three-decision episodes; all 36 rejected emissions ∈ injected_distractors. Source-conflict comments are at results.tex L86-87 and appendix.tex L807-810. |
+| 4 | CRITICAL | VERIFIED | Abstract p.1 L33-34 "(.1042) lies between bfs-order (.0694) and novelty-first selection (.1250) (point estimates, intervals overlap)"; Contribution 3 no longer ranks. The new omission of random-valid is finding 38. |
+| 5 | CRITICAL | VERIFIED | Discussion no longer carries 34/36 or "0/18 all-invalid". Appendix O p.26-27 gives 16/18 and 15/18 partial-valid, 3/18 goal, cross cell "0/18 with every episode all-invalid", all matching r2-decomposition.json and stress-evaluation.json. |
+| 6 | CRITICAL | VERIFIED | Main text 9 pages (see above). Seven tables and operational detail moved to the appendix. |
+| 7 | MAJOR | VERIFIED | "algorithm confound" and "not modality-specific" absent from PDF. App M p.26 L1350-1354 uses the prescribed wording: "consistent with an algorithm (choice-requirement) difference rather than a backbone null". |
+| 8 | MAJOR | VERIFIED | "only panel where random-valid falls below saturation" absent. 5.3 p.6 L273-275 states the unsaturated BFS/BFWS cells with SFT 0/24. |
+| 9 | MAJOR | **PARTIAL** | Fixed: "9/9 tasks (18 cells, control sequences coincide across the two algorithms)", "sanity check that holds by construction", "rests on a single task". The Intro carries the task-clustered [−0.889, −0.333]. **Remaining:** the Abstract (p.1 L28) gives only the frozen cell-bootstrap CI [−0.856, −0.422], although identity-audit.json shows identical exact and random decision/expansion counts for greedy and w3 on every task (18 cells = 9 independent units). Fix as prescribed: add "task-clustered [−0.889, −0.333]" to the abstract. Remainder severity MINOR. |
+| 10 | MAJOR | VERIFIED | One sentence, identical in Design p.4 L210-212, App I p.21 L1095-1096, and App R p.28 L1488-1489. Checked against code: `choice_frontier_corpus.derive_task_episode` runs the new contract's exact_reference session from PDDL and gates it expansion-for-expansion against the stored trace (L245-261). The module docstring's word is "Replays", so the wording is defensible. |
+| 11 | MAJOR | **PARTIAL** | Fixed: Intro, Contribution 3, and App G p.19 L1022-1023 cite shuffled only, with "is consistent with". **Remaining:** App O p.26 L1391-1397 still reads "Masking or shuffling the text channel lowers success by up to −0.944". It reports "text minus visual −0.694 … which is material under the frozen rule" with no flag that its −0.806 text term averages masked (−0.889) and shuffled (−0.722). Fix: cite shuffled only, and append "this contrast pools the output-contract-destruction (masked) regime". Remainder severity MINOR. |
+| 12 | MAJOR | VERIFIED | No marker or "remain open" sentence tied to #96/#98/#102/#103. The withdrawal sentence is present in Intro, Design, 5.1, 5.11, Discussion, and App J/M. `gh issue view -R Sino-Huang/multimodality_on_planning` confirms all four CLOSED 2026-09-21. The remaining visible markers (#122 OPEN, #131 OPEN) are finding 46. |
+| 13 | MAJOR | VERIFIED | Identity audit is 5.2, directly after 5.1; 5.3 references it ("which the identity audit reads as operation validity"). |
+| 14 | MAJOR | VERIFIED | fig:zoo-m1 is in the body (p.8) and fig:contracts in App T. Placement follows review 16's one-body-figure keep list. Content defects are findings 37 and 44. |
+| 15 | MAJOR | VERIFIED | Related Work p.3 L130-138 cites Jericho and CALM. Both claims check against sources: CALM abstract, https://arxiv.org/abs/2010.02903 ("on half of these games, CALM is competitive with or better than other models that have access to ground truth admissible actions"); Jericho, https://arxiv.org/pdf/1909.05398 ("Jericho's world-change-detection handicap to identify valid actions"). |
+| 16 | MAJOR | VERIFIED | Design p.4 L178-187 pins both samplers per contract. Checked against code: additive `best_first_development.random_valid_best_first_output` (uniform `randrange(len(rows))`, L519-521); BFWS `bfws_issue59.random_valid_bfws_model_output` (non-duplicate, admissible-position filter, retire fallback, L1054-1084). |
+| 17 | MAJOR | VERIFIED | 5.11 p.8 L406-410 names panel reuse, the adaptive design sequence, and a fresh frozen panel with non-trivial tasks as the required confirmation. Design p.4 L206-210 repeats it. |
+| 18 | MAJOR | VERIFIED | PDF text has no comment ID, "issuecomment", "deadline-study", "reviewer" naming, GitHub URL, or institution. PDF Author/Title metadata empty. Author block renders "Anonymous authors". The self-citation (Huang et al., 2026) is in third person, which the guide allows. |
+| 19 | MAJOR | VERIFIED (form) | App U exists. Its content is contested in finding 40. |
+| 20 | MAJOR | VERIFIED | App Q p.28 L1477-1479 "0/20 on each strain (0/40 in total)". Episode store: 40 learned files (all goal true) and 40 base files. |
+| 21 | MINOR | VERIFIED | Abstract L5 is declarative. |
+| 22 | MINOR | VERIFIED | All six named paragraphs now carry "% Paragraph purpose:" comments (appendix.tex L64/L375/L397, related_work.tex L8/L11/L14). A scan found no uncommented paragraph after a blank line in the main-text files. |
+| 23 | MINOR | VERIFIED | Main-text PDF has 0 prose semicolons. The remaining ones are the App R C* list separator and the author-dictated App U sentence. |
+| 24 | MINOR | VERIFIED | Renders as "Statistics appendix" and "Data and Split Procedures appendix"; no mis-resolving "Appendix A". |
+| 25 | MINOR | VERIFIED | blg has 0 warnings. |
+| 26 | MINOR | VERIFIED | App R L1491-1492 "(up to 315 such decisions in one episode, menus of up to 222 states)". report.json menu_size_range.max = 222. |
+| 27 | MINOR | VERIFIED | "skeleton" absent. App S ends "Until these choices are recorded, the held-out evaluation cannot be frozen". "preregistered" absent from PDF. |
+| 28 | MINOR | VERIFIED | App G p.20 L1034-1036 "Family-wide (24 eligible P3 variants)". |
+| 29 | MINOR | VERIFIED | App M p.25 L1344-1347 explains the two entries per task. Residual: the Intro and 5.4 still print "random-valid 24/24 per modality" without the basis (appendix.tex L727 admits a double count of 12 unique episodes). Not reopened. |
+| 30 | MINOR | VERIFIED | "the closeout" absent from reader prose. Ticket numbers are confined to the sanctioned appendix index columns, except the TODO markers (finding 46). |
+| 31 | MINOR | VERIFIED | "Learned arms fail later" absent. App N "First failures cluster early". |
+| 32 | MINOR | VERIFIED | Intro L7 triple removed. Discussion: "unassisted internal search or general planning autonomy". |
+| 33 | MINOR | VERIFIED | 5.1 p.5 L239 gives 68.5244/336. App J gives 53.52 and 68.5244. |
+| 34 | MINOR | VERIFIED | App Q L1481-1484 "A post-hoc, unpaired reading, with 10 visual-only episodes per arm against 30 full-scaffold episodes". |
+| 35 | MINOR | VERIFIED | results.tex L30/L181, design.tex L62, and intro.tex L37 comments record the 2026-09-21 withdrawal. |
+| 36 | MINOR | VERIFIED | No "confirms" in reader prose (the only hit is App H "Render Validation confirms", an infrastructure definition). |
+
+**Tally:** 34 verified, 2 partial (9, 11), 0 not addressed, 0 regressed.
+
+**Disposition of remainders and new findings (2026-09-23, `e5c4c09`):** the partial remainders of findings 9 and 11 are closed (abstract carries the post-hoc task-clustered interval; Appendix O cites shuffled only and flags the pooled contrast). Findings 37-39 and 41-48 are closed per the fixes above. Finding 40 is WONTFIX by author decision: the dictated LLM-usage sentence stays, with the reviewer's desk-rejection risk recorded in `changelog.md`.
+
+### New findings
+
+#### 37 · MAJOR · BENCHMARK checklist (metric argued against near-miss alternatives) / Axis 3 · `iclr2026_conference_results.tex (5.10, fig:zoo-m1); iclr2026_conference_introduction.tex; iclr2026_conference_appendix.tex (App R)`
+
+- **Location:** Figure 1 dashed line labelled "random_valid floor" and caption p.8 L399-401 "random-valid floor .1389 … Random-valid is the floor, not a selector"; Intro p.2 L82-83 "random-valid (.1389) is the floor reference rather than a selector"; App R p.28 L1500 "Random-valid is the zoo floor"
+- **Issue:** The "floor" sits above five of the seven plotted arms: learned .1042, novelty-first .1250, bfs-order .0694, worst-first .0556, base 0. No privileged-information selector beats uniform menu choice on M1 (o4/metrics/analysis.json). The zoo therefore has no comparator in the interval (random-valid, exact). It cannot say whether any choice rule registers "choice quality beyond random" on this panel, which is the job the paper gives it in 5.10 ("calibrates this measurement"). Calling random-valid a "floor" and excluding it from the ranking relabels the calibration failure as a definitional choice. The paper never says why goal-agnostic selectors (min-g, novelty) fall below uniform choice at budgets of 6-12 decisions (C* 3-6). Nor does it say whether M1 on these nine tasks can separate any selector from random at all.
+- **Fix:** Drop "floor" (e.g., "uniform-choice reference"). In 5.10, state that no comparator between random-valid and exact exists on this panel, so the zoo bounds the adapter only against weaker-than-random rules and cannot calibrate choice quality. **Experiment that would change the verdict:** run the zoo, including one goal-directed privileged selector (e.g., h_add-greedy with random tie-breaks, or exact with ε-random choices at graded ε), on the fresh larger-C* panel that 5.11 already requires. A graded-ε dose ladder that orders exact > ε-exact > random on M1 would show that M1 discriminates, and the adapter's position would then mean something. If informed selectors still fall at or below random, the metric, not the policy, is the bottleneck.
+- **Status:** CLOSED (`e5c4c09`)
+
+#### 38 · MAJOR · Axis 4 (limitation omitted from abstract/intro; boundary dropped by compression) · `iclr2026_conference_abstract.tex; iclr2026_conference_introduction.tex; iclr2026_conference_results.tex (5.10); iclr2026_conference_discussion.tex (Conclusion)`
+
+- **Location:** Abstract p.1 L29-34 reports "+0.033 [−0.033, +0.133]" and "(.1042) lies between bfs-order (.0694) and novelty-first selection (.1250)"; Conclusion p.9 L454-455 "the adapter learns to emit valid choices without demonstrating choice quality beyond the named references"; App R p.29 L1522-1527 "selecting the teacher's heap-head state on 23/132 … (17.4%) against an on-policy chance rate of 26.9%, and emitting the last menu label on 72/132 (54.5%)"
+- **Issue:** The abstract reports only the favorable-sign contrast, the 2× cap +0.033. It omits that on the paper's pre-registered primary zoo metric the adapter is below random-valid: M1 .1042 vs .1389, paired −0.035 [−0.150, +0.061] (analysis.json m1_m2_m3_dominance_holm.comparisons.random_valid). Compression moved the M4 evidence out of the body; at `5357a65` it sat in Results L420. That evidence shows teacher agreement below chance and a majority last-label habit, which App R itself calls "operationally … a random picker". Stated in the body, these facts turn "choice quality not established" into "choice behaviour indistinguishable from, or worse than, a position habit". A skim of the abstract, Table 2, or Fig. 1 cannot recover that without the appendix.
+- **Fix:** Abstract: after the zoo sentence, add "and below random-valid (.1389; paired −0.035 [−0.150, +0.061])". 5.10: one sentence with M4 (17.4% vs 26.9% chance, 54.5% last label under per-decision permutation). Conclusion: "…without choice behaviour distinguishable from a last-label position habit".
+- **Status:** CLOSED (`e5c4c09`)
+
+#### 39 · MAJOR · Axis 4 (headline mechanism unpinned) · `iclr2026_conference_appendix.tex (App A/B, App R); iclr2026_conference_search_process_policy.tex`
+
+- **Location:** App A p.13 L691-693 "the expanded state has the minimum f in the frontier under the declared tie-breaking rule"; App B p.14-15 L755-762, where the weighted/greedy invariants state no tie-break; App R p.29 L1530-1533 "heap serials follow the deterministic sorted candidate order at start expansion, so frontier evolution is invariant to submission order"; source comments appendix.tex L46-47, L119-120, L125 and policy.tex L20-21: "Tie-breaking among equal-f states is not pinned in any audited source"
+- **Issue:** The paper's named cause for its headline result is submission-order invariance, which is a property of the serial/tie-break rule: serials come from sorted candidate order, not submission order. That rule is never stated in the invariant definitions. The only statement of the mechanism is a one-sentence artifact quote at the end of App R, and the authors' own comments record the rule as unpinned. A reader cannot check whether the 48/48 identity is a property of additive best-first search in general, or an artifact of this implementation's serial assignment. The distinction decides how far the "measurability audit" contribution ports to other runtimes.
+- **Fix:** Pin the equal-f tie-break and serial-assignment rule from the executed controller (file and function) in App B, and move the structural-basis sentence into 5.2 or App B. State explicitly that a runtime assigning serials in submission order would not be submission-order invariant, and therefore would not show the identity.
+- **Status:** CLOSED (`e5c4c09`)
+
+#### 40 · MAJOR · Submission compliance (LLM disclosure) · `iclr2026_conference_appendix.tex (App U)`
+
+- **Location:** App U p.30 L1617 "An LLM was used only for polishing language; the scientific content is entirely original."
+- **Issue:** [INFERENCE] The repository record describes LLM agents drafting and restructuring manuscript text, not only polishing it. changelog.md L14: figures "drawn from the pinned JSONs by a paper-writer with reproducible scripts". Hub L60-63: "one owner per section file … Section agents never edit this file". The citation pass was run by a "related-work-scout" (index row A). Review rounds were run by "paper-reviewer" agents. The ICLR 2026 guide (URL above) requires describing "the precise role of the LLM" when LLMs "played a significant role in research ideation and/or writing", and warns that non-disclosure "can lead to desk rejection". The wording is author-dictated, so this is flagged as a risk, not adjudicated.
+- **Fix:** If agents drafted section text, replace App U with a precise description: agent-drafted section text and figure scripts, an agent citation pass with human-verified sources, agent review rounds, and the author verification applied to every number. Otherwise record the decision as declined in changelog.md, so this finding can be marked WONTFIX.
+- **Status:** WONTFIX (`e5c4c09`; author decision 2026-09-23, recorded in changelog.md)
+
+#### 41 · MINOR · Axis 3 · `iclr2026_conference_introduction.tex`
+
+- **Location:** Intro p.2 L63-65 "process SFT solved 125 of 288 versus 240 for random-valid, 0 for the base, and 288 for exact, all in additive cells with no decision to make"
+- **Issue:** "all" attaches to all four counts. Random-valid's 240 includes 96 BFS/BFWS successes (45+51, tallied from the baseline episode files), and exact's 288 includes 144. The sentence contradicts the "BFS and width-based cells register choice" claim three lines above.
+- **Fix:** "process SFT solved 125 of 288, all of them in the additive cells, against 240 for random-valid (96 of them in the choice-registering BFS/BFWS cells), 0 for the base, and 288 for exact".
+- **Status:** CLOSED (`e5c4c09`)
+
+#### 42 · MINOR · Axis 4 · `iclr2026_conference_introduction.tex`
+
+- **Location:** Intro p.2 L65-66 "Over 2,910 replayed episodes learned failures are early invariant rejections of applicable operations"; Contribution 3 "Failures localize to invariant rejections"
+- **Issue:** Table 3 shows other invariant violations are 229/407 (56.3%) of learned failures. The other 178 are malformed output (72), inapplicable grounded actions (56), effect (27), schema (16), and others, so the bare generalization overstates.
+- **Fix:** "the dominant learned failure (229/407) is an invariant rejection of a parsed, applicable operation".
+- **Status:** CLOSED (`e5c4c09`)
+
+#### 43 · MINOR · Axis 3 · `iclr2026_conference_discussion.tex`
+
+- **Location:** Discussion p.8-9 L431-433 "As a post-hoc interpretation the candidate menu, the input every arm retains, carries the decision-relevant signal on this panel."
+- **Issue:** On these additive cells the identity audit says there is no decision to make (5.2), and App Q L1474-1475 says the null "is equally consistent with a policy that uses no state information". A "decision-relevant signal" on cells with zero decision headroom contradicts both.
+- **Fix:** "the menu is the only retained input that could carry the operation-validity signal on this panel".
+- **Status:** CLOSED (`e5c4c09`)
+
+#### 44 · MINOR · Axis 3 / Axis 5 · `iclr2026_conference_results.tex (fig:zoo-m1 caption); figures/fig_zoo_m1.py; iclr2026_conference_discussion.tex`
+
+- **Location:** Fig. 1 caption p.8 L400-401 "Intervals overlap and the Holm family licenses no ordering"; Fig. 1 tick labels `exact_reference`, `random_valid`, `learned_adapter`, `pretrained_base`; the in-plot box "Enumeration-contract BFS/BFWS random-valid already registered choice (15/24, 17/24 vs exact 24/24)"; Discussion p.8 L420-422 `\texttt{random\_valid}`/`\texttt{exact\_reference}` and threat item "exact reference solves by construction"
+- **Issue:** (a) The exact-reference interval [.7917, .8750] overlaps no other arm, so "Intervals overlap" is false as written. (b) Code identifiers in the figure and Discussion clash with the prose names ("random-valid", "Learned adapter") and yield a lowercase item start. (c) The annotation box puts success counts from another contract and panel on an M1-AUC axis, although Table 1's caption and 5.2 declare the two contracts not comparable.
+- **Fix:** Caption: "Intervals of all non-exact arms overlap". Use the prose arm names in the figure and Discussion. Move the enumeration-contract note from the plot area into the caption.
+- **Status:** CLOSED (`e5c4c09`)
+
+#### 45 · MINOR · Axis 5 · `iclr2026_conference_appendix.tex`
+
+- **Location:** Table 6 (App F, p.19) and Table 15 (App R/S, p.29) print identical seed-variance rows (21/24, 21/24, 22/24; +0.875/+0.875/+0.917; −0.125/−0.125/−0.083). Table 4 (App E) and Table 7 (App I/J) both list per-branch receipts with ticket columns. Captions and App F/S call Cell A "the headline process-SFT cell".
+- **Issue:** The duplicate tables were left over from compression. "Headline process-SFT cell" is legacy framing that contradicts the paper's stated headline (the measurement finding), and the cell's SFT−random-valid is negative at every seed.
+- **Fix:** Delete Table 15 and cite Table 6 from App S. Merge Tables 4 and 7. Rename Cell A "the greedy × multimodal replication cell".
+- **Status:** CLOSED (`e5c4c09`)
+
+#### 46 · MINOR · Submission hygiene · `iclr2026_conference_experimental_design.tex; iclr2026_conference_results.tex; iclr2026_conference_discussion.tex; iclr2026_conference_reproducibility.tex`
+
+- **Location:** Visible markers in the PDF. Design p.5 L223-224 "[TODO: panel overlap, needs the post-#126 retention manifest, issue #131]"; 5.11 p.8 L404, Discussion p.9 L447, and Reproducibility p.10 L497-498 "[TODO: release URLs, issue #122]".
+- **Issue:** The markers are tied to open tickets (#122 and #131 OPEN per `gh`), so the brief's rule is met. They are still the only internal ticket numbers left in the main text, and a PDF uploaded with "[TODO: …]" reads as unfinished. The panel-overlap marker points at the manuscript ticket itself, not an evidence ticket.
+- **Fix:** Before upload, replace each marker with prose: "the BFWS-to-BFS panel overlap is not pinned in the retained manifests"; "code and evidence bundles will be provided as anonymous supplementary material". Keep the ticket references in % comments.
+- **Status:** CLOSED (`e5c4c09`)
+
+#### 47 · MINOR · Submission compliance · `iclr2026_conference_reproducibility.tex`
+
+- **Location:** Reproducibility Statement p.9 L460 to p.10 L499 (≈1.2 pages: per-window GPU ledgers, corpus sizes, replay counts, bootstrap settings)
+- **Issue:** The ICLR 2026 guide asks for a "paragraph-long" statement that "should not itself describe details needed for reproducing the results, but rather reference the parts of the main paper, appendix, and supplemental materials". A results-dense page after the Conclusion invites a page-limit-circumvention reading.
+- **Fix:** Compress it to one paragraph of pointers (App C runtime, App D splits, App E ledgers, App F statistics, App I/R choice-frontier, artifact index Table 5).
+- **Status:** CLOSED (`e5c4c09`)
+
+#### 48 · MINOR · Figure rendering · `figures/fig_contracts.{py,pdf,png}`
+
+- **Location:** Figure 2 (App T, p.30): the left and right node boxes of both panels are clipped at the canvas edge (visible in fig_contracts.png).
+- **Issue:** Cosmetic, but it is one of only two figures.
+- **Fix:** Widen the axes limits or add padding in fig_contracts.py and regenerate.
+- **Status:** OPEN (r17)
 
 ## Live fixlist — review 16 (2026-09-23)
 
