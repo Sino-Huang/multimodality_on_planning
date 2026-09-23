@@ -10,16 +10,18 @@ The BFS and width-based best-first cells of the same contract do register choice
 Menu permutation leaves 36/36 successes with 0/512 invalid operations, which is uninformative about order under submission-order invariance. Injecting schema-valid but inapplicable distractors collapses success to 0/36 at a distractor pick-rate of 0.6, against a chance rate of 0.592 to 0.625, so the policy does not reject such entries.
 % Evidence: outputs/native-arms/v1/stress-evaluation.json; chance rate recomputed from outputs/native-arms/v1/evaluation/episodes/menu/*/*/*distractor-injection-learned_adapter.json.gz (review 16, finding 2).
 We therefore redesign the decision as a choice-frontier contract, in which the policy selects which runtime-owned frontier state to expand under a binding decision budget.
-Its pre-registered identity gate is a sanity check that holds by construction whenever a menu offers two or more states. It passes on 9/9 tasks (18 cells, control sequences coincide across the two algorithms), and random-valid and exact separate (random-valid minus exact reference $-0.644$, 95\% CI $[-0.856, -0.422]$).
+Its pre-registered identity gate passes on 9/9 tasks (18 cells, with coincident control sequences across algorithms), a by-construction sanity check, and random-valid minus exact reference is $-0.644$ (frozen 95\% CI $[-0.856, -0.422]$, post-hoc task-clustered $[-0.889, -0.333]$).
 % Evidence: outputs/choice-frontier/v1/evaluation/{identity-audit,analysis}.json.
+% Evidence: task-clustered interval from docs/experiments/choice-frontier/issue-132-closeout.md Erratum, post-hoc.
 
 % Paragraph purpose: Report the first measurement and its calibration boundary, the demoted BFWS contrast, the development-stage qualifications, and the reusable audit.
 In the first measurement the adapter learns to operate the contract, solving 7/18 cells with zero invalid operations ($+0.389$ $[+0.167, +0.611]$ over the pretrained base).
-Choice quality beyond the named references is not established. The contrast against random-valid is $+0.033$ $[-0.033, +0.133]$ and rests on a single task. An exploratory comparator zoo finds no positive learned Pareto dominance, and the adapter's solve-versus-budget score (.1042) lies between \texttt{bfs-order} (.0694) and novelty-first selection (.1250) (point estimates, intervals overlap).
+Choice quality beyond the named references is not established. The contrast against random-valid is $+0.033$ $[-0.033, +0.133]$ and rests on one task. The exploratory zoo finds no positive learned Pareto dominance. On solve-versus-budget AUC the adapter (.1042) lies between \texttt{bfs-order} (.0694) and novelty-first (.1250), and below random-valid (.1389), with paired contrast $-0.035$ $[-0.150, +0.061]$.
 % Evidence: outputs/choice-frontier/o4/metrics/analysis.json (arms.*.m1_auc).
-This is not evidence of equivalence, since no equivalence margin was pre-registered.
+% Evidence: outputs/choice-frontier/o4/metrics/analysis.json m1_m2_m3_dominance_holm.comparisons.random_valid.m1_auc (difference_favoring_learned, cluster_bootstrap_95pct_ci).
+No equivalence margin was pre-registered.
 The single positive learned contrast is on a 15-task width-based best-first development panel of the enumeration contract (0.933 versus 0.467 for random-valid).
 All results are development-stage and single-seed except two replication cells, saturating controls bound measurability rather than policy quality, and the held-out final evaluation has not been run.
 % Held-out final primary evaluation has no open ticket; stated in prose per the round-2 TODO convention.
-The paper reports a measurement result, not planning ability, together with two cheap benchmark-hygiene checks, the per-decision identity test and menu manipulation.
+The paper offers a measurement result and two cheap hygiene checks, per-decision identity and menu manipulation, not planning ability.
 \end{abstract}

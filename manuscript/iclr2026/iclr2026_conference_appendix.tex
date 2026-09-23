@@ -43,8 +43,7 @@ Expansion operands carry the novelty value and goal-count priority of the source
 % Paragraph purpose: Describe the additive best-first operation schema at the level pinned by the sources.
 \paragraph{Additive best-first.}
 Operands carry the source state's accumulated path cost $g$, heuristic estimate $h_{\rm add}$, and composite value $f = g + w \cdot h_{\rm add}$ with $w = 3$ for the weighted variant, or $f = h_{\rm add}$ for the greedy variant. Insertion operands carry per-successor $g$, $h_{\rm add}$, and $f$. The runtime checks that the expanded state has the minimum $f$ in the frontier under the declared tie-breaking rule and that all arithmetic is consistent.
-% TODO: Per-field schema for additive best-first operation types and the exact
-% tie-breaking rule are not pinned in audited sources; see Section~B.
+% TODO(schema): Per-field additive operation serialization remains to be pinned; the tie-break is pinned below from the executed controller.
 
 % Paragraph purpose: State the validity preconditions as an ordered rejection hierarchy.
 \paragraph{Validity preconditions.}
@@ -115,14 +114,15 @@ The frontier is a priority queue ordered first by novelty rank (lower is better)
 
 % Paragraph purpose: Weighted additive best-first invariant.
 \paragraph{Additive best-first, weighted ($w = 3$).}
-The frontier is a priority queue ordered by $f(s) = g(s) + 3 \cdot h_{\rm add}(s)$, where $g(s)$ is the accumulated path cost and $h_{\rm add}(s)$ is the additive heuristic. The expanded state must have the minimum $f$ in the frontier. When a successor is generated with a lower $g$ than an existing frontier entry for the same state, the entry is reopened with the improved cost.
-% TODO: Tie-breaking among equal-f states is not pinned in any audited source.
-% Record the exact rule before release.
+The frontier is a priority queue ordered by $f(s) = g(s) + 3 \cdot h_{\rm add}(s)$, where $g(s)$ is accumulated path cost and $h_{\rm add}(s)$ is the additive heuristic. Among equal-$f$ states the lower generation serial is expanded first. The expanded state is the heap head. A successor with lower $g$ than an existing frontier entry for the same state reopens that entry with improved cost.
+% Evidence (executed controller): examples/planning_benchmark_slice/best_first_controller.py BestFirstController.start_expansion and apply_operation, with PDDLStateAuthority.applicable_actions in pddl_state.py sorting by GroundedAction.serialize.
 
 % Paragraph purpose: Greedy additive best-first invariant.
 \paragraph{Additive best-first, greedy.}
-The frontier is ordered by $h_{\rm add}(s)$ alone, with no path-cost component. The expanded state must have the minimum $h_{\rm add}$. Reopen and duplicate rules follow the same convention as the weighted variant.
-% TODO: Tie-breaking rule not pinned; same note as the weighted variant.
+The frontier is ordered by $h_{\rm add}(s)$ alone, with no path-cost component, then by ascending generation serial among ties. The expanded state is the heap head. Reopen and duplicate rules follow the weighted variant.
+% Paragraph purpose: Pin the executed controller's serial assignment and the runtime-specific limit of the identity finding.
+In both additive settings, \texttt{BestFirstController.start\_expansion} assigns serials before submissions in the deterministic \texttt{PDDLStateAuthority.applicable\_actions} order (sorted by \texttt{GroundedAction.serialize}). The \texttt{BestFirstController.apply\_operation} heap orders entries by (priority, serial, state identifier, path cost), and \texttt{finish\_expansion} requires the full candidate set. Thus submission permutations leave frontier order unchanged on the enumeration contract. A runtime assigning serials in submission order would not be submission-order invariant and would not show this identity.
+% Evidence: examples/planning_benchmark_slice/{pddl_state.py PDDLStateAuthority.applicable_actions,best_first_controller.py BestFirstController.start_expansion/apply_operation/finish_expansion}; outputs/native-arms/v1/identity-audit.json structural_basis.
 
 
 \section{Trusted Search Runtime}
@@ -227,45 +227,47 @@ The BFS pilot uses a frozen 15-task outcome-blind development panel. The BFWS st
 \section{Receipt Tables}
 
 % Paragraph purpose: Present the branch-level gate receipts.
-Table~\ref{tab:appendix-receipts} gives the per-branch gate receipts from the synthesis ledger. Five branches executed to completion at v1 scope. Two stopped at their frozen v1 cost-admission gates with terminal \textsc{valid\_stop} receipts and later completed at reduced scope under new v2 protocols. Every branch reconciles with zero missing evidence. The Tickets column indexes each row to its internal ticket number.
+Table~\ref{tab:appendix-receipts} combines branch-level frozen scope, gate status, coverage, and compute from the synthesis and follow-up ledgers. Five branches completed at v1 scope. Two stopped at frozen v1 cost-admission gates with terminal \textsc{valid\_stop} receipts and later completed at reduced v2 scope. Every branch reconciles with zero missing evidence. The Tickets column indexes internal ticket numbers.
 % Evidence: synthesis ledger is issue #120 (synthesis-v1/README.md).
 
 \begin{table}[t]
-\caption{Per-branch gate receipts for the expanded study program (through the corruption and seed-replication addenda) and the follow-up windows. Program spending is 68.52 of the 336 GPU-h cap. Entries and the total are rounded independently from the ledger. One prospective budget transfer (12.11 GPU-h from recovery reserve to second backbone, ratified 2026-09-19) is reflected in the branch caps. The seed-replication row draws on existing baseline and DAgger caps, not an additional allocation. Rows below the total are follow-up windows, each on its own ledger with its own cap, listed at ledger precision and never added to the total. The R1-R4 window spend covers both stress-test rows.}
+\caption{Combined per-branch gate receipts and ledger allocations. The expanded program spent 68.52 of 336 GPU-h, rounded independently by row. The second-backbone cap reflects a prospective 12.11 GPU-h transfer from recovery reserve. Corruption and seed replication draw on existing branch caps. Follow-up windows have separate ledgers and are never summed into the program total. The R1-R4 spend covers both stress-test rows.}
 \label{tab:appendix-receipts}
-\centering\footnotesize
-\setlength{\tabcolsep}{2pt}
-\begin{tabular}{lllrr}
+\centering\scriptsize
+\setlength{\tabcolsep}{1pt}
+\begin{tabular}{@{}p{0.18\linewidth}p{0.13\linewidth}p{0.18\linewidth}p{0.35\linewidth}p{0.14\linewidth}@{}}
 \hline
-Branch & Tickets & Terminal state & Coverage & GPU-h / cap \\
+Branch & Tickets & Terminal state & Frozen scope / replay coverage & GPU-h / cap \\
 \hline
-Expanded baseline & \#116--\#118 & complete & 1,152/1,152 & 6.53 / 56 \\
-DAgger & \#78--\#84 & complete & 405/405 & 10.91 / 48 \\
-Successor prediction & \#85--\#89, \#99 & complete & 90/90 & 10.85 / 64 \\
-Curriculum by modality & \#119 & complete & 567/567 & 11.78 / 48 \\
-Transfer & \#104--\#107 & complete & 39/39 & 3.60 / 24 \\
-Second backbone & \#101--\#103, \#123 & v2 complete & 144/144 & 6.03 / 52.11 \\
-Generalization/robustness & \#96, \#98, \#124, \#126 & v2 complete & 1,200 + 360 & 6.04 / 32 \\
+Expanded baseline & \#116--\#118 & complete & 1,152 bindings, 576 model, 1,152/1,152 replayed & 6.53 / 56 \\
+DAgger & \#78--\#84 & complete & 405 episodes + 81 paired rows, 405/405 & 10.91 / 48 \\
+Successor prediction & \#85--\#89, \#99 & complete & 90 episodes, 15 cells, 90/90 & 10.85 / 64 \\
+Curriculum by modality & \#119 & complete & 243 model + 324 comparator bindings, 567/567 & 11.78 / 48 \\
+Transfer & \#104--\#107 & complete & 39 cells (12 v1, 27 v2), 39/39 & 3.60 / 24 \\
+Second backbone & \#101--\#103, \#123 & v1 \textsc{valid\_stop}, v2 complete & 72 model + 72 comparators, 144/144 & 6.03 / 52.11 \\
+Generalization / robustness & \#96, \#98, \#124 & v1 \textsc{valid\_stop}, v2 complete & 1,200 episodes (300 model, 900 controls), 1,200/1,200 & 6.04 / 32 \\
+Observation corruption & \#126 & complete & 360/360 new bindings replayed & within generalization \\
+Training-seed replication & \#127 & complete & 534/534 new episodes & 12.79 / -- \\
 Recovery reserve & -- & reduced & -- & 0.00 / 11.89 \\
-Training-seed replication & \#127 & complete & 534/534 & 12.79 / -- \\
 \hline
 \textbf{Total} & & & & \textbf{68.52 / 336} \\
 \hline
 \multicolumn{5}{l}{\emph{Follow-up windows (separate ledgers, not summed with the total)}} \\
 \hline
-Native arms & \#128, \#129 & v2 complete & 216/216 + 72/72 & 3.2086 / 12 \\
-Stress tests R1-R4 & \#130 & complete & 170/170 & 7.7998 / 36 \\
-Second backbone v3 (R3) & \#130 & complete & 72/72 + 72/72 & same window \\
-Choice frontier & \#132 & \textsc{choice\_sensitive} & 144/144 & 1.069 / 12 \\
-Comparator zoo & \#133 & complete & 432/432 & CPU only \\
+Native arms & \#128, \#129 & v1 gate history, v2 complete & 216/216 new + 72/72 comparators & 3.2086 / 12 \\
+Stress tests R1/R2/R4 & \#130 & complete & 72 menu + 80 variant + 18 cross-cell, 170/170 & 7.7998 / 36 \\
+Second backbone v3 (R3) & \#130 & complete & 72/72 model + 72/72 comparators & same window \\
+Choice frontier & \#132 & \textsc{choice\_sensitive} & 144/144 panel, 58 preparation episodes re-derived & 1.069 / 12 \\
+Comparator zoo & \#133 & complete & 432/432 bindings, 342 new & CPU only \\
 \hline
 \end{tabular}
-% Evidence (follow-up rows): docs/experiments/native-arms/issue-129-closeout.md (216/216 + 72/72; 3.2086 / 12.0);
-% outputs/native-arms/v1/stress-evaluation.json (episodes_replayed 170) and issue-130-closeout.md (R3 72/72 + 72/72);
-% window followup-reviewer-v1+v2 7.7998 / 36 per the #131 status comment (ledgers outputs/reviewer-v130/v{1,2}/budget.json;
-% the closeout rounds it to 7.80); outputs/choice-frontier/v1/evaluation/final-audit.json (144 replayed, CHOICE_SENSITIVE)
-% and outputs/choice-frontier/v1/budget.json (1.069 / 12.0); outputs/choice-frontier/o4/metrics/analysis.json
-% episode_accounting (replay_passed 432) and the #133 closing comment (no GPU launched).
+% Evidence: synthesis-v1/README.md and docs/experiments/expanded-study/issue-127-closeout.md (program/addenda);
+% docs/experiments/native-arms/issue-129-closeout.md (native), outputs/native-arms/v1/stress-evaluation.json (170),
+% issue-130-closeout.md (R3 72 + 72), outputs/choice-frontier/v1/evaluation/final-audit.json (144),
+% preparation/visual-choice-frontier/audit.json (58), outputs/choice-frontier/v1/budget.json (1.069 / 12),
+% outputs/choice-frontier/o4/metrics/analysis.json episode_accounting (432, 342 new), #133 closing comment.
+% Source conflict: outputs/expanded-study/v1/second-backbone-v3/evaluation/evidence.json lists comparator_episodes 144
+% against expected 72; issue-130-closeout.md states 72/72 comparators replayed, used for the R3 row.
 \end{table}
 
 % Paragraph purpose: Preserve the synthesis-snapshot attempt count and account for both later addenda.
@@ -373,10 +375,10 @@ Any positive learned-versus-comparator dominance claim in the comparator zoo use
 A prospective training-seed replication measured variance for exactly two cells. Seeds 17, 29, and 71 were frozen before any seed-29 or seed-71 artifact existed. All 534 new episodes were independently replayed. Cross-seed aggregation is descriptive ($n = 3$ seeds).
 
 % Paragraph purpose: Define Cell A and point to its per-seed table.
-Cell~A is the headline process-SFT cell (\texttt{best\_first\_add\_greedy} $\times$ multimodal-state) evaluated on the 24-problem panel. Each seed trained a fresh LoRA adapter with new initialization and dropout randomness on the identical frozen 512-record membership. Table~\ref{tab:appendix-seeds} gives the per-seed results.
+Cell~A is the greedy $\times$ multimodal replication cell (\texttt{best\_first\_add\_greedy} $\times$ multimodal-state) evaluated on the 24-problem panel. Each seed trained a fresh LoRA adapter with new initialization and dropout randomness on the identical frozen 512-record membership. Table~\ref{tab:appendix-seeds} gives the per-seed results.
 
 \begin{table}[t]
-\caption{Seed-variance replication for Cell~A (headline process-SFT cell). Contrasts are paired whole-instance bootstrap (24 tasks, 10,000 resamples, seed 1729). The primary contrast (SFT $-$ base) is positive at every seed with no sign flip.}
+\caption{Seed-variance replication for Cell~A (the greedy $\times$ multimodal replication cell). Contrasts are paired whole-instance bootstrap (24 tasks, 10,000 resamples, seed 1729). The primary contrast (SFT $-$ base) is positive at every seed with no sign flip.}
 \label{tab:appendix-seeds}
 \centering\small
 \setlength{\tabcolsep}{4pt}
@@ -521,7 +523,7 @@ Under M1 an episode solves at multiplier $m$ when its first goal selection occur
 \label{app:results-gates}
 
 % Paragraph purpose: Summarize the expanded program's branch-level receipts, budget ledger, and reconciliation status before any effect is discussed.
-The expanded study program ran on 2 A100 80GB GPUs under a 336 GPU-hour cap with an absolute scheduler cutoff, and spent 53.52 of those hours (15.9\%) at the synthesis snapshot, before the corruption and seed-replication addenda, and 68.5244 after them. Seven branches were admitted. Five executed to completion at v1 scope, and two (second backbone, generalization/robustness) stopped with terminal \textsc{valid\_stop} receipts at their frozen v1 cost-admission gates and later completed at reduced scope under new versioned protocols. Table~\ref{tab:results-gates} lists the per-branch receipts with their frozen scopes. Every executed branch reconciles with zero missing evidence: 1,152/1,152 baseline episodes independently replayed, 405/405 DAgger episodes, 90/90 successor episodes, 243/243 curriculum model episodes with 324/324 comparator bindings, 39/39 transfer cells, 72/72 second-backbone-v2 model episodes with 72 hash-pinned comparators, and 1,200/1,200 generalization-v2 episodes. The full-scope v1 branches of the two reduced branches were withdrawn after their terminal VALID\_STOP receipts (closed 2026-09-21) and will not be executed. Their terminal \textsc{valid\_stop} evidence is retained as history.
+The expanded study program ran on 2 A100 80GB GPUs under a 336 GPU-hour cap with an absolute scheduler cutoff, and spent 53.52 of those hours (15.9\%) at the synthesis snapshot, before the corruption and seed-replication addenda, and 68.5244 after them. Seven branches were admitted. Five completed at v1 scope, and two (second backbone, generalization/robustness) stopped at frozen v1 cost-admission gates with terminal \textsc{valid\_stop} receipts, then completed at reduced v2 scope under new versioned protocols. Table~\ref{tab:appendix-receipts} combines frozen scope, status, coverage, and ledger spend. Every executed branch reconciles with zero missing evidence: 1,152/1,152 baseline episodes independently replayed, 405/405 DAgger episodes, and 90/90 successor-prediction episodes.
 % Evidence: synthesis snapshot #120; addenda #126/#127.
 % Evidence: 68.5244 / 336 program total after the addenda per docs/experiments/expanded-study/issue-127-closeout.md
 % (12.7863 GPU-h added, 68.5244/336 total); same value as the Reproducibility statement and Appendix tab:appendix-receipts (68.52).
@@ -534,43 +536,9 @@ Four follow-up windows executed after the program, each on its own GPU ledger. T
 % docs/experiments/native-arms/issue-130-closeout.md (states 7.80 GPU-h, i.e. the 7.7998 ledger value rounded; cap 36);
 % docs/experiments/choice-frontier/issue-132-closeout.md and outputs/choice-frontier/v1/budget.json (1.069 / 12.0);
 % issue Sino-Huang/multimodality_on_planning#133 closing comment (no GPU launched).
-The R1-R4 follow-up window was resized from 20 to 36 GPU-hours before any outcome, because its frozen worst-case estimate of 27.04 GPU-hours including spend exceeded the initial cap, and realized cost landed at 29\% of that estimate. Each follow-up closed with complete coverage and independent replay (Table~\ref{tab:results-gates}).
+The R1-R4 follow-up window was resized from 20 to 36 GPU-hours before any outcome, because its frozen worst-case estimate of 27.04 GPU-hours including spend exceeded the initial cap, and realized cost landed at 29\% of that estimate. Each follow-up closed with complete coverage and independent replay (Table~\ref{tab:appendix-receipts}).
 % Evidence: docs/experiments/native-arms/issue-130-closeout.md, Verification & budget (27.04 GPU-h estimand, 29%).
 
-\begin{table}[t]
-\caption{Gate receipts for the expanded study program and its follow-up windows, before effect interpretation. Terminal states and frozen scopes are copied from the branch reconciliation ledger and the follow-up ledgers. The two reduced-scope branches closed on v2 evidence, and their withdrawn v1 scopes are retained as \textsc{valid\_stop} history. Rows below the middle rule are follow-up windows on separate ledgers. The second column indexes each row to its internal ticket number.}
-\label{tab:results-gates}
-\centering\footnotesize
-\setlength{\tabcolsep}{2pt}
-\begin{tabular}{@{}p{0.17\linewidth}p{0.14\linewidth}p{0.22\linewidth}p{0.25\linewidth}p{0.16\linewidth}@{}}
-\hline
-Branch & Tickets & Terminal state & Frozen scope executed & Coverage \\
-\hline
-Expanded baseline & \#116--\#118 & complete & 1,152 bindings, 576 model episodes & 1,152/1,152 replayed \\
-DAgger & \#78--\#84 & complete & 405 episodes + 81 paired rows & 405/405 \\
-Successor prediction & \#85--\#89, \#99 & complete & 90 episodes, 15 modality-panel cells & 90/90 \\
-Curriculum by modality & \#119 & complete & 243 model + 324 comparator bindings & all present \\
-Transfer & \#104--\#107 & complete & 39 cells: 12 v1 + 27 v2 & 39/39 \\
-Second backbone & \#101--\#103, \#123 & v1 \textsc{valid\_stop}. v2 complete & 72 model episodes + 72 comparators & 72/72 \\
-Generalization/\newline robustness & \#96, \#98, \#124 & v1 \textsc{valid\_stop}. v2 complete & 1,200 episodes: 300 model + 900 controls & 1,200/1,200 \\
-Observation corruption & \#126 & complete & 360 new bindings & 360/360 replayed \\
-Training-seed replication & \#127 & complete & 534 new episodes & 534/534 replayed \\
-\hline
-Native arms & \#128, \#129 & v1 gate history. v2 complete & 216 new bindings + 72 comparators & 216/216 + 72/72 \\
-Stress tests R1/R2/R4 & \#130 & complete & 170 episodes: 72 menu, 80 variant, 18 cross-cell & 170/170 \\
-Second backbone v3 (stress test R3) & \#130 & complete & 72 model episodes + 72 comparators & 72/72 + 72/72 \\
-Choice frontier & \#132 & complete,\newline \textsc{choice\_sensitive} & 144 panel episodes. 58 preparation episodes re-derived & 144/144 \\
-Comparator zoo & \#133 & complete, CPU only & 432 zoo bindings, 342 new episodes & 432/432 \\
-\hline
-\end{tabular}
-% Evidence (follow-up rows): issue-129-closeout.md (216/216 + 72/72); outputs/native-arms/v1/stress-evaluation.json
-% (episodes_replayed 170, missing []; R1 72, R4 80, R2 18 per issue-130-closeout.md);
-% outputs/expanded-study/v1/second-backbone-v3/evaluation/evidence.json (72 model episodes, complete_coverage true;
-% the file lists comparator_episodes 144 against expected 72; the closeout states 72/72 comparators replayed, used here);
-% outputs/choice-frontier/v1/evaluation/final-audit.json (144 replayed, CHOICE_SENSITIVE, ok true),
-% outputs/choice-frontier/v1/preparation/visual-choice-frontier/audit.json (episodes_rederived 58, PASS);
-% outputs/choice-frontier/o4/metrics/analysis.json episode_accounting (replay_passed 432, new_cpu 342, missing []).
-\end{table}
 
 % Paragraph purpose: Record the qualification gates that precede the program: the BFS pilot VALID_STOP, the BFWS structural gate PASS with its untouched held-out manifest, and the retired optimal A* arm.
 Three earlier gates frame the active algorithm matrix. The bounded BFS pilot closed with a governed \textsc{valid\_stop}: on a frozen outcome-blind 15-task BFS development panel, final checkpoints from five process-SFT seeds achieved 1.0 invariant-valid success with a 0.0 invalid-operation rate, but the base achieved 0.0 and random-valid achieved 1.0, so the learned policy showed executable BFS behavior with zero gain over the strongest control and downstream work was gated off. The BFWS structural gate then passed on its frozen development panel (Section~\ref{sec:results-primary}). The companion 45-task held-out manifest was frozen before outcomes and has never been accessed.
@@ -744,7 +712,7 @@ Every baseline process-SFT episode under BFS or BFWS fails (144/144). The DAgger
 \label{app:results-corruption}
 
 % Paragraph purpose: Report the corruption suite design and the exact per-cell deltas with intervals.
-The observation-corruption suite evaluated frozen checkpoints, with no retraining, on a prospectively frozen set of $k{=}9$ admitted tasks under four deterministic corruption families applied at observation time. Clean learned success on these tasks is 0.917 (text-state 0.944, visual-state 0.889, multimodal-state 0.889, with 9 tasks $\times$ 2 algorithms per cell). Table~\ref{tab:results-corruption} gives the paired whole-problem deltas. Text-channel corruption produces the largest drops. Masking or shuffling the text channel lowers success by up to $-0.944$ $[-1.000, -0.833]$, and the multimodal arm retains at most 0.167 success under shuffled text. Visual-channel corruption is not material. Blanking or degrading the rendered state costs at most $-0.111$ $[-0.278, +0.000]$, and every visual interval includes zero. The multimodal channel-isolation contrast, paired by task and algorithm ($n{=}18$), is $-0.806$ for text-channel corruption versus $-0.111$ for visual-channel corruption, giving text minus visual $-0.694$ with 95\% interval $[-0.889, -0.472]$, which is material under the frozen rule. Controls behave as the contract predicts: the corrupted base stays at floor (0/144, all first-decision invalid), random-valid succeeds 72/72 on the new frozen seeds, so per the saturation rule no structural-advantage claim is made, and exact execution remains at 18/18.
+The observation-corruption suite evaluated frozen checkpoints, with no retraining, on a prospectively frozen set of $k{=}9$ admitted tasks under four deterministic corruption families applied at observation time. Clean learned success on these tasks is 0.917 (text-state 0.944, visual-state 0.889, multimodal-state 0.889, with 9 tasks $\times$ 2 algorithms per cell). Table~\ref{tab:results-corruption} gives the paired whole-problem deltas. Copyability-preserving text shuffling lowers success by up to $-0.944$ $[-1.000, -0.833]$, and the multimodal arm retains at most 0.167 success under shuffled text. Masking instead destroys the output contract. Visual-channel corruption is not material. Blanking or degrading the rendered state costs at most $-0.111$ $[-0.278, +0.000]$, and every visual interval includes zero. The multimodal channel-isolation contrast, paired by task and algorithm ($n{=}18$), is $-0.806$ for text-channel corruption versus $-0.111$ for visual-channel corruption, giving text minus visual $-0.694$ with 95\% interval $[-0.889, -0.472]$, which is material under the frozen rule. This contrast pools the output-contract-destruction (masked) regime. Controls behave as the contract predicts: the corrupted base stays at floor (0/144, all first-decision invalid), random-valid succeeds 72/72 on the new frozen seeds, so per the saturation rule no structural-advantage claim is made, and exact execution remains at 18/18.
 
 \begin{table}[t]
 \caption{Observation corruption on frozen checkpoints ($k{=}9$ admitted tasks, paired whole-problem deltas against clean runs, strata below 8 descriptive-only under the frozen rule). ``Material'' is the frozen protocol's interval-based verdict.}
@@ -833,7 +801,7 @@ The pre-registered corruption payoff is a null. Under seq the images are the onl
 The degraded-strain test (stress test R4) evaluated the same frozen native adapters on the two generalization families where the full-scaffold adapters had degraded. The learned adapters succeed on 10/10 shifted-init and 10/10 scale-up episodes for both arms, and the pretrained base scores 0/20 on each strain (0/40 in total). The published full-scaffold rates on the same variants are 19/30 for shifted-init and 26/30 for scale-up (Appendix~\ref{app:results-secondary}). The two rates come from different episode sets and are not paired. The reduced contract sits at ceiling where the full scaffold degraded. A post-hoc, unpaired reading, with 10 visual-only episodes per arm against 30 full-scaffold episodes pooled over three modalities, suggests that the scaffold's scalar and bookkeeping text carried no useful signal on these variants.
 % Evidence: outputs/native-arms/v1/stress-evaluation.json variants|* cells (8 cells of 10 episodes, each pooling learned and base
 % episodes: 5 successes, 5 invalid); the episode store holds 40 learned_adapter and 40 pretrained_base variant files (80 total,
-% matching Table tab:results-gates "80 variant"); learned/base split per docs/experiments/native-arms/issue-130-closeout.md R4
+% matching Table tab:appendix-receipts "80 variant"); learned/base split per docs/experiments/native-arms/issue-130-closeout.md R4
 % ("base 0/20" per strain). Base total 0/40 per review 16 I20.
 
 \section{Results Detail: Choice-Frontier and Comparator-Zoo Receipts}
@@ -853,7 +821,7 @@ The control expansion sequences coincide across the two algorithms on every pane
 % Evidence: issue-132-closeout.md Erratum items 2 and 3.
 
 % Paragraph purpose: Give the #133 protocol facts, coverage, replay, and optimal-cost receipts moved from the body.
-Random-valid is the zoo floor and exact reference the imitation target. Random-valid and the three selectors also ran at 3$\times$ and 4$\times$ caps, outside the primary metric. Because the CPU selectors operate on the additive frontier, novelty-first selection does not reproduce BFWS pruning. Selector episodes replay the frozen model input, randomized menu, actions, admission, and budget, but do not generate or replay image view bindings. All 432/432 zoo bindings were observed and independently replayed, with 342 new CPU episodes, 90 original 2$\times$ random-valid controls reused, and none missing. The nine unit-cost optimal costs $C^*$ come from one offline planner computation per task with replay-verified plans: storage 3; elevators, ferry, and 15puzzle-compact 4; depot, hanoi, and visitall 5; blocksworld and 15puzzle-expanded 6.
+Random-valid is the zoo's uniform-choice reference and exact reference the imitation target. Random-valid and the three selectors also ran at 3$\times$ and 4$\times$ caps, outside the primary metric. Because the CPU selectors operate on the additive frontier, novelty-first selection does not reproduce BFWS pruning. Selector episodes replay the frozen model input, randomized menu, actions, admission, and budget, but do not generate or replay image view bindings. All 432/432 zoo bindings were observed and independently replayed, with 342 new CPU episodes, 90 original 2$\times$ random-valid controls reused, and none missing. The nine unit-cost optimal costs $C^*$ come from one offline planner computation per task with replay-verified plans: storage 3; elevators, ferry, and 15puzzle-compact 4; depot, towers-of-hanoi, and visitall 5; blocksworld and 15puzzle-expanded 6.
 % Evidence: docs/experiments/choice-frontier/issue-133-protocol.md; #133 closing comment (coverage and C* values);
 % outputs/choice-frontier/o4/metrics/analysis.json episode_accounting; outputs/choice-frontier/o4/metrics/optimal-costs.json.
 
@@ -867,9 +835,9 @@ Exploratory M4 on the stored episodes shows the learned adapter selecting the te
 % Evidence: #133 closing comment (M4, M5); outputs/choice-frontier/o4/metrics/stored-posthoc-analysis.json; analysis.json m5_informative_tasks_D
 % and m5_D_descriptive (0.3125 / 0.075 / 0.625); issue-132-closeout.md Erratum item 4 (first label 2.3%, teacher 12.0%, chance 10.4%, 978 records).
 
-% Paragraph purpose: Record the enumeration-contract identity-audit mechanism moved from Section 5.2.
-The enumeration-contract identity audit records its structural basis in the artifact. Each decision submits one remaining candidate, \texttt{finish\_expansion()} requires the complete candidate set, and heap serials follow the deterministic sorted candidate order at \texttt{start\_expansion}, so frontier evolution is invariant to submission order.
-% Evidence: outputs/native-arms/v1/identity-audit.json structural_basis (moved from Results 5.2 in Wave 2 pass 6).
+% Paragraph purpose: Point from the detailed receipts to the executed-controller mechanism pinned in Appendix B.
+The enumeration-contract identity audit's structural basis is pinned with the equal-priority tie-break and pre-submission serial assignment in the Algorithm Invariant Definitions appendix.
+% Evidence: outputs/native-arms/v1/identity-audit.json structural_basis; examples/planning_benchmark_slice/best_first_controller.py BestFirstController.start_expansion/apply_operation/finish_expansion.
 
 % Paragraph purpose: Record the #132 contrast protocol details moved from the body.
 The choice-frontier contrasts use percentile 95\% intervals with the frozen bootstrap resampling cells. Random-valid's seed frequency on storage is 0.2. The final audit returns \texttt{CHOICE\_SENSITIVE} with \texttt{ok} over 144 replayed episodes.
@@ -879,23 +847,9 @@ The choice-frontier contrasts use percentile 95\% intervals with the frozen boot
 \label{app:results-boundary}
 
 % Paragraph purpose: Report the executed seed-replication result for two cells.
-The prospective training-seed replication (seeds 17/29/71 frozen pre-launch, 534 new episodes independently replayed) executed on two cells (Table~\ref{tab:results-seed-variance}). On the headline process-SFT cell (greedy best-first $\times$ multimodal-state, 24-problem unseen panel), per-seed success is 21/24, 21/24, 22/24 (mean 0.889, range $[0.875, 0.917]$). The contrast against the pretrained base is positive at every seed ($+0.875$/$+0.875$/$+0.917$, no sign flip). The contrast against random-valid stays negative ($-0.125$/$-0.125$/$-0.083$). On the DAgger iteration-1 cell set (BFS $\times$ three modalities, DAgger and continued-SFT arms), every arm and seed scores 0/72 unseen, with paired contrast $+0.000$ $[+0.000, +0.000]$ at each seed. The published iteration-2 verdict (1/72 vs 1/72, seed 17) is unchanged. Both cells replicate across all three seeds. Cell A covers one of the three pooled headline modalities. The remaining two modalities and all other cells use seed 17 only. Cross-seed aggregation is descriptive ($n{=}3$). The image-only-arm proposal has since executed under the native-arms v2 amendment (Section~\ref{sec:results-native}), and its v1 gate remains as history.
+The prospective training-seed replication (seeds 17/29/71 frozen pre-launch, 534 new episodes independently replayed) executed on two cells (Table~\ref{tab:appendix-seeds}). In the greedy $\times$ multimodal replication cell (greedy best-first $\times$ multimodal-state, 24-problem unseen panel), per-seed success is 21/24, 21/24, 22/24 (mean 0.889, range $[0.875, 0.917]$). The contrast against the pretrained base is positive at every seed ($+0.875$/$+0.875$/$+0.917$, no sign flip). The contrast against random-valid stays negative ($-0.125$/$-0.125$/$-0.083$). On the DAgger iteration-1 cell set (BFS $\times$ three modalities, DAgger and continued-SFT arms), every arm and seed scores 0/72 unseen, with paired contrast $+0.000$ $[+0.000, +0.000]$ at each seed. The published iteration-2 verdict (1/72 vs 1/72, seed 17) is unchanged. Both cells replicate across all three seeds. Cell A covers one of the three pooled headline modalities. The remaining two modalities and all other cells use seed 17 only. Cross-seed aggregation is descriptive ($n{=}3$). The image-only-arm proposal has since executed under the native-arms v2 amendment (Section~\ref{sec:results-native}), and its v1 gate remains as history.
 % #127 closed 2026-09-21. #128 TODO retired: superseded by #129 (executed) and #130 (stress tests); see issue-129-closeout.md.
 
-\begin{table}[t]
-\caption{Prospective training-seed replication for the headline process-SFT cell (greedy best-first $\times$ multimodal-state, 24-problem unseen panel). Seeds 17/29/71 frozen pre-launch. 534 new episodes independently replayed. Aggregation descriptive ($n{=}3$).}
-\label{tab:results-seed-variance}
-\centering\small
-\begin{tabular}{lccc}
-\hline
-Measure & Seed 17 & Seed 29 & Seed 71 \\
-\hline
-Success /24 & 21/24 & 21/24 & 22/24 \\
-SFT $-$ base & $+0.875$ & $+0.875$ & $+0.917$ \\
-SFT $-$ random-valid & $-0.125$ & $-0.125$ & $-0.083$ \\
-\hline
-\end{tabular}
-\end{table}
 
 % Paragraph purpose: List the follow-up windows' development-stage limits separately from the main program.
 The follow-up windows share this development-stage status, and we list their limits separately. The native-arms window evaluates an 18-unit clean panel with one training seed per cell. The R1-R4 follow-up window reuses the frozen native-arms adapters for R1, R2, and R4, and trains one seed-17 run per cell for R3. The choice-frontier window trains one seed per algorithm on a 9-task panel whose discriminative subset holds one task. The comparator zoo is a CPU-only exploratory analysis. None of these windows accessed the held-out manifest. The shared nine-task panel draws from 8 domains with 7 compact and 2 expanded variants.

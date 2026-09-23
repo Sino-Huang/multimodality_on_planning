@@ -30,16 +30,16 @@ def arrow(ax, p, q, label=None, off=(0, 0.03)):
 
 fig, axes = plt.subplots(2, 1, figsize=(3.25, 3.3))
 for ax in axes:
-    ax.set_xlim(0, 1); ax.set_ylim(0, 1); ax.axis("off")
+    ax.set_xlim(-0.03, 1.03); ax.set_ylim(0, 1); ax.axis("off")
 
 # (a) enumeration contract
 ax = axes[0]
 ax.text(0, 0.97, "(a) Enumeration contract", weight="bold", fontsize=8, va="top")
 box(ax, 0.00, 0.40, 0.27, 0.34, "Grounded\ncandidate\nmenu", "#DCEBF5")
-box(ax, 0.37, 0.45, 0.22, 0.24, "Policy", "white", bold=True)
+box(ax, 0.33, 0.45, 0.20, 0.24, "Policy", "white", bold=True)
 box(ax, 0.69, 0.40, 0.31, 0.34, "Submission-order\ninvariant heap", "#EEEEEE")
-arrow(ax, (0.27, 0.57), (0.37, 0.57))
-arrow(ax, (0.59, 0.57), (0.69, 0.57), "one op")
+arrow(ax, (0.27, 0.57), (0.33, 0.57))
+arrow(ax, (0.53, 0.57), (0.69, 0.57), "one op")
 box(ax, 0.05, 0.04, 0.90, 0.22,
     "random-valid \u2261 exact reference, 48/48 additive pairs", "white", ec=BLUE, fs=7)
 
@@ -47,10 +47,10 @@ box(ax, 0.05, 0.04, 0.90, 0.22,
 ax = axes[1]
 ax.text(0, 0.97, "(b) Choice-frontier contract", weight="bold", fontsize=8, va="top")
 box(ax, 0.00, 0.40, 0.27, 0.34, "Runtime-owned\nfrontier\nstates", "#FBEBCB")
-box(ax, 0.37, 0.45, 0.22, 0.24, "Policy", "white", bold=True)
+box(ax, 0.33, 0.45, 0.20, 0.24, "Policy", "white", bold=True)
 box(ax, 0.69, 0.40, 0.31, 0.34, "Expand chosen\nstate (binding\ndecision budget)", "#EEEEEE")
-arrow(ax, (0.27, 0.57), (0.37, 0.57))
-arrow(ax, (0.59, 0.57), (0.69, 0.57), "select")
+arrow(ax, (0.27, 0.57), (0.33, 0.57))
+arrow(ax, (0.53, 0.57), (0.69, 0.57), "select")
 box(ax, 0.05, 0.04, 0.90, 0.22,
     "random \u2212 exact = \u22120.644 [\u22120.856, \u22120.422]", "white", ec=ORANGE, fs=7)
 

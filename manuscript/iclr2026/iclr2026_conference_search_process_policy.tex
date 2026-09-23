@@ -17,8 +17,7 @@ An episode fixes $(x, A, m, B)$: a task $x = (D, s_0, G)$ with deterministic gro
 % TODO: the fixed Search Memory capacity value is an open pre-registration
 % prerequisite (writing_design_tree.md); pin the value here once frozen.
 \textbf{Algorithm Invariant.} Deterministic per-algorithm properties are checked on every operation, namely FIFO order (BFS), novelty and goal-count priority (BFWS \citep{lipovetzky2017bestfirst}), and $g + 3h_{\rm add}$ or $h_{\rm add}$ order under a declared tie-break (weighted A* \citep{hart1968formal,pohl1970heuristic} and greedy best-first over $h_{\rm add}$ \citep{bonet2001planning}), and compliance establishes neither termination, completeness, optimality, nor success.
-% TODO: the per-algorithm tie-breaking convention must be recorded in the
-% Appendix evidence contract; the exact rule is not pinned in current sources.
+% Evidence (executed additive controller): examples/planning_benchmark_slice/pddl_state.py PDDLStateAuthority.applicable_actions and best_first_controller.py BestFirstController.start_expansion, apply_operation; equal-priority tie-breaking and serial assignment are pinned in Appendix B. BFWS tie-breaking remains separately unpinned.
 \textbf{Trusted Search Runtime.} The runtime only validates, applies, persists, or rejects, never choosing omitted operands, reordering candidates, or repairing, so raw emissions replay to the same trace (schemas and invariants in Appendix~\ref{appendix}).
 
 % Paragraph purpose: Define the learning objective, process supervision on trusted Search-Trace Segments, with optional DAgger.
