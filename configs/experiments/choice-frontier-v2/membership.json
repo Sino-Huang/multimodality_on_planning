@@ -1,0 +1,480 @@
+{
+  "schema_version": "choice_frontier_v2_membership_v1",
+  "protocol": "docs/experiments/choice-frontier/issue-135-protocol.md",
+  "task_ids": [
+    "choice-frontier-v2/15puzzle-expanded-935006",
+    "choice-frontier-v2/blocksworld-expanded-935001",
+    "choice-frontier-v2/blocksworld-expanded-935004",
+    "choice-frontier-v2/depot-expanded-935005",
+    "choice-frontier-v2/depot-expanded-935011",
+    "choice-frontier-v2/elevators-expanded-935000",
+    "choice-frontier-v2/elevators-expanded-935013",
+    "choice-frontier-v2/grid-expanded-935016",
+    "choice-frontier-v2/storage-expanded-935000",
+    "choice-frontier-v2/storage-expanded-935001",
+    "choice-frontier-v2/towers_of_hanoi-expanded-935000",
+    "choice-frontier-v2/towers_of_hanoi-expanded-935002"
+  ],
+  "membership_sha256": "b2d909cafc22efd3997fdfaa312fd8b04af5725f0e672ffa2f0d9be70311cd07",
+  "membership_canonical_form": "sha256 of json.dumps(sorted(task_ids), sort_keys=True, separators=(',', ':'))",
+  "freeze_rule": "admitted sorted by (domain, seed); at most 2 per domain; first 12",
+  "per_domain_counts": {
+    "15puzzle": {
+      "candidates": 20,
+      "kept": 19,
+      "admitted": 1
+    },
+    "blocksworld": {
+      "candidates": 20,
+      "kept": 15,
+      "admitted": 2
+    },
+    "depot": {
+      "candidates": 20,
+      "kept": 7,
+      "admitted": 2
+    },
+    "driverlog": {
+      "candidates": 20,
+      "kept": 17,
+      "admitted": 0
+    },
+    "elevators": {
+      "candidates": 20,
+      "kept": 5,
+      "admitted": 2
+    },
+    "ferry": {
+      "candidates": 20,
+      "kept": 2,
+      "admitted": 0
+    },
+    "grid": {
+      "candidates": 20,
+      "kept": 4,
+      "admitted": 1
+    },
+    "gripper": {
+      "candidates": 20,
+      "kept": 19,
+      "admitted": 0
+    },
+    "logistics": {
+      "candidates": 20,
+      "kept": 1,
+      "admitted": 0
+    },
+    "storage": {
+      "candidates": 20,
+      "kept": 18,
+      "admitted": 16
+    },
+    "towers_of_hanoi": {
+      "candidates": 20,
+      "kept": 20,
+      "admitted": 10
+    },
+    "visitall": {
+      "candidates": 20,
+      "kept": 0,
+      "admitted": 0
+    }
+  },
+  "domains": [
+    "15puzzle",
+    "blocksworld",
+    "depot",
+    "elevators",
+    "grid",
+    "storage",
+    "towers_of_hanoi"
+  ],
+  "per_task": {
+    "choice-frontier-v2/15puzzle-expanded-935006": {
+      "cstar": 8,
+      "R": {
+        "best_first_add_greedy": 46,
+        "best_first_add_w3": 12
+      },
+      "exact_decisions": {
+        "best_first_add_greedy": 47,
+        "best_first_add_w3": 13
+      },
+      "screen_random_goals": 1
+    },
+    "choice-frontier-v2/blocksworld-expanded-935001": {
+      "cstar": 10,
+      "R": {
+        "best_first_add_greedy": 26,
+        "best_first_add_w3": 26
+      },
+      "exact_decisions": {
+        "best_first_add_greedy": 27,
+        "best_first_add_w3": 27
+      },
+      "screen_random_goals": 4
+    },
+    "choice-frontier-v2/blocksworld-expanded-935004": {
+      "cstar": 10,
+      "R": {
+        "best_first_add_greedy": 13,
+        "best_first_add_w3": 13
+      },
+      "exact_decisions": {
+        "best_first_add_greedy": 14,
+        "best_first_add_w3": 14
+      },
+      "screen_random_goals": 2
+    },
+    "choice-frontier-v2/depot-expanded-935005": {
+      "cstar": 10,
+      "R": {
+        "best_first_add_greedy": 14,
+        "best_first_add_w3": 15
+      },
+      "exact_decisions": {
+        "best_first_add_greedy": 15,
+        "best_first_add_w3": 16
+      },
+      "screen_random_goals": 1
+    },
+    "choice-frontier-v2/depot-expanded-935011": {
+      "cstar": 9,
+      "R": {
+        "best_first_add_greedy": 13,
+        "best_first_add_w3": 13
+      },
+      "exact_decisions": {
+        "best_first_add_greedy": 14,
+        "best_first_add_w3": 14
+      },
+      "screen_random_goals": 1
+    },
+    "choice-frontier-v2/elevators-expanded-935000": {
+      "cstar": 8,
+      "R": {
+        "best_first_add_greedy": 11,
+        "best_first_add_w3": 11
+      },
+      "exact_decisions": {
+        "best_first_add_greedy": 12,
+        "best_first_add_w3": 12
+      },
+      "screen_random_goals": 2
+    },
+    "choice-frontier-v2/elevators-expanded-935013": {
+      "cstar": 8,
+      "R": {
+        "best_first_add_greedy": 11,
+        "best_first_add_w3": 11
+      },
+      "exact_decisions": {
+        "best_first_add_greedy": 12,
+        "best_first_add_w3": 12
+      },
+      "screen_random_goals": 2
+    },
+    "choice-frontier-v2/grid-expanded-935016": {
+      "cstar": 8,
+      "R": {
+        "best_first_add_greedy": 9,
+        "best_first_add_w3": 9
+      },
+      "exact_decisions": {
+        "best_first_add_greedy": 10,
+        "best_first_add_w3": 10
+      },
+      "screen_random_goals": 4
+    },
+    "choice-frontier-v2/storage-expanded-935000": {
+      "cstar": 10,
+      "R": {
+        "best_first_add_greedy": 20,
+        "best_first_add_w3": 17
+      },
+      "exact_decisions": {
+        "best_first_add_greedy": 21,
+        "best_first_add_w3": 18
+      },
+      "screen_random_goals": 1
+    },
+    "choice-frontier-v2/storage-expanded-935001": {
+      "cstar": 8,
+      "R": {
+        "best_first_add_greedy": 18,
+        "best_first_add_w3": 15
+      },
+      "exact_decisions": {
+        "best_first_add_greedy": 19,
+        "best_first_add_w3": 16
+      },
+      "screen_random_goals": 2
+    },
+    "choice-frontier-v2/towers_of_hanoi-expanded-935000": {
+      "cstar": 13,
+      "R": {
+        "best_first_add_greedy": 24,
+        "best_first_add_w3": 25
+      },
+      "exact_decisions": {
+        "best_first_add_greedy": 25,
+        "best_first_add_w3": 26
+      },
+      "screen_random_goals": 1
+    },
+    "choice-frontier-v2/towers_of_hanoi-expanded-935002": {
+      "cstar": 15,
+      "R": {
+        "best_first_add_greedy": 24,
+        "best_first_add_w3": 26
+      },
+      "exact_decisions": {
+        "best_first_add_greedy": 25,
+        "best_first_add_w3": 27
+      },
+      "screen_random_goals": 2
+    }
+  },
+  "tasks": [
+    {
+      "row": {
+        "task_id": "choice-frontier-v2/15puzzle-expanded-935006",
+        "domain": "15puzzle",
+        "difficulty": "expanded",
+        "split": "test",
+        "task_path": "outputs/choice-frontier/v2/candidates/15puzzle-expanded-935006/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "best_first_add_greedy": {
+            "decisions": 47,
+            "expansions": 46
+          },
+          "best_first_add_w3": {
+            "decisions": 13,
+            "expansions": 12
+          }
+        }
+      }
+    },
+    {
+      "row": {
+        "task_id": "choice-frontier-v2/blocksworld-expanded-935001",
+        "domain": "blocksworld",
+        "difficulty": "expanded",
+        "split": "test",
+        "task_path": "outputs/choice-frontier/v2/candidates/blocksworld-expanded-935001/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "best_first_add_greedy": {
+            "decisions": 27,
+            "expansions": 26
+          },
+          "best_first_add_w3": {
+            "decisions": 27,
+            "expansions": 26
+          }
+        }
+      }
+    },
+    {
+      "row": {
+        "task_id": "choice-frontier-v2/blocksworld-expanded-935004",
+        "domain": "blocksworld",
+        "difficulty": "expanded",
+        "split": "test",
+        "task_path": "outputs/choice-frontier/v2/candidates/blocksworld-expanded-935004/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "best_first_add_greedy": {
+            "decisions": 14,
+            "expansions": 13
+          },
+          "best_first_add_w3": {
+            "decisions": 14,
+            "expansions": 13
+          }
+        }
+      }
+    },
+    {
+      "row": {
+        "task_id": "choice-frontier-v2/depot-expanded-935005",
+        "domain": "depot",
+        "difficulty": "expanded",
+        "split": "test",
+        "task_path": "outputs/choice-frontier/v2/candidates/depot-expanded-935005/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "best_first_add_greedy": {
+            "decisions": 15,
+            "expansions": 14
+          },
+          "best_first_add_w3": {
+            "decisions": 16,
+            "expansions": 15
+          }
+        }
+      }
+    },
+    {
+      "row": {
+        "task_id": "choice-frontier-v2/depot-expanded-935011",
+        "domain": "depot",
+        "difficulty": "expanded",
+        "split": "test",
+        "task_path": "outputs/choice-frontier/v2/candidates/depot-expanded-935011/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "best_first_add_greedy": {
+            "decisions": 14,
+            "expansions": 13
+          },
+          "best_first_add_w3": {
+            "decisions": 14,
+            "expansions": 13
+          }
+        }
+      }
+    },
+    {
+      "row": {
+        "task_id": "choice-frontier-v2/elevators-expanded-935000",
+        "domain": "elevators",
+        "difficulty": "expanded",
+        "split": "test",
+        "task_path": "outputs/choice-frontier/v2/candidates/elevators-expanded-935000/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "best_first_add_greedy": {
+            "decisions": 12,
+            "expansions": 11
+          },
+          "best_first_add_w3": {
+            "decisions": 12,
+            "expansions": 11
+          }
+        }
+      }
+    },
+    {
+      "row": {
+        "task_id": "choice-frontier-v2/elevators-expanded-935013",
+        "domain": "elevators",
+        "difficulty": "expanded",
+        "split": "test",
+        "task_path": "outputs/choice-frontier/v2/candidates/elevators-expanded-935013/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "best_first_add_greedy": {
+            "decisions": 12,
+            "expansions": 11
+          },
+          "best_first_add_w3": {
+            "decisions": 12,
+            "expansions": 11
+          }
+        }
+      }
+    },
+    {
+      "row": {
+        "task_id": "choice-frontier-v2/grid-expanded-935016",
+        "domain": "grid",
+        "difficulty": "expanded",
+        "split": "test",
+        "task_path": "outputs/choice-frontier/v2/candidates/grid-expanded-935016/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "best_first_add_greedy": {
+            "decisions": 10,
+            "expansions": 9
+          },
+          "best_first_add_w3": {
+            "decisions": 10,
+            "expansions": 9
+          }
+        }
+      }
+    },
+    {
+      "row": {
+        "task_id": "choice-frontier-v2/storage-expanded-935000",
+        "domain": "storage",
+        "difficulty": "expanded",
+        "split": "test",
+        "task_path": "outputs/choice-frontier/v2/candidates/storage-expanded-935000/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "best_first_add_greedy": {
+            "decisions": 21,
+            "expansions": 20
+          },
+          "best_first_add_w3": {
+            "decisions": 18,
+            "expansions": 17
+          }
+        }
+      }
+    },
+    {
+      "row": {
+        "task_id": "choice-frontier-v2/storage-expanded-935001",
+        "domain": "storage",
+        "difficulty": "expanded",
+        "split": "test",
+        "task_path": "outputs/choice-frontier/v2/candidates/storage-expanded-935001/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "best_first_add_greedy": {
+            "decisions": 19,
+            "expansions": 18
+          },
+          "best_first_add_w3": {
+            "decisions": 16,
+            "expansions": 15
+          }
+        }
+      }
+    },
+    {
+      "row": {
+        "task_id": "choice-frontier-v2/towers_of_hanoi-expanded-935000",
+        "domain": "towers_of_hanoi",
+        "difficulty": "expanded",
+        "split": "test",
+        "task_path": "outputs/choice-frontier/v2/candidates/towers_of_hanoi-expanded-935000/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "best_first_add_greedy": {
+            "decisions": 25,
+            "expansions": 24
+          },
+          "best_first_add_w3": {
+            "decisions": 26,
+            "expansions": 25
+          }
+        }
+      }
+    },
+    {
+      "row": {
+        "task_id": "choice-frontier-v2/towers_of_hanoi-expanded-935002",
+        "domain": "towers_of_hanoi",
+        "difficulty": "expanded",
+        "split": "test",
+        "task_path": "outputs/choice-frontier/v2/candidates/towers_of_hanoi-expanded-935002/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "best_first_add_greedy": {
+            "decisions": 25,
+            "expansions": 24
+          },
+          "best_first_add_w3": {
+            "decisions": 27,
+            "expansions": 26
+          }
+        }
+      }
+    }
+  ]
+}
