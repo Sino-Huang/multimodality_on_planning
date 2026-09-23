@@ -1,11 +1,14 @@
 """Figure: enumeration vs choice-frontier contract schematic (wide, two panels side by side).
 
-Numbers are read from the pinned evidence JSONs in the evidence repository:
+Numbers are read from pinned evidence files in the evidence repository:
   outputs/native-arms/v1/identity-audit.json            (pairs_identical / pairs_checked)
-  outputs/choice-frontier/v1/evaluation/identity-audit.json (pairs_divergent / pairs_checked)
+  docs/experiments/expanded-study/synthesis-v1/baseline-contrasts.csv
+      (random_valid_minus_exact_reference rows for best_first_add_{greedy,w3}: difference, problems)
+  outputs/choice-frontier/v1/evaluation/identity-audit.json (pairs_divergent / pairs_checked, task ids)
   outputs/choice-frontier/v1/evaluation/analysis.json   (contrasts.random_valid_minus_exact_reference)
 Run: python fig_contracts.py [EVIDENCE_ROOT]  -> fig_contracts.pdf, fig_contracts.svg, fig_contracts.png
 """
+import csv
 import json
 import sys
 from pathlib import Path
@@ -29,6 +32,18 @@ cf_id = load("outputs/choice-frontier/v1/evaluation/identity-audit.json")
 diff = load("outputs/choice-frontier/v1/evaluation/analysis.json")["contrasts"][
     "random_valid_minus_exact_reference"]
 lo, hi = diff["ci95"]
+
+with open(ROOT / "docs/experiments/expanded-study/synthesis-v1/baseline-contrasts.csv") as fh:
+    add_rows = [r for r in csv.DictReader(fh)
+                if r["contrast"] == "random_valid_minus_exact_reference"
+                and r["algorithm"] in ("best_first_add_greedy", "best_first_add_w3")]
+assert len(add_rows) == 6, len(add_rows)
+assert all(float(r["difference"]) == 0.0 for r in add_rows), add_rows
+enum_tasks = {int(r["problems"]) for r in add_rows}
+assert len(enum_tasks) == 1, enum_tasks
+enum_tasks = enum_tasks.pop()
+assert enum["pairs_checked"] == 2 * enum_tasks, (enum["pairs_checked"], enum_tasks)
+cf_tasks = len({p["cell"].split("|")[0] for p in cf_id["pairs"]})
 MINUS = "\u2212"
 
 
@@ -36,9 +51,11 @@ def f3(v):
     return f"{v:.3f}".replace("-", MINUS)
 
 
-enum_txt = (f"random-valid \u2261 exact reference\n"
-            f"{enum['pairs_identical']}/{enum['pairs_checked']} additive pairs identical")
-cf_txt = (f"{cf_id['pairs_divergent']}/{cf_id['pairs_checked']} cells divergent\n"
+enum_txt = (f"{enum['pairs_identical']}/{enum['pairs_checked']} additive pairs identical"
+            f" ({enum_tasks} tasks)\n"
+            f"random-valid {MINUS} exact reference\n"
+            f"= {float(add_rows[0]['difference']):+.3f}")
+cf_txt = (f"{cf_id['pairs_divergent']}/{cf_id['pairs_checked']} pairs divergent ({cf_tasks} tasks)\n"
           f"random-valid {MINUS} exact reference\n"
           f"= {f3(diff['mean'])} [{f3(lo)}, {f3(hi)}]")
 
@@ -74,7 +91,7 @@ def panel(ax, title, left, left_fc, verb, right, result, ec):
 
 fig, axes = plt.subplots(1, 2, figsize=(5.5, 1.67))
 panel(axes[0], "(a) Enumeration contract", "Grounded\ncandidate\nmenu", "#DCEBF5",
-      "one op", "Order-invariant\nheap", enum_txt, BLUE)
+      "one op", "Submission-\norder-invariant\nfrontier", enum_txt, BLUE)
 panel(axes[1], "(b) Choice-frontier contract", "Runtime\nfrontier\nstates", "#FBEBCB",
       "select", "Expand chosen\nstate", cf_txt, ORANGE)
 fig.subplots_adjust(left=0.01, right=0.99, top=0.98, bottom=0.02, wspace=0.08)

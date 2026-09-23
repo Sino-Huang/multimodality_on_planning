@@ -2,6 +2,22 @@
 
 The record of what changed in the ICLR 2026 manuscript and why. Newest first. Each entry names the commit, the scope of the change, and the review or ticket it answered. Review findings and their status live in `review-log.md`; claim vocabulary and boundaries live in `CONTEXT.md`.
 
+## 2026-09-23 — review 19 and consolidation (CONS)
+
+- Review 19 (paper-reviewer, re-review at `1281c1b`) returned WEAK REJECT, with 0 CRITICAL, 1 MAJOR (finding 49, blocked on #134), and 8 MINOR findings. Every number in the rendered PDF matches its pinned artifact, and the 16 sampled `% Evidence` comments resolve. zheng2024robust matches its primary sources. The main text is 9 pages. Full text is in `review-log.md`.
+- Consolidation closed the WORDING items:
+  - Review-16 finding 15 regression: the Related Work positioning sentence ("This paper operationalizes the known admissible-action handicap ...") is restored.
+  - 51 remainder: the Related Work menu-probe sentence now says only the unrun position variant would separate surface-following from state grounding.
+  - 53 remainder: four more `% Evidence` lines were added, and two wrong pointers were corrected by Main (the BFWS gate bootstrap now cites `configs/experiments/bfws_phase_threshold_v1.json`, and the backbone revision cites `goal10-completion-audit.json` L7).
+  - 56 remainder: Section 3 now points invariants to the Algorithm Invariant Definitions appendix.
+  - 66: Figure 1 uses "pairs" in both panels with task counts, adds the enumeration-contract random-valid minus exact +0.000 (read from `synthesis-v1/baseline-contrasts.csv`), relabels the node "Submission-order-invariant frontier", and the caption states the panels differ.
+  - 67: the abstract's closing sentences are rewritten.
+  - 68: the Related Work comma splice is fixed.
+  - 49 (wording part): Contribution 1 hedges the 18/18 divergence as holding by construction over 9 tasks. The Introduction's closing sentence states that portability beyond this runtime is untested.
+  - 60 (interim): 5.10 and App R note that no M4 interval is computed and that decisions cluster within 9 tasks.
+- Still open: findings 49 and 60 wait on evidence ticket #134 (the same-runtime submission-order-serial counterfactual and the M4 task-cluster intervals). Finding 40 remains WONTFIX.
+- Build: 29 pages, 0 errors, 0 undefined, 0 overfull, 0 bibtex warnings. The Conclusion ends on p.9.
+
 ## 2026-09-23 — review 18 wave 3, compliance and hygiene (`640467b`)
 
 - Findings 53, 56, 57, 61, 63, 64, 65 and the finding 44 and 45 remainders are CLOSED.
@@ -103,7 +119,7 @@ The record of what changed in the ICLR 2026 manuscript and why. Newest first. Ea
 bash manuscript/build_pdf.sh          # writes manuscript/manuscript.pdf
 ```
 
-Last verified build (`e5c4c09`): 29 pages, 0 errors, 0 undefined references or citations, 0 overfull boxes, 0 bibtex warnings; main text through the Conclusion is 9 pages. Headline numbers were re-checked in the rendered PDF text against the pinned artifacts listed in `review-log.md`.
+Last verified build (CONS): 29 pages, 0 errors, 0 undefined references or citations, 0 overfull boxes, 0 bibtex warnings; main text through the Conclusion is 9 pages. Headline numbers were re-checked in the rendered PDF text against the pinned artifacts listed in `review-log.md`.
 
 ## Open items
 
