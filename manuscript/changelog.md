@@ -2,6 +2,12 @@
 
 The record of what changed in the ICLR 2026 manuscript and why. Newest first. Each entry names the commit, the scope of the change, and the review or ticket it answered. Review findings and their status live in `review-log.md`; claim vocabulary and boundaries live in `CONTEXT.md`.
 
+## 2026-09-23 — review 18 wave 1, claim scoping (WAVE1)
+
+- Findings 51, 52, 54, 55, 58, 59, 62 CLOSED, each per the author's Phase 0 decision (reviewer's prescribed fix). Menu manipulation is demoted in Abstract, Contribution 1, and Conclusion to a probe whose discriminating fixed-versus-random-position variant remains unrun; the Conclusion keeps only the identity audit (51). The Conclusion's last-label sentence is replaced by "without demonstrated choice quality", the below-random M1 contrast with "which is not equivalence", and a post-hoc label audit; 5.10 and App R label M4 post-hoc with no last-label comparator (52). 5.4 matched modality "does not support" an intrinsic modality effect, "non-significance is not equivalence" (54). 5.4 and App M recast the second backbone as an unpaired architecture-difference limitation per analysis.json architecture_note (55). 5.5, App N, and Discussion give the descriptive failure calibration (229/407 invariant rejections, 72/407 malformed) and drop "teaches" and "frontier intent" (58). App Q gives the operand-removal reading (59). Discussion scopes learnability to the additive-cell output contract (BFS/BFWS 0/24) and the language-channel dependence to the shuffled condition (62).
+- Held: 49 and 60, pending an evidence search the author requested (see wave 2). Length offsets trimmed connectives in Abstract, Introduction, Discussion, and 5.10 to hold the 9-page main text.
+- Build: 29 pages, 0 errors, 0 undefined, 0 overfull, 0 bibtex warnings; Conclusion ends p.9.
+
 ## 2026-09-23 — round 3 opening, review 17 bookkeeping
 
 - `review-log.md`: finding 48 flipped to CLOSED (`e5c4c09`, fix verified in fig_contracts.png), review 17 index row to CLOSED, review 16 index row to SUPERSEDED. No manuscript text changed.

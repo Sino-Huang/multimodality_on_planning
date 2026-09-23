@@ -5,12 +5,12 @@
 We train vision-language models to execute declared classical search algorithms step by step against a no-repair runtime and test whether such training can be measured to improve search choice.
 On the additive best-first cells of the original enumeration contract, where an expansion must submit its complete candidate set and heap order ignores submission order, a random-valid control is decision- and expansion-identical to the exact classical reference on 48/48 pairs, so choice quality is unmeasurable there by construction.
 % Evidence: outputs/native-arms/v1/identity-audit.json (pairs_checked 48, additive pairs only).
-The BFS and width-based best-first cells of the same contract do register choice (random-valid 15/24 and 17/24 versus exact 24/24), and the learned policy scores 0/24 on each.
+The BFS and width-based best-first cells do register choice (random-valid 15/24 and 17/24 versus exact 24/24), and the learned policy scores 0/24 on each.
 % Evidence: expanded 24-task baseline, Results Table tab:results-primary-matrix (BFS/BFWS rows, per modality).
-Menu permutation leaves 36/36 successes with 0/512 invalid operations, which is uninformative about order under submission-order invariance. Injecting schema-valid but inapplicable distractors collapses success to 0/36 at a distractor pick-rate of 0.6, against a chance rate of 0.592 to 0.625, so the policy does not reject such entries.
+Menu permutation leaves 36/36 successes with 0/512 invalid operations, uninformative about order under submission-order invariance. Injecting schema-valid but inapplicable distractors collapses success to 0/36 at a pick-rate of 0.6, against a chance rate of 0.592 to 0.625, so the policy does not reject such entries.
 % Evidence: outputs/native-arms/v1/stress-evaluation.json; chance rate recomputed from outputs/native-arms/v1/evaluation/episodes/menu/*/*/*distractor-injection-learned_adapter.json.gz (review 16, finding 2).
-We therefore redesign the decision as a choice-frontier contract, in which the policy selects which runtime-owned frontier state to expand under a binding decision budget.
-Its pre-registered identity gate passes on 9/9 tasks (18 cells, with coincident control sequences across algorithms), a by-construction sanity check, and random-valid minus exact reference is $-0.644$ (frozen 95\% CI $[-0.856, -0.422]$, post-hoc task-clustered $[-0.889, -0.333]$).
+We therefore redesign the decision as a choice-frontier contract, where the policy selects which runtime-owned frontier state to expand under a binding budget.
+Its pre-registered identity gate passes on 9/9 tasks (18 cells, coincident control sequences across algorithms), a by-construction sanity check, and random-valid minus exact reference is $-0.644$ (frozen 95\% CI $[-0.856, -0.422]$, post-hoc task-clustered $[-0.889, -0.333]$).
 % Evidence: outputs/choice-frontier/v1/evaluation/{identity-audit,analysis}.json.
 % Evidence: task-clustered interval from docs/experiments/choice-frontier/issue-132-closeout.md Erratum, post-hoc.
 
@@ -23,5 +23,5 @@ No equivalence margin was pre-registered.
 The single positive learned contrast is on a 15-task width-based best-first development panel of the enumeration contract (0.933 versus 0.467 for random-valid).
 All results are development-stage and single-seed except two replication cells, saturating controls bound measurability rather than policy quality, and the held-out final evaluation has not been run.
 % Held-out final primary evaluation has no open ticket; stated in prose per the round-2 TODO convention.
-The paper offers a measurement result and two cheap hygiene checks, per-decision identity and menu manipulation, not planning ability.
+The paper offers a measurement result, not planning ability, with a per-decision identity check, plus a menu-manipulation probe whose discriminating variant (fixed versus random distractor position) remains unrun.
 \end{abstract}
