@@ -1701,8 +1701,10 @@ def evaluate_worker(algorithm: str, seed: int, endpoint: str) -> dict:
 
 
 def audit_evaluate_worker() -> dict:
-    terminal = read_json(Path(os.environ["EXPANDED_TERMINAL_PATH"]))
-    path = Path(os.environ["EXPANDED_ATTEMPT_DIR"]) / "worker-result.json"
+    terminal_path = Path(os.environ["EXPANDED_TERMINAL_PATH"])
+    terminal = read_json(terminal_path)
+    # The completion hook only receives EXPANDED_TERMINAL_PATH; the attempt dir is its parent.
+    path = terminal_path.parent / "worker-result.json"
     result = read_json(path) if path.is_file() else {}
     ok = terminal["status"] == "succeeded" and (
         result.get("episodes_completed", 0) > 0 or result.get("gated_out_by_smoke") is True
