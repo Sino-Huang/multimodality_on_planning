@@ -137,7 +137,7 @@ Ledger: Verified: 37, 38, 39, 41, 42, 43, 46, 47, 48, 9 (remainder), 11 (remaind
 - **Issue:** Half of the shipped audit has no demonstrated discriminating power, by the paper's own account. Permutation is uninformative wherever the identity check already fires, because any listed candidate succeeds. Distractor injection returns a pick-rate at chance (0.6 against 0.592-0.625), which the text says content-reading and position habits both predict. Its only informative output, "does not reject schema-valid inapplicable entries", is equally implied by the runtime's reject-and-terminate design plus a policy that never saw distractors in training ("these out-of-distribution distractors never appeared in training menus", L313). Menu manipulation therefore could not have lost on this panel. Recommending it to other evaluators as a "hygiene check" is a claim about instrument validity that no executed result supports. The Conclusion's "menu audits expose this" credits it with exposing the measurability failure, which only the identity check did.
 - **Fix:** Either run the fixed-versus-random-position distractor test that 5.7 names (the same 36 native-adapter episodes, with distractors at the first position, the last position, and random positions). Report the pick-rate by position against the per-position chance rate. Keep menu manipulation as a contribution only if the two arms separate. Or demote it: in Abstract and Contribution 1, write "a per-decision identity check, plus a menu-manipulation probe whose discriminating variant (fixed versus random distractor position) remains unrun". In the Conclusion, write "a cheap per-decision identity audit exposes this". **Experiment that would change the verdict:** the fixed-versus-random-position test, because it is the only design under which content-reading and position habits predict different pick-rates.
 - **Fix class:** MEANING
-- **Status:** OPEN (r18)
+- **Status:** CLOSED (`9de44ad`)
 
 #### 52 · MAJOR · Axis 4 (claim outpacing evidence) / claim discipline (post-hoc label, no equivalence) · `iclr2026_conference_discussion.tex (Conclusion); iclr2026_conference_results.tex (5.10); iclr2026_conference_appendix.tex (App R)`
 
@@ -145,7 +145,7 @@ Ledger: Verified: 37, 38, 39, 41, 42, 43, 46, 47, 48, 9 (remainder), 11 (remaind
 - **Issue:** The Conclusion's key sentence makes three errors. (a) It rests on post-hoc M4 but carries no post-hoc label, which the binding claim discipline requires for post-hoc analyses. (b) "Not distinguishable from X" is an equivalence-flavoured statement with no pre-registered margin, and it has no adjacent non-equivalence sentence (the paper's own rule, App F p.18 L945-947). (c) The numbers argue against it. Under per-decision seeded permutation, a pure last-label habit predicts heap-head agreement at chance (≈26.9%) and a last-label rate near 100%. The observed values are 17.4% (below chance) and 54.5%, with no interval (finding 60). No last-label comparator was run in the zoo. There is also an unexamined non-positional pattern. On all six solved depot/elevators/ferry cells the adapter's expansion counts equal `bfs-order`'s exactly (8/6/7 on both algorithms; `o4/metrics/all-episode-metrics.json` records[arm ∈ {learned_adapter, bfs-order}, multiplier 2].expansions). The #132 erratum records the same coincidence against the frozen BFS reference (issue-132-closeout.md L131-132). [INFERENCE] This is weak evidence, since random-valid seed 17 reaches 7/6/7 on the same tasks, but it is an alternative the sentence silently excludes. The adjudication record adopted the stricter rule that declines generalized negative mechanism claims before a pre-registered follow-up (metric-adjudication-2026-09-23.md L118-125).
 - **Fix:** Replace the sentence with: "The choice-frontier redesign separates the controls, and the adapter learns to emit valid choices without demonstrated choice quality. Its solve-versus-budget score lies below random-valid (paired −0.035 [−0.150, +0.061], which is not equivalence), and a post-hoc label audit finds 54.5% last-label emissions." Add the post-hoc label and the non-equivalence clause wherever the last-label reading appears in the body.
 - **Fix class:** MEANING
-- **Status:** OPEN (r18)
+- **Status:** CLOSED (`9de44ad`)
 
 #### 53 · MAJOR · Compliance (binding rule: every number carries an adjacent `%` artifact comment) · `iclr2026_conference_abstract.tex; iclr2026_conference_results.tex; iclr2026_conference_appendix.tex`
 
@@ -171,7 +171,7 @@ Ledger: Verified: 37, 38, 39, 41, 42, 43, 46, 47, 48, 9 (remainder), 11 (remaind
 - **Issue:** "Shows no effect" asserts absence from a 3-problem panel (12 episodes per modality) under a saturating reference, with no interval and no margin. The binding discipline forbids equivalence claims without a pre-registered margin. The same paper states the correct, weaker boundary three times elsewhere, so the 5.4 wording is also an Axis 3 inconsistency.
 - **Fix:** "Matched modality (process SFT 5/12, 6/12, and 6/12 versus 10/12 random-valid per modality, a 3-problem panel) does not support an intrinsic modality effect, and non-significance is not equivalence".
 - **Fix class:** MEANING
-- **Status:** OPEN (r18)
+- **Status:** CLOSED (`9de44ad`)
 
 #### 55 · MINOR · Axis 4 (overclaimed causality; limitation recast as control) · `iclr2026_conference_results.tex (5.4); iclr2026_conference_appendix.tex (App M)`
 
@@ -179,7 +179,7 @@ Ledger: Verified: 37, 38, 39, 41, 42, 43, 46, 47, 48, 9 (remainder), 11 (remaind
 - **Issue:** The artifact records the backbone difference as a *limitation*. The prose turns it into an isolating design. Nothing is isolated. The LLM weights differ after each vendor's multimodal training, the panel is a key-cell subset, and the cross-backbone contrast is explicitly unpaired. The within-InternVL contrast in the same sentence (BFS 0/36 against greedy 31/36) varies the algorithm, not the vision stack.
 - **Fix:** 5.4: "…(base 0/36, random-valid saturating), an unpaired architecture comparison because the two backbones differ in vision tower, connector, tokenization, and multimodal training (Appendix M)". App M: "InternVL3.5-8B shares the Qwen3-8B LLM family, so the comparison differs in the vision tower, connector, image tokenization, and multimodal recipe, and it is reported as an architecture-difference limitation".
 - **Fix class:** MEANING
-- **Status:** OPEN (r18)
+- **Status:** CLOSED (`9de44ad`)
 
 #### 56 · MINOR · Axis 3 (cross-reference resolves to the wrong appendix) · `iclr2026_conference_results.tex; iclr2026_conference_reproducibility.tex`
 
@@ -203,7 +203,7 @@ Ledger: Verified: 37, 38, 39, 41, 42, 43, 46, 47, 48, 9 (remainder), 11 (remaind
 - **Issue:** The calibration is declared "descriptive" (App N L1313). No arm isolates what supervision teaches: there is no format-only or shuffled-target control. "Teaches well-formed operations" is contradicted by the 72/407 learned failures that are malformed outputs and the 56 inapplicable grounded actions (Table 3). "Frontier intent" is undefined anywhere in the paper.
 - **Fix:** 5.5: "The calibration is descriptive: after process supervision, most learned failures (229/407) are parsed, source-correct operations rejected by the search invariant, and 72/407 remain malformed outputs." Apply the same narrowing in App N and the Discussion ("after process supervision, most learned emissions parse, and the dominant failure is an invariant rejection").
 - **Fix class:** MEANING
-- **Status:** OPEN (r18)
+- **Status:** CLOSED (`9de44ad`)
 
 #### 59 · MINOR · Axis 4 (interpretation stronger than the unpaired numbers; alternative unnamed) · `iclr2026_conference_appendix.tex (App Q)`
 
@@ -211,7 +211,7 @@ Ledger: Verified: 37, 38, 39, 41, 42, 43, 46, 47, 48, 9 (remainder), 11 (remaind
 - **Issue:** On these additive cells the identity audit makes any listed candidate a correct emission (App Q L1421-1422). So the full scaffold's 19/30 shifted-init result reflects emission failures ("All 22 learned failures are single-invalid-operation terminations", App M L1223-1224), not a signal deficit. The reduced contract removes the g/h/f operands the full-scaffold adapters had to emit, and with them the failure surface. "Carried no useful signal" confuses fewer ways to fail with less information.
 - **Fix:** "…is consistent with the reduced contract removing scalar operands whose emission the full-scaffold adapters failed, and it does not measure whether that text carried signal, since any listed candidate succeeds on these cells".
 - **Fix class:** MEANING
-- **Status:** OPEN (r18)
+- **Status:** CLOSED (`9de44ad`)
 
 #### 60 · MINOR · Axis 2 (statistical hygiene) · `iclr2026_conference_results.tex (5.10); iclr2026_conference_appendix.tex (App R)`
 
@@ -235,7 +235,7 @@ Ledger: Verified: 37, 38, 39, 41, 42, 43, 46, 47, 48, 9 (remainder), 11 (remaind
 - **Issue:** "Candidate enumeration" is exactly what fails. Process SFT scores 0/24 in every BFS and BFWS cell (144/144 failures, App N L1323), where the policy must select unvisited or admissible successors. Success appears only in additive cells, where the identity audit says any listed candidate is correct. Read literally, the second sentence says the controller depends on the text only when the text is shuffled, which inverts the corruption finding.
 - **Fix:** "Within that boundary the additive-cell output contract is learnable (BFS and BFWS cells score 0/24)…" and "…and the language-channel dependence is supported only by the copyability-preserving shuffled condition".
 - **Fix class:** MEANING
-- **Status:** OPEN (r18)
+- **Status:** CLOSED (`9de44ad`)
 
 #### 63 · MINOR · Axis 3 (ledger description inconsistent) · `iclr2026_conference_results.tex (5.1); iclr2026_conference_appendix.tex (App J)`
 
