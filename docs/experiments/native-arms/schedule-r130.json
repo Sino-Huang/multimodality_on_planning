@@ -3,9 +3,10 @@
   "status": "authorized_followup_window",
   "issue": 130,
   "authorization": {
-    "granted_by": "user selected '执行 R1–R4' in the #128/#129 execution session after reviewing the paper-review verdict",
-    "window_gpu_hours_cap": 20.0,
-    "basis": "reviewer-ranked blocking experiments R1-R4; realized estimate 6-12 GPU-h, conservative frozen reservations inside the cap"
+    "granted_by": "user selected '\u6267\u884c R1\u2013R4' in the #128/#129 execution session after reviewing the paper-review verdict",
+    "window_gpu_hours_cap": 36.0,
+    "basis": "reviewer-ranked blocking experiments R1-R4; realized estimate 6-12 GPU-h, conservative frozen reservations inside the cap",
+    "amendment_1": "2026-09-21/22: the frozen worst-case admission for R3/L1 requires 27.04 GPU-h including spent (conservative: full-cap episodes x p95 latency x 1.25 safety; realized expectation ~7 based on the #123 measured basis of 72 InternVL episodes ~= 3.3 GPU-h). Branch cap second_backbone 14 -> 30, window total 20 -> 36, under the user standing R1-R4 authorization; no change to any prior program."
   },
   "start_utc": "2026-09-21T20:30:00Z",
   "gpu_cutoff_utc": "2026-09-25T00:00:00Z",
@@ -17,10 +18,10 @@
     "preserve_unrelated_processes": true,
     "max_own_model_workers_per_gpu": 1
   },
-  "experiment_gpu_hours_cap": 20.0,
+  "experiment_gpu_hours_cap": 36.0,
   "allocations_gpu_hours": {
     "reviewer_stress": 6.0,
-    "second_backbone": 14.0
+    "second_backbone": 30.0
   },
   "accounting": {
     "metric": "sum of own allocated model-worker GPU durations across devices; include model loading, saves, failures and retries",
@@ -31,15 +32,26 @@
     "automatic_total_extension": false,
     "transfers": "none; independent of expanded-nine-day-v1 and followup-native-arms-v1"
   },
-  "master_port_pool": [18810, 18811, 18812, 18813],
+  "master_port_pool": [
+    18810,
+    18811,
+    18812,
+    18813
+  ],
   "default_training_seed": 17,
   "qualification_safety_factor": 1.25,
   "state_images": {
-    "size": [128, 128],
+    "size": [
+      128,
+      128
+    ],
     "text_annotations": false,
     "goal_context": "separate complete pages",
     "semantic_information_equivalence_claimed": false
   },
   "execution_authorization": "GPU launches in this window run only after the #130 protocol(s) and design docs are committed.",
-  "issues": {"reviewer_stress": 130, "second_backbone_v3": 130}
+  "issues": {
+    "reviewer_stress": 130,
+    "second_backbone_v3": 130
+  }
 }
