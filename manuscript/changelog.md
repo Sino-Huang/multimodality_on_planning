@@ -2,6 +2,12 @@
 
 The record of what changed in the ICLR 2026 manuscript and why. Newest first. Each entry names the commit, the scope of the change, and the review or ticket it answered. Review findings and their status live in `review-log.md`; claim vocabulary and boundaries live in `CONTEXT.md`.
 
+## 2026-09-25 — round 5 wave 2, three-panel ladder figure
+
+- `fig:ladder` (`figures/fig_ladder.py`, redrawn by a figure-only paper-writer from `local://fig-contract-r5.md`) now has three panels (validation, held-out P2, unscreened P2u). Each shows M1 with task-clustered intervals for the five ladder arms and the 3-seed adapter mean, with faint per-seed points, a dotted line at that panel's own ε-0.75 rung, and the first adapter on the validation panel only. The script reads `v4/panels/metrics/analysis.json` `arms.{p135,p2,p2u}.*` and `v2` `adapter_reevaluation.learned_adapter.*` and asserts all 28 values at 3 dp. Main ran it (asserts pass) and inspected the PNG three times (first-adapter label added, label offsets widened, font raised to 8 pt at 6.0 in so it renders at about 7 pt). The figure is included at `\linewidth`.
+- Page budget: the Conclusion still ends at the bottom of p.8, so no compression was needed.
+- Build: 35 pages, 0 errors, 0 undefined, 0 overfull, 0 bibtex warnings. All headline strings present.
+
 ## 2026-09-25 — round 5 wave 1, evidence integration (#138-#140)
 
 - All 7 visible placeholders resolved (Results P1-P3, Discussion P1-P2, appendix table P1-P2) and every `% Pending:` comment deleted. No visible `[TODO` remains in the PDF.

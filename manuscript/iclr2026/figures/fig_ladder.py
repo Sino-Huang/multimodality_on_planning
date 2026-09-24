@@ -1,12 +1,17 @@
-"""Figure: M1 solve-versus-budget AUC ladder with task-clustered 95% intervals (12-task validation panel).
+"""Figure: M1 solve-versus-budget AUC ladder, three panels (validation, held-out P2, unscreened P2u),
+with task-clustered 95% intervals.
 
 Numbers are read from pinned evidence files in the evidence repository:
+  outputs/choice-frontier/v4/panels/metrics/analysis.json
+      arms.<panel>.<arm>.m1 and arms.<panel>.<arm>.ci95
+          panel in p135, p2, p2u
+          arm in exact_reference, exact-eps-0.25, exact-eps-0.50, exact-eps-0.75, random_valid,
+                 learned_adapter_seed_mean
+      arms.<panel>.learned_adapter_s17.m1, .learned_adapter_s29.m1, .learned_adapter_s71.m1
+          (per-seed points, m1 only)
   outputs/choice-frontier/v2/metrics/analysis.json
-      arms.<arm>.m1_auc, arms.<arm>.m1_task_cluster_95pct_ci_10000_seed133
-          for exact_reference, exact-eps-0.25, exact-eps-0.50, exact-eps-0.75, random_valid
-      adapter_reevaluation.learned_adapter.m1_auc / .m1_task_cluster_95pct_ci_10000_seed133  (first adapter)
-  outputs/choice-frontier/v3/metrics/analysis.json
-      per_seed.17.m1_auc / per_seed.17.ci95  (scaled adapter, single seed)
+      adapter_reevaluation.learned_adapter.m1_auc / .m1_task_cluster_95pct_ci_10000_seed133
+          (first adapter, validation panel only)
 Run: python fig_ladder.py [EVIDENCE_ROOT]  -> fig_ladder.pdf, fig_ladder.svg, fig_ladder.png
 """
 import json
@@ -28,62 +33,131 @@ def load(rel):
 
 CI = "m1_task_cluster_95pct_ci_10000_seed133"
 v2 = load("outputs/choice-frontier/v2/metrics/analysis.json")
-v3 = load("outputs/choice-frontier/v3/metrics/analysis.json")
+v4 = load("outputs/choice-frontier/v4/panels/metrics/analysis.json")
 
-ladder = [("exact reference", "exact_reference"), ("exact-\u03b5 0.25", "exact-eps-0.25"),
+PANELS = [("p135", "Validation (12 tasks)"), ("p2", "Held-out P2 (11 tasks)"),
+          ("p2u", "Unscreened P2u (12 tasks)")]
+LADDER = [("exact reference", "exact_reference"), ("exact-\u03b5 0.25", "exact-eps-0.25"),
           ("exact-\u03b5 0.50", "exact-eps-0.50"), ("exact-\u03b5 0.75", "exact-eps-0.75"),
-          ("random-valid", "random_valid")]
-rows = [(name, v2["arms"][k]["m1_auc"], *v2["arms"][k][CI]) for name, k in ladder]
-first = v2["adapter_reevaluation"]["learned_adapter"]
-scaled = v3["per_seed"]["17"]
-rows.append(("scaled adapter (1 seed)", scaled["m1_auc"], *scaled["ci95"]))
-rows.append(("first adapter", first["m1_auc"], *first[CI]))
+          ("random-valid", "random_valid"), ("adapter, 3-seed mean", "learned_adapter_seed_mean")]
+SEEDS = ["learned_adapter_s17", "learned_adapter_s29", "learned_adapter_s71"]
 
-EXPECTED = [(0.875, 0.875, 0.875), (0.793, 0.764, 0.824), (0.603, 0.528, 0.670),
-            (0.347, 0.252, 0.445), (0.021, 0.007, 0.038), (0.349, 0.172, 0.531),
-            (0.026, 0.010, 0.042)]
-for (name, m, lo, hi), exp in zip(rows, EXPECTED):
-    got = tuple(round(v, 3) for v in (m, lo, hi))
-    assert got == exp, (name, got, exp)
+EXPECTED = {
+    "p135": {"exact_reference": (0.875, 0.875, 0.875), "exact-eps-0.25": (0.793, 0.764, 0.824),
+             "exact-eps-0.50": (0.603, 0.528, 0.670), "exact-eps-0.75": (0.347, 0.252, 0.445),
+             "random_valid": (0.021, 0.007, 0.038),
+             "learned_adapter_seed_mean": (0.306, 0.158, 0.455),
+             "learned_adapter_s17": 0.349, "learned_adapter_s29": 0.250,
+             "learned_adapter_s71": 0.318, "first_adapter": (0.026, 0.010, 0.042)},
+    "p2": {"exact_reference": (0.875, 0.875, 0.875), "exact-eps-0.25": (0.745, 0.685, 0.805),
+           "exact-eps-0.50": (0.507, 0.445, 0.566), "exact-eps-0.75": (0.205, 0.145, 0.269),
+           "random_valid": (0.016, 0.000, 0.048),
+           "learned_adapter_seed_mean": (0.432, 0.273, 0.602),
+           "learned_adapter_s17": 0.506, "learned_adapter_s29": 0.284,
+           "learned_adapter_s71": 0.506},
+    "p2u": {"exact_reference": (0.875, 0.875, 0.875), "exact-eps-0.25": (0.678, 0.632, 0.721),
+            "exact-eps-0.50": (0.397, 0.331, 0.478), "exact-eps-0.75": (0.149, 0.091, 0.227),
+            "random_valid": (0.002, 0.000, 0.006),
+            "learned_adapter_seed_mean": (0.151, 0.030, 0.288),
+            "learned_adapter_s17": 0.198, "learned_adapter_s29": 0.120,
+            "learned_adapter_s71": 0.135},
+}
 
-plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 7,
+
+def r3(*vals):
+    return tuple(round(v, 3) for v in vals)
+
+
+# data[panel] = {"rows": [(label, m, lo, hi)], "seeds": [m...], "first": (m, lo, hi) or None}
+data = {}
+for pk, _ in PANELS:
+    arms = v4["arms"][pk]
+    rows = []
+    for label, k in LADDER:
+        m, (lo, hi) = arms[k]["m1"], arms[k]["ci95"]
+        got = r3(m, lo, hi)
+        assert got == EXPECTED[pk][k], f"{pk}/{k}: got {got}, expected {EXPECTED[pk][k]}"
+        rows.append((label, m, lo, hi))
+    seeds = []
+    for k in SEEDS:
+        m = arms[k]["m1"]
+        assert round(m, 3) == EXPECTED[pk][k], f"{pk}/{k}: got {round(m, 3)}, expected {EXPECTED[pk][k]}"
+        seeds.append(m)
+    data[pk] = {"rows": rows, "seeds": seeds, "first": None}
+
+fa = v2["adapter_reevaluation"]["learned_adapter"]
+first = (fa["m1_auc"], *fa[CI])
+assert r3(*first) == EXPECTED["p135"]["first_adapter"], \
+    f"p135/first adapter (v2): got {r3(*first)}, expected {EXPECTED['p135']['first_adapter']}"
+data["p135"]["first"] = first
+
+plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 8,
                      "pdf.fonttype": 42, "svg.fonttype": "none"})
-BLUE, GREY = "#0072B2", "#555555"
+GREY, SEED_GREY = "#555555", "#AAAAAA"
 LADDER_COLS = ["#003F66", "#0072B2", "#3B97CF", "#7FBDE3", "#B7D9EE"]
 YS = [0, 1, 2, 3, 4, 5.3, 6.3]
+LABELS = [l for l, _ in LADDER] + ["first adapter"]
+XMIN, XMAX = -0.02, 1.08
 
-fig, ax = plt.subplots(figsize=(3.4, 1.9))
-rung = rows[3][1]
-ax.axvline(rung, color=GREY, lw=0.7, ls=":", zorder=0)
-ax.text(rung + 0.012, 7.05, "exact-\u03b5 0.75 rung", color=GREY, fontsize=7, va="center")
-ax.axhline(4.65, color="#BBBBBB", lw=0.5)
+fig, axes = plt.subplots(1, 3, sharey=True, figsize=(6.0, 2.1))
 
-for i, ((name, m, lo, hi), y) in enumerate(zip(rows, YS)):
+
+def draw(ax, i, y, m, lo, hi):
     if i < 5:
         c, mk, fc, ms = LADDER_COLS[i], "o", LADDER_COLS[i], 4.2
         ec = "#003F66" if i == 4 else c
+        lc = ec
     elif i == 5:
-        c, mk, fc, ec, ms = "black", "s", "black", "black", 4.0
+        c, mk, fc, ec, ms, lc = "black", "s", "black", "black", 4.0, "black"
     else:
-        c, mk, fc, ec, ms = "black", "s", "white", "black", 4.0
-    ax.plot([lo, hi], [y, y], color=c if i != 4 else ec, lw=1.1, solid_capstyle="butt")
-    ax.plot(m, y, mk, ms=ms, mfc=fc, mec=ec, mew=0.8, zorder=3)
-    ax.text(max(hi, m) + 0.025, y, f"{m:.3f}", va="center", ha="left", fontsize=7)
+        c, mk, fc, ec, ms, lc = "black", "s", "white", "black", 4.0, "black"
+    ax.plot([lo, hi], [y, y], color=lc, lw=1.1, solid_capstyle="butt", zorder=2)
+    ax.plot(m, y, mk, ms=ms, mfc=fc, mec=ec, mew=0.8, zorder=4)
+    right = max(hi, m)
+    if right > 0.85:  # no room to the right: place label left of the interval
+        ax.text(min(lo - 0.035, m - 0.045), y, f"{m:.3f}", va="center", ha="right", fontsize=8)
+    else:
+        ax.text(max(right + 0.035, m + 0.045), y, f"{m:.3f}", va="center", ha="left", fontsize=8)
 
-ax.set_yticks(YS)
-ax.set_yticklabels([r[0] for r in rows])
-ax.set_ylim(7.5, -0.6)
-ax.set_xlim(-0.02, 1.0)
-ax.set_xticks([0, 0.25, 0.5, 0.75, 1.0])
-ax.set_xticklabels(["0", "0.25", "0.50", "0.75", "1.00"])
-ax.set_xlabel("M1 AUC, 12-task validation panel")
-ax.tick_params(axis="y", length=0)
-for s in ("top", "right", "left"):
-    ax.spines[s].set_visible(False)
-ax.spines["bottom"].set_linewidth(0.6)
-fig.tight_layout(pad=0.4)
+
+for j, (ax, (pk, title)) in enumerate(zip(axes, PANELS)):
+    d = data[pk]
+    rung = d["rows"][3][1]
+    ax.axvline(rung, color=GREY, lw=0.7, ls=":", zorder=0)
+    ax.axhline(4.65, color="#BBBBBB", lw=0.5)
+    ax.plot(d["seeds"], [YS[5]] * len(d["seeds"]), "o", ms=2.6, mfc=SEED_GREY, mec="none",
+            alpha=0.8, zorder=3)
+    for i, (_, m, lo, hi) in enumerate(d["rows"]):
+        draw(ax, i, YS[i], m, lo, hi)
+    if d["first"] is not None:
+        draw(ax, 6, YS[6], *d["first"])
+    ax.set_title(title, fontsize=8, pad=3)
+    ax.set_xlim(XMIN, XMAX)
+    ax.set_xticks([0, 0.5, 1.0])
+    ax.set_xticklabels(["0", "0.5", "1.0"])
+    ax.set_xlabel("M1 AUC")
+    ax.tick_params(axis="y", length=0)
+    for s in ("top", "right", "left"):
+        ax.spines[s].set_visible(False)
+    ax.spines["bottom"].set_linewidth(0.6)
+    ax.spines["bottom"].set_bounds(0, 1.0)
+    if j > 0:
+        ax.tick_params(axis="y", labelleft=False)
+
+axes[0].set_yticks(YS)
+axes[0].set_yticklabels(LABELS)
+axes[0].set_ylim(6.8, -0.6)
+fig.tight_layout(pad=0.4, w_pad=0.8)
 for ext in ("pdf", "svg"):
     fig.savefig(HERE / f"fig_ladder.{ext}", bbox_inches="tight", pad_inches=0.02)
 fig.savefig(HERE / "fig_ladder.png", dpi=300, bbox_inches="tight", pad_inches=0.02)
-for name, m, lo, hi in rows:
-    print(f"{name}: {m:.3f} [{lo:.3f}, {hi:.3f}]")
+
+for pk, title in PANELS:
+    d = data[pk]
+    print(f"== {pk}: {title}")
+    for name, m, lo, hi in d["rows"]:
+        print(f"  {name}: {m:.3f} [{lo:.3f}, {hi:.3f}]")
+    print("  per-seed s17/s29/s71: " + " / ".join(f"{m:.3f}" for m in d["seeds"]))
+    if d["first"] is not None:
+        m, lo, hi = d["first"]
+        print(f"  first adapter: {m:.3f} [{lo:.3f}, {hi:.3f}]")
