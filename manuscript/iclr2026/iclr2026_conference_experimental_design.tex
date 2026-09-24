@@ -11,7 +11,7 @@
 \label{sec:design}
 
 % Paragraph purpose: State the comparative question, the gate logic, and the development-stage and seed boundaries.
-Each algorithm-by-modality-by-condition cell asks whether a trained Search Process Policy exceeds an oracle-assisted validity control on full-episode budgeted success (Section~\ref{sec:policy}), under frozen protocols, a 336 GPU-hour cap, and prespecified gate receipts. Panels are frozen and outcome-blind, the held-out manifest has never been accessed, and every learned cell uses one training seed (17) except two replicated cells (seeds 29 and 71 added) and the choice-frontier adapter, which has three training seeds (17, 29, 71).
+Each algorithm-by-modality-by-condition cell asks whether a trained Search Process Policy exceeds an oracle-assisted validity control on full-episode budgeted success (Section~\ref{sec:policy}), under frozen protocols, a 336 GPU-hour cap, and prespecified gate receipts. Panels are frozen and outcome-blind, the 45-task held-out manifest has never been accessed, and every learned cell uses one training seed (17) except two replicated cells (seeds 29 and 71 added) and the choice-frontier adapter, which has three training seeds (17, 29, 71).
 % Evidence: seed replication per issue #127 (docs/experiments/expanded-study/issue-127-closeout.md).
 % Evidence: choice-frontier adapter seeds per #138 outputs/choice-frontier/v4/seeds/metrics/analysis.json primary.seeds [17, 29, 71].
 % Evidence: 336 GPU-hour cap per docs/experiments/expanded-study/issue-127-closeout.md (68.5244 / 336) and Table tab:appendix-receipts.

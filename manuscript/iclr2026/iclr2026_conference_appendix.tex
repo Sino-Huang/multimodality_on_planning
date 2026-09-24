@@ -47,17 +47,17 @@ Operands carry the source state's accumulated path cost $g$, heuristic estimate 
 
 % Paragraph purpose: State the validity preconditions as an ordered rejection hierarchy.
 \paragraph{Validity preconditions.}
-An emission passes through a fixed sequence of checks. Failure at any step rejects the emission with the corresponding kind and terminates the episode. The checks, in order:
+An emission passes through a fixed sequence of checks. Failure at any step rejects the emission with the corresponding kind and terminates the episode. The checks run in the following order.
 
 \begin{enumerate}[leftmargin=*, itemsep=1pt, parsep=1pt]
-\item \textbf{Parse.} The raw output must parse into a well-formed Typed Search Operation with a recognized type and complete operand vector. Failure: \texttt{malformed\_output}.
-\item \textbf{Source identity.} The named source state must match the state the algorithm expects. Failure: \texttt{source\_state\_mismatch}.
-\item \textbf{Action applicability.} Every grounded action in the operands must be applicable in the source state. Failure: \texttt{inapplicable\_grounded\_action}.
-\item \textbf{Successor schema.} Any named successor state must satisfy the domain schema. Failure: \texttt{schema}.
-\item \textbf{Successor effects.} The named successor must match the declared effects of the applied action. Failure: \texttt{effect}.
-\item \textbf{Static context.} Referenced predicates, objects, and constants must be consistent with the task instance. Failure: \texttt{static\_context}.
-\item \textbf{Frontier discipline.} The frontier manipulation must respect the declared ordering (FIFO for BFS, priority for BFWS, $f$-order for additive best-first). Failure: \texttt{invalid\_frontier\_operation}.
-\item \textbf{Algorithm invariant.} Any remaining algorithm-specific constraint not covered above. Failure: \texttt{other\_invariant\_violation}.
+\item \textbf{Parse.} The raw output must parse into a well-formed Typed Search Operation with a recognized type and complete operand vector. A failure is recorded as \texttt{malformed\_output}.
+\item \textbf{Source identity.} The named source state must match the state the algorithm expects. A failure is recorded as \texttt{source\_state\_mismatch}.
+\item \textbf{Action applicability.} Every grounded action in the operands must be applicable in the source state. A failure is recorded as \texttt{inapplicable\_grounded\_action}.
+\item \textbf{Successor schema.} Any named successor state must satisfy the domain schema. A failure is recorded as \texttt{schema}.
+\item \textbf{Successor effects.} The named successor must match the declared effects of the applied action. A failure is recorded as \texttt{effect}.
+\item \textbf{Static context.} Referenced predicates, objects, and constants must be consistent with the task instance. A failure is recorded as \texttt{static\_context}.
+\item \textbf{Frontier discipline.} The frontier manipulation must respect the declared ordering (FIFO for BFS, priority for BFWS, $f$-order for additive best-first). A failure is recorded as \texttt{invalid\_frontier\_operation}.
+\item \textbf{Algorithm invariant.} Any remaining algorithm-specific constraint not covered above. A failure is recorded as \texttt{other\_invariant\_violation}.
 \end{enumerate}
 
 % Paragraph purpose: Name the two broad rejection categories and the random-valid control's single failure kind.
@@ -434,7 +434,7 @@ Cell set~B covers DAgger iteration-1 versus the exposure-matched continued-SFT c
 % and .contrasts.dagger_minus_continued_sft_unseen (difference 0.0); aggregated.contrast_point_estimates_per_seed.
 
 % Paragraph purpose: Scope the seed-replication boundary to the two replicated cells.
-This addendum supersedes the blanket single-training-seed boundary for these two cells only. Every other cell in the program remains single-seed (seed 17) evidence.
+This addendum supersedes the blanket single-training-seed boundary for these two cells only. Every other enumeration-contract cell in the program remains single-seed (seed 17) evidence.
 % TODO(seed-coverage): Seed replication beyond these two cells is not
 % authorized under the current program. All remaining cells are single-seed.
 
@@ -1227,13 +1227,13 @@ Table~\ref{tab:appendix-panel-arms} gives each arm's M1 on the three panels. The
 % Note: 0.196875 and 0.28125 have no 3-dp rendering on the sheet; printed at the table's 3 dp.
 
 \begin{table}[t]
-\caption{M1 with task-clustered 95\% intervals on the validation panel (12 tasks), the held-out panel P2 (11 tasks), and the unscreened panel P2u (12 tasks). Ladder rungs and hadd-greedy read privileged information and are not realisable policies.}
+\caption{M1 with task-clustered 95\% intervals on the validation panel (12 tasks), the held-out panel P2 (11 tasks), and the unscreened panel P2u (12 tasks). All entries are descriptive. Ladder rungs and hadd-greedy read privileged information and are not realisable policies.}
 \label{tab:appendix-panel-arms}
 \centering\scriptsize
 \setlength{\tabcolsep}{4pt}
 \begin{tabular}{lccc}
 \hline
-Arm & Validation & P2 & P2u \\
+Arm & Validation (12) & P2 (11) & P2u (12) \\
 \hline
 Exact reference & 0.875 [0.875, 0.875] & 0.875 [0.875, 0.875] & 0.875 [0.875, 0.875] \\
 Exact-$\epsilon$ 0.25 & 0.793 [0.764, 0.824] & 0.745 [0.685, 0.805] & 0.678 [0.632, 0.721] \\
@@ -1400,13 +1400,13 @@ The slice covers 6 of 30 task types (200 of 1,819 test variations), on all of wh
 \label{app:results-boundary}
 
 % Paragraph purpose: Report the executed seed-replication result for two cells.
-The prospective training-seed replication (seeds 17/29/71 frozen pre-launch, 534 new episodes independently replayed) executed on two cells (Table~\ref{tab:appendix-seeds}). In the greedy $\times$ multimodal replication cell (greedy best-first $\times$ multimodal-state, 24-problem unseen panel), per-seed success is 21/24, 21/24, 22/24 (mean 0.889, range $[0.875, 0.917]$). The contrast against the pretrained base is positive at every seed ($+0.875$/$+0.875$/$+0.917$, no sign flip). The contrast against random-valid stays negative ($-0.125$/$-0.125$/$-0.083$). On the DAgger iteration-1 cell set (BFS $\times$ three modalities, DAgger and continued-SFT arms), every arm and seed scores 0/72 unseen, with paired contrast $+0.000$ $[+0.000, +0.000]$ at each seed. The published iteration-2 verdict (1/72 vs 1/72, seed 17) is unchanged. Both cells replicate across all three seeds. Cell A covers one of the three modalities of the greedy additive cell. The remaining two modalities and all other cells use seed 17 only. Cross-seed aggregation is descriptive ($n{=}3$). The image-only-arm proposal has since executed under the native-arms v2 amendment (the Image-Only Native Arms appendix, Appendix~\ref{app:results-native}), and its v1 gate remains as history.
+The prospective training-seed replication (seeds 17/29/71 frozen pre-launch, 534 new episodes independently replayed) executed on two cells (Table~\ref{tab:appendix-seeds}). In the greedy $\times$ multimodal replication cell (greedy best-first $\times$ multimodal-state, 24-problem unseen panel), per-seed success is 21/24, 21/24, 22/24 (mean 0.889, range $[0.875, 0.917]$). The contrast against the pretrained base is positive at every seed ($+0.875$/$+0.875$/$+0.917$, no sign flip). The contrast against random-valid stays negative ($-0.125$/$-0.125$/$-0.083$). On the DAgger iteration-1 cell set (BFS $\times$ three modalities, DAgger and continued-SFT arms), every arm and seed scores 0/72 unseen, with paired contrast $+0.000$ $[+0.000, +0.000]$ at each seed. The published iteration-2 verdict (1/72 vs 1/72, seed 17) is unchanged. Both cells replicate across all three seeds. Cell A covers one of the three modalities of the greedy additive cell. The remaining two modalities and all other enumeration-contract cells use seed 17 only. Cross-seed aggregation is descriptive ($n{=}3$). The image-only-arm proposal has since executed under the native-arms v2 amendment (the Image-Only Native Arms appendix, Appendix~\ref{app:results-native}), and its v1 gate remains as history.
 % Evidence: outputs/expanded-study/v1/seed-replication/analysis.json baseline_process_sft.aggregated and dagger_iteration_1.aggregated.
 % #127 closed 2026-09-21. #128 TODO retired: superseded by #129 (executed) and #130 (stress tests); see issue-129-closeout.md.
 
 
 % Paragraph purpose: List the follow-up windows' development-stage limits separately from the main program.
-The follow-up windows share this development-stage status, and we list their limits separately. The native-arms window evaluates an 18-unit clean panel with one training seed per cell. The R1-R4 follow-up window reuses the frozen native-arms adapters for R1, R2, and R4, and trains one seed-17 run per cell for R3. The choice-frontier window trains one seed per algorithm on a 9-task panel whose discriminative subset holds one task. The comparator zoo is a CPU-only exploratory analysis. The scaled adapter has three training seeds on the validation panel, the held-out panel P2, and the unscreened panel P2u, and the DAgger ablation trains one seed on half the planned corpus. None of these windows accessed the held-out manifest. The shared nine-task panel draws from 8 domains with 7 compact and 2 expanded variants.
+The follow-up windows share this development-stage status, and we list their limits separately. The native-arms window evaluates an 18-unit clean panel with one training seed per cell. The R1-R4 follow-up window reuses the frozen native-arms adapters for R1, R2, and R4, and trains one seed-17 run per cell for R3. The choice-frontier window trains one seed per algorithm on a 9-task panel whose discriminative subset holds one task. The comparator zoo is a CPU-only exploratory analysis. The scaled adapter has three training seeds on the validation panel, the held-out panel P2, and the unscreened panel P2u, and the DAgger ablation trains one seed on half the planned corpus. None of these windows accessed the frozen 45-task held-out manifest. The shared nine-task panel draws from 8 domains with 7 compact and 2 expanded variants.
 % Evidence (round 5): A139 training_seeds {p135, p2, p2u} [17, 29, 71]; A140 primary.seeds [17]; held-out manifest never read (issue-139-closeout.md L11).
 % Evidence: issue-129-closeout.md, issue-130-closeout.md, issue-132-closeout.md (Erratum item 3), #133 closing comment; held-out manifest
 % status per the #131 brief; panel composition per outputs/choice-frontier/o4/metrics/optimal-costs.json.
@@ -1414,7 +1414,7 @@ The follow-up windows share this development-stage status, and we list their lim
 % Paragraph purpose: State the undecided prerequisites that must be recorded before the held-out final primary evaluation can be frozen.
 % Migrated verbatim from Experimental Design (staged item "Final primary evaluation (pending)", HEAD 648973a) in #131 round 2 Wave 2.
 \paragraph{Final primary evaluation prerequisites.}
-No authorized held-out evaluation exists. Freezing one requires recorded decisions on the following prerequisites. (1) The condition-level data source and Search-Trace Segment construction with per-algorithm allocation. (2) Compute parity and checkpoint-selection rules. (3) The episode-budget unit, the whole-instance split procedure, and the fixed Search Memory capacity. (4) The estimand, the uncertainty interval or test, the success threshold, the invariant-compliance rule, and the validity and invalid-operation denominators for every cell. Until these choices are recorded, the held-out evaluation cannot be frozen and no final comparative efficacy finding exists.
+No authorized held-out final evaluation on the frozen 45-task manifest exists. Freezing one requires recorded decisions on the following prerequisites. (1) The condition-level data source and Search-Trace Segment construction with per-algorithm allocation. (2) Compute parity and checkpoint-selection rules. (3) The episode-budget unit, the whole-instance split procedure, and the fixed Search Memory capacity. (4) The estimand, the uncertainty interval or test, the success threshold, the invariant-compliance rule, and the validity and invalid-operation denominators for every cell. Until these choices are recorded, the held-out final evaluation cannot be frozen and no final comparative efficacy finding exists.
 % Held-out final primary evaluation: no open ticket; stated in prose with no visible marker per the round-2 TODO convention.
 % The preregistration prerequisites in writing_design_tree.md are undecided.
 

@@ -23,7 +23,8 @@
 \label{sec:results}
 
 % Paragraph purpose: Orient the reader: gate-first order, separate measures, and the development-stage frame that governs every claim in the section.
-This section reports the executed evidence in gate order, with success, validity, invariant compliance, invalid-operation charges, budget, and learned-to-control gain kept as separate measurements and operational detail in the Results Detail appendices (Appendices~\ref{app:results-gates} to~\ref{app:results-boundary}). The random-valid and exact-classical references are oracle-assisted bounds, not learned abilities, and where they saturate they bound what the comparison can measure rather than certify policy quality. Every panel is a development panel, every learned arm rests on one training seed (17) except two replication cells (Section~\ref{sec:results-boundary}), and the held-out final evaluation has not been run, so no finding here is a final comparative efficacy claim.
+This section reports the executed evidence in gate order, with success, validity, invariant compliance, invalid-operation charges, budget, and learned-to-control gain kept as separate measurements and operational detail in the Results Detail appendices (Appendices~\ref{app:results-gates} to~\ref{app:results-boundary}). The random-valid and exact-classical references are oracle-assisted bounds, not learned abilities, and where they saturate they bound what the comparison can measure rather than certify policy quality. Every panel is a development panel, every enumeration-contract learned arm rests on one training seed (17) except two replication cells (Section~\ref{sec:results-boundary}), the choice-frontier adapter has three training seeds, and the frozen 45-task held-out final evaluation has not been run, so no finding here is a final comparative efficacy claim.
+% Round 5 wave 3: seed clause scoped to the enumeration contract; adapter seeds 17/29/71 per outputs/choice-frontier/v4/seeds/metrics/analysis.json primary.seeds.
 
 \subsection{Gate Receipts and Executed Scope}
 \label{sec:results-gates}
@@ -96,7 +97,7 @@ On a fresh 12-task panel from 7 domains, the pre-registered ladder test passes. 
 The held-out panel P2 has 11 tasks from 8 domains. P2 applies the validation panel's generation, cost, and screening rules to fresh seeds, and an amendment made before any evaluation episode, after the first freeze admitted 6 of the 8 required tasks, added seeds 955040--955199 with the rules unchanged. The same ladder test passes on the held-out panel P2, which is pre-registered (smallest adjacent gap $+0.130$ $[+0.070, +0.190]$), and on the unscreened panel P2u, which is descriptive. The Held-Out Panels appendix (Appendix~\ref{app:results-panels}) gives both panels' construction and all eight gaps.
 % Evidence: #139 outputs/choice-frontier/v4/panels/metrics/analysis.json pooled.panels.p2 11; concentration.per_panel.p2.domains (8 domains);
 % ladder_p2.verdict PASS (confirmatory, issue-139-protocol.md L93); ladder_p2.pairs[0].difference 0.1295 (0.130), .ci95 [0.0705, 0.1898] ([0.070, 0.190]);
-% unscreened_p2u.ladder.verdict PASS (descriptive, P139 L96). A1: issue-139-protocol.md L118-127, issue-139-closeout.md L58 (first freeze 6 tasks / 5 domains). V-A1 verbatim per local r5-contract.
+% unscreened_p2u.ladder.verdict PASS (descriptive, P139 L96). A1: issue-139-protocol.md L118-127 (seeds 955040-955199 at L122), issue-139-closeout.md L58 (first freeze 6 tasks / 5 domains). V-A1 verbatim per local r5-contract.
 
 \begin{figure}[t]
 \centering
@@ -117,7 +118,9 @@ The rungs read the privileged heap head, so the ladder validates the ordering of
 \label{sec:results-adapter}
 
 % Paragraph purpose: Report the pre-registered three-seed endpoint and its held-out replication (V-SEED), then the first adapter on the validation panel.
-Across three training seeds the adapter beats uniform frontier choice on the validation panel, $D_3 = +0.285$ $[+0.140, +0.433]$, with every seed positive ($+0.328$, $+0.229$, $+0.297$), which meets the pre-registered POSITIVE rule, and the result replicates on the held-out panel P2, $D_3 = +0.416$ $[+0.250, +0.591]$. On P2 the per-seed differences are $+0.490$, $+0.268$, and $+0.490$. The first adapter, re-evaluated on the validation panel, reaches M1 0.026 [0.010, 0.042], at the random-valid level, and the scaled adapter's last-label rate per seed is 0.205, 0.192, and 0.171 against 30.0\% for the first adapter (per-seed tables in the Held-Out Panels appendix, Appendix~\ref{app:results-panels}).
+Across three training seeds the adapter beats uniform frontier choice on the validation panel, $D_3 = +0.285$ $[+0.140, +0.433]$, with every seed positive ($+0.328$, $+0.229$, $+0.297$), which meets the pre-registered POSITIVE rule, and the result replicates on the held-out panel P2, $D_3 = +0.416$ $[+0.250, +0.591]$. A later pre-registered replication trained seeds 29 and 71 with the byte-identical recipe (Scaled Adapter appendix, Appendix~\ref{app:results-adapter}). On P2 the per-seed differences are $+0.490$, $+0.268$, and $+0.490$. The first adapter, re-evaluated on the validation panel, reaches M1 0.026 [0.010, 0.042], at the random-valid level, and the scaled adapter's last-label rate per seed is 0.205, 0.192, and 0.171 against 30.0\% for the first adapter (per-seed tables in the Held-Out Panels appendix, Appendix~\ref{app:results-panels}).
+% Evidence (replication provenance): recipe issue-138-protocol.md L11-12 ("the #136 recipe, byte-identical ... Only training_seed changes"); protocol committed f06c7ac
+% before any GPU launch (issue-138-closeout.md L5). Moved here from the boundary paragraph in round 5 wave 3.
 % Evidence: #138 outputs/choice-frontier/v4/seeds/metrics/analysis.json primary.verdict POSITIVE, primary.D3 0.2847 (0.285),
 % primary.ci95 [0.1403, 0.4326] ([0.140, 0.433]), primary.per_seed.{17,29,71} 0.3281/0.2292/0.2969 (0.328/0.229/0.297); rule P138 L31-41.
 % Evidence: #139 outputs/choice-frontier/v4/panels/metrics/analysis.json heldout_p2.primary.verdict POSITIVE, .D3 0.4159 (0.416),
@@ -152,9 +155,8 @@ A post-hoc task-clustered analysis of the first adapter finds last-label emissio
 % -0.0694 and CI [-0.1609, 0.0323] (E134-26, E134-27); subset 18 episodes, 9 tasks (E134-20). Stored classification: post-hoc diagnostics. V6 verbatim.
 
 % Paragraph purpose: State the claim boundary (imitation clause, V-FRAME) and the one-sentence DAgger ablation (V-DAG).
-The gain is obtained by imitating the exact reference, and a later pre-registered replication trained seeds 29 and 71 with the byte-identical recipe (Scaled Adapter appendix, Appendix~\ref{app:results-adapter}). The choice-quality claim is development-stage, holds relative to uniform choice and the exact-$\epsilon$ ladder on three panels with three training seeds, and carries no planning-ability or generality claim. One on-policy DAgger round, run for one seed on half the planned corpus, does not separate the adapter from the 0.75 rung over the 23 validation and held-out tasks, $S = +0.115$ $[-0.026, +0.258]$ (DAgger Ablation appendix, Appendix~\ref{app:results-cf-dagger}).
-% Evidence: recipe issue-138-protocol.md L11-12 ("the #136 recipe, byte-identical ... Only training_seed changes"); protocol committed f06c7ac
-% before any GPU launch (issue-138-closeout.md L5). V-FRAME verbatim.
+The gain is obtained by imitating the exact reference. The choice-quality claim is development-stage, holds relative to uniform choice and the exact-$\epsilon$ ladder on three panels with three training seeds, and carries no planning-ability or generality claim. One on-policy DAgger round, run for one seed on half the planned corpus, does not separate the adapter from the 0.75 rung over the 23 validation and held-out tasks, $S = +0.115$ $[-0.026, +0.258]$ (DAgger Ablation appendix, Appendix~\ref{app:results-cf-dagger}).
+% V-FRAME verbatim.
 % Evidence: #140 outputs/choice-frontier/v5/metrics/analysis.json primary.verdict NOT_SEPARATED, primary.S_pool 0.1152 (0.115),
 % primary.ci95 [-0.0255, 0.2576] ([-0.026, 0.258]), primary.tasks 23, primary.seeds [17]; half corpus per issue-140-protocol.md L124 (A1 item 2). V-DAG verbatim.
 
@@ -192,7 +194,7 @@ Failure calibration, observation corruption, menu manipulation, the image-only n
 \paragraph{Development-stage boundary.}
 \label{sec:results-boundary}
 % Paragraph purpose: Close the section with the development-stage boundary, the seed-replication summary, and the open markers.
-All results are development-stage, and the frozen 45-task held-out final primary evaluation is unexecuted, so no final efficacy finding exists. Every learned cell uses seed 17 except two prospective replication cells ($n{=}3$, Seed Replication appendix, Appendix~\ref{app:results-boundary}). The full-scope v1 generalization and second-backbone branches were withdrawn after terminal VALID\_STOP receipts (closed 2026-09-21). Code and evidence bundles will be provided as anonymous supplementary material.
+All results are development-stage, and the frozen 45-task held-out final primary evaluation is unexecuted, so no final efficacy finding exists. Every enumeration-contract learned cell uses seed 17 except two prospective replication cells ($n{=}3$, Seed Replication appendix, Appendix~\ref{app:results-boundary}). The full-scope v1 generalization and second-backbone branches were withdrawn after terminal VALID\_STOP receipts (closed 2026-09-21). Code and evidence bundles will be provided as anonymous supplementary material.
 % Evidence: seed-variance-addendum.md and Table tab:appendix-seeds (in the Statistics appendix).
 % TODO: held-out final primary evaluation remains unexecuted.
 % Status 2026-09-21: issues #96/#98/#102/#103 CLOSED (v1 scope withdrawn); prose states the withdrawal (review 16 I12). Seed replication is issue #127.

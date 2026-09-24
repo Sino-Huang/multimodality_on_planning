@@ -2,6 +2,17 @@
 
 The record of what changed in the ICLR 2026 manuscript and why. Newest first. Each entry names the commit, the scope of the change, and the review or ticket it answered. Review findings and their status live in `review-log.md`; claim vocabulary and boundaries live in `CONTEXT.md`.
 
+## 2026-09-25 — round 5 wave 3, compliance and hygiene
+
+- Evidence-comment census: every round-5 number and every cell of the three new appendix tables has an adjacent `%` comment naming its artifact and key. One pointer was sharpened (seeds 955040-955199 → `issue-139-protocol.md` L122). The writer spot-verified 15 new comments against the sheet.
+- Style census: 0 em-dashes, 0 disallowed semicolons (the LLM-usage sentence is the WONTFIX exception), 9 mid-clause colons fixed in the validity-preconditions list of the Operation Schemas appendix, paragraph-purpose comments complete, 0 visible TODOs, 0 `% Pending:` comments.
+- Stale-claim sweep: the "every learned arm/cell uses seed 17" statements in 5.1, 5.6, the Statistics appendix, and the Seed Replication appendix are scoped to the enumeration contract, and 5.1 states the adapter's three seeds. Every "held-out manifest/evaluation" outside P2 now names the frozen 45-task manifest. No round-4 point-estimate, between-the-rungs, no-paired-interval, or seed-17 concentration wording remains. Every ladder-position statement carries all three results.
+- 5.4 flow: the replication provenance sentence follows the 3-seed sentence, and the boundary paragraph is the imitation clause, the claim frame, and the DAgger sentence.
+- The Reproducibility Statement drops its hard-coded appendix-letter range and names the Held-Out Panels and DAgger Ablation appendices in prose.
+- Related Work (related-work-scout): no change needed. The admissible-action positioning sentence (review-16 finding 15) and the ScienceWorld, Jericho, CALM, and Zheng et al. positioning are intact, and all 28 cited keys resolve. DAgger is already cited (`ross2011dagger`) at first body use.
+- Build: 35 pages, 0 errors, 0 undefined, 0 overfull, 0 bibtex warnings. The Conclusion ends at the bottom of p.8. All headline strings present.
+- Commit references for this round: wave 1 `bc32404`, wave 2 `9155812`.
+
 ## 2026-09-25 — round 5 wave 2, three-panel ladder figure
 
 - `fig:ladder` (`figures/fig_ladder.py`, redrawn by a figure-only paper-writer from `local://fig-contract-r5.md`) now has three panels (validation, held-out P2, unscreened P2u). Each shows M1 with task-clustered intervals for the five ladder arms and the 3-seed adapter mean, with faint per-seed points, a dotted line at that panel's own ε-0.75 rung, and the first adapter on the validation panel only. The script reads `v4/panels/metrics/analysis.json` `arms.{p135,p2,p2u}.*` and `v2` `adapter_reevaluation.learned_adapter.*` and asserts all 28 values at 3 dp. Main ran it (asserts pass) and inspected the PNG three times (first-adapter label added, label offsets widened, font raised to 8 pt at 6.0 in so it renders at about 7 pt). The figure is included at `\linewidth`.
