@@ -2,6 +2,15 @@
 
 The record of what changed in the ICLR 2026 manuscript and why. Newest first. Each entry names the commit, the scope of the change, and the review or ticket it answered. Review findings and their status live in `review-log.md`; claim vocabulary and boundaries live in `CONTEXT.md`.
 
+## 2026-09-24 — round 4 wave 1, evidence integration and reframe (`59e8714`)
+
+- Findings 49 and 60 (review 19) CLOSED with #134. 5.2 reports both verdicts of the identity check on one runtime (48/48 identical under the executed sorted-order serial rule, 19/48 divergent under submission-order serials, first divergence at decisions 2-50, median 6) and states that the pre-registered majority prediction (>24/48) did not hold. 5.4 and App S give the M4 task-cluster intervals and drop the below-chance agreement reading.
+- Results reordered: 5.2 identity audit, 5.3 choice-frontier contract and instrument validation (#135 ladder, body Table 1), 5.4 scaled adapter (#136, D = +0.328 [+0.155, +0.508], at the exact-ε 0.75 rung, single seed, placeholders P1-P3), 5.5 external identity audit (#137 ScienceWorld, survey, exclusions), 5.6 enumeration-contract learned results and boundaries. The zoo (tab:results-zoo, sec:results-calibration) and the #132 table (tab:results-cf) moved to App R; secondary, failure, corruption, menu, and native-arm subsections collapsed to one pointer paragraph with their labels kept on the appendix headings.
+- Appendix gains app:results-counterfactual, app:results-ladder, app:results-adapter, app:results-external, and #134-#137 ledger rows (#135 1.19/4 GPU-h, #136 4.84/30 GPU-h, #134 and #137 CPU-only, never summed).
+- Abstract, Introduction, Discussion, and Conclusion rebuilt around the shared vocabulary sentences from the round contract. Contributions are the two-verdict identity audit, the ladder-validated measurement, the first learned result above uniform choice with its boundaries, and the external anchor. The Discussion states that the identity failure is shown only on this runtime, so the contribution is the measurement.
+- New keys `wang2022scienceworld`, `herr2025llmfirst` (results_refs.bib).
+- Build: 32 pages, 0 errors, 0 undefined, 0 overfull, 0 bibtex warnings. The Conclusion ends on p.8. All headline strings present in the rendered text.
+
 ## 2026-09-24 — round 4 opening, Phase 0 decisions (issue #131; evidence tickets #134-#137)
 
 - Evidence sheet frozen for the round from the #134-#137 artifacts (Main spot-checked 15 rows against the JSONs). Writers copy new numbers only from it.
