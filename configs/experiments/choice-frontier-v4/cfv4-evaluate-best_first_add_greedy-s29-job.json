@@ -1,0 +1,23 @@
+{
+ "job_id": "cfv4-evaluate-best_first_add_greedy-s29",
+ "branch": "choice_frontier",
+ "gpus": [
+  0
+ ],
+ "max_seconds": 10800,
+ "total": 12,
+ "command": [
+  "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+  "scripts/run_choice_frontier_v4_seeds.py",
+  "evaluate-worker",
+  "--algorithm",
+  "best_first_add_greedy",
+  "--seed",
+  "29"
+ ],
+ "completion_hook": [
+  "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+  "scripts/run_choice_frontier_v4_seeds.py",
+  "audit-evaluate-worker"
+ ]
+}

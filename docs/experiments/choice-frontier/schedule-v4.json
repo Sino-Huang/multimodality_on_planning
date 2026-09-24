@@ -1,0 +1,62 @@
+{
+  "program_id": "choice-frontier-v4",
+  "status": "authorized_followup_window",
+  "issue": 138,
+  "authorization": {
+    "granted_by": "user directed issue #138/#139 execution (author AFK; #138 creates this shared ledger capped at 24 GPU-hours through the repo scheduler)",
+    "window_gpu_hours_cap": 24.0,
+    "basis": "#138: 4 training cells (seeds 29/71 x 2 algorithms), smoke gate, 4 evaluation cells on the #135 panel (expected 9.66, worst case 12.08 GPU-h); #139: 3-seed evaluation on fresh held-out panels, same ledger after #138 closes"
+  },
+  "start_utc": "2026-09-24T00:00:00Z",
+  "gpu_cutoff_utc": "2026-10-20T00:00:00Z",
+  "handoff_deadline_utc": "2026-10-21T00:00:00Z",
+  "deadline_kind": "soft_handoff",
+  "hardware": {
+    "gpus": 2,
+    "model": "NVIDIA A100 80GB",
+    "preserve_unrelated_processes": true,
+    "max_own_model_workers_per_gpu": 1
+  },
+  "experiment_gpu_hours_cap": 24.0,
+  "allocations_gpu_hours": {
+    "choice_frontier": 24.0
+  },
+  "accounting": {
+    "metric": "sum of own allocated model-worker GPU durations across devices; include model loading, saves, failures and retries",
+    "also_record": [
+      "wall time",
+      "CPU work",
+      "actual VRAM"
+    ],
+    "ledger": "outputs/choice-frontier/v4/budget.json",
+    "preserve_prior_ledgers": true,
+    "reset_on_resume": false,
+    "automatic_total_extension": false,
+    "transfers": "none; independent of every prior window, never added to any other ledger; shared by #138 and #139"
+  },
+  "master_port_pool": [
+    18826,
+    18827,
+    18828,
+    18829
+  ],
+  "qualification_safety_factor": 1.25,
+  "state_images": {
+    "size": [
+      128,
+      128
+    ],
+    "text_annotations": false,
+    "goal_context": "partial-goal pages from the frozen 32k view manifests",
+    "semantic_information_equivalence_claimed": false
+  },
+  "execution_authorization": "protocol and corpus membership frozen and committed before any launch; no outcome-selected variants; independent replay of every episode; complete coverage or explicit missingness; commit/push and close only against verified evidence",
+  "issues": {
+    "138": "Choice-frontier adapter 3-seed replication + pre-registered separation from the exact-eps-0.75 rung",
+    "139": "Choice-frontier fresh held-out panels (screened P2 + unscreened P2u): ladder replication and 3-seed adapter evaluation"
+  },
+  "training_seeds": [
+    29,
+    71
+  ]
+}
