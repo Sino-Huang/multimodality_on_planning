@@ -1,0 +1,288 @@
+{
+  "schema_version": "choice_frontier_protocol_v1",
+  "protocol_id": "choice-frontier-v5-dagger",
+  "program_id": "choice-frontier-v5",
+  "status": "frozen_before_any_v5_rollout_training_model_outcome_or_gpu_launch",
+  "issues": [
+    140
+  ],
+  "parent_links": {
+    "parent_issue": 131,
+    "lineage_issues": [
+      132,
+      133,
+      135,
+      136,
+      138,
+      139
+    ],
+    "lineage": "one DAgger round (Ross et al., 2011) for the six #136/#138 choice-frontier adapters: on-policy rollouts on #136 training tasks labelled by the exact heap-head teacher, continue-training on the aggregate, evaluation on the #135 panel and the #139 P2 panel, pooled pre-registered separation test against the exact-eps-0.75 rung"
+  },
+  "precondition": {
+    "issue_138_verdict": "POSITIVE (D3 = +0.285 [+0.140, +0.433]); separation vs exact-eps-0.75 NOT_SEPARATED (S = -0.041 [-0.187, +0.102])",
+    "analysis_138": "outputs/choice-frontier/v4/seeds/metrics/analysis.json"
+  },
+  "schedule": "docs/experiments/choice-frontier/schedule-v5.json",
+  "design_doc": "docs/experiments/choice-frontier/issue-140-protocol.md",
+  "ledger": "outputs/choice-frontier/v5/budget.json",
+  "budget_branch": "choice_frontier",
+  "output_root": "outputs/choice-frontier/v5",
+  "model_id": "Qwen/Qwen3-VL-8B-Instruct",
+  "model_revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+  "learned_algorithms": [
+    "best_first_add_greedy",
+    "best_first_add_w3"
+  ],
+  "training_seeds": [
+    17,
+    29,
+    71
+  ],
+  "inference_seed": 17,
+  "inference": {
+    "dtype": "float32",
+    "attention": "visual_sdpa",
+    "do_sample": false,
+    "max_batch_size": 2,
+    "max_padded_batch_input_tokens": 24000,
+    "output_cache": "none",
+    "kv_cache": "per_call_only"
+  },
+  "arms_source": "configs/experiments/choice-frontier-v4/seeds-protocol.json arms.visual-choice-frontier (unchanged; asserted against examples/planning_benchmark_slice/choice_frontier.py constants by validate)",
+  "contract_source": "configs/experiments/choice-frontier-v4/seeds-protocol.json contract (unchanged frozen choice-frontier contract)",
+  "base_policies": {
+    "rule": "adapter (algorithm, seed) is the base policy for its own collection and its own continue-training cell",
+    "seed_17": "outputs/choice-frontier/v3/training/<algorithm>/seed-17/final/",
+    "seeds_29_71": "outputs/choice-frontier/v4/seeds/training/<algorithm>/seed-<seed>/final/",
+    "read_only": true
+  },
+  "collection": {
+    "cells": "6 = 2 algorithms x seeds {17, 29, 71}; one GPU job per cell (cfv5-collect-<algorithm>-s<seed>)",
+    "training_tasks": "configs/experiments/choice-frontier-v3/training-tasks.json rows with excluded == false, walked in file (#136 frozen walk) order",
+    "task_filters_in_order": [
+      "exclusion: problem_sha256 in the #135 candidates (configs/experiments/choice-frontier-v2/candidates.json) or in the #139 candidates (configs/experiments/choice-frontier-v4/candidates.json, every row including rejected overlaps) -> skipped, reason candidate_overlap; the runner asserts that no rolled-out task matches either set",
+      "views: the task needs its frozen #136 derivation episode (outputs/choice-frontier/v3/preparation/episodes/<task>.json.gz) and #136 scene-only train views (outputs/choice-frontier/v3/train-views/<task>/result.json, TRAIN_VIEWS_PASS); otherwise skipped, reason no_136_views (the #136 visual observation contract exists only for these tasks)",
+      "reference: R_task >= 1; otherwise skipped, reason zero_reference_expansions"
+    ],
+    "filter_note": "the #139 generation rejected 267 candidates as problem_sha256 overlaps with #136 training tasks; those training tasks match a #139 candidate row and are skipped so that no rollout touches a problem that ever entered the #139 candidate pool",
+    "reference_expansions": "R_task = number of decisions with status 'expanded' in the #136 uncapped exact_reference derivation episode for the algorithm (every #136 derivation episode is complete)",
+    "decision_cap": "2 x R_task (decision and expansion cap, the frozen contract)",
+    "session": "ChoiceFrontierModelSession arm process_sft, seed 17 (inference seed), adapter_id = base adapter path, greedy decoding, the #136 inference settings",
+    "views": "ChoiceFrontierTaskViews over the frozen #136 train views (static pages, goal pages, pre-rendered teacher scenes, read-only); unseen states rendered live by the planimation backend at http://127.0.0.1:18092 into outputs/choice-frontier/v5/collection/views/<task>/<algorithm>-s<seed>",
+    "model_calls": "the adapter is called at every decision of the frozen contract (menu size 1 included); its own choice drives the rollout",
+    "record_rule": "every decision whose menu has >= 2 states yields a record: menu binding, state-index binding and page sources exactly as the model saw them, the teacher label and whether the adapter agreed",
+    "teacher_label": "the menu label of controller.frontier_head_state_id() on the current (on-policy) frontier, i.e. minimum (priority, generation serial) — computed before the adapter's choice is submitted",
+    "agreement": "parsed expand_choice of the raw output == teacher label (unparseable output counts as disagreement; the record is kept)",
+    "observation_overflow": "if the observation of a decision exceeds the 32K context (OBSERVATION_OVERFLOW), the episode stops there with termination observation_overflow and that decision yields no record",
+    "max_records_per_episode": 32,
+    "records_per_cell_target": 1024,
+    "minimum_records_per_cell": 512,
+    "stop_rule": "run complete episodes in walk order until the cell holds >= 1024 records (first 32 per episode); build-corpus takes the first 1024 in walk/episode order (the last episode may contribute partially); if the walk is exhausted first, use every record if >= 512, otherwise blocked exit",
+    "record_id_format": "dagger:<task_id>:<algorithm>:s<seed>:<decision_index>",
+    "episode_output": "outputs/choice-frontier/v5/collection/episodes/<task>/<algorithm>-s<seed>.json.gz",
+    "replay": "audit-collect independently replays every collected episode (inputs, menus, view bindings, runtime results, result, overflow stop) and recomputes every teacher label as the heap head of the replayed frontier"
+  },
+  "corpus": {
+    "per_cell": "the on-policy records of (algorithm, seed) + 1024 records sampled without replacement from the frozen #136 corpus of the algorithm",
+    "replay_sampler": "random.Random(f'replay:{algorithm}:{seed}').sample(configs/experiments/choice-frontier-v3/membership.json training_record_ids[algorithm] in its frozen order, 1024)",
+    "replay_records": 1024,
+    "frozen_136_membership_sha256": "f5cc9b2ac3b2fe8e94b7a8039e6b9cd828c701a8c5b707ddd7a3b01b2ca8c077",
+    "augmentation": {
+      "copies": 2,
+      "seeds": [
+        "aug:{record_id}:0",
+        "aug:{record_id}:1"
+      ],
+      "function": "scripts/run_choice_frontier_v3.py::augment_menu (imported, unchanged)",
+      "target": "the teacher state's label after permutation"
+    },
+    "sample_order": "samples = [(record_id, copy) for record_id in on_policy_ids + replay_ids for copy in (0, 1)], then random.Random(f'order:dagger:{algorithm}:{seed}').shuffle(samples), then sequential",
+    "samples_per_cell": 4096,
+    "samples_rule": "2 x (on-policy records + 1024); 4096 at the 1024 target",
+    "diagnostic_split": "the frozen #136 diagnostic records of the algorithm (16, unaugmented; teacher-forced loss only)",
+    "membership": "configs/experiments/choice-frontier-v5/membership.json (record ids per cell, sample counts, membership_sha256), committed and pushed before any training",
+    "store": "outputs/choice-frontier/v5/preparation/store.json (on-policy records with their page sources); replay records are read from outputs/choice-frontier/v3/preparation/store.json",
+    "token_check": "every training sample's recomputed input tokens equal the tokens stored with its record"
+  },
+  "training": {
+    "study": "configs/experiments/matched-modalities/study-v5.json",
+    "study_sha256": "1f15184667b5076edc808838f450500bc6ac502cfb61c3d972cdc5ebb211d72b",
+    "init": "continue training the base adapter (algorithm, seed): PeftModel.from_pretrained(base, is_trainable=True); fresh optimizer and scheduler",
+    "epochs": 1,
+    "global_batch_size": 32,
+    "microbatch_size": 1,
+    "learning_rate": 0.0001,
+    "lr_scheduler": "cosine",
+    "warmup_ratio": 0.03,
+    "lora": {
+      "r": 64,
+      "alpha": 128,
+      "dropout": 0.05,
+      "target_modules": "all-linear",
+      "exclude_modules": ".*visual.*"
+    },
+    "dtype": "bfloat16",
+    "optimizer_updates": 128,
+    "training_seed": "s (the cell's seed)",
+    "max_seconds_per_cell": 18000,
+    "adapter_path": "outputs/choice-frontier/v5/training/<algorithm>/seed-<seed>/final",
+    "audit": "loaded-from path == base adapter, r == 64, alpha == 128, dropout == 0.05, steps == ceil(samples / 32) (128 at 4096), seed, sample count == membership",
+    "concurrency": "two cells at a time, one per GPU, distinct MASTER_PORT"
+  },
+  "smoke_gate": {
+    "frozen_before_any_trained_arm_outcome": true,
+    "subset": [
+      "expanded-final/storage-compact-919000",
+      "expanded-final/elevators-compact-914002",
+      "expanded-final/ferry-compact-915000"
+    ],
+    "subset_rule": "three cheapest tasks of the frozen 9-task panel (the #132 smoke definition)",
+    "episodes": 6,
+    "condition": "learned_adapter",
+    "seed": 17,
+    "decision_cap_multiplier": 2,
+    "decoding": {
+      "do_sample": false
+    },
+    "measure": "schema_valid_grounded_rate = accepted calls / total calls across the 6 episodes",
+    "threshold": 0.5,
+    "rule": "PASS iff rate >= 0.5; FAIL gates every DAgger evaluation out and the verdict is SMOKE_FAIL",
+    "adapters": "seed-17 DAgger adapters (both algorithms)",
+    "training_seed": 17,
+    "panel": "configs/experiments/expanded-study/final-panel.json",
+    "panel_view_report": "outputs/expanded-study/v1/panel-v2/reference-views.json",
+    "panel_id": "expanded-panel-v2-qualified",
+    "output": "outputs/choice-frontier/v5/smoke",
+    "job": "cfv5-smoke-s17"
+  },
+  "evaluation": {
+    "cells": "6 DAgger adapters x 2 panels = 12 jobs (cfv5-evaluate-<panel>-<algorithm>-s<seed>)",
+    "panels": {
+      "v2": {
+        "membership": "configs/experiments/choice-frontier-v2/membership.json",
+        "membership_sha256": "b2d909cafc22efd3997fdfaa312fd8b04af5725f0e672ffa2f0d9be70311cd07",
+        "tasks": 12,
+        "view_report": "outputs/choice-frontier/v2/reference-views.json",
+        "output": "outputs/choice-frontier/v5/evaluation/v2"
+      },
+      "p2": {
+        "membership": "configs/experiments/choice-frontier-v4/membership-p2.json",
+        "membership_sha256": "5c009e856a191ff279195985bec7ddf3bf0041b7ec9ea7dc89fc248e18e114e5",
+        "tasks": 11,
+        "view_report": "outputs/choice-frontier/v4/panels/p2/reference-views.json",
+        "output": "outputs/choice-frontier/v5/evaluation/p2"
+      }
+    },
+    "condition": "learned_adapter",
+    "seed": 17,
+    "decoding": {
+      "do_sample": false
+    },
+    "decision_cap": "2 x R_t, R_t = membership reference_costs[alg]['expansions'] (the #135/#139 uncapped exact expansions)",
+    "views": "native views read-only from the panel view report; live renders under outputs/choice-frontier/v5/evaluation/<panel>/views",
+    "replay": "finalize independently replays every episode of both panels; 0 missing, 0 mismatches",
+    "reused_not_rerun": {
+      "pre_dagger_v2": "outputs/choice-frontier/v3/evaluation (seed 17, #136) and outputs/choice-frontier/v4/seeds/evaluation (seeds 29/71, #138)",
+      "pre_dagger_p2": "outputs/choice-frontier/v4/panels/p2/evaluation (#139)",
+      "controls_v2": "outputs/choice-frontier/v2/zoo (#135)",
+      "controls_p2": "outputs/choice-frontier/v4/panels/p2/zoo (#139)",
+      "optimal_costs": "#135 outputs/choice-frontier/v2/metrics/optimal-costs.json; P2 recomputed by the #139 shortest_plan and asserted against the frozen C*"
+    },
+    "wait_rule": "if the #139 P2 learned/zoo evidence is not complete at analysis, wait for #139 to close (poll gh issue view 139 --json state, ~10 min sleeps)"
+  },
+  "analysis": {
+    "script": "scripts/analyze_choice_frontier_v5_dagger.py",
+    "metric_functions": "imported: scripts/analyze_choice_frontier_v2.py (inspect_episode, summarize, bootstrap, percentile), scripts/analyze_choice_frontier_v4_panels.py (panel_data, model_rows, zoo_rows), scripts/analyze_choice_frontier_v4_seeds.py (seed_averaged_bootstrap, separation_verdict), scripts/analyze_choice_frontier_v3.py (verdict)",
+    "pooled_tasks": "23 = #135 panel (12) + P2 (11); task ids disjoint (asserted); clustered by task",
+    "m1_per_task_seed": "M1 per task and training seed = the #135 summarize per-task AUC (mean over the two algorithms)",
+    "bootstrap": {
+      "unit": "task cluster",
+      "seed": 133,
+      "draws": 10000,
+      "interval": "95% percentile (#135 convention)",
+      "within_draw": "resample the 23 tasks with replacement; average the seeds inside each draw"
+    },
+    "primary": {
+      "estimand": "S_pool = M1(DAgger, 3-seed mean) - M1(exact-eps-0.75, averaged over its 5 seeds), pooled 23 tasks",
+      "decision_rule": {
+        "SEPARATED_ABOVE": "lo > 0",
+        "SEPARATED_BELOW": "hi < 0",
+        "NOT_SEPARATED": "otherwise"
+      },
+      "smoke_fail": "SMOKE_FAIL if the seed-17 DAgger smoke gate fails"
+    },
+    "co_primary": {
+      "estimand": "Delta_pool = M1(DAgger) - M1(pre-DAgger), paired by (task, algorithm, seed), 3-seed mean, pooled 23 tasks, same bootstrap",
+      "decision_rule": {
+        "IMPROVED": "lo > 0",
+        "EQUIVALENT": "-0.05 < lo and hi < 0.05",
+        "WORSE": "hi < 0",
+        "INCONCLUSIVE": "otherwise",
+        "order": "IMPROVED, EQUIVALENT, WORSE, INCONCLUSIVE"
+      }
+    },
+    "secondary_descriptive": [
+      "per panel: S, Delta and D3 = M1(DAgger) - M1(random_valid) under the #138 rule",
+      "per-seed M1 with CI (per panel and pooled)",
+      "teacher agreement - chance (M4)",
+      "last-label rate",
+      "on-policy teacher-agreement rate during collection",
+      "ladder position per panel"
+    ],
+    "output": "outputs/choice-frontier/v5/metrics/analysis.json",
+    "blocks": [
+      "primary",
+      "co_primary",
+      "per_panel",
+      "per_seed",
+      "collection",
+      "ladder_position"
+    ]
+  },
+  "estimand": {
+    "name": "choice_frontier_v5_dagger_estimand",
+    "frozen_before_launch": true,
+    "collection_gpu_hours": "6 x 1024 calls x ~6 s ~= 10",
+    "training_gpu_hours": "6 x 4096 x 2.75 s ~= 19 (#136 measured 1.9 GPU-h per 4096-sample cell)",
+    "evaluation_gpu_hours": "12 x 0.5 ~= 6",
+    "smoke_gpu_hours": 0.1,
+    "expected_gpu_hours": 35,
+    "cap_gpu_hours": 40
+  },
+  "budget": {
+    "window_gpu_hours_cap": 40.0,
+    "allocation": {
+      "choice_frontier": 40.0
+    },
+    "master_port_pool": [
+      18830,
+      18831,
+      18832,
+      18833
+    ],
+    "no_transfer_from_other_programs": true,
+    "cross_ledger_rule": "while outputs/choice-frontier/v4/budget.json has any reserved or running attempt, launch only on a GPU that attempt does not hold and whose nvidia-smi memory.used is < 1 GB",
+    "fallback": "if the scheduler would exceed 40 GPU-h, drop evaluation cells in the order seed 71, then seed 29, and report the dropped cells"
+  },
+  "execution_contract": {
+    "protocol_frozen_before_rollout": true,
+    "membership_frozen_before_training": true,
+    "code_and_jobs_committed_before_first_launch": true,
+    "no_outcome_selected_variants": true,
+    "independent_replay_every_episode": true,
+    "scheduler": "scripts/run_expanded_study.py launch --ledger outputs/choice-frontier/v5/budget.json --schedule docs/experiments/choice-frontier/schedule-v5.json --job <job>",
+    "relaunch": "infrastructure failures only, at most 2 relaunches per job, recipe never changes",
+    "completion_hook_fix": "hooks derive the attempt dir from EXPANDED_TERMINAL_PATH's parent (the #136 fix)"
+  },
+  "declared_code_surface": [
+    "scripts/run_choice_frontier_v5_dagger.py",
+    "scripts/analyze_choice_frontier_v5_dagger.py",
+    "configs/experiments/choice-frontier-v5/*",
+    "docs/experiments/choice-frontier/issue-140-protocol.md",
+    "docs/experiments/choice-frontier/schedule-v5.json",
+    "docs/experiments/choice-frontier/issue-140-closeout.md",
+    "tests/planning_benchmark/test_choice_frontier_v5_dagger.py",
+    "examples/planning_benchmark_slice/visual_model.py (train_visual gains an optional init_adapter argument; default behaviour unchanged)",
+    "outputs/choice-frontier/v5/**"
+  ]
+}

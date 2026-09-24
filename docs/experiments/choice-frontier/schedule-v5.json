@@ -1,0 +1,58 @@
+{
+  "program_id": "choice-frontier-v5",
+  "status": "authorized_followup_window",
+  "issue": 140,
+  "authorization": {
+    "granted_by": "user directed issue #140 execution (author AFK; #140 creates this ledger capped at 40 GPU-hours through the repo scheduler)",
+    "window_gpu_hours_cap": 40.0,
+    "basis": "#140: 6 on-policy collection jobs, 6 continue-training cells, smoke gate, 12 evaluation cells (6 adapters x {#135 panel, #139 P2}); estimate ~35 GPU-h"
+  },
+  "start_utc": "2026-09-24T00:00:00Z",
+  "gpu_cutoff_utc": "2026-10-20T00:00:00Z",
+  "handoff_deadline_utc": "2026-10-21T00:00:00Z",
+  "deadline_kind": "soft_handoff",
+  "hardware": {
+    "gpus": 2,
+    "model": "NVIDIA A100 80GB",
+    "preserve_unrelated_processes": true,
+    "max_own_model_workers_per_gpu": 1
+  },
+  "experiment_gpu_hours_cap": 40.0,
+  "allocations_gpu_hours": {
+    "choice_frontier": 40.0
+  },
+  "accounting": {
+    "metric": "sum of own allocated model-worker GPU durations across devices; include model loading, saves, failures and retries",
+    "also_record": [
+      "wall time",
+      "CPU work",
+      "actual VRAM"
+    ],
+    "ledger": "outputs/choice-frontier/v5/budget.json",
+    "preserve_prior_ledgers": true,
+    "reset_on_resume": false,
+    "automatic_total_extension": false,
+    "transfers": "none; independent of every prior window, never added to any other ledger"
+  },
+  "master_port_pool": [
+    18830,
+    18831,
+    18832,
+    18833
+  ],
+  "qualification_safety_factor": 1.25,
+  "cross_ledger_rule": "while outputs/choice-frontier/v4/budget.json has a reserved or running attempt, launch only on a GPU that attempt does not hold, after nvidia-smi shows < 1 GB used on that GPU",
+  "state_images": {
+    "size": [
+      128,
+      128
+    ],
+    "text_annotations": false,
+    "goal_context": "partial-goal pages from the frozen view manifests",
+    "semantic_information_equivalence_claimed": false
+  },
+  "execution_authorization": "protocol committed before any rollout; on-policy corpus membership committed before any training; code and job files committed before their first launch; no outcome-selected variants; independent replay of every episode; commit/push and close only against verified evidence",
+  "issues": {
+    "140": "Choice-frontier DAgger round (3 seeds): pre-registered separation from the exact-eps-0.75 rung on #135 panel + held-out P2"
+  }
+}
