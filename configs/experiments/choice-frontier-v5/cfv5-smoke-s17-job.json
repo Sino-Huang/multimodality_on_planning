@@ -1,0 +1,19 @@
+{
+ "job_id": "cfv5-smoke-s17",
+ "branch": "choice_frontier",
+ "gpus": [
+  1
+ ],
+ "max_seconds": 3600,
+ "total": 6,
+ "command": [
+  "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+  "scripts/run_choice_frontier_v5_dagger.py",
+  "smoke"
+ ],
+ "completion_hook": [
+  "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+  "scripts/run_choice_frontier_v5_dagger.py",
+  "audit-smoke"
+ ]
+}
