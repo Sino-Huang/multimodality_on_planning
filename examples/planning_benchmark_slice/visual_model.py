@@ -173,7 +173,11 @@ def _default_dataset_factory(root, config, algorithm, split):
     )
 
 
-def train_visual(config, root, algorithm, output, *, deadline, progress, resume=False, dataset_factory=None):
+def train_visual(
+    config, root, algorithm, output, *, deadline, progress, resume=False, dataset_factory=None, init_adapter=None
+):
+    """``init_adapter`` continues training an existing LoRA adapter (fresh optimizer and scheduler)."""
+
     from torch.utils.data import SequentialSampler
     from transformers import Trainer, TrainerCallback, TrainingArguments
 
@@ -234,7 +238,7 @@ def train_visual(config, root, algorithm, output, *, deadline, progress, resume=
     checkpoints = sorted(output.glob("checkpoint-*"), key=lambda p: int(p.name.split("-")[-1]))
     if checkpoints and not resume:
         raise ValueError("existing training checkpoint requires --resume")
-    model = load_training_model(config)
+    model = load_training_model(config, adapter_path=init_adapter)
     args = TrainingArguments(
         output_dir=str(output),
         num_train_epochs=training["epochs"],

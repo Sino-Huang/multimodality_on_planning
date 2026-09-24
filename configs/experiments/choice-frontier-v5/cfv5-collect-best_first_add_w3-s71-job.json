@@ -1,0 +1,23 @@
+{
+ "job_id": "cfv5-collect-best_first_add_w3-s71",
+ "branch": "choice_frontier",
+ "gpus": [
+  0
+ ],
+ "max_seconds": 14400,
+ "total": 1024,
+ "command": [
+  "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+  "scripts/run_choice_frontier_v5_dagger.py",
+  "collect",
+  "--algorithm",
+  "best_first_add_w3",
+  "--seed",
+  "71"
+ ],
+ "completion_hook": [
+  "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+  "scripts/run_choice_frontier_v5_dagger.py",
+  "audit-collect-worker"
+ ]
+}
