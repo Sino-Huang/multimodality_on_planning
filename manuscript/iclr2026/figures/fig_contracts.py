@@ -2,6 +2,8 @@
 
 Numbers are read from pinned evidence files in the evidence repository:
   outputs/native-arms/v1/identity-audit.json            (pairs_identical / pairs_checked)
+  outputs/native-arms/v1/identity-audit-submission-order.json
+      (rules.submission_order.pairs_divergent / pairs_checked: same-runtime counterfactual)
   docs/experiments/expanded-study/synthesis-v1/baseline-contrasts.csv
       (random_valid_minus_exact_reference rows for best_first_add_{greedy,w3}: difference, problems)
   outputs/choice-frontier/v1/evaluation/identity-audit.json (pairs_divergent / pairs_checked, task ids)
@@ -28,6 +30,10 @@ def load(rel):
 
 
 enum = load("outputs/native-arms/v1/identity-audit.json")
+sub = load("outputs/native-arms/v1/identity-audit-submission-order.json")
+sub_div = sub["rules"]["submission_order"]["pairs_divergent"]
+sub_n = sub["pairs_checked"]
+assert (sub_div, sub_n) == (19, 48), (sub_div, sub_n)
 cf_id = load("outputs/choice-frontier/v1/evaluation/identity-audit.json")
 diff = load("outputs/choice-frontier/v1/evaluation/analysis.json")["contrasts"][
     "random_valid_minus_exact_reference"]
@@ -54,7 +60,8 @@ def f3(v):
 enum_txt = (f"{enum['pairs_identical']}/{enum['pairs_checked']} additive pairs identical"
             f" ({enum_tasks} tasks)\n"
             f"random-valid {MINUS} exact reference\n"
-            f"= {float(add_rows[0]['difference']):+.3f}")
+            f"= {float(add_rows[0]['difference']):+.3f}\n"
+            f"submission-order serials: {sub_div}/{sub_n} divergent")
 cf_txt = (f"{cf_id['pairs_divergent']}/{cf_id['pairs_checked']} pairs divergent ({cf_tasks} tasks)\n"
           f"random-valid {MINUS} exact reference\n"
           f"= {f3(diff['mean'])} [{f3(lo)}, {f3(hi)}]")
@@ -74,24 +81,24 @@ def box(ax, x, y, w, h, text, fc, ec=GREY, bold=False, fs=8):
 def arrow(ax, p, q, label=None):
     ax.add_patch(FancyArrowPatch(p, q, arrowstyle="-|>", mutation_scale=8, lw=0.9, color=GREY))
     if label:
-        ax.text((p[0] + q[0]) / 2, p[1] + 0.04, label, ha="center", va="bottom",
-                fontsize=7.5, color=GREY)
+        ax.text((p[0] + q[0]) / 2, p[1] - 0.07, label, ha="center", va="top",
+                fontsize=7, color=GREY)
 
 
 def panel(ax, title, left, left_fc, verb, right, result, ec):
     ax.set_xlim(-0.02, 1.02); ax.set_ylim(0, 1); ax.axis("off")
     ax.text(0.02, 0.99, title, weight="bold", fontsize=9, va="top")
-    box(ax, 0.02, 0.44, 0.24, 0.36, left, left_fc, fs=7.5)
-    box(ax, 0.32, 0.50, 0.15, 0.24, "Policy", "white", bold=True)
-    box(ax, 0.64, 0.44, 0.34, 0.36, right, "#EEEEEE", fs=7.5)
-    arrow(ax, (0.26, 0.62), (0.32, 0.62))
-    arrow(ax, (0.47, 0.62), (0.64, 0.62), verb)
-    box(ax, 0.02, 0.03, 0.96, 0.33, result, "white", ec=ec)
+    box(ax, 0.02, 0.52, 0.24, 0.34, left, left_fc, fs=7.5)
+    box(ax, 0.32, 0.575, 0.15, 0.23, "Policy", "white", bold=True)
+    box(ax, 0.64, 0.52, 0.34, 0.34, right, "#EEEEEE", fs=7.5)
+    arrow(ax, (0.26, 0.69), (0.32, 0.69))
+    arrow(ax, (0.47, 0.69), (0.64, 0.69), verb)
+    box(ax, 0.02, 0.03, 0.96, 0.42, result, "white", ec=ec)
 
 
-fig, axes = plt.subplots(1, 2, figsize=(5.5, 1.67))
+fig, axes = plt.subplots(1, 2, figsize=(5.5, 1.95))
 panel(axes[0], "(a) Enumeration contract", "Grounded\ncandidate\nmenu", "#DCEBF5",
-      "one op", "Submission-\norder-invariant\nfrontier", enum_txt, BLUE)
+      "one op", "Sorted-serial\nfrontier\n(order-invariant)", enum_txt, BLUE)
 panel(axes[1], "(b) Choice-frontier contract", "Runtime\nfrontier\nstates", "#FBEBCB",
       "select", "Expand chosen\nstate", cf_txt, ORANGE)
 fig.subplots_adjust(left=0.01, right=0.99, top=0.98, bottom=0.02, wspace=0.08)

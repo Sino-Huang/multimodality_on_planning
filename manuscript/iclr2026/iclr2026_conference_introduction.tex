@@ -29,15 +29,14 @@ Under the enumeration contract, process SFT solved 125 of 288 baseline entries, 
 % Evidence: BFS/BFWS random-valid 15/24 and 17/24, exact 24/24, SFT 0/24: Results Table tab:results-primary-matrix.
 % Evidence: outputs/expanded-study/v1/baseline/episodes/{text-state,visual-state,multimodal-state}/*/{bfs,best_first_width}-random_valid.json.gz (15/24 BFS and 17/24 BFWS per modality, hence 45 and 51 across three modalities); failure count Table~\ref{tab:appendix-rejection}.
 
-% Paragraph purpose: State the four contributions supported by the current development-stage evidence.
+% Paragraph purpose: State the four contributions; receipts are in the findings paragraphs above, so each number appears once.
 This paper makes four contributions.
 
 \begin{itemize}[leftmargin=*,itemsep=1pt,parsep=1pt,topsep=2pt]
-    \item \textbf{A per-decision identity audit that returns both verdicts.} On one runtime the check finds random-valid identical to the reference on 48/48 pairs under sorted-order serials and divergent on 19/48 pairs under submission-order serials.
-% Evidence: outputs/native-arms/v1/identity-audit-submission-order.json rules.sorted_candidate_order.pairs_identical 48, rules.submission_order.pairs_divergent 19 (#134 E134-03, E134-04).
-    \item \textbf{A validated choice-frontier measurement.} Its M1 metric passes a pre-registered exact-$\epsilon$ ladder test on a fresh panel.
-    \item \textbf{A first learned result above uniform choice, with its boundaries.} The scaled adapter meets the pre-registered rule for one training seed on one screened panel, at the exact-$\epsilon$ 0.75 rung.
-    \item \textbf{An external anchor.} On ScienceWorld success measures choice, and a survey of seven published interfaces finds none with a complete-set submission contract.
+    \item \textbf{A per-decision identity audit that returns both verdicts on one runtime.}
+    \item \textbf{A choice-frontier measurement validated by a pre-registered exact-$\epsilon$ ladder.}
+    \item \textbf{A first learned result above uniform choice, with its boundaries.}
+    \item \textbf{An external anchor on a published interface and a seven-interface survey.}
 \end{itemize}
 
 % Paragraph purpose: Close with the evidence boundary.
