@@ -2,9 +2,9 @@
  "job_id": "cfv5-smoke-s17",
  "branch": "choice_frontier",
  "gpus": [
-  1
+  0
  ],
- "max_seconds": 3600,
+ "max_seconds": 1800,
  "total": 6,
  "command": [
   "/home/sukaih/miniconda3/envs/ada_vla/bin/python",

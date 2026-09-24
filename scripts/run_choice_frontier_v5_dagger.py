@@ -64,13 +64,16 @@ CANDIDATE_FILES = (
     ROOT / "configs/experiments/choice-frontier-v4/candidates.json",
 )
 ALGORITHMS = v3.ALGORITHMS
-SEEDS = (17, 29, 71)
+SEEDS = (17,)  # Amendment A1: seed 17 only (seeds 29/71 dropped for the 14:21 UTC deadline)
 PANELS = ("v2", "p2")
 INFERENCE_SEED = 17
 MAX_RECORDS_PER_EPISODE = 32
 TARGET_RECORDS = 1024
 MINIMUM_RECORDS = 512
 REPLAY_RECORDS = 1024
+# Amendment A1: the first 512 on-policy records + the first 512 draws of the replay sampler.
+CORPUS_ON_POLICY_RECORDS = 512
+CORPUS_REPLAY_RECORDS = 512
 AUGMENTATIONS = v3.AUGMENTATIONS
 ENDPOINT = v3.ENDPOINT
 COLLECTION_SCHEMA = "choice_frontier_v5_collection_episode_v1"
@@ -593,17 +596,23 @@ def build_corpus_stage() -> dict:
         for seed in SEEDS:
             _universe, pairs = cell_collection(algorithm, seed)
             chosen = []
+            used_pairs = []
             for row, report in pairs:
+                if len(chosen) == CORPUS_ON_POLICY_RECORDS:
+                    break
+                used_pairs.append((row, report))
                 view_key = f"dagger:{row['task_id']}:{algorithm}:s{seed}"
                 tasks[view_key] = {**report["pages"], "episode": report["output"]}
                 for record in report["records"]:
-                    if len(chosen) == TARGET_RECORDS:
+                    if len(chosen) == CORPUS_ON_POLICY_RECORDS:
                         break
                     records[record["record_id"]] = {**record, "view_key": view_key, "split": "train"}
                     chosen.append(record["record_id"])
             if len(chosen) < MINIMUM_RECORDS:
                 raise ValueError(f"cell {algorithm} s{seed} has fewer than {MINIMUM_RECORDS} on-policy records")
-            replay_ids = replay_sample(frozen["training_record_ids"][algorithm], algorithm, seed)
+            replay_ids = replay_sample(frozen["training_record_ids"][algorithm], algorithm, seed)[
+                :CORPUS_REPLAY_RECORDS
+            ]
             used = [records[r] for r in chosen]
             cells[f"{algorithm}-s{seed}"] = {
                 "algorithm": algorithm,
@@ -613,8 +622,8 @@ def build_corpus_stage() -> dict:
                 "replay_records": len(replay_ids),
                 "samples": AUGMENTATIONS * (len(chosen) + len(replay_ids)),
                 "optimizer_updates": math.ceil(AUGMENTATIONS * (len(chosen) + len(replay_ids)) / 32),
-                "episodes": len(pairs),
-                "tasks": [row["task_id"] for row, _ in pairs],
+                "episodes": len(used_pairs),
+                "tasks": [row["task_id"] for row, _ in used_pairs],
                 "on_policy_agreement_rate": sum(r["agree"] for r in used) / len(used),
                 "on_policy_record_ids": chosen,
                 "replay_record_ids": replay_ids,
@@ -764,7 +773,7 @@ def audit_cell(membership: dict, algorithm: str, seed: int) -> dict:
         "alpha_128": adapter_config.get("lora_alpha") == 128,
         "dropout_0_05": adapter_config.get("lora_dropout") == 0.05,
         "steps": cell["steps"] == math.ceil(expected["samples"] / 32) == expected["optimizer_updates"],
-        "steps_128_at_target": expected["samples"] != 4096 or cell["steps"] == 128,
+        "a1_steps_64_samples_2048": cell["steps"] == 64 and cell["train_samples"] == 2048,
         "seed": cell["seed"] == seed == report["seed"],
         "samples": cell["train_samples"] == expected["samples"],
         "membership_sha": report.get("membership_sha256") == membership["membership_sha256"],

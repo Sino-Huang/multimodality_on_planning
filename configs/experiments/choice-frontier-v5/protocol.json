@@ -71,7 +71,7 @@
     "views": "ChoiceFrontierTaskViews over the frozen #136 train views (static pages, goal pages, pre-rendered teacher scenes, read-only); unseen states rendered live by the planimation backend at http://127.0.0.1:18092 into outputs/choice-frontier/v5/collection/views/<task>/<algorithm>-s<seed>",
     "model_calls": "the adapter is called at every decision of the frozen contract (menu size 1 included); its own choice drives the rollout",
     "record_rule": "every decision whose menu has >= 2 states yields a record: menu binding, state-index binding and page sources exactly as the model saw them, the teacher label and whether the adapter agreed",
-    "teacher_label": "the menu label of controller.frontier_head_state_id() on the current (on-policy) frontier, i.e. minimum (priority, generation serial) — computed before the adapter's choice is submitted",
+    "teacher_label": "the menu label of controller.frontier_head_state_id() on the current (on-policy) frontier, i.e. minimum (priority, generation serial) \u2014 computed before the adapter's choice is submitted",
     "agreement": "parsed expand_choice of the raw output == teacher label (unparseable output counts as disagreement; the record is kept)",
     "observation_overflow": "if the observation of a decision exceeds the 32K context (OBSERVATION_OVERFLOW), the episode stops there with termination observation_overflow and that decision yields no record",
     "max_records_per_episode": 32,
@@ -284,5 +284,26 @@
     "tests/planning_benchmark/test_choice_frontier_v5_dagger.py",
     "examples/planning_benchmark_slice/visual_model.py (train_visual gains an optional init_adapter argument; default behaviour unchanged)",
     "outputs/choice-frontier/v5/**"
-  ]
+  ],
+  "amendments": {
+    "A1": {
+      "posted": "2026-09-24T11:21Z on #140 by the orchestrator on the author's behalf, before any DAgger training or evaluation outcome",
+      "reason": "hard wall-clock deadline 14:21 UTC; the 3-seed plan (~12 h) cannot fit",
+      "seeds": [
+        17
+      ],
+      "cancelled_jobs": [
+        "cfv5-collect-best_first_add_greedy-s29",
+        "cfv5-collect-best_first_add_w3-s29"
+      ],
+      "not_run": "seed 71 (collection, training, evaluation); seed 29 training/evaluation",
+      "corpus": "first 512 on-policy seed-17 records in frozen collection order + the first 512 draws of random.Random('replay:{alg}:17').sample(ids, 1024); x2 augmentation = 2048 samples, 64 steps",
+      "audit_train": "64 steps and 2048 samples",
+      "training_jobs": "max_seconds 5400; greedy GPU 0, w3 GPU 1",
+      "evaluation": "DAgger s17 on the #135 panel first, then P2, one algorithm per GPU; smoke gate unchanged",
+      "primary": "S_pool = M1(DAgger s17) - M1(eps-0.75) on pooled #135 + P2; co-primary Delta_pool = M1(DAgger s17) - M1(pre-DAgger s17) paired by task and algorithm; same bootstrap and thresholds",
+      "deadline_fallback": "if P2 cannot finish by ~13:55 UTC it is stopped; #135-panel-only S and Delta are descriptive and the primary endpoint is not evaluable",
+      "closeout": "closeout, closing comment and close by 14:15 UTC in every case"
+    }
+  }
 }

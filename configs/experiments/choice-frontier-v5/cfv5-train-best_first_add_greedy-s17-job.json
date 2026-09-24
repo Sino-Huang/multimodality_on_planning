@@ -2,10 +2,10 @@
  "job_id": "cfv5-train-best_first_add_greedy-s17",
  "branch": "choice_frontier",
  "gpus": [
-  1
+  0
  ],
- "max_seconds": 18000,
- "total": 128,
+ "max_seconds": 5400,
+ "total": 64,
  "command": [
   "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
   "scripts/run_choice_frontier_v5_dagger.py",

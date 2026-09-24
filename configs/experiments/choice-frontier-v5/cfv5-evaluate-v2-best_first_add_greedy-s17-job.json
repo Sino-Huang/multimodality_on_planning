@@ -2,9 +2,9 @@
  "job_id": "cfv5-evaluate-v2-best_first_add_greedy-s17",
  "branch": "choice_frontier",
  "gpus": [
-  1
+  0
  ],
- "max_seconds": 7200,
+ "max_seconds": 3600,
  "total": 12,
  "command": [
   "/home/sukaih/miniconda3/envs/ada_vla/bin/python",

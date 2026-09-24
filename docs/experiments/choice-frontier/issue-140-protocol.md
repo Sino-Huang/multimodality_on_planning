@@ -114,3 +114,14 @@ Infrastructure failures are relaunched at most 2 times; the recipe never changes
 - `scripts/analyze_choice_frontier_v5_dagger.py`.
 - Job files: `configs/experiments/choice-frontier-v5/cfv5-*-job.json`.
 - Test: `tests/planning_benchmark/test_choice_frontier_v5_dagger.py`. It checks that the teacher label is the current heap head on a deviating rollout, that the replay sampler is deterministic, and the pooled verdict boundaries.
+
+## Amendment A1 (2026-09-24 11:21 UTC; decided before any DAgger training or evaluation outcome)
+
+Posted on #140 by the orchestrator on the author's behalf. Hard wall-clock deadline 14:21 UTC; the 3-seed plan (~12 h) cannot fit. Seed-17 collection existed at that time (both cells ≥ 1024 records, 0 replay mismatches); no DAgger training or evaluation outcome existed.
+
+1. **Seed 17 only (2 cells).** The running seed-29 collection jobs were cancelled (ledger status `failed`, `InterruptedError('supervisor signal 15')`, hours charged). Seed 71 is not run.
+2. **Aggregated training set per algorithm:** the **first 512** on-policy seed-17 records in the frozen collection order, plus 512 replay records = the first 512 draws of the frozen `random.Random("replay:{alg}:17").sample(ids, 1024)` sampler. The #136 ×2 augmentation gives **2048 samples** (64 steps at global batch 32). The recipe is otherwise unchanged; `audit-train` checks 64 steps and 2048 samples. Training jobs run with `max_seconds` 5400 (greedy on GPU 0, w3 on GPU 1).
+3. **Evaluation:** DAgger s17 on the #135 panel first, then on P2, one algorithm per GPU. The smoke gate is unchanged.
+4. **Primary endpoint (same rule, seed 17 only):** S_pool = M1(DAgger s17) − M1(eps-0.75) on the pooled #135 ∪ P2 set. Co-primary: Δ_pool = M1(DAgger s17) − M1(pre-DAgger s17), paired by task and algorithm. Bootstrap and verdict thresholds are unchanged.
+5. **Deadline fallback:** if the P2 evaluation cannot finish by about 13:55 UTC, it is stopped then. The #135-panel-only S and Δ are reported as **descriptive**, and the primary endpoint is recorded as not evaluable.
+6. Closeout, closing comment and issue close by 14:15 UTC in every case, even with partial evidence.
