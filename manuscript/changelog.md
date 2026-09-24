@@ -2,6 +2,14 @@
 
 The record of what changed in the ICLR 2026 manuscript and why. Newest first. Each entry names the commit, the scope of the change, and the review or ticket it answered. Review findings and their status live in `review-log.md`; claim vocabulary and boundaries live in `CONTEXT.md`.
 
+## 2026-09-24 — round 4 wave 2, structure and figures (`076738e`)
+
+- New body Figure 2 (`fig:ladder`, `figures/fig_ladder.py`): M1 with task-clustered 95% intervals for the five ladder arms, the scaled adapter (single seed), and the first adapter on the 12-task validation panel, with a dotted line at the exact-ε 0.75 rung. The script reads `choice-frontier/v2` `arms.*` and `adapter_reevaluation.learned_adapter.*` and `choice-frontier/v3` `per_seed.17.*`, and asserts every value against the evidence sheet. It replaces the body ladder table (`tab:results-ladder` removed; the appendix arms table carries the numbers).
+- Figure 1 (`fig_contracts.py`): panel (a) adds the same-runtime counterfactual "submission-order serials: 19/48 divergent" (read from `identity-audit-submission-order.json`), the node is relabelled "Sorted-serial frontier (order-invariant)", and arrow labels no longer touch the boxes. Main rendered both scripts and inspected the PNGs.
+- Introduction and Discussion de-duplicated: the Discussion interprets the two-verdict audit, the ladder, and the at-rung position with Section pointers instead of restating the Results sentences. The abstract names the ScienceWorld reference success explicitly. The limitations item reads "Ladder position". 5.4 reports last-label rates as 20.5% against 30.0%.
+- Page budget: the Conclusion ends on p.8 (main text 8 pages, limit 9), so no further compression was needed after the moves in wave 1.
+- Build: 32 pages, 0 errors, 0 undefined, 0 overfull, 0 bibtex warnings. All headline strings present.
+
 ## 2026-09-24 — round 4 wave 1, evidence integration and reframe (`59e8714`)
 
 - Findings 49 and 60 (review 19) CLOSED with #134. 5.2 reports both verdicts of the identity check on one runtime (48/48 identical under the executed sorted-order serial rule, 19/48 divergent under submission-order serials, first divergence at decisions 2-50, median 6) and states that the pre-registered majority prediction (>24/48) did not hold. 5.4 and App S give the M4 task-cluster intervals and drop the below-chance agreement reading.
