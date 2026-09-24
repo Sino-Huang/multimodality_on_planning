@@ -37,7 +37,7 @@ MEMBERSHIP = ROOT / "configs/experiments/choice-frontier-v5/membership.json"
 V2 = ROOT / "outputs/choice-frontier/v2"
 V5 = ROOT / "outputs/choice-frontier/v5"
 OUT = V5 / "metrics"
-SEEDS = (17, 29, 71)
+SEEDS = (17,)  # Amendment A1: seed 17 only
 PANELS = {"v2": "p135", "p2": "p2"}
 EQUIVALENCE_MARGIN = 0.05
 BOOTSTRAP = {"unit": "task cluster", "seed": 133, "draws": 10000, "interval": "95% percentile",
@@ -183,12 +183,15 @@ def main() -> None:
     protocol = load(PROTOCOL)
     smoke = load(V5 / "smoke/smoke.json")["gate"]
     datasets, dagger = {}, {}
-    for panel, name in PANELS.items():
+    # Amendment A1 deadline fallback: ``--v2-only`` when P2 could not finish (primary not evaluable).
+    panels_used = [p for p in PANELS if p == "v2" or "--v2-only" not in sys.argv[1:]]
+    for panel in panels_used:
+        name = PANELS[panel]
         data = panel_data(name)
         if data["membership"]["membership_sha256"] != protocol["evaluation"]["panels"][panel]["membership_sha256"]:
             raise ValueError(f"{panel} membership differs from the frozen v5 protocol")
-        if data["seeds"] != list(SEEDS):
-            raise ValueError(f"{panel} pre-DAgger seeds are {data['seeds']}, not {SEEDS}")
+        if any(s not in data["seeds"] for s in SEEDS):
+            raise ValueError(f"{panel} pre-DAgger seeds are {data['seeds']}, missing one of {SEEDS}")
         datasets[panel] = data
         if smoke == "PASS":
             dagger[panel] = dagger_panel(panel, data)
@@ -210,42 +213,50 @@ def main() -> None:
         rnd = {t: v for p in panels for t, v in task_m1(datasets[p]["arms"]["random_valid"]).items()}
         return tasks, dag, pre, eps, rnd
 
-    tasks, dag, pre, eps, _rnd = values(list(PANELS))
-    s_pool = contrast(dag, eps, tasks)
-    d_pool = contrast(dag, pre, tasks)
-    primary = {
-        "estimand": protocol["analysis"]["primary"]["estimand"],
-        "S_pool": s_pool["point"],
-        "ci95": s_pool["ci95"],
-        "per_seed": s_pool["per_seed"],
-        "per_seed_ci95": s_pool["per_seed_ci95"],
-        "per_task_difference_seed_mean": s_pool["per_task_seed_mean"],
-        "m1_dagger_3seed_mean": point(dag, tasks),
-        "m1_dagger_3seed_mean_ci95": seed_averaged_bootstrap(dag, tasks),
-        "m1_eps_0_75_5seed_mean": mean(eps.values()),
-        "tasks": len(tasks),
-        "panels": {p: len(datasets[p]["tasks"]) for p in PANELS},
-        "bootstrap": BOOTSTRAP,
-        "rule": protocol["analysis"]["primary"]["decision_rule"],
-        "smoke_gate": smoke,
-        "verdict": primary_verdict(s_pool["ci95"][0], s_pool["ci95"][1], smoke),
-    }
-    co_primary = {
-        "estimand": protocol["analysis"]["co_primary"]["estimand"],
-        "delta_pool": d_pool["point"],
-        "ci95": d_pool["ci95"],
-        "per_seed": d_pool["per_seed"],
-        "per_seed_ci95": d_pool["per_seed_ci95"],
-        "per_task_difference_seed_mean": d_pool["per_task_seed_mean"],
-        "m1_pre_dagger_3seed_mean": point(pre, tasks),
-        "bootstrap": BOOTSTRAP,
-        "equivalence_margin": EQUIVALENCE_MARGIN,
-        "rule": protocol["analysis"]["co_primary"]["decision_rule"],
-        "verdict": co_primary_verdict(d_pool["ci95"][0], d_pool["ci95"][1]),
-    }
+    pooled = panels_used == list(PANELS)
+    if pooled:
+        tasks, dag, pre, eps, _rnd = values(panels_used)
+        s_pool = contrast(dag, eps, tasks)
+        d_pool = contrast(dag, pre, tasks)
+        primary = {
+            "estimand": protocol["amendments"]["A1"]["primary"],
+            "S_pool": s_pool["point"],
+            "ci95": s_pool["ci95"],
+            "per_seed": s_pool["per_seed"],
+            "per_seed_ci95": s_pool["per_seed_ci95"],
+            "per_task_difference_seed_mean": s_pool["per_task_seed_mean"],
+            "m1_dagger_seed_mean": point(dag, tasks),
+            "m1_dagger_seed_mean_ci95": seed_averaged_bootstrap(dag, tasks),
+            "m1_eps_0_75_5seed_mean": mean(eps.values()),
+            "tasks": len(tasks),
+            "panels": {p: len(datasets[p]["tasks"]) for p in panels_used},
+            "seeds": list(SEEDS),
+            "bootstrap": BOOTSTRAP,
+            "rule": protocol["analysis"]["primary"]["decision_rule"],
+            "smoke_gate": smoke,
+            "verdict": primary_verdict(s_pool["ci95"][0], s_pool["ci95"][1], smoke),
+        }
+        co_primary = {
+            "estimand": protocol["amendments"]["A1"]["primary"],
+            "delta_pool": d_pool["point"],
+            "ci95": d_pool["ci95"],
+            "per_seed": d_pool["per_seed"],
+            "per_seed_ci95": d_pool["per_seed_ci95"],
+            "per_task_difference_seed_mean": d_pool["per_task_seed_mean"],
+            "m1_pre_dagger_seed_mean": point(pre, tasks),
+            "seeds": list(SEEDS),
+            "bootstrap": BOOTSTRAP,
+            "equivalence_margin": EQUIVALENCE_MARGIN,
+            "rule": protocol["analysis"]["co_primary"]["decision_rule"],
+            "verdict": co_primary_verdict(d_pool["ci95"][0], d_pool["ci95"][1]),
+        }
+    else:
+        reason = "A1 deadline fallback: P2 evaluation stopped at ~13:55 UTC; #135-panel S and Delta are descriptive"
+        primary = {"verdict": "NOT_EVALUABLE", "reason": reason, "S_pool": None, "ci95": None}
+        co_primary = {"verdict": "NOT_EVALUABLE", "reason": reason, "delta_pool": None, "ci95": None}
 
     per_panel, per_seed, ladder = {}, {}, {}
-    for panel in PANELS:
+    for panel in panels_used:
         p_tasks, p_dag, p_pre, p_eps, p_rnd = values([panel])
         s = contrast(p_dag, p_eps, p_tasks)
         d = contrast(p_dag, p_pre, p_tasks)
@@ -257,8 +268,8 @@ def main() -> None:
             "delta": d["point"], "delta_ci95": d["ci95"], "delta_per_seed": d["per_seed"],
             "delta_verdict_rule_applied": co_primary_verdict(*d["ci95"]),
             "D3": d3["D3"], "D3_ci95": d3["ci95"], "D3_per_seed": d3["per_seed"], "D3_verdict_138_rule": d3["verdict"],
-            "m1_dagger_3seed_mean": point(p_dag, p_tasks),
-            "m1_pre_dagger_3seed_mean": point(p_pre, p_tasks),
+            "m1_dagger_seed_mean": point(p_dag, p_tasks),
+            "m1_pre_dagger_seed_mean": point(p_pre, p_tasks),
             "m1_eps_0_75": mean(p_eps.values()),
             "m1_random_valid": mean(p_rnd.values()),
             "status": "descriptive (secondary)",
@@ -271,25 +282,27 @@ def main() -> None:
             for seed in SEEDS
         }
         ladder[panel] = {
-            "dagger_3seed_mean": ladder_position(datasets[panel]["arms"], per_panel[panel]["m1_dagger_3seed_mean"]),
-            "pre_dagger_3seed_mean": ladder_position(datasets[panel]["arms"],
-                                                     per_panel[panel]["m1_pre_dagger_3seed_mean"]),
+            "dagger_seed_mean": ladder_position(datasets[panel]["arms"], per_panel[panel]["m1_dagger_seed_mean"]),
+            "pre_dagger_seed_mean": ladder_position(datasets[panel]["arms"],
+                                                     per_panel[panel]["m1_pre_dagger_seed_mean"]),
             "dagger_per_seed": {str(s): ladder_position(datasets[panel]["arms"],
                                                         dagger[panel]["per_seed"][s]["m1_auc"]) for s in SEEDS},
         }
-    per_seed["pooled"] = {
-        str(seed): {
-            "dagger_m1": mean(dag[str(seed)].values()),
-            "dagger_m1_ci95": bootstrap(dag[str(seed)], tasks),
-            "pre_dagger_m1": mean(pre[str(seed)].values()),
-            "S": s_pool["per_seed"][str(seed)],
-            "delta": d_pool["per_seed"][str(seed)],
+    if pooled:
+        per_seed["pooled"] = {
+            str(seed): {
+                "dagger_m1": mean(dag[str(seed)].values()),
+                "dagger_m1_ci95": bootstrap(dag[str(seed)], tasks),
+                "pre_dagger_m1": mean(pre[str(seed)].values()),
+                "S": s_pool["per_seed"][str(seed)],
+                "delta": d_pool["per_seed"][str(seed)],
+            }
+            for seed in SEEDS
         }
-        for seed in SEEDS
-    }
     report = {
-        "status": "pre-registered #140 analysis (issue-140-protocol.md)",
-        "memberships": {p: datasets[p]["membership"]["membership_sha256"] for p in PANELS},
+        "status": "pre-registered #140 analysis (issue-140-protocol.md, Amendment A1: seed 17 only)",
+        "panels_evaluated": panels_used,
+        "memberships": {p: datasets[p]["membership"]["membership_sha256"] for p in panels_used},
         "reused": {
             "pre_dagger_v2": "outputs/choice-frontier/v3/evaluation (s17) + outputs/choice-frontier/v4/seeds/evaluation",
             "pre_dagger_p2": "outputs/choice-frontier/v4/panels/p2/evaluation",
@@ -298,7 +311,7 @@ def main() -> None:
         },
         "episode_accounting": {p: {"dagger_episodes": len(dagger[p]["rows"]),
                                    "evaluation": load(V5 / "evaluation" / p / "evaluation/evaluation.json")}
-                               for p in PANELS},
+                               for p in panels_used},
         "primary": primary,
         "co_primary": co_primary,
         "per_panel": per_panel,
@@ -310,10 +323,10 @@ def main() -> None:
                            "head) and exact-eps read privileged h_add information"),
     }
     save("analysis.json", report)
-    save("dagger-episode-metrics.json", {p: dagger[p]["rows"] for p in PANELS})
+    save("dagger-episode-metrics.json", {p: dagger[p]["rows"] for p in panels_used})
     brief = {
-        "primary": {k: primary[k] for k in ("S_pool", "ci95", "per_seed", "verdict")},
-        "co_primary": {k: co_primary[k] for k in ("delta_pool", "ci95", "per_seed", "verdict")},
+        "primary": {k: primary.get(k) for k in ("S_pool", "ci95", "per_seed", "verdict")},
+        "co_primary": {k: co_primary.get(k) for k in ("delta_pool", "ci95", "per_seed", "verdict")},
         "per_panel": {p: {k: v[k] for k in ("S", "S_ci95", "delta", "delta_ci95", "D3", "D3_ci95")}
                       for p, v in per_panel.items()},
     }
