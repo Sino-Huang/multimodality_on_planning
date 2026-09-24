@@ -4,7 +4,7 @@
 Copy of ``scripts/build_choice_frontier_v2_panel.py`` (#135) with the #139 changes
 (docs/experiments/choice-frontier/issue-139-protocol.md):
 
-- ``generate`` — 12 domains x fresh seeds 955000-955039 from the frozen ``expanded``
+- ``generate`` — 12 domains x fresh seeds 955000-955199 (Amendment A1) from the frozen ``expanded``
   profiles, **serial** generation; exclusion by problem_sha256 against the #135
   candidates, the #136 training tasks, the expanded-study final panel, the #132
   corpus and earlier candidates; bounded #135 C* BFS, keep 8 <= C* <= 20.
@@ -53,7 +53,8 @@ CANDIDATES = CONFIG / "candidates.json"
 MEMBERSHIP = {"p2": CONFIG / "membership-p2.json", "p2u": CONFIG / "membership-p2u.json"}
 OUTPUT = ROOT / "outputs/choice-frontier/v4/panels"
 PROTOCOL_DOC = "docs/experiments/choice-frontier/issue-139-protocol.md"
-SEEDS = tuple(range(955000, 955040))
+SEEDS = tuple(range(955000, 955200))  # Amendment A1: extended from 955000-955039
+FALLBACK_MIN_TASKS = 6  # Amendment A1: P2 below 8/5 but >= 6 tasks is frozen as descriptive
 TASK_PREFIX = "choice-frontier-v4"
 EXCLUSION_SOURCES = {
     "a": "configs/experiments/choice-frontier-v2/candidates.json",
@@ -187,7 +188,7 @@ def generate_stage(workers: int) -> None:
             records[index] = result
     for record in records:
         print(record["task_id"], record["cstar"], record["cstar_status"], record["reject_reason"], flush=True)
-    assert len(records) == 480
+    assert len(records) == 12 * len(SEEDS)
     counts: dict[str, int] = {}
     for record in records:
         key = (record["reject_reason"] or "kept").split(":")[0]
@@ -308,7 +309,7 @@ def select_p2u(candidates: list[dict], p2_ids: set[str]) -> list[dict]:
     return [r for r in candidates if r["task_id"] in ids]
 
 
-def write_membership(panel: str, chosen: list[dict], counts: dict, freeze_rule: str) -> str:
+def write_membership(panel: str, chosen: list[dict], counts: dict, freeze_rule: str, confirmatory: bool) -> str:
     task_ids = sorted(r["task_id"] for r in chosen)
     by_id = {r["task_id"]: r for r in chosen}
     sha = membership_sha256(task_ids)
@@ -322,6 +323,7 @@ def write_membership(panel: str, chosen: list[dict], counts: dict, freeze_rule: 
             "membership_sha256": sha,
             "membership_canonical_form": "sha256 of json.dumps(sorted(task_ids), sort_keys=True, separators=(',', ':'))",
             "freeze_rule": freeze_rule,
+            "confirmatory": confirmatory,
             "per_domain_counts": counts,
             "domains": sorted({r["domain"] for r in chosen}),
             "per_task": {
@@ -352,15 +354,18 @@ def freeze_stage() -> None:
     print(json.dumps(counts, indent=1))
     p2 = select_p2(candidates)
     p2_domains = {r["domain"] for r in p2}
-    if len(p2) < MIN_TASKS or len(p2_domains) < MIN_DOMAINS:
-        raise SystemExit(f"STOP: P2 has {len(p2)} tasks from {len(p2_domains)} domains (need >= 8 from >= 5)")
+    confirmatory = len(p2) >= MIN_TASKS and len(p2_domains) >= MIN_DOMAINS
+    if not confirmatory and len(p2) < FALLBACK_MIN_TASKS:
+        raise SystemExit(f"STOP: P2 has {len(p2)} tasks from {len(p2_domains)} domains (A1 fallback needs >= 6)")
     p2u = select_p2u(candidates, {r["task_id"] for r in p2})
     p2u_domains = {r["domain"] for r in p2u}
     assert not {r["task_id"] for r in p2} & {r["task_id"] for r in p2u}
     sha = write_membership(
-        "p2", p2, counts, "admitted (#135 screen) sorted by (domain, seed); at most 2 per domain; first 12"
+        "p2", p2, counts, "admitted (#135 screen) sorted by (domain, seed); at most 2 per domain; first 12",
+        confirmatory,
     )
-    print("P2 frozen", len(p2), "tasks from", len(p2_domains), "domains", sha)
+    print("P2 frozen", len(p2), "tasks from", len(p2_domains), "domains", sha,
+          "" if confirmatory else "(A1 fallback: descriptive)")
     if len(p2u) < MIN_TASKS or len(p2u_domains) < MIN_DOMAINS:
         print(f"P2u dropped: {len(p2u)} tasks from {len(p2u_domains)} domains (need >= 8 from >= 5)")
         return
@@ -368,6 +373,7 @@ def freeze_stage() -> None:
         "p2u", p2u, counts,
         "kept, not in P2, exact goal for both algorithms (no random screen), sorted by (domain, seed); "
         "at most 2 per domain; first 12",
+        True,
     )
     print("P2u frozen", len(p2u), "tasks from", len(p2u_domains), "domains", sha)
 
