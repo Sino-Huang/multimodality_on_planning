@@ -1,45 +1,50 @@
 % STATUS: COMPRESSED #131 round 2 Wave 2 pass 5 2026-09-23 (review 16 finding 6): Discussion+Conclusion cut to
-% ~1.1 pages. Arc paragraphs merged; threats as one-line itemize; Conclusion 4 sentences. Kept every claim boundary
-% (development stage, single seed except two cells, saturation, one discriminative task, no equivalence without a
-% pre-registered margin, no planning-ability claim for the redesigned arm, selectors not information-matched,
-% panel reuse with the fresh-panel requirement) and the scoped finding-1/2 wording.
+% ~1.1 pages. Arc paragraphs merged; threats as one-line itemize; Conclusion 4 sentences.
 % STATUS: REVISED #131 round 1 (2026-09-23); REVISED R3b for findings #11 and #16. No new bib entries.
-% Numbers from synthesis-v1/README.md, synthesis-v1/seed-variance-addendum.md, the #129/#130/#132/#133 closeouts and
-% pinned JSON artifacts, and the sibling Results section (content_brief.md superseded, review 18 finding 53).
+% STATUS: #131 round 4 (2026-09-24). Restructured around the measurement (V1/V2, V3b), the learned result and
+% its boundaries (V4, V4b, contract caveat (c)), the external anchor (V5), and a limitations list carrying P1 and P2.
+% Old menu-leak, zoo, BFWS-panel, and secondary-null discussion compressed to one pointer. Numbers from
+% local://evidence-r4.md (headline set only). No new bib entries.
 \section{Discussion and Limitations}
 \label{sec:discussion}
 
-% Paragraph purpose: State the measurement arc (finding, audit, fix, first measurement) and what it does and does not show, with the scoped finding-1/2 wording.
-% Evidence: outputs/native-arms/v1/identity-audit.json (48/48, additive pairs only); outputs/native-arms/v1/stress-evaluation.json
-% and the distractor episode records (pick-rate at chance, review 16 finding 2); outputs/choice-frontier/v1/evaluation/{identity-audit,analysis}.json.
-The results form a measurement finding and an audit-driven fix. On the additive best-first cells of the enumeration contract, choice quality is unmeasurable by construction, because an expansion must submit its complete candidate set and heap order ignores submission order, while the BFS and width-based best-first cells register choice and the learned policy never succeeds there (Section~\ref{sec:results-identity}). Menu permutation is therefore uninformative about order, and distractor injection shows only that the policy does not reject schema-valid inapplicable menu entries (pick-rate at chance). The choice-frontier redesign separates random-valid from exact reference, and its first measurement shows contract fluency rather than choice quality. Its contrast against random-valid rests on one discriminative task and, without a pre-registered margin, licenses neither superiority nor equivalence. The evidence supports no learning-to-plan claim for the redesigned arm.
+% Paragraph purpose: State what the measurement shows, the identity audit with both verdicts and then the validated choice-frontier metric with its privileged-rung boundary.
+On the additive best-first cells of our enumeration contract, where an expansion submits its complete candidate set and heap serials follow the sorted candidate order, random-valid is decision-identical to the exact reference on 48/48 pairs, so success there measures operation validity rather than choice.
+% Evidence: outputs/native-arms/v1/identity-audit.json pairs_identical 48; identity-audit-submission-order.json rules.sorted_candidate_order.pairs_identical 48 (#134 E134-03).
+On the same runtime with heap serials assigned in submission order, the same check finds 19/48 divergent pairs, so the check can return either verdict. The pre-registered prediction of divergence on most pairs (more than 24/48) did not hold.
+% Evidence: outputs/native-arms/v1/identity-audit-submission-order.json rules.submission_order.pairs_divergent 19; preregistered_prediction.held false (#134 E134-02, E134-04, E134-07).
+The redesigned contract's M1 passes the pre-registered ladder test (Section~\ref{sec:results-ladder}). The rungs read the privileged heap head, so the ladder validates the ordering of the measurement, not any realisable policy.
+Menu-manipulation and zoo results on the earlier contracts are in the appendix (Appendix~\ref{sec:results-menu}).
 
-% Paragraph purpose: Interpret the enumeration-contract evidence and the runtime boundary that limits every positive result.
-Every positive result depends on the Trusted Search Runtime, which never chooses operands or repairs them, so decisions are attributable to the model and the evidence does not establish unassisted internal search or general planning autonomy. Within that boundary the additive-cell output contract is learnable (BFS and BFWS cells score 0/24), a second backbone replicates this contract fluency, and the one positive learned-control contrast (the BFWS development panel) remains a single-seed development-stage finding. After process supervision, most learned emissions parse, and the dominant failure is an invariant rejection. The language-channel dependence is supported only by the copyability-preserving shuffled condition. As a post-hoc interpretation, the menu is the only retained input that could carry the operation-validity signal on this panel. The DAgger, transfer, and curriculum studies returned nulls, the evidence does not support an intrinsic modality effect, and the comparator zoo finds no positive learned Pareto dominance, which is not a general negative capability claim.
-% Evidence: 0/24 per BFS/BFWS cell from Results Table tab:results-primary-matrix (review 18, finding 62); failure calibration Table tab:appendix-rejection (229/407, finding 58).
+% Paragraph purpose: State the learned result and its boundaries, including the screened-panel and concentration caveat.
+A scaled adapter beats uniform choice on this panel, $D = +0.328$ $[+0.155, +0.508]$, which meets the pre-registered POSITIVE rule for its single training seed. Its M1 of 0.349 sits at the exact-$\epsilon$ 0.75 rung (0.347) on point estimates, far below the 0.50 rung (0.603).
+% Evidence: outputs/choice-frontier/v3/metrics/analysis.json primary.D, primary.ci95, primary.verdict POSITIVE, primary.seeds [17]; per_seed.17.m1_auc; ladder_position.learned.17.* (#136 E136-01..07, E136-20, E136-33).
+This is a development-stage, single-seed result on one screened panel, obtained by imitating the exact reference, and it supports no planning-ability, generality, or held-out claim.
+Screening admitted only tasks where random-valid is discriminative, and the effect is concentrated, with 4 of the 12 tasks at or below zero on the per-task difference (Section~\ref{sec:results-adapter}).
+% Evidence: outputs/choice-frontier/v3/metrics/analysis.json primary.per_task_difference.<task_id> (15puzzle-935006 -0.0625; blocksworld-935001, blocksworld-935004, towers_of_hanoi-935002 0.0) (#136 E136-09).
 
-% Paragraph purpose: List the threats to validity, one line each.
-% Evidence: seed-variance-addendum.md (#127); issue-132-closeout.md Erratum items 3 and 5; #133 closing comment;
-% issue-129-closeout.md; design-section training-exposure sentence (critic-15 finding #1).
-\paragraph{Threats to validity.}
+% Paragraph purpose: State the external anchor and its double edge, so the contribution is the measurement rather than the exposure of a common flaw.
+ScienceWorld \citep{wang2022scienceworld} anchors the check externally (Section~\ref{sec:results-external}). The audit covers 6 of its 30 task types, and none of the seven published interfaces we surveyed uses a complete-set submission contract, so the identity failure is shown only on our runtime. The contribution is therefore the measurement, not the exposure of a common flaw.
+% Evidence: docs/experiments/external-audit/issue-137-closeout.md §Limitations (6 of 30); issue-137-survey.md §Candidate table (7); issue-137-closeout.md §Stage 1 survey (0 type A) (#137 E137-19, E137-40, E137-42).
+
+% Paragraph purpose: List the limitations, one line each, with the two pending follow-ups.
+\paragraph{Limitations.}
 \begin{itemize}
-\item \emph{Development stage.} Held-out manifest unaccessed, single seed except two cells ($n{=}3$).
-\item \emph{Saturation.} Saturating controls bound measurability, not policy quality.
-\item \emph{Exposure.} Longer gate-era training confounds the missing BFWS positive.
-\item \emph{Imitation target.} The exact reference solves by construction of the budget.
-\item \emph{Comparators.} Zoo selectors read privileged inputs, so ranking is not information-matched.
-\item \emph{Menu and nulls.} No arm removes the menu, and ceiling nulls do not show image irrelevance.
-\item \emph{Panel reuse.} Adaptive-overfitting risk on one reused panel requires a fresh frozen panel.
+\item \emph{Single seed.} The scaled adapter has one training seed, so seed variance is unmeasured. [TODO: follow-up ticket pending: \#136 seeds 29 and 71, per-seed D and the three-seed POSITIVE rule]
+% Pending: #136 seeds 29 and 71 not trained (ticket edited to one seed); author running follow-up, no ticket number yet.
+\item \emph{One panel.} The learned result rests on one screened panel, and the held-out evaluation has not been executed. [TODO: follow-up ticket pending: second fresh panel or held-out evaluation of the scaled adapter]
+% Pending: second fresh panel or held-out evaluation of the #136 adapter; author running follow-up, no ticket number yet. Replaces the round-2 "held-out final primary evaluation unexecuted" TODO comment.
+\item \emph{Privileged ladder.} No paired interval places the adapter against a rung.
+\item \emph{Prediction.} The submission-order divergence was weaker than pre-registered.
+\item \emph{Runtime.} The runtime never chooses or repairs operands, so no result shows unassisted internal search.
 \end{itemize}
-% Paragraph purpose: State the withdrawn full-scope branches and the pending release.
-The full-scope v1 generalization and second-backbone branches were withdrawn after terminal VALID\_STOP receipts (closed 2026-09-21). Code and evidence bundles will be provided as anonymous supplementary material.
-% Evidence: issues #96/#98/#102/#103 CLOSED 2026-09-21 (v1 scope withdrawn; review 16 I12). #122 release/handoff open; held-out final primary evaluation unexecuted.
+% Paragraph purpose: State the pending release.
+Code and evidence bundles will be provided as anonymous supplementary material.
+% Evidence: #122 release/handoff open.
 % TODO(release): issue #122 tracks anonymous supplementary bundles and pending release URLs.
 
 \section{Conclusion}
 \label{sec:conclusion}
 
-% Paragraph purpose: Give the gate-bounded answer, the zoo boundary, and the single next gated step.
-Grounded-menu search evaluations can leave choice quality unmeasurable by construction, and a cheap per-decision identity audit exposes this. The choice-frontier redesign separates the controls, and the adapter learns to emit valid choices without demonstrated choice quality. Its solve-versus-budget score lies below random-valid (paired $-0.035$ $[-0.150, +0.061]$, which is not equivalence), and a post-hoc label audit finds 54.5\% last-label emissions. These development-stage findings establish neither general efficacy, an intrinsic modality effect, nor planning autonomy. The next gated step is a held-out evaluation on the frozen 45-task manifest and a fresh choice-frontier panel (Section~\ref{sec:design}).
-% Evidence: outputs/choice-frontier/o4/metrics/analysis.json m1_m2_m3_dominance_holm.comparisons.random_valid.m1_auc (difference_favoring_learned -0.03472, cluster_bootstrap_95pct_ci); arms.learned_adapter.m4_teacher_agreement.selected_last_rate 0.5455 (post-hoc M4; review 18, finding 52).
-% TODO: held-out final primary evaluation unexecuted.
+% Paragraph purpose: Give the scoped answer, the validated measurement and learned result at its rung, and the claim frame.
+On our runtime a per-decision identity check returns both verdicts. The redesigned choice-frontier measurement passes a pre-registered ladder test, and a scaled adapter beats uniform choice with M1 at the exact-$\epsilon$ 0.75 rung on point estimates. The choice-quality claim is development-stage and single-seed, holds on the validation panel relative to uniform choice and the exact-$\epsilon$ ladder, and carries no planning-ability, generality, or held-out claim.

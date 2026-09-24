@@ -1,33 +1,24 @@
 % STATUS: R2a findings 6, 9, 13, 15, and 23 addressed. Bootstrap level checked against the frozen BFWS threshold and its adjudicator.
 % STATUS: #131 round 2 (2026-09-23). Rewritten around the measurement-methodology frame. Numbers copied from iclr2026_conference_results.tex (round-1 commit 2569773).
+% STATUS: #131 round 4 (2026-09-24). Rebuilt around "Separating Choice from Validity" with #134-#137 (V1-V5, V7 compressed per r4-contract). Menu, zoo, +0.033/+0.389 and BFWS 0.933 sentences moved out (they remain in Results/appendix).
 \begin{abstract}
-% Paragraph purpose: State the scoped measurement finding on the additive best-first cells of the enumeration contract with its cause and receipt pair, then the audit-driven redesign and its sanity-check gate.
-We train vision-language models to execute declared classical search algorithms step by step against a no-repair runtime and test whether such training can be measured to improve search choice.
-On the additive best-first cells of the original enumeration contract, where an expansion must submit its complete candidate set and heap order ignores submission order, a random-valid control is decision- and expansion-identical to the exact classical reference on 48/48 pairs, so choice quality is unmeasurable there by construction.
-% Evidence: outputs/native-arms/v1/identity-audit.json (pairs_checked 48, additive pairs only).
-The BFS and width-based best-first cells do register choice (random-valid 15/24 and 17/24 versus exact 24/24), and the learned policy scores 0/24 on each.
-% Evidence: expanded 24-task baseline, Results Table tab:results-primary-matrix (BFS/BFWS rows, per modality); episodes
-% outputs/expanded-study/v1/baseline/episodes/*/*/{bfs,best_first_width}-*.json.gz result.goal_reached (RV 15/24 and 17/24 per modality).
-Menu permutation leaves 36/36 successes with 0/512 invalid operations, uninformative about order under submission-order invariance. Injecting schema-valid but inapplicable distractors collapses success to 0/36 at a pick-rate of 0.6, against a chance rate of 0.592 to 0.625, so the policy does not reject such entries.
-% Evidence: outputs/native-arms/v1/stress-evaluation.json; chance rate recomputed from outputs/native-arms/v1/evaluation/episodes/menu/*/*/*distractor-injection-learned_adapter.json.gz (review 16, finding 2).
-We therefore redesign the decision as a choice-frontier contract, where the policy selects which runtime-owned frontier state to expand under a binding budget.
-Its pre-registered identity gate passes on 9/9 tasks (18 cells, coincident control sequences across algorithms), a by-construction sanity check, and random-valid minus exact reference is $-0.644$ (frozen 95\% CI $[-0.856, -0.422]$, post-hoc task-clustered $[-0.889, -0.333]$).
-% Evidence: outputs/choice-frontier/v1/evaluation/{identity-audit,analysis}.json.
-% Evidence: task-clustered interval from docs/experiments/choice-frontier/issue-132-closeout.md Erratum, post-hoc.
+% Paragraph purpose: State the question, the enumeration-contract identity result with both verdicts on the same runtime, and the validated choice-frontier measurement with its privileged-rung boundary.
+We ask whether search choice can be measured separately from operation validity for vision-language search policies.
+On the additive best-first cells of our enumeration contract, where an expansion submits its complete candidate set, random-valid is decision-identical to the exact reference on 48/48 pairs, so success there measures operation validity rather than choice.
+% Evidence: outputs/native-arms/v1/identity-audit.json pairs_identical 48 of pairs_checked 48; outputs/native-arms/v1/identity-audit-submission-order.json rules.sorted_candidate_order.pairs_identical 48 (#134 E134-03).
+With submission-order heap serials on the same runtime, 19/48 pairs diverge, so the check can return either verdict, but the pre-registered majority prediction failed.
+% Evidence: outputs/native-arms/v1/identity-audit-submission-order.json rules.submission_order.pairs_divergent 19; preregistered_prediction.held false (#134 E134-04, E134-02).
+On a redesigned choice-frontier contract and a fresh 12-task panel, the pre-registered ladder test passes.
+M1 orders the exact reference (0.875) above exact-$\epsilon$ selectors choosing uniformly on 25\%, 50\%, and 75\% of decisions (0.793, 0.603, 0.347) and random-valid (0.021), and every adjacent 95\% lower bound is positive (smallest gap $+0.082$ $[+0.051, +0.111]$).
+% Evidence: outputs/choice-frontier/v2/metrics/analysis.json instrument_validity.verdict PASS, instrument_validity.tasks 12; arms.{exact_reference,exact-eps-0.25,exact-eps-0.50,exact-eps-0.75,random_valid}.m1_auc; instrument_validity.pairs[0].difference and .ci95 (#135 E135-01..16).
+The rungs read the privileged heap head, so the ladder validates the ordering of the measurement, not any realisable policy.
 
-% Paragraph purpose: Report the first measurement and its calibration boundary, the demoted BFWS contrast, the development-stage qualifications, and the reusable audit.
-In the first measurement the adapter learns to operate the contract, solving 7/18 cells with zero invalid operations ($+0.389$ $[+0.167, +0.611]$ over the pretrained base).
-% Evidence: 7/18 from outputs/choice-frontier/o4/metrics/all-episode-metrics.json records[multiplier=2].solves["2"] (learned_adapter);
-% +0.389 [+0.167, +0.611] from outputs/choice-frontier/v1/evaluation/analysis.json contrasts.learned_minus_pretrained_base.{mean, ci95}.
-Choice quality beyond the named references is not established. The contrast against random-valid is $+0.033$ $[-0.033, +0.133]$ and rests on one task. The exploratory zoo finds no positive learned Pareto dominance. On solve-versus-budget AUC the adapter (.1042) lies between \texttt{bfs-order} (.0694) and novelty-first (.1250), and below random-valid (.1389), with paired contrast $-0.035$ $[-0.150, +0.061]$.
-% Evidence: +0.033 [-0.033, +0.133] from outputs/choice-frontier/v1/evaluation/analysis.json contrasts.learned_minus_random_valid.{mean, ci95}.
-% Source conflict: analysis.json descriptive_only false; the Erratum item 3 one-task rule (issue-132-closeout.md) governs the prose.
-% Evidence: outputs/choice-frontier/o4/metrics/analysis.json (arms.*.m1_auc).
-% Evidence: outputs/choice-frontier/o4/metrics/analysis.json m1_m2_m3_dominance_holm.comparisons.random_valid.m1_auc (difference_favoring_learned, cluster_bootstrap_95pct_ci).
-No equivalence margin was pre-registered.
-The single positive learned contrast is on a 15-task width-based best-first development panel of the enumeration contract (0.933 versus 0.467 for random-valid).
-% Evidence: docs/issue-59-bfws-structural-gate.md L250-253 (invariant-valid success 0.933333 vs random-valid 0.466667, bootstrap lower bound 0.2).
-All results are development-stage and single-seed except two replication cells, saturating controls bound measurability rather than policy quality, and the held-out final evaluation has not been run.
-% Held-out final primary evaluation has no open ticket; stated in prose per the round-2 TODO convention.
-The paper offers a measurement result and a per-decision identity check, not planning ability. Its menu-manipulation probe is reported, but the discriminating variant (fixed versus random distractor position) remains unrun.
+% Paragraph purpose: Report the learned result at its rung, the external anchor and its scope, and the claim frame.
+A scaled adapter beats uniform choice, $D = +0.328$ $[+0.155, +0.508]$, for one training seed, at the exact-$\epsilon$ 0.75 rung on M1 point estimates.
+% Evidence: outputs/choice-frontier/v3/metrics/analysis.json primary.D, primary.ci95, primary.verdict POSITIVE, primary.seeds [17]; ladder_position.learned.17.next_lower_or_equal_rung exact-eps-0.75 (#136 E136-01..07, E136-33).
+On ScienceWorld, success is 0.915 versus 0 for random-valid on 6 of 30 task types, so success there measures choice.
+% Evidence: outputs/external-audit/v1/scienceworld/identity-audit.json success.reference 0.915, success.random_valid_mean 0.0; 6 of 30 from docs/experiments/external-audit/issue-137-closeout.md §Limitations (#137 E137-05, E137-06, E137-19).
+None of seven surveyed published interfaces uses a complete-set submission contract, so the identity failure is shown only on our runtime.
+% Evidence: docs/experiments/external-audit/issue-137-survey.md §Candidate table (7 candidates); issue-137-closeout.md §Stage 1 survey (0 type A) (#137 E137-40, E137-42).
+The choice-quality claim is development-stage and single-seed, and carries no planning-ability, generality, or held-out claim.
 \end{abstract}

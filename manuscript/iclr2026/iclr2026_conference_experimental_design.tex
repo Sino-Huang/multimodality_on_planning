@@ -11,8 +11,9 @@
 \label{sec:design}
 
 % Paragraph purpose: State the comparative question, the gate logic, and the development-stage and seed boundaries.
-Each algorithm-by-modality-by-condition cell asks whether a trained Search Process Policy exceeds an oracle-assisted validity control on full-episode budgeted success (Section~\ref{sec:policy}), under frozen protocols, a 336 GPU-hour cap, and prespecified gate receipts. Every executed stage is development-stage evidence. Panels are frozen and outcome-blind, the held-out manifest has never been accessed, and every learned cell uses one training seed (17) except two replicated cells (seeds 29 and 71 added, protocol frozen 2026-09-20).
+Each algorithm-by-modality-by-condition cell asks whether a trained Search Process Policy exceeds an oracle-assisted validity control on full-episode budgeted success (Section~\ref{sec:policy}), under frozen protocols, a 336 GPU-hour cap, and prespecified gate receipts. Panels are frozen and outcome-blind, the held-out manifest has never been accessed, and every learned cell uses one training seed (17) except two replicated cells (seeds 29 and 71 added).
 % Evidence: seed replication per issue #127 (docs/experiments/expanded-study/issue-127-closeout.md).
+% Replication protocol frozen 2026-09-20 (issue-127-closeout.md); date moved to this comment in round 4 for the word budget.
 
 % Paragraph purpose: Define conditions, recipe, and backbones.
 Each cell holds the pretrained base, process SFT, and process SFT plus two DAgger iterations \citep{ross2011dagger} beside an exposure-matched continued-SFT control. SFT trains a fresh LoRA adapter \citep{hu2022lora} on 512 replay-verified records for one epoch (16 updates), except the BFWS gate checkpoint, which trained on the full 47,780-record corpus for two epochs. The backbone is Qwen3-VL-8B-Instruct \citep{bai2025qwen3vl} (revision \texttt{0c351dd0}), with InternVL3.5-8B \citep{wang2025internvl35} as second backbone.
@@ -32,7 +33,7 @@ Exact-classical runs the declared algorithm and bounds perfect decisions, random
 % Supersedes the former "not yet pinned" sentence and the content_brief "random-valid definition" open item (review 16 I16).
 
 % Paragraph purpose: Fix splits, the main panel, budget, termination, separated measures, and the analysis contract.
-Splits are by whole task instance with audited corpora (Data and Split Procedures appendix). The modality matrix evaluates 24 tasks from 12 domains under three observations, giving 288 episodes per arm. Budgets count decision calls with invalid operations charged. Learned adapters are capped at twice the exact-reference decision count, the base is priced at one call, and an episode ends at its first invalid emission and counts only after independent replay reproduces it. Contrasts use a paired whole-instance bootstrap (10,000 resamples, seed 1729, 95\% percentile) unless a protocol states otherwise (Statistics appendix), and transfer uses exact McNemar tests with Holm correction across 36 comparisons. At these sizes the intervals are descriptive bounds and cannot support broad superiority claims.
+Splits are by whole task instance with audited corpora (Data and Split Procedures appendix). The modality matrix evaluates 24 tasks from 12 domains under three observations, giving 288 episodes per arm. Budgets count decision calls with invalid operations charged. Learned adapters are capped at twice the exact-reference decision count, the base is priced at one call, and an episode ends at its first invalid emission and counts only after independent replay reproduces it. Contrasts use a paired whole-instance bootstrap (10,000 resamples, seed 1729, 95\% percentile) unless a protocol states otherwise (Statistics appendix), and transfer uses exact McNemar tests with Holm correction across 36 comparisons.
 
 % Paragraph purpose: Define the two decision contracts and the shared identity audit, pointing to the schematic and the appendix table.
 The two contracts are compared in Figure~\ref{fig:contracts} and Table~\ref{tab:design-contracts}. The choice-frontier contract has as its pre-registered pass condition the per-pair identity audit of random-valid against exact reference over 18 seed-17 pairs (\texttt{CHOICE\_SENSITIVE} on any divergence, \texttt{ZERO\_DECISION\_HEADROOM} otherwise, no re-runs), also run as a diagnostic on the enumeration contract's additive cells.
@@ -47,19 +48,27 @@ Follow-up protocols (the Choice-Frontier Contract appendix and Appendices~\ref{a
 % (history_window.k = 8, smoke gate 0.5, null_result_interpretation); docs/experiments/native-arms/issue-130-design.md (k=3, pick-rate).
 
 % Paragraph purpose: Define the choice-frontier panel, conditions, and corpus, with the panel-reuse risk.
-The choice-frontier evaluation reuses the frozen 9-task native-arms membership under both additive algorithms, and the same nine tasks (8 domains, 7 compact and 2 expanded variants, optimal costs $C^*$ from 3 to 6) also serve the observation-corruption suite, the native arms, menu manipulation, and the comparator zoo. The training corpus was derived on CPU by replaying the frozen exact traces through the new contract and verified expansion-for-expansion against them (58 episodes bit-exact).
+The first choice-frontier evaluation reuses the frozen 9-task native-arms membership (8 domains, $C^*$ from 3 to 6) under both additive algorithms. The training corpus was derived on CPU by replaying the frozen exact traces through the new contract and verified expansion-for-expansion against them (58 episodes bit-exact).
 % Evidence: docs/experiments/choice-frontier/issue-132-design.md sections 3--6 (36 GPU + 108 CPU = 144 episodes);
 % outputs/choice-frontier/o4/metrics/optimal-costs.json (nine tasks, 8 domains, 7 compact / 2 expanded, C* 3-6); panel reuse per
 % review 16 I17. Corpus provenance: outputs/choice-frontier/v1/preparation/visual-choice-frontier/report.json expansion_gate and
 % audit.json episodes_rederived 58; the sentence is identical in Results and Appendix (review 16 I10).
 
 % Paragraph purpose: Define the #133 comparator zoo, its oracle-access asymmetry, primary metric, and claim unit.
-The CPU-only, exploratory comparator zoo tests Pareto dominance over M1 (solve-versus-budget area over multipliers 1 to 2), M2 (expansion overhead), and M3 (plan cost) against five comparators under a fifteen-test Holm family. Its \texttt{bfs-order}, novelty-first selection, and \texttt{worst-first} selectors read trusted $g$/$h$ scalars or PDDL atoms the model never sees, so they are not information-matched. All zoo metrics on the stored choice-frontier episodes are post-hoc exploratory, and non-significance licenses no equivalence claim.
+The CPU-only exploratory comparator zoo tests Pareto dominance over M1 (solve-versus-budget area over multipliers 1 to 2), M2 (expansion overhead), and M3 (plan cost) against five comparators under a fifteen-test Holm family, with selectors that read privileged $g$/$h$ scalars or PDDL atoms.
 % Evidence: docs/experiments/choice-frontier/issue-133-protocol.md (arms, frozen 2x cap, oracle-access asymmetry, M1 multipliers,
 % claim unit, 5 comparators x 3 metrics = 15 tests); seed 133 / 10,000 draws in Appendix Statistics.
 
+% Paragraph purpose: Define the two pre-registered protocols on the fresh validation panel.
+The ladder protocol, frozen before task generation on a fresh 12-task panel, passes only if all four adjacent paired task-cluster 95\% lower bounds are positive across the exact reference, exact-$\epsilon$ rungs 0.25, 0.50, and 0.75, and random-valid (12-task bootstrap, seed 133, 10,000 draws). The scaled-adapter protocol, frozen before task generation, fixes the estimand $D$, learned minus random-valid M1, and a POSITIVE rule with materiality margin 0.05 and equivalence margin $\pm 0.05$.
+% Evidence: #135 docs/experiments/choice-frontier/issue-135-protocol.md (commit f823850 before task generation); outputs/choice-frontier/v2/metrics/analysis.json
+% instrument_validity.rule (PASS: all four paired task-cluster 95% lower bounds > 0), .tasks 12, .bootstrap draws 10000 / seed 133 (E135-01..03).
+% Evidence: #136 configs/experiments/choice-frontier-v3/protocol.json (commit ecdda03 before generation); outputs/choice-frontier/v3/metrics/analysis.json
+% primary.estimand, primary.rule, primary.materiality_margin 0.05, primary.equivalence_margin 0.05 (E136-02, E136-04, E136-05).
+
 % Paragraph purpose: State branch status compactly, marking the pending and reduced-scope stages.
-At the 2026-09-23 snapshot (receipts in Table~\ref{tab:appendix-receipts}), the BFS pilot closed as history with VALID\_STOP, the BFWS gate passed on its development panel, and the modality matrix, DAgger, failure calibration, corruption, transfer, seed replication, and all follow-ups executed. Generalization and second-backbone ran only at reduced v2 scope because their full-scope v1 branches were withdrawn after terminal VALID\_STOP receipts (closed 2026-09-21). The BFWS-to-BFS panel overlap is not pinned in the retained manifests. The final primary evaluation awaits undecided prerequisites, so no final comparative efficacy finding exists.
+At the 2026-09-23 snapshot (receipts in Table~\ref{tab:appendix-receipts}), the BFS pilot closed as history with VALID\_STOP, the BFWS gate passed on its development panel, and the modality matrix, DAgger, failure calibration, corruption, transfer, seed replication, and all follow-ups executed, with generalization and second backbone at reduced v2 scope only. The BFWS-to-BFS panel overlap is not pinned in the retained manifests.
+% Round 4: the final-evaluation sentence moved out for the word budget; Results (sec:results-boundary) and App app:results-boundary state it.
 % TODO(panel-overlap): issue-54-operator-runbook.md and issue-59-bfws-structural-gate.md pin the selection rules but not their
 % shared task identities. Round-2 search (2026-09-23) found no pinned post-#126 retention manifest. Count stays open under #131 W4.
 % Status 2026-09-21: issues #96/#98/#102/#103 CLOSED (supervisor decision, v1 scope withdrawn); only reduced v2 scopes executed.

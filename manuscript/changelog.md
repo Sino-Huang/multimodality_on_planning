@@ -2,6 +2,20 @@
 
 The record of what changed in the ICLR 2026 manuscript and why. Newest first. Each entry names the commit, the scope of the change, and the review or ticket it answered. Review findings and their status live in `review-log.md`; claim vocabulary and boundaries live in `CONTEXT.md`.
 
+## 2026-09-24 — round 4 opening, Phase 0 decisions (issue #131; evidence tickets #134-#137)
+
+- Evidence sheet frozen for the round from the #134-#137 artifacts (Main spot-checked 15 rows against the JSONs). Writers copy new numbers only from it.
+- Author decisions (Phase 0):
+  - Title: "Separating Choice from Validity: A Validated Search-Choice Measurement for Vision-Language Search Policies" (hub). The complete-set identity failure is scoped to this runtime's complete-set submission contract, and the #137 survey found it in none of seven published interfaces.
+  - `CONTEXT.md`: the rule "no choice-quality claim for the redesigned arm" is replaced by a development-stage, single-seed choice-quality claim on the #135 validation panel, relative to uniform choice and the exact-ε ladder, with no planning-ability, generality, or held-out claim.
+  - #136 single seed: POSITIVE reported as the pre-registered rule applied to one seed, deviation stated, no seed-robustness claim. Visible placeholders P1 (seeds 29 and 71), P2 (second fresh panel or held-out evaluation), P3 (paired learned minus exact-ε 0.75 interval) mark the author's pending follow-up experiments in Results, the appendix, and Discussion only.
+  - #137: ScienceWorld CHOICE_REGISTERED over 6 of 30 task types; WebShop and LLM-First Search exclusions named; no claim about agent benchmarks in general.
+  - Findings 49 and 60 close with #134 (verdict "PREDICTION_FAILED: see preregistered_prediction": 48/48 identical under the executed rule, 19/48 divergent under submission-order serials, pre-registered >24/48 not met; M4 task-cluster intervals).
+  - Main text stays within 9 pages. Secondary nulls, the #133 zoo table and figure, and the #132 table move to the appendix. One body ladder figure is added.
+  - Meaning-level rules: the scaled adapter is "at the exact-ε 0.75 rung" on point estimates; the ladder rungs are privileged selectors; the panel is screened and the effect concentrated; the screened count is 34 (JSON) against the closeout's 38; hadd-greedy stays in the appendix.
+  - Finding 40 stays WONTFIX. Review 20 is held until the author reports the follow-up results.
+- ScienceWorld (ACL Anthology bib, 2022.emnlp-main.775, pp. 11279-11298) and LLM-First Search (arXiv:2506.05213) verified by Main against primary sources.
+
 ## 2026-09-23 — review 19 and consolidation (`c08ef50`)
 
 - Review 19 (paper-reviewer, re-review at `1281c1b`) returned WEAK REJECT, with 0 CRITICAL, 1 MAJOR (finding 49, blocked on #134), and 8 MINOR findings. Every number in the rendered PDF matches its pinned artifact, and the 16 sampled `% Evidence` comments resolve. zheng2024robust matches its primary sources. The main text is 9 pages. Full text is in `review-log.md`.
