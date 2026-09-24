@@ -1,0 +1,23 @@
+{
+ "job_id": "cfv4-panel-p2u-best_first_add_w3",
+ "branch": "choice_frontier",
+ "gpus": [
+  1
+ ],
+ "max_seconds": 14400,
+ "total": 48,
+ "command": [
+  "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+  "scripts/run_choice_frontier_v4_panels.py",
+  "evaluate-worker",
+  "--panel",
+  "p2u",
+  "--algorithm",
+  "best_first_add_w3"
+ ],
+ "completion_hook": [
+  "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+  "scripts/run_choice_frontier_v4_panels.py",
+  "audit-evaluate-worker"
+ ]
+}
