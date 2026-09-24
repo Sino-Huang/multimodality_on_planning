@@ -1,0 +1,186 @@
+{
+ "schema_version": "choice_frontier_v6_protocol_v1",
+ "protocol_id": "choice-frontier-v6-zero-shot",
+ "program_id": "choice-frontier-v6",
+ "issues": {
+  "141": "second realisable policy through the validated choice-frontier instrument (review 20 finding 69b)",
+  "131": "manuscript review parent"
+ },
+ "status": "frozen before any #141 GPU launch or model episode (2026-09-25 UTC)",
+ "design_doc": "docs/experiments/choice-frontier/issue-141-protocol.md",
+ "arm_choice": {
+  "candidates": [
+   "internvl3_5-8b trained with the frozen #138 recipe (seeds 17/29/71)",
+   "zero-shot prompt of the base Qwen3-VL-8B with a relaxed call cap"
+  ],
+  "chosen": "zero_shot_base",
+  "reason": "InternVL arm infeasible within the 30 GPU-h cap: mean 11748 InternVL tokens vs 3111 Qwen tokens per #136 store record (x3.78); probe 257.9 s per 32-sample step => ~8.1 s/sample => 7.2-9.2 GPU-h per 4096-sample cell; 6 cells = 43-55 GPU-h training alone",
+  "feasibility_evidence": {
+   "store": "outputs/choice-frontier/v3/preparation/store.json",
+   "records": 4128,
+   "internvl_mean_tokens": 11747.998546511628,
+   "internvl_max_tokens": 21530,
+   "qwen_mean_tokens": 3110.5198643410854,
+   "qwen_max_tokens": 5840,
+   "internvl_page_tokens": 3330,
+   "internvl_scene_tokens": 258,
+   "qwen_page_tokens": 768,
+   "qwen_scene_tokens": 64,
+   "probe": "outputs/expanded-study/v1/second-backbone-v3/probe.json training_step.visual-state wall_seconds 257.89 (32 microbatches, max 11564 tokens)",
+   "qwen_136_cell_gpu_hours": 1.9
+  }
+ },
+ "model_id": "Qwen/Qwen3-VL-8B-Instruct",
+ "model_revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+ "inference_seed": 17,
+ "inference": {
+  "dtype": "float32",
+  "attention": "visual_sdpa",
+  "do_sample": false,
+  "max_batch_size": 2,
+  "max_padded_batch_input_tokens": 24000,
+  "output_cache": "none",
+  "kv_cache": "per_call_only"
+ },
+ "arm": {
+  "condition": "zero_shot_base",
+  "engine_arm": "pretrained_base",
+  "adapter": null,
+  "observation": "frozen scene-only choice-frontier observation (ChoiceFrontierTaskViews.observe_choices), unchanged except the system message",
+  "system_message": "Emit exactly one frontier expansion choice. The trusted runtime owns h_add, scalar priority, duplicate detection, the frontier, and state transitions. Your choice selects which frontier state the runtime expands next; selecting the goal state solves the task. Reply with exactly one JSON object and nothing else, of the form {\"expand_choice\": \"<label>\"}, where <label> is one of the frontier_menu choices (c0, c1, ...). Choose the frontier state whose scene appears closest to satisfying the goal pages.",
+  "system_message_sha256": "d2ea2b658b2fdb8a0b4c2c8cadd7be612186b56eac4526301634d6e62c919022",
+  "system_message_suffix": " Reply with exactly one JSON object and nothing else, of the form {\"expand_choice\": \"<label>\"}, where <label> is one of the frontier_menu choices (c0, c1, ...). Choose the frontier state whose scene appears closest to satisfying the goal pages.",
+  "extraction": [
+   "first {...} substring without nested braces that json-parses to an object with exactly key expand_choice and a string value -> canonical_choice(value)",
+   "else stripped text fully matching c[0-9]+ -> canonical_choice(text)",
+   "else raw text unchanged (rejected by the frozen session; the episode terminates)"
+  ],
+  "decision_cap": "2 x R_t (same as learned_adapter); expansion cap 2 x R_t",
+  "realisations": "one per (task, algorithm): greedy decoding, inference seed 17, content-seeded menu order"
+ },
+ "learned_algorithms": [
+  "best_first_add_greedy",
+  "best_first_add_w3"
+ ],
+ "evaluation": {
+  "panels": {
+   "v2": {
+    "membership": "configs/experiments/choice-frontier-v2/membership.json",
+    "membership_sha256": "b2d909cafc22efd3997fdfaa312fd8b04af5725f0e672ffa2f0d9be70311cd07",
+    "tasks": 12,
+    "view_report": "outputs/choice-frontier/v2/reference-views.json",
+    "output": "outputs/choice-frontier/v6/evaluation/v2",
+    "stage": "development"
+   },
+   "p2": {
+    "membership": "configs/experiments/choice-frontier-v4/membership-p2.json",
+    "membership_sha256": "5c009e856a191ff279195985bec7ddf3bf0041b7ec9ea7dc89fc248e18e114e5",
+    "tasks": 11,
+    "view_report": "outputs/choice-frontier/v4/panels/p2/reference-views.json",
+    "output": "outputs/choice-frontier/v6/evaluation/p2",
+    "stage": "held-out confirmatory"
+   }
+  },
+  "model_episodes": 46,
+  "jobs": [
+   "cfv6-evaluate-v2-best_first_add_greedy",
+   "cfv6-evaluate-v2-best_first_add_w3",
+   "cfv6-evaluate-p2-best_first_add_greedy",
+   "cfv6-evaluate-p2-best_first_add_w3"
+  ],
+  "p2u": "not evaluated",
+  "reused_not_rerun": {
+   "controls_v2": "outputs/choice-frontier/v2/zoo",
+   "controls_p2": "outputs/choice-frontier/v4/panels/p2/zoo",
+   "adapter_v2": "outputs/choice-frontier/v3/evaluation + outputs/choice-frontier/v4/seeds/evaluation",
+   "adapter_p2": "outputs/choice-frontier/v4/panels/p2/evaluation",
+   "reuse_check": "recomputed per-task M1 equals outputs/choice-frontier/v4/panels/metrics/analysis.json arms.<panel>"
+  },
+  "replay": "finalize independently replays every episode and re-applies the extractor to every stored model text; 0 missing, 0 mismatches"
+ },
+ "smoke_gate": {
+  "frozen_before_any_trained_arm_outcome": true,
+  "subset": [
+   "expanded-final/storage-compact-919000",
+   "expanded-final/elevators-compact-914002",
+   "expanded-final/ferry-compact-915000"
+  ],
+  "subset_rule": "three cheapest tasks of the frozen 9-task panel (same subset as the native-arms v3 smoke gate)",
+  "episodes": 6,
+  "condition": "zero_shot_base",
+  "seed": 17,
+  "decision_cap_multiplier": 2,
+  "decoding": {
+   "do_sample": false
+  },
+  "measure": "schema_valid_grounded_rate = accepted calls / total calls across the 6 episodes",
+  "threshold": 0.5,
+  "rule": "descriptive infrastructure check: reports accepted-call rate vs 0.5; does NOT gate the evaluation",
+  "adapters": null,
+  "panel": "configs/experiments/expanded-study/final-panel.json",
+  "panel_view_report": "outputs/expanded-study/v1/panel-v2/reference-views.json",
+  "panel_id": "expanded-panel-v2-qualified",
+  "output": "outputs/choice-frontier/v6/smoke",
+  "job": "cfv6-smoke",
+  "gates_evaluation": false
+ },
+ "analysis": {
+  "script": "scripts/analyze_choice_frontier_v6_zero_shot.py",
+  "output": "outputs/choice-frontier/v6/metrics/analysis.json",
+  "m1": "#135 trapezoidal solve-vs-budget AUC over m in {1,1.25,1.5,1.75,2}, caps 2 x R_t, per task averaged over algorithms",
+  "bootstrap": {
+   "unit": "task cluster",
+   "seed": 133,
+   "draws": 10000,
+   "interval": "95% percentile",
+   "within_draw": "adapter seeds averaged inside the draw"
+  },
+  "primary": {
+   "estimand": "D3 = M1(zero_shot_base) - M1(random_valid, 5 seeds), per panel",
+   "decision_rule": "POSITIVE: lo > 0 and D3 >= 0.05 and every seed point > 0; EQUIVALENT: -0.05 < lo and hi < 0.05; NEGATIVE: hi < 0; INCONCLUSIVE otherwise"
+  },
+  "co_primary": {
+   "S": {
+    "estimand": "M1(zero_shot_base) - M1(exact-eps-0.75, 5 seeds), per panel",
+    "decision_rule": "SEPARATED_ABOVE lo > 0; SEPARATED_BELOW hi < 0; NOT_SEPARATED otherwise"
+   },
+   "A": {
+    "estimand": "M1(zero_shot_base) - M1(Qwen adapter 3-seed mean 17/29/71), paired by task and algorithm, per panel",
+    "decision_rule": "SEPARATED_ABOVE lo > 0; SEPARATED_BELOW hi < 0; EQUIVALENT -0.05 < lo and hi < 0.05; NOT_SEPARATED otherwise (in that order)"
+   }
+  },
+  "descriptive": [
+   "pooled 23-task D3/S/A",
+   "arm and rung M1 with intervals per panel and pooled",
+   "ladder position per panel and pooled",
+   "exact two-sided sign-flip permutation p-value for every D3/S/A",
+   "teacher agreement - chance, first/last-label rate, solved at 2x, terminations, valid-output rate, extractor-rule usage",
+   "S vs exact-eps-0.50"
+  ],
+  "margins": {
+   "materiality": 0.05,
+   "equivalence": 0.05
+  }
+ },
+ "prediction": "D3 within +/-0.05 (EQUIVALENT or INCONCLUSIVE, not POSITIVE); S SEPARATED_BELOW and A SEPARATED_BELOW on both panels; ladder position at the random_valid rung. Either outcome is a result.",
+ "budget": {
+  "ledger": "outputs/choice-frontier/v6/budget.json",
+  "schedule": "docs/experiments/choice-frontier/schedule-v6.json",
+  "cap_gpu_hours": 30.0,
+  "gpus": [
+   0
+  ],
+  "master_port_pool": [
+   18840,
+   18841,
+   18842,
+   18843
+  ],
+  "render_backend_port": 18848,
+  "estimate_expected_gpu_hours": 3.0,
+  "estimate_worst_case_gpu_hours": 15.5,
+  "max_seconds_per_job": 14400,
+  "relaunch": "infrastructure failures at most twice with explicit resume_reason"
+ },
+ "output_root": "outputs/choice-frontier/v6"
+}
