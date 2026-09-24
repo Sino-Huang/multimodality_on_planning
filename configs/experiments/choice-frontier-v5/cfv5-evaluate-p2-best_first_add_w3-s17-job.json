@@ -2,7 +2,7 @@
  "job_id": "cfv5-evaluate-p2-best_first_add_w3-s17",
  "branch": "choice_frontier",
  "gpus": [
-  1
+  0
  ],
  "max_seconds": 3600,
  "total": 11,
