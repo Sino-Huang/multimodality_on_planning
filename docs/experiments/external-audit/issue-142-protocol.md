@@ -208,3 +208,16 @@ success-versus-decision-budget curve at m x the reference's expansions, m in
 idle time and failures. No new reference episode is launched once the running total reaches
 10 GPU-h. Tasks without a reference episode are then excluded from both arms and disclosed.
 Paid API spend: $0.
+
+## Amendment A1 (2026-09-25 02:55 AEST, before any audit episode)
+
+The smoke started at 02:45 AEST on games 20-21. Its cd3 episodes completed after 38 s and 53 s
+(8,035 and 11,160 tokens, 5 and 7 calls). At the observed ~7 s per call, a Countdown-5/7
+episode that uses its 1M-token cap needs about 600 sequential calls, roughly 1-1.5 h. Holding the
+audit until the four cd5/cd7 smoke episodes finish would leave GPU 1 mostly idle for that time,
+and all of it would count against the ledger. Change to step 3/4 order: **the audit reference run
+starts once the smoke's cd3 and su4 reference episodes have completed and replay with 0
+mismatch**. The cd5/cd7 smoke episodes continue concurrently. They are replayed after they
+finish and before the audit analysis. Smoke outcomes remain unanalysed. The audit reference run
+uses `--concurrency 64` (the server's `--max-num-seqs`), so every audit episode runs at once. The
+estimands, verdict rule, prediction, tasks, seeds, budget and analysis are unchanged.
