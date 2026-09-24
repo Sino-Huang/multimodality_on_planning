@@ -1,0 +1,379 @@
+{
+  "schema_version": "choice_frontier_protocol_v1",
+  "protocol_id": "choice-frontier-v4-seeds",
+  "program_id": "choice-frontier-v4",
+  "status": "frozen_before_any_v4_training_launch_model_outcome_or_gpu_launch",
+  "issues": [
+    138
+  ],
+  "parent_links": {
+    "parent_issue": 131,
+    "lineage_issues": [
+      132,
+      133,
+      135,
+      136
+    ],
+    "lineage": "3-seed replication of the #136 adapter (frozen corpus and recipe; only the training seed changes) on the frozen #135 panel, with a pre-registered separation test against the exact-eps-0.75 rung"
+  },
+  "precondition": {
+    "issue_136_state": "CLOSED",
+    "issue_136_verdict": "POSITIVE",
+    "analysis": "outputs/choice-frontier/v3/metrics/analysis.json",
+    "v3_membership_sha256": "f5cc9b2ac3b2fe8e94b7a8039e6b9cd828c701a8c5b707ddd7a3b01b2ca8c077"
+  },
+  "schedule": "docs/experiments/choice-frontier/schedule-v4.json",
+  "design_doc": "docs/experiments/choice-frontier/issue-138-protocol.md",
+  "ledger": "outputs/choice-frontier/v4/budget.json",
+  "budget_branch": "choice_frontier",
+  "output_root": "outputs/choice-frontier/v4/seeds",
+  "model_id": "Qwen/Qwen3-VL-8B-Instruct",
+  "model_revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+  "training_seeds": [
+    29,
+    71
+  ],
+  "training_seeds_note": "new cells: seeds 29 and 71 x 2 algorithms = 4 cells; seed-17 adapters reused read-only from outputs/choice-frontier/v3/training/<algorithm>/seed-17/final/",
+  "inference_seed": 17,
+  "learned_algorithms": [
+    "best_first_add_greedy",
+    "best_first_add_w3"
+  ],
+  "arms": {
+    "visual-choice-frontier": {
+      "recipe_id": "visual-choice-frontier-v1",
+      "schema": "choice_frontier_model_input_v1",
+      "representation": "visual-choice-frontier",
+      "legend": "Static task context, the initial-state scene and the partial-goal pages are attached, followed by one unlabelled 128px scene per frontier state in menu order, each labelled frontier-choice (label c<i>). Initial/current states are unlabelled 128px scenes without text annotations. Black robot silhouettes identify the agent. Goal constraints do not describe a complete solved state: unspecified facts are unconstrained. Goal blocks ALL, ANY, NOT, FOR EVERY and THERE EXISTS retain their labelled variable scopes. The frontier menu lists one choice label per live frontier state, unscored, in a seeded permuted order; no state identifiers, scalar search values, scores, membership flags, search memory, accepted deltas or search history are provided. The policy selects which frontier state the trusted runtime expands next; selecting the goal state solves the task.",
+      "system_message": "Emit exactly one frontier expansion choice. The trusted runtime owns h_add, scalar priority, duplicate detection, the frontier, and state transitions. Your choice selects which frontier state the runtime expands next; selecting the goal state solves the task.",
+      "output_contract": {
+        "canonical_json_keys": [
+          "expand_choice"
+        ],
+        "example": "{\"expand_choice\":\"c3\"}"
+      },
+      "payload_keys": [
+        "algorithm",
+        "frontier_menu",
+        "representation",
+        "schema_version",
+        "view_legend"
+      ],
+      "forbidden_user_text_markers": [
+        "\"search_memory\"",
+        "\"accepted_deltas\"",
+        "\"semantic_blocks\"",
+        "\"successor_candidates\"",
+        "\"frontier_head\"",
+        "\"frontier_count\"",
+        "\"visited_count\"",
+        "\"closed_count\"",
+        "\"best_cost\"",
+        "\"dominated\"",
+        "\"pruned\"",
+        "\"closed\"",
+        "\"priority\"",
+        "\"target_state_id\"",
+        "\"state_facts\"",
+        "\"state_id\"",
+        "\"goal_atoms\"",
+        "\"task_context\"",
+        "\"current\"",
+        "\"history_window\"",
+        "\"generation_serial\"",
+        "\"g\"",
+        "\"h\""
+      ],
+      "context_tokens": 32768,
+      "output_tokens": 384
+    }
+  },
+  "contract": {
+    "rule": "the trusted runtime owns the frontier; the policy selects which live frontier state to expand next; on acceptance the runtime performs the expansion atomically, inheriting candidate generation order, serial assignment and admission from BestFirstController; selecting a goal state solves the task",
+    "expansion_atomicity": "ChoiceFrontierController.expand_member pops the chosen member from _frontier_entries and runs the same candidate/serial/admission path as start_expansion + apply_operation + finish_expansion; per-candidate admissions are runtime-internal, not policy decisions",
+    "decision_semantics": "one submitted choice = one decision",
+    "termination_reasons": [
+      "goal_reached",
+      "frontier_exhausted",
+      "decision_budget_exhausted",
+      "expansion_budget_exhausted",
+      "deterministic_invalid_operation"
+    ],
+    "first_rejection_terminates": true,
+    "menu": {
+      "master_seed": 51131,
+      "family": "choice-frontier-menu",
+      "seed_derivation": "int.from_bytes(sha256(f\"{master}|choice-frontier-menu|{sha256(canonical(serial_state_ids))}\").digest()[:8], \"big\")",
+      "permutation": "seeded Fisher-Yates over the generation-serial member order; labels c0..cK assigned after permutation",
+      "binding_visibility": "refs never enter the payload; binding is stored per decision in the episode events and used by the views layer to bind scenes to labels"
+    },
+    "budget": {
+      "decision_cap_multiplier": 2,
+      "rule": "decision_cap = expansion_cap = 2 x reference_expansions; controller max_budget charges expansions and rejections"
+    },
+    "goal_at_selection": "selecting a live frontier member that satisfies the goal terminates the episode goal_reached without an expansion",
+    "frozen_controller_unmodified": true
+  },
+  "menu_permutation_function": "examples/planning_benchmark_slice/choice_frontier.py::permuted_menu (seed: menu_permutation_seed)",
+  "training_tasks": {
+    "frozen_from_136": true,
+    "file": "configs/experiments/choice-frontier-v3/training-tasks.json",
+    "read_only": true
+  },
+  "corpus": {
+    "records_per_algorithm_target": 2048,
+    "records_rule": "one record per exact_reference choice-contract decision (goal selection included) whose menu offers >= 2 states and passes the 32K token gate; first 64 eligible decisions per (task, algorithm) in episode order; walk tasks, stop at the target; last task may be partial",
+    "max_records_per_task": 64,
+    "teacher": "ChoiceFrontierModelSession arm exact_reference seed 17, derived from PDDL, uncapped",
+    "trace_gate": "not_applicable_fresh_tasks",
+    "derivation_timeout_seconds": 600,
+    "diagnostic_records_per_algorithm": 16,
+    "diagnostic_rule": "next 16 eligible records in walk order after the target; unaugmented; teacher-forced eval only",
+    "record_id_format": "<task_id>:<algorithm>:<decision_index>",
+    "minimum_records_per_algorithm": 1024,
+    "augmentation": {
+      "copies": 2,
+      "seeds": [
+        "aug:{record_id}:0",
+        "aug:{record_id}:1"
+      ],
+      "rule": "random.Random(seed).shuffle over the record's menu states in runtime menu order; relabel c0..cK in the new order; target = label of the teacher (heap-head) state after permutation",
+      "function": "scripts/run_choice_frontier_v3.py::augment_menu (imported, unchanged)",
+      "check": "target-is-last share within +/-5 percentage points of mean(1/menu_size); else fix code, rerun prepare/audit-prepare, max 3 fixes, then blocked exit"
+    },
+    "sample_order": "random.Random('order:17').shuffle over (record, augmentation) samples, then sequential -- pinned to the #136 order for every training seed",
+    "runtime_projection": {
+      "rule": "projected seconds per cell = samples x 2.75 x (mean input tokens / 4867.08); if > 18000 apply the record ladder 1536 then 1024 (prefix of walk order); keep 1024 if still over",
+      "basis_seconds_per_sample": 2.75,
+      "basis_mean_input_tokens": 4867.08
+    },
+    "views": "per-task scene catalog of both algorithms' truncated teacher episodes; collect_task_scenes at http://127.0.0.1:18092 + prepare_expanded_views goal pages + materialize_task scene-only static pages",
+    "gates": [
+      "token: input_tokens + 384 <= 32768",
+      "leak: assert_no_text_leak",
+      "image-resolve",
+      "membership: materialized ids == frozen ids",
+      "audit-prepare: every episode re-derived bit-exact"
+    ],
+    "membership": "configs/experiments/choice-frontier-v3/membership.json",
+    "store": "outputs/choice-frontier/v3/preparation/store.json",
+    "report": "outputs/choice-frontier/v3/preparation/report.json",
+    "frozen_from_136": true,
+    "membership_sha256": "f5cc9b2ac3b2fe8e94b7a8039e6b9cd828c701a8c5b707ddd7a3b01b2ca8c077",
+    "membership_assertion": "train/audit recompute membership_sha of configs/experiments/choice-frontier-v3/membership.json and require f5cc9b2a...c077",
+    "sample_order_note": "#136 code (run_choice_frontier_v3.py::AugmentedChoiceDataset) derives the order from the training seed (f'order:{training_seed}'), which for #136 was order:17. v4 pins order:17 for seeds 29/71 so that the samples, their augmentation and their order are byte-identical to #136 and the training seed changes only transformers set_seed/TrainingArguments seed (LoRA init, dropout); data_seed is unused under the #132 SequentialSampler."
+  },
+  "training": {
+    "study": "configs/experiments/matched-modalities/study-v5.json",
+    "study_sha256": "1f15184667b5076edc808838f450500bc6ac502cfb61c3d972cdc5ebb211d72b",
+    "epochs": 1,
+    "global_batch_size": 32,
+    "microbatch_size": 1,
+    "learning_rate": 0.0001,
+    "lr_scheduler": "cosine",
+    "warmup_ratio": 0.03,
+    "lora": {
+      "r": 64,
+      "alpha": 128,
+      "dropout": 0.05,
+      "target_modules": "all-linear",
+      "exclude_modules": ".*visual.*"
+    },
+    "dtype": "bfloat16",
+    "samples_per_cell": 4096,
+    "optimizer_updates": 128,
+    "recipe": "the #136 recipe byte-identical (study-v5 training block via train_visual, 1 epoch over 4096 augmented samples, 128 updates); only the training seed differs",
+    "cells": [
+      "best_first_add_greedy/seed-29",
+      "best_first_add_w3/seed-29",
+      "best_first_add_greedy/seed-71",
+      "best_first_add_w3/seed-71"
+    ],
+    "adapter_path": "outputs/choice-frontier/v4/seeds/training/<algorithm>/seed-<seed>/final",
+    "max_seconds_per_cell": 18000,
+    "audit": "the #136 audit-train checks: adapter present, r==64, alpha==128, dropout==0.05, steps==ceil(samples/32)==128, seed, 2048 records, 4096 samples",
+    "concurrency": "two cells at a time, one per GPU, distinct MASTER_PORT"
+  },
+  "smoke_gate": {
+    "frozen_before_any_trained_arm_outcome": true,
+    "subset": [
+      "expanded-final/storage-compact-919000",
+      "expanded-final/elevators-compact-914002",
+      "expanded-final/ferry-compact-915000"
+    ],
+    "subset_rule": "three cheapest tasks of the frozen 9-task panel (same subset as the native-arms v3 smoke gate)",
+    "episodes": 6,
+    "condition": "learned_adapter",
+    "seed": 17,
+    "decision_cap_multiplier": 2,
+    "decoding": {
+      "do_sample": false
+    },
+    "measure": "schema_valid_grounded_rate = accepted calls / total calls across the 6 episodes",
+    "threshold": 0.5,
+    "rule": "PASS iff rate >= 0.5; FAIL gates the arm's model evaluation out and that is the reported outcome",
+    "adapters": "seed-29 v4 adapters (both algorithms)",
+    "panel": "configs/experiments/expanded-study/final-panel.json",
+    "panel_view_report": "outputs/expanded-study/v1/panel-v2/reference-views.json",
+    "panel_id": "expanded-panel-v2-qualified",
+    "output": "outputs/choice-frontier/v4/seeds/smoke",
+    "job": "cfv4-smoke-s29",
+    "training_seed": 29
+  },
+  "evaluation": {
+    "membership": "configs/experiments/choice-frontier-v2/membership.json",
+    "membership_sha256": "b2d909cafc22efd3997fdfaa312fd8b04af5725f0e672ffa2f0d9be70311cd07",
+    "view_report": "outputs/choice-frontier/v2/reference-views.json",
+    "condition": "learned_adapter",
+    "seeds": {
+      "learned": [
+        17
+      ]
+    },
+    "decoding": {
+      "do_sample": false
+    },
+    "decision_cap": "2 x R_t, R_t = membership reference_costs[alg]['expansions'] (uncapped exact_reference expansions, the #133/#135 R_t); simultaneously decision and expansion cap",
+    "jobs": "cfv4-evaluate-<algorithm>-s<seed>",
+    "gpu_episodes": 48,
+    "reused_from_135": {
+      "controls": "outputs/choice-frontier/v2/zoo (exact_reference seed 17; random_valid 17/5077/6131/7409/8527)",
+      "pretrained_base": "outputs/choice-frontier/v2/evaluation",
+      "optimal_costs": "outputs/choice-frontier/v2/metrics/optimal-costs.json"
+    },
+    "replay": "finalize independently replays every v4 model episode; 0 mismatches, 0 missing",
+    "training_seeds": [
+      29,
+      71
+    ],
+    "reused_from_136": {
+      "learned_seed_17": "outputs/choice-frontier/v3/evaluation (bindings.json, episodes, evaluation.json)"
+    }
+  },
+  "analysis": {
+    "script": "scripts/analyze_choice_frontier_v4_seeds.py",
+    "metric_functions": "imported from scripts/analyze_choice_frontier_v2.py (inspect_episode, summarize, bootstrap, percentile)",
+    "primary": "D3 = mean over seeds {17, 29, 71} of [M1(learned, s) - M1(random_valid)]; per task, M1 averaged over the two algorithms; random_valid averaged over its 5 #135 seeds",
+    "bootstrap": {
+      "unit": "task cluster",
+      "seed": 133,
+      "draws": 10000,
+      "interval": "95% percentile (#135 convention)",
+      "within_draw": "resample the 12 tasks with replacement; average the seeds inside each draw"
+    },
+    "materiality_margin": 0.05,
+    "equivalence_margin": 0.05,
+    "decision_rule": {
+      "POSITIVE": "lo > 0 and D3 >= 0.05 and every seed point estimate > 0",
+      "EQUIVALENT": "-0.05 < lo and hi < 0.05",
+      "NEGATIVE": "hi < 0",
+      "INCONCLUSIVE": "otherwise",
+      "order": "POSITIVE, EQUIVALENT, NEGATIVE, INCONCLUSIVE"
+    },
+    "separation": {
+      "co_primary": true,
+      "estimand": "S = M1(learned, 3-seed mean) - M1(exact-eps-0.75), eps-0.75 averaged over its 5 #135 seeds (17/5077/6131/7409/8527)",
+      "bootstrap": "paired task-cluster bootstrap, Random(133), 10,000 draws, seeds averaged inside each draw",
+      "decision_rule": {
+        "SEPARATED_ABOVE": "lo > 0",
+        "SEPARATED_BELOW": "hi < 0",
+        "NOT_SEPARATED": "otherwise"
+      },
+      "per_seed_points": true,
+      "descriptive": "the same test against exact-eps-0.50 (descriptive only)"
+    },
+    "seed_variance": [
+      "per-seed M1 with CI",
+      "per-seed teacher agreement - chance with CI",
+      "per-seed last-label rate",
+      "between-seed SD of M1 (statistics.stdev over the 3 seed M1 values)"
+    ],
+    "secondary": [
+      "ladder_position vs #135 exact / eps-0.25/0.50/0.75 / random M1 (3-seed mean and per seed)"
+    ],
+    "output": "outputs/choice-frontier/v4/seeds/metrics/analysis.json",
+    "blocks": [
+      "primary",
+      "separation",
+      "per_seed",
+      "seed_variance",
+      "ladder_position"
+    ]
+  },
+  "execution_contract": {
+    "protocol_frozen_before_launch": true,
+    "no_outcome_selected_variants": true,
+    "independent_replay_every_completed_episode": true,
+    "complete_coverage_or_explicit_missingness": true,
+    "commit_push_close_only_against_verified_evidence": true,
+    "does_not_modify_frozen_arms_protocols_or_published_evidence": true,
+    "runtime_enforced_caps": "2 x reference_expansions for decisions and expansions; pretrained_base hard 1-call cap",
+    "resume": "partial-episode journals resume interrupted bindings; completed episodes retain only after identity check + replay",
+    "master_port_pool": [
+      18826,
+      18827,
+      18828,
+      18829
+    ],
+    "scheduler": "scripts/run_expanded_study.py launch --ledger outputs/choice-frontier/v4/budget.json --schedule docs/experiments/choice-frontier/schedule-v4.json",
+    "relaunch": "infrastructure failures only, at most 2 relaunches per job, recipe never changes",
+    "shared_ledger": "the v4 ledger and schedule are shared with #139; the scheduler refuses double-booking a GPU",
+    "completion_hook_fix": "audit-evaluate-worker derives the attempt dir from EXPANDED_TERMINAL_PATH's parent (the #136 closeout fix)"
+  },
+  "inference": {
+    "dtype": "float32",
+    "attention": "visual_sdpa",
+    "do_sample": false,
+    "max_batch_size": 2,
+    "max_padded_batch_input_tokens": 24000,
+    "output_cache": "none",
+    "kv_cache": "per_call_only"
+  },
+  "estimand": {
+    "name": "choice_frontier_v4_seeds_estimand",
+    "frozen_before_launch": true,
+    "basis": "#136 measured: train 1.8917/1.8929 GPU-h per cell; evaluation 0.5816/0.4226 GPU-h per cell; smoke 0.0495",
+    "training_cell_gpu_hours": 1.89,
+    "training_cells": 4,
+    "training_gpu_hours": 7.56,
+    "evaluation_cell_gpu_hours": 0.5,
+    "evaluation_cells": 4,
+    "evaluation_gpu_hours": 2.0,
+    "smoke_gpu_hours": 0.1,
+    "expected_gpu_hours": 9.66,
+    "worst_case_estimand_gpu_hours_x1_25": 12.08
+  },
+  "budget": {
+    "window_gpu_hours_cap": 24.0,
+    "shared_with": [
+      139
+    ],
+    "allocation": {
+      "choice_frontier": 24.0
+    },
+    "no_transfer_from_other_programs": true,
+    "authorization": "issue #138 creates the shared v4 ledger: cap 24 GPU-h, allocation choice_frontier 24, ports 18826-18829"
+  },
+  "declared_code_surface": [
+    "scripts/run_choice_frontier_v4_seeds.py",
+    "scripts/analyze_choice_frontier_v4_seeds.py",
+    "configs/experiments/choice-frontier-v4/seeds-protocol.json",
+    "configs/experiments/choice-frontier-v4/cfv4-*-job.json",
+    "docs/experiments/choice-frontier/issue-138-protocol.md",
+    "docs/experiments/choice-frontier/schedule-v4.json",
+    "docs/experiments/choice-frontier/issue-138-closeout.md",
+    "tests/planning_benchmark/test_choice_frontier_v4_seeds.py",
+    "outputs/choice-frontier/v4/budget.json",
+    "outputs/choice-frontier/v4/seeds/**",
+    "outputs/choice-frontier/v4/jobs/cfv4-*-s29|s71|smoke*"
+  ],
+  "analysis_seeds": [
+    17,
+    29,
+    71
+  ],
+  "reused_seed_17": {
+    "adapters": "outputs/choice-frontier/v3/training/<algorithm>/seed-17/final/",
+    "episodes": "outputs/choice-frontier/v3/evaluation/episodes (replayed by #136 finalize; evaluation.json complete, 0 missing, 0 mismatch)"
+  }
+}
