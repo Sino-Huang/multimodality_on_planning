@@ -209,7 +209,7 @@ idle time and failures. No new reference episode is launched once the running to
 10 GPU-h. Tasks without a reference episode are then excluded from both arms and disclosed.
 Paid API spend: $0.
 
-## Amendment A1 (2026-09-25 02:55 AEST, before any audit episode)
+## Amendment A1 (2026-09-25 02:50 AEST, commit e89a793, before any audit episode)
 
 The smoke started at 02:45 AEST on games 20-21. Its cd3 episodes completed after 38 s and 53 s
 (8,035 and 11,160 tokens, 5 and 7 calls). At the observed ~7 s per call, a Countdown-5/7
