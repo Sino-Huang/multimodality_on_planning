@@ -2,6 +2,31 @@
 
 The record of what changed in the ICLR 2026 manuscript and why. Newest first. Each entry names the commit, the scope of the change, and the review or ticket it answered. Review findings and their status live in `review-log.md`; claim vocabulary and boundaries live in `CONTEXT.md`.
 
+## 2026-09-24 — evidence intake for round 5 (#138, #139, #140 closed; no manuscript text changed)
+
+Main re-read the committed analyses. Every value the author reported matches. These results resolve placeholders P1-P3 and are integrated in round 5, not here. Review 20 is still held.
+
+- #138 (`outputs/choice-frontier/v4/seeds/metrics/analysis.json`), 3 seeds on the #135 panel:
+  - `primary`: POSITIVE, D3 +0.285 [+0.140, +0.433]. Per seed (`primary.per_seed`): s17 +0.328, s29 +0.229, s71 +0.297.
+  - `separation.vs_eps_0.75`: NOT_SEPARATED, S −0.041 [−0.187, +0.102].
+  - `separation.vs_eps_0.50`: SEPARATED_BELOW, S −0.298 [−0.468, −0.129]. The author's summary does not list this result, but it is in the file.
+- #139 (`outputs/choice-frontier/v4/panels/metrics/analysis.json`):
+  - `ladder_p2.verdict` PASS. P2 is a fresh held-out panel of 11 tasks from 8 domains. It is not the frozen 45-task held-out manifest, which remains unexecuted.
+  - `unscreened_p2u.ladder.verdict` PASS (descriptive).
+  - `heldout_p2.primary`: POSITIVE, D3 +0.416 [+0.250, +0.591]. `heldout_p2.separation.vs_eps_0.75`: SEPARATED_ABOVE, S +0.227 [+0.053, +0.403].
+  - `unscreened_p2u.primary`: POSITIVE, D3 +0.149 [+0.030, +0.283]. Its `separation.vs_eps_0.75`: NOT_SEPARATED, S +0.002 [−0.145, +0.157].
+  - `pooled.primary` (35 tasks, descriptive): D3 +0.279 [+0.191, +0.375]. `pooled.separation_vs_eps_0.75`: NOT_SEPARATED, S +0.058 [−0.040, +0.156].
+  - `concentration.all_36_counts`: positive 22, zero 12, negative 1. These sum to 35, even though the key name says 36. Round 5 must add a comment recording this.
+  - Leave-one-domain-out on P2 ∪ #135: between +0.305 and +0.395.
+  - Amendment A1: the seed range was extended to 955040-955199 before any evaluation episode, with the rules unchanged. It must be disclosed.
+- #140 (`outputs/choice-frontier/v5/metrics/analysis.json`, closeout commit `3996600`), DAgger, seed 17 only under Amendment A1:
+  - A1 changes made before any result existed: seeds 29 and 71 were not trained, and the corpus was halved to 512 on-policy plus 512 replayed records over 64 steps.
+  - `primary`: pooled over 23 tasks, NOT_SEPARATED, S_pool +0.115 [−0.026, +0.258].
+  - `co_primary`: INCONCLUSIVE, delta_pool −0.030 [−0.114, +0.057].
+  - `per_panel.p2.S` +0.278. `per_panel.v2.S` −0.034.
+  - Reported as an inconclusive appendix ablation.
+- Ledgers, listed separately and never summed: v4 (#138 and #139 shared) 15.22 of 24 GPU-h (Σ `attempts[].gpu_hours` 15.2225), v5 (#140) 9.06 of 40 GPU-h (Σ 9.0640).
+
 ## 2026-09-24 — round 4 wave 3, compliance and hygiene (`20af870`)
 
 - Evidence-comment census: five `% Evidence` lines added for pre-round numbers in the Introduction (125/288, seeds 17/29/71) and Experimental Design (336 GPU-h cap, 24/12/288 counts, 10,000 resamples with seed 1729, 36 McNemar comparisons). Every round-4 number already had one.
