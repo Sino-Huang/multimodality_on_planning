@@ -114,3 +114,11 @@ Where fewer than 3 adapter seeds exist (blocked #138), D3/S average over the see
 3. Zoo/evaluation runners, job files, analyzer, test, closeout: evidence commit.
 
 No number above changes after any result is seen.
+
+## Amendment A1 (2026-09-24, before any evaluation episode)
+
+Source: #139 issuecomment-5805164898 (orchestrator, on the author's behalf). Trigger: the original freeze stopped at P2 = 6 tasks / 5 domains (blocked exit, commit `36327e2`). Only controls-only screening had run; no evaluation episode existed.
+
+- **Seeds extended** to **955000–955199** (200 per domain, 2,400 candidates). The 480 candidates of 955000–955039 are kept unchanged (cached task files, same walk). The new seeds 955040–955199 are generated serially after them.
+- Everything else is **unchanged**: generation mechanism, exclusion sources (a)–(d), the in-generation duplicate check (walk order domain then seed, so it also covers the earlier 955000–955039 candidates), the C\* rule, R_t, the #135 screen, the P2 freeze walk ((domain, seed), ≤ 2 per domain, 12 tasks, minimum 8 tasks / 5 domains) and the P2u rule. Both panels are frozen from the combined 955000–955199 pool.
+- **Fallback:** if P2 is still below 8 tasks / 5 domains after the extension, P2 is frozen with what exists, provided it has **≥ 6 tasks**, and every P2 test (ladder replication, held-out adapter endpoint, separation) is labelled **descriptive**, not confirmatory (`membership-p2.json` `confirmatory: false`). P2u stays as specified. Then execution continues.
