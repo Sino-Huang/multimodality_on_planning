@@ -2,6 +2,15 @@
 
 The record of what changed in the ICLR 2026 manuscript and why. Newest first. Each entry names the commit, the scope of the change, and the review or ticket it answered. Review findings and their status live in `review-log.md`; claim vocabulary and boundaries live in `CONTEXT.md`.
 
+## 2026-09-24 — round 4 wave 3, compliance and hygiene (`20af870`)
+
+- Evidence-comment census: five `% Evidence` lines added for pre-round numbers in the Introduction (125/288, seeds 17/29/71) and Experimental Design (336 GPU-h cap, 24/12/288 counts, 10,000 resamples with seed 1729, 36 McNemar comparisons). Every round-4 number already had one.
+- Style census over all section files: 0 em-dashes, 0 disallowed semicolons (the remaining one is the WONTFIX LLM-usage sentence), 1 mid-clause colon fixed (DAgger table caption), paragraph-purpose comments complete. Visible TODOs are exactly the author's placeholders (Results P1-P3, Discussion P1-P2, appendix #136 table P1-P2; 7 in the PDF).
+- Cross-references use prose appendix names throughout Results, the Appendix, Section 3, and Experimental Design. The Reproducibility Statement points to the Counterfactual, Choice-Frontier Validation, Scaled Adapter, and External Identity Audit appendices and the ledger table.
+- Stale-claim sweep found no remaining "fresh panel required", "no choice-quality claim", "zoo calibrates", single-check 48/48 vs 18/18, "between the rungs", or "no M4 interval" wording.
+- Related Work (related-work-scout): ScienceWorld positioned beside Jericho and CALM as a published sequential-choice interface where random-valid registers choice, and the complete-set contract is stated as not found among the surveyed interfaces. The admissible-action positioning sentence (review-16 finding 15) is kept, with its tail updated to the two-verdict framing. LLM-First Search is not cited there because it does not fit the scaffold-owns-exploration sentence. It stays cited in 5.5.
+- Build: 32 pages, 0 errors, 0 undefined, 0 overfull, 0 bibtex warnings. The Conclusion ends on p.8. All headline strings present.
+
 ## 2026-09-24 — round 4 wave 2, structure and figures (`076738e`)
 
 - New body Figure 2 (`fig:ladder`, `figures/fig_ladder.py`): M1 with task-clustered 95% intervals for the five ladder arms, the scaled adapter (single seed), and the first adapter on the 12-task validation panel, with a dotted line at the exact-ε 0.75 rung. The script reads `choice-frontier/v2` `arms.*` and `adapter_reevaluation.learned_adapter.*` and `choice-frontier/v3` `per_seed.17.*`, and asserts every value against the evidence sheet. It replaces the body ladder table (`tab:results-ladder` removed; the appendix arms table carries the numbers).
