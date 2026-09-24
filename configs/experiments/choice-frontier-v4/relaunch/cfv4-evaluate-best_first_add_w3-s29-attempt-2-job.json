@@ -1,0 +1,24 @@
+{
+ "job_id": "cfv4-evaluate-best_first_add_w3-s29",
+ "branch": "choice_frontier",
+ "gpus": [
+  1
+ ],
+ "max_seconds": 10800,
+ "total": 12,
+ "command": [
+  "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+  "scripts/run_choice_frontier_v4_seeds.py",
+  "evaluate-worker",
+  "--algorithm",
+  "best_first_add_w3",
+  "--seed",
+  "29"
+ ],
+ "completion_hook": [
+  "/home/sukaih/miniconda3/envs/ada_vla/bin/python",
+  "scripts/run_choice_frontier_v4_seeds.py",
+  "audit-evaluate-worker"
+ ],
+ "resume_reason": "infrastructure: attempt 1 was launched from a shell without ~/cd_vlaplan (HF_HOME unset), so the offline tokenizer load failed before any episode (TypeError vocab_file None); relaunch unchanged with the project environment"
+}
