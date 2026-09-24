@@ -32,7 +32,7 @@ Single record of every review the manuscript has received: what draft state it r
 | 17 | 2026-09-23 | paper-reviewer (area-chair tier) | Round-2 re-review at `c42277c`: nine section files, hub, six bibs, log/blg, rendered 30-page PDF, both figures, re-check of headline numbers against the pinned JSONs and episode stores | WEAK REJECT (0 CRITICAL, 4 MAJOR, 10 MINOR, counting the 2 carried partials) | CLOSED (`e5c4c09`; finding 40 WONTFIX by author decision) |
 | 18 | 2026-09-23 | paper-reviewer (area-chair tier) | Round-3 re-review at `19a641b` (clean tree): nine section files, hub, six bibs, log/blg, rendered 29-page PDF, both figure assets and scripts, headline numbers re-derived from the pinned JSONs, ledgers, and episode stores | WEAK REJECT (0 CRITICAL, 6 MAJOR, 13 MINOR, counting the 2 partial remainders) | SUPERSEDED by 19 (all findings closed except 49 and 60, carried into 19 and blocked on issue #134) |
 | 19 | 2026-09-23 | paper-reviewer (area-chair tier) | Round-3 re-review at `1281c1b` (clean tree): nine section files, hub, six bibs, log/blg, rendered 29-page PDF, both figure assets and scripts, numbers re-checked against the pinned JSONs, CSVs, and ledgers, and a sample of the new `%` Evidence comments checked for path and key | WEAK REJECT (0 CRITICAL, 1 MAJOR, 8 MINOR) | CLOSED (`59e8714`; 49 and 60 closed with #134; 40 WONTFIX) |
-| 20 | 2026-09-25 | paper-reviewer (area-chair tier) | Round-5 re-review at `0277de7` (clean tree): rendered 35-page PDF, nine section files, hub, six bibs, log/blg, all three figure scripts and PNGs (28/28 fig_ladder asserts re-run), every round-5 number and all cells of Tables 19-21 re-derived from the pinned #138-#140 JSONs and ledgers, 16 `%` Evidence comments checked | WEAK REJECT, rating 4 (S 3 / P 2 / C 2, confidence 4); 0 CRITICAL, 2 MAJOR, 10 MINOR | OPEN |
+| 20 | 2026-09-25 | paper-reviewer (area-chair tier) | Round-5 re-review at `0277de7` (clean tree): rendered 35-page PDF, nine section files, hub, six bibs, log/blg, all three figure scripts and PNGs (28/28 fig_ladder asserts re-run), every round-5 number and all cells of Tables 19-21 re-derived from the pinned #138-#140 JSONs and ledgers, 16 `%` Evidence comments checked | WEAK REJECT, rating 4 (S 3 / P 2 / C 2, confidence 4); 0 CRITICAL, 2 MAJOR, 10 MINOR | OPEN (70-80 CLOSED `e7346aa`; 69 partial, blocked on #141/#142; 40 WONTFIX) |
 
 ## Live fixlist — review 20 (2026-09-25)
 
@@ -286,7 +286,7 @@ I sampled 16 comments, 13 of them from round 5. For each I checked that the path
   - (c) Optionally, and with the largest effect on value: audit the one surveyed interface predicted to saturate (LLM-First Search, Table 22). That would turn the internal anchor into a published-practice finding.
 - **Why it changes the verdict:** (b) changes Contribution from "a measurement shown on one policy" to "a measurement that ranks policies", and (c) supplies the missing anchor in published practice.
 - **Fix class:** MEANING (it adds a contribution claim and an experiment)
-- **Status:** OPEN
+- **Status:** PARTIAL: part (a) CLOSED (`e7346aa`, portable-rule paragraph in the Discussion, author decision 2026-09-25); parts (b) second realisable policy and (c) LLM-First Search audit OPEN-blocked on evidence tickets #141 and #142
 
 #### 70 · MAJOR · Axis 4 (the screening interpretation is contradicted by the paper's own P2u ladder) · `iclr2026_conference_introduction.tex; iclr2026_conference_results.tex; iclr2026_conference_discussion.tex; iclr2026_conference_abstract.tex`
 
@@ -310,7 +310,7 @@ I sampled 16 comments, 13 of them from round 5. For each I checked that the path
   - Label the whole statement "(descriptive)".
 - **Why it changes the verdict:** the P2u result is the paper's answer to the screening objection. As written, it misstates what P2u shows, and a reviewer who reads Table 19 will notice.
 - **Fix class:** MEANING (it changes what the P2u result is claimed to show)
-- **Status:** OPEN
+- **Status:** CLOSED (`e7346aa`; author decision: reviewer rewrite without a new P2−P2u analysis)
 
 #### 71 · MINOR · Axis 3 ("sits at that rung" reads as equivalence, which the Statistics appendix forbids) · `iclr2026_conference_abstract.tex; iclr2026_conference_introduction.tex; iclr2026_conference_results.tex; iclr2026_conference_discussion.tex`
 
@@ -330,7 +330,7 @@ I sampled 16 comments, 13 of them from round 5. For each I checked that the path
   - Add once in 5.4, after the ladder-position sentence: "No equivalence margin was pre-registered for S, so a non-separated S is not equivalence to the rung."
   - Amend the `CONTEXT.md` choice-quality entry accordingly.
 - **Fix class:** MEANING (it changes the approved position claim from "at the rung" to "not separated from the rung", which needs an author decision)
-- **Status:** OPEN
+- **Status:** CLOSED (`e7346aa`; author decision: "not separated from the 0.75 rung" plus the non-equivalence sentence, CONTEXT.md amended)
 
 #### 72 · MINOR · Axis 4 (the DAgger conclusion asserts no change while the co-primary is inconclusive) · `iclr2026_conference_appendix.tex`
 
@@ -341,7 +341,7 @@ I sampled 16 comments, 13 of them from round 5. For each I checked that the path
   - The closeout says "does not measurably change" (`issue-140-closeout.md` L20), and the paper dropped the hedge.
 - **Fix:** "One small round at one seed therefore produces no detectable change in measured choice quality (Δ is inconclusive against the ±0.05 margin), and the ablation is inconclusive."
 - **Fix class:** WORDING (it restores the approved "single-seed and inconclusive" claim)
-- **Status:** OPEN
+- **Status:** CLOSED (`e7346aa`)
 
 #### 73 · MINOR · Axis 4 ("seeds that no design decision had seen" overstates P2's freshness) · `iclr2026_conference_introduction.tex; iclr2026_conference_results.tex`
 
@@ -352,7 +352,7 @@ I sampled 16 comments, 13 of them from round 5. For each I checked that the path
   - No adapter or evaluation outcome was seen, and the disclosure in 5.3 is accurate. The "no design decision" clause is still literally false.
 - **Fix:** "…frozen before any evaluation episode, from seeds on which no adapter had been evaluated (the A1 seed extension followed a controls-only screen of the first 40 seeds, Section 5.3)".
 - **Fix class:** WORDING
-- **Status:** OPEN
+- **Status:** CLOSED (`e7346aa`)
 
 #### 74 · MINOR · Axis 3 (stale scope statements and inconsistent appendix ranges left by the round-5 sweep) · `iclr2026_conference_appendix.tex; iclr2026_conference_experimental_design.tex; iclr2026_conference_results.tex`
 
@@ -370,7 +370,7 @@ I sampled 16 comments, 13 of them from round 5. For each I checked that the path
   - (d) Use one range, or drop the letter ranges in favour of named appendices.
   - (e) Append "and 88/88 P2 plus 96/96 P2u learned episodes".
 - **Fix class:** WORDING
-- **Status:** OPEN
+- **Status:** CLOSED (`e7346aa`)
 
 #### 75 · MINOR · Axis 5 (last-label sentence: dangling table pointer, mixed units, missing chance rates) · `iclr2026_conference_results.tex`
 
@@ -382,7 +382,7 @@ I sampled 16 comments, 13 of them from round 5. For each I checked that the path
   - Two paragraphs later, 5.4 quotes a different first-adapter last-label excess on a different panel (+0.277 over the earlier 9-task panel, where the raw rate is 0.545), without saying the panels differ.
 - **Fix:** "…last-label rate per seed is 0.205, 0.192, and 0.171 (chance about 0.13) against 0.300 (chance 0.144) for the first adapter on the same panel (Scaled Adapter appendix)". Add the three per-seed rates to Table 17 or 19, or drop the table pointer.
 - **Fix class:** WORDING
-- **Status:** OPEN
+- **Status:** CLOSED (`e7346aa`)
 
 #### 76 · MINOR · Axis 4 (the exact reference's M1 of 0.875 is a construction constant, and M1 can exceed it) · `iclr2026_conference_results.tex; iclr2026_conference_experimental_design.tex; iclr2026_conference_appendix.tex`
 
@@ -398,7 +398,7 @@ I sampled 16 comments, 13 of them from round 5. For each I checked that the path
   - Add to 5.3 or App I: "Because goal selection is the (R_t+1)-th decision, the exact reference fails at m = 1 and scores M1 = 0.875 by construction. Arms that reach the goal in fewer decisions can exceed it (hadd-greedy 0.88-0.93)."
   - Change "bounds perfect decisions" to "defines the imitation target", and drop "so it remains far from the reference" (see 78).
 - **Fix class:** WORDING
-- **Status:** OPEN
+- **Status:** CLOSED (`e7346aa`)
 
 #### 77 · MINOR · Axis 2 (the headline separation rests on an 11-cluster percentile bootstrap and is fragile) · `iclr2026_conference_results.tex; iclr2026_conference_appendix.tex`
 
@@ -409,7 +409,7 @@ I sampled 16 comments, 13 of them from round 5. For each I checked that the path
   - The pre-registered rule is met, so this is not a defect of the verdict. It is a robustness fact a reader needs, because the separation claim is repeated in four headline places.
 - **Fix:** Add one sentence to App U.1, and a parenthetical in 5.4: "An exact sign-flip test on the 11 per-task differences gives p = 0.046 (8 positive, 3 negative, descriptive)." Apply the same small-cluster check to D3 on P2u.
 - **Fix class:** WORDING (it adds a robustness number and leaves the pre-registered verdict unchanged)
-- **Status:** OPEN
+- **Status:** CLOSED (`e7346aa`; author decision: wording-only disclosure of 11 clusters and 8/3 per-task signs, no unpinned p-value)
 
 #### 78 · MINOR · Axis 5 (undefined headline symbols, a misplaced paragraph, and a non-sequitur) · `iclr2026_conference_abstract.tex; iclr2026_conference_introduction.tex; iclr2026_conference_results.tex; iclr2026_conference_discussion.tex`
 
@@ -425,7 +425,7 @@ I sampled 16 comments, 13 of them from round 5. For each I checked that the path
   - (c) Caption: append "The P2u ladder is descriptive. The first adapter appears on the validation panel only."
   - (d) Replace "so it remains far from the reference" with a separate sentence: "Its M1 (0.151-0.432) remains well below the reference's 0.875."
 - **Fix class:** WORDING
-- **Status:** OPEN
+- **Status:** CLOSED (`e7346aa`)
 
 #### 79 · MINOR · Axis 4 (positioning: policy-guided node selection and tie-breaking literature uncited) · `iclr2026_conference_related_work.tex; iclr2026_conference_related_refs.bib`
 
@@ -436,7 +436,7 @@ I sampled 16 comments, 13 of them from round 5. For each I checked that the path
   - A planning-literate reviewer will see both omissions. They also weaken the novelty framing of the contract.
 - **Fix:** Add one sentence to Related Work: "The choice-frontier contract is a learned node-selection policy in the sense of policy-guided heuristic search (Orseau & Lelis, 2021), and the submission-order counterfactual isolates a heap tie-breaking effect of the kind studied by Asai & Fukunaga (2016)". Add the Asai & Fukunaga entry.
 - **Fix class:** WORDING
-- **Status:** OPEN
+- **Status:** CLOSED (`e7346aa`)
 
 #### 80 · MINOR · Evidence hygiene (off-by-one protocol pointer, non-repository rendering source) · `iclr2026_conference_results.tex; iclr2026_conference_appendix.tex`
 
@@ -449,7 +449,9 @@ I sampled 16 comments, 13 of them from round 5. For each I checked that the path
   - `local://evidence-r5.md` is a session artifact and is not in either repository, so a reproducer cannot resolve it. The artifact keys named alongside it do resolve.
 - **Fix:** Change both L124 pointers to L123. Replace "3-dp renderings per local evidence-r5.md" with "rounded half-up to 3 dp from the named keys".
 - **Fix class:** WORDING
-- **Status:** OPEN
+- **Status:** CLOSED (`e7346aa`)
+
+**Disposition (2026-09-25, `e7346aa`):** 70-80 CLOSED (70, 71, and 77 by author decision on the reviewer's fix; the others as prescribed). 69 PARTIAL: the portable rule is added; the second-policy experiment and the LLM-First Search audit are filed as #141 and #142 and are not written into the paper. Finding 40 WONTFIX unchanged.
 
 ### What would change the verdict
 
