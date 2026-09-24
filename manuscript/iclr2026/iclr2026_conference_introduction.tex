@@ -26,6 +26,7 @@ On ScienceWorld \citep{wang2022scienceworld}, a published sequential-choice inte
 % Evidence: outputs/external-audit/v1/scienceworld/identity-audit.json pairs_divergent 1000 of pairs_checked 1000, first_divergence_index.max 0, success.reference 0.915, success.random_valid_mean 0.0, tasks 200 (#137 E137-02..06).
 % Evidence: 6 of 30 from docs/experiments/external-audit/issue-137-closeout.md §Limitations; 7 surveyed, 0 type A from issue-137-survey.md §Candidate table and issue-137-closeout.md §Stage 1 survey (#137 E137-19, E137-40, E137-42).
 Under the enumeration contract, process SFT solved 125 of 288 baseline entries, all in additive cells, and 0/24 in each BFS and BFWS cell (Section~\ref{sec:results-primary}).
+% Evidence: 125/288 per docs/experiments/expanded-study/synthesis-v1/README.md and synthesis-v1/baseline-summary.csv (process SFT baseline successes, additive cells only).
 % Evidence: BFS/BFWS random-valid 15/24 and 17/24, exact 24/24, SFT 0/24: Results Table tab:results-primary-matrix.
 % Evidence: outputs/expanded-study/v1/baseline/episodes/{text-state,visual-state,multimodal-state}/*/{bfs,best_first_width}-random_valid.json.gz (15/24 BFS and 17/24 BFWS per modality, hence 45 and 51 across three modalities); failure count Table~\ref{tab:appendix-rejection}.
 
@@ -41,6 +42,7 @@ This paper makes four contributions.
 
 % Paragraph purpose: Close with the evidence boundary.
 All cells are single-seed except two replication cells (seeds 17/29/71, descriptive $n{=}3$). The choice-quality claim is development-stage and single-seed, holds on the validation panel relative to uniform choice and the exact-$\epsilon$ ladder, and carries no planning-ability, generality, or held-out claim. The held-out final primary evaluation has not been executed, and the full-scope v1 generalization and second-backbone branches were withdrawn after their terminal VALID\_STOP receipts (closed 2026-09-21).
+% Evidence: seeds 17/29/71 on two replication cells per docs/experiments/expanded-study/issue-127-closeout.md and outputs/expanded-study/v1/seed-replication/analysis.json.
 % Evidence: issues #96/#98/#102/#103 CLOSED 2026-09-21 (supervisor decision, v1 scope withdrawn); review 16 I12.
 % Held-out final primary evaluation: no open ticket, stated in prose.
 % #128 image-only-arm marker retired: executed under the #129 v2 amendment (v1 gate retained as history in Results).
