@@ -235,7 +235,7 @@ Table~\ref{tab:appendix-receipts} combines branch-level frozen scope, gate statu
 % Evidence: synthesis ledger is issue #120 (synthesis-v1/README.md).
 
 \begin{table}[t]
-\caption{Combined per-branch gate receipts and ledger allocations. The expanded program spent 68.52 of 336 GPU-h, rounded independently by row. The second-backbone cap reflects a prospective 12.11 GPU-h transfer from recovery reserve. Corruption and seed replication draw on existing branch caps. Follow-up windows have separate ledgers and are never summed into the program total. The R1-R4 spend covers both stress-test rows.}
+\caption{Combined per-branch gate receipts and ledger allocations. The expanded program spent 68.52 of 336 GPU-h, rounded independently by row. The second-backbone cap reflects a prospective 12.11 GPU-h transfer from recovery reserve. Corruption and seed replication draw on existing branch caps. Follow-up windows have separate ledgers and are never summed into the program total or with each other. The R1-R4 spend covers both stress-test rows.}
 \label{tab:appendix-receipts}
 \centering\scriptsize
 \setlength{\tabcolsep}{1pt}
@@ -267,6 +267,8 @@ Counterfactual audit, M4 intervals & \#134 & prediction failed & 48 pairs, 288 c
 Instrument validation & \#135 & \textsc{pass} & 696/696 CPU + 48/48 model episodes replayed & 1.19 / 4 \\
 Scaled adapter & \#136 & \textsc{positive} & 24/24 learned episodes replayed & 4.84 / 30 \\
 External audit & \#137 & \textsc{choice\_registered} & 1000 pairs over 200 tasks & CPU only \\
+Three-seed replication, held-out panels (v4 window) & \#138, \#139 & \textsc{positive} & 48/48 new learned episodes, 638/638 P2 and 696/696 P2u zoo episodes replayed & 15.22 / 24 \\
+DAgger ablation (v5 window) & \#140 & \textsc{not\_separated} & 24/24 validation-panel and 22/22 P2 episodes replayed & 9.06 / 40 \\
 \hline
 \end{tabular}
 % Evidence: synthesis-v1/README.md and docs/experiments/expanded-study/issue-127-closeout.md (program/addenda);
@@ -276,6 +278,11 @@ External audit & \#137 & \textsc{choice\_registered} & 1000 pairs over 200 tasks
 % outputs/choice-frontier/o4/metrics/analysis.json episode_accounting (432, 342 new), #133 closing comment.
 % Source conflict: outputs/expanded-study/v1/second-backbone-v3/evaluation/evidence.json lists comparator_episodes 144
 % against expected 72; issue-130-closeout.md states 72/72 comparators replayed, used for the R3 row.
+% Evidence (round 5 rows): v4 window "Shared v4 ledger total: 15.22 / 24 GPU-h (#138 10.11 + #139 5.12)." issue-139-closeout.md L144;
+% cap outputs/choice-frontier/v4/budget.json schedule.window_gpu_hours_cap 24.0; A138 episode_accounting.v4_replayed 48, .v4_mismatches [];
+% zoo 638/638 and 696/696 per issue-139-closeout.md L113-115; A138 primary.verdict POSITIVE. v5 window "Total 9.06 / 40 GPU-h."
+% issue-140-closeout.md L72; cap outputs/choice-frontier/v5/budget.json schedule.window_gpu_hours_cap 40.0; A140 primary.verdict NOT_SEPARATED;
+% episode_accounting.{v2,p2}.episodes_replayed 24 / 22, replay_mismatches [] (issue-140-closeout.md L53). Never summed (B4 schedule.accounting.transfers).
 \end{table}
 
 % Paragraph purpose: Preserve the synthesis-snapshot attempt count and account for both later addenda.
@@ -291,7 +298,9 @@ The observation-corruption suite added 2.22 GPU-h to the generalization branch. 
 
 % Paragraph purpose: Give each follow-up window's ledger and coverage detail, kept separate from the program total.
 \paragraph{Follow-up windows.}
-Each follow-up window keeps its own ledger, and none is added to the program's 68.52/336 GPU-h. The native-arms window (v1 probes, then v2 training and evaluation) spent 3.2086 of 12 GPU-h. Its 216 new bindings (144 model episodes and 72 CPU random-valid episodes) and 72 reused comparators were all independently replayed. The R1-R4 follow-up window spent 7.7998 of 36 GPU-h across two ledgers. It was resized from 20 GPU-h before any outcome, because its frozen worst-case estimate of 27.04 GPU-h including spend exceeded the initial cap, and realized cost landed at 29\% of that estimate. The choice-frontier window spent 1.069 of 12 GPU-h (training 0.81, smoke 0.052, model evaluation 0.208), with corpus derivation and controls on CPU. Its 144 panel episodes were replayed and its 58 preparation episodes re-derived bit-exact. The comparator zoo launched no GPU job. It replayed all 432 zoo bindings, of which 342 are new CPU episodes and 90 are reused 2$\times$ random-valid controls. Failed attempts retain their hours in every window.
+Each follow-up window keeps its own ledger, and none is added to the program's 68.52/336 GPU-h. The native-arms window (v1 probes, then v2 training and evaluation) spent 3.2086 of 12 GPU-h. Its 216 new bindings (144 model episodes and 72 CPU random-valid episodes) and 72 reused comparators were all independently replayed. The R1-R4 follow-up window spent 7.7998 of 36 GPU-h across two ledgers. It was resized from 20 GPU-h before any outcome, because its frozen worst-case estimate of 27.04 GPU-h including spend exceeded the initial cap, and realized cost landed at 29\% of that estimate. The choice-frontier window spent 1.069 of 12 GPU-h (training 0.81, smoke 0.052, model evaluation 0.208), with corpus derivation and controls on CPU. Its 144 panel episodes were replayed and its 58 preparation episodes re-derived bit-exact. The comparator zoo launched no GPU job. It replayed all 432 zoo bindings, of which 342 are new CPU episodes and 90 are reused 2$\times$ random-valid controls. The three-seed replication and the held-out panels shared one window, which spent 15.22 of 24 GPU-h, and the DAgger ablation window spent 9.06 of 40 GPU-h, including 1.79 GPU-h charged for a cancelled collection. Failed attempts retain their hours in every window.
+% Evidence: 15.22 / 24 issue-139-closeout.md L144; 9.06 / 40 issue-140-closeout.md L72; 1.79 GPU-h issue-140-closeout.md L80
+% (B5 attempts[2].gpu_hours 0.8974 and attempts[3].gpu_hours 0.8973, status failed, cancelled under A1).
 % Window ids: native arms #128 (v1 probes) / #129 (v2); R1-R4 window #130; choice frontier #132; zoo #133.
 % Evidence: issue-129-closeout.md (Delivered: 144 GPU model episodes, 72 CPU random_valid, 72/72 comparators, 3.2086 / 12.0);
 % issue-130-closeout.md Verification & budget (27.04 GPU-h estimand, 29%) and the #131 status comment (7.7998 / 36, resized from 20);
@@ -332,11 +341,16 @@ Pinned path & Claim class \\
 \path|docs/experiments/native-arms/issue-129-closeout.md|, \path|issue-130-closeout.md| & Native-arms and stress-test R1-R4 records \\
 \path|docs/experiments/choice-frontier/issue-132-closeout.md| & Choice-frontier outcome and its binding erratum \\
 \path|docs/experiments/choice-frontier/metric-adjudication-2026-09-23.md| & Post-close metric adjudication \\
+\path|outputs/choice-frontier/v4/seeds/metrics/analysis.json| & Three-seed endpoint, separation, seed variance on the validation panel \\
+\path|outputs/choice-frontier/v4/panels/metrics/analysis.json| & Held-out and unscreened panels, per-panel arms, pooled results, concentration \\
+\path|outputs/choice-frontier/v5/metrics/analysis.json| & DAgger ablation \\
+\path|outputs/choice-frontier/v4/budget.json|, \path|outputs/choice-frontier/v5/budget.json| & v4 and v5 window ledgers \\
 Comparator-zoo ticket (\#133) closing comment & Zoo numbers table and claim boundary \\
 \hline
 \end{tabular}
 % Evidence: paths confirmed present in the evidence repository on 2026-09-23; the #133 closing comment is
 % https://github.com/Sino-Huang/multimodality_on_planning/issues/133#issuecomment-5788941573.
+% Round 5 rows: A138, A139, A140, B4, B5 per local evidence-r5.md artifact shorthands (read 2026-09-25).
 \end{table}
 
 
@@ -370,7 +384,9 @@ The follow-up windows fix their own bootstrap seeds, separate from the main prog
 
 % Paragraph purpose: State the materiality rule and the non-equivalence sentence requirement.
 \paragraph{Materiality and non-equivalence.}
-A follow-up contrast is material when its 95\% interval excludes zero. No follow-up protocol pre-registered an equivalence margin, so a non-material contrast supports neither superiority nor equivalence. Wherever the text reports a non-material contrast or a comparison that fails Holm correction, an adjacent sentence states that non-significance is not equivalence.
+A follow-up contrast is material when its 95\% interval excludes zero. The follow-up protocols through the comparator zoo pre-registered no equivalence margin, so a non-material contrast there supports neither superiority nor equivalence. The later choice-frontier protocols pre-register an equivalence margin of $\pm 0.05$ for $D$ and for the DAgger change $\Delta$, and none for the separation $S$, so a non-separated $S$ is not equivalence to the rung. Wherever the text reports a non-material contrast or a comparison that fails Holm correction, an adjacent sentence states that non-significance is not equivalence.
+% Evidence (round 5): A138 primary.equivalence_margin 0.05; A139 heldout_p2.primary.equivalence_margin 0.05, unscreened_p2u.primary.equivalence_margin 0.05;
+% A140 co_primary.equivalence_margin 0.05; separation verdict rules SEPARATED_ABOVE / SEPARATED_BELOW / NOT_SEPARATED only (A140 primary.rule).
 % Evidence: native-arms-v2-protocol.json analysis.bootstrap.materiality ("interval excludes 0"); issue-132-design.md section 6;
 % issue-132-closeout.md Read of the evidence item 3; issue-133-protocol.md ("no equivalence or generalized negative capability claim").
 
@@ -1126,7 +1142,7 @@ All 696/696 CPU episodes and the 48 first-adapter model episodes were independen
 Three deviations are documented. Generation reuses the frozen candidate generator, which reproduces all 12 snapshots byte-for-byte although domain generators take the seed differently. A first concurrent generation run corrupted the blocksworld outputs through a shared temporary file, so it was discarded, all candidates were regenerated serially and reproduced, and the deviation was disclosed before evaluation. Only the two additive native references seed the pre-rendered views, rather than four algorithms, because native BFS exceeds the 128-expansion reference ceiling on these tasks, and unseen states are rendered live.
 % Evidence: issue-135-closeout.md Execution record and issue comment 5796987720 (sheet #135 deviations 1-3, quoted).
 
-\section{Results Detail: Scaled Adapter}
+\section{Results Detail: Scaled Adapter and Seed Replication}
 \label{app:results-adapter}
 
 % Paragraph purpose: State the frozen scaled-adapter protocol, estimand, rule, and margins before any result.
@@ -1152,7 +1168,7 @@ The recipe matches the first adapter's except for corpus, augmentation, sample o
 % (E136-23, E136-24); ladder_position.learned.17 (E136-33). Wording per decision 9a.
 
 \begin{table}[t]
-\caption{Per-task $D$ (scaled adapter M1 minus random-valid M1), seed 17. Pooled $D = +0.328$ $[+0.155, +0.508]$, POSITIVE under the pre-registered rule applied to one seed.}
+\caption{Per-task $D$ (scaled adapter M1 minus random-valid M1) for seed 17 on the validation panel. The pre-registered three-seed endpoint is $D_3 = +0.285$ $[+0.140, +0.433]$ (Table~\ref{tab:appendix-seed-d}).}
 \label{tab:appendix-adapter-tasks}
 \centering\scriptsize
 \setlength{\tabcolsep}{3pt}
@@ -1167,20 +1183,172 @@ depot-935005 & $0.0625$ & storage-935001 & $0.7$ \\
 depot-935011 & $0.7125$ & towers\_of\_hanoi-935000 & $0.2375$ \\
 elevators-935000 & $0.5$ & towers\_of\_hanoi-935002 & $0.0$ \\
 \hline
-\multicolumn{4}{p{0.9\linewidth}}{[TODO: follow-up ticket pending: \#136 seeds 29 and 71, per-seed D and the three-seed POSITIVE rule]} \\
-\multicolumn{4}{p{0.9\linewidth}}{[TODO: follow-up ticket pending: second fresh panel or held-out evaluation of the scaled adapter]} \\
-\hline
 \end{tabular}
 \end{table}
 % Evidence: outputs/choice-frontier/v3/metrics/analysis.json primary.per_task_difference.<task_id> (E136-09); primary.D and .ci95 (E136-02, E136-03);
 % primary.verdict POSITIVE, primary.seeds [17] (E136-01, E136-07).
-% Pending: P1 and P2 as table notes per local r4-contract decision 3 (author-run follow-ups, no ticket number yet).
+% Evidence: pooled three-seed D3 per #138 outputs/choice-frontier/v4/seeds/metrics/analysis.json primary.D3 0.2847 (0.285), primary.ci95 [0.1403, 0.4326] ([0.140, 0.433]).
 
 % Paragraph purpose: Record the four documented choices of the scaled-adapter run.
-Four choices are documented. The scope edit to one training seed leaves seed variance unmeasured, and the every-seed clause is the seed-17 estimate only. The step budget matches the first adapter's recipe. The seed-major corpus walk resolves an ambiguity in the protocol text. Both evaluation hooks first failed because the scheduler passes only the terminal path, and after a fix deriving the attempt directory from it, the audit re-ran on the same attempts and passed without affecting GPU work or episodes.
+Four choices are documented. The scope edit to one training seed left seed variance unmeasured in that run. A later pre-registered replication trained seeds 29 and 71 with the byte-identical recipe and the sample order pinned to the seed-17 order, so seeds change only the LoRA initialisation and dropout, and all 48 of its new episodes were independently replayed with no mismatch. The step budget matches the first adapter's recipe. The seed-major corpus walk resolves an ambiguity in the protocol text. Both evaluation hooks first failed because the scheduler passes only the terminal path, and after a fix deriving the attempt directory from it, the audit re-ran on the same attempts and passed without affecting GPU work or episodes.
 % Evidence: protocol.json training_seeds_note ("ticket edited to '1 seed (to speed up)'"), closeout Limitations (sheet #136 choice 1);
 % protocol.json optimizer_updates 128 (choice 2); protocol.json corpus_selection.walk_order (choice 3); closeout Smoke gate, evaluation and
 % replay execution note, jobs/cfv3-evaluate-*/1/hook-rerun.json ok true (choice 4). Ledger 4.84/30 GPU-h (LED-2).
+% Evidence (replication): issue-138-protocol.md L11-12 ("the #136 recipe, byte-identical ... Only training_seed changes"), sample order
+% pinned to order:17 (issue-138-closeout.md L84-86); A138 episode_accounting.v4_replayed 48, .v4_missing [], .v4_replay_mismatches [].
+
+% Paragraph purpose: Report the per-seed receipts of the three-seed replication on the validation panel.
+On the validation panel, $D$ is $+0.328$ $[+0.155, +0.508]$ for seed 17, $+0.229$ $[+0.108, +0.354]$ for seed 29, and $+0.297$ $[+0.134, +0.466]$ for seed 71. Per-seed M1 is 0.349, 0.250, and 0.318, with a between-seed standard deviation of 0.051 (descriptive). The pre-registered separation from the exact-$\epsilon$ 0.75 rung is $S = +0.002$, $-0.097$, and $-0.029$ per seed. Against the 0.50 rung the three-seed $S$ is $-0.298$ $[-0.468, -0.129]$ (descriptive). Table~\ref{tab:appendix-seed-d} sets these values beside the held-out and unscreened panels.
+% Evidence: A138 primary.per_seed.{17,29,71} 0.3281/0.2292/0.2969 and primary.per_seed_ci95.{17,29,71} [0.1552, 0.5083]/[0.1083, 0.3542]/[0.1344, 0.4656];
+% seed_variance.m1_per_seed.{17,29,71}.m1_auc 0.3490/0.25/0.3177; seed_variance.m1_between_seed_sd 0.0506 (0.051, statistics.stdev n-1);
+% separation.vs_eps_0.75.per_seed.{17,29,71} 0.0021/-0.0969/-0.0292 (0.002/-0.097/-0.029); separation.vs_eps_0.50.S -0.2976, .ci95
+% [-0.4684, -0.1288] (role "descriptive only", P138 L51).
+
+% Round 5: subsection of the Scaled Adapter appendix because a 27th appendix section overflows the letter counter.
+\subsection{Held-Out Panels}
+\label{app:results-panels}
+
+% Paragraph purpose: Give the construction receipts of the held-out panel P2 and the unscreened panel P2u before any result.
+Both fresh panels come from 2,400 candidates generated from seeds 955000--955199. Overlap with earlier panels removed 1,168 candidates, duplicates 205, goal at the initial state 31, and $C^*$ out of range 536, which left 460. P2 applies the validation panel's generation, $C^*$, and screening rules. A candidate is kept when $8 \le C^* \le 20$ and random-valid reaches the goal in 1 to 9 of its 10 screening episodes, and the freeze walk, sorted by domain and seed, takes at most 2 tasks per domain up to 12 tasks, with a minimum of 8 tasks from 5 domains. P2 froze with 11 tasks from 8 domains because only 11 admitted tasks were available under the per-domain limit. It met the minimum, so every P2 test is confirmatory. P2u takes kept candidates outside P2 on which the exact reference reaches the goal under both algorithms, without consulting the random-valid screen, at most 2 per domain, giving 12 tasks from 7 domains. All 12 P2u tasks happen to have 0/10 random-valid goals in screening. All 638/638 P2 and 696/696 P2u zoo episodes were independently replayed, with none missing.
+% Evidence: P2 rule issue-139-protocol.md L7, L36, L48-50; P2u rule L55-57; candidate pool issue-139-closeout.md L46-54 (2,400; 1,168 / 205 / 31 / 536; 460);
+% P2 froze at 11 issue-139-closeout.md L28; A139 pooled.panels {p135 12, p2 11, p2u 12}; concentration.per_panel.{p2,p2u}.domains (8, 7 domains);
+% "All 12 happen to have 0/10 random goals." issue-139-closeout.md L56; zoo replay issue-139-closeout.md L113-115.
+
+% Paragraph purpose: Disclose the seed-range amendment in full.
+The first freeze, from the original 40-seed pool 955000--955039, admitted 6 tasks from 5 domains and took the protocol's blocked exit. Only controls-only screening had run, and no evaluation episode existed. An amendment then extended the seeds to 955000--955199. It kept the 480 earlier candidates unchanged and generated the new seeds 955040--955199 serially after them. The generation mechanism, the exclusion sources, the duplicate check, the $C^*$ rule, $R_t$, the screen, the freeze walk, and the P2u rule stayed unchanged, and both panels were frozen from the combined pool before any evaluation episode.
+% Evidence: issue-139-protocol.md Amendment A1 L118-127 (L120 trigger 6 tasks / 5 domains, no evaluation episode; L122 seeds extended,
+% 480 candidates kept; L123 everything else unchanged); issue-139-closeout.md L58 and L5-6 (commit d567939 before any extension seed).
+
+% Paragraph purpose: Give every arm's M1 on the three panels.
+Table~\ref{tab:appendix-panel-arms} gives each arm's M1 on the three panels. The four pre-registered adjacent gaps on P2 are $+0.130$ $[+0.070, +0.190]$, $+0.239$ $[+0.183, +0.290]$, $+0.302$ $[+0.259, +0.340]$, and $+0.189$ $[+0.136, +0.248]$, so the ladder test passes. On P2u the descriptive gaps are $+0.197$ $[+0.154, +0.243]$, $+0.281$ $[+0.191, +0.355]$, $+0.248$ $[+0.209, +0.290]$, and $+0.147$ $[+0.088, +0.226]$, and every lower bound is positive.
+% Evidence: A139 ladder_p2.pairs[0..3].{difference,ci95} 0.1295 [0.0705, 0.1898] / 0.2386 [0.1830, 0.2898] / 0.3023 [0.2591, 0.3398] /
+% 0.1886 [0.1364, 0.2477], verdict PASS, status confirmatory (P139 L93); unscreened_p2u.ladder.pairs[0..3] 0.196875 [0.1542, 0.2427] /
+% 0.28125 [0.1906, 0.3552] / 0.2479 [0.2094, 0.2896] / 0.146875 [0.0875, 0.2260], verdict PASS, descriptive (P139 L96).
+% Note: 0.196875 and 0.28125 have no 3-dp rendering on the sheet; printed at the table's 3 dp.
+
+\begin{table}[t]
+\caption{M1 with task-clustered 95\% intervals on the validation panel (12 tasks), the held-out panel P2 (11 tasks), and the unscreened panel P2u (12 tasks). Ladder rungs and hadd-greedy read privileged information and are not realisable policies.}
+\label{tab:appendix-panel-arms}
+\centering\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lccc}
+\hline
+Arm & Validation & P2 & P2u \\
+\hline
+Exact reference & 0.875 [0.875, 0.875] & 0.875 [0.875, 0.875] & 0.875 [0.875, 0.875] \\
+Exact-$\epsilon$ 0.25 & 0.793 [0.764, 0.824] & 0.745 [0.685, 0.805] & 0.678 [0.632, 0.721] \\
+Exact-$\epsilon$ 0.50 & 0.603 [0.528, 0.670] & 0.507 [0.445, 0.566] & 0.397 [0.331, 0.478] \\
+Exact-$\epsilon$ 0.75 & 0.347 [0.252, 0.445] & 0.205 [0.145, 0.269] & 0.149 [0.091, 0.227] \\
+Random-valid & 0.021 [0.007, 0.038] & 0.016 [0.000, 0.048] & 0.002 [0.000, 0.006] \\
+Pretrained base & 0.000 [0.000, 0.000] & 0.000 [0.000, 0.000] & 0.000 [0.000, 0.000] \\
+Adapter, seed 17 & 0.349 [0.172, 0.531] & 0.506 [0.313, 0.699] & 0.198 [0.031, 0.396] \\
+Adapter, seed 29 & 0.250 [0.125, 0.375] & 0.284 [0.119, 0.489] & 0.120 [0.026, 0.224] \\
+Adapter, seed 71 & 0.318 [0.151, 0.490] & 0.506 [0.295, 0.705] & 0.135 [0.031, 0.250] \\
+Adapter, three-seed mean & 0.306 [0.158, 0.455] & 0.432 [0.273, 0.602] & 0.151 [0.030, 0.288] \\
+\hline
+hadd-greedy (privileged) & 0.882 [0.774, 0.955] & 0.928 [0.883, 0.966] & 0.906 [0.883, 0.933] \\
+\hline
+\end{tabular}
+% Evidence: outputs/choice-frontier/v4/panels/metrics/analysis.json arms.{p135,p2,p2u}.{exact_reference,exact-eps-0.25,exact-eps-0.50,exact-eps-0.75,
+% random_valid,pretrained_base,learned_adapter_s17,learned_adapter_s29,learned_adapter_s71,learned_adapter_seed_mean,hadd-greedy}.{m1,ci95},
+% 3-dp renderings per local evidence-r5.md section 3 (descriptive, P139 L108). Note: arms.p2u.exact-eps-0.25.m1 is 0.678125, printed at 3 dp.
+\end{table}
+
+% Paragraph purpose: Report the per-seed endpoints and separations on every panel, with their status labels.
+Table~\ref{tab:appendix-seed-d} gives $D$ per seed and $D_3$ with intervals on each panel and pooled over 35 tasks, and the separation $S$ from the exact-$\epsilon$ rungs. Seed 29 has the lowest per-seed $D$ on every panel, and on P2 its separation point from the 0.75 rung is $+0.080$ (descriptive).
+% Evidence: "Seed 29 is weaker. On P2 its separation point is +0.080, and it has the lowest D3 on every panel." issue-139-closeout.md L171;
+% A139 heldout_p2.separation.vs_eps_0.75.per_seed.29 0.0795 (0.080).
+
+\begin{table}[t]
+\caption{Per-seed $D$ and three-seed $D_3$ (adapter M1 minus random-valid M1), and three-seed separation $S$ (adapter M1 minus exact-$\epsilon$ rung M1), with paired task-clustered 95\% intervals (10,000 draws, seed 133). Pre-registered entries are marked pre-reg. and the rest are descriptive.}
+\label{tab:appendix-seed-d}
+\centering\scriptsize
+\setlength{\tabcolsep}{2pt}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lcccc}
+\hline
+ & Validation (12) & P2 (11) & P2u (12) & Pooled (35) \\
+\hline
+$D$, seed 17 & $+0.328$ $[+0.155, +0.508]$ & $+0.490$ $[+0.294, +0.688]$ & $+0.196$ $[+0.031, +0.396]$ & $+0.334$ $[+0.223, +0.450]$ \\
+$D$, seed 29 & $+0.229$ $[+0.108, +0.354]$ & $+0.268$ $[+0.093, +0.477]$ & $+0.118$ $[+0.026, +0.220]$ & $+0.203$ $[+0.124, +0.290]$ \\
+$D$, seed 71 & $+0.297$ $[+0.134, +0.466]$ & $+0.490$ $[+0.276, +0.694]$ & $+0.133$ $[+0.031, +0.248]$ & $+0.301$ $[+0.200, +0.411]$ \\
+$D_3$ & $+0.285$ $[+0.140, +0.433]$ & $+0.416$ $[+0.250, +0.591]$ & $+0.149$ $[+0.030, +0.283]$ & $+0.279$ $[+0.191, +0.375]$ \\
+$D_3$ verdict & POSITIVE (pre-reg.) & POSITIVE (pre-reg.) & POSITIVE (pre-reg.) & POSITIVE (descriptive) \\
+\hline
+$S$ vs 0.75 & $-0.041$ $[-0.187, +0.102]$ & $+0.227$ $[+0.053, +0.403]$ & $+0.002$ $[-0.145, +0.157]$ & $+0.058$ $[-0.040, +0.156]$ \\
+$S$ verdict & NOT\_SEPARATED (pre-reg.) & SEPARATED\_ABOVE (pre-reg.) & NOT\_SEPARATED (descriptive) & NOT\_SEPARATED (descriptive) \\
+$S$ vs 0.50 & $-0.298$ $[-0.468, -0.129]$ & $-0.075$ $[-0.247, +0.089]$ & $-0.246$ $[-0.400, -0.082]$ & -- \\
+$S$ verdict & SEPARATED\_BELOW (descriptive) & NOT\_SEPARATED (descriptive) & SEPARATED\_BELOW (descriptive) & -- \\
+\hline
+\end{tabular}}
+% Evidence: validation panel A138 primary.{per_seed,per_seed_ci95,D3,ci95,verdict}; separation.vs_eps_0.75.{S,ci95,verdict} (co-primary, P138 L44-52);
+% separation.vs_eps_0.50.{S,ci95,verdict} (descriptive only, P138 L51). P2 A139 heldout_p2.primary.* (P139 L94); heldout_p2.separation.vs_eps_0.75.*
+% (P139 L95); heldout_p2.separation.vs_eps_0.50.* (descriptive, issue-139-closeout.md L30). P2u A139 unscreened_p2u.primary.* (P139 L96);
+% unscreened_p2u.separation.* (descriptive, P139 L96). Pooled A139 pooled.primary.*, pooled.separation_vs_eps_0.75.* (descriptive, P139 L97-98);
+% no pooled separation against the 0.50 rung is stored. 3-dp renderings per local evidence-r5.md sections 1-2.
+\end{table}
+
+% Paragraph purpose: Report where the effect sits across tasks and domains, all descriptive.
+Table~\ref{tab:appendix-concentration} counts tasks by the sign of their three-seed difference and leaves out one domain at a time over the validation and held-out panels. Over the 35-task union 22 tasks are positive, 12 are zero, and 1 is negative. On P2u the eight zero tasks are both 15-puzzle, both blocksworld, both depot, and both driverlog tasks, on which neither the adapter nor random-valid solves within $2R_t$. Every leave-one-domain-out $D_3$ lies from $+0.305$ to $+0.395$, and every lower bound is at least $+0.185$. All of these results are descriptive.
+% Evidence: A139 concentration.all_36_counts {positive 22, zero 12, negative 1}; concentration.per_panel.p2u.counts.zero 8 and
+% .per_task_difference (issue-139-closeout.md L73); concentration.leave_one_domain_out_p2_union_p135.* (P139 L101-104, descriptive).
+% Note: key concentration.all_36_counts holds the 35-task union (P2 froze at 11; issue-139-closeout.md L28).
+
+\begin{table}[t]
+\caption{Concentration of the three-seed difference (descriptive). Top, tasks by the sign of the per-task difference. Bottom, $D_3$ over the validation panel and P2 with one domain left out, and the number of tasks left.}
+\label{tab:appendix-concentration}
+\centering\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lccc}
+\hline
+Panel & Positive & Zero & Negative \\
+\hline
+Validation (12) & 9 & 2 & 1 \\
+P2 (11) & 9 & 2 & 0 \\
+P2u (12) & 4 & 8 & 0 \\
+Union (35) & 22 & 12 & 1 \\
+\hline
+Domain left out & $D_3$ & 95\% interval & Tasks left \\
+\hline
+15-puzzle & $+0.384$ & $[+0.269, +0.501]$ & 21 \\
+blocksworld & $+0.395$ & $[+0.269, +0.520]$ & 19 \\
+depot & $+0.353$ & $[+0.224, +0.484]$ & 20 \\
+elevators & $+0.305$ & $[+0.185, +0.430]$ & 20 \\
+ferry & $+0.331$ & $[+0.212, +0.455]$ & 21 \\
+grid & $+0.331$ & $[+0.204, +0.464]$ & 20 \\
+storage & $+0.332$ & $[+0.209, +0.459]$ & 21 \\
+Tower of Hanoi & $+0.384$ & $[+0.262, +0.507]$ & 20 \\
+visitall & $+0.318$ & $[+0.211, +0.422]$ & 22 \\
+\hline
+\end{tabular}
+% Evidence: A139 concentration.per_panel.{p135,p2,p2u}.counts (9/2/1, 9/2/0, 4/8/0) and concentration.all_36_counts (22/12/1);
+% concentration.leave_one_domain_out_p2_union_p135.<domain>.{D3,ci95,tasks_left}, all verdict_rule_applied POSITIVE (P139 L104).
+% depot D3 is stored as 0.3525; 0.353 is the issue-139-closeout.md L79 rendering.
+% Note: key concentration.all_36_counts holds the 35-task union (P2 froze at 11; issue-139-closeout.md L28).
+\end{table}
+
+\subsection{DAgger Ablation}
+\label{app:results-cf-dagger}
+
+% Paragraph purpose: State the pre-registered DAgger protocol and its endpoints before any result.
+The pre-registered ablation collects on-policy records with the seed-17 adapter under each additive algorithm, aggregates them with replay records from the frozen corpus, retrains, and evaluates on the validation panel and the held-out panel P2. The primary endpoint is the paired separation $S$ of the DAgger adapter from the exact-$\epsilon$ 0.75 rung pooled over the 23 tasks, with SEPARATED\_ABOVE requiring a positive lower bound. The co-primary is the change $\Delta$ in M1 from the pre-DAgger adapter, with equivalence margin $\pm 0.05$.
+% Evidence: #140 outputs/choice-frontier/v5/metrics/analysis.json primary.rule, primary.tasks 23, primary.panels {p2 11, v2 12} (P140 L66-72);
+% co_primary.equivalence_margin 0.05, co_primary.rule.order IMPROVED/EQUIVALENT/WORSE/INCONCLUSIVE (P140 L74-77); collection cells
+% best_first_add_greedy-s17 and best_first_add_w3-s17 (collection.cells.*).
+
+% Paragraph purpose: Disclose the amendment that cut the ablation to one seed and half the corpus.
+An amendment at 11:21 UTC on 2026-09-24, decided before any DAgger training or evaluation outcome, cut the plan to seed 17 because the three-seed plan could not fit a hard wall-clock deadline. The running seed-29 collection was cancelled with 1.79 GPU-h still charged, and seed 71 was not run. Each algorithm's training set became the first 512 on-policy seed-17 records plus 512 replay records, which the menu augmentation turns into 2048 samples over 64 steps, with the recipe otherwise unchanged.
+% Evidence: issue-140-protocol.md Amendment A1 heading L118 (11:21 UTC, before any outcome), L120 (deadline), L122 (s29 cancelled, s71 not run),
+% L124 (first 512 + 512, 2048 samples, 64 steps); issue-140-closeout.md L80 (1.79 GPU-h charged); A140 collection.cells.<cell>.{on_policy_records 512,
+% replay_records 512, samples 2048}; B5 attempts[4..5].total 64; A140 primary.seeds [17].
+
+% Paragraph purpose: Report the replay receipts, then the endpoints, then the conclusion.
+All 24/24 validation-panel and 22/22 P2 DAgger episodes were independently replayed with no mismatch. The primary endpoint is NOT\_SEPARATED, $S = +0.115$ $[-0.026, +0.258]$ over 23 tasks, and the co-primary is INCONCLUSIVE, $\Delta = -0.030$ $[-0.114, +0.057]$. As descriptive secondary results, $S$ is $+0.278$ $[+0.082, +0.473]$ on P2 and $-0.034$ $[-0.197, +0.135]$ on the validation panel, and the last-label rate on the validation panel falls from 0.205 to 0.137. One small round at one seed therefore does not change measured choice quality, and the ablation is inconclusive.
+% Evidence: A140 episode_accounting.{v2,p2}.episodes_replayed 24 / 22, replay_mismatches [] (issue-140-closeout.md L53);
+% primary.verdict NOT_SEPARATED, primary.S_pool 0.1152 (0.115), primary.ci95 [-0.0255, 0.2576] ([-0.026, 0.258]), primary.tasks 23;
+% co_primary.verdict INCONCLUSIVE, co_primary.delta_pool -0.0299 (-0.030), co_primary.ci95 [-0.1141, 0.0571] ([-0.114, 0.057]);
+% per_panel.p2.S 0.2784 (0.278), .S_ci95 [0.0818, 0.4727]; per_panel.v2.S -0.0344 (-0.034), .S_ci95 [-0.1969, 0.1354] (descriptive secondary, P140 L79-88);
+% per_seed.v2.17.pre_dagger.last_label_rate 0.2055 (0.205), per_seed.v2.17.dagger.last_label_rate 0.1371 (0.137) (descriptive, P140 L84).
 
 \section{Results Detail: External Identity Audit}
 \label{app:results-external}
@@ -1238,7 +1406,8 @@ The prospective training-seed replication (seeds 17/29/71 frozen pre-launch, 534
 
 
 % Paragraph purpose: List the follow-up windows' development-stage limits separately from the main program.
-The follow-up windows share this development-stage status, and we list their limits separately. The native-arms window evaluates an 18-unit clean panel with one training seed per cell. The R1-R4 follow-up window reuses the frozen native-arms adapters for R1, R2, and R4, and trains one seed-17 run per cell for R3. The choice-frontier window trains one seed per algorithm on a 9-task panel whose discriminative subset holds one task. The comparator zoo is a CPU-only exploratory analysis. None of these windows accessed the held-out manifest. The shared nine-task panel draws from 8 domains with 7 compact and 2 expanded variants.
+The follow-up windows share this development-stage status, and we list their limits separately. The native-arms window evaluates an 18-unit clean panel with one training seed per cell. The R1-R4 follow-up window reuses the frozen native-arms adapters for R1, R2, and R4, and trains one seed-17 run per cell for R3. The choice-frontier window trains one seed per algorithm on a 9-task panel whose discriminative subset holds one task. The comparator zoo is a CPU-only exploratory analysis. The scaled adapter has three training seeds on the validation panel, the held-out panel P2, and the unscreened panel P2u, and the DAgger ablation trains one seed on half the planned corpus. None of these windows accessed the held-out manifest. The shared nine-task panel draws from 8 domains with 7 compact and 2 expanded variants.
+% Evidence (round 5): A139 training_seeds {p135, p2, p2u} [17, 29, 71]; A140 primary.seeds [17]; held-out manifest never read (issue-139-closeout.md L11).
 % Evidence: issue-129-closeout.md, issue-130-closeout.md, issue-132-closeout.md (Erratum item 3), #133 closing comment; held-out manifest
 % status per the #131 brief; panel composition per outputs/choice-frontier/o4/metrics/optimal-costs.json.
 

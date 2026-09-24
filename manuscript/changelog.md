@@ -2,6 +2,30 @@
 
 The record of what changed in the ICLR 2026 manuscript and why. Newest first. Each entry names the commit, the scope of the change, and the review or ticket it answered. Review findings and their status live in `review-log.md`; claim vocabulary and boundaries live in `CONTEXT.md`.
 
+## 2026-09-25 — round 5 wave 1, evidence integration (#138-#140)
+
+- All 7 visible placeholders resolved (Results P1-P3, Discussion P1-P2, appendix table P1-P2) and every `% Pending:` comment deleted. No visible `[TODO` remains in the PDF.
+- Results 5.3 introduces the held-out panel P2 (11 tasks, 8 domains) with the #139 A1 disclosure and reports the ladder passing on P2 (pre-registered, smallest gap +0.130 [+0.070, +0.190]) and on P2u (descriptive). 5.4 is retitled "Adapter Replication and Held-Out Panels" (label kept): 3-seed D3 +0.285 [+0.140, +0.433] with every seed positive, P2 +0.416 [+0.250, +0.591], the three-panel ladder-position sentence, the P2u screening sentence (+0.149 [+0.030, +0.283], 8 of 12 tasks unsolved by both arms), the held-out-panel vs frozen-manifest sentence, concentration 22 of 35 / 12 / 1 and leave-one-domain-out +0.305 to +0.395, and one DAgger sentence. 5.1 lists the v4 (15.22/24) and v5 (9.06/40) windows separately. The fig:ladder caption anticipates the wave-2 three-panel figure.
+- Appendix: the Scaled Adapter appendix becomes "Scaled Adapter and Seed Replication" with the #138 per-seed paragraph, and gains subsections "Held-Out Panels" (`app:results-panels`: construction, #139 A1, `tab:appendix-panel-arms`, `tab:appendix-seed-d`, `tab:appendix-concentration` with the `all_36_counts` note) and "DAgger Ablation" (`app:results-cf-dagger`: #140 A1, NOT_SEPARATED +0.115 [−0.026, +0.258], INCONCLUSIVE −0.030 [−0.114, +0.057], replay by counts only). They are subsections because a 27th appendix `\section` overflows the letter counter. Ledger and artifact-index rows added.
+- Abstract, Introduction, Discussion, and Conclusion carry the 3-seed headline, the short three-panel ladder sentence, the P2u result, and the new claim frame. The limitations list is the six approved items. Experimental Design states the adapter's three seeds and the two follow-up protocols.
+- Build: 35 pages, 0 errors, 0 undefined, 0 overfull, 0 bibwarn. The Conclusion ends at the bottom of p.8 (main text 8 pages). All headline strings are present.
+
+## 2026-09-25 — round 5 opening, Phase 0 decisions (issue #131; evidence tickets #138-#140)
+
+- Evidence sheet `local://evidence-r5.md` frozen from the #138-#140 analyses, ledgers, protocols, and closeouts. Main spot-checked 20 rows against the JSONs (D3 +0.285 [+0.140, +0.433] and per-seed values, S vs ε-0.75 −0.041 [−0.187, +0.102], S vs ε-0.50 −0.298 [−0.468, −0.129], P2 D3 +0.416 [+0.250, +0.591] and S +0.227 [+0.053, +0.403], P2u D3 +0.149 [+0.030, +0.283] and S +0.002 [−0.145, +0.157], pooled D3 and S, the four P2 ladder gaps, concentration 22/12/1, P2u zero count 8, leave-one-domain-out, #140 S_pool and Δ, per-panel P2 S, last-label 0.137, both ledger attempt sums 15.2225 and 9.0640). All match. Writers copy numbers only from the sheet.
+- Sheet notes: S vs ε-0.50 on #135 is descriptive (protocol role "descriptive only"). `concentration.all_36_counts` covers the 35-task union (P2 froze at 11). The artifacts record the #140 replay as 24/24 plus 22/22 with no mismatch but not who ran it. The cancelled seed-29 collection is 1.79 GPU-h in the closeout.
+- Author decisions (all defaults):
+  1. Title unchanged ("Separating Choice from Validity: A Validated Search-Choice Measurement for Vision-Language Search Policies").
+  2. `CONTEXT.md` choice-quality entry amended to three panels (#135, held-out P2, unscreened P2u) and 3 seeds. "Held-out" means P2 only, and the frozen 45-task held-out final evaluation is unexecuted.
+  3. Ladder position is reported only as one three-part statement (at the ε-0.75 rung and below ε-0.50 on #135, separated above ε-0.75 on P2, not separated on P2u or pooled), with the descriptive labels.
+  4. The screening concern is answered with P2u in the body (effect about a third as large, 8 of 12 P2u tasks unsolved by both the adapter and random-valid).
+  5. #140 DAgger is an appendix ablation with one body sentence.
+  6. #139 A1 is disclosed in the body where P2 is introduced, #140 A1 in the appendix.
+  7. `fig:ladder` becomes three small panels (#135, P2, P2u) drawn by a figure-only paper-writer.
+  8. Finding 40 stays WONTFIX (dictated LLM-usage wording kept; the #131 desk-reject risk note is recorded here).
+  9. Main text through the Conclusion stays within 9 pages, and nothing moves back from the appendix.
+  10. Meaning-level changes approved: the 3-seed D3 replaces the single-seed headline (seed 17 only as a per-seed value), 3-seed concentration counts replace the seed-17 per-task counts, the limitations list is rewritten (single-seed and one-panel items dropped, ladder position, P2 screening, and the unexecuted 45-task evaluation added), P2 is stated as screened, the #140 replay is stated by counts only (Main ran the final replay after the executing agent's allowance ran out, recorded here only), and the cancelled seed-29 hours are cited as 1.79 GPU-h.
+
 ## 2026-09-24 — evidence intake for round 5 (#138, #139, #140 closed; no manuscript text changed)
 
 Main re-read the committed analyses. Every value the author reported matches. These results resolve placeholders P1-P3 and are integrated in round 5, not here. Review 20 is still held.

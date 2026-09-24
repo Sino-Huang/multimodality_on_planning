@@ -29,7 +29,7 @@ This section reports the executed evidence in gate order, with success, validity
 \label{sec:results-gates}
 
 % Paragraph purpose: Summarize the program and follow-up receipts, the reduced-scope branches, the qualification gates, and the new separate ledgers in one paragraph, pointing to the migrated table.
-The expanded study program spent 68.5244 of its 336 GPU-hour cap (2 A100 80GB GPUs), and every executed branch, follow-up window, and CPU-only analysis reconciles with complete coverage and independent replay, including 1,152/1,152 baseline episodes. Five of seven admitted branches completed at v1 scope, and two (second backbone, generalization/robustness) stopped with terminal \textsc{valid\_stop} receipts at their v1 cost gates and completed only at reduced scope (Section~\ref{sec:results-boundary}). Before the program, the BFS pilot closed with a governed \textsc{valid\_stop} because random-valid also reached 1.0, the BFWS structural gate passed, and the 45-task held-out manifest was frozen before outcomes and never accessed (Gate Receipts appendix, Appendix~\ref{app:results-gates}, Table~\ref{tab:appendix-receipts}). The instrument-validation window spent 1.19 of 4 GPU-hours and the scaled-adapter window 4.84 of 30, on separate ledgers that are never summed, and the counterfactual and external audits ran on CPU only.
+The expanded study program spent 68.5244 of its 336 GPU-hour cap (2 A100 80GB GPUs), and every executed branch, follow-up window, and CPU-only analysis reconciles with complete coverage and independent replay, including 1,152/1,152 baseline episodes. Five of seven admitted branches completed at v1 scope, and two (second backbone, generalization/robustness) stopped with terminal \textsc{valid\_stop} receipts at their v1 cost gates and completed only at reduced scope (Section~\ref{sec:results-boundary}). Before the program, the BFS pilot closed with a governed \textsc{valid\_stop} because random-valid also reached 1.0, the BFWS structural gate passed, and the 45-task held-out manifest was frozen before outcomes and never accessed (Gate Receipts appendix, Appendix~\ref{app:results-gates}, Table~\ref{tab:appendix-receipts}). The instrument-validation window spent 1.19 of 4 GPU-hours, the scaled-adapter window 4.84 of 30, the replication and held-out-panel window 15.22 of 24, and the DAgger window 9.06 of 40, on separate ledgers that are never summed, and the counterfactual and external audits ran on CPU only.
 % Evidence: 68.5244 / 336 per docs/experiments/expanded-study/issue-127-closeout.md; 1,152/1,152 per synthesis-v1/README.md;
 % follow-up windows per issue-129/130/132 closeouts and the #133 closing comment (GPU ledgers native-arms/v1, reviewer-v130/v1+v2,
 % choice-frontier/v1 budget.json; zoo CPU only). BFS pilot 1.0 / random-valid 1.0 per docs/experiments/deadline-study/prior-evidence.json
@@ -37,6 +37,8 @@ The expanded study program spent 68.5244 of its 336 GPU-hour cap (2 A100 80GB GP
 % Addenda are #126 (corruption) and #127 (seed replication); follow-up windows are #129, #130 (R1-R4), #132, and #133.
 % Evidence: 1.19/4 GPU-h (#135) per outputs/choice-frontier/v2/budget.json attempts[].gpu_hours and the #135 closing comment 5797898541 (LED-1).
 % Evidence: 4.84/30 GPU-h (#136) per outputs/choice-frontier/v3/budget.json attempts[].gpu_hours and the #136 closing comment 5800787379 (LED-2).
+% Evidence: 15.22/24 GPU-h (#138 + #139) per issue-139-closeout.md L144 and outputs/choice-frontier/v4/budget.json attempts[].gpu_hours;
+% 9.06/40 GPU-h (#140) per issue-140-closeout.md L72 and outputs/choice-frontier/v5/budget.json attempts[].gpu_hours. Never summed.
 % Evidence: #134 and #137 CPU-only per issue-134-closeout.md ("no GPU was used") and issue-137-closeout.md (LED-3, LED-4). Never summed.
 % Status 2026-09-21: issues #96/#98/#102/#103 CLOSED (supervisor decision, v1 scope withdrawn); prose states the withdrawal (review 16 I12).
 % TODO: the authorized held-out final primary evaluation on the frozen
@@ -90,34 +92,58 @@ On a fresh 12-task panel from 7 domains, the pre-registered ladder test passes. 
 % arms.{exact_reference,exact-eps-0.25,exact-eps-0.50,exact-eps-0.75,random_valid}.m1_auc 0.875/0.793/0.603/0.347/0.021 (E135-20..24);
 % instrument_validity.pairs[0].difference 0.0823 and .ci95 [0.0510, 0.1115] (E135-05, E135-06). V3 verbatim per local r4-contract.
 
+% Paragraph purpose: Introduce the held-out panel P2 with its amendment (V-A1) and report the ladder test on P2 and P2u.
+The held-out panel P2 has 11 tasks from 8 domains. P2 applies the validation panel's generation, cost, and screening rules to fresh seeds, and an amendment made before any evaluation episode, after the first freeze admitted 6 of the 8 required tasks, added seeds 955040--955199 with the rules unchanged. The same ladder test passes on the held-out panel P2, which is pre-registered (smallest adjacent gap $+0.130$ $[+0.070, +0.190]$), and on the unscreened panel P2u, which is descriptive. The Held-Out Panels appendix (Appendix~\ref{app:results-panels}) gives both panels' construction and all eight gaps.
+% Evidence: #139 outputs/choice-frontier/v4/panels/metrics/analysis.json pooled.panels.p2 11; concentration.per_panel.p2.domains (8 domains);
+% ladder_p2.verdict PASS (confirmatory, issue-139-protocol.md L93); ladder_p2.pairs[0].difference 0.1295 (0.130), .ci95 [0.0705, 0.1898] ([0.070, 0.190]);
+% unscreened_p2u.ladder.verdict PASS (descriptive, P139 L96). A1: issue-139-protocol.md L118-127, issue-139-closeout.md L58 (first freeze 6 tasks / 5 domains). V-A1 verbatim per local r5-contract.
+
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.62\linewidth]{figures/fig_ladder.pdf}
-\caption{M1 solve-versus-budget AUC on the 12-task validation panel, with task-clustered 95\% intervals. Ladder rungs read the privileged heap head. The scaled adapter (single seed) sits at the exact-$\epsilon$ 0.75 rung on point estimates.}
+\caption{M1 solve-versus-budget AUC with task-clustered 95\% intervals on the validation panel, the held-out panel P2, and the unscreened panel P2u, for the five ladder arms and the three-seed adapter mean (per-seed points faint). Ladder rungs read the privileged heap head.}
 \label{fig:ladder}
 \end{figure}
-% Evidence: #135 outputs/choice-frontier/v2/metrics/analysis.json arms.*.m1_auc / arms.*.m1_task_cluster_95pct_ci_10000_seed133 (E135-20..24),
-% adapter_reevaluation.learned_adapter.* (E135-41, E135-42); #136 outputs/choice-frontier/v3/metrics/analysis.json per_seed.17.{m1_auc,ci95}
-% (E136-20, E136-21); figure script figures/fig_ladder.py. Wave 2: replaces the body table (label removed); the 2x-solved values
-% are in the appendix arms table tab:appendix-ladder-arms. hadd-greedy appears only in that appendix table (decision 9e).
+% Evidence: #139 outputs/choice-frontier/v4/panels/metrics/analysis.json arms.{p135,p2,p2u}.{exact_reference,exact-eps-0.25,exact-eps-0.50,
+% exact-eps-0.75,random_valid,learned_adapter_s17,learned_adapter_s29,learned_adapter_s71,learned_adapter_seed_mean}.{m1,ci95};
+% figure script figures/fig_ladder.py (three-panel redraw in wave 2). V-FIG verbatim per local r5-contract. The 2x-solved values
+% are in the appendix arms table tab:appendix-ladder-arms. hadd-greedy appears only in the appendix tables (decision 9e).
 
 % Paragraph purpose: State the ladder boundary (V3b).
 The rungs read the privileged heap head, so the ladder validates the ordering of the measurement, not any realisable policy.
 % V3b verbatim per local r4-contract (decision 9b).
 
-\subsection{Scaled Adapter on the Validation Panel}
+\subsection{Adapter Replication and Held-Out Panels}
 \label{sec:results-adapter}
 
-% Paragraph purpose: Report the pre-registered scaled-adapter endpoint and its ladder position (V4), then the first adapter on the same panel.
-A scaled adapter beats uniform choice on this panel, $D = +0.328$ $[+0.155, +0.508]$, which meets the pre-registered POSITIVE rule for its single training seed. Its M1 of 0.349 sits at the exact-$\epsilon$ 0.75 rung (0.347) on point estimates, far below the 0.50 rung (0.603). The first adapter, re-evaluated on the same panel, reaches M1 0.026 [0.010, 0.042], at the random-valid level. The scaled adapter's heap-head agreement minus chance is $+0.085$ $[+0.020, +0.177]$ against $+0.021$ for the first adapter, and its last-label rate is 20.5\% against 30.0\%.
-% Evidence: #136 outputs/choice-frontier/v3/metrics/analysis.json primary.verdict POSITIVE, primary.D 0.328125, primary.ci95
-% [0.1552, 0.5083], primary.seeds [17] (E136-01..03, E136-07); per_seed.17.m1_auc 0.349 (E136-20);
-% ladder_position.learned.17 next_lower_or_equal_rung exact-eps-0.75 (E136-33); #135 arms exact-eps-0.75 0.347, exact-eps-0.50 0.603 (E135-22, E135-23).
+% Paragraph purpose: Report the pre-registered three-seed endpoint and its held-out replication (V-SEED), then the first adapter on the validation panel.
+Across three training seeds the adapter beats uniform frontier choice on the validation panel, $D_3 = +0.285$ $[+0.140, +0.433]$, with every seed positive ($+0.328$, $+0.229$, $+0.297$), which meets the pre-registered POSITIVE rule, and the result replicates on the held-out panel P2, $D_3 = +0.416$ $[+0.250, +0.591]$. On P2 the per-seed differences are $+0.490$, $+0.268$, and $+0.490$. The first adapter, re-evaluated on the validation panel, reaches M1 0.026 [0.010, 0.042], at the random-valid level, and the scaled adapter's last-label rate per seed is 0.205, 0.192, and 0.171 against 30.0\% for the first adapter (per-seed tables in the Held-Out Panels appendix, Appendix~\ref{app:results-panels}).
+% Evidence: #138 outputs/choice-frontier/v4/seeds/metrics/analysis.json primary.verdict POSITIVE, primary.D3 0.2847 (0.285),
+% primary.ci95 [0.1403, 0.4326] ([0.140, 0.433]), primary.per_seed.{17,29,71} 0.3281/0.2292/0.2969 (0.328/0.229/0.297); rule P138 L31-41.
+% Evidence: #139 outputs/choice-frontier/v4/panels/metrics/analysis.json heldout_p2.primary.verdict POSITIVE, .D3 0.4159 (0.416),
+% .ci95 [0.2504, 0.5909] ([0.250, 0.591]); heldout_p2.primary.per_seed.{17,29,71} 0.4898/0.2682/0.4898 (0.490/0.268/0.490). V-SEED verbatim.
 % Evidence: first adapter outputs/choice-frontier/v2/metrics/analysis.json adapter_reevaluation.learned_adapter.m1_auc 0.026,
-% CI [0.010, 0.042] (E135-41, E135-42); closeout "at the random_valid level". V4 verbatim per local r4-contract (decision 9a).
-% Evidence: per_seed.17.teacher_agreement_minus_chance 0.0851, per_seed.17.teacher_agreement_minus_chance_ci95 [0.0196, 0.1765] (E136-27);
-% adapter_reevaluation.learned_adapter.m4_teacher_agreement.observed_minus_chance 0.0206 (E135-48).
-% Evidence: per_seed.17.last_label_rate 0.2055 (E136-23); adapter_reevaluation.learned_adapter.m4_teacher_agreement.selected_last_rate 0.2997 (E135-50), 0.300 = 30.0%.
+% CI [0.010, 0.042] (E135-41, E135-42); closeout "at the random_valid level".
+% Evidence: A138 per_seed.{17,29,71}.last_label_rate 0.2055/0.1917/0.1712 (0.205/0.192/0.171);
+% adapter_reevaluation.learned_adapter.m4_teacher_agreement.selected_last_rate 0.2997 (E135-50), 0.300 = 30.0%.
+
+% Paragraph purpose: Introduce the unscreened panel P2u and state the three-panel ladder position (V-LAD).
+The unscreened panel P2u has 12 tasks from 7 domains, drawn from the same candidate pool without the random-control screen. The adapter's position against the exact-$\epsilon$ rungs differs by panel, at the 0.75 rung on the validation panel ($S = -0.041$ $[-0.187, +0.102]$) and below its 0.50 rung ($-0.298$ $[-0.468, -0.129]$, descriptive), interval-separated above the 0.75 rung on the held-out panel P2 ($S = +0.227$ $[+0.053, +0.403]$), and not separated from that rung on the unscreened panel P2u ($+0.002$ $[-0.145, +0.157]$, descriptive) or pooled over 35 tasks ($+0.058$ $[-0.040, +0.156]$, descriptive).
+% Evidence: A139 pooled.panels.p2u 12; concentration.per_panel.p2u.domains (7 domains); P2u rule issue-139-protocol.md L55-57.
+% Evidence: A138 separation.vs_eps_0.75.S -0.0413 (-0.041), .ci95 [-0.1868, 0.1017] ([-0.187, +0.102]) (co-primary);
+% separation.vs_eps_0.50.S -0.2976 (-0.298), .ci95 [-0.4684, -0.1288] ([-0.468, -0.129]) (role "descriptive only").
+% Evidence: A139 heldout_p2.separation.vs_eps_0.75.S 0.2273 (0.227), .ci95 [0.0527, 0.4027] ([0.053, 0.403]) SEPARATED_ABOVE (P139 L95);
+% unscreened_p2u.separation.vs_eps_0.75.S 0.0021 (0.002), .ci95 [-0.1455, 0.1573] ([-0.145, 0.157]) (descriptive);
+% pooled.separation_vs_eps_0.75.S 0.0580 (0.058), .ci95 [-0.0395, 0.1564] ([-0.040, 0.156]), pooled.tasks 35 (descriptive). V-LAD verbatim.
+
+% Paragraph purpose: Answer the screening concern with P2u (V-SCR), define held-out (V-HO), and report concentration and leave-one-domain-out.
+Without the random-control screen the effect survives at about a third of its screened held-out size, $D_3 = +0.149$ $[+0.030, +0.283]$ on the unscreened panel P2u, where 8 of 12 tasks are unsolved by both the adapter and random-valid, so the screen enriches for tasks on which choice discriminates. Held-out here means the fresh panel P2, frozen before any evaluation episode from seeds that no design decision or adapter had seen, and the frozen 45-task held-out final evaluation remains unexecuted. Over the three panels the per-task difference is positive on 22 of 35 tasks, zero on 12, and negative on 1 (descriptive). Leaving out one domain at a time over the validation and held-out panels keeps $D_3$ from $+0.305$ to $+0.395$, with every lower bound at least $+0.185$ (descriptive).
+% Evidence: A139 unscreened_p2u.primary.verdict POSITIVE, .D3 0.1490 (0.149), .ci95 [0.0295, 0.2830] ([0.030, 0.283]) (P139 L96);
+% concentration.per_panel.p2u.counts.zero 8 (issue-139-closeout.md L73). V-SCR and V-HO verbatim; issue-139-closeout.md L11.
+% Evidence: A139 concentration.all_36_counts.{positive,zero,negative} 22/12/1 (descriptive, P139 L103).
+% Note: key concentration.all_36_counts holds the 35-task union (P2 froze at 11; issue-139-closeout.md L28).
+% Evidence: A139 concentration.leave_one_domain_out_p2_union_p135.elevators.D3 0.3048 (0.305), .ci95 lo 0.1854 (0.185);
+% .blocksworld.D3 0.3954 (0.395); every other domain's lower bound >= 0.204 (P139 L104, descriptive).
 
 % Paragraph purpose: Report the post-hoc task-clustered M4 intervals for the first adapter on the earlier panel (V6).
 A post-hoc task-clustered analysis of the first adapter finds last-label emissions above chance by $+0.277$ $[+0.126, +0.402]$, while its heap-head agreement minus chance, $-0.069$ $[-0.161, +0.032]$, includes zero. These intervals cover the first adapter's 18 episodes on the earlier 9-task panel (Counterfactual appendix, Appendix~\ref{app:results-counterfactual}).
@@ -125,21 +151,12 @@ A post-hoc task-clustered analysis of the first adapter finds last-label emissio
 % 0.2775 and .task_cluster_95pct_ci_10000_seed133 [0.1257, 0.4021] (E134-29, E134-30); statistics.observed_minus_chance_agreement.task_cluster_point
 % -0.0694 and CI [-0.1609, 0.0323] (E134-26, E134-27); subset 18 episodes, 9 tasks (E134-20). Stored classification: post-hoc diagnostics. V6 verbatim.
 
-% Paragraph purpose: State the panel-screening caveat with the per-task facts, the two protocol deviations, and the claim boundary (V4b).
-The panel screening admits only tasks on which random-valid is discriminative, and the effect is concentrated. Per-task $D$ is clearly positive on 7 tasks and small on one depot task ($+0.0625$), while the 15-puzzle task ($-0.0625$), both blocksworld tasks (0.0), and one Tower of Hanoi task (0.0) sit at or below zero, and the gain comes from imitation of the exact reference. The run departs from its protocol by training one seed instead of three, after an edit to the run's scope, with the step budget matched to the first adapter's recipe (Scaled Adapter appendix, Appendix~\ref{app:results-adapter}). This is a development-stage, single-seed result on one screened panel, obtained by imitating the exact reference, and it supports no planning-ability, generality, or held-out claim.
-% Evidence: #136 outputs/choice-frontier/v3/metrics/analysis.json primary.per_task_difference.<task_id> (E136-09): 15puzzle-935006 -0.0625,
-% blocksworld-935001 0.0, blocksworld-935004 0.0, towers_of_hanoi-935002 0.0, depot-935005 0.0625; positive >= 0.2375 on depot-935011,
-% elevators-935000/935013, grid-935016, storage-935000/935001, towers_of_hanoi-935000 (7 tasks). Screening rule per #135 membership.json (decision 9c).
-% Evidence (deviations): configs/experiments/choice-frontier-v3/protocol.json training_seeds_note ("ticket edited to '1 seed'");
-% training.optimizer_updates 128 and recipe "study-v5 training block" (sheet #136 choices 1 and 2). V4b verbatim.
-
-% Paragraph purpose: Mark the three pending follow-ups in the scaled-adapter subsection.
-[TODO: follow-up ticket pending: \#136 seeds 29 and 71, per-seed D and the three-seed POSITIVE rule]
-% Pending: P1, author-run follow-up for #136 seeds 29 and 71 (no ticket number yet; decision 3).
-[TODO: follow-up ticket pending: second fresh panel or held-out evaluation of the scaled adapter]
-% Pending: P2, author-run follow-up for a second fresh panel or held-out evaluation (no ticket number yet; decision 3).
-[TODO: follow-up ticket pending: paired learned minus exact-$\epsilon$ 0.75 interval]
-% Pending: P3, no paired learned-minus-rung interval exists in outputs/choice-frontier/v3/metrics/analysis.json (decision 3, 9a).
+% Paragraph purpose: State the claim boundary (imitation clause, V-FRAME) and the one-sentence DAgger ablation (V-DAG).
+The gain is obtained by imitating the exact reference, and a later pre-registered replication trained seeds 29 and 71 with the byte-identical recipe (Scaled Adapter appendix, Appendix~\ref{app:results-adapter}). The choice-quality claim is development-stage, holds relative to uniform choice and the exact-$\epsilon$ ladder on three panels with three training seeds, and carries no planning-ability or generality claim. One on-policy DAgger round, run for one seed on half the planned corpus, does not separate the adapter from the 0.75 rung over the 23 validation and held-out tasks, $S = +0.115$ $[-0.026, +0.258]$ (DAgger Ablation appendix, Appendix~\ref{app:results-cf-dagger}).
+% Evidence: recipe issue-138-protocol.md L11-12 ("the #136 recipe, byte-identical ... Only training_seed changes"); protocol committed f06c7ac
+% before any GPU launch (issue-138-closeout.md L5). V-FRAME verbatim.
+% Evidence: #140 outputs/choice-frontier/v5/metrics/analysis.json primary.verdict NOT_SEPARATED, primary.S_pool 0.1152 (0.115),
+% primary.ci95 [-0.0255, 0.2576] ([-0.026, 0.258]), primary.tasks 23, primary.seeds [17]; half corpus per issue-140-protocol.md L124 (A1 item 2). V-DAG verbatim.
 
 \subsection{External Identity Audit}
 \label{sec:results-external}
@@ -182,7 +199,7 @@ All results are development-stage, and the frozen 45-task held-out final primary
 % TODO(release): issue #122 tracks anonymous supplementary bundles and release URLs; no URLs are yet pinned.
 
 % Paragraph purpose: State the reuse of one nine-task panel, its adaptive-overfitting risk, and the fresh validation panel that answers it, with held-out evaluation still unexecuted.
-One panel of nine low-cost tasks ($C^*$ from 3 to 6) serves the corruption suite, the native arms, menu manipulation, the first choice-frontier measurement, and the comparator zoo, and each design step on it could adapt to earlier results. The ladder test and the scaled adapter instead use a fresh panel frozen before evaluation (12 tasks, 7 domains, $C^*$ from 8 to 15), which supplies the fresh non-trivial panel that an instrument-level claim required. No held-out task has been evaluated under the choice-frontier contract.
+One panel of nine low-cost tasks ($C^*$ from 3 to 6) serves the corruption suite, the native arms, menu manipulation, the first choice-frontier measurement, and the comparator zoo, and each design step on it could adapt to earlier results. The ladder test and the scaled adapter instead use a fresh panel frozen before evaluation (12 tasks, 7 domains, $C^*$ from 8 to 15), which supplies the fresh non-trivial panel that an instrument-level claim required, and the held-out panel P2 and the unscreened panel P2u were frozen from new seeds before any evaluation episode. The frozen 45-task held-out final evaluation remains unexecuted under the choice-frontier contract.
 % Evidence: outputs/choice-frontier/o4/metrics/optimal-costs.json (nine expanded-final tasks, costs 3-6); panel reuse across
 % #126 (corruption)/#129 (native arms)/#130 R1 (menu)/#132 (choice frontier)/#133 (zoo) per review 16 I17 and Section~\ref{sec:design}.
 % Evidence: #135 configs/experiments/choice-frontier-v2/membership.json task_ids 12, domains 7, frozen at commit 47de39c before evaluation

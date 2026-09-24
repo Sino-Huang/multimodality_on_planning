@@ -11,8 +11,9 @@
 \label{sec:design}
 
 % Paragraph purpose: State the comparative question, the gate logic, and the development-stage and seed boundaries.
-Each algorithm-by-modality-by-condition cell asks whether a trained Search Process Policy exceeds an oracle-assisted validity control on full-episode budgeted success (Section~\ref{sec:policy}), under frozen protocols, a 336 GPU-hour cap, and prespecified gate receipts. Panels are frozen and outcome-blind, the held-out manifest has never been accessed, and every learned cell uses one training seed (17) except two replicated cells (seeds 29 and 71 added).
+Each algorithm-by-modality-by-condition cell asks whether a trained Search Process Policy exceeds an oracle-assisted validity control on full-episode budgeted success (Section~\ref{sec:policy}), under frozen protocols, a 336 GPU-hour cap, and prespecified gate receipts. Panels are frozen and outcome-blind, the held-out manifest has never been accessed, and every learned cell uses one training seed (17) except two replicated cells (seeds 29 and 71 added) and the choice-frontier adapter, which has three training seeds (17, 29, 71).
 % Evidence: seed replication per issue #127 (docs/experiments/expanded-study/issue-127-closeout.md).
+% Evidence: choice-frontier adapter seeds per #138 outputs/choice-frontier/v4/seeds/metrics/analysis.json primary.seeds [17, 29, 71].
 % Evidence: 336 GPU-hour cap per docs/experiments/expanded-study/issue-127-closeout.md (68.5244 / 336) and Table tab:appendix-receipts.
 % Replication protocol frozen 2026-09-20 (issue-127-closeout.md); date moved to this comment in round 4 for the word budget.
 
@@ -69,6 +70,9 @@ The ladder protocol, frozen before task generation on a fresh 12-task panel, pas
 % instrument_validity.rule (PASS: all four paired task-cluster 95% lower bounds > 0), .tasks 12, .bootstrap draws 10000 / seed 133 (E135-01..03).
 % Evidence: #136 configs/experiments/choice-frontier-v3/protocol.json (commit ecdda03 before generation); outputs/choice-frontier/v3/metrics/analysis.json
 % primary.estimand, primary.rule, primary.materiality_margin 0.05, primary.equivalence_margin 0.05 (E136-02, E136-04, E136-05).
+Two follow-up protocols, each frozen before its outcomes, replicate the adapter over three seeds and on two fresh panels, one screened and held out (P2) and one unscreened (P2u), and held-out refers to P2 only.
+% Evidence: #138 protocol commit f06c7ac before any GPU launch (issue-138-closeout.md L5); #139 issue-139-protocol.md with Amendment A1
+% before any evaluation episode (L118-127); P2 screened / P2u unscreened rules L36, L48-50, L55-57; held-out manifest never read (issue-139-closeout.md L11).
 
 % Paragraph purpose: State branch status compactly, marking the pending and reduced-scope stages.
 At the 2026-09-23 snapshot (receipts in Table~\ref{tab:appendix-receipts}), the BFS pilot closed as history with VALID\_STOP, the BFWS gate passed on its development panel, and the modality matrix, DAgger, failure calibration, corruption, transfer, seed replication, and all follow-ups executed, with generalization and second backbone at reduced v2 scope only. The BFWS-to-BFS panel overlap is not pinned in the retained manifests.

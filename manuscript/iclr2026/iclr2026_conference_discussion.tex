@@ -5,31 +5,29 @@
 % its boundaries (V4, V4b, contract caveat (c)), the external anchor (V5), and a limitations list carrying P1 and P2.
 % Old menu-leak, zoo, BFWS-panel, and secondary-null discussion compressed to one pointer. Numbers from
 % local://evidence-r4.md (headline set only). No new bib entries.
+% STATUS: #131 round 5 (2026-09-25). Ladder paragraph notes the held-out P2 pass; learned-result paragraph rewritten as a three-panel interpretation with pointers and V-FRAME (#138, #139); seed-17 concentration sentence removed; limitations list replaced by the six contract items; both TODO markers and Pending comments removed; Conclusion uses short V-SEED, V-LAD-S, V-FRAME. Numbers from local://evidence-r5.md.
 \section{Discussion and Limitations}
 \label{sec:discussion}
 
 % Paragraph purpose: Interpret what the two-verdict audit and the ladder license, with pointers to the receipts.
-Because the identity check returns both verdicts on one runtime (Section~\ref{sec:results-identity}), random-valid success separates choice from validity only after the check has been run on the interface at hand. The ladder licenses reading a higher M1 as better choice on the validation panel (Section~\ref{sec:results-ladder}). The rungs read the privileged heap head, so the ladder validates the ordering of the measurement, not any realisable policy.
+Because the identity check returns both verdicts on one runtime (Section~\ref{sec:results-identity}), random-valid success separates choice from validity only after the check has been run on the interface at hand. The ladder licenses reading a higher M1 as better choice on the validation panel, and the same pre-registered test passes on the held-out panel P2 (Section~\ref{sec:results-ladder}). The rungs read the privileged heap head, so the ladder validates the ordering of the measurement, not any realisable policy.
 Menu-manipulation and zoo results on the earlier contracts are in the Menu-Manipulation Receipts appendix (Appendix~\ref{app:results-menu}) and the Choice-Frontier and Comparator-Zoo Receipts appendix (Appendix~\ref{app:results-cf}).
 
-% Paragraph purpose: Interpret the at-rung position of the learned result and state its boundaries, including the screened-panel and concentration caveat.
-The scaled adapter's gain over uniform choice places it at the rung where three quarters of decisions are uniform (Section~\ref{sec:results-adapter}), so it chooses better than chance but far from the reference.
-This is a development-stage, single-seed result on one screened panel, obtained by imitating the exact reference, and it supports no planning-ability, generality, or held-out claim.
-Screening admitted only tasks where random-valid is discriminative, and the effect is concentrated, with 4 of the 12 tasks at or below zero on the per-task difference.
-% Evidence: outputs/choice-frontier/v3/metrics/analysis.json primary.per_task_difference.<task_id> (15puzzle-935006 -0.0625; blocksworld-935001, blocksworld-935004, towers_of_hanoi-935002 0.0); ladder_position.learned.17.next_lower_or_equal_rung exact-eps-0.75 (#136 E136-09, E136-33).
+% Paragraph purpose: Interpret the three-panel learned result, its panel-dependent rung, the screening effect, and the claim frame, with pointers to the receipts.
+The adapter chooses better than uniform frontier choice on all three panels (Section~\ref{sec:results-adapter}), but how far above chance depends on the panel. It is separated above the exact-$\epsilon$ 0.75 rung on the held-out panel P2, sits at that rung on the validation panel, and is not separated from it on the unscreened panel P2u or pooled (descriptive), so it remains far from the reference. The smaller effect on P2u indicates that the random-control screen enriches for tasks on which choice discriminates. The result is obtained by imitating the exact reference. The choice-quality claim is development-stage, holds relative to uniform choice and the exact-$\epsilon$ ladder on three panels with three training seeds, and carries no planning-ability or generality claim.
 
 % Paragraph purpose: State the external anchor and its double edge, so the contribution is the measurement rather than the exposure of a common flaw.
 ScienceWorld \citep{wang2022scienceworld} anchors the check on a published interface where it registers choice (Section~\ref{sec:results-external}). None of the seven published interfaces we surveyed uses a complete-set submission contract, so the identity failure is shown only on our runtime. The contribution is therefore the measurement, not the exposure of a common flaw.
 % Evidence: docs/experiments/external-audit/issue-137-survey.md §Candidate table (7); issue-137-closeout.md §Stage 1 survey (0 type A) (#137 E137-40, E137-42).
 
-% Paragraph purpose: List the limitations, one line each, with the two pending follow-ups.
+% Paragraph purpose: List the limitations, one line each.
 \paragraph{Limitations.}
 \begin{itemize}
-\item \emph{Single seed.} The scaled adapter has one training seed, so seed variance is unmeasured. [TODO: follow-up ticket pending: \#136 seeds 29 and 71, per-seed D and the three-seed POSITIVE rule]
-% Pending: #136 seeds 29 and 71 not trained (ticket edited to one seed); author running follow-up, no ticket number yet.
-\item \emph{One panel.} The learned result rests on one screened panel, and the held-out evaluation has not been executed. [TODO: follow-up ticket pending: second fresh panel or held-out evaluation of the scaled adapter]
-% Pending: second fresh panel or held-out evaluation of the #136 adapter; author running follow-up, no ticket number yet. Replaces the round-2 "held-out final primary evaluation unexecuted" TODO comment.
-\item \emph{Ladder position.} The adapter's rung is read from point estimates, and no paired interval places it against a rung.
+\item \emph{Ladder position.} Separated above the exact-$\epsilon$ 0.75 rung only on the held-out panel, not on the validation panel, the unscreened panel, or pooled.
+\item \emph{Screening.} P2 is screened like the validation panel, and the unscreened effect is about a third as large.
+\item \emph{Seeds.} Three training seeds, and seed 29 is weakest on every panel (descriptive).
+% Evidence: seed 29 lowest per panel: outputs/choice-frontier/v4/seeds/metrics/analysis.json primary.per_seed.29; outputs/choice-frontier/v4/panels/metrics/analysis.json heldout_p2.primary.per_seed.29, unscreened_p2u.primary.per_seed.29 (#138, #139).
+\item \emph{Held-out evaluation.} The frozen 45-task held-out final evaluation is unexecuted.
 \item \emph{Prediction.} The submission-order divergence was weaker than pre-registered.
 \item \emph{Runtime.} The runtime never chooses or repairs operands, so no result shows unassisted internal search.
 \end{itemize}
@@ -41,5 +39,9 @@ Code and evidence bundles will be provided as anonymous supplementary material.
 \section{Conclusion}
 \label{sec:conclusion}
 
-% Paragraph purpose: Give the scoped answer, the validated measurement and learned result at its rung, and the claim frame.
-On our runtime a per-decision identity check returns both verdicts. The redesigned choice-frontier measurement passes a pre-registered ladder test, and a scaled adapter beats uniform choice with M1 at the exact-$\epsilon$ 0.75 rung on point estimates. The choice-quality claim is development-stage and single-seed, holds on the validation panel relative to uniform choice and the exact-$\epsilon$ ladder, and carries no planning-ability, generality, or held-out claim.
+% Paragraph purpose: Give the scoped answer, the validated measurement, the three-seed learned result with its panel-dependent rung, and the claim frame.
+On our runtime a per-decision identity check returns both verdicts. The redesigned choice-frontier measurement passes a pre-registered ladder test, and a scaled adapter beats uniform choice across three seeds, $D_3 = +0.285$ $[+0.140, +0.433]$, and on the held-out panel P2, $D_3 = +0.416$ $[+0.250, +0.591]$.
+% Evidence: outputs/choice-frontier/v4/seeds/metrics/analysis.json primary.D3, primary.ci95; outputs/choice-frontier/v4/panels/metrics/analysis.json heldout_p2.primary.D3, heldout_p2.primary.ci95 (#138, #139).
+It is interval-separated above the exact-$\epsilon$ 0.75 rung on the held-out panel ($+0.227$ $[+0.053, +0.403]$) but sits at that rung on the validation panel ($-0.041$ $[-0.187, +0.102]$) and is not separated from it on the unscreened panel or pooled over 35 tasks ($+0.058$ $[-0.040, +0.156]$, descriptive).
+% Evidence: outputs/choice-frontier/v4/panels/metrics/analysis.json heldout_p2.separation.vs_eps_0.75.S, .ci95; outputs/choice-frontier/v4/seeds/metrics/analysis.json separation.vs_eps_0.75.S, .ci95; v4/panels analysis.json unscreened_p2u.separation.vs_eps_0.75.verdict NOT_SEPARATED; pooled.tasks 35, pooled.separation_vs_eps_0.75.S, .ci95 (#138, #139).
+The choice-quality claim is development-stage, holds relative to uniform choice and the exact-$\epsilon$ ladder on three panels with three training seeds, and carries no planning-ability or generality claim.
