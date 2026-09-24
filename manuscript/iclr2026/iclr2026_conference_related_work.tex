@@ -5,11 +5,14 @@
 % STATUS: #131 round 2 Wave 2 (finding 6, page limit). Four threads compressed to one paragraph each; tab:axis removed
 % and replaced by a two-sentence prose naming of its six axes (tab:axis was referenced only in this file). Evaluation-validity
 % paragraph kept verbatim for the Wave-3 admissible-action citations.
+% STATUS: Review 20 finding 79: one positioning sentence added for policy-guided node selection (orseau2021policyguided,
+% first citation of an existing entry) and A* tie-breaking (asai2016tiebreaking added to related_refs.bib, verified against
+% the DOI 10.1609/aaai.v30i1.10071 record and the authors' PDF).
 \section{Related Work}
 \label{sec:related}
 
 % Paragraph purpose: Position against planning benchmarks and neural algorithm execution in one paragraph.
-Planning benchmarks~\citep{valmeekam2023planbench,valmeekam2023critical,stein2025autoplanbench,kokel2026acpbenchhard} score plans or plan judgments rather than step-by-step execution of a declared algorithm such as A*~\citep{hart1968formal} or BFWS~\citep{lipovetzky2017bestfirst}, and trace-trained models~\citep{lehnert2024beyond,gandhi2024stream} and step imitators~\citep{velickovic2020neural,zaremba2014learning} lack typed operations and in-episode validation.
+Planning benchmarks~\citep{valmeekam2023planbench,valmeekam2023critical,stein2025autoplanbench,kokel2026acpbenchhard} score plans or plan judgments rather than step-by-step execution of a declared algorithm such as A*~\citep{hart1968formal} or BFWS~\citep{lipovetzky2017bestfirst}, and trace-trained models~\citep{lehnert2024beyond,gandhi2024stream} and step imitators~\citep{velickovic2020neural,zaremba2014learning} lack typed operations and in-episode validation. The choice-frontier contract is a learned node-selection policy in the sense of policy-guided heuristic search~\citep{orseau2021policyguided}, and the submission-order counterfactual isolates a heap tie-breaking effect of the kind studied for A* search~\citep{asai2016tiebreaking}.
 
 % Paragraph purpose: Position against model-in-the-loop search, step supervision, visual reasoning, and verification or constrained decoding in one paragraph.
 In Tree of Thoughts~\citep{yao2023tree} and RAP~\citep{hao2023reasoning} a scaffold or UCT policy owns exploration, whereas our model issues the operations that determine it, and Scratchpads~\citep{nye2021show}, per-step labels~\citep{lightman2023lets}, Visual Sketchpad~\citep{hu2024visual}, and MVoT~\citep{li2025imagine} supervise or generate unchecked free-form steps and imagery rather than attributing control to an observation channel. Unlike repair loops~\citep{kambhampati2024llms,madaan2023selfrefine} and syntax-only constrained decoding~\citep{scholak2021picard,willard2023efficient}, our runtime never repairs and checks algorithmic invariants on every operation.

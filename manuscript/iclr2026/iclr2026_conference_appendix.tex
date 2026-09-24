@@ -267,7 +267,7 @@ Counterfactual audit, M4 intervals & \#134 & prediction failed & 48 pairs, 288 c
 Instrument validation & \#135 & \textsc{pass} & 696/696 CPU + 48/48 model episodes replayed & 1.19 / 4 \\
 Scaled adapter & \#136 & \textsc{positive} & 24/24 learned episodes replayed & 4.84 / 30 \\
 External audit & \#137 & \textsc{choice\_registered} & 1000 pairs over 200 tasks & CPU only \\
-Three-seed replication, held-out panels (v4 window) & \#138, \#139 & \textsc{positive} & 48/48 new learned episodes, 638/638 P2 and 696/696 P2u zoo episodes replayed & 15.22 / 24 \\
+Three-seed replication, held-out panels (v4 window) & \#138, \#139 & \textsc{positive} & 48/48 new learned episodes, 638/638 P2 and 696/696 P2u zoo episodes replayed, and 88/88 P2 plus 96/96 P2u learned episodes & 15.22 / 24 \\
 DAgger ablation (v5 window) & \#140 & \textsc{not\_separated} & 24/24 validation-panel and 22/22 P2 episodes replayed & 9.06 / 40 \\
 \hline
 \end{tabular}
@@ -350,7 +350,7 @@ Comparator-zoo ticket (\#133) closing comment & Zoo numbers table and claim boun
 \end{tabular}
 % Evidence: paths confirmed present in the evidence repository on 2026-09-23; the #133 closing comment is
 % https://github.com/Sino-Huang/multimodality_on_planning/issues/133#issuecomment-5788941573.
-% Round 5 rows: A138, A139, A140, B4, B5 per local evidence-r5.md artifact shorthands (read 2026-09-25).
+% Round 5 rows: A138, A139, A140, B4, B5 as named in the path column (read 2026-09-25). P2 88/88 and P2u 96/96 learned-episode replays per issue-139-closeout.md L123.
 \end{table}
 
 
@@ -551,6 +551,9 @@ Each selector's choice is mapped back to the menu binding, and every candidate s
 % Paragraph purpose: Specify the metric computations the protocol pins beyond the Experimental Design summary.
 \paragraph{Metric computation.}
 Under M1 an episode solves at multiplier $m$ when its first goal selection occurs within $\lfloor m R_t \rfloor$ decisions with at most $\lfloor m R_t \rfloor$ preceding expansions, where $R_t$ is the additive exact-reference expansion count. Unsolved 2$\times$ runs count as failures at every $m$, and the same prefix truncation applies to every arm. Task and algorithm weights are equal. M2 also has a censored form, in which failures are right-censored at the budget rather than assigned a fictitious expansion count. M3 counts transitions along the selected goal state's trusted predecessor chain and is undefined, never imputed, for unsolved episodes. M4 measures agreement with the current additive heap head over decisions with at least two live choices, against a chance rate equal to the decision-weighted mean of $1/K$. M5 restricts to tasks where the mean 2$\times$ random-valid solve indicator lies strictly between 0 and 1.
+Because goal selection is the $(R_t{+}1)$-th decision, the exact reference fails at $m = 1$ and scores M1 $= 0.875$ by construction, and arms that reach the goal in fewer decisions can exceed it (privileged hadd-greedy 0.882, 0.928, and 0.906).
+% Evidence (review 20 #76): goal-at-selection rule in the Expansion and budget paragraph above (issue-132-design.md section 2); A139 arms.{p135,p2,p2u}.exact_reference.m1 0.875;
+% arms.{p135,p2,p2u}.hadd-greedy.m1 0.8823 / 0.9284 / 0.90625, rounded half-up to 3 dp from the named keys.
 % Evidence: docs/experiments/choice-frontier/issue-133-protocol.md, Pre-registered metrics and claims.
 
 % Sections below migrated verbatim from Results in #131 round 2 Wave 2 (review 16 finding 6). Table labels kept;
@@ -569,7 +572,7 @@ The expanded study program ran on 2 A100 80GB GPUs under a 336 GPU-hour cap with
 % Status 2026-09-21: issues #96/#98/#102/#103 are CLOSED (supervisor decision, v1 scope withdrawn); prose states the withdrawal (review 16 I12).
 
 % Paragraph purpose: Record the follow-up windows' receipts on their own ledgers, reported separately from the main program.
-Four follow-up windows executed after the program, three on their own GPU ledgers and the CPU-only comparator zoo. These windows are reported separately and never summed with the main program ledger. The native-arms window spent 3.2086 of 12 GPU-hours, the R1-R4 follow-up window spent 7.7998 of 36, and the choice-frontier window spent 1.069 of 12.
+Follow-up windows executed after the program on separate GPU ledgers (Table~\ref{tab:appendix-receipts}) and on CPU only (the comparator zoo, the counterfactual audit, and the external audit). These windows are reported separately and never summed with the main program ledger. The native-arms window spent 3.2086 of 12 GPU-hours, the R1-R4 follow-up window spent 7.7998 of 36, and the choice-frontier window spent 1.069 of 12.
 % Window ids: native arms #128/#129, R1-R4 window #130, choice frontier #132, zoo #133.
 % Evidence: Sigma attempts[].gpu_hours in outputs/native-arms/v1/budget.json (3.20857, cap 12.0), outputs/reviewer-v130/v1+v2/budget.json
 % (3.98625 + 3.81354 = 7.79978, cap 36), outputs/choice-frontier/v1/budget.json (1.06939, cap 12); docs/experiments/native-arms/issue-129-closeout.md (3.2086 / 12.0);
@@ -586,7 +589,7 @@ Three earlier gates frame the active algorithm matrix. The bounded BFS pilot clo
 % metrics process_sft/random_valid invariant-valid success 1.0, base 0.0, per_seed 17/29/43/71/101); BFWS gate docs/issue-59-bfws-structural-gate.md L250-256.
 % TODO: the authorized held-out final primary evaluation on the frozen
 % 45-task manifest remains unexecuted; no final efficacy number exists.
-The optimal A* arm over $h_{\max}$ with landmark counting was retired after its own governed \textsc{valid\_stop} and is superseded by the two additive best-first variants. Its original heuristic-representation estimand remains unidentified. The historical five-seed BFS pilot predates the current budget rule, which authorizes one training run at seed 17 per model and cell (Section~\ref{sec:design}).
+The optimal A* arm over $h_{\max}$ with landmark counting was retired after its own governed \textsc{valid\_stop} and is superseded by the two additive best-first variants. Its original heuristic-representation estimand remains unidentified. The historical five-seed BFS pilot predates the budget rule, which authorizes one training run at seed 17 per enumeration-contract model and cell (Section~\ref{sec:design}).
 
 \section{Results Detail: Primary-Matrix Tables}
 \label{app:results-primary}
@@ -1198,7 +1201,8 @@ Four choices are documented. The scope edit to one training seed left seed varia
 % pinned to order:17 (issue-138-closeout.md L84-86); A138 episode_accounting.v4_replayed 48, .v4_missing [], .v4_replay_mismatches [].
 
 % Paragraph purpose: Report the per-seed receipts of the three-seed replication on the validation panel.
-On the validation panel, $D$ is $+0.328$ $[+0.155, +0.508]$ for seed 17, $+0.229$ $[+0.108, +0.354]$ for seed 29, and $+0.297$ $[+0.134, +0.466]$ for seed 71. Per-seed M1 is 0.349, 0.250, and 0.318, with a between-seed standard deviation of 0.051 (descriptive). The pre-registered separation from the exact-$\epsilon$ 0.75 rung is $S = +0.002$, $-0.097$, and $-0.029$ per seed. Against the 0.50 rung the three-seed $S$ is $-0.298$ $[-0.468, -0.129]$ (descriptive). Table~\ref{tab:appendix-seed-d} sets these values beside the held-out and unscreened panels.
+On the validation panel, $D$ is $+0.328$ $[+0.155, +0.508]$ for seed 17, $+0.229$ $[+0.108, +0.354]$ for seed 29, and $+0.297$ $[+0.134, +0.466]$ for seed 71. Per-seed M1 is 0.349, 0.250, and 0.318, with a between-seed standard deviation of 0.051 (descriptive). The last-label rate per seed is 0.205, 0.192, and 0.171 (descriptive). The pre-registered separation from the exact-$\epsilon$ 0.75 rung is $S = +0.002$, $-0.097$, and $-0.029$ per seed. Against the 0.50 rung the three-seed $S$ is $-0.298$ $[-0.468, -0.129]$ (descriptive). Table~\ref{tab:appendix-seed-d} sets these values beside the held-out and unscreened panels.
+% Evidence (review 20 #75): A138 per_seed.{17,29,71}.last_label_rate 0.2055 / 0.1917 / 0.1712, rounded half-up to 3 dp from the named keys.
 % Evidence: A138 primary.per_seed.{17,29,71} 0.3281/0.2292/0.2969 and primary.per_seed_ci95.{17,29,71} [0.1552, 0.5083]/[0.1083, 0.3542]/[0.1344, 0.4656];
 % seed_variance.m1_per_seed.{17,29,71}.m1_auc 0.3490/0.25/0.3177; seed_variance.m1_between_seed_sd 0.0506 (0.051, statistics.stdev n-1);
 % separation.vs_eps_0.75.per_seed.{17,29,71} 0.0021/-0.0969/-0.0292 (0.002/-0.097/-0.029); separation.vs_eps_0.50.S -0.2976, .ci95
@@ -1251,11 +1255,13 @@ hadd-greedy (privileged) & 0.882 [0.774, 0.955] & 0.928 [0.883, 0.966] & 0.906 [
 \end{tabular}
 % Evidence: outputs/choice-frontier/v4/panels/metrics/analysis.json arms.{p135,p2,p2u}.{exact_reference,exact-eps-0.25,exact-eps-0.50,exact-eps-0.75,
 % random_valid,pretrained_base,learned_adapter_s17,learned_adapter_s29,learned_adapter_s71,learned_adapter_seed_mean,hadd-greedy}.{m1,ci95},
-% 3-dp renderings per local evidence-r5.md section 3 (descriptive, P139 L108). Note: arms.p2u.exact-eps-0.25.m1 is 0.678125, printed at 3 dp.
+% rounded half-up to 3 dp from the named keys (descriptive, P139 L108). Note: arms.p2u.exact-eps-0.25.m1 is 0.678125, printed at 3 dp.
 \end{table}
 
 % Paragraph purpose: Report the per-seed endpoints and separations on every panel, with their status labels.
-Table~\ref{tab:appendix-seed-d} gives $D$ per seed and $D_3$ with intervals on each panel and pooled over 35 tasks, and the separation $S$ from the exact-$\epsilon$ rungs. Seed 29 has the lowest per-seed $D$ on every panel, and on P2 its separation point from the 0.75 rung is $+0.080$ (descriptive).
+Table~\ref{tab:appendix-seed-d} gives $D$ per seed and $D_3$ with intervals on each panel and pooled over 35 tasks, and the separation $S$ from the exact-$\epsilon$ rungs. Seed 29 has the lowest per-seed $D$ on every panel, and on P2 its separation point from the 0.75 rung is $+0.080$ (descriptive). No equivalence margin was pre-registered for $S$, so a non-separated $S$ is not equivalence to the rung. The P2 separation rests on 11 task clusters, with 8 positive and 3 negative per-task differences, and percentile intervals can under-cover at this size.
+% Evidence (V-NEQ, V-SMALL; review 20 #71, #77): A139 heldout_p2.separation.vs_eps_0.75.per_task_difference signs 8 positive / 3 negative / 0 zero
+% of 11 (negative: 15puzzle-955075, blocksworld-955022, blocksworld-955127; listing, descriptive).
 % Evidence: "Seed 29 is weaker. On P2 its separation point is +0.080, and it has the lowest D3 on every panel." issue-139-closeout.md L171;
 % A139 heldout_p2.separation.vs_eps_0.75.per_seed.29 0.0795 (0.080).
 
@@ -1285,7 +1291,7 @@ $S$ verdict & SEPARATED\_BELOW (descriptive) & NOT\_SEPARATED (descriptive) & SE
 % separation.vs_eps_0.50.{S,ci95,verdict} (descriptive only, P138 L51). P2 A139 heldout_p2.primary.* (P139 L94); heldout_p2.separation.vs_eps_0.75.*
 % (P139 L95); heldout_p2.separation.vs_eps_0.50.* (descriptive, issue-139-closeout.md L30). P2u A139 unscreened_p2u.primary.* (P139 L96);
 % unscreened_p2u.separation.* (descriptive, P139 L96). Pooled A139 pooled.primary.*, pooled.separation_vs_eps_0.75.* (descriptive, P139 L97-98);
-% no pooled separation against the 0.50 rung is stored. 3-dp renderings per local evidence-r5.md sections 1-2.
+% no pooled separation against the 0.50 rung is stored. Values rounded half-up to 3 dp from the named keys.
 \end{table}
 
 % Paragraph purpose: Report where the effect sits across tasks and domains, all descriptive.
@@ -1339,11 +1345,11 @@ The pre-registered ablation collects on-policy records with the seed-17 adapter 
 % Paragraph purpose: Disclose the amendment that cut the ablation to one seed and half the corpus.
 An amendment at 11:21 UTC on 2026-09-24, decided before any DAgger training or evaluation outcome, cut the plan to seed 17 because the three-seed plan could not fit a hard wall-clock deadline. The running seed-29 collection was cancelled with 1.79 GPU-h still charged, and seed 71 was not run. Each algorithm's training set became the first 512 on-policy seed-17 records plus 512 replay records, which the menu augmentation turns into 2048 samples over 64 steps, with the recipe otherwise unchanged.
 % Evidence: issue-140-protocol.md Amendment A1 heading L118 (11:21 UTC, before any outcome), L120 (deadline), L122 (s29 cancelled, s71 not run),
-% L124 (first 512 + 512, 2048 samples, 64 steps); issue-140-closeout.md L80 (1.79 GPU-h charged); A140 collection.cells.<cell>.{on_policy_records 512,
+% L123 (first 512 + 512, 2048 samples, 64 steps); issue-140-closeout.md L80 (1.79 GPU-h charged); A140 collection.cells.<cell>.{on_policy_records 512,
 % replay_records 512, samples 2048}; B5 attempts[4..5].total 64; A140 primary.seeds [17].
 
 % Paragraph purpose: Report the replay receipts, then the endpoints, then the conclusion.
-All 24/24 validation-panel and 22/22 P2 DAgger episodes were independently replayed with no mismatch. The primary endpoint is NOT\_SEPARATED, $S = +0.115$ $[-0.026, +0.258]$ over 23 tasks, and the co-primary is INCONCLUSIVE, $\Delta = -0.030$ $[-0.114, +0.057]$. As descriptive secondary results, $S$ is $+0.278$ $[+0.082, +0.473]$ on P2 and $-0.034$ $[-0.197, +0.135]$ on the validation panel, and the last-label rate on the validation panel falls from 0.205 to 0.137. One small round at one seed therefore does not change measured choice quality, and the ablation is inconclusive.
+All 24/24 validation-panel and 22/22 P2 DAgger episodes were independently replayed with no mismatch. The primary endpoint is NOT\_SEPARATED, $S = +0.115$ $[-0.026, +0.258]$ over 23 tasks, and the co-primary is INCONCLUSIVE, $\Delta = -0.030$ $[-0.114, +0.057]$. As descriptive secondary results, $S$ is $+0.278$ $[+0.082, +0.473]$ on P2 and $-0.034$ $[-0.197, +0.135]$ on the validation panel, and the last-label rate on the validation panel falls from 0.205 to 0.137. One small round at one seed therefore produces no detectable change in measured choice quality, since $\Delta$ is inconclusive against the $\pm 0.05$ margin, and the ablation is inconclusive.
 % Evidence: A140 episode_accounting.{v2,p2}.episodes_replayed 24 / 22, replay_mismatches [] (issue-140-closeout.md L53);
 % primary.verdict NOT_SEPARATED, primary.S_pool 0.1152 (0.115), primary.ci95 [-0.0255, 0.2576] ([-0.026, 0.258]), primary.tasks 23;
 % co_primary.verdict INCONCLUSIVE, co_primary.delta_pool -0.0299 (-0.030), co_primary.ci95 [-0.1141, 0.0571] ([-0.114, 0.057]);

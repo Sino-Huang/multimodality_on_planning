@@ -32,6 +32,438 @@ Single record of every review the manuscript has received: what draft state it r
 | 17 | 2026-09-23 | paper-reviewer (area-chair tier) | Round-2 re-review at `c42277c`: nine section files, hub, six bibs, log/blg, rendered 30-page PDF, both figures, re-check of headline numbers against the pinned JSONs and episode stores | WEAK REJECT (0 CRITICAL, 4 MAJOR, 10 MINOR, counting the 2 carried partials) | CLOSED (`e5c4c09`; finding 40 WONTFIX by author decision) |
 | 18 | 2026-09-23 | paper-reviewer (area-chair tier) | Round-3 re-review at `19a641b` (clean tree): nine section files, hub, six bibs, log/blg, rendered 29-page PDF, both figure assets and scripts, headline numbers re-derived from the pinned JSONs, ledgers, and episode stores | WEAK REJECT (0 CRITICAL, 6 MAJOR, 13 MINOR, counting the 2 partial remainders) | SUPERSEDED by 19 (all findings closed except 49 and 60, carried into 19 and blocked on issue #134) |
 | 19 | 2026-09-23 | paper-reviewer (area-chair tier) | Round-3 re-review at `1281c1b` (clean tree): nine section files, hub, six bibs, log/blg, rendered 29-page PDF, both figure assets and scripts, numbers re-checked against the pinned JSONs, CSVs, and ledgers, and a sample of the new `%` Evidence comments checked for path and key | WEAK REJECT (0 CRITICAL, 1 MAJOR, 8 MINOR) | CLOSED (`59e8714`; 49 and 60 closed with #134; 40 WONTFIX) |
+| 20 | 2026-09-25 | paper-reviewer (area-chair tier) | Round-5 re-review at `0277de7` (clean tree): rendered 35-page PDF, nine section files, hub, six bibs, log/blg, all three figure scripts and PNGs (28/28 fig_ladder asserts re-run), every round-5 number and all cells of Tables 19-21 re-derived from the pinned #138-#140 JSONs and ledgers, 16 `%` Evidence comments checked | WEAK REJECT, rating 4 (S 3 / P 2 / C 2, confidence 4); 0 CRITICAL, 2 MAJOR, 10 MINOR | OPEN |
+
+## Live fixlist — review 20 (2026-09-25)
+
+**Verdict:** WEAK REJECT. 0 CRITICAL, 2 MAJOR, 10 MINOR.
+- MAJOR: findings 69 (Axis 1, value cash-out) and 70 (Axis 4, the screen interpretation contradicts the paper's own P2u ladder).
+- MINOR: findings 71-80.
+- Fix class: MEANING for 69, 70, and 71. WORDING for the other nine.
+- Finding 40 (LLM-usage statement) is WONTFIX by author decision. It is reported below as a compliance risk and is outside the rating and the finding count.
+
+Most damaging issue: **finding 69**. The paper states that the identity failure "is shown only on our runtime" and that "The contribution is therefore the measurement" (Discussion p.8 L406-408). On the one published interface audited (ScienceWorld), random-valid already registers choice. The validated instrument ranks exactly one realisable, non-trivial policy, which is the authors' own imitation adapter. Everything else it ranks is a privileged rung, a rule selector at or below random-valid, or the authors' first adapter. The update a reader can take away and reuse (when to run the audit, what to report, what changes in practice) is never stated as a falsifiable rule.
+
+Genre: BENCHMARK (+ FINDINGS)
+
+Δbelief: On the authors' additive best-first runtime, random-valid is decision-identical to the exact reference (48/48) under the executed sorted-serial rule, and 19/48 pairs diverge under submission-order serials, so the per-decision check can return either verdict. A redesigned choice-frontier contract passes a pre-registered exact-ε ladder test on a validation panel and on a screened held-out panel (and descriptively on an unscreened one). An imitation-trained VLM adapter beats uniform frontier choice across three seeds (D3 +0.285, held-out +0.416, unscreened +0.149) but is interval-separated above the ε-0.75 rung only on the held-out panel. A skimming reviewer comes away believing "check random-valid per decision before reading its success as choice", and that belief is anchored only in the authors' own runtime.
+
+Ledger: Verified: 49 and 60 (closed with #134), #137 reframe, review-16 finding 15, 51, 52, 53 (remainder), 56 (remainder), 66, 67, 68 · Partial: none · Regressed: none · Not addressed: none · Wontfix: 40 (unchanged, App Y p.34 L1825) · New: 69-80
+
+**Reviewer summary:**
+
+> This round 5 re-review covers HEAD `0277de7` on a clean tree. It covers rounds 4 and 5 (`59e8714` … `0277de7`), which no reviewer had seen: #134-#137, and then #138-#140. I read all 35 pages of the rendered PDF text, both figure PNGs, both figure scripts, the log and blg, the new appendix subsections and their `%` comments, and the protocols and closeouts for #138-#140.
+>
+> The build is clean. The Conclusion ends on p.8, so the main text is 8 pages against the 9-page limit.
+>
+> I re-derived every round-5 number directly from the pinned JSONs and ledgers, not from any evidence sheet. That covers the headline set, all cells of Tables 19-21, both ledger attempt sums, the #134 counterfactual (19/48, divergence at decisions 2-50 with median 6, the ferry goal flip), ScienceWorld (1000/1000, 0.915 against 0), and the 1.79 GPU-h cancelled collection. Every number matches its artifact. Re-running the 28 `fig_ladder.py` asserts read-only against the JSONs gives 28/28 pass.
+>
+> I checked 16 evidence comments, 13 of them from round 5. All paths exist and every key and value resolves. One protocol line pointer is off by one (finding 80).
+>
+> The claim discipline from Phase 0 largely holds. Three seeds, single-seed DAgger, held-out meaning P2 only, P2 described as screened, three-part ladder-position statements, the privileged rungs, the failed #134 prediction, and both A1 disclosures are all in place.
+>
+> The problems are now about interpretation and value, not numbers:
+> - The paper reads P2u as showing that "the screen enriches for tasks on which choice discriminates". Its own P2u ladder shows the opposite: choice discriminates at least as strongly on P2u (70).
+> - "Sits at that rung" is an equivalence reading that the Statistics appendix itself forbids (71).
+> - The DAgger ablation is called inconclusive and, in the same sentence, "does not change measured choice quality" (72).
+> - The value anchor no longer rests on a flawed claim, but it still has no portable cash-out (69).
+
+### Rating
+
+**Rating: 4** (ICLR 2026 scale {0, 2, 4, 6, 8, 10}; 4 = marginally below the acceptance threshold)
+
+- **Soundness: 3** (good). Pre-registration is used throughout. Every number is replay-verified and traces to a pinned artifact. The intervals are paired and task-clustered, and the paper uses 3 seeds and a held-out panel. Two things cap soundness: the interpretation of the screen (70), and a headline separation that rests on an 11-cluster percentile bootstrap (77).
+- **Presentation: 2** (fair). The paper is honest and precise, but a first-time reader struggles:
+  - M1 and D3 appear in the abstract undefined.
+  - The appendix apparatus runs to 26 lettered appendices and 35 pages.
+  - The main text is dense with contract, panel, and ledger jargon.
+  - Several appendix cross-reference ranges are stale.
+- **Contribution: 2** (fair). The per-decision identity audit is a clean, cheap methodological check, and the ladder-validated choice measurement is well constructed. The failure the audit exposes is shown only on the authors' own runtime, though, and the learned result is modest: the adapter is at or below the ε-0.75 rung on two of three panels and pooled.
+- **Confidence: 4.** I verified the numbers against the artifacts myself. Published-practice anchors were checked against the ICLR 2026 LLM policy and Semantic Scholar entries (URLs below).
+
+**Strongest reasons for acceptance:**
+- The evaluation discipline is exemplary for the area. Protocols were frozen before outcomes, amendments were disclosed as made before evaluation, and every episode was independently replayed.
+- A cheap diagnostic returns both verdicts on one runtime (48/48 identical against 19/48 divergent). It is paired with an external anchor on ScienceWorld and a seven-interface survey.
+- The choice-frontier measurement is validated by a pre-registered monotone exact-ε ladder, and the ladder replicates on a held-out panel (smallest gap +0.130 [+0.070, +0.190]).
+- The adapter result holds across three seeds and replicates on held-out P2 (+0.416 [+0.250, +0.591]). The paper reports its own failures prominently: the #134 prediction failed, P2u is weaker, DAgger is inconclusive.
+
+**Strongest reasons against acceptance:**
+- (i) The value anchor is internal. The complete-set contract "was not found among the surveyed published interfaces", and on the audited published interface random-valid already measures choice, so in published practice the audit confirms the status quo (69).
+- (ii) The learned result is small and fragile:
+  - Its advantage over uniform choice shrinks to +0.149 [+0.030, +0.283] without the screen, and 8 of 12 unscreened tasks are unsolved by both arms.
+  - It is interval-separated above the ε-0.75 rung only on the 11-task P2. There, 3 of 11 per-task differences are negative and an exact sign-flip test gives p = 0.046 (reviewer computation, 77).
+  - It uses one backbone, and every panel has 11-12 tasks.
+- (iii) All enumeration-contract learned results are null or below random-valid (125/288 against 240/288; 0/24 in every BFS and BFWS cell). The "vision-language" framing therefore rests on a single visual-only choice-frontier adapter with no modality comparison under that contract.
+- (iv) The screening interpretation that answers the obvious reviewer concern is contradicted by the paper's own P2u ladder (70).
+
+**What would move the rating up one step (4 → 6):**
+1. **(69)** Push a second realisable policy family through the validated instrument on the validation panel and P2. Cheap options, all feasible on the existing v4 controls and ladder without new panels:
+   - the InternVL3.5-8B backbone trained with the frozen #138 recipe (3 seeds);
+   - a zero-shot scene-only prompt of the base Qwen3-VL-8B with a relaxed call cap;
+   - the h_add-free novelty or width selector re-expressed as a realisable scene-only rule.
+
+   This would show that M1 ranks independent policies, which is what "a validated search-choice measurement" promises. Then state the portable rule: run the audit, and report D with ladder position.
+2. **(70)** Replace the "screen enriches for tasks on which choice discriminates" reading with the defensible one: the screen selects tasks where near-uniform choice sometimes succeeds. Back it with one descriptive analysis, either the P2−P2u difference with an interval or D3 regressed on the random-valid screen rate across the 35 tasks.
+3. **(77)** Report a small-cluster-robust check (exact sign-flip or cluster-t) for every "interval-separated" statement.
+4. Optionally, the single most value-changing experiment: run the per-decision audit on the one surveyed interface predicted to saturate (LLM-First Search, type C). A published interface on which random-valid matches the reference would convert the internal anchor into a published-practice finding and address (i) directly.
+
+**Finding 40 (compliance risk, outside the rating and the count):** App Y p.34 L1825 (appendix.tex L1452) reads "An LLM was used only for polishing language; the scientific content is entirely original."
+- ICLR 2026 policy says "Any use of an LLM must be disclosed" and asks authors to "explicitly state how they used LLMs in their submission". It names "drafting entire paper sections" and use "as a research assistant" (analysis, code) as uses to disclose, and names desk rejection as a possible consequence (https://blog.iclr.cc/2025/08/26/policies-on-large-language-model-usage-at-iclr-2026/, fetched 2026-09-25).
+- `manuscript/changelog.md` records LLM agents drafting sections, figures, and citation passes (for example "paper-writer", "related-work-scout", "figure-only paper-writer" in round 5 waves 1-3).
+- If those agents are LLMs, the statement "only for polishing language" understates the use, and the risk is a Code-of-Ethics misrepresentation finding, not just an incomplete disclosure.
+- Not re-argued: WONTFIX per the Phase 0 decision (changelog round 5 Phase 0 item 8).
+
+### Build, page count, figures
+
+- **Build:** `iclr2026_conference.log` (2026-09-25 01:42:58) and `.blg` (01:42:57) are newer than every source. The newest sources are results.tex at 01:41:19 and fig_ladder.png/svg at 01:36:56. Counts:
+  - `^!` errors: 0
+  - LaTeX and package warnings: 0
+  - "undefined" (references or citations): 0
+  - Overfull: 0 (51 underfull)
+  - BibTeX `warning$`: 0 across six databases
+  - `\bibitem`s: 43
+  - "Output written on iclr2026_conference.pdf (35 pages, 441637 bytes)"
+
+  `manuscript/manuscript.pdf` (514,897 bytes) is not byte-identical to `iclr2026/iclr2026_conference.pdf`, but both have 35 pages. Their `pdftotext -layout` output differs only in column whitespace in Table 6, so the text reviewed is the same. **PASS.**
+- **Page count:** The Conclusion ends on **PDF p.8, L431**. The Reproducibility Statement and References begin on p.9 (L432). Main text, title through Conclusion, is **8 pages** against the 9-page limit. **PASS**, with one page of slack. That slack is room for the fixes to 69, 70, and 76.
+- **fig:ladder (Figure 2, p.6 L270-284; `figures/fig_ladder.png`, 1791×623):**
+  - Three panels: "Validation (12 tasks)", "Held-out P2 (11 tasks)", and "Unscreened P2u (12 tasks)".
+  - Each panel shows the five ladder arms with task-clustered intervals, a dotted line at that panel's own ε-0.75 value (0.347, 0.205, 0.149), and the 3-seed adapter mean (0.306, 0.432, 0.151) with faint per-seed points. The first adapter (0.026) appears on the validation panel only.
+  - Labels are legible and there is no clipping or overlap.
+  - `fig_ladder.py` L45-92 holds **28 assert statements**: per panel, 6 (m, lo, hi) triples and 3 per-seed M1 values, plus the first adapter. They read `v4/panels/metrics/analysis.json arms.{p135,p2,p2u}.*` and `v2/metrics/analysis.json adapter_reevaluation.learned_adapter.{m1_auc, m1_task_cluster_95pct_ci_10000_seed133}`. I re-executed exactly these comparisons in a throwaway script against the pinned JSONs, without writing the figure: **28/28 pass.**
+  - Content defects: the caption omits the "descriptive" status of the P2u ladder, and it does not mention the first-adapter row (finding 78). The P2u panel title reproduces the "Unscreened" label that finding 70 questions.
+- **fig:contracts (Figure 1, p.5 L216-232):**
+  - `fig_contracts.py` L31-63 reads 48/48 (`native-arms/v1/identity-audit.json`); 19/48 (`identity-audit-submission-order.json rules.submission_order.pairs_divergent`, asserted == (19, 48)); +0.000 over 24 tasks (`synthesis-v1/baseline-contrasts.csv`, 6 additive rows asserted 0.0); 18/18 and 9 tasks (`choice-frontier/v1/evaluation/identity-audit.json`); and −0.644 [−0.856, −0.422] (`v1/evaluation/analysis.json contrasts.random_valid_minus_exact_reference`). All match; I re-read the values from the JSONs and CSV this round.
+  - The PNG renders cleanly. "Sorted-serial frontier (order-invariant)" is accurate for the executed rule.
+  - The caption states that the panels differ ("on a separate 9-task panel with its own uniform-menu control"). The review-19 finding 66 fix holds.
+  - Figure 1 is still a pipeline-plus-numbers schematic. Its (b) panel reports the 9-task first measurement, not the ladder-validated result, so the belief-carrying picture of the adapter result is Figure 2. This is noted, not ranked.
+- **fig:zoo-m1 (Figure 3, App R p.29):** unchanged since review 19.
+
+### Numbers re-check
+
+The pinned artifacts are git-ignored (`.gitignore:285 outputs/`), so I identify them by mtime and md5 prefix. The last evidence commit is `3996600` (2026-09-24 23:30, #140 closeout).
+
+| artifact | mtime | md5 prefix |
+|---|---|---|
+| v4/seeds/metrics/analysis.json | 2026-09-24 15:42 | d5c3828cba0f |
+| v4/panels/metrics/analysis.json | 18:47 | fa5399d9a0f6 |
+| v5/metrics/analysis.json | 23:29 | 29d08e8bcbea |
+| v4/budget.json | — | c58180f1c1c7 |
+| v5/budget.json | — | 178f3023fc53 |
+| v2/metrics/analysis.json | — | c609286a7e3f |
+| native-arms/v1/identity-audit-submission-order.json | — | 6f523484d3d0 |
+| external-audit/v1/scienceworld/identity-audit.json | — | 83d4265671a7 |
+
+All paths are under `outputs/choice-frontier/` except the last two. A = `outputs/choice-frontier/`.
+
+| claim (rendered) | PDF location | artifact : key | match |
+|---|---|---|---|
+| 0.875 / 0.793 / 0.603 / 0.347 / 0.021 | p.1 L020-022, p.2 L057-058, p.6 L292-294, Fig. 2, Tables 17 and 19 | A/v4/panels arms.p135.{exact_reference, exact-eps-0.25, -0.50, -0.75, random_valid}.m1 = 0.875, 0.79271, 0.60313, 0.34688, 0.02083 (same in A/v2 arms, A/v4/seeds controls_135) | yes |
+| smallest gap +0.082 [+0.051, +0.111]; other gaps +0.190 [+0.126, +0.252], +0.256 [+0.184, +0.339], +0.326 [+0.233, +0.422] | p.1 L022-023, p.2 L059, p.6 L295, App T p.30 L1598-1600 | A/v2/metrics instrument_validity.pairs[0..3].{difference, ci95} = 0.08229 [0.05104, 0.11146]; 0.18958 [0.12604, 0.25208]; 0.25625 [0.18438, 0.33854]; 0.32604 [0.23333, 0.42187]; verdict PASS | yes |
+| D3 +0.285 [+0.140, +0.433]; per seed +0.328 / +0.229 / +0.297 | p.1 L025, p.2 L063, p.6 L309-310, p.8 L426, Tables 18 and 20 | A/v4/seeds primary.D3 0.28472, ci95 [0.14028, 0.43264], per_seed.{17,29,71} 0.32813 / 0.22917 / 0.29688, verdict POSITIVE | yes |
+| per-seed D intervals [+0.155, +0.508], [+0.108, +0.354], [+0.134, +0.466]; per-seed M1 0.349 / 0.250 / 0.318; SD 0.051; per-seed S +0.002 / −0.097 / −0.029 | App U p.31 L1656-1659 | A/v4/seeds primary.per_seed_ci95.*; seed_variance.m1_per_seed.*.m1_auc; seed_variance.m1_between_seed_sd 0.05059; separation.vs_eps_0.75.per_seed.* 0.00208 / −0.09687 / −0.02917 | yes |
+| P2 D3 +0.416 [+0.250, +0.591]; per seed +0.490 / +0.268 / +0.490 | p.1 L026, p.2 L064-065, p.6 L311-313, p.8 L426-427 | A/v4/panels heldout_p2.primary.D3 0.41591, ci95 [0.25038, 0.59091], per_seed 0.48977 / 0.26818 / 0.48977, verdict POSITIVE, tasks 11 | yes |
+| P2u D3 +0.149 [+0.030, +0.283] | p.1 L027, p.2 L068, p.6 L323 | A/v4/panels unscreened_p2u.primary.D3 0.14896, ci95 [0.02951, 0.28299], verdict POSITIVE (status "primary endpoint confirmatory") | yes |
+| S vs ε-0.75, validation −0.041 [−0.187, +0.102] | p.1 L029, p.2 L066, p.6 L319, p.8 L428 | A/v4/seeds separation.vs_eps_0.75.S −0.04132, ci95 [−0.18681, 0.10174], NOT_SEPARATED (co-primary) | yes |
+| S vs ε-0.50, validation −0.298 [−0.468, −0.129], descriptive | p.6 L319-320, App U p.31 L1660 | A/v4/seeds separation.vs_eps_0.50.S −0.29757, ci95 [−0.46840, −0.12882], role "descriptive only", SEPARATED_BELOW | yes |
+| S vs ε-0.75, P2 +0.227 [+0.053, +0.403] | p.1 L028, p.2 L065-066, p.6 L320, p.8 L427 | A/v4/panels heldout_p2.separation.vs_eps_0.75.S 0.22727, ci95 [0.05265, 0.40265], SEPARATED_ABOVE; per_seed.29 0.07955 (+0.080 at p.32 L1713) | yes |
+| S vs ε-0.75, P2u +0.002 [−0.145, +0.157] | p.6 L321 | A/v4/panels unscreened_p2u.separation.vs_eps_0.75.S 0.00208, ci95 [−0.14549, 0.15729], NOT_SEPARATED | yes |
+| pooled S +0.058 [−0.040, +0.156] over 35 tasks | p.1 L030, p.2 L067, p.6 L321, p.8 L429 | A/v4/panels pooled.separation_vs_eps_0.75.S 0.05798, ci95 [−0.03952, 0.15643], pooled.tasks 35, status descriptive | yes |
+| 22 of 35 positive / 12 zero / 1 negative | p.7 L327-328, p.32 L1715-1716, Table 21 | A/v4/panels concentration.all_36_counts {positive 22, zero 12, negative 1}. The key says 36 but the counts sum to 35; the source comment at results.tex L147 records this | yes |
+| per-panel 9/2/1, 9/2/0, 4/8/0 | Table 21 p.33 | concentration.per_panel.{p135,p2,p2u}.counts; sign of primary.per_task_difference_seed_mean on p135 (1 negative: 15puzzle −0.0625; zeros: blocksworld-935001, ToH-935002) | yes |
+| leave-one-domain-out +0.305 to +0.395, lower bounds ≥ +0.185 | p.7 L328-329, p.32 L1718 | concentration.leave_one_domain_out_p2_union_p135.* D3 min 0.30479 (elevators, lo 0.18542), max 0.39539 (blocksworld) | yes |
+| 8 of 12 P2u tasks unsolved by both arms (the two 15-puzzle, blocksworld, depot, and driverlog tasks) | p.6 L323-324, p.32 L1716-1717 | unscreened_p2u.primary.per_task_difference = 0.0 on exactly those 8 tasks; issue-139-closeout.md L73 | yes |
+| P2 ladder smallest gap +0.130 [+0.070, +0.190]; others +0.239 [+0.183, +0.290], +0.302 [+0.259, +0.340], +0.189 [+0.136, +0.248] | p.6 L301-302, p.32 L1706-1708 | ladder_p2.pairs[0..3] 0.12955 [0.07045, 0.18977]; 0.23864 [0.18295, 0.28977]; 0.30227 [0.25909, 0.33977]; 0.18864 [0.13636, 0.24773]; verdict PASS, status confirmatory | yes |
+| P2u ladder +0.197 [+0.154, +0.243], +0.281 [+0.191, +0.355], +0.248 [+0.209, +0.290], +0.147 [+0.088, +0.226] | p.32 L1708-1710 | unscreened_p2u.ladder.pairs[0..3] 0.19688 [0.15417, 0.24271]; 0.28125 [0.19063, 0.35521]; 0.24792 [0.20938, 0.28958]; 0.14688 [0.08750…01, 0.22604]; PASS | yes (half-up 3 dp) |
+| #140 S_pool +0.115 [−0.026, +0.258]; Δ −0.030 [−0.114, +0.057] | p.7 L338, p.33 L1758-1759 | A/v5 primary.S_pool 0.11522, ci95 [−0.02554, 0.25761], NOT_SEPARATED, tasks 23; co_primary.delta_pool −0.02989, ci95 [−0.11413, 0.05707], INCONCLUSIVE, equivalence_margin 0.05 | yes |
+| #140 per panel S +0.278 [+0.082, +0.473] (P2), −0.034 [−0.197, +0.135] (validation) | p.33 L1760 | A/v5 per_panel.p2.{S 0.27841, S_ci95 [0.08182, 0.47273]}; per_panel.v2.{S −0.03437, S_ci95 [−0.19687, 0.13542]} | yes |
+| last-label 0.205 → 0.137 (validation panel) | p.33 L1761 | A/v5 per_seed.v2.17.pre_dagger.last_label_rate 0.20550 → per_seed.v2.17.dagger.last_label_rate 0.13706 | yes |
+| last-label per seed 0.205 / 0.192 / 0.171 against 30.0% | p.6 L314-315 | A/v4/seeds seed_variance.last_label_rate_per_seed 0.20550 / 0.19172 / 0.17118; A/v2 adapter_reevaluation.learned_adapter.m4_teacher_agreement.selected_last_rate 0.29975 (238/794, chance 0.144) | yes (presentation: finding 75) |
+| first adapter M1 0.026 [0.010, 0.042] | p.6 L314, Tables 17 and 19, Fig. 2 | A/v2 adapter_reevaluation.learned_adapter.m1_auc 0.02604, CI [0.01042, 0.04167] | yes |
+| ledgers 15.22/24 and 9.06/40; 1.79 GPU-h cancelled | p.5 L253, p.16 L833-835 and L852-854 | Σ attempts[].gpu_hours: A/v4/budget.json 15.22252 (14 attempts, allocations 24.0); A/v5/budget.json 9.06403 (11 attempts, allocations 40.0); v5 failed cfv5-collect-*-s29 0.89741 + 0.89728 = 1.79468 | yes |
+| 48/48 identical; 19/48 divergent; prediction failed; first divergence at decisions 2-50 (median 6); 29 identical; one ferry task flips under both algorithms | p.1 L016-018, p.1 L052-p.2 L054, p.5 L261-269, App S p.29, Table 14 | native-arms/v1/identity-audit.json pairs_identical 48/48; identity-audit-submission-order.json rules.submission_order {identical 29, divergent 19}, preregistered_prediction.held false, verdict "PREDICTION_FAILED: see preregistered_prediction"; first_divergence_decision_index over the 19 divergent pairs: min 2, max 50, median 6; goal flip only on ferry-expanded-915109 (greedy and w3); validation 288 counts + 96 sequences, mismatches [] | yes |
+| 18/18 divergent, 9 tasks; −0.644 [−0.856, −0.422] | Fig. 1, p.5 L269, p.6 L290-291 | A/v1/evaluation/identity-audit.json pairs_divergent 18/18, CHOICE_SENSITIVE; analysis.json contrasts.random_valid_minus_exact_reference −0.64444 [−0.85556, −0.42222] | yes |
+| ScienceWorld 1000/1000 first-decision divergence; 0.915 against 0; 200 tasks; 6 of 30 task types | p.1 L031-032, p.2 L070-072, p.7 L343-345, App V p.33 | external-audit/v1/scienceworld/identity-audit.json pairs_divergent 1000/1000, first_divergence_index {min 0, median 0, max 0}, success.reference 0.915, random_valid_mean 0.0 (5 seeds all 0.0), tasks 200, verdict CHOICE_REGISTERED | yes |
+| Table 2 v4 row: 48/48 new learned episodes, 638/638 P2 and 696/696 P2u zoo episodes | p.16 L833-834 | A/v4/seeds episode_accounting.v4_replayed 48; issue-139-closeout.md L113-115 (11×58, 12×58, 0 missing) | yes (row omits the P2/P2u learned-episode replays 88/88 and 96/96, closeout L123: finding 74) |
+| **Table 19** (tab:appendix-panel-arms), all 99 values: 11 arms × 3 panels × (M1, lo, hi) | p.32 L1677-1684 | A/v4/panels arms.{p135,p2,p2u}.{exact_reference, exact-eps-0.25/0.50/0.75, random_valid, pretrained_base, learned_adapter_s17/s29/s71, learned_adapter_seed_mean, hadd-greedy}.{m1, ci95}, checked cell by cell at 3 dp (for example P2 s29 0.284 [0.119, 0.489]; P2u mean 0.151 [0.030, 0.288]; P2 hadd-greedy 0.928 [0.883, 0.966]) | yes, all 99 |
+| **Table 20** (tab:appendix-seed-d), all values and verdicts: D per seed (4 panels × 3 seeds with intervals), D3 (4 panels), S vs 0.75 (4), S vs 0.50 (3), and the pre-reg./descriptive labels | p.32 L1689-1695 | validation: A/v4/seeds primary.* and separation.*; P2: heldout_p2.primary.*, .separation.vs_eps_0.75/0.50.*; P2u: unscreened_p2u.primary.*, .separation.*; pooled: pooled.primary.* (per seed +0.334 [+0.223, +0.450], +0.203 [+0.124, +0.290], +0.301 [+0.200, +0.411]; D3 +0.279 [+0.191, +0.375]), pooled.separation_vs_eps_0.75.*. Labels match the status fields: P2u primary "confirmatory" → "POSITIVE (pre-reg.)", its separation "descriptive", pooled "descriptive" | yes, all |
+| **Table 21** (tab:appendix-concentration): 12 counts and 9 domains × (D3, lo, hi, tasks left) | p.33 L1731-1740 | concentration.per_panel.*.counts; leave_one_domain_out_p2_union_p135.{15puzzle … visitall}.{D3, ci95, tasks_left}. For example ferry 0.33095 [0.21151, 0.45456] 21; visitall 0.31780 [0.21117, 0.42197] 22. Depot D3 is 0.3525 exactly and is printed +0.353 (half-up; Python's float round gives 0.352) | yes, all 48 (rounding convention noted) |
+
+**Reviewer-computed checks** (not paper claims; used in findings 70 and 77):
+- P2 per-task S vs ε-0.75 (heldout_p2.separation.vs_eps_0.75.per_task_difference): 8 positive and 3 negative of 11. An exact two-sided sign-flip permutation gives p = 0.046 (2^11 flips), and a cluster t-statistic gives 2.36.
+- Exact reference minus random-valid M1: P2 0.859 (0.875 − 0.016), P2u 0.873 (0.875 − 0.002).
+- ε-0.75 minus random-valid: P2 +0.189, P2u +0.147.
+- P2u tasks: all 12 have 0/10 random-valid screening goals (issue-139-closeout.md L56).
+
+### Evidence-comment spot-check
+
+I sampled 16 comments, 13 of them from round 5. For each I checked that the path exists and that the key and value, or the line reference, match. 15 resolve and 1 is off by one.
+
+1. results.tex L41-42 (5.1 ledgers): `issue-139-closeout.md` L144 "Shared v4 ledger total: 15.22 / 24 GPU-h" ✓; `issue-140-closeout.md` L72 "Total 9.06 / 40 GPU-h." ✓; both budget.json sums ✓ (above).
+2. results.tex L98-100 (P2 ladder, A1): `pooled.panels.p2` 11 ✓; `ladder_p2.pairs[0]` 0.1295 [0.0705, 0.1898] ✓; `issue-139-protocol.md` L93 is the ladder rule ✓, L96 is the P2u descriptive ladder ✓, and L118-127 is A1 with the seeds at L122 ✓; closeout L58 has the first freeze at 6 tasks from 5 domains ✓.
+3. results.tex L122-123 (replication provenance): `issue-138-protocol.md` L11 "the #136 recipe, byte-identical" ✓; `issue-138-closeout.md` L5 `f06c7ac` ✓. The quoted "Only training_seed changes" paraphrases L11-12; the text is not verbatim, but the meaning holds.
+4. results.tex L124-125 (D3): primary.* values ✓; rule `issue-138-protocol.md` L31-41 ✓ (POSITIVE rule at L39).
+5. results.tex L130-131 (last-label): seed_variance.last_label_rate_per_seed ✓; v2 selected_last_rate 0.2997 ✓.
+6. results.tex L135 (P2u construction): `pooled.panels.p2u` 12 ✓; P2u rule at protocol L55-57 ✓ (L56 "Admit iff exact reaches the goal …").
+7. results.tex L136-140 (ladder position): the five S values and intervals ✓; P139 L95 SEPARATED_ABOVE rule ✓.
+8. results.tex L144-145 (P2u D3, zero 8): unscreened_p2u.primary.* ✓; per_panel.p2u.counts.zero 8 ✓; closeout L73 ✓, L11 ✓.
+9. results.tex L146-147 (`all_36_counts` note): key and values ✓; closeout L28 "The union has 35 tasks, not the 36 …" ✓.
+10. results.tex L148-149 (leave-one-domain-out): elevators 0.3048 / lo 0.1854 ✓; blocksworld 0.3954 ✓; "every other domain's lower bound ≥ 0.204" ✓ (grid 0.20396 is the next smallest).
+11. results.tex L160-161 (DAgger): primary.* ✓. **"half corpus per issue-140-protocol.md L124 (A1 item 2)" is off by one.** L124 is A1 item 3 ("Evaluation: …"), and item 2 (the first 512 + 512) is at L123. See finding 80.
+12. appendix.tex (U.1 construction, before L1212): P2 rule at protocol L7, L36, L48-50 ✓; candidate pool at closeout L46-54 (2,400; 1,168 / 205 / 31 / 536; 460) ✓; "All 12 happen to have 0/10 random goals." at closeout L56 ✓; zoo replay at closeout L113-115 ✓.
+13. appendix.tex (A1 paragraph): protocol L120 trigger ✓, L122 seeds ✓, L123 unchanged ✓; closeout L5-6 `d567939` ✓.
+14. appendix.tex (Table 19 and the gaps): the eight `ladder_p2` and `unscreened_p2u.ladder` pairs ✓; `arms.{p135,p2,p2u}.*` ✓. This comment and the Table 20 comment also cite "3-dp renderings per local evidence-r5.md", a sheet that is not in either repository (finding 80). The primary artifact keys are named and resolve.
+15. appendix.tex (Table 20): P138 L44-52 (separation co-primary, 0.50 descriptive at L51-52) ✓; closeout L30 (P2 vs ε-0.50 descriptive) ✓; closeout L171 "Seed 29 is weaker … +0.080" ✓.
+16. appendix.tex (DAgger A1, before L1341): protocol L118 heading 11:21 UTC ✓, L120 deadline ✓, L122 s29 cancelled ✓; **L124 cited for "first 512 + 512" is off by one (item 2 is L123)**; closeout L80 "1.79 GPU-h charged" ✓; closeout L53 replay 24/24 and 22/22 ✓.
+
+### Verification of round-4 closures
+
+| item | r20 result | evidence at `0277de7` |
+|---|---|---|
+| 49 (value anchor / same-runtime counterfactual, closed with #134) | **VERIFIED** | 5.2 p.5 L265-269 (results.tex L64): "On the same runtime with heap serials assigned in submission order, the same check finds 19/48 divergent pairs, so the check can return either verdict. The pre-registered prediction of divergence on most pairs (more than 24/48) did not hold." Contribution 1 p.2 L078 "A per-decision identity audit that returns both verdicts on one runtime." Figure 1(a) shows "submission-order serials: 19/48 divergent". App S p.29 L1565 "The 48/48 identity is therefore a property of the executed serial rule, not of the enumeration contract alone." The numbers match (table above). The remaining value question is a different issue (69). |
+| 60 (M4 intervals, closed with #134) | **VERIFIED** | Table 15 p.30 L1567-1569 gives task-clustered intervals: heap-head −0.069 [−0.161, +0.032] and last-label +0.277 [+0.126, +0.402]. App R p.28 L1509-1511 reads "Decisions cluster within 9 tasks, and the task-clustered intervals … show that the agreement gap does not survive that clustering while the last-label excess does". 5.4 p.7 L330-333 labels it post-hoc. |
+| #137 reframe (identity failure shown only on our runtime; the contribution is the measurement) | **VERIFIED** | Abstract p.1 L032-034, Intro p.2 L072-074, 5.5 p.7 L345-347, and Discussion p.8 L406-408 (discussion.tex L20): "None of the seven published interfaces we surveyed uses a complete-set submission contract, so the identity failure is shown only on our runtime. The contribution is therefore the measurement, not the exposure of a common flaw." |
+| Review-16 finding 15 (admissible-action positioning sentence) | **VERIFIED (present)** | Related Work p.3 L122-124 (related_work.tex L18): "This paper operationalizes the known admissible-action handicap in search-execution evaluation with a per-decision identity audit that returns both verdicts on one runtime and anchors the validated choice measurement of Section 5." |
+| 51 hedge (menu probe) | **VERIFIED** | Related Work p.3 L120-122: "The menu manipulations in this paper probe this interface, and only the unrun fixed-versus-random-position variant would separate surface-following from state grounding." App P p.26 L1394-1395: "Content-reading and position habits both predict a pick-rate near 0.6, so this receipt does not separate them, and the discriminating fixed-versus-random-position test remains unrun." |
+| 52 hedge (no equivalence, no position habit) | **VERIFIED** | App R p.28 L1490 "with no last-label comparator and no equivalence claim". p.29 L1544-1545 "no last-label comparator was run, so these post-hoc rates do not establish a position habit". The only other "habit" occurrence (p.26 L1394) is hedged. The Conclusion no longer carries the zoo sentence, so the hedge cannot regress there. |
+| 53, 56, 66, 67, 68 (review-19 remainders, closed `c08ef50`) | **VERIFIED** | 56: Section 3 p.3 L142-143 "(schemas in the Operation Schemas appendix, Appendix A, invariants in the Algorithm Invariant Definitions appendix)". 66: Figure 1 uses "pairs" with task counts, (a) shows +0.000, and the caption names the separate 9-task panel. 67: the abstract's final sentence is replaced (p.1 L034-036). 68: Related Work p.2 L107-p.3 L108 now reads "…(Zhu et al., 2020), and video-language evaluation reports selection bias toward answer positions (Loginova et al., 2025)". 53: see the spot-check. |
+| 40 (LLM-usage statement) | WONTFIX (unchanged) | App Y p.34 L1825, appendix.tex L1452. Compliance risk is reported above, outside the rating. |
+
+### Placeholder and claim-discipline check
+
+- **Visible `[TODO`:** `grep -n 'TODO'` over the rendered text returns 0 hits. **PASS.**
+- **3 seeds:** abstract p.1 L025 and L035, Intro p.2 L062 and L085, 5.1 p.5 L238, 5.4 p.6 L309, Conclusion p.8 L426 and L431, Design p.3 L155-156. **PASS.**
+- **DAgger single seed stated:** 5.4 p.7 L336-337 "run for one seed on half the planned corpus", App U.2 p.33 L1751-1756, App W p.34 L1806. **PASS.** The DAgger conclusion wording is finding 72.
+- **Held-out = P2 only:** Intro p.2 L086-088, 5.4 p.7 L325-327, Design p.4 L205 "held-out refers to P2 only". The frozen 45-task manifest is "unexecuted" at p.5 L239, p.7 L375-376, and p.8 L416. **PASS.** The phrase "no design decision … had seen" is finding 73.
+- **P2 described as screened:** 5.3 p.6 L298-299 "P2 applies the validation panel's generation, cost, and screening rules", Limitations p.8 L413 "P2 is screened like the validation panel". **PASS.**
+- **P2's ladder position never reported alone:** every separation statement carries all three panels plus pooled. This holds in the abstract (p.1 L027-030), Intro (p.2 L065-068), 5.4 (p.6 L318-321), Discussion (p.8 L398-400), Limitations (p.8 L411-412), and Conclusion (p.8 L427-430). App U.2's +0.278 on P2 is paired with −0.034 on the validation panel. **PASS.**
+- **Descriptive or post-hoc labels:**
+  - ε-0.50 separation: "descriptive" (p.6 L320). PASS.
+  - P2u separation: "descriptive" (p.6 L321). PASS.
+  - P2u ladder: "which is descriptive" (p.6 L302). **Missing from the Figure 2 caption** (p.6 L282-284), which plots it without the label (finding 78).
+  - Pooled: "descriptive" (p.1 L030, p.6 L321). PASS.
+  - Concentration: "(descriptive)" (p.7 L328-329). PASS.
+  - The P2u screen interpretation is stated as fact with no label (finding 70).
+- **No equivalence claim without margin:** **FAIL, twice.**
+  - "sits at that rung" (p.1 L028, p.2 L066, p.8 L399 and L428) and "at the 0.75 rung on the validation panel" (p.6 L318-319) apply to S, which has no pre-registered equivalence margin. This contradicts the paper's own Statistics appendix, p.18 L933 "a non-separated S is not equivalence to the rung" (finding 71).
+  - "does not change measured choice quality" (p.33 L1762) describes a co-primary that is INCONCLUSIVE against a ±0.05 margin (finding 72).
+- **No planning-ability claim:** every claim frame ends "carries no planning-ability or generality claim" (p.1 L036, p.2 L085-086, p.7 L336, p.8 L404 and L431). App R p.28 L1473 reads "no learning-to-plan claim". **PASS.**
+- **No expansion parity:** there is no parity claim. **PASS.**
+- **Old and new contract not compared as performance rows:** Table 23 caption "Results under the two contracts are not comparable as performance rows". Table 12 caption "Not comparable with enumeration-contract rows". Figure 1 juxtaposes identity counts and each contract's own random-valid − exact contrast, with the separate panel stated. **PASS.**
+- **Ladder rungs privileged:** abstract p.1 L023-024, Intro p.2 L060-061, 5.3 p.6 L304-305, Figure 2 caption, Table 19 caption, Discussion p.8 L393-394. **PASS.**
+- **#134 prediction reported as failed:** abstract p.1 L018 "the pre-registered majority prediction failed", Intro p.2 L054, 5.2 p.5 L266-267, App S p.29 L1562-1563, Limitations p.8 L417. **PASS.**
+- **Amendments disclosed as made before evaluation:** #139 A1 in 5.3 p.6 L299-301 ("an amendment made before any evaluation episode") and App U.1 p.32 L1699-1705. #140 A1 in App U.2 p.33 L1751 ("decided before any DAgger training or evaluation outcome"). **PASS.**
+
+### New findings
+
+**Axis and genre coverage** (everything not listed as a finding passes or is n/a):
+- **Axis 1:** the 10-minute test delivers an update (Δbelief above), and Figure 2 carries the three-panel tension. The value cash-out is finding 69.
+- **Axis 2:** falsifiability passes. Each follow-up has a pre-registered verdict rule, and two could have lost and one did (#134 PREDICTION_FAILED; DAgger NOT_SEPARATED and INCONCLUSIVE).
+  - HARKing scan: 9 bare-fact interpretive claims between the Intro promise and an earned verdict. The three most damaging are "so the random-control screen enriches for tasks on which choice discriminates" (p.2 L068-069), the same claim in 5.4 (p.7 L324), and "The smaller effect on P2u indicates that the random-control screen enriches…" (p.8 L400-401). The other six are the five "sits at / at that rung" statements and the DAgger "does not change" sentence.
+  - Wording register passes: no "prove" or "confirm". Statistical hygiene passes except the small-cluster fragility (77).
+- **Axis 3:** findings 71 and 74.
+- **Axis 4:** findings 70, 72, 73, 76, and 79. Framing-only delta, recorded as an explicit pass: the abstract's "beats uniform choice across three seeds (D3 = +0.285 [+0.140, +0.433])" matches Table 20's "POSITIVE (pre-reg.)" in wording only.
+- **Axis 5:** findings 75 and 78. The experiment order runs an elimination tournament, and each block now ends in a local verdict. The exception is the first-adapter M4 paragraph in 5.4 (78).
+- **BENCHMARK checklist:**
+  - Two bottlenecks: the instrument (the choice-frontier contract) and the operationalization (M1 with a ladder check). **Pass.**
+  - Definitions argued against near-miss alternatives: enumeration against choice-frontier (Table 23), and exact-ε rungs as the ladder. **Pass.**
+  - Headline findings stated as claims. **Pass.**
+  - Adoption risks: overfitting to screened panels is addressed via P2u but misread (70). Contamination is addressed by the exclusion sources (App U.1). **Partial.**
+  - The Related Work positioning gap against policy-guided node selection is finding 79.
+
+#### 69 · MAJOR · Axis 1 (value cash-out: the portable rule and a second realisable policy are missing) · `iclr2026_conference_discussion.tex; iclr2026_conference_introduction.tex; iclr2026_conference_results.tex`
+
+- **Location:** Discussion p.8 L405-408 (discussion.tex L20): "None of the seven published interfaces we surveyed uses a complete-set submission contract, so the identity failure is shown only on our runtime. The contribution is therefore the measurement, not the exposure of a common flaw." Contributions p.2 L078-081. Conclusion p.8 L424-431, which ends on the claim frame with no practice cash-out. Tables 17 and 19, where the only realisable arms are random-valid, bfs-order, novelty-first, worst-first, the first adapter, and the authors' scaled adapter.
+- **Issue:**
+  - Once the reframe lands, the paper's value is "the measurement". The measurement is validated only on privileged exact-ε selectors, which are not realisable policies, and the paper says so (p.6 L304-305).
+  - Among realisable choosers, the validated instrument separates one non-trivial policy: the authors' imitation adapter (0.306 / 0.432 / 0.151). The rule selectors score 0.000-0.028 on every panel (`arms.{p135,p2,p2u}.{bfs-order,novelty-first,worst-first}.m1`), at or below random-valid.
+  - The audit's diagnostic value in published practice is therefore unshown. On the one published interface audited, random-valid already registers choice (0.915 against 0), so the check returns "fine", and the failing contract appears in 0/7 published interfaces.
+  - Nowhere does the paper state the reusable takeaway: when to run the audit, what to report (D with ladder position), and what would change in an existing evaluation.
+  - Under the Axis 1 anchor rule, the surprise must contradict published practice, and here it contradicts only the authors' earlier contract. A combined paper like this earns its place through *why and when*, and the paper stops at *whether*.
+- **Fix:**
+  - (a) Add a closing Discussion paragraph with the portable, falsifiable rule. For example: "Before reading random-valid success as choice, run the per-decision identity audit, and if every pair is identical, report success as operation validity. Under a choice-bearing contract, report D together with its ladder position, because D alone does not locate choice quality". Name one concrete evaluation practice it changes.
+  - (b) Run one independent realisable policy through the validated instrument on the validation panel and P2, reusing the frozen v4 controls and ladder. Options: the InternVL3.5-8B backbone under the frozen #138 recipe (3 seeds), or a zero-shot scene-only prompt of the base model with a relaxed call cap. This shows M1 plus the ladder ranks policies other than the authors' own. If the instrument cannot separate a second policy from random-valid or from the adapter, that is itself the cash-out.
+  - (c) Optionally, and with the largest effect on value: audit the one surveyed interface predicted to saturate (LLM-First Search, Table 22). That would turn the internal anchor into a published-practice finding.
+- **Why it changes the verdict:** (b) changes Contribution from "a measurement shown on one policy" to "a measurement that ranks policies", and (c) supplies the missing anchor in published practice.
+- **Fix class:** MEANING (it adds a contribution claim and an experiment)
+- **Status:** OPEN
+
+#### 70 · MAJOR · Axis 4 (the screening interpretation is contradicted by the paper's own P2u ladder) · `iclr2026_conference_introduction.tex; iclr2026_conference_results.tex; iclr2026_conference_discussion.tex; iclr2026_conference_abstract.tex`
+
+- **Location:**
+  - Intro p.2 L068-069 (introduction.tex L27): "On the unscreened panel P2u, D3 = +0.149 [+0.030, +0.283], so the random-control screen enriches for tasks on which choice discriminates."
+  - 5.4 p.6 L323-p.7 L324 (results.tex L143): "…where 8 of 12 tasks are unsolved by both the adapter and random-valid, so the screen enriches for tasks on which choice discriminates."
+  - Discussion p.8 L400-401 (discussion.tex L17): "The smaller effect on P2u indicates that the random-control screen enriches for tasks on which choice discriminates."
+  - Abstract p.1 L027: "Without the random-control screen that admits panel tasks, the gain is +0.149".
+  - App U.1 p.31 L1672-p.32 L1697 (appendix.tex L1212-1215): "All 12 P2u tasks happen to have 0/10 random-valid goals in screening."
+- **Issue:**
+  - (i) The paper's own P2u ladder shows that choice discriminates *at least as strongly* on P2u as on P2. Exact reference minus random-valid is 0.873 on P2u against 0.859 on P2. The P2u ladder passes with every lower bound positive (p.32 L1708-1710). The ε-0.75 − random-valid gap is +0.147 [+0.088, +0.226] (`unscreened_p2u.ladder.pairs[3]`).
+  - What the screen admits is tasks on which *near-uniform choice sometimes succeeds*: random-valid reaches the goal in 1-9 of 10 screening episodes (App U.1 p.31 L1668). On P2u, where random-valid is at 0.002, the adapter's partial choice skill (near the ε-0.75 rung, which itself falls to 0.149) converts into solves on only 4 of 12 tasks.
+  - The stated mechanism is therefore the wrong one. The screen selects tasks easy enough for weak choosers, not tasks where choice matters.
+  - (ii) The comparison is cross-panel and untested. No P2−P2u contrast or interval is reported, and the panels differ in membership as well as screening.
+  - (iii) P2u is by construction drawn from "kept candidates outside P2", so it is not a random draw of unscreened tasks. All 12 have 0/10 screening goals, which the body never states. The abstract's "Without the random-control screen … the gain is +0.149" invites a reading of P2u as the unscreened-population effect, which the construction does not license.
+  - (iv) The claim is asserted as a bare fact three times, with no descriptive label, and it answers the most obvious reviewer concern (the HARKing scan's top three).
+- **Fix:**
+  - Replace all three sentences with a version that fits the P2u ladder. For example: "…so the random-control screen enriches for tasks on which near-uniform choice sometimes succeeds (random-valid reaches the goal in 1-9 of 10 screening episodes). On P2u, whose 12 tasks all had 0/10 screening goals, choice still discriminates (the ladder passes, descriptive), but the adapter solves only 4 tasks (descriptive)."
+  - In 5.4, add one sentence stating that all 12 P2u tasks had 0/10 random-valid screening goals, and that P2u is drawn from kept candidates outside P2.
+  - Back the reading with one descriptive analysis on the 35 tasks: D3 against the random-valid screen rate, or the P2−P2u difference with a task-cluster interval.
+  - Label the whole statement "(descriptive)".
+- **Why it changes the verdict:** the P2u result is the paper's answer to the screening objection. As written, it misstates what P2u shows, and a reviewer who reads Table 19 will notice.
+- **Fix class:** MEANING (it changes what the P2u result is claimed to show)
+- **Status:** OPEN
+
+#### 71 · MINOR · Axis 3 ("sits at that rung" reads as equivalence, which the Statistics appendix forbids) · `iclr2026_conference_abstract.tex; iclr2026_conference_introduction.tex; iclr2026_conference_results.tex; iclr2026_conference_discussion.tex`
+
+- **Location:**
+  - Abstract p.1 L028-029 (abstract.tex L21): "but sits at that rung on the validation panel (−0.041 [−0.187, +0.102])".
+  - Intro p.2 L066 (introduction.tex L25).
+  - 5.4 p.6 L318-319 (results.tex L134): "at the 0.75 rung on the validation panel (S = −0.041 [−0.187, +0.102])".
+  - Discussion p.8 L399 (discussion.tex L17) "sits at that rung on the validation panel".
+  - Conclusion p.8 L428 (discussion.tex L45).
+  - Against these: Statistics appendix p.18 L932-935: "…and none for the separation S, so a non-separated S is not equivalence to the rung. Wherever the text reports a non-material contrast …, an adjacent sentence states that non-significance is not equivalence."
+- **Issue:**
+  - S has no pre-registered equivalence margin, and its validation-panel interval spans −0.187 to +0.102. "Sits at that rung" asserts a location, and that is the equivalence reading the paper's own Statistics appendix rules out.
+  - None of the four NOT_SEPARATED S results in the body (validation, P2u, pooled, DAgger) carries the "non-significance is not equivalence" sentence that the Statistics appendix promises.
+  - The wording follows `CONTEXT.md` ("at the exact-ε 0.75 rung on #135"), so the conflict is between the vocabulary entry and the stated statistical rule.
+- **Fix:**
+  - Replace "sits at that rung" / "at the 0.75 rung" with "is not separated from that rung", keeping the interval.
+  - Add once in 5.4, after the ladder-position sentence: "No equivalence margin was pre-registered for S, so a non-separated S is not equivalence to the rung."
+  - Amend the `CONTEXT.md` choice-quality entry accordingly.
+- **Fix class:** MEANING (it changes the approved position claim from "at the rung" to "not separated from the rung", which needs an author decision)
+- **Status:** OPEN
+
+#### 72 · MINOR · Axis 4 (the DAgger conclusion asserts no change while the co-primary is inconclusive) · `iclr2026_conference_appendix.tex`
+
+- **Location:** App U.2 p.33 L1758-1762 (appendix.tex L1346): "the co-primary is INCONCLUSIVE, ∆ = −0.030 [−0.114, +0.057] … One small round at one seed therefore does not change measured choice quality, and the ablation is inconclusive."
+- **Issue:**
+  - "Does not change" is an equivalence claim. The co-primary's pre-registered equivalence margin is ±0.05 (`co_primary.equivalence_margin` 0.05), and its interval reaches −0.114, so EQUIVALENT was not reached.
+  - The sentence contradicts its own second clause.
+  - The closeout says "does not measurably change" (`issue-140-closeout.md` L20), and the paper dropped the hedge.
+- **Fix:** "One small round at one seed therefore produces no detectable change in measured choice quality (Δ is inconclusive against the ±0.05 margin), and the ablation is inconclusive."
+- **Fix class:** WORDING (it restores the approved "single-seed and inconclusive" claim)
+- **Status:** OPEN
+
+#### 73 · MINOR · Axis 4 ("seeds that no design decision had seen" overstates P2's freshness) · `iclr2026_conference_introduction.tex; iclr2026_conference_results.tex`
+
+- **Location:** Intro p.2 L086-087 (introduction.tex L48) and 5.4 p.7 L325-326 (results.tex L143): "Held-out here means the fresh panel P2, frozen before any evaluation episode from seeds that no design decision or adapter had seen".
+- **Issue:**
+  - Amendment A1 is itself a design decision. It was made after the controls-only screen of seeds 955000-955039 had admitted 6 tasks (App U.1 p.32 L1699-1701).
+  - Those 6 tasks are in P2: elevators-955007, ferry-955007, grid-955007, grid-955021, blocksworld-955022, and towers_of_hanoi-955031, according to `concentration.per_panel.p2.domains`. That is 6 of P2's 11 tasks.
+  - No adapter or evaluation outcome was seen, and the disclosure in 5.3 is accurate. The "no design decision" clause is still literally false.
+- **Fix:** "…frozen before any evaluation episode, from seeds on which no adapter had been evaluated (the A1 seed extension followed a controls-only screen of the first 40 seeds, Section 5.3)".
+- **Fix class:** WORDING
+- **Status:** OPEN
+
+#### 74 · MINOR · Axis 3 (stale scope statements and inconsistent appendix ranges left by the round-5 sweep) · `iclr2026_conference_appendix.tex; iclr2026_conference_experimental_design.tex; iclr2026_conference_results.tex`
+
+- **Location:**
+  - (a) App J p.21 L1117-1119 (appendix.tex L572): "Four follow-up windows executed after the program, three on their own GPU ledgers and the CPU-only comparator zoo." Table 2 p.16 L825-836 lists seven GPU follow-up windows (native arms, R1-R4, choice frontier, #135, #136, v4, v5) plus CPU-only #133, #134, and #137.
+  - (b) App J p.21 L1133 (appendix.tex L589): "…the current budget rule, which authorizes one training run at seed 17 per model and cell (Section 4)." Section 4 p.3 L154-156 now says the choice-frontier adapter "has three training seeds (17, 29, 71)".
+  - (c) Design p.4 L206-208 (experimental_design.tex L78): "At the 2026-09-23 snapshot …, and all follow-ups executed". #138-#140 executed on 2026-09-24 (the #140 A1 is timestamped "11:21 UTC on 2026-09-24", p.33 L1751).
+  - (d) "Results Detail appendices (Appendices J to W)" at p.5 L234 (results.tex L26), "(Appendices M to Q)" at p.7 L372 (results.tex L189), and "Appendices P–R" at p.4 L186 (experimental_design.tex L50): one named group with three different ranges.
+  - (e) Table 2 v4 row p.16 L833-834: "48/48 new learned episodes, 638/638 P2 and 696/696 P2u zoo episodes replayed". This omits the P2/P2u learned-episode replays, "P2 88/88 and P2u 96/96" (`issue-139-closeout.md` L123).
+- **Issue:** Each is a later claim contradicting an earlier one, or an incomplete receipt. Changelog round 5 wave 3 reports the stale-claim sweep as complete.
+- **Fix:**
+  - (a) "Follow-up windows executed after the program on separate GPU ledgers (Table 2) and on CPU only (the comparator zoo, the counterfactual audit, and the external audit)".
+  - (b) "…predates the budget rule, which authorizes one training run at seed 17 per enumeration-contract model and cell (Section 4)".
+  - (c) Replace the date with "At the 2026-09-24 snapshot" or "At submission".
+  - (d) Use one range, or drop the letter ranges in favour of named appendices.
+  - (e) Append "and 88/88 P2 plus 96/96 P2u learned episodes".
+- **Fix class:** WORDING
+- **Status:** OPEN
+
+#### 75 · MINOR · Axis 5 (last-label sentence: dangling table pointer, mixed units, missing chance rates) · `iclr2026_conference_results.tex`
+
+- **Location:** 5.4 p.6 L314-315 (results.tex L121): "and the scaled adapter's last-label rate per seed is 0.205, 0.192, and 0.171 against 30.0% for the first adapter (per-seed tables in the Held-Out Panels appendix, Appendix U.1)."
+- **Issue:**
+  - No table in App U.1 (Tables 19-21) carries a last-label rate. The seed-29 and seed-71 values (0.192, 0.171) appear only in this body sentence. App U p.31 L1646 gives only seed 17's 0.205.
+  - The units are mixed (proportions against a percentage).
+  - The chance rates differ and are not given: 0.125 for the scaled adapter against 0.144 for the first adapter (`v2 … m4_teacher_agreement.chance`).
+  - Two paragraphs later, 5.4 quotes a different first-adapter last-label excess on a different panel (+0.277 over the earlier 9-task panel, where the raw rate is 0.545), without saying the panels differ.
+- **Fix:** "…last-label rate per seed is 0.205, 0.192, and 0.171 (chance about 0.13) against 0.300 (chance 0.144) for the first adapter on the same panel (Scaled Adapter appendix)". Add the three per-seed rates to Table 17 or 19, or drop the table pointer.
+- **Fix class:** WORDING
+- **Status:** OPEN
+
+#### 76 · MINOR · Axis 4 (the exact reference's M1 of 0.875 is a construction constant, and M1 can exceed it) · `iclr2026_conference_results.tex; iclr2026_conference_experimental_design.tex; iclr2026_conference_appendix.tex`
+
+- **Location:**
+  - Abstract p.1 L020 and 5.3 p.6 L292-293: "M1 orders the exact reference (0.875) above …". Design p.4 L162 (experimental_design.tex L27): "Exact-classical runs the declared algorithm and bounds perfect decisions".
+  - App I p.20 L1058-1060: "…so the exact episode takes its reference expansion count plus one decisions". p.21 L1093-1094: "an episode solves at multiplier m when its first goal selection occurs within ⌊mR_t⌋ decisions".
+  - Table 19 p.32 L1678, where the exact reference is 0.875 [0.875, 0.875] on all three panels. Discussion p.8 L400 "so it remains far from the reference".
+- **Issue:**
+  - [INFERENCE, supported by the definitions and the constant, zero-width interval on 35 tasks] The exact reference needs R_t+1 decisions, so it always fails at m = 1 and solves at every m ≥ 1.25. M1 = 0.875 is therefore a constant of the metric, not a measurement.
+  - M1 is not bounded by the reference. hadd-greedy scores 0.882, 0.928, and 0.906 (`arms.*.hadd-greedy.m1`). On P2 visitall the adapter's M1 is 1.0 (`arms.p2.learned_adapter_seed_mean.per_task…visitall-expanded-955170` = 1.0), above the reference.
+  - The top ladder gap (+0.082) is therefore partly a metric-construction difference, and the reference is an imitation target rather than a ceiling. None of this is disclosed.
+- **Fix:**
+  - Add to 5.3 or App I: "Because goal selection is the (R_t+1)-th decision, the exact reference fails at m = 1 and scores M1 = 0.875 by construction. Arms that reach the goal in fewer decisions can exceed it (hadd-greedy 0.88-0.93)."
+  - Change "bounds perfect decisions" to "defines the imitation target", and drop "so it remains far from the reference" (see 78).
+- **Fix class:** WORDING
+- **Status:** OPEN
+
+#### 77 · MINOR · Axis 2 (the headline separation rests on an 11-cluster percentile bootstrap and is fragile) · `iclr2026_conference_results.tex; iclr2026_conference_appendix.tex`
+
+- **Location:** Abstract p.1 L027-028, Intro p.2 L065-066, 5.4 p.6 L320, and Conclusion p.8 L427: "interval-separated above the exact-ϵ 0.75 rung on the held-out panel (+0.227 [+0.053, +0.403])". Table 20 p.32 L1693 "SEPARATED ABOVE (pre-reg.)".
+- **Issue:**
+  - The only interval-separated ladder-position result is a 95% percentile bootstrap over 11 task clusters, and percentile intervals are known to under-cover at this cluster count.
+  - The per-task differences are 8 positive and 3 negative (`heldout_p2.separation.vs_eps_0.75.per_task_difference`). An exact two-sided sign-flip permutation over all 2^11 flips gives p = 0.046 (reviewer computation).
+  - The pre-registered rule is met, so this is not a defect of the verdict. It is a robustness fact a reader needs, because the separation claim is repeated in four headline places.
+- **Fix:** Add one sentence to App U.1, and a parenthetical in 5.4: "An exact sign-flip test on the 11 per-task differences gives p = 0.046 (8 positive, 3 negative, descriptive)." Apply the same small-cluster check to D3 on P2u.
+- **Fix class:** WORDING (it adds a robustness number and leaves the pre-registered verdict unchanged)
+- **Status:** OPEN
+
+#### 78 · MINOR · Axis 5 (undefined headline symbols, a misplaced paragraph, and a non-sequitur) · `iclr2026_conference_abstract.tex; iclr2026_conference_introduction.tex; iclr2026_conference_results.tex; iclr2026_conference_discussion.tex`
+
+- **Location:**
+  - (a) Abstract p.1 L020 "M1 orders…" (abstract.tex L14) and p.1 L025 "D3 = +0.285" (abstract.tex L19). Intro p.2 L057 and L063 (introduction.tex L18, L23). M1 is first defined at Design p.4 L196-197, and D at p.4 L202. D3 is never defined in the body; it appears only in the Table 20 caption.
+  - (b) 5.4 p.7 L330-333 (results.tex L152): the post-hoc M4 analysis of the *first* adapter on the *earlier 9-task* panel sits inside the replication section. It eliminates no alternative explanation for the scaled-adapter result.
+  - (c) Figure 2 caption p.6 L282-284 (results.tex L105): no "descriptive" status for the P2u ladder, and no mention of the first-adapter row.
+  - (d) Discussion p.8 L399-400 (discussion.tex L17): "…and is not separated from it on the unscreened panel P2u or pooled (descriptive), so it remains far from the reference." The conclusion does not follow from rung positions.
+- **Issue:** A tired reviewer re-reads the abstract to decode M1 and D3. 5.4's paragraph has no local verdict tied to its section. The figure caption breaks the claim-discipline rule, and the "so" is a non-sequitur.
+- **Fix:**
+  - (a) Abstract: "the solve-versus-budget area M1" at first use, and "(D3, adapter minus random-valid M1 averaged over three seeds)". Mirror this in the Intro.
+  - (b) Move the first-adapter M4 sentence to App S, keeping a pointer.
+  - (c) Caption: append "The P2u ladder is descriptive. The first adapter appears on the validation panel only."
+  - (d) Replace "so it remains far from the reference" with a separate sentence: "Its M1 (0.151-0.432) remains well below the reference's 0.875."
+- **Fix class:** WORDING
+- **Status:** OPEN
+
+#### 79 · MINOR · Axis 4 (positioning: policy-guided node selection and tie-breaking literature uncited) · `iclr2026_conference_related_work.tex; iclr2026_conference_related_refs.bib`
+
+- **Location:** Related Work p.2 L093-p.3 L124. `related_refs.bib` contains `orseau2018singleagent` and `orseau2021policyguided`, and neither is cited in the rendered References (p.9-12).
+- **Issue:**
+  - The choice-frontier contract has a policy select which frontier state a best-first search expands next. That is exactly policy-guided best-first search: Orseau & Lelis, "Policy-Guided Heuristic Search with Guarantees", AAAI 2021 (https://arxiv.org/abs/2103.11505, Semantic Scholar 53ae4b740f4a870004f9f840a731a0e051eb2b95, fetched 2026-09-25).
+  - The #134 result is a tie-breaking effect ("on the other 29 pairs every equal-priority tie breaks the same way under both orders", p.5 L268). Tie-breaking order in best-first heaps is a known driver of search behaviour: Asai & Fukunaga, "Tiebreaking Strategies for A* Search: How to Explore the Final Frontier", AAAI 2016 (DOI 10.1609/aaai.v30i1.10071, Semantic Scholar 47be28eee56a6171ae0b1a26c3692221f2d6cc15, fetched 2026-09-25).
+  - A planning-literate reviewer will see both omissions. They also weaken the novelty framing of the contract.
+- **Fix:** Add one sentence to Related Work: "The choice-frontier contract is a learned node-selection policy in the sense of policy-guided heuristic search (Orseau & Lelis, 2021), and the submission-order counterfactual isolates a heap tie-breaking effect of the kind studied by Asai & Fukunaga (2016)". Add the Asai & Fukunaga entry.
+- **Fix class:** WORDING
+- **Status:** OPEN
+
+#### 80 · MINOR · Evidence hygiene (off-by-one protocol pointer, non-repository rendering source) · `iclr2026_conference_results.tex; iclr2026_conference_appendix.tex`
+
+- **Location:**
+  - results.tex L161: "half corpus per issue-140-protocol.md L124 (A1 item 2)".
+  - The appendix.tex comment before L1341: "L124 (first 512 + 512, 2048 samples, 64 steps)".
+  - The appendix.tex comments for Tables 19 and 20: "3-dp renderings per local evidence-r5.md section 3" and "sections 1-2".
+- **Issue:**
+  - `issue-140-protocol.md` L124 is A1 item 3 ("Evaluation: DAgger s17 on the #135 panel first…"). Item 2, the 512 + 512 aggregate, is L123.
+  - `local://evidence-r5.md` is a session artifact and is not in either repository, so a reproducer cannot resolve it. The artifact keys named alongside it do resolve.
+- **Fix:** Change both L124 pointers to L123. Replace "3-dp renderings per local evidence-r5.md" with "rounded half-up to 3 dp from the named keys".
+- **Fix class:** WORDING
+- **Status:** OPEN
+
+### What would change the verdict
+
+The numbers are right, the pre-registration is real, and the claim discipline mostly holds. The paper sits at WEAK REJECT for two reasons, neither of which is a hygiene problem.
+
+First, value (69). With the identity failure confined to the authors' runtime, the paper's contribution is "the measurement", and that measurement has so far ranked exactly one realisable policy of interest. Two changes would move it to BORDERLINE:
+- run a second, independent realisable policy (the InternVL3.5 adapter under the frozen #138 recipe, or a zero-shot scene-only base prompt) through the validation and P2 panels with the existing v4 controls;
+- state the portable rule of the audit.
+
+Auditing the surveyed interface predicted to saturate (LLM-First Search) would do more for value than any other single experiment. A published interface on which random-valid matches the reference would convert the anchor from internal to published practice.
+
+Second, the screening answer (70). The P2u sentence must be rewritten to match the P2u ladder and backed by one descriptive P2−P2u or screen-rate analysis. As written, it misstates what the paper's own table shows, and it is the paper's reply to the most predictable objection.
+
+The MINOR items (71-80) are cheap. The main text has a page of slack, so 70, 71, 76, and 77 fit without cuts. None of them changes the rating on its own. Together with 69 and 70 they are what a 6 would require: an instrument shown to rank policies, an honest reading of the screen, and small-sample robustness on the one separated result.
 
 ## Live fixlist — review 19 (2026-09-23)
 
