@@ -1,4 +1,5 @@
 % STATUS: #131 round 8 Wave 4 (2026-09-25). Consistency pass: appendix roadmap paragraph added before the first section; labels app:invariants, app:runtime, app:data-splits, app:receipts, app:statistics, app:cf-contract added to unlabelled sections; opening paragraphs added to the Paired Contrasts, Menu-Manipulation, Held-Out Panels, DAgger Ablation, Zero-Shot Policy, and LLM-First Search Audit units; sentences over 40 words split; P2/P2u in prose -> the held-out/unscreened panel; "realisable" retired; "teacher target" -> "imitation target". No number added, moved, or deleted.
+% STATUS: #131 round 8 consolidation (2026-09-25). Findings 101, 108. Table 24 budget cells filled in words (101); caption updated (101); survey sentence added (101); LFG sentence added (108). No number added, changed, or recomputed.
 % STATUS: #131 round 8 (2026-09-25) (Protocol, Wave 2). Statistics/Transfer tests receives the Section 4 McNemar/Holm comment; Gate Receipts qualification-gates paragraph receives the BFWS-to-BFS overlap sentence from Section 4; tab:appendix-survey gains audited and budget-unit columns and two reference rows for our contracts (tokens copied from the body with comments), caption made standalone. No number added, changed, or recomputed.
 % STATUS: REVISED #131 round 2 2026-09-23: follow-up windows added to tab:appendix-receipts (per window,
 % never summed; main program stays 68.5244 / 336); follow-up statistics conventions; artifact index;
@@ -1525,12 +1526,14 @@ This appendix gives the interface survey and the ScienceWorld audit behind Secti
 
 % Paragraph purpose: Give the survey filter, the interface types, feasibility, and the selection.
 The survey admitted published evaluations from 2022 on in which the model chooses from a runtime-supplied candidate set inside a planning or search loop, with public tasks and code. Seven candidates passed, five of type B (the model picks one valid action per step), two of type C (the model scores candidates that a search orders), and none of type A, our enumeration contract (Table~\ref{tab:appendix-survey}). Four are not CPU-feasible under their papers' budgets. For WebShop (free-text search, no step limit) and LLM-First Search (an unreported token cap) this was a judgement call, and LLM-First Search was the only saturated prediction, which the later audit in the LLM-First Search Audit appendix (Appendix~\ref{app:results-external-lfs}) tested. ScienceWorld is the most cited feasible candidate, and the runner-up shares its prediction.
+Six of the seven count budgets in steps, plan-length multiples, or iterations, and only LLM-First Search counts tokens. The closest published analogue, LFG \citep{shah2023lfg}, has the model score candidates in the enumeration style, and it was screened out because no evaluation harness was released.
+% Evidence (LFG, finding 108): docs/experiments/external-audit/issue-137-survey.md Screened out, row "Shah et al., LFG" ("the closest published case to our type A"; "the repo ships only the LLM frontier-scoring notebooks; no Habitat/HM3D harness or task list").
 % Evidence: docs/experiments/external-audit/issue-137-survey.md inclusion filter, Screened out (E137-41), Candidate table (E137-40), interface
 % types per row (5 B, 2 C, 0 A; E137-42); CPU feasibility and selection rule (E137-43, E137-44); judgement call quoted from
 % issue-137-closeout.md Limitations and issue comment 5801181178. Type definitions paraphrase the survey rows.
 
 \begin{table}[t]
-\caption{The seven surveyed published interfaces and our two decision contracts. Type B: the model picks one valid action per step. Type C: the model scores candidates that a search orders. Type A: our enumeration contract. Prediction is the survey's pre-audit prediction for random-valid against the reference. Audited gives the identity-audit result where an audit ran. Budget unit is the unit the source states, else ``not stated''.}
+\caption{The seven surveyed published interfaces and our two decision contracts. Type B: the model picks one valid action per step. Type C: the model scores candidates that a search orders. Type A: our enumeration contract. Prediction is the survey's pre-audit prediction for random-valid against the reference. Audited gives the identity-audit result where an audit ran. Budget unit is the unit the source states.}
 \label{tab:appendix-survey}
 \centering\scriptsize
 \setlength{\tabcolsep}{3pt}
@@ -1539,13 +1542,13 @@ The survey admitted published evaluations from 2022 on in which the model choose
 \hline
 Interface & Venue & Type & CPU-feasible & Prediction & Audited (identity result) & Budget unit \\
 \hline
-AutoPlanBench \citep{stein2025autoplanbench} & ICAPS 2025 & B & yes & divergent & no & not stated \\
+AutoPlanBench \citep{stein2025autoplanbench} & ICAPS 2025 & B & yes & divergent & no & multiple of a reference plan length \\
 ScienceWorld \citep{wang2022scienceworld} & EMNLP 2022 & B & yes & divergent & yes, 1000/1000 divergent & 100-step limit \\
-GLAM (BabyAI-Text) & ICML 2023 & B & yes & divergent & no & not stated \\
+GLAM (BabyAI-Text) & ICML 2023 & B & yes & divergent & no & environment steps (code) \\
 WebShop & NeurIPS 2022 & B & no & divergent & no & no step limit \\
-RAP & EMNLP 2023 & C & no & divergent & no & not stated \\
+RAP & EMNLP 2023 & C & no & divergent & no & search iterations \\
 LLM-First Search \citep{herr2025llmfirst} & arXiv 2025 & C & no$^{\dagger}$ & saturated$^{\dagger}$ & yes, no pair of the 400 identical & token caps \\
-EmbodiedBench & ICML 2025 & B & no & divergent & no & not stated \\
+EmbodiedBench & ICML 2025 & B & no & divergent & no & environment steps \\
 \hline
 Our enumeration contract (additive cells) & this paper & A & n/a & n/a & yes, 48/48 identical & decision calls \\
 Our choice-frontier contract & this paper & n/a & n/a & n/a & yes, 18/18 divergent & decisions, twice the reference's expansions \\
@@ -1563,6 +1566,10 @@ Our choice-frontier contract & this paper & n/a & n/a & n/a & yes, 18/18 diverge
 % Our enumeration contract (48/48): outputs/native-arms/v1/identity-audit.json pairs_identical 48 of pairs_checked 48; outputs/native-arms/v1/identity-audit-submission-order.json rules.sorted_candidate_order.pairs_identical 48 (#134 E134-03). Budget in decision calls per Section 4 (docs/experiments/expanded-study/synthesis-v1/README.md).
 % Our choice-frontier contract (18/18): outputs/choice-frontier/v1/evaluation/identity-audit.json (pairs_divergent 18). Budget per docs/experiments/choice-frontier/issue-132-design.md sections 2 and 6
 % (decision_cap = expansion_cap = 2 x reference_expansions). Type A is the survey's label for our enumeration contract; the choice-frontier contract was not typed by the survey (n/a).
+% Evidence (budget units, round 8 consolidation, finding 101): docs/experiments/external-audit/issue-137-survey.md Candidate table, budget column.
+% AutoPlanBench: "twice the length of the plan generated by ... GBFS with the FF heuristic" (Sec. 5). GLAM: max_steps 64 or 128 in the released code.
+% RAP: "10 or 20 MCTS iterations, depth limit = task length". EmbodiedBench: "The maximum number of environment steps is 30 for high-level tasks,
+% 20 for EB-Navigation, and 15 for EB-Manipulation" (Sec. 5.1).
 
 % Paragraph purpose: Give the frozen audit protocol and its results.
 The frozen protocol takes the first 200 test variations under the paper's 100-step limit with five random-valid seeds (17, 5077, 6131, 7409, and 8527), and ten re-run episodes are byte-identical. The reference completes 183 of 200 (0.915), including 3/9 boil, 6/9 melt, 4/9 freeze, 6/9 change-state, 135/135 use-thermometer, and 29/29 measure-melting-point variations, and falls short only where 17 of the 36 Matter variations need more than 100 moves. Random-valid completes none, and 997 of its 1000 episodes end in a failure score.

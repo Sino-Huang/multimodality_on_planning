@@ -15,11 +15,12 @@
 % STATUS: #131 review 22 (2026-09-25). Finding 91: panel topic sentence scoped to the validation and held-out panels, unscreened panel skips the screen. Finding 96: "the reused 9-task panel" throughout. Finding 80 lesser: session labels removed from comments. Cold read: "oracle-assisted" glossed, modality-matrix opener. No number added, moved, or deleted.
 % STATUS: #131 round 8 (2026-09-25). Tightened D1-D7 to the r8 outline; corpus sentence (58 bit-exact) cut, appendix keeps it; McNemar/Holm sentence moved to the Statistics appendix (Transfer tests); exploratory-follow-ups paragraph reduced to two sentences inside new D8, whose other clauses the Gate Receipts appendix holds (BFWS-to-BFS overlap sentence moved there); D8 receives Results 5.1 (label sec:results-gates, its comments copied); Box 1 tightened with step spacing. No number added, changed, or recomputed.
 % STATUS: #131 round 8 Wave 4 (2026-09-25). Consistency pass: the modality matrix is named the expanded baseline and its cells defined (one algorithm under one observation); Box 1 step 2 glosses "search coverage". No number added, moved, or deleted.
+% STATUS: #131 round 8 consolidation (2026-09-25). Findings 98, 99, 100, 109, 110, 111, 112(c), cold-read-C Box 1 self-containment and ledger shortening. Section 4 opener repaired (111); "modality matrix, or" dropped (111); D8 shortened to one sentence plus single-seed clause, 1152/1152 and 68.5244 moved to Gate Receipts appendix (cold read C); Box 1 placement [t]->[b] (110); Box 1 steps revised for self-containment (98, 99, cold read C); step 4 comment fixed (112c); at-risk row scoped to additive cells (98); Inputs drop "The budget unit"; failure branch added. No number added, changed, or recomputed.
 \section{Experimental Design}
 \label{sec:design}
 
 % Paragraph purpose: Define the two oracle-assisted controls as bounds and pin the random-valid sampler under each contract.
-Every learned result is read against two oracle-assisted controls, which read the runtime's valid-operation list or the reference trace, never as an ability of those controls. The exact reference runs the declared algorithm and defines the imitation target. Where a control saturates, the gain is unmeasurable rather than zero. Under the enumeration contract, random-valid is uniform over valid operations, drawing one listed candidate per decision with a seeded generator and no retry or repair. Candidates are successor rows under additive search, non-duplicate evaluated successors at an admissible frontier position under BFWS, and unvisited successors under BFS, else a frontier-retire operation. Under the choice-frontier contract, random-valid is uniform over the offered frontier, so each random-valid number is read under its own contract.
+Every learned result is read against two oracle-assisted controls, which read the runtime's valid-operation list or the reference trace, so their scores are bounds, not abilities. The exact reference runs the declared algorithm and defines the imitation target. Where a control saturates, the gain is unmeasurable rather than zero. Under the enumeration contract, random-valid is uniform over valid operations, drawing one listed candidate per decision with a seeded generator and no retry or repair. Candidates are successor rows under additive search, non-duplicate evaluated successors at an admissible frontier position under BFWS, and unvisited successors under BFS, else a frontier-retire operation. Under the choice-frontier contract, random-valid is uniform over the offered frontier states.
 % Evidence (executed code, read-only): examples/planning_benchmark_slice/visual_episode.py L356 (random.Random(seed)) and
 % reference_output L403-433 (dispatch; BFS: random.choice over successor_candidates with visited false, else retire_frontier);
 % best_first_development.py L519-521 random_valid_best_first_output (generator.randrange over successor_candidates.rows);
@@ -56,6 +57,45 @@ The held-out panel (P2 in figures and tables) and the unscreened panel (P2u) wer
 % L36, L48-50, L55-57; held-out manifest never read (issue-139-closeout.md L11, L58). "first 40 seeds" per issue-139-closeout.md L58
 % (review 20 finding 73); held-out definition copied from the Introduction/Results in round 7.
 
+% Paragraph purpose: State the validate-before-score procedure as a checklist a benchmark builder can apply (Box 1, round 8 primary contribution).
+% Round 8: drafted by Main in Wave 1 from local://r8-outline.md; refined by the Wave-2 Protocol writer. Every line restates a rule or outcome already in the body.
+\begin{protocolbox}[!t]
+\caption{Validate before score. A four-step procedure that admits random-valid as a choice control for a search-execution interface and validates the success measure before any policy is scored. Each step names the Results subsection that applies it.}
+\label{box:procedure}
+\fbox{\parbox{0.97\linewidth}{\small
+\textbf{Inputs.} The interface as executed, with its candidate set per decision and its ordering and tie-break rule. The exact reference. Random-valid, seeded, with no retry or repair.
+
+\smallskip
+\textbf{1. Identity audit.} Run random-valid and the exact reference on the same tasks and seeds and compare them decision by decision. Report the divergent fraction and the first divergence. Success reads as choice only where decisions diverge and random-valid's success falls below the reference's. Otherwise it measures validity, which saturation alone cannot reveal (Section~\ref{sec:results-identity}).
+
+\smallskip
+\textbf{2. Budget check.} Apply the compute-matched-baseline principle \citep{li2019random} when a zero-token control exists. Count the budget in decisions or expansions, the units a zero-token control spends, and report control success at the reference's count and at twice it. The check fails if the control saturates in its native unit but not when counted in decisions (Section~\ref{sec:results-external}).
+
+\smallskip
+\textbf{3. Ladder.} Given a reference that computes a priority order, and on a fresh panel frozen before evaluation, pre-register the order exact reference, $\epsilon$ 0.25, 0.50, 0.75, random-valid, where each exact-$\epsilon$ rung replaces a fraction $\epsilon$ of reference decisions with random-valid choices. M1 is the area under the solve-versus-budget curve up to twice the reference's expansion count. The ladder passes only if all four adjacent paired task-clustered 95\% lower bounds are positive along the $\epsilon$ axis. The rungs are privileged, so a pass validates the measurement, not a policy (Section~\ref{sec:results-ladder}).
+
+\smallskip
+\textbf{4. Report.} Give the policy's difference from random-valid with a paired task-clustered interval and a pre-registered margin (margin 0.05 here), its ladder position, per-task signs, screened and unscreened panels, and training seeds. Non-separation from a rung is not equivalence (Section~\ref{sec:results-adapter}).
+
+\smallskip
+\textbf{Where a step was at risk (one audited instance each).} Complete-set submission with a priority heap and sorted tie-breaking failed step~1 (our enumeration contract's additive cells, 48/48). Per-step choice among valid actions passed step~1 (ScienceWorld). Model-scored candidates on a frontier that keeps every alternative, under a token budget, failed step~2 by construction (LLM-First Search).
+
+\smallskip
+\textbf{If a step fails,} change the contract (for example, let the policy choose the frontier state, or break ties in submission order) and audit again.
+}}
+% Evidence (step 3 rule): #135 docs/experiments/choice-frontier/issue-135-protocol.md (commit f823850 before task generation); outputs/choice-frontier/v2/metrics/analysis.json
+% instrument_validity.rule (PASS: all four paired task-cluster 95% lower bounds > 0), .tasks 12, .bootstrap draws 10000 / seed 133 (E135-01..03).
+% Evidence (step 3 rungs; copied from the Figure 1 caption comment, Introduction): outputs/choice-frontier/v4/panels/metrics/analysis.json
+% arms.p135.exact_reference.m1 (0.875), arms.p135.exact-eps-0.25.m1 (0.793), arms.p135.exact-eps-0.50.m1 (0.603),
+% arms.p135.exact-eps-0.75.m1 (0.347), arms.p135.random_valid.m1 (0.021), arms.p135.learned_adapter_seed_mean.m1 (0.306); intervals at arms.p135.<arm>.ci95.
+% Evidence (step 4 margin): outputs/choice-frontier/v3/metrics/analysis.json primary.materiality_margin 0.05,
+% primary.equivalence_margin 0.05 (E136-02, E136-04, E136-05); configs/experiments/choice-frontier-v3/protocol.json
+% analysis.materiality_margin 0.05 (E136-04).
+% Evidence (48/48): outputs/native-arms/v1/identity-audit.json pairs_identical 48 of pairs_checked 48; outputs/native-arms/v1/identity-audit-submission-order.json rules.sorted_candidate_order.pairs_identical 48 (#134 E134-03).
+% Evidence (ScienceWorld passes step 1): outputs/external-audit/v1/scienceworld/identity-audit.json pairs_divergent 1000 of pairs_checked 1000, verdict CHOICE_REGISTERED (#137).
+% Evidence (LLM-First Search, step 2 by construction): outputs/external-audit/v2/lfs/identity-audit.json paper_budget.verdict SATURATED; matched_decision_budget.verdict CHOICE_REGISTERED; issue-142-protocol.md L166-167 (probe 100/100) (#142).
+\end{protocolbox}
+
 % Paragraph purpose: State the pre-registered ladder and adapter rules and the later frozen protocols.
 Each choice-frontier result has a rule frozen before its outcome. The ladder test passes only if all four adjacent paired 95\% lower bounds are positive along the exact reference, the exact-$\epsilon$ rungs, and random-valid. Its intervals are task-clustered, resampling whole tasks (seed 133, 10,000 draws). The adapter rule requires adapter minus random-valid M1 to be positive with a materiality margin of 0.05 and sets an equivalence margin of $\pm 0.05$. Later frozen protocols cover three seeds, two fresh panels, a zero-shot policy, and a second external audit.
 % Evidence: #135 docs/experiments/choice-frontier/issue-135-protocol.md (commit f823850 before task generation); outputs/choice-frontier/v2/metrics/analysis.json
@@ -74,13 +114,13 @@ The enumeration-contract study compares process SFT with the pretrained base, SF
 % Evidence: 336 GPU-hour cap per docs/experiments/expanded-study/issue-127-closeout.md (68.5244 / 336) and Table tab:appendix-receipts.
 
 % Paragraph purpose: Fix the matrix panel, budget, termination, and the analysis contract.
-The modality matrix, or expanded baseline, is the enumeration-contract evaluation grid of text, visual, and multimodal observations over 24 tasks from 12 domains, giving 288 episodes per arm. Each of its cells is one algorithm under one observation. Budgets count decision calls, charge invalid operations, cap adapters at twice the exact reference's count, and price the base at one call. An episode ends at its first invalid emission and counts only after independent replay. Contrasts use a paired whole-instance bootstrap (10,000 resamples, seed 1729, Statistics appendix).
+The expanded baseline is the enumeration-contract evaluation grid of text, visual, and multimodal observations over 24 tasks from 12 domains, giving 288 episodes per arm. Each of its cells is one algorithm under one observation. Budgets count decision calls, charge invalid operations, cap adapters at twice the exact reference's count, and price the base at one call. An episode ends at its first invalid emission and counts only after independent replay. Contrasts use a paired whole-instance bootstrap (10,000 resamples, seed 1729, Statistics appendix).
 % Evidence: 24 tasks, 12 domains, 288 episodes per arm per docs/experiments/expanded-study/synthesis-v1/README.md and baseline-summary.csv;
 % bootstrap 10,000 resamples, seed 1729 per synthesis-v1/baseline-contrasts.csv (Table tab:results-contrasts caption).
 % Round 8: the McNemar/Holm sentence (36 comparisons) moved to the Statistics appendix, Transfer tests paragraph, with its comment.
 
-% Paragraph purpose: State that every run reconciles with its ledger and replay, point to the receipts, and give the follow-up and seed scope.
-Every executed run reconciles with its ledger and independent replay. All 1,152/1,152 baseline episodes were independently replayed, and the program spent 68.5244 of its 336 GPU-hour cap. Follow-up windows sit on separate ledgers that are never summed, and the frozen 45-task final evaluation was never accessed (Gate Receipts appendix, Appendix~\ref{app:results-gates}, Table~\ref{tab:appendix-receipts}). Exploratory follow-ups on the reused 9-task panel appear only in the appendix, each frozen before its own first outcome but after earlier outcomes on the same tasks. Every enumeration-contract learned cell is single-seed except two replication cells (seeds 17/29/71).
+% Paragraph purpose: State that every run reconciles with its ledger and replay, point to the receipts, and give the seed scope.
+Every executed run reconciles with its ledger and independent replay (Gate Receipts appendix, Appendix~\ref{app:results-gates}, Table~\ref{tab:appendix-receipts}). The frozen 45-task final evaluation was never accessed. Every enumeration-contract learned cell is single-seed except two replication cells (seeds 17/29/71).
 \label{sec:results-gates}
 % Round 8: this paragraph receives Results 5.1 (Gate Receipts and Executed Scope); its comments are copied below. The v1 cost-gate
 % (VALID_STOP) sentence and the BFS-pilot/BFWS-gate sentence are stated in the Gate Receipts appendix (app:results-gates), not repeated here.
@@ -115,31 +155,3 @@ Every executed run reconciles with its ledger and independent replay. All 1,152/
 % Paragraph purpose: Point to Box 1 as the procedure the Results follow.
 Box~\ref{box:procedure} collects these rules into one procedure, validate before score, and each Results subsection reports one of its steps.
 
-% Paragraph purpose: State the validate-before-score procedure as a checklist a benchmark builder can apply (Box 1, round 8 primary contribution).
-% Round 8: drafted by Main in Wave 1 from local://r8-outline.md; refined by the Wave-2 Protocol writer. Every line restates a rule or outcome already in the body.
-\begin{protocolbox}[t]
-\caption{Validate before score. A four-step procedure that admits random-valid as a choice control for a search-execution interface and validates the success measure before any policy is scored. Each step names the Results subsection that applies it.}
-\label{box:procedure}
-\fbox{\parbox{0.97\linewidth}{\small
-\textbf{Inputs.} The interface as executed, with its candidate set per decision and its ordering and tie-break rule. The exact reference. Random-valid, seeded, with no retry or repair. The budget unit.
-\par\smallskip
-\textbf{1. Identity audit.} Run random-valid and the exact reference on the same tasks and seeds and compare them decision by decision. The interface passes on any divergent pair. Report the divergent pairs and the first divergence. A failure means success measures validity, which saturation alone cannot reveal (Section~\ref{sec:results-identity}).
-\par\smallskip
-\textbf{2. Budget check.} Apply the compute-matched-baseline principle \citep{li2019random}. Count the budget in decisions or expansions, the units a zero-token control spends, and report control success at the reference's count and at twice it. A failure means success measures search coverage, how far the control can search (Section~\ref{sec:results-external}).
-\par\smallskip
-\textbf{3. Ladder.} On a fresh panel frozen before evaluation, pre-register the order exact reference, $\epsilon$ 0.25, 0.50, 0.75, random-valid. The ladder passes only if all four adjacent paired task-clustered 95\% lower bounds are positive. The rungs are privileged, so a pass validates the measurement, not a policy (Section~\ref{sec:results-ladder}).
-\par\smallskip
-\textbf{4. Report.} Give the policy's difference from random-valid with a paired task-clustered interval and a pre-registered margin, its ladder position, per-task signs, screened and unscreened panels, and training seeds. Non-separation from a rung is not equivalence (Section~\ref{sec:results-adapter}).
-\par\smallskip
-\textbf{Where a step was at risk (one audited instance each).} Complete-set submission with a priority heap and sorted tie-breaking failed step 1 (our enumeration contract, 48/48). Per-step choice among valid actions passed step 1 (ScienceWorld). Model-scored candidates on a frontier that keeps every alternative, under a token budget, failed step 2 by construction (LLM-First Search).
-}}
-% Evidence (step 3 rule): #135 docs/experiments/choice-frontier/issue-135-protocol.md (commit f823850 before task generation); outputs/choice-frontier/v2/metrics/analysis.json
-% instrument_validity.rule (PASS: all four paired task-cluster 95% lower bounds > 0), .tasks 12, .bootstrap draws 10000 / seed 133 (E135-01..03).
-% Evidence (step 3 rungs; copied from the Figure 1 caption comment, Introduction): outputs/choice-frontier/v4/panels/metrics/analysis.json
-% arms.p135.exact_reference.m1 (0.875), arms.p135.exact-eps-0.25.m1 (0.793), arms.p135.exact-eps-0.50.m1 (0.603),
-% arms.p135.exact-eps-0.75.m1 (0.347), arms.p135.random_valid.m1 (0.021), arms.p135.learned_adapter_seed_mean.m1 (0.306); intervals at arms.p135.<arm>.ci95.
-% Evidence (step 4 margin): #136 configs/experiments/choice-frontier-v3/protocol.json primary.materiality_margin 0.05, primary.equivalence_margin 0.05 (E136-02, E136-04, E136-05).
-% Evidence (48/48): outputs/native-arms/v1/identity-audit.json pairs_identical 48 of pairs_checked 48; outputs/native-arms/v1/identity-audit-submission-order.json rules.sorted_candidate_order.pairs_identical 48 (#134 E134-03).
-% Evidence (ScienceWorld passes step 1): outputs/external-audit/v1/scienceworld/identity-audit.json pairs_divergent 1000 of pairs_checked 1000, verdict CHOICE_REGISTERED (#137).
-% Evidence (LLM-First Search, step 2 by construction): outputs/external-audit/v2/lfs/identity-audit.json paper_budget.verdict SATURATED; matched_decision_budget.verdict CHOICE_REGISTERED; issue-142-protocol.md L166-167 (probe 100/100) (#142).
-\end{protocolbox}

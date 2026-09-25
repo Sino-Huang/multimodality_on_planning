@@ -74,7 +74,7 @@ for label, k, exp, _ in LADDER:
 
 enum_txt = [f"{enum['pairs_identical']}/{enum['pairs_checked']} additive pairs identical"
             f" ({enum_tasks} tasks)",
-            f"submission-order serials: {sub_div}/{sub_n} divergent"]
+            f"submission-order ties: {sub_div}/{sub_n} divergent"]
 cf_txt = f"{cf_id['pairs_divergent']}/{cf_id['pairs_checked']} pairs divergent ({cf_tasks} tasks)"
 LADDER_TITLE = "validation M1, adapter = 3-seed mean"
 
@@ -116,7 +116,7 @@ def takeaway(ax, text, c):
 
 fig, axes = plt.subplots(1, 2, figsize=(5.5, 2.15))
 panel(axes[0], "(a) Enumeration contract", "Grounded\ncandidate\nmenu", "#DCEBF5",
-      "one op", "Sorted-serial\nfrontier\n(order-invariant)", BLUE)
+      "one op", "Priority heap\n(sorted ties,\norder-invariant)", BLUE)
 axes[0].text(0.50, 0.44, enum_txt[0], ha="center", va="center", fontsize=8)
 axes[0].text(0.50, 0.30, enum_txt[1], ha="center", va="center", fontsize=8)
 axes[0].text(0.50, 0.17, "additive cells, sorted ties", ha="center", va="center", fontsize=7.5, color=BLUE)
@@ -136,13 +136,13 @@ ins.set_xlim(-0.30, 0.92); ins.set_ylim(-1, 1); ins.axis("off")
 ins.plot([0, 0.9], [0, 0], color="#BBBBBB", lw=0.6, zorder=0)
 ins.axvline(m1["exact-eps-0.75"], ymin=0.1, ymax=0.5, color=GREY, lw=0.7, ls=":", zorder=1)
 # In-axis labels are shortened so the six labels do not collide on a ~2.3 in axis.
-SHORT = {"exact_reference": "exact ref.", "exact-eps-0.25": "exact-\u03b5 0.25",
+SHORT = {"exact_reference": "exact", "exact-eps-0.25": "\u03b5 0.25",
          "exact-eps-0.50": "\u03b5 0.50", "exact-eps-0.75": "\u03b5 0.75",
          "random_valid": "random-valid", "learned_adapter_seed_mean": "adapter"}
 # key -> (label above the axis?, horizontal alignment at the point)
 PLACE = {"random_valid": (None, "right"), "learned_adapter_seed_mean": (False, "right"),
          "exact-eps-0.75": (True, "center"), "exact-eps-0.50": (True, "right"),
-         "exact-eps-0.25": (False, "center"), "exact_reference": (True, "right")}
+         "exact-eps-0.25": (False, "center"), "exact_reference": (True, "center")}
 for label, k, _, ci in LADDER:
     m = m1[k]
     if ci is None:
@@ -155,7 +155,8 @@ for label, k, _, ci in LADDER:
         ins.annotate(f"{SHORT[k]}\n{f3(m)}", (m, 0), xytext=(-5, 0), textcoords="offset points",
                      ha=ha, va="center", fontsize=7, linespacing=1.0)
         continue
-    ins.annotate(f"{SHORT[k]}\n{f3(m)}", (m, 0), xytext=(0, 4 if up else -4),
+    dx = -3 if k == "exact_reference" else 0
+    ins.annotate(f"{SHORT[k]}\n{f3(m)}", (m, 0), xytext=(dx, 4 if up else -4),
                  textcoords="offset points", ha=ha, va="bottom" if up else "top",
                  fontsize=7, linespacing=1.0, weight="bold" if ci is None else "normal")
 
