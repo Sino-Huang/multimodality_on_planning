@@ -87,3 +87,32 @@ Exploratory follow-ups on the reused 9-task panel are reported only in the appen
 % shared task identities. Round-2 search (2026-09-23) found no pinned post-#126 retention manifest. Count stays open under #131 W4.
 % Status 2026-09-21: issues #96/#98/#102/#103 CLOSED (supervisor decision, v1 scope withdrawn); only reduced v2 scopes executed.
 % Held-out final primary evaluation: no open ticket; stated in prose with no visible marker per the round-2 TODO convention.
+
+% Paragraph purpose: Point to Box 1 as the procedure the Results follow.
+Box~\ref{box:procedure} collects these rules into one procedure, validate before score, and each Results subsection reports one of its steps.
+
+% Paragraph purpose: State the validate-before-score procedure as a checklist a benchmark builder can apply (Box 1, round 8 primary contribution).
+% Round 8: drafted by Main in Wave 1 from local://r8-outline.md; refined by the Wave-2 Protocol writer. Every line restates a rule or outcome already in the body.
+\begin{protocolbox}[t]
+\caption{Validate before score. The procedure admits random-valid as a choice control and validates the success measure before any policy is scored. Each step cites the result that exercises it.}
+\label{box:procedure}
+\fbox{\parbox{0.97\linewidth}{\small
+\textbf{Inputs.} The interface as executed, including its candidate set per decision and its ordering and tie-break rule. The exact reference. Random-valid, seeded, with no retry or repair. The budget unit.
+
+\textbf{1. Identity audit.} Run random-valid and the exact reference on the same tasks and seeds and compare them decision by decision. The interface passes on any divergent pair. Report divergent pairs and the first divergence. A failure means success measures validity, and saturation alone cannot reveal it (Section~\ref{sec:results-identity}).
+
+\textbf{2. Budget check.} Apply the compute-matched-baseline principle \citep{li2019random}. Count the budget in decisions or expansions, the units a zero-token control spends, and report control success at the reference's count and at twice it. A failure means success measures search coverage (Section~\ref{sec:results-external}).
+
+\textbf{3. Ladder.} On a fresh panel frozen before evaluation, pre-register the order exact reference, $\epsilon$ 0.25, 0.50, 0.75, random-valid. It passes only if all four adjacent paired task-clustered 95\% lower bounds are positive. The rungs are privileged, so a pass validates the measurement, not a policy (Section~\ref{sec:results-ladder}).
+
+\textbf{4. Report.} The policy's difference from random-valid with a paired task-clustered interval and a pre-registered margin, its ladder position, per-task signs, screened and unscreened panels, and training seeds. Non-separation from a rung is not equivalence (Section~\ref{sec:results-adapter}).
+
+\textbf{Where each step was at risk (one audited instance each).} Complete-set submission with a priority heap and sorted tie-breaking failed step 1 (our enumeration contract, 48/48). Per-step choice among valid actions passed step 1 (ScienceWorld). Model-scored candidates on a frontier that keeps every alternative, under a token budget, failed step 2 by construction (LLM-First Search).
+}}
+% Evidence (step 3 rule): #135 docs/experiments/choice-frontier/issue-135-protocol.md (commit f823850 before task generation); outputs/choice-frontier/v2/metrics/analysis.json
+% instrument_validity.rule (PASS: all four paired task-cluster 95% lower bounds > 0), .tasks 12, .bootstrap draws 10000 / seed 133 (E135-01..03).
+% Evidence (step 4 margin): #136 configs/experiments/choice-frontier-v3/protocol.json primary.materiality_margin 0.05, primary.equivalence_margin 0.05 (E136-02, E136-04, E136-05).
+% Evidence (48/48): outputs/native-arms/v1/identity-audit.json pairs_identical 48 of pairs_checked 48; outputs/native-arms/v1/identity-audit-submission-order.json rules.sorted_candidate_order.pairs_identical 48 (#134 E134-03).
+% Evidence (ScienceWorld passes step 1): outputs/external-audit/v1/scienceworld/identity-audit.json pairs_divergent 1000 of pairs_checked 1000, verdict CHOICE_REGISTERED (#137).
+% Evidence (LLM-First Search, step 2 by construction): outputs/external-audit/v2/lfs/identity-audit.json paper_budget.verdict SATURATED; matched_decision_budget.verdict CHOICE_REGISTERED; issue-142-protocol.md L166-167 (probe 100/100) (#142).
+\end{protocolbox}

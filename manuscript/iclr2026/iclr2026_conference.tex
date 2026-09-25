@@ -16,7 +16,18 @@
 \setlength{\abovecaptionskip}{4pt}
 \setlength{\belowcaptionskip}{2pt}
 
-\title{Separating Choice from Validity: A Validated Search-Choice Measurement for Vision-Language Search Policies}
+% Round 8 (2026-09-25): a "Box" float for the Box 1 procedure, built from LaTeX kernel commands only
+% (the local TeX tree has no float/caption package). Float type 4 is distinct from figure (1) and table (2).
+\newcounter{protocolbox}
+\makeatletter
+\newcommand{\fps@protocolbox}{t}
+\newcommand{\ftype@protocolbox}{4}
+\newcommand{\ext@protocolbox}{lob}
+\newcommand{\fnum@protocolbox}{Box~\theprotocolbox}
+\newenvironment{protocolbox}{\@float{protocolbox}}{\end@float}
+\makeatother
+
+\title{Can Vision-Language Models Learn to Execute Classical Search Algorithms?}
 
 % Authors must not appear in the submitted version. They should be hidden
 % as long as the \iclrfinalcopy macro remains commented out below.
