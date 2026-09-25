@@ -34,6 +34,469 @@ Single record of every review the manuscript has received: what draft state it r
 | 19 | 2026-09-23 | paper-reviewer (area-chair tier) | Round-3 re-review at `1281c1b` (clean tree): nine section files, hub, six bibs, log/blg, rendered 29-page PDF, both figure assets and scripts, numbers re-checked against the pinned JSONs, CSVs, and ledgers, and a sample of the new `%` Evidence comments checked for path and key | WEAK REJECT (0 CRITICAL, 1 MAJOR, 8 MINOR) | CLOSED (`59e8714`; 49 and 60 closed with #134; 40 WONTFIX) |
 | 20 | 2026-09-25 | paper-reviewer (area-chair tier) | Round-5 re-review at `0277de7` (clean tree): rendered 35-page PDF, nine section files, hub, six bibs, log/blg, all three figure scripts and PNGs (28/28 fig_ladder asserts re-run), every round-5 number and all cells of Tables 19-21 re-derived from the pinned #138-#140 JSONs and ledgers, 16 `%` Evidence comments checked | WEAK REJECT, rating 4 (S 3 / P 2 / C 2, confidence 4); 0 CRITICAL, 2 MAJOR, 10 MINOR | CLOSED (70-80 `e7346aa`; 69 `e7346aa` + `e2eb87c` after #141/#142; 40 WONTFIX) |
 | 21 | 2026-09-25 | paper-reviewer (area-chair tier) | Round-6 re-review at `ba7d4d2` (clean tree): rendered 37-page PDF, word diffs since `0277de7`, figures and scripts (30/30 fig_ladder checks re-run), every round-6 number and all cells of Tables 22 and 24 re-derived from the #141/#142 JSONs and ledgers, 14 `%` Evidence comments checked | WEAK REJECT, rating 4 (S 3 / P 2 / C 2, confidence 4); 0 CRITICAL, 1 MAJOR, 5 MINOR | CLOSED (`58e661e`; 40 WONTFIX; experiments filed as #143/#144) |
+| 22 | 2026-09-25 | paper-reviewer (area-chair tier) | Round-7 re-review at 3c9b434 (clean tree): readability rewrite since 7bf48aa, rendered 38-page PDF, numeric-token diff of all 11 .tex files against 7bf48aa, 31 rendered numbers re-derived, both figure scripts re-run (12 + 30 checks), 18 % Evidence comments resolved, log/blg | WEAK REJECT, rating 4 (S 3 / P 3 / C 2, confidence 4); 0 CRITICAL, 2 MAJOR, 12 MINOR | OPEN |
+| B | 2026-09-25 | paper-reviewer (cold read) | Round-7 10-minute skim test at `3c9b434`: title, abstract, Figure 1, first sentence of every body paragraph, contributions, Conclusion | no rating; takeaway, skim losses, undefined terms, three changes | OPEN |
+
+## Live fixlist — review 22 (2026-09-25)
+
+
+**Verdict:** WEAK REJECT. 0 CRITICAL, 2 MAJOR, 12 MINOR.
+- MAJOR: findings 85 and 86.
+- MINOR: new findings 87-96, the regressed part of review-21 finding 82, and the remainder of finding 80.
+- Fix class: MEANING for 88 only. Everything else is WORDING: the fix puts back a scope or caveat that round 7 dropped, and no approved claim changes.
+- Finding 40 was replaced in round 7 by author decision. Its compliance risk is assessed separately below, outside the rating and the count.
+
+The number set is unchanged. Round 7 added no token and dropped none. All 31 rendered numbers I re-derived match their pinned artifacts. Both figure scripts pass. The build is clean, and the main text is 8 pages.
+
+Most damaging issue: **finding 85** (Axis 1 with Axis 4). The redrawn Figure 1 teaser says "success measures validity" for the whole enumeration contract. The paper's own evidence limits that to the additive cells under sorted tie-breaking. The same box of the figure prints the counterexample ("submission-order serials: 19/48 divergent"), and Section 5.2 says the BFS and BFWS cells of that contract register choice.
+
+Genre: BENCHMARK (+ FINDINGS)
+
+Δbelief: The findings, unchanged from review 21:
+- On the authors' additive best-first runtime, the identity audit returns both verdicts: 48/48 pairs identical under sorted tie-breaking, 19/48 divergent under submission order.
+- A choice-frontier M1 passes a pre-registered exact-ε ladder on a validation panel and a screened held-out panel.
+- An imitation-trained, scene-only VLM adapter beats uniform frontier choice (D3 +0.285, held-out +0.416, unscreened +0.149). It is interval-separated above the ε-0.75 rung only on the 11-task held-out panel.
+- A zero-shot base model scores as uniform choice on the validation panel.
+- On LLM-First Search (LFS), a zero-token chooser solves every task by construction.
+
+The skimmer's update is "check that decisions diverge and that the budget binds decisions before reading random-valid success as choice". It is the same as review 21's. Round 7 promoted it to the thesis, but its second half is the compute-matched-baseline principle.
+
+Ledger: Closed: 81, 83, 84, 75 remainder, 80 (i) and (ii) · Regressed: 82* (part e reverted; part d fixed in the appendix only) · Still open: 80 (iii)*, plus new instances of the same pattern · Wontfix: none (40 replaced by author decision, assessed below) · Withdrawn: none · Not rechecked: none · New: 85-96
+
+**Reviewer summary:**
+
+> This round-7 re-review covers HEAD `3c9b434` on a clean tree: the readability and expert-style rewrite `c00ea8b..3c9b434`. I read:
+> - all 38 pages of the rendered PDF (`pdftotext -layout`), and the word-level diff of every section file against `7bf48aa`;
+> - the redrawn `fig_contracts.py` and its PNG, and the `CONTEXT.md` prose-name table;
+> - the round-7 changelog entry and `local://style-sheet.md`.
+>
+> Round 7 made no number change: 0 numeric tokens appear in HEAD that are absent from `7bf48aa`, and 0 were lost. I re-derived 31 rendered numbers from the pinned artifacts, all of which are md5-identical to review 21's, and all 31 match. Both figure scripts pass their checks, run read-only from temporary copies. The build is clean, and the Conclusion now ends on p.8, which leaves a page of slack.
+>
+> The rewrite achieves most of its readability targets:
+> - mean sentence length 17.2 words, down from 25.0;
+> - one sentence over 40 words, down from 25;
+> - no paragraph over 6 sentences;
+> - an abstract of about 205 words, down from 327.
+>
+> The compression moved meaning in five places, all new in round 7:
+> - Figure 1's takeaway "success measures validity" drops its scope (85).
+> - The Intro and Discussion topic sentences say the external audits show both checks are needed, when both external interfaces passed the identity audit at once (86).
+> - Contribution 4 claims "the budget check" as a contribution (88).
+> - The abstract drops the caveats that `CONTEXT.md` requires there (89).
+> - The zero-shot topic sentence reverts review 21's 82(e) fix.
+>
+> The rating does not move. The two MAJOR items are cheap wording fixes. The contribution-side reasons of review 21 (one non-trivial realisable policy, one backbone, no modality contrast under the choice-frontier contract) are untouched, because round 7 ran no experiment.
+
+### Rating
+
+**Rating: 4** (ICLR 2026 scale {0, 2, 4, 6, 8, 10}; 4 = marginally below the acceptance threshold)
+
+- **Soundness: 3** (good). Nothing changed in the evidence:
+  - The endpoints are pre-registered, the intervals are paired and task-clustered, and all episodes are replayed.
+  - Failures are reported: #134 PREDICTION_FAILED, DAgger NOT_SEPARATED, the zero-shot held-out verdict INCONCLUSIVE, and InternVL not run.
+  - The LFS result is now honestly framed as by construction.
+  - The one separated ladder position still rests on 11 task clusters.
+  - 85 and 86 are overclaims in prose, not evidence defects.
+- **Presentation: 3** (good; up from 2). The measured targets are mostly met: mean sentence 17.2 words, 1 sentence over 40, no paragraph over 6 sentences, and the teaser figure is in the Introduction. The claim-first topic sentences make the paper skimmable. Two things keep it from 4:
+  - The compression slipped in five places (85, 86, 88, 89, and the 82 regression). "Saturates the token caps" states the opposite of the mechanism (87).
+  - The main text has no table, so the three-interval ladder-position sentence is printed three times (96).
+- **Contribution: 2** (fair). The same as review 21:
+  - The identity audit is a clean, cheap check.
+  - The ladder-validated measurement is careful.
+  - The only non-trivial policy it ranks is the authors' own imitation adapter.
+  - The "vision-language" framing has no modality contrast under the choice-frontier contract.
+  - The budget half of the thesis is a known principle, which the paper itself cites.
+- **Confidence: 4.** I re-derived the numbers and re-ran both figure scripts myself. Published-practice anchors: the ICLR 2026 LLM policy (https://blog.iclr.cc/2025/08/26/policies-on-large-language-model-usage-at-iclr-2026/, fetched 2026-09-25), and Li & Talwalkar (Semantic Scholar 35a59bd09974c7fc78cf681f77f7301e180fd23c; https://arxiv.org/abs/1902.07638).
+
+**Strongest reasons for acceptance:**
+- The evaluation discipline is rare for the area:
+  - protocols were frozen before outcomes, and amendments are disclosed;
+  - every episode was independently replayed;
+  - failed predictions are reported where they occur (abstract p.1 L016-017, 5.2 p.5 L253-254, Limitations p.8 L404).
+- The identity audit returns both verdicts on one runtime. The instrument does not credit an untrained realisable policy: zero-shot D3 is +0.005 [−0.025, +0.044].
+- The paper is now readable by a first-time reviewer: claim-first paragraphs, a thesis teaser in the Introduction, and a short abstract.
+
+**Strongest reasons against acceptance:**
+- (i) The instrument has ordered exactly one non-trivial realisable policy, the authors' imitation adapter. The second policy is at chance (5.4 p.6 L316-321).
+- (ii) The learned result is small and fragile. It is separated above the ε-0.75 rung only on the 11-task held-out panel, with 8 positive and 3 negative per-task differences. The unscreened gain rests on 4 of 12 tasks.
+- (iii) The title's "Vision-Language" has no choice-frontier modality evidence, and the body never names the observation the adapter sees (94).
+- (iv) The thesis's second check is the compute-matched-baseline principle. Its only instance here holds by construction (88).
+
+**What would move the rating up one step (4 → 6):**
+1. Fix 85 and 86 (zero experiments, space-neutral).
+2. Run #143: one trained second policy (a one-seed InternVL3.5 cell on the validation and held-out panels). This would show that M1 plus the ladder orders two trained choosers.
+3. Run #144, the most value-changing: a modality contrast under the choice-frontier contract, for example a text-rendered menu against the scene-only observation with the same recipe.
+
+The page of slack now available holds either result without cuts.
+
+**Finding 40 (compliance, outside the rating and the count):** App Y p.37 L1985-1988 (appendix.tex, the Use of LLM Statement) now reads: "Large language model agents drafted and revised the manuscript text and wrote the figure scripts under the authors' direction. An agent pass searched for citations, and a human verified every cited source. Agent reviewers ran repeated review rounds on the drafts. The authors verified every reported number against its pinned artifact and take full responsibility for the content."
+- **What it resolves.** ICLR 2026 Policy 1 requires that "Any use of an LLM must be disclosed", and the paper-writing case asks authors to "explicitly state how they used LLMs". The statement now truthfully covers drafting, figure code, citation search, and agent reviewing. It closes the understatement that review 21 recorded ("only for polishing language").
+- **What remains.** The policy's research-assistant case ("generating experiment code, and analyzing results") also requires disclosure. The evidence record shows agent involvement beyond the manuscript:
+  - #139 and #140 Amendment A1 were made by the "orchestrator, on the author's behalf" (`docs/experiments/choice-frontier/issue-139-protocol.md` L120; `issue-140-closeout.md` L80).
+  - #141 ran "via orchestrator" (`schedule-v6.json` L6).
+  - The round-5 changelog records that "Main ran the final replay after the executing agent's allowance ran out".
+  - The number checks are attributed to Main ("Main spot-checked 20 rows", "Main re-read both JSONs").
+- **Assessment.** If Main and the orchestrator are LLM agents, the statement still omits experiment execution, protocol amendments, analysis, and evidence compilation. Its sentence "The authors verified every reported number" is then true only if a human also did so.
+- **Fix (one sentence):** "LLM agents also wrote and ran experiment and analysis code, drafted protocols and two pre-evaluation protocol amendments on the authors' behalf, and compiled evidence sheets; the authors approved each protocol before its outcome."
+- The risk falls from desk-reject-grade to minor.
+
+### Build, page count, figures
+
+- **Build:** `iclr2026_conference.log` (16:50:51) is newer than every `.tex`; the newest is appendix.tex at 16:49:28. `.bbl` and `.blg` (16:50:50) are newer than every `.bib`; the newest is related_refs.bib at 12:39:03. Counts:
+  - `^!` errors: 0
+  - LaTeX and package warnings: 0
+  - "undefined": 0
+  - Overfull: 0 (61 underfull)
+  - BibTeX `warning$`: 0
+  - 46 unique `\citation` keys = 46 `\bibitem`s
+  - "Output written on iclr2026_conference.pdf (38 pages, 457401 bytes)"
+
+  `manuscript/manuscript.pdf` (38 pages, a cairo-processed copy) has the same text as the build after whitespace squeezing. **PASS.**
+- **Page count:** the Conclusion ends on **p.8 L423**. The Reproducibility Statement spans p.8 L425 to p.9 L433, and the References start on p.9 L436. The main text is **8 pages** against the 9-page limit. **PASS**, with one page of slack; review 21 had zero.
+- **Visible TODO:** 0 in the rendered text. The source TODOs are all in `%` comments. **PASS.**
+- **fig:contracts (Figure 1, p.2 L054-073):** I re-ran `fig_contracts.py` from a temp copy with the evidence-repo root. It holds 7 `assert` statements covering 12 value checks:
+  - 48/48 from `native-arms/v1/identity-audit.json`;
+  - 19/48 from `…-submission-order.json rules.submission_order`;
+  - 24 additive tasks from `baseline-contrasts.csv`, and pairs = 2 × tasks;
+  - 18/18 and 9 tasks from `choice-frontier/v1/evaluation/identity-audit.json`;
+  - six validation-panel M1 values from `v4/panels arms.p135.*.m1`, half-up.
+
+  **All pass.** The regenerated PNG is pixel-identical to the committed one (1650×645, 0.0 pixels differ). The labels are legible and do not overlap. The "exact ref." label sits above the exact-ε 0.25 dot, which is a minor ambiguity. Content: finding 85.
+- **fig:ladder (Figure 2, p.6 L270-289):** the script and PNG are unchanged since review 21. I re-ran it: **30/30 checks pass**, and the regenerated PNG is pixel-identical (1791×698).
+
+### Numbers re-check
+
+**Number set (item 1).** A throwaway script tokenised every numeric literal outside `%` comments in all 11 `manuscript/iclr2026/*.tex` files at `7bf48aa` and at HEAD. **Tokens present in HEAD but absent from 7bf48aa anywhere: none. Tokens lost: none.**
+
+Per-file new tokens are all moves:
+- 0.306 in introduction.tex: the Figure 1 caption, taken from the appendix three-seed row (`7bf48aa` appendix.tex L1266).
+- 18 in introduction.tex, from results.tex.
+- 0.144 and 0.300 in appendix.tex: the first-adapter last-label contrast, from results.tex L125.
+- 10, 40, and 7 in experimental_design.tex: the screen and panel definitions, from results.tex.
+- 48 in discussion.tex: "48/48 identity failure", a prose-name change.
+
+The figure text values were all present at `7bf48aa`. Limitation: distinct-token comparison cannot detect a number restated in a new context. The rendered re-derivation below covers that.
+
+**Artifacts:** md5-identical to review 21: v4/seeds d5c3828cba0f, v4/panels fa5399d9a0f6, v5 29d08e8bcbea, v6 c2073fc9e4f3, LFS d94f54e35f55, v2 c609286a7e3f, submission-order 6f523484d3d0. Evidence HEAD is `53751f0`, clean. All values are half-up to 3 dp.
+
+| rendered claim | PDF location | artifact : key | match |
+|---|---|---|---|
+| 48/48 identical | p.1 L015, p.2 L045, p.5 L248, Fig. 1 | native-arms/v1/identity-audit.json pairs_identical 48, pairs_checked 48 | yes |
+| 19/48 divergent; 29 identical; decisions 2-50, median 6 | p.1 L016, p.2 L045, p.5 L252-256 | submission-order rules.submission_order {pairs_divergent 19, pairs_identical 29}; first_divergence_decision_index over 19 pairs min 2, max 50, median 6; preregistered_prediction.held false | yes |
+| +0.082 [+0.051, +0.111] | p.2 L077, p.5 L268 | v2 instrument_validity.pairs[0] {0.0823, [0.0510, 0.1115]}, verdict PASS, tasks 12 | yes |
+| 0.875, 0.793, 0.603, 0.347, 0.021; adapter 0.306 | p.5 L266-267, Fig. 1-2 | v4/seeds ladder_position.ladder_m1_135; learned_3seed_mean 0.30556 | yes |
+| D3 +0.285 [+0.140, +0.433], every seed positive | p.1 L021, p.2 L082, p.6 L302-303, p.8 L417 | v4/seeds primary {D3 0.28472, ci95 [0.1403, 0.4326], POSITIVE, per_seed 0.328/0.229/0.297} | yes |
+| +0.416 [+0.250, +0.591] | p.1 L022, p.2 L084, p.6 L304, p.8 L418 | v4/panels heldout_p2.primary {0.41591, [0.2504, 0.5909]} | yes |
+| +0.149 [+0.030, +0.283]; 4 of 12 | p.1 L024, p.2 L087, p.7 L325 | unscreened_p2u.primary {0.14896, [0.0295, 0.2830]}; concentration.per_panel.p2u.counts {positive 4, zero 8} | yes |
+| −0.041 [−0.187, +0.102] | p.2 L085, p.6 L309, p.8 L420 | v4/seeds separation.vs_eps_0.75 {−0.04132, [−0.1868, 0.1017], NOT_SEPARATED} | yes |
+| +0.227 [+0.053, +0.403]; 8 positive, 3 negative | p.1 L023, p.6 L309-314 | heldout_p2.separation.vs_eps_0.75 {0.22727, [0.0527, 0.4027], SEPARATED_ABOVE}; per_task_difference 8 > 0, 3 < 0 | yes |
+| +0.058 [−0.040, +0.156], 35 tasks | p.2 L086, p.6 L311, p.8 L421 | pooled.separation_vs_eps_0.75 {0.05798, [−0.0395, 0.1564]}, primary.tasks 35 | yes |
+| +0.002 [−0.145, +0.157]; −0.298 [−0.468, −0.129] | p.6 L310, L313 | unscreened_p2u…vs_eps_0.75.S 0.00208; v4/seeds separation.vs_eps_0.50 {−0.29757, [−0.4684, −0.1288]} | yes |
+| +0.130 [+0.070, +0.190] | p.6 L295 | ladder_p2.pairs[0] {0.12955, [0.0705, 0.1898]} | yes |
+| 22 of 35 positive, 12 zero, 1 negative | p.7 L330-331 | concentration.all_36_counts {22, 12, 1} | yes |
+| LODO +0.305 to +0.395, lower bound ≥ +0.185 | p.7 L332 | leave_one_domain_out_p2_union_p135 min D3 0.30479 (elevators), max 0.39539 (blocksworld), min lo 0.18542 | yes |
+| first adapter 0.026 [0.010, 0.042] | p.6 L307 | v2 adapter_reevaluation.learned_adapter {m1_auc, m1_task_cluster_95pct_ci_10000_seed133} | yes |
+| zero-shot +0.005 [−0.025, +0.044] EQUIVALENT (development); +0.001 [−0.048, +0.051] INCONCLUSIVE (confirmatory) | p.6 L318-320 | v6 primary.v2 {0.00521, [−0.025, 0.04375], EQUIVALENT, stage "development"}; primary.p2 {0.00114, [−0.0477, 0.0511], INCONCLUSIVE, "held-out confirmatory"} | yes |
+| −0.280 [−0.425, −0.142]; −0.415 [−0.589, −0.248] | p.6 L320-321 | v6 co_primary.{v2,p2}.A | yes |
+| DAgger +0.115 [−0.026, +0.258] | p.7 L334 | v5 primary {NOT_SEPARATED, S_pool 0.11522, [−0.0255, 0.2576], tasks 23, seeds [17]} | yes |
+| 0.915 versus 0; 1000/1000; 200 tasks | p.1 L025, p.2 L090-091, p.7 L343-344 | scienceworld/identity-audit.json success {reference 0.915, random_valid_mean 0.0}; pairs 1000/1000; first_divergence max 0; tasks 200 | yes |
+| LFS 1.0 against 0.825; 400 pairs; by the third decision | p.7 L350-354 | LFS paper_budget.success {1.0, 0.825} SATURATED; pairs_checked 400, identical 0, first_divergence max 2 | yes |
+| 0.0775 at 1×, 0.19 at 2×; 102,606 against 1,300; 0.768 | p.1 L027, p.7 L352-357 | matched_decision_budget random_valid_success [0.0775 … 0.19]; supplementary.expansions_max {102606, 1300}; published_model_success 0.768425 | yes |
+| −0.644 [−0.856, −0.422]; 9/9; 18/18 | p.5 L257, L263-264 | cf v1 analysis contrasts.random_valid_minus_exact_reference {−0.64444, [−0.8556, −0.4222]}; identity-audit 18/18 | yes |
+| 125/288 against 240/288; 15/24, 17/24 | p.2 L048, p.5 L251, p.7 L366-367 | synthesis-v1/README.md L176-177 | yes |
+| 0.933 against 0.467; lower bound 0.2 | p.7 L364-365 | docs/issue-59-bfws-structural-gate.md L250-253 | yes |
+| 68.5244 of 336 | p.5 L237-238 | issue-127-closeout.md L54 | yes |
+| M1 0.151 to 0.432 | p.8 L381-382 | v4/panels arms.{p2u,p2}.learned_adapter_seed_mean.m1 0.15104, 0.43182 | yes |
+
+That is 31 rendered numbers across 26 rows, all matching.
+
+### Evidence-comment spot-check
+
+I checked 18 comments. For each, the path exists and the key and value (or the line reference) resolve.
+
+1. results.tex L39-41 (ledgers): v6 Σ attempts[].gpu_hours 2.2452 ✓; `schedule.authorization.window_gpu_hours_cap` 30.0 ✓ (review-21 80(ii) fixed); external total_gpu_hours 2.8910 ✓; schema.gpu_hours_cap 12.0 ✓; schema.independent "never summed with any other ledger" ✓; issue-141-closeout L77 "2.245 / 30" ✓; issue-142-closeout L108 ✓.
+2. results.tex L42: issue-127-closeout L54 "Program total 68.5244 / 336 GPU-h" ✓.
+3. results.tex L70-73: submission_order.pairs_divergent 19 and pairs_identical 29 ✓; sorted_candidate_order.pairs_identical 48 ✓; preregistered_prediction.held false ✓; verdict "PREDICTION_FAILED: see preregistered_prediction" ✓; first divergence 2 / 50 / median 6 ✓.
+4. results.tex L82-83: cf v1 pairs_checked 18, pairs_divergent 18, pre_registered true ✓; contrasts.random_valid_minus_exact_reference ✓.
+5. results.tex L88-91: instrument_validity PASS, tasks 12 ✓, pairs[0] 0.0823 [0.0510, 0.1115] ✓; membership.json 12 task_ids, 7 domains ✓.
+6. results.tex L96-98: pooled.panels.p2 11 ✓; 8 P2 domains ✓; ladder_p2 PASS, pairs[0] ✓; issue-139-protocol.md L122 seeds 955040-955199 ✓; closeout L58 "P2 = 6 / 5" ✓.
+7. results.tex L135-140: all S values, intervals, roles, and verdicts ✓; P2 per-task signs 8 / 3 / 0 ✓.
+8. results.tex L144-148: v6 stage labels "development" and "held-out confirmatory" ✓; D3 and A values ✓.
+9. results.tex L152-154: P2u primary ✓; closeout L73 (4 positive / 8 zero) ✓; closeout L56 "All 12 happen to have 0/10 random goals." ✓; protocol L48 screen rule "1–9 of its 10" ✓.
+10. results.tex L161-164: LODO values ✓, with every other lower bound ≥ 0.204 (grid 0.2040) ✓; v5 keys ✓.
+11. results.tex L172-174: ScienceWorld verdict CHOICE_REGISTERED and seeds 17/5077/6131/7409/8527 ✓.
+12. results.tex L181-186: LFS supplementary and budget-curve keys ✓; protocol L191-194 (the Qwen3-30B-A3B-Instruct-2507 @ 0d7cf239 substitution) ✓; closeout L11-15 mechanism ✓.
+13. results.tex L194: issue-59 L250-255 ✓.
+[…85ln elided…]
+    - "Success therefore measures validity in (a) and choice in (b)" (Fig. 1 caption, p.2 L072-073)
+
+    The other three: "The gain is spread across tasks and domains and comes from imitating the exact reference." (p.7 L329), "so success budgets must bind decisions" (p.7 L357-358), and "A budget that a zero-token chooser never exhausts turns uniform choice into exhaustive randomized search." (p.8 L393-394).
+- **Axis 3:** findings 87, 90, 91, 92, and 95, and the 82 regression.
+- **Axis 4:** findings 85, 86, 88, 89, and 94.
+- **Axis 5:** findings 93 and 96.
+  - The experiment order still runs an elimination tournament. Each block kills a named alternative:
+    - 5.2: the idea that success always measures choice;
+    - 5.3: the idea that M1 does not order choice quality;
+    - 5.4: chance-level and screen artifacts;
+    - 5.5: the objection that the result is interface-specific.
+  - 5.6 is the enumeration-contract residue. It kills "learned success where choice registers".
+- **BENCHMARK checklist:**
+  - Two bottlenecks: pass (contract; M1 plus ladder).
+  - Near-miss definitions: pass (token-denominated against expansion-denominated budgets).
+  - Headline findings stated as claims: pass, but Contribution 4 now claims a known principle (88).
+  - Adoption risks: screening pass (with 91 as a caveat); contamination n/a (procedurally generated tasks).
+
+#### 85 · MAJOR · Axis 1 + Axis 4 (the Figure 1 teaser's takeaway generalises an additive-cell, sorted-tie result to the whole enumeration contract) · `iclr2026_conference_introduction.tex; figures/fig_contracts.py`
+
+- **Location:**
+  - Figure 1 art p.2 L065, panel (a) boxed takeaway "success measures validity" (fig_contracts.py L122), printed directly under "submission-order serials: 19/48 divergent" (p.2 L063).
+  - Caption p.2 L072-073 (introduction.tex L22): "Success therefore measures validity in (a) and choice in (b)".
+  - Caption L070: "18/18 pairs on the first panel diverge".
+- **Issue:**
+  - (i) **The takeaway overgeneralises.** It labels the whole enumeration contract. The paper's own evidence restricts "success measures validity" to the additive best-first cells under sorted tie-breaking:
+    - 5.2 p.5 L249-251: "This is a property of this controller, not of additive best-first search in general … The BFS and BFWS cells instead register choice, with random-valid at 15/24 and 17/24."
+    - The figure's own second line (19/48 divergent under submission-order ties) is a counterexample inside the same box.
+  - (ii) **The takeaway is new in round 7.** The `7bf48aa` caption had no takeaway and said "on a separate 9-task panel".
+  - (iii) **Why it matters.** Figure 1 is the 10-minute-test asset. A skimming AC now leaves believing "enumeration contract ⇒ validity", which the paper contradicts on p.5.
+  - (iv) **The caption is not standalone.** "First panel" is undefined in it. The mini-ladder plots point estimates only: the adapter's 0.306 is drawn left of the ε-0.75 rung's 0.347, so it visually reads "below the rung", while the pre-registered verdict is NOT_SEPARATED (−0.041 [−0.187, +0.102]).
+- **Fix:**
+  - Figure: change the panel (a) takeaway to "additive cells, sorted ties: success measures validity" (fig_contracts.py L122). No number changes, and the asserts are unaffected.
+  - Caption: "Success therefore measures validity in the additive cells of (a) under sorted tie-breaking (its BFS and BFWS cells and submission-order ties register choice, Section 5.2) and choice in (b)."
+  - Replace "the first panel" with "the reused 9-task panel". Add "(point estimates; intervals in Figure 2)".
+  - About +25 words, covered by the page of slack.
+- **Why it changes the verdict:** the teaser is the one place every reviewer reads. Its headline must not claim more than Section 5.2 does.
+- **Fix class:** WORDING (restores the body's scope)
+
+#### 86 · MAJOR · Axis 4 + Axis 3 (topic sentences say the published interfaces show that both checks are needed; both interfaces passed the identity audit immediately) · `iclr2026_conference_introduction.tex; iclr2026_conference_discussion.tex`
+
+- **Location:**
+  - Intro p.2 L089 (introduction.tex L68): "Both checks matter on published interfaces."
+  - Discussion p.8 L385 (discussion.tex L24): "The external audit shows that both checks are needed."
+- **Issue:**
+  - (i) **The identity audit passed at once on both external interfaces.**
+    - ScienceWorld diverges at the first decision in 1000/1000 pairs (`first_divergence_index.max` 0).
+    - On LFS, 0/400 pairs are identical, all diverging by the third decision (max 2).
+    - So neither published interface shows the identity audit to matter. The only external case where a check decides anything is the budget check on LFS, and there the outcome holds by construction.
+  - (ii) **Each paragraph contradicts its own topic sentence two sentences later:** "so the 48/48 failure is shown only on our runtime" (p.2 L092-093; p.8 L386-387).
+  - (iii) **The claim is new in round 7.** At `7bf48aa` the Discussion read "ScienceWorld anchors the check on a published interface where it registers choice", and the Intro had no topic claim.
+  - (iv) **It breaks the CONTEXT boundary.** `CONTEXT.md`'s External audit claim says the identity failure is "shown only on this project's runtime" and "may not generalise". Under style principle 5, topic sentences are what skimmers read, so this sentence is the external-value claim a reader takes away.
+- **Fix:**
+  - Intro L068: "The external audits test each check on a published interface."
+  - Discussion L24: "The external audits exercise each check on a published interface. The identity audit passes on both, and on LLM-First Search the budget check fails by construction."
+  - Both are space-neutral.
+- **Why it changes the verdict:** this is the paper's external-evidence claim for its first contribution. As written, it credits published interfaces with evidence they do not supply.
+- **Fix class:** WORDING (restores the approved external-audit claim)
+
+#### 87 · MINOR · Axis 3 ("saturates the token caps/budget" states the mechanism backwards) · `abstract; introduction; results; discussion`
+
+- **Location:**
+  - Abstract p.1 L026 (abstract.tex L30): "a zero-token chooser saturates token caps by construction".
+  - Intro p.2 L093-094 (L74): "saturates the token caps".
+  - 5.5 p.7 L349-350 (results.tex L180): "random-valid success saturates the paper's token budget by construction".
+  - Discussion p.8 L387-388: "random-valid success saturates the token budget".
+  - Conclusion p.8 L415-416: "saturates LLM-First Search's token budget".
+- **Issue:**
+  - A chooser that saturates a budget uses it up. Random-valid spends no tokens (`supplementary.tokens_median.random_valid` 0.0 against the reference's 70,403.5), and 5.5's next sentence says so: "A token cap never binds a chooser that spends no tokens".
+  - What saturates is success (1.0) under the caps.
+  - The abstract had this wording at `7bf48aa`. Round 7 spread it to the 5.5 topic sentence and the Discussion.
+- **Fix:**
+  - Abstract: "a zero-token chooser solves every task under the token caps by construction but only 0.0775 at the reference's expansion count".
+  - Elsewhere: "random-valid success saturates (1.0) under the paper's token caps, which a zero-token chooser never reaches".
+- **Fix class:** WORDING
+
+#### 88 · MINOR · Axis 4 + Axis 1 (Contribution 4 claims the compute-matched-baseline principle as "the budget check"; the thesis asserts it with "therefore") · `iclr2026_conference_introduction.tex; iclr2026_conference_discussion.tex`
+
+- **Location:**
+  - Contribution 4, p.2 L102-103 (introduction.tex L84): "The budget check, with an audit of two published interfaces…".
+  - Thesis p.1 L050-051 (L46): "Random-valid success therefore measures choice only if the identity audit finds divergent decisions and the budget check … finds that it does."
+  - Portable rule p.8 L393-394: "A budget that a zero-token chooser never exhausts turns uniform choice into exhaustive randomized search."
+- **Issue:**
+  - (i) **It claims a known principle.** The paper itself calls this check "the compute-matched-baseline principle (Li & Talwalkar, 2020)" (p.8 L392-393) and "the standard architecture-search baseline" (p.3 L137-138). `CONTEXT.md` allows it only as "a by-construction demonstration of why a success budget must bind decisions". Listing the check as a contribution claims the principle. The `7bf48aa` bullet claimed the audit ("An external audit of two published interfaces…").
+  - (ii) **"Therefore" has nothing to follow from.** It follows a paragraph that establishes only the identity result; the budget condition enters with no premise.
+  - (iii) **The portable rule drops its condition.** 5.5 states the condition ("because the frontier keeps every alternative"). Without it, the rule is false for a bounded or beam frontier.
+- **Fix:**
+  - Contribution bullet: "An audit of two published interfaces that applies the compute-matched-baseline principle as a budget check: random-valid registers choice on one and saturates by construction on the other."
+  - Thesis: "We argue that random-valid success measures choice only if …".
+  - Portable rule: "…never exhausts, on a frontier that keeps every alternative, turns …".
+- **Fix class:** MEANING (it changes what is claimed as a contribution)
+
+#### 89 · MINOR · Axis 4 + Axis 3 (abstract compression dropped caveats that CONTEXT requires in the abstract) · `iclr2026_conference_abstract.tex`
+
+- **Location:**
+  - p.1 L022-023 (abstract.tex L24): "It is separated above the 0.75 rung only on the held-out panel (+0.227 [+0.053, +0.403]), not pooled."
+  - L028-029 (L32): "The choice-quality claim is development-stage (development panels only)…".
+  - L026-027 (L30).
+- **Issue:**
+  - (a) **Ladder position.** `CONTEXT.md` says it "is always reported for all three results together …, never for P2 alone". The pre-registered co-primary validation-panel result (NOT_SEPARATED, −0.041 [−0.187, +0.102]) is no longer named.
+    - "Pooled" appears before the unscreened panel is introduced (L023-024).
+    - Neither ε nor "the 0.75 rung" is defined in the abstract.
+    - `7bf48aa` read "…on the held-out panel (+0.227 …) but not on the validation panel, the unscreened panel, or pooled."
+  - (b) **Missing caveats.** `CONTEXT.md` L99 requires the held-out definition and "45-task final evaluation unexecuted" to be stated in full once in the abstract. Neither appears.
+  - (c) **The gloss collides with the held-out panel's label.** "Development panels only" glosses the term with itself, and it collides with the held-out panel's "confirmatory" label (5.4 p.6 L319; the Table 22 header "P2 (11, confirmatory)"; artifact `heldout_p2.status` "confirmatory"). A reader cannot tell whether the held-out panel is a development panel.
+  - (d) **Substitution caveat.** The "substituted reference" note that `7bf48aa` carried for LFS is gone. The body keeps it, so this is noted, not required.
+- **Fix:**
+  - Move the ladder sentence after the unscreened sentence: "It is separated above the ε-0.75 rung only on the held-out panel (+0.227 […]), not on the validation panel, the unscreened panel, or pooled."
+  - Define ε in the ladder clause: "selectors that randomize a fraction ε of reference decisions".
+  - Close with: "All claims are development-stage: the held-out panel is a fresh 11-task panel, and the frozen 45-task final evaluation is unexecuted. We make no planning-ability or generality claim."
+  - Pay for about 25 words by writing "Under our choice-frontier contract, M1 passes…" for L017-018.
+- **Fix class:** WORDING
+
+#### 90 · MINOR · Axis 3 + Axis 5 (the Introduction's held-out definition has a dangling referent) · `iclr2026_conference_introduction.tex`
+
+- **Location:** p.2 L105-107 (L88-89): "…not on the frozen 45-task final evaluation, which is unexecuted. Held-out means only that panel, drawn from seeds no adapter had been evaluated on (Section 4)."
+- **Issue:** the nearest singular antecedent of "that panel" is the frozen 45-task final evaluation. The sentence can therefore be read as defining held-out as exactly what `CONTEXT.md` forbids. At `7bf48aa` it read "Held-out here means the fresh panel P2, frozen before any evaluation episode…".
+- **Fix:** "Held-out means only the fresh 11-task held-out panel, drawn from seeds…".
+- **Fix class:** WORDING
+
+#### 91 · MINOR · Axis 3 (Design topic sentence: "frozen before any evaluation and screened against trivial tasks") · `iclr2026_conference_experimental_design.tex`
+
+- **Location:** p.4 L191 (L35): "The choice-frontier panels are frozen before any evaluation and screened against trivial tasks."
+- **Issue:**
+  - (i) The unscreened panel "skips the screen" (L203).
+  - (ii) The first 9-task panel was reused, "so each design step could adapt to earlier results" (L192-194). It was not frozen before any evaluation.
+  - (iii) The screen rejects both 10/10 and 0/10 tasks ("admit iff … random-valid reaches the goal in 1–9 of its 10", issue-139-protocol.md L48). "Against trivial tasks" names only half of that. It reads as the enrichment interpretation that finding 70 removed (the screen admits "tasks easy enough for weak choosers").
+  - (iv) The sentence is new in round 7; `7bf48aa` had "Panels are frozen and outcome-blind".
+- **Fix:** "The validation and held-out panels are frozen before any evaluation and admit only tasks on which random-valid reaches the goal in 1 to 9 of 10 screening episodes; the unscreened panel skips that screen." Then delete the duplicate at L197-198.
+- **Fix class:** WORDING
+
+#### 92 · MINOR · Axis 3 (the Limitations say the trained second backbone was not run; Design says it ran at reduced scope) · `iclr2026_conference_discussion.tex`
+
+- **Location:**
+  - Limitations p.8 L409-410 (discussion.tex L42): "the trained second backbone was not run."
+  - Against it: Design p.4 L215 "with InternVL3.5-8B (Wang et al., 2025) second", and p.5 L225 "Generalization and second backbone ran at reduced scope only"; 5.1 p.5 L239-240.
+- **Issue:** the limitation holds only under the choice-frontier contract (the #141 InternVL arm was ruled out). It predates round 7 but has not been flagged before.
+- **Fix:** "…and the trained second backbone was not run under the choice-frontier contract (it ran at reduced scope under the enumeration contract)."
+- **Fix class:** WORDING
+
+#### 93 · MINOR · Axis 5 (stale cross-reference after the round-7 move) · `iclr2026_conference_appendix.tex`
+
+- **Location:** App X p.37 L1981 (appendix.tex L1604): "Table 25 compares the enumeration and choice-frontier contracts defined in Section 4."
+- **Issue:** round 7 moved the contract definitions to Section 3 (p.4 L167-171; search_process_policy.tex STATUS "decision-contracts paragraph moved from Section 4").
+- **Fix:** replace `\ref{sec:design}` with `\ref{sec:policy}`.
+- **Fix class:** WORDING
+
+#### 94 · MINOR · Axis 4 + Axis 5 (the body never says what the choice-frontier adapter observes, under a "Vision-Language" title) · `iclr2026_conference_search_process_policy.tex; iclr2026_conference_discussion.tex`
+
+- **Location:**
+  - `grep scene` over the main text returns 0 hits.
+  - Section 3 p.3 L152-155: o_t is "a text, visual, or multimodal rendering", and "Search Memory … and the candidates stay textual."
+  - The actual observation is in App I p.21 L1085-1092 ("the unlabelled 128px initial-state scene, one unlabelled 128px scene per frontier state … Its text payload carries only the algorithm name, the label list…") and App U.3 p.34 L1834 ("the frozen scene-only choice-frontier observation").
+- **Issue:**
+  - (i) "The candidates stay textual" is false for the contract behind every positive learned result.
+  - (ii) The title's modality claim rests on an observation the body never names.
+  - (iii) The Limitations do not mention that no modality comparison exists under the choice-frontier contract (review 21 reason (iv); #144 filed).
+- **Fix:**
+  - Add to Section 3's contract paragraph: "Under the choice-frontier contract the observation is scene-only: rendered scenes of the initial and each frontier state plus goal pages, with opaque labels as the only candidate text (Choice-Frontier Contract appendix)." Scope "candidates stay textual" to the enumeration contract.
+  - Add a Limitations bullet: "Modality. The choice-frontier results use one scene-only observation, so no modality is compared under that contract."
+- **Fix class:** WORDING (adds a limitation; no claim changes)
+
+#### 95 · MINOR · Axis 3 (the new "privileged" gloss contradicts decision sufficiency) · `iclr2026_conference_introduction.tex; iclr2026_conference_results.tex`
+
+- **Location:**
+  - Intro p.2 L078 (L53) and 5.3 p.6 L296-297 (results.tex L95): "The rungs read the reference's own priority order, which no policy sees".
+  - Against it: Section 3 p.3 L154 "The observation must expose every fact the exact reference uses at step t."
+- **Issue:** the priority order is a deterministic function of states that a sufficiency-respecting observation exposes. What no policy receives is the computed score or order (App R p.29 L1546: selectors "read privileged scalars or PDDL atoms while the model sees only scenes"). This is a round-7 gloss; the old text said "read the privileged heap head".
+- **Fix:** "…read the reference's computed priority order, which is never shown to a policy…".
+- **Fix class:** WORDING
+
+#### 96 · MINOR · Axis 5 (residual presentation targets and no main-text table) · `section files`
+
+- **Location and evidence:** see the Presentation axis tables above.
+  - The 46-word sentence at p.3 L160-p.4 L162.
+  - An abstract of about 205 words with 13 point numbers.
+  - 6 body sentences with 3 or more numbers.
+  - The three-interval ladder-position sentence printed three times, while the main text has **zero tables** and one free page.
+  - No enumerated multi-result paragraphs.
+  - "Uniform choice" as an 11-use synonym for random-valid.
+  - Four names for the reused 9-task panel.
+  - Undefined LVLM, RAP, MVoT, UCT, VQA, CALM, and FIFO.
+- **Fix:**
+  - Split the Section 3 invariant sentence into one sentence per algorithm family.
+  - Add one 3 × 3 main-text table in 5.4 (validation / held-out / unscreened × D3, adapter minus ε-0.75 rung, smallest ladder gap, each with its interval and verdict). Replace the 5.4 ladder-position sentence with a pointer to it, and keep the Intro and Conclusion versions for the three-part rule. This uses about a third of the free page.
+  - Move "22 of 35 … 12" and "0.151 to 0.432 … 0.875" into that table.
+  - Use "random-valid" throughout. Name the 9-task panel "the reused 9-task panel" everywhere. Expand the acronyms at first use.
+- **Fix class:** WORDING
+
+### What would change the verdict
+
+Round 7 did what it set out to do. The numbers are untouched, the build is clean, the page limit now has slack, and the body reads at a mean of 17 words per sentence with a teaser figure that finally carries the thesis. The price of the compression is five meaning slips, two of them MAJOR:
+- The teaser's takeaway says the whole enumeration contract measures validity (85).
+- The Introduction and Discussion topic sentences credit the published interfaces with showing that both checks are needed (86).
+
+Both are one-line fixes. The rest (87-96, the 82 regression, and the 80 remainder) are space-neutral wording.
+
+The rating stays at 4 for the reasons review 21 gave, which round 7 was not meant to address:
+- The instrument has ordered one non-trivial realisable policy.
+- The title's modality claim has no choice-frontier contrast behind it.
+- The budget half of the thesis is the compute-matched-baseline principle, demonstrated by construction.
+
+What would move it to BORDERLINE (rating 6):
+- **85 and 86, zero experiments:** restore the scopes as prescribed.
+- **#143:** one trained second policy (a one-seed InternVL3.5 cell on the validation and held-out panels, about 7-9 GPU-h per cell by the #141 estimate). This would show that M1 plus the ladder orders two trained choosers.
+- **#144, the most value-changing:** a modality contrast under the choice-frontier contract (text-rendered menu against the scene-only observation, same recipe). It is the only experiment that can make the title's "Vision-Language" a finding rather than a setting. The page of slack now holds it.
+
+
+[Showing lines 1-191 and 277-483 of 483; 85 middle lines (13.9KB) elided. Read artifact://118 for full output]
+
+## Cold read B — round-7 skim test (2026-09-25)
+
+Cold-read skim test of pages 1-8 of manuscript/manuscript.pdf (pdftotext) plus fig_contracts.png. The pdftotext dump printed the full body text; only the parts the brief allowed were used, and anything else noticed is marked incidental. No rating.
+
+## 1. Takeaway after the first skim
+"A random-valid control can make exactly the reference algorithm's decisions: 48/48 on some cells. When it does, success measures validity, not choice. In a different setup (the 'choice-frontier contract') a metric checked against a ladder, M1, shows a trained adapter beating random."
+
+The rule the paper actually argues for did not reach me on the first pass. That rule is that two checks, an identity audit and a budget check, must both pass. The abstract states it as "...and the budget binds them" (p.1 l.17), and I did not parse that. The LLM-First Search sentence (l.26-27) read as a separate fact.
+
+## 2. Do the five places agree?
+Only partly. Each one leads with something different:
+- Title: "Separating choice from validity" plus "a validated ... measurement for vision-language search policies".
+- Abstract: the 48/48 failure (sentence 2). The two-condition rule comes at sentence 4, and the budget half is only implied.
+- Figure 1: validity in (a) against choice in (b), with the M1 ladder. The budget check does not appear.
+- Contributions: four equal bullets (audit, measurement, adapter, budget check). None is marked primary.
+- Conclusion: sentence 1 is the two-check rule. More than half the paragraph is adapter numbers (5 bracketed intervals).
+
+Where they disagree:
+- "Vision-language" appears only in the title. The abstract, Figure 1, the contributions and the Conclusion never mention modality, vision or language.
+- Flaw or measurement? The Discussion says "The contribution is therefore the measurement and its two checks, not the exposure of one flaw" (p.8 l.388-389). But the abstract and Figure 1 lead with the flaw (48/48).
+- The budget check is a contribution bullet and half of the Conclusion's rule. It is absent from Figure 1 and only implied in the abstract.
+- ScienceWorld (random-valid measuring choice on a published interface) is in the abstract but not the Conclusion.
+
+## 3. Where the first-sentence skim lost me
+- §1 ¶2 l.042 "On part of our own runtime, random-valid makes exactly the decisions of the exact reference...": "part of" is vague; the answer (additive cells) comes a sentence later.
+- §1 ¶3 l.050 "Random-valid success therefore measures choice only if the identity audit finds divergent decisions and the budget check ... finds that it does.": depends on the previous paragraph ("therefore"). It also jumps topic: nothing before it motivates budgets. "Binds decisions" is never defined.
+- §1 ¶5 l.080 "Scored this way, a trained adapter beats uniform choice on all three panels, but its ladder position depends on the panel.": depends on the previous paragraph. "Adapter", "three panels" and "ladder position" are undefined here.
+- §1 l.095 "This paper makes four contributions.": makes no claim.
+- §3 ¶2 l.156 "Four definitions fix what the policy owns and what the runtime owns.": makes no claim. Four definitions are packed into one paragraph as run-in headings.
+- §4 ¶1 l.180 "Every learned result is read against two oracle-assisted controls...": "oracle-assisted" is unexplained. A skimmer can't see why a uniform-random control counts as oracle-assisted.
+- §4 ¶3 l.191 "The choice-frontier panels are frozen before any evaluation and screened against trivial tasks.": the same paragraph says the first panel was reused "so each design step could adapt to earlier results". "Trivial" doesn't fit the screen actually used: a task is admitted only if random-valid reaches the goal in 1-9 of 10 runs.
+- §4 ¶7 l.216 "The modality matrix evaluates 24 tasks from 12 domains.": jumps topic, and "modality matrix" is undefined. This is the first time modality shows up in the skim path.
+- §5 intro l.231 "Results follow the thesis, with the two checks first, then the validated measurement, then the policies it scores.": makes no claim, and "the thesis" is never stated. The roadmap is also wrong: §5.1 (gate receipts) comes before the checks.
+- §5.1 l.237 "Every executed run reconciles with its ledger and independent replay, and the program spent 68.5244 of its 336 GPU-hour cap.": unrelated to the takeaway. "Ledger" is undefined, and the number has four decimals.
+- §5.3 ¶2 l.291 "The same test passes on the held-out panel and, descriptively, on the unscreened panel.": depends on the previous paragraph ("same test" is the ladder test). "Descriptively" is a convention that is never explained.
+- §5.4 ¶3 l.316 "A zero-shot policy scores as uniform choice, so the measurement separates the two realisable policies.": reads as self-contradictory (it scores the same as uniform, yet the measurement separates something). "Realisable" is undefined, and so is which two policies are meant.
+- §5.4 ¶5 l.329 "The gain is spread across tasks and domains...": sits right after "the gain ... rests on 4 of 12 tasks" (l.323). At skim level the two first sentences contradict each other.
+- §5.6 l.362 "...the only positive learned contrast comes from one development panel, and the expanded matrix shows no gain where choice registers.": two claims in one sentence. "Expanded matrix" is undefined (elsewhere it is "expanded baseline"). "Registers choice" is jargon.
+- §6 ¶1 vs ¶4 (l.376 / l.391): "Random-valid success separates choice from validity only after the identity audit has run..." against "Before random-valid success is read as choice, an interface must pass two checks.": ¶1 names one check and ¶4 names two. They are near-duplicate openers that don't match.
+- Limitations "Runtime" bullet l.405 "The runtime never chooses or repairs operands, so no result shows unassisted internal search.": "unassisted internal search" is undefined.
+- Figure 1 caption: "18/18 pairs on the first panel diverge". "First panel" is undefined in the caption.
+- Figure 1 image: the "exact ref. 0.875" label sits over the 0.793 dot, so the two rightmost points are easy to swap.
+- Incidental, outside the skim scope: §4 l.225 says "Generalization and second backbone ran at reduced scope only". The Limitations bullet at l.409-410 says "the trained second backbone was not run". These read as inconsistent.
+
+## 4. Terms met without a definition
+- Title: "search-choice measurement"; "vision-language search policies" (no model or modality in the skim path until §4).
+- Abstract: "additive best-first cells" (neither "cells" nor "additive" is defined); "enumeration contract"; "exact reference"; "pairs" (pairs of what?); "submission-order tie-breaking"; "pre-registered majority prediction" (majority of what?); "the budget binds them"; "exact-ϵ ladder" (ϵ is never glossed); "privileged rungs"; "0.75 rung"; "pooled"; "adapter" (adapter of what?); D3 (symbol used with no definition; the 3 is unexplained); "unscreened panel"; "(descriptive)"; "ScienceWorld (0.915 versus 0)" (which quantity?); "zero-token chooser"; "token caps"; "choice-quality claim"; "development-stage".
+- Figure 1: "Grounded candidate menu"; "Sorted-serial frontier (order-invariant)"; "one op"; "additive pairs"; "submission-order serials"; "(24 tasks)" next to 48 pairs (why 2 per task?); "exact-ε 0.25"; "rungs read privileged information".
+- §1: "Search Process Policy", "Typed Search Operations" and "Trusted Search Runtime" are named at l.036-037 but only defined in §3; "operational reasoning" vs "structural enumeration" (l.035-036); "baseline entries" (l.048); "cells"; "panels"; "ladder position"; "screening"; "published interfaces"; "gold trajectory". "Adapter" collides with "observation adapter m" in §3 (l.152).
+- §2: UCT, RAP, MVoT, LVLM, VQA; "menu manipulations"; "fixed-versus-random-position variant".
+- §3: FIFO; "g+3h_add ... weighted A*". Weighted A* is not among the declared algorithms listed in §1.
+- §4: "oracle-assisted"; P2 (with no P1); P2u; "corruption suite, native arms, menu manipulation, comparator zoo"; "modality matrix"; "BFWS gate checkpoint"; "exposure-matched".
+- §5: "ledger"; "v1 cost gates"; VALID STOP; "BFS pilot"; "BFWS structural gate"; "realisable policies"; "registers choice"; "expanded matrix/baseline"; "problem-modality units"; "first adapter".
+- §6: "compute-matched-baseline principle"; "unassisted internal search".
+
+## 5. Three changes that would most improve the skim (no number or claim changes)
+1. Pick one headline and use it in all five places. Use the Discussion's own framing: random-valid success measures choice only when the identity audit and the budget check both pass. Put that rule in abstract sentences 1-2, ahead of the 48/48 detail. Retitle to name the rule. Also resolve "vision-language": either drop it from the title or surface the modality setup in the abstract. Add a small third strip to Figure 1 for the budget check: the LLM-First Search saturation under tokens against 0.0775 under expansions. That makes Figure 1, the contributions and the Conclusion carry the same two checks. Mark one contribution as primary.
+2. Define terms where they are first used, and make every paragraph open with a claim. Add a one-clause gloss at first use for: exact reference, pair, cell, panel, rung/ladder, D3, "registers choice", "binds decisions" and "descriptive". Rename one of the two "adapter" senses. Rewrite the openers that depend on the previous paragraph or make no claim: §1 ¶3 and ¶5, "This paper makes four contributions", §3 ¶2, the §5 intro, §5.3 ¶2 and §5.4 ¶3. Each should state its claim with no "therefore", "same" or "this way" back-reference. Fix §5.4 ¶5 so "spread across tasks" doesn't directly contradict "rests on 4 of 12 tasks".
+3. Cut number density and non-thesis material from the skim path. Move §5.1 (gate receipts) to the end of §5 or to the appendix, so §5 opens with the checks as its roadmap promises. Keep the abstract and Conclusion to the headline numbers: the Conclusion currently has one sentence with three bracketed intervals, and the abstract has about 20 numbers. Leave the full ladder-position detail to §5.4. Fix the "exact ref." label placement in Figure 1(b).
 
 ## Live fixlist — review 21 (2026-09-25)
 
@@ -248,6 +711,14 @@ I checked 14 comments, 10 of them from round 6. For each I checked that the path
 - **External-audit claim (new CONTEXT entry):** "may not generalise to agent benchmarks at large or claim the published GPT-4o results are invalid". Neither is claimed outright. But the Intro p.2 L080 "so success saturates unless the budget binds decisions" and the Conclusion p.9 L476-477 "On a published interface, success saturates under a budget that does not bind decisions, so the audit needs both checks" state a general rule from one interface whose outcome was guaranteed (finding 81).
 - **Old and new contract not compared as performance rows:** **PASS** (Table 25 caption).
 - **Round-6 amendment disclosure:** #141 "no amendment followed" (p.35 L1863) ✓. #142 A1 "made before any audit episode, only reordered the smoke and audit start" (p.36 L1926-1927) ✓. Design p.5 L216-217 says both protocols were frozen before their outcomes ✓.
+
+### Verification of prior findings (reviewer follow-up detail)
+
+- **82 (d), regressed:** the body defines D3 once (introduction.tex, "adapter minus random-valid M1 averaged over three training seeds") and reuses it for the single-realisation zero-shot arm (results.tex 5.4). Fix: add "(here a single realisation)" after the zero-shot D3 value.
+- **82 (e), regressed:** results.tex 5.4 reads "A zero-shot policy scores as uniform choice, so the measurement separates the two realisable policies." Fix: "On the validation panel a zero-shot policy scores as uniform choice, so the measurement separates the trained adapter from it."
+- **80 (iii), open:** appendix.tex Table 24 comment still says "per Main, 2026-09-25". Fix: delete it and keep "rounded half-up from the stored repr".
+- **80 pattern, new instance:** introduction.tex evidence comment for the ladder gap cites "(#135 E135-63)", which is the membership-freeze label elsewhere. Fix: "(#135 E135-05, E135-06)".
+- **Lesser:** experimental_design.tex comments cite "V-SCR2" and "V-HO2 (r5-consolidation.md)", which are session labels. Fix: delete "V-SCR2"; cite issue-139-closeout.md L58 for "first 40 seeds".
 
 ### New findings
 
