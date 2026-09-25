@@ -14,6 +14,7 @@
 % STATUS: #131 round 7 Wave 4 (2026-09-25). LoRA expanded at first use. No number added, moved, or deleted.
 % STATUS: #131 review 22 (2026-09-25). Finding 91: panel topic sentence scoped to the validation and held-out panels, unscreened panel skips the screen. Finding 96: "the reused 9-task panel" throughout. Finding 80 lesser: session labels removed from comments. Cold read: "oracle-assisted" glossed, modality-matrix opener. No number added, moved, or deleted.
 % STATUS: #131 round 8 (2026-09-25). Tightened D1-D7 to the r8 outline; corpus sentence (58 bit-exact) cut, appendix keeps it; McNemar/Holm sentence moved to the Statistics appendix (Transfer tests); exploratory-follow-ups paragraph reduced to two sentences inside new D8, whose other clauses the Gate Receipts appendix holds (BFWS-to-BFS overlap sentence moved there); D8 receives Results 5.1 (label sec:results-gates, its comments copied); Box 1 tightened with step spacing. No number added, changed, or recomputed.
+% STATUS: #131 round 8 Wave 4 (2026-09-25). Consistency pass: the modality matrix is named the expanded baseline and its cells defined (one algorithm under one observation); Box 1 step 2 glosses "search coverage". No number added, moved, or deleted.
 \section{Experimental Design}
 \label{sec:design}
 
@@ -73,7 +74,7 @@ The enumeration-contract study compares process SFT with the pretrained base, SF
 % Evidence: 336 GPU-hour cap per docs/experiments/expanded-study/issue-127-closeout.md (68.5244 / 336) and Table tab:appendix-receipts.
 
 % Paragraph purpose: Fix the matrix panel, budget, termination, and the analysis contract.
-The modality matrix is the enumeration-contract evaluation grid of text, visual, and multimodal observations over 24 tasks from 12 domains, giving 288 episodes per arm. Budgets count decision calls, charge invalid operations, cap adapters at twice the exact reference's count, and price the base at one call. An episode ends at its first invalid emission and counts only after independent replay. Contrasts use a paired whole-instance bootstrap (10,000 resamples, seed 1729, Statistics appendix).
+The modality matrix, or expanded baseline, is the enumeration-contract evaluation grid of text, visual, and multimodal observations over 24 tasks from 12 domains, giving 288 episodes per arm. Each of its cells is one algorithm under one observation. Budgets count decision calls, charge invalid operations, cap adapters at twice the exact reference's count, and price the base at one call. An episode ends at its first invalid emission and counts only after independent replay. Contrasts use a paired whole-instance bootstrap (10,000 resamples, seed 1729, Statistics appendix).
 % Evidence: 24 tasks, 12 domains, 288 episodes per arm per docs/experiments/expanded-study/synthesis-v1/README.md and baseline-summary.csv;
 % bootstrap 10,000 resamples, seed 1729 per synthesis-v1/baseline-contrasts.csv (Table tab:results-contrasts caption).
 % Round 8: the McNemar/Holm sentence (36 comparisons) moved to the Statistics appendix, Transfer tests paragraph, with its comment.
@@ -124,7 +125,7 @@ Box~\ref{box:procedure} collects these rules into one procedure, validate before
 \par\smallskip
 \textbf{1. Identity audit.} Run random-valid and the exact reference on the same tasks and seeds and compare them decision by decision. The interface passes on any divergent pair. Report the divergent pairs and the first divergence. A failure means success measures validity, which saturation alone cannot reveal (Section~\ref{sec:results-identity}).
 \par\smallskip
-\textbf{2. Budget check.} Apply the compute-matched-baseline principle \citep{li2019random}. Count the budget in decisions or expansions, the units a zero-token control spends, and report control success at the reference's count and at twice it. A failure means success measures search coverage (Section~\ref{sec:results-external}).
+\textbf{2. Budget check.} Apply the compute-matched-baseline principle \citep{li2019random}. Count the budget in decisions or expansions, the units a zero-token control spends, and report control success at the reference's count and at twice it. A failure means success measures search coverage, how far the control can search (Section~\ref{sec:results-external}).
 \par\smallskip
 \textbf{3. Ladder.} On a fresh panel frozen before evaluation, pre-register the order exact reference, $\epsilon$ 0.25, 0.50, 0.75, random-valid. The ladder passes only if all four adjacent paired task-clustered 95\% lower bounds are positive. The rungs are privileged, so a pass validates the measurement, not a policy (Section~\ref{sec:results-ladder}).
 \par\smallskip

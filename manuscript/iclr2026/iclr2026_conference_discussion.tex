@@ -10,6 +10,7 @@
 % STATUS: #131 round 7 Wave 4 (2026-09-25). "zero-cost chooser" -> "zero-token chooser" (two places) to match the abstract and Results. No number added, moved, or deleted.
 % STATUS: #131 round 7 review-22 pass (2026-09-25, BackFix): findings 86, 87, 88 (portable-rule condition), 92, 94 (Modality item), 95 gloss, cold-read B (¶1/¶4 openers, Runtime item); Conclusion uses "We argue". No number added or recomputed.
 % STATUS: #131 round 8 (2026-09-25). Rewritten to r8 outline X1-X4, Limitations, Conclusion: validate-before-score contribution leads (X1); development-stage answer to the title (X2); implications paragraph with Box 1 pointer replaces the portable-rule paragraph (X3); external-audit paragraph reduced to one sentence (X4); Second policy amended; Menu surface bullet moved from Related Work; Conclusion rung and pooled intervals and held-out D3 deleted (they survive in Table 1, abstract, Results). Numbers only deleted or copied with their evidence comments; none added.
+% STATUS: #131 round 8 Wave 4 (2026-09-25). Consistency pass: "The second realisable policy is zero-shot" -> "The second policy scored is zero-shot" (retired undefined term). No number added, moved, or deleted.
 \section{Discussion and Limitations}
 \label{sec:discussion}
 
@@ -49,7 +50,7 @@ ScienceWorld \citep{wang2022scienceworld} is a positive control, and LLM-First S
 \item \emph{Runtime.} The runtime never chooses or repairs operands, so no result shows the model searching without the runtime's validation.
 \item \emph{External audit.} The LLM-First Search reference uses a substituted local model, and the audit covers 80 tasks from four configurations.
 % Evidence: outputs/external-audit/v2/lfs/identity-audit.json tasks 80, per_config {cd3, cd5, cd7, su4}; configs/experiments/external-audit-v2/lfs-reference-server.json .model (Qwen3-30B-A3B-Instruct) (#142).
-\item \emph{Second policy.} The second realisable policy is zero-shot, and the trained second backbone was not run under the choice-frontier contract (it ran at reduced scope under the enumeration contract), so the measurement's ability to order two trained choosers is untested.
+\item \emph{Second policy.} The second policy scored is zero-shot, and the trained second backbone was not run under the choice-frontier contract (it ran at reduced scope under the enumeration contract), so the measurement's ability to order two trained choosers is untested.
 \item \emph{Menu surface.} Our manipulations of the enumeration contract's action menu cannot separate surface-following from state grounding, which only the unrun test comparing fixed with random distractor positions would do.
 \item \emph{Modality.} The choice-frontier results use one scene-only observation, so no modality is compared under that contract.
 \end{itemize}

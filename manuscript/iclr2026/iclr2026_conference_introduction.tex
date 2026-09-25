@@ -8,6 +8,7 @@
 % STATUS: #131 round 7 Wave 4 (2026-09-25). BFS expanded and additive best-first glossed at first use (sentence split); "the budget check" defined in the thesis sentence; "zero-cost" -> "zero-token". No number added, moved, or deleted.
 % STATUS: #131 review 22 (2026-09-25). Findings 85 (caption scope, reused 9-task panel, point-estimate note), 86 (external-audit topic sentence), 87 (LFS success saturates under the caps), 88 (thesis "We argue", Contribution 4 as an audit, "binds decisions" defined), 90 (held-out referent), 95 (computed priority order), 80 comment, and cold-read openers. No number added, moved, or deleted.
 % STATUS: #131 round 8 (2026-09-25). Rewritten to the r8 outline (I1-I6, three contributions with the validate-before-score measurement first, boundary kept, Figure 1 caption leads with the takeaway and glosses 0.875 as fixed by construction). huang2026twodistinct sentence cut (Related Work absorbs the key). Copied with comments: seed-replication +0.875/-0.125 (tab:appendix-seeds), 15/24 against 24/24 (results 5.2), held-out smallest gap +0.130 [+0.070, +0.190] (results 5.3), 0.0775 (results 5.5). Deleted here: rung contrasts -0.041 [-0.187, +0.102], +0.227 [+0.053, +0.403], +0.058 [-0.040, +0.156], and "35 tasks" (kept in Table tab:results-panels, the abstract, and Results).
+% STATUS: #131 round 8 Wave 4 (2026-09-25). Consistency pass: "task-algorithm pairs" and "task-algorithm-observation entries of the expanded baseline" defined at first body use; "descriptive" glossed once (no pre-registered rule); zero-shot base glossed as the pretrained Qwen3-VL-8B-Instruct prompted without training; gold trajectory glossed; "the first adapter" -> "an earlier small-corpus adapter" (the name is given once in Results). No number added, moved, or deleted.
 \section{Introduction}
 \label{sec:introduction}
 
@@ -38,15 +39,15 @@ The natural control is random-valid, which chooses uniformly over valid operatio
 % Paragraph purpose: Show the stakes, namely that random-valid can reproduce the reference so that every process-SFT success measures validity.
 Random-valid can make every decision the reference makes, and then a learned gain is validity, not choice.
 Under our enumeration contract, each expansion submits its complete candidate set.
-In its additive best-first cells, random-valid makes exactly the decisions of the exact reference, the declared algorithm run as specified, on 48/48 pairs (Figure~\ref{fig:contracts}a).
+In its additive best-first cells, random-valid makes exactly the decisions of the exact reference, the declared algorithm run as specified, on 48/48 task-algorithm pairs (Figure~\ref{fig:contracts}a).
 % Evidence: outputs/native-arms/v1/identity-audit.json (48/48, additive pairs only); outputs/native-arms/v1/identity-audit-submission-order.json rules.sorted_candidate_order.pairs_identical 48 (#134 E134-03).
-Process supervised fine-tuning (SFT) solved 125 of 288 baseline entries, all in these cells, and 0/24 in each BFS and BFWS cell (Section~\ref{sec:results-identity}).
+Process supervised fine-tuning (SFT) solved 125 of the expanded baseline's 288 task-algorithm-observation entries, all in these cells, and 0/24 in each BFS and BFWS cell (Section~\ref{sec:results-identity}).
 % Evidence: 125/288 per docs/experiments/expanded-study/synthesis-v1/README.md and synthesis-v1/baseline-summary.csv (process SFT baseline successes, additive cells only).
 % Evidence: BFS/BFWS SFT 0/24: Results Table tab:results-primary-matrix.
 In the greedy additive replication cell on the same 24-task panel, SFT beats the base at every seed ($+0.875$ at two of three) yet trails random-valid at every seed ($-0.125$ at those two).
 % Evidence: outputs/expanded-study/v1/seed-replication/analysis.json baseline_process_sft.per_seed.{17,29,71}.successes (21, 21, 22 of 24)
 % and .contrasts.process_sft_minus_{pretrained_base,random_valid}.difference; bootstrap seed 1729, 10000 resamples.
-The replication uses seeds 17/29/71 and is descriptive (Statistics appendix, Table~\ref{tab:appendix-seeds}).
+The replication uses seeds 17/29/71 and is descriptive, with no pre-registered rule (Statistics appendix, Table~\ref{tab:appendix-seeds}).
 
 % Paragraph purpose: Give the mechanism, namely one executed serial rule, the failed prediction, and why saturation cannot stand in for a per-decision audit.
 The identity is a property of executed code, which is why only a per-decision audit finds it.
@@ -76,7 +77,8 @@ The rungs read the reference's computed priority order, which is never shown to 
 
 % Paragraph purpose: Report what the validated measurement orders, namely two policies at the random-valid level and the trained adapter above it, with its ladder position.
 The validated measurement scores two policies at the random-valid level and a trained one above it.
-The zero-shot base is equivalent to random-valid on the validation panel (development stage), and the first adapter scores at the random-valid level (descriptive, Section~\ref{sec:results-adapter}).
+The zero-shot base, the pretrained Qwen3-VL-8B-Instruct prompted without training, is equivalent to random-valid on the validation panel (development stage), and an earlier small-corpus adapter scores at the random-valid level (descriptive, Section~\ref{sec:results-adapter}).
+% Evidence (zero-shot base gloss, round 8 Wave 4): configs/experiments/choice-frontier-v6/protocol.json arm.condition zero_shot_base, model revision 0c351dd0, arm.adapter null (Zero-Shot Policy appendix, "pretrained Qwen3-VL-8B-Instruct base with no adapter").
 % Evidence (review 21 #82b): outputs/choice-frontier/v6/metrics/analysis.json primary.v2.stage "development", primary.p2.stage "held-out confirmatory".
 % Evidence: first adapter outputs/choice-frontier/v2/metrics/analysis.json adapter_reevaluation.learned_adapter.m1_auc 0.026,
 % CI [0.010, 0.042] (E135-41, E135-42); closeout "at the random_valid level".
@@ -91,7 +93,7 @@ The adapter is separated above the 0.75 rung only on the held-out panel, not on 
 
 % Paragraph purpose: Show that the procedure transfers to published interfaces, with ScienceWorld as a positive control and LLM-First Search as a by-construction illustration of the budget step.
 Box~\ref{box:procedure} transfers to published interfaces.
-ScienceWorld \citep{wang2022scienceworld} is a positive control, where random-valid diverges from the gold trajectory at the first decision in 1000/1000 pairs over 200 tasks.
+ScienceWorld \citep{wang2022scienceworld} is a positive control, where random-valid diverges from the gold trajectory, ScienceWorld's reference action sequence, at the first decision in 1000/1000 pairs over 200 tasks.
 Success is 0.915 for the reference and 0 for random-valid, so it measures choice there.
 % Evidence: outputs/external-audit/v1/scienceworld/identity-audit.json pairs_divergent 1000 of pairs_checked 1000, first_divergence_index.max 0, success.reference 0.915, success.random_valid_mean 0.0, tasks 200 (#137 E137-02..06).
 The audit covers 6 of 30 task types, and no surveyed interface uses an enumeration contract, so the 48/48 failure is shown only on our runtime.
