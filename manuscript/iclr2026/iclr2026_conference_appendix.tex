@@ -1568,7 +1568,7 @@ Verdict & & \multicolumn{2}{c}{SATURATED} & \multicolumn{2}{c}{CHOICE\_REGISTERE
 \end{tabular}}
 % Evidence: outputs/external-audit/v2/lfs/identity-audit.json per_config.{cd3,cd5,cd7,su4}.{paper_budget,matched_decision_budget}.{success.reference,success.random_valid_mean,
 % contrast.mean_difference_reference_minus_random,contrast.bootstrap_95ci,verdict}; top-level paper_budget.* and matched_decision_budget.* (-0.175 [-0.2625, -0.1];
-% raw 0.7474999999999999 [0.6475, 0.8375]; rendered 0.747 from the stored raw value per Main, 2026-09-25). Rounded half-up from the stored repr; 0.0775 kept verbatim. Descriptive statistics per issue-142-protocol.md L144-156.
+% raw 0.7474999999999999 [0.6475, 0.8375]; rendered 0.747 from the stored raw value). Rounded half-up from the stored repr; 0.0775 kept verbatim. Descriptive statistics per issue-142-protocol.md L144-156.
 % Caption curve: matched_decision_budget.random_valid_decision_budget_curve.{multipliers [1.0,1.25,1.5,1.75,2.0], random_valid_success [0.0775,0.0975,0.14,0.17,0.19], auc_normalized 0.1353125 (0.135)}.
 \end{table}
 
@@ -1601,7 +1601,7 @@ No authorized protocol yet exists for the frozen 45-task final evaluation. Freez
 \label{app:design-contracts}
 
 % Paragraph purpose: Hold the row-by-row comparison of the two decision contracts migrated from Experimental Design (Wave 2, finding 6).
-Table~\ref{tab:design-contracts} compares the enumeration and choice-frontier contracts defined in Section~\ref{sec:design}.
+Table~\ref{tab:design-contracts} compares the enumeration and choice-frontier contracts defined in Section~\ref{sec:policy}.
 
 \begin{table}[t]
 \caption{The two decision contracts. Rows compare what the policy emits, who owns the frontier, what the observation carries, how the budget binds, and the role of the identity audit. Results under the two contracts are not comparable as performance rows.}
@@ -1628,4 +1628,4 @@ Identity audit & Diagnostic run on the expanded-baseline additive cells & Pre-re
 
 % Paragraph purpose: Disclose how large language models were used in preparing this paper.
 % Round 7 (2026-09-25): author decision replaces the review-16 I19 sentence with the precise statement (review 17 finding 40).
-Large language model agents drafted and revised the manuscript text and wrote the figure scripts under the authors' direction. An agent pass searched for citations, and a human verified every cited source. Agent reviewers ran repeated review rounds on the drafts. The authors verified every reported number against its pinned artifact and take full responsibility for the content.
+Large language model agents drafted and revised the manuscript text and wrote the figure scripts under the authors' direction. An agent pass searched for citations, and a human verified every cited source. Agent reviewers ran repeated review rounds on the drafts. LLM agents also wrote and ran experiment and analysis code, drafted protocols and two pre-evaluation protocol amendments on the authors' behalf, and compiled evidence sheets, and the authors approved each protocol before its outcome. The authors verified every reported number against its pinned artifact and take full responsibility for the content.

@@ -119,6 +119,7 @@ panel(axes[0], "(a) Enumeration contract", "Grounded\ncandidate\nmenu", "#DCEBF5
       "one op", "Sorted-serial\nfrontier\n(order-invariant)", BLUE)
 axes[0].text(0.50, 0.44, enum_txt[0], ha="center", va="center", fontsize=8)
 axes[0].text(0.50, 0.30, enum_txt[1], ha="center", va="center", fontsize=8)
+axes[0].text(0.50, 0.17, "additive cells, sorted ties", ha="center", va="center", fontsize=7.5, color=BLUE)
 takeaway(axes[0], "success measures validity", BLUE)
 
 ax = axes[1]
@@ -163,7 +164,7 @@ for ext in ("pdf", "svg"):
     fig.savefig(HERE / f"fig_contracts.{ext}")
 fig.savefig(HERE / "fig_contracts.png", dpi=300)
 
-print("(a) " + " | ".join(enum_txt) + " | success measures validity")
+print("(a) " + " | ".join(enum_txt) + " | additive cells, sorted ties | success measures validity")
 print("(b) " + cf_txt + f" | {LADDER_TITLE} | "
       + " | ".join(f"{l.replace(chr(10), ' ')} {f3(m1[k])}" for l, k, _, _ in LADDER)
       + " | success measures choice")
