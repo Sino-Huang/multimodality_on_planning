@@ -7,24 +7,15 @@
 % tab:design-contracts migrated intact (label unchanged) to the appendix via Writer D; the body keeps a pointer.
 % Staged sequence reduced to one inline sentence; displaced detail listed as migration items in the WriterC-2 report.
 % Citations live in iclr2026_conference_design_refs.bib.
+% STATUS: #131 round 7 (2026-09-25) readability rewrite to outline 4.1-4.6. Contract definitions moved to Section 3;
+% screen, held-out definition, and panel-reuse sentences copied from Results/Introduction with their comments;
+% CHOICE_SENSITIVE/ZERO_DECISION_HEADROOM, K=8, k=3, M2/M3, the fifteen-test family, C* ranges, estimand symbol D,
+% rung values, 16 updates, 95% percentile, and adapter seed identities removed from the body (appendix/figures keep them).
 \section{Experimental Design}
 \label{sec:design}
 
-% Paragraph purpose: State the comparative question, the gate logic, and the development-stage and seed boundaries.
-Each algorithm-by-modality-by-condition cell asks whether a trained Search Process Policy exceeds an oracle-assisted validity control on full-episode budgeted success (Section~\ref{sec:policy}), under frozen protocols, a 336 GPU-hour cap, and prespecified gate receipts. Panels are frozen and outcome-blind, the 45-task held-out manifest has never been accessed, and every learned cell uses one training seed (17) except two replicated cells (seeds 29 and 71 added) and the choice-frontier adapter, which has three training seeds (17, 29, 71).
-% Evidence: seed replication per issue #127 (docs/experiments/expanded-study/issue-127-closeout.md).
-% Evidence: choice-frontier adapter seeds per #138 outputs/choice-frontier/v4/seeds/metrics/analysis.json primary.seeds [17, 29, 71].
-% Evidence: 336 GPU-hour cap per docs/experiments/expanded-study/issue-127-closeout.md (68.5244 / 336) and Table tab:appendix-receipts.
-% Replication protocol frozen 2026-09-20 (issue-127-closeout.md); date moved to this comment in round 4 for the word budget.
-
-% Paragraph purpose: Define conditions, recipe, and backbones.
-Each cell holds the pretrained base, process SFT, and process SFT plus two DAgger iterations \citep{ross2011dagger} beside an exposure-matched continued-SFT control. SFT trains a fresh LoRA adapter \citep{hu2022lora} on 512 replay-verified records for one epoch (16 updates), except the BFWS gate checkpoint, which trained on the full 47,780-record corpus for two epochs. The backbone is Qwen3-VL-8B-Instruct \citep{bai2025qwen3vl} (revision \texttt{0c351dd0}), with InternVL3.5-8B \citep{wang2025internvl35} as second backbone.
-% Evidence: docs/issue-59-bfws-structural-gate.md L10-13 (47,780 train records, two epochs, seed 17); expanded-study recipe (512 records, one epoch, 16 updates) per
-% outputs/expanded-study/v1/seed-replication/analysis.json and synthesis-v1/README.md; backbone revision 0c351dd0 per
-% docs/experiments/expanded-study/goal10-completion-audit.json L7 (0c351dd01ed87e9c1b53cbc748cba10e6187ff3b) and seed-replication-amendment.md L68.
-
-% Paragraph purpose: Define the references as oracle-assisted bounds and pin the random-valid sampler under each contract from the executed code.
-Exact-classical runs the declared algorithm and defines the imitation target, random-valid proposes only runtime-valid operations, neither is a learned ability, and when a reference saturates a panel the learned-to-control gain there is unmeasurable rather than zero. Under the enumeration contract, random-valid reads the same runtime-built model input as the policy and, after filtering, draws one operation per decision uniformly at random with a seeded pseudo-random generator from the listed candidates, which are successor-candidate rows under the additive algorithms, non-duplicate evaluated successors with an admissible declared frontier position under BFWS, and unvisited successors under BFS, with a frontier-retire operation under BFWS and BFS when none remains. The sampled operation is submitted once through the same runtime path as a model output, with no retry and no repair. Under the choice-frontier contract the control is uniform menu choice of one offered frontier label per decision under a seeded generator, again with no retry or repair, so the two definitions share a name but not a distribution and each random-valid number is read under the contract of its row.
+% Paragraph purpose: Define the two oracle-assisted controls as bounds and pin the random-valid sampler under each contract.
+Every learned result is read against two oracle-assisted controls, never as an ability of those controls. The exact reference runs the declared algorithm and defines the imitation target. Where a control saturates, the gain is unmeasurable rather than zero. Under the enumeration contract, random-valid is uniform over valid operations, drawing one listed candidate per decision with a seeded generator and no retry or repair. Candidates are successor rows under additive search, non-duplicate evaluated successors at an admissible frontier position under BFWS, and unvisited successors under BFS, else a frontier-retire operation. Under the choice-frontier contract, random-valid is uniform over the offered frontier, so each random-valid number is read under its own contract.
 % Evidence (executed code, read-only): examples/planning_benchmark_slice/visual_episode.py L356 (random.Random(seed)) and
 % reference_output L403-433 (dispatch; BFS: random.choice over successor_candidates with visited false, else retire_frontier);
 % best_first_development.py L519-521 random_valid_best_first_output (generator.randrange over successor_candidates.rows);
@@ -34,51 +25,61 @@ Exact-classical runs the declared algorithm and defines the imitation target, ra
 % outputs/choice-frontier/v1/evaluation/identity-audit.json basis ("random_valid (uniform menu choice)").
 % Supersedes the former "not yet pinned" sentence and the content_brief "random-valid definition" open item (review 16 I16).
 
-% Paragraph purpose: Fix splits, the main panel, budget, termination, separated measures, and the analysis contract.
-% Evidence: 24 tasks, 12 domains, 288 episodes per arm per docs/experiments/expanded-study/synthesis-v1/README.md and baseline-summary.csv;
-% bootstrap 10,000 resamples, seed 1729 per synthesis-v1/baseline-contrasts.csv (Table tab:results-contrasts caption); 36 Holm-corrected
-% McNemar comparisons per synthesis-v1/transfer-paired.csv (Table tab:results-transfer). Wave 3 census addition.
-Splits are by whole task instance with audited corpora (Data and Split Procedures appendix). The modality matrix evaluates 24 tasks from 12 domains under three observations, giving 288 episodes per arm. Budgets count decision calls with invalid operations charged. Learned adapters are capped at twice the exact-reference decision count, the base is priced at one call, and an episode ends at its first invalid emission and counts only after independent replay reproduces it. Contrasts use a paired whole-instance bootstrap (10,000 resamples, seed 1729, 95\% percentile) unless a protocol states otherwise (Statistics appendix), and transfer uses exact McNemar tests with Holm correction across 36 comparisons.
-
-% Paragraph purpose: Define the two decision contracts and the shared identity audit, pointing to the schematic and the appendix table.
-The two contracts are compared in Figure~\ref{fig:contracts} and Table~\ref{tab:design-contracts}. The choice-frontier contract has as its pre-registered pass condition the per-pair identity audit of random-valid against exact reference over 18 seed-17 pairs (\texttt{CHOICE\_SENSITIVE} on any divergence, \texttt{ZERO\_DECISION\_HEADROOM} otherwise, no re-runs), also run as a diagnostic on the enumeration contract's additive cells.
-% Evidence: docs/experiments/choice-frontier/issue-132-design.md sections 2 and 6 (contract inversion, atomic expansion,
-% goal at selection, decision_cap = expansion_cap = 2 x reference_expansions, identity-audit gate and verdict rule);
+% Paragraph purpose: Define the identity audit and its pre-registered role.
+The identity audit compares random-valid with the exact reference decision by decision. It is the choice-frontier contract's pre-registered pass condition over 18 seed-17 pairs, passing on any divergence without re-runs, and a diagnostic on the enumeration contract's additive cells.
+% Evidence: docs/experiments/choice-frontier/issue-132-design.md sections 2 and 6 (identity-audit gate and verdict rule);
 % issue-132-closeout.md Erratum item 5; outputs/native-arms/v1/identity-audit.json (enumeration-contract audit).
 
-% Paragraph purpose: Define the native-arms and menu-manipulation family on its separate ledger.
-Follow-up protocols (the Choice-Frontier Contract appendix and the Results Detail appendices) were each frozen before their own first outcome, on separate ledgers, but after earlier outcomes on the same nine tasks (Section~\ref{sec:results-boundary}). They add two image-only native arms that keep only the grounded, unscored menu as text (\texttt{visual-nomem-state}, and \texttt{visual-seq-state} with $K{=}8$ predecessor scenes) and menu manipulation by seeded permutation and injection of up to $k{=}3$ schema-valid inapplicable actions.
-% Evidence: follow-up protocols are issues #128--#133.
-% Evidence: docs/experiments/native-arms/native-arms-design.md; configs/experiments/native-arms/native-arms-v2-protocol.json
-% (history_window.k = 8, smoke gate 0.5, null_result_interpretation); docs/experiments/native-arms/issue-130-design.md (k=3, pick-rate).
-
-% Paragraph purpose: Define the choice-frontier panel, conditions, and corpus, with the panel-reuse risk.
-The first choice-frontier evaluation reuses the frozen 9-task native-arms membership (8 domains, $C^*$ from 3 to 6) under both additive algorithms. The training corpus was derived on CPU by replaying the frozen exact traces through the new contract and verified expansion-for-expansion against them (58 episodes bit-exact).
+% Paragraph purpose: Describe the reused first panel, its corpus, the fresh validation panel, and the screen.
+The choice-frontier panels are frozen before any evaluation and screened against trivial tasks. The first measurement reused a panel of nine low-cost tasks from 8 domains, shared with the corruption suite, native arms, menu manipulation, and comparator zoo, so each design step could adapt to earlier results.
 % Evidence: docs/experiments/choice-frontier/issue-132-design.md sections 3--6 (36 GPU + 108 CPU = 144 episodes);
 % outputs/choice-frontier/o4/metrics/optimal-costs.json (nine tasks, 8 domains, 7 compact / 2 expanded, C* 3-6); panel reuse per
-% review 16 I17. Corpus provenance: outputs/choice-frontier/v1/preparation/visual-choice-frontier/report.json expansion_gate and
+% review 16 I17. Panel reuse across #126 (corruption)/#129 (native arms)/#130 R1 (menu)/#132 (choice frontier)/#133 (zoo)
+% (copied from Results 5.6 in round 7).
+Its training corpus was derived on CPU by replaying the frozen exact traces through the new contract and verified expansion-for-expansion against them (58 episodes bit-exact).
+% Evidence: corpus provenance outputs/choice-frontier/v1/preparation/visual-choice-frontier/report.json expansion_gate and
 % audit.json episodes_rederived 58; the sentence is identical in Results and Appendix (review 16 I10).
+The ladder test and the adapter instead use the validation panel, 12 fresh tasks from 7 domains frozen before evaluation.
+% Evidence: #135 configs/experiments/choice-frontier-v2/membership.json task_ids 12, domains 7, frozen at commit 47de39c before evaluation
+% (E135-63). #136 reuses the same panel (membership_sha256 identical, E136-35). Copied from Results 5.6 in round 7.
+Each candidate task receives 10 screening episodes of random-valid. The screen admits it only if random-valid reaches the goal in 1 to 9 of them, so it admits tasks on which near-uniform choice sometimes succeeds.
+% Evidence: screen rule issue-139-protocol.md L48 (1 to 9 of 10 random-valid screening goals); V-SCR2 per review 20 #70.
+% Copied from Results 5.4 ("random-control screen") in round 7.
 
-% Paragraph purpose: Define the #133 comparator zoo, its oracle-access asymmetry, primary metric, and claim unit.
-The CPU-only exploratory comparator zoo tests Pareto dominance over M1 (solve-versus-budget area over multipliers 1 to 2), M2 (expansion overhead), and M3 (plan cost) against five comparators under a fifteen-test Holm family, with selectors that read privileged $g$/$h$ scalars or PDDL atoms.
-% Evidence: docs/experiments/choice-frontier/issue-133-protocol.md (arms, frozen 2x cap, oracle-access asymmetry, M1 multipliers,
-% claim unit, 5 comparators x 3 metrics = 15 tests); seed 133 / 10,000 draws in Appendix Statistics.
+% Paragraph purpose: Define the held-out and unscreened panels once, with the held-out meaning and the unexecuted final evaluation.
+The held-out panel (P2 in figures and tables) and the unscreened panel (P2u) were frozen from new seeds before any evaluation episode. Held-out means this panel only, built with the validation panel's rules from seeds on which no adapter had been evaluated. Its seed extension followed a controls-only screen of the first 40 seeds. The unscreened panel skips the screen and draws kept candidates outside the held-out panel. The frozen 45-task final evaluation remains unexecuted.
+% Evidence: #139 issue-139-protocol.md with Amendment A1 before any evaluation episode (L118-127); P2 screened / P2u unscreened rules
+% L36, L48-50, L55-57; held-out manifest never read (issue-139-closeout.md L11, L58). "first 40 seeds" per V-HO2 (r5-consolidation.md,
+% review 20 finding 73); held-out definition copied from the Introduction/Results in round 7.
 
-% Paragraph purpose: Define the two pre-registered protocols on the fresh validation panel.
-The ladder protocol, frozen before task generation on a fresh 12-task panel, passes only if all four adjacent paired task-cluster 95\% lower bounds are positive across the exact reference, exact-$\epsilon$ rungs 0.25, 0.50, and 0.75, and random-valid (12-task bootstrap, seed 133, 10,000 draws). The scaled-adapter protocol, frozen before task generation, fixes the estimand $D$, learned minus random-valid M1, and a POSITIVE rule with materiality margin 0.05 and equivalence margin $\pm 0.05$.
+% Paragraph purpose: State the pre-registered ladder and adapter rules and the later frozen protocols.
+Each choice-frontier result has a rule frozen before its outcome. The ladder test passes only if all four adjacent paired 95\% lower bounds are positive along the exact reference, the exact-$\epsilon$ rungs, and random-valid. Its intervals are task-clustered, resampling whole tasks (seed 133, 10,000 draws). The adapter rule requires adapter minus random-valid M1 to be positive with a materiality margin of 0.05 and sets an equivalence margin of $\pm 0.05$. Later protocols, each frozen before its outcomes, cover three seeds, two fresh panels, a zero-shot policy, and a second external audit.
 % Evidence: #135 docs/experiments/choice-frontier/issue-135-protocol.md (commit f823850 before task generation); outputs/choice-frontier/v2/metrics/analysis.json
 % instrument_validity.rule (PASS: all four paired task-cluster 95% lower bounds > 0), .tasks 12, .bootstrap draws 10000 / seed 133 (E135-01..03).
 % Evidence: #136 configs/experiments/choice-frontier-v3/protocol.json (commit ecdda03 before generation); outputs/choice-frontier/v3/metrics/analysis.json
 % primary.estimand, primary.rule, primary.materiality_margin 0.05, primary.equivalence_margin 0.05 (E136-02, E136-04, E136-05).
-Two follow-up protocols, each frozen before its outcomes, replicate the adapter over three seeds and on two fresh panels, one screened and held out (P2) and one unscreened (P2u), and held-out refers to P2 only. Two further protocols, a zero-shot second policy and a second external audit, were also frozen before their outcomes.
-% Evidence: #141 protocol commit 0fa497c before any GPU launch (issue-141-closeout.md L3); #142 protocol issue-142-protocol.md with Amendment A1
-% (commit e89a793) before any audit episode (L212).
-% Evidence: #138 protocol commit f06c7ac before any GPU launch (issue-138-closeout.md L5); #139 issue-139-protocol.md with Amendment A1
-% before any evaluation episode (L118-127); P2 screened / P2u unscreened rules L36, L48-50, L55-57; held-out manifest never read (issue-139-closeout.md L11).
+% Evidence: #138 protocol commit f06c7ac before any GPU launch (issue-138-closeout.md L5); #139 protocol with Amendment A1 before any
+% evaluation episode; #141 protocol commit 0fa497c before any GPU launch (issue-141-closeout.md L3); #142 protocol issue-142-protocol.md
+% with Amendment A1 (commit e89a793) before any audit episode (L212).
 
-% Paragraph purpose: State branch status compactly, marking the pending and reduced-scope stages.
-At submission (receipts in Table~\ref{tab:appendix-receipts}), the BFS pilot closed as history with VALID\_STOP, the BFWS gate passed on its development panel, and the modality matrix, DAgger, failure calibration, corruption, transfer, seed replication, and all follow-ups executed, with generalization and second backbone at reduced v2 scope only. The BFWS-to-BFS panel overlap is not pinned in the retained manifests.
+% Paragraph purpose: Define the enumeration-contract conditions, recipe, backbones, and compute cap.
+The enumeration-contract study compares process SFT with its controls. Each cell holds the pretrained base, process SFT, SFT plus two DAgger iterations \citep{ross2011dagger}, and an exposure-matched continued-SFT control. SFT trains a fresh LoRA adapter \citep{hu2022lora} for one epoch on 512 replay-verified records. The BFWS gate checkpoint used two epochs on 47,780 records. The backbone is Qwen3-VL-8B-Instruct \citep{bai2025qwen3vl} (revision \texttt{0c351dd0}), with InternVL3.5-8B \citep{wang2025internvl35} second. All runs share a 336 GPU-hour cap.
+% Evidence: docs/issue-59-bfws-structural-gate.md L10-13 (47,780 train records, two epochs, seed 17); expanded-study recipe (512 records, one epoch, 16 updates) per
+% outputs/expanded-study/v1/seed-replication/analysis.json and synthesis-v1/README.md; backbone revision 0c351dd0 per
+% docs/experiments/expanded-study/goal10-completion-audit.json L7 (0c351dd01ed87e9c1b53cbc748cba10e6187ff3b) and seed-replication-amendment.md L68.
+% Evidence: 336 GPU-hour cap per docs/experiments/expanded-study/issue-127-closeout.md (68.5244 / 336) and Table tab:appendix-receipts.
+
+% Paragraph purpose: Fix splits, the matrix panel, budget, termination, and the analysis contract.
+The modality matrix evaluates 24 tasks from 12 domains. Under three observations this gives 288 episodes per arm. Budgets count decision calls, charge invalid operations, cap adapters at twice the exact reference's count, and price the base at one call. An episode ends at its first invalid emission and counts only after independent replay. Contrasts use a paired whole-instance bootstrap (10,000 resamples, seed 1729, Statistics appendix). Transfer uses exact McNemar tests with Holm correction across 36 comparisons.
+% Evidence: 24 tasks, 12 domains, 288 episodes per arm per docs/experiments/expanded-study/synthesis-v1/README.md and baseline-summary.csv;
+% bootstrap 10,000 resamples, seed 1729 per synthesis-v1/baseline-contrasts.csv (Table tab:results-contrasts caption); 36 Holm-corrected
+% McNemar comparisons per synthesis-v1/transfer-paired.csv (Table tab:results-transfer). Wave 3 census addition.
+
+% Paragraph purpose: Point the exploratory follow-ups to the appendix and state branch status and seed scope.
+Exploratory follow-ups on the reused nine-task panel are reported only in the appendix. Each was frozen before its own first outcome but after earlier outcomes on the same tasks. At submission the BFS pilot had closed, the BFWS gate had passed, and every other stage had executed (Table~\ref{tab:appendix-receipts}). Generalization and second backbone ran at reduced scope only. The BFWS-to-BFS panel overlap is not pinned. Every enumeration-contract learned cell is single-seed except two replication cells (seeds 17/29/71).
+% Evidence: follow-up protocols are issues #128--#133; docs/experiments/native-arms/native-arms-design.md; issue-130-design.md; issue-133-protocol.md.
 % Review 20 #74c: "2026-09-23 snapshot" replaced because the #138-#140 follow-ups executed on 2026-09-24 (issue-140-protocol.md L118).
+% Evidence: seed replication per issue #127 (docs/experiments/expanded-study/issue-127-closeout.md); replication protocol frozen 2026-09-20.
 % Round 4: the final-evaluation sentence moved out for the word budget; Results (sec:results-boundary) and App app:results-boundary state it.
 % TODO(panel-overlap): issue-54-operator-runbook.md and issue-59-bfws-structural-gate.md pin the selection rules but not their
 % shared task identities. Round-2 search (2026-09-23) found no pinned post-#126 retention manifest. Count stays open under #131 W4.
