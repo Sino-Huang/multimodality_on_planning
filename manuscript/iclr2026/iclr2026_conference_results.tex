@@ -1,3 +1,4 @@
+% STATUS: #131 round 8 (2026-09-25) (Protocol, Wave 2). Subsection 5.1 (Gate Receipts and Executed Scope) deleted: its paragraph, label sec:results-gates, and comments moved to Section 4 (receipts paragraph); the VALID_STOP and BFS-pilot/BFWS-gate clauses are held by the Gate Receipts appendix. Roadmap sentence now follows Box 1. No number added, changed, or recomputed.
 % STATUS: #131 round 7 review-22 pass (2026-09-25, BackFix): findings 82(d,e), 87, 95, 96 (new tab:results-panels, body values only), cold-read B openers,
 % 5.6 "expanded baseline", "registers choice" gloss in 5.2, Section 5 roadmap now matches the order (5.1 kept first). No number added or recomputed.
 % STATUS: #131 round 7 Wave 4 (2026-09-25). "heap serials follow submission order" -> "equal-priority ties break in submission order". No number added, moved, or deleted.
@@ -30,30 +31,7 @@
 \label{sec:results}
 
 % Paragraph purpose: State the development-stage frame of every result, then give the order of the subsections.
-Every result below is development-stage, each measurement is kept separate, and the controls are oracle-assisted bounds rather than abilities (Section~\ref{sec:design}). The section gives the gate receipts first, then the two checks, the validated measurement, and the policies it scores.
-
-\subsection{Gate Receipts and Executed Scope}
-\label{sec:results-gates}
-
-% Paragraph purpose: State that every run reconciles with its ledger and replay, the reduced-scope branches, and the qualification gates, pointing to the receipts table.
-Every executed run reconciles with its ledger and independent replay, and the program spent 68.5244 of its 336 GPU-hour cap. All 1,152/1,152 baseline episodes were independently replayed, and follow-up windows sit on separate ledgers that are never summed. Two branches stopped at their v1 cost gates with terminal governed stops (\textsc{valid\_stop}) and completed only at reduced scope. Before the program, the BFS pilot stopped because random-valid also succeeded, the BFWS structural gate passed, and the frozen 45-task final evaluation was never accessed (Gate Receipts appendix, Appendix~\ref{app:results-gates}, Table~\ref{tab:appendix-receipts}).
-% Round 7: the six per-window GPU-hour pairs (1.19/4, 4.84/30, 15.22/24, 9.06/40, 2.25/30, 2.89/12) left the body; all six are rows of tab:appendix-receipts.
-% Evidence: 2.25/30 GPU-h (#141) per issue-141-closeout.md L77 ("2.245 / 30") and outputs/choice-frontier/v6/budget.json attempts[0..4].gpu_hours,
-% cap schedule.authorization.window_gpu_hours_cap 30.0; 2.89/12 GPU-h (#142) per outputs/external-audit/v2/budget.json total_gpu_hours 2.8910 and
-% .schema.gpu_hours_cap 12.0 (issue-142-closeout.md L108). Never summed (external-audit/v2/budget.json .schema.independent; choice-frontier/v6 budget.json schedule.accounting).
-% Evidence: 68.5244 / 336 per docs/experiments/expanded-study/issue-127-closeout.md; 1,152/1,152 per synthesis-v1/README.md;
-% follow-up windows per issue-129/130/132 closeouts and the #133 closing comment (GPU ledgers native-arms/v1, reviewer-v130/v1+v2,
-% choice-frontier/v1 budget.json; zoo CPU only). BFS pilot 1.0 / random-valid 1.0 per docs/experiments/deadline-study/prior-evidence.json
-% historical_bfs_stages[stage v8].metrics (process_sft_invariant_valid_success 1.0, random_valid_invariant_valid_success 1.0, outcome VALID_STOP).
-% Addenda are #126 (corruption) and #127 (seed replication); follow-up windows are #129, #130 (R1-R4), #132, and #133.
-% Evidence: 1.19/4 GPU-h (#135) per outputs/choice-frontier/v2/budget.json attempts[].gpu_hours and the #135 closing comment 5797898541 (LED-1).
-% Evidence: 4.84/30 GPU-h (#136) per outputs/choice-frontier/v3/budget.json attempts[].gpu_hours and the #136 closing comment 5800787379 (LED-2).
-% Evidence: 15.22/24 GPU-h (#138 + #139) per issue-139-closeout.md L144 and outputs/choice-frontier/v4/budget.json attempts[].gpu_hours;
-% 9.06/40 GPU-h (#140) per issue-140-closeout.md L72 and outputs/choice-frontier/v5/budget.json attempts[].gpu_hours. Never summed.
-% Evidence: #134 and #137 CPU-only per issue-134-closeout.md ("no GPU was used") and issue-137-closeout.md (LED-3, LED-4). Never summed.
-% Status 2026-09-21: issues #96/#98/#102/#103 CLOSED (supervisor decision, v1 scope withdrawn); prose states the withdrawal (review 16 I12).
-% TODO: the authorized held-out final primary evaluation on the frozen
-% 45-task manifest remains unexecuted; no final efficacy number exists.
+Every result below is development-stage, each measurement is kept separate, and the controls are oracle-assisted bounds rather than abilities (Section~\ref{sec:design}). The subsections follow Box~\ref{box:procedure}, from the identity audit and what it changes to the admitted measurement and its ladder, the policies it scores, and the procedure on published interfaces.
 
 \subsection{Enumeration-Contract Identity Audit}
 \label{sec:results-identity}

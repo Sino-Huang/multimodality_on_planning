@@ -1,3 +1,4 @@
+% STATUS: #131 round 8 (2026-09-25) (Protocol, Wave 2). Statistics/Transfer tests receives the Section 4 McNemar/Holm comment; Gate Receipts qualification-gates paragraph receives the BFWS-to-BFS overlap sentence from Section 4; tab:appendix-survey gains audited and budget-unit columns and two reference rows for our contracts (tokens copied from the body with comments), caption made standalone. No number added, changed, or recomputed.
 % STATUS: REVISED #131 round 2 2026-09-23: follow-up windows added to tab:appendix-receipts (per window,
 % never summed; main program stays 68.5244 / 336); follow-up statistics conventions; artifact index;
 % native-arms v2 arms in the modality-adapter section (#128 proposal marker retired); new final section
@@ -407,6 +408,8 @@ Strata with fewer than 8 episodes are reported as descriptive only. No intervals
 \paragraph{Transfer tests.}
 Transfer comparisons use McNemar exact tests against the per-example base predictions, with Holm correction across all 36 adapter-by-benchmark comparisons. The minimum adjusted $p$ in the executed transfer branch is 0.8156. None survives correction.
 % Evidence: outputs/expanded-study/v1/transfer-paired-analysis.json min_holm_p 0.81561 over 36 comparisons.
+% Round 8: moved from Section 4 ("Transfer uses exact McNemar tests with Holm correction across 36 comparisons."), whose comment was:
+% 36 Holm-corrected McNemar comparisons per synthesis-v1/transfer-paired.csv (Table tab:results-transfer). Wave 3 census addition.
 
 % Paragraph purpose: State the follow-up bootstrap seeds separately from the main-program default.
 \paragraph{Follow-up bootstrap conventions.}
@@ -629,7 +632,10 @@ The R1-R4 follow-up window was resized from 20 to 36 GPU-hours before any outcom
 
 
 % Paragraph purpose: Record the qualification gates that precede the program: the BFS pilot VALID_STOP, the BFWS structural gate PASS with its untouched held-out manifest, and the retired optimal A* arm.
-Three earlier gates frame the active algorithm matrix. The bounded BFS pilot closed with a governed \textsc{valid\_stop}. On a frozen outcome-blind 15-task BFS development panel, final checkpoints from five process-SFT seeds achieved 1.0 invariant-valid success with a 0.0 invalid-operation rate, but the base achieved 0.0 and random-valid achieved 1.0, so the learned policy showed executable BFS behavior with zero gain over the strongest control and downstream work was gated off. The BFWS structural gate then passed on its frozen development panel (Section~\ref{sec:results-primary}). The companion manifest of the frozen 45-task final evaluation was fixed before outcomes and has never been accessed.
+Three earlier gates frame the active algorithm matrix. The bounded BFS pilot closed with a governed \textsc{valid\_stop}. On a frozen outcome-blind 15-task BFS development panel, final checkpoints from five process-SFT seeds achieved 1.0 invariant-valid success with a 0.0 invalid-operation rate, but the base achieved 0.0 and random-valid achieved 1.0, so the learned policy showed executable BFS behavior with zero gain over the strongest control and downstream work was gated off. The BFWS structural gate then passed on its frozen development panel (Section~\ref{sec:results-primary}). The overlap between the BFWS and BFS development panels is not pinned. The companion manifest of the frozen 45-task final evaluation was fixed before outcomes and has never been accessed.
+% Round 8: the overlap sentence moved here from Section 4 (former exploratory-follow-ups paragraph) with its comment:
+% TODO(panel-overlap): issue-54-operator-runbook.md and issue-59-bfws-structural-gate.md pin the selection rules but not their
+% shared task identities. Round-2 search (2026-09-23) found no pinned post-#126 retention manifest. Count stays open under #131 W4.
 % Evidence: docs/experiments/deadline-study/prior-evidence.json historical_bfs_stages[stage v8] (15 selected tasks, outcome VALID_STOP,
 % metrics process_sft/random_valid invariant-valid success 1.0, base 0.0, per_seed 17/29/43/71/101); BFWS gate docs/issue-59-bfws-structural-gate.md L250-256.
 % TODO: the authorized held-out final primary evaluation on the frozen
@@ -1488,28 +1494,39 @@ The survey admitted published evaluations from 2022 on in which the model choose
 % issue-137-closeout.md Limitations and issue comment 5801181178. Type definitions paraphrase the survey rows.
 
 \begin{table}[t]
-\caption{The seven surveyed published interfaces, with the survey's pre-audit prediction for random-valid against the reference.}
+\caption{The seven surveyed published interfaces and our two decision contracts. Type B: the model picks one valid action per step. Type C: the model scores candidates that a search orders. Type A: our enumeration contract. Prediction is the survey's pre-audit prediction for random-valid against the reference. Audited gives the identity-audit result where an audit ran. Budget unit is the unit the source states, else ``not stated''.}
 \label{tab:appendix-survey}
 \centering\scriptsize
 \setlength{\tabcolsep}{3pt}
-\begin{tabular}{llccc}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{llccccc}
 \hline
-Interface & Venue & Type & CPU-feasible & Prediction \\
+Interface & Venue & Type & CPU-feasible & Prediction & Audited (identity result) & Budget unit \\
 \hline
-AutoPlanBench \citep{stein2025autoplanbench} & ICAPS 2025 & B & yes & divergent \\
-ScienceWorld \citep{wang2022scienceworld} & EMNLP 2022 & B & yes & divergent \\
-GLAM (BabyAI-Text) & ICML 2023 & B & yes & divergent \\
-WebShop & NeurIPS 2022 & B & no & divergent \\
-RAP & EMNLP 2023 & C & no & divergent \\
-LLM-First Search \citep{herr2025llmfirst} & arXiv 2025 & C & no$^{\dagger}$ & saturated$^{\dagger}$ \\
-EmbodiedBench & ICML 2025 & B & no & divergent \\
+AutoPlanBench \citep{stein2025autoplanbench} & ICAPS 2025 & B & yes & divergent & no & not stated \\
+ScienceWorld \citep{wang2022scienceworld} & EMNLP 2022 & B & yes & divergent & yes, 1000/1000 divergent & 100-step limit \\
+GLAM (BabyAI-Text) & ICML 2023 & B & yes & divergent & no & not stated \\
+WebShop & NeurIPS 2022 & B & no & divergent & no & no step limit \\
+RAP & EMNLP 2023 & C & no & divergent & no & not stated \\
+LLM-First Search \citep{herr2025llmfirst} & arXiv 2025 & C & no$^{\dagger}$ & saturated$^{\dagger}$ & yes, no pair of the 400 identical & token caps \\
+EmbodiedBench & ICML 2025 & B & no & divergent & no & not stated \\
 \hline
-\multicolumn{5}{p{0.85\linewidth}}{$^{\dagger}$Audited later with a GPU reference model, where saturation under the paper's budget follows by construction (LLM-First Search Audit appendix, Appendix~\ref{app:results-external-lfs}).} \\
-\end{tabular}
+Our enumeration contract (additive cells) & this paper & A & n/a & n/a & yes, 48/48 identical & decision calls \\
+Our choice-frontier contract & this paper & n/a & n/a & n/a & yes, 18/18 divergent & decisions, twice the reference's expansions \\
+\hline
+\multicolumn{7}{p{0.9\linewidth}}{$^{\dagger}$Audited later with a GPU reference model, where saturation under the paper's budget follows by construction (LLM-First Search Audit appendix, Appendix~\ref{app:results-external-lfs}).} \\
+\end{tabular}}
 \end{table}
 % Evidence: issue-137-survey.md Candidate table (venue, interface type, CPU feasible?, prediction columns) and Selection by the fixed rule
 % (E137-40, E137-42, E137-43). Only LLM-First Search predicts saturated per the survey's closing statement.
 % Dagger note: audited later on GPU (#142); the prediction held under the paper budget (issue-142-closeout.md L3-5).
+% Round 8 columns: ScienceWorld audit and budget copied with the comment of Results 5.5: #137 outputs/external-audit/v1/scienceworld/identity-audit.json verdict CHOICE_REGISTERED, tasks 200, pairs_checked 1000,
+% pairs_divergent 1000, first_divergence_index max 0, success.reference 0.915, success.random_valid_mean 0.0; envStepLimit 100 per issue-137-closeout.md.
+% LLM-First Search: outputs/external-audit/v2/lfs/identity-audit.json pairs_identical 0 of pairs_checked 400; paper_budget.verdict SATURATED, paper_budget.success.random_valid_mean 1.0; supplementary.tokens_median.random_valid 0.0; matched_decision_budget.success.random_valid_mean 0.0775 (#142). Token-cap mechanism per issue-142-closeout.md L11-15.
+% WebShop budget: "free-text search, no step limit" per the survey paragraph above (issue-137-survey.md, issue-137-closeout.md Limitations).
+% Our enumeration contract (48/48): outputs/native-arms/v1/identity-audit.json pairs_identical 48 of pairs_checked 48; outputs/native-arms/v1/identity-audit-submission-order.json rules.sorted_candidate_order.pairs_identical 48 (#134 E134-03). Budget in decision calls per Section 4 (docs/experiments/expanded-study/synthesis-v1/README.md).
+% Our choice-frontier contract (18/18): outputs/choice-frontier/v1/evaluation/identity-audit.json (pairs_divergent 18). Budget per docs/experiments/choice-frontier/issue-132-design.md sections 2 and 6
+% (decision_cap = expansion_cap = 2 x reference_expansions). Type A is the survey's label for our enumeration contract; the choice-frontier contract was not typed by the survey (n/a).
 
 % Paragraph purpose: Give the frozen audit protocol and its results.
 The frozen protocol takes the first 200 test variations under the paper's 100-step limit with five random-valid seeds (17, 5077, 6131, 7409, and 8527), and ten re-run episodes are byte-identical. The reference completes 183 of 200 (0.915), including 3/9 boil, 6/9 melt, 4/9 freeze, 6/9 change-state, 135/135 use-thermometer, and 29/29 measure-melting-point variations, and falls short only where 17 of the 36 Matter variations need more than 100 moves. Random-valid completes none, and 997 of its 1000 episodes end in a failure score.
