@@ -2,6 +2,21 @@
 
 The record of what changed in the ICLR 2026 manuscript and why. Newest first. Each entry names the commit, the scope of the change, and the review or ticket it answered. Review findings and their status live in `review-log.md`; claim vocabulary and boundaries live in `CONTEXT.md`.
 
+## 2026-09-25 — review 21 and consolidation (`58e661e`)
+
+- Review 21 (paper-reviewer, at `ba7d4d2`): WEAK REJECT, **rating 4** (Soundness 3, Presentation 2, Contribution 2, confidence 4). 0 CRITICAL, 1 MAJOR, and 5 MINOR findings (81-84 plus the 75 and 80 remainders). Every rendered number matches the pinned artifacts. The reviewer re-ran the 30 fig_ladder checks (all pass) and confirmed findings 69-74 and 76-79. Main text is 9 pages.
+- Author decisions:
+  - 81 (MEANING): accept the reframe. The LLM-First Search saturation is a by-construction demonstration of the budget check, not a tested failure mode. `CONTEXT.md` is amended.
+  - The reviewer's experiment paths are filed as #143 (one-seed InternVL3.5-8B adapter) and #144 (modality contrast under the choice-frontier contract), both `experiments`, pending the author's go.
+- Consolidation:
+  - 5.5 states the saturation holds by construction (102,606 against 1,300 maximum expansions) and gives the expansion-counted success (0.0775 at the reference's count, 0.19 at twice it).
+  - The LLM-First Search appendix now discloses the 500,000-expansion guard, the 100/100 probe, and the budget curve, and says the reference's matched success equals its token-budget success by construction. The Discussion, Introduction, Conclusion, Contribution 4, and abstract use the by-construction wording.
+  - The portable rule cites the compute-matched-baseline precedent (`li2019random`, verified against PMLR v115 and arXiv; also cited in Related Work with a net-zero word change).
+  - Zero-shot policy: the prompt is fully described, verdicts carry stage labels (development and confirmatory), the pooled verdict reads "within margin (descriptive)", and $D_3$ is defined for both arms.
+  - The sign-flip p is in its own rows and is defined in the Statistics appendix.
+  - The abstract is cut to about 220 words. The 75 and 80 remainders are fixed.
+- Build: 38 pages, 0 errors, 0 undefined, 0 overfull, 0 bibtex warnings. The Conclusion ends on p.9 (main text 9 pages). All headline strings are present.
+
 ## 2026-09-25 — round 6 waves 1-3 (`e2eb87c`, `865545a`, and the wave-3 commit)
 
 - Wave 1 (`e2eb87c`):

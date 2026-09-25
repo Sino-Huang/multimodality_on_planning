@@ -33,7 +33,7 @@ Single record of every review the manuscript has received: what draft state it r
 | 18 | 2026-09-23 | paper-reviewer (area-chair tier) | Round-3 re-review at `19a641b` (clean tree): nine section files, hub, six bibs, log/blg, rendered 29-page PDF, both figure assets and scripts, headline numbers re-derived from the pinned JSONs, ledgers, and episode stores | WEAK REJECT (0 CRITICAL, 6 MAJOR, 13 MINOR, counting the 2 partial remainders) | SUPERSEDED by 19 (all findings closed except 49 and 60, carried into 19 and blocked on issue #134) |
 | 19 | 2026-09-23 | paper-reviewer (area-chair tier) | Round-3 re-review at `1281c1b` (clean tree): nine section files, hub, six bibs, log/blg, rendered 29-page PDF, both figure assets and scripts, numbers re-checked against the pinned JSONs, CSVs, and ledgers, and a sample of the new `%` Evidence comments checked for path and key | WEAK REJECT (0 CRITICAL, 1 MAJOR, 8 MINOR) | CLOSED (`59e8714`; 49 and 60 closed with #134; 40 WONTFIX) |
 | 20 | 2026-09-25 | paper-reviewer (area-chair tier) | Round-5 re-review at `0277de7` (clean tree): rendered 35-page PDF, nine section files, hub, six bibs, log/blg, all three figure scripts and PNGs (28/28 fig_ladder asserts re-run), every round-5 number and all cells of Tables 19-21 re-derived from the pinned #138-#140 JSONs and ledgers, 16 `%` Evidence comments checked | WEAK REJECT, rating 4 (S 3 / P 2 / C 2, confidence 4); 0 CRITICAL, 2 MAJOR, 10 MINOR | CLOSED (70-80 `e7346aa`; 69 `e7346aa` + `e2eb87c` after #141/#142; 40 WONTFIX) |
-| 21 | 2026-09-25 | paper-reviewer (area-chair tier) | Round-6 re-review at `ba7d4d2` (clean tree): rendered 37-page PDF, word diffs since `0277de7`, figures and scripts (30/30 fig_ladder checks re-run), every round-6 number and all cells of Tables 22 and 24 re-derived from the #141/#142 JSONs and ledgers, 14 `%` Evidence comments checked | WEAK REJECT, rating 4 (S 3 / P 2 / C 2, confidence 4); 0 CRITICAL, 1 MAJOR, 5 MINOR | OPEN |
+| 21 | 2026-09-25 | paper-reviewer (area-chair tier) | Round-6 re-review at `ba7d4d2` (clean tree): rendered 37-page PDF, word diffs since `0277de7`, figures and scripts (30/30 fig_ladder checks re-run), every round-6 number and all cells of Tables 22 and 24 re-derived from the #141/#142 JSONs and ledgers, 14 `%` Evidence comments checked | WEAK REJECT, rating 4 (S 3 / P 2 / C 2, confidence 4); 0 CRITICAL, 1 MAJOR, 5 MINOR | CLOSED (`58e661e`; 40 WONTFIX; experiments filed as #143/#144) |
 
 ## Live fixlist — review 21 (2026-09-25)
 
@@ -296,7 +296,7 @@ I checked 14 comments, 10 of them from round 6. For each I checked that the path
   - Pay for the space with the 84 cuts.
 - **Why it changes the verdict:** Contribution 4, the second check of the portable rule, the Discussion's value sentence, and the Conclusion's last sentence all rest on this result. Framed as a guaranteed demonstration of a known principle, it is honest and still useful. Framed as a pre-registered test of a newly found failure mode, it overstates.
 - **Fix class:** MEANING (it changes what the LFS result is claimed to show, from a tested failure mode to a by-construction demonstration)
-- **Status:** OPEN
+- **Status:** CLOSED (`58e661e`)
 
 #### 82 · MINOR · Axis 4 + Axis 3 (zero-shot policy: undisclosed prompt instruction, unstated verdict stages, notation reuse) · `iclr2026_conference_results.tex; iclr2026_conference_appendix.tex`
 
@@ -317,7 +317,7 @@ I checked 14 comments, 10 of them from round 6. For each I checked that the path
   - (d) Write D for the zero-shot arm, or define "D3" once as the endpoint name for both arms.
   - (e) "…so the instrument separates the trained adapter from a zero-shot policy that it scores as uniform choice".
 - **Fix class:** WORDING
-- **Status:** OPEN
+- **Status:** CLOSED (`58e661e`)
 
 #### 83 · MINOR · Axis 2 statistical hygiene (sign-flip p values printed beside EQUIVALENT verdicts; the convention is absent from the Statistics appendix) · `iclr2026_conference_appendix.tex`
 
@@ -327,7 +327,7 @@ I checked 14 comments, 10 of them from round 6. For each I checked that the path
   - The Statistics appendix does not define the sign-flip convention (exact, all 2^n vectors, two-sided, descriptive) now used in Table 22.
 - **Fix:** Drop the p value from the D3 row, or print it in its own row with the note "p tests a zero difference; EQUIVALENT is the ±0.05 margin rule". Add one sentence to the Statistics appendix defining the exact sign-flip p (V6 `per_panel.*.*.sign_flip.{exact, sign_vectors, statistic}`) as descriptive.
 - **Fix class:** WORDING
-- **Status:** OPEN
+- **Status:** CLOSED (`58e661e`)
 
 #### 84 · MINOR · Axis 5 (abstract length, number density, and two garbled sentences) · `iclr2026_conference_abstract.tex`
 
@@ -348,7 +348,9 @@ I checked 14 comments, 10 of them from round 6. For each I checked that the path
   - Apply the 81 wording.
   - Target 220 words or fewer. The freed lines also give the main text the room 81 needs.
 - **Fix class:** WORDING
-- **Status:** OPEN
+- **Status:** CLOSED (`58e661e`)
+
+**Disposition (2026-09-25, `58e661e`):** 81 CLOSED by author decision (reviewer reframe: by-construction demonstration, guard, probe, expansion counts, budget curve, compute-matched precedent `li2019random`). 82-84 and the 75/80 remainders CLOSED as prescribed. The reviewer's experiment paths are filed as #143 (one-seed InternVL3.5-8B adapter) and #144 (modality contrast under the choice-frontier contract) and are not written into the paper. Finding 40 WONTFIX unchanged.
 
 ### What would change the verdict
 
