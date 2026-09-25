@@ -70,7 +70,9 @@ The ladder protocol, frozen before task generation on a fresh 12-task panel, pas
 % instrument_validity.rule (PASS: all four paired task-cluster 95% lower bounds > 0), .tasks 12, .bootstrap draws 10000 / seed 133 (E135-01..03).
 % Evidence: #136 configs/experiments/choice-frontier-v3/protocol.json (commit ecdda03 before generation); outputs/choice-frontier/v3/metrics/analysis.json
 % primary.estimand, primary.rule, primary.materiality_margin 0.05, primary.equivalence_margin 0.05 (E136-02, E136-04, E136-05).
-Two follow-up protocols, each frozen before its outcomes, replicate the adapter over three seeds and on two fresh panels, one screened and held out (P2) and one unscreened (P2u), and held-out refers to P2 only.
+Two follow-up protocols, each frozen before its outcomes, replicate the adapter over three seeds and on two fresh panels, one screened and held out (P2) and one unscreened (P2u), and held-out refers to P2 only. Two further protocols, a zero-shot second policy and a second external audit, were also frozen before their outcomes.
+% Evidence: #141 protocol commit 0fa497c before any GPU launch (issue-141-closeout.md L3); #142 protocol issue-142-protocol.md with Amendment A1
+% (commit e89a793) before any audit episode (L212).
 % Evidence: #138 protocol commit f06c7ac before any GPU launch (issue-138-closeout.md L5); #139 issue-139-protocol.md with Amendment A1
 % before any evaluation episode (L118-127); P2 screened / P2u unscreened rules L36, L48-50, L55-57; held-out manifest never read (issue-139-closeout.md L11).
 

@@ -2,6 +2,13 @@
 
 The record of what changed in the ICLR 2026 manuscript and why. Newest first. Each entry names the commit, the scope of the change, and the review or ticket it answered. Review findings and their status live in `review-log.md`; claim vocabulary and boundaries live in `CONTEXT.md`.
 
+## 2026-09-25 — round 6 opening (evidence tickets #141, #142 closed)
+
+- #141 (`outputs/choice-frontier/v6/metrics/analysis.json`, protocol `0fa497c`, closeout `1c79e1e`): the InternVL arm was infeasible within 30 GPU-h, so the second realisable policy is the zero-shot base Qwen3-VL-8B. D3 is EQUIVALENT on the validation panel (+0.005 [−0.025, +0.044]) and INCONCLUSIVE on P2 (+0.001 [−0.048, +0.051]). S and the contrast against the adapter are SEPARATED_BELOW on both panels. The prediction held. 46/46 replayed. Ledger 2.25/30 GPU-h.
+- #142 (`outputs/external-audit/v2/lfs/identity-audit.json`, protocol `b09a458`): LLM-First Search with a local Qwen3-30B-A3B substitute for GPT-4o, 80 tasks. 0/400 pairs identical. Under the paper budget: SATURATED (random-valid 1.0 against reference 0.825). Under a matched decision budget: CHOICE_REGISTERED (random-valid 0.0775). Both predictions held. Ledger 2.89/12 GPU-h, no paid API.
+- Evidence sheet `local://evidence-r6.md` (two scouts). Main re-read both JSONs and checked the headline values and both ledger sums.
+- Author decisions: #142 goes in the body as a second failure mode on a published interface (the value anchor, portable rule, Contribution 4, abstract, and Discussion updated; the substitution stated in the body). #141 gets two sentences in 5.4 plus an appendix subsection. fig:ladder gains a zero-shot row. The title is unchanged. Review-20 finding 69 (b, c) closes with this integration. `CONTEXT.md` gains an "External audit claim" entry.
+
 ## 2026-09-25 — review 20 and consolidation (`e7346aa`)
 
 - Review 20 (paper-reviewer, area-chair tier, at `0277de7`): WEAK REJECT, **ICLR 2026 rating 4** (Soundness 3, Presentation 2, Contribution 2, confidence 4), 0 CRITICAL, 2 MAJOR, 10 MINOR (findings 69-80). The reviewer re-derived every round-5 number and every cell of the three new appendix tables from the pinned JSONs and ledgers (all match), re-ran the 28 fig_ladder asserts (all pass), checked 16 evidence comments (15 resolve, 1 off-by-one pointer), and verified the round-4 closures (49, 60, the #137 reframe, review-16 finding 15, the 51 and 52 hedges). Main text was 8 pages. Full entry in `review-log.md`.

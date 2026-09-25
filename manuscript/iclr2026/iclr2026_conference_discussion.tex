@@ -19,12 +19,12 @@ The adapter chooses better than uniform frontier choice on all three panels (Sec
 On P2u, whose tasks random-valid never solved in screening, choice still discriminates, but the gain rests on 4 of 12 tasks (descriptive). The result is obtained by imitating the exact reference.
 % Evidence: outputs/choice-frontier/v4/panels/metrics/analysis.json concentration.per_panel.p2u.counts positive 4, zero 8; unscreened_p2u.ladder.verdict PASS (descriptive); P2u 0/10 random-valid screening goals on all 12 tasks per local evidence sheet §9 (#139).
 
-% Paragraph purpose: State the external anchor and its double edge, so the contribution is the measurement rather than the exposure of a common flaw.
-ScienceWorld \citep{wang2022scienceworld} anchors the check on a published interface where it registers choice (Section~\ref{sec:results-external}). None of the seven published interfaces we surveyed uses a complete-set submission contract, so the identity failure is shown only on our runtime. The contribution is therefore the measurement, not the exposure of a common flaw.
-% Evidence: docs/experiments/external-audit/issue-137-survey.md §Candidate table (7); issue-137-closeout.md §Stage 1 survey (0 type A) (#137 E137-40, E137-42).
+% Paragraph purpose: State the external anchor and its two failure modes, so the contribution is the measurement and its two checks rather than the exposure of a single flaw.
+ScienceWorld \citep{wang2022scienceworld} anchors the check on a published interface where it registers choice (Section~\ref{sec:results-external}). The complete-set identity failure is shown only on our runtime, since none of the seven surveyed published interfaces uses that contract. On the published LLM-First Search interface, random-valid success instead saturates under the paper's own budget although every decision diverges, a failure the per-decision audit does not detect and a decision-matched budget does. The contribution is therefore the measurement and its two checks, not the exposure of a single flaw.
+% Evidence: docs/experiments/external-audit/issue-137-survey.md §Candidate table (7); issue-137-closeout.md §Stage 1 survey (0 type A) (#137 E137-40, E137-42); outputs/external-audit/v2/lfs/identity-audit.json pairs_identical 0, paper_budget.verdict SATURATED, matched_decision_budget.verdict CHOICE_REGISTERED (#142).
 
 % Paragraph purpose: State the portable rule of the audit.
-The portable rule is to run the per-decision identity audit before reading random-valid success as choice, and to report success as operation validity whenever every pair is identical. Under a contract that registers choice, a learned policy's difference from random-valid should be reported together with its position on a privileged exact-$\epsilon$ ladder, because the difference alone does not locate choice quality. A random-valid control then serves as a check that must first pass, not as a lower bound on choice.
+The portable rule has two checks before random-valid success is read as choice. The per-decision identity audit must find divergent pairs, and the success budget must bind decisions, since a token or time budget that a zero-cost chooser never exhausts lets uniform choice become exhaustive randomized search. When either check fails, success reports operation validity or search coverage rather than choice. Under a contract that passes both, a learned policy's difference from random-valid should be reported with its position on a privileged exact-$\epsilon$ ladder, because the difference alone does not locate choice quality.
 
 % Paragraph purpose: List the limitations, one line each.
 \paragraph{Limitations.}
@@ -36,6 +36,9 @@ The portable rule is to run the per-decision identity audit before reading rando
 \item \emph{Held-out evaluation.} The frozen 45-task held-out final evaluation is unexecuted.
 \item \emph{Prediction.} The submission-order divergence was weaker than pre-registered.
 \item \emph{Runtime.} The runtime never chooses or repairs operands, so no result shows unassisted internal search.
+\item \emph{External audit.} The LLM-First Search reference uses a substituted local model, and the audit covers 80 tasks from four configurations.
+% Evidence: outputs/external-audit/v2/lfs/identity-audit.json tasks 80, per_config {cd3, cd5, cd7, su4}; configs/experiments/external-audit-v2/lfs-reference-server.json .model (Qwen3-30B-A3B-Instruct) (#142).
+\item \emph{Second policy.} The second realisable policy is zero-shot, and the trained second backbone was not run.
 \end{itemize}
 % Paragraph purpose: State the pending release.
 Code and evidence bundles will be provided as anonymous supplementary material.
@@ -51,3 +54,4 @@ On our runtime a per-decision identity check returns both verdicts. The redesign
 It is interval-separated above the exact-$\epsilon$ 0.75 rung on the held-out panel ($+0.227$ $[+0.053, +0.403]$) but not separated from that rung on the validation panel ($-0.041$ $[-0.187, +0.102]$), the unscreened panel, or pooled over 35 tasks ($+0.058$ $[-0.040, +0.156]$, descriptive).
 % Evidence: outputs/choice-frontier/v4/panels/metrics/analysis.json heldout_p2.separation.vs_eps_0.75.S, .ci95; outputs/choice-frontier/v4/seeds/metrics/analysis.json separation.vs_eps_0.75.S, .ci95; v4/panels analysis.json unscreened_p2u.separation.vs_eps_0.75.verdict NOT_SEPARATED; pooled.tasks 35, pooled.separation_vs_eps_0.75.S, .ci95 (#138, #139).
 The choice-quality claim is development-stage, holds relative to uniform choice and the exact-$\epsilon$ ladder on three panels with three training seeds, and carries no planning-ability or generality claim.
+On a published interface, success saturates under a budget that does not bind decisions, so the audit needs both checks.

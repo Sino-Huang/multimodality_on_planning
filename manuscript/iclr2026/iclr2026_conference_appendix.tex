@@ -269,6 +269,8 @@ Scaled adapter & \#136 & \textsc{positive} & 24/24 learned episodes replayed & 4
 External audit & \#137 & \textsc{choice\_registered} & 1000 pairs over 200 tasks & CPU only \\
 Three-seed replication, held-out panels (v4 window) & \#138, \#139 & \textsc{positive} & 48/48 new learned episodes, 638/638 P2 and 696/696 P2u zoo episodes replayed, and 88/88 P2 plus 96/96 P2u learned episodes & 15.22 / 24 \\
 DAgger ablation (v5 window) & \#140 & \textsc{not\_separated} & 24/24 validation-panel and 22/22 P2 episodes replayed & 9.06 / 40 \\
+Zero-shot second policy (v6 window) & \#141 & \textsc{equivalent} (validation), \textsc{inconclusive} (P2) & 46/46 model episodes replayed & 2.25 / 30 \\
+LLM-First Search audit (external v2) & \#142 & \textsc{saturated} (paper budget) & 80/80 reference and 400/400 random-valid episodes replayed & 2.89 / 12 \\
 \hline
 \end{tabular}
 % Evidence: synthesis-v1/README.md and docs/experiments/expanded-study/issue-127-closeout.md (program/addenda);
@@ -345,6 +347,10 @@ Pinned path & Claim class \\
 \path|outputs/choice-frontier/v4/panels/metrics/analysis.json| & Held-out and unscreened panels, per-panel arms, pooled results, concentration \\
 \path|outputs/choice-frontier/v5/metrics/analysis.json| & DAgger ablation \\
 \path|outputs/choice-frontier/v4/budget.json|, \path|outputs/choice-frontier/v5/budget.json| & v4 and v5 window ledgers \\
+\path|outputs/choice-frontier/v6/metrics/analysis.json| & Zero-shot second policy \\
+\path|outputs/choice-frontier/v6/budget.json| & v6 window ledger \\
+\path|outputs/external-audit/v2/lfs/identity-audit.json| & LLM-First Search audit \\
+\path|outputs/external-audit/v2/budget.json| & External audit v2 ledger \\
 Comparator-zoo ticket (\#133) closing comment & Zoo numbers table and claim boundary \\
 \hline
 \end{tabular}
@@ -1356,6 +1362,49 @@ All 24/24 validation-panel and 22/22 P2 DAgger episodes were independently repla
 % per_panel.p2.S 0.2784 (0.278), .S_ci95 [0.0818, 0.4727]; per_panel.v2.S -0.0344 (-0.034), .S_ci95 [-0.1969, 0.1354] (descriptive secondary, P140 L79-88);
 % per_seed.v2.17.pre_dagger.last_label_rate 0.2055 (0.205), per_seed.v2.17.dagger.last_label_rate 0.1371 (0.137) (descriptive, P140 L84).
 
+\subsection{Zero-Shot Policy}
+\label{app:results-cf-zeroshot}
+
+% Paragraph purpose: Define the second realisable policy and state why the trained second backbone was not run.
+The second realisable policy is the pretrained Qwen3-VL-8B-Instruct base with no adapter, given the frozen scene-only choice-frontier observation, one appended system sentence asking for a single JSON choice, a fixed three-rule output extractor, greedy decoding at inference seed 17, and the adapter's cap of $2R_t$ calls. It ran on both additive algorithms over the validation panel and P2, 46 episodes in all. The preferred arm, InternVL3.5-8B trained with the frozen three-seed recipe, was ruled out before any outcome. Its mean observation takes 11,748 tokens against 3,111 for Qwen3-VL, which puts training alone at 43 to 55 GPU-h against the 30 GPU-h cap, and a reduced recipe would break the byte-identical condition, so it was not run in any form. The protocol was committed before any GPU launch, and no amendment followed.
+% Evidence: #141 configs/experiments/choice-frontier-v6/protocol.json arm.condition zero_shot_base, model_id/model_revision 0c351dd0, arm.adapter null,
+% arm.system_message_suffix, arm.extraction (3 rules), inference.do_sample false, inference_seed 17; outputs/choice-frontier/v6/metrics/analysis.json
+% arm.decision_cap "2 x R_t"; evaluation.model_episodes 46 (P141 L16-41). InternVL: protocol.json arm_choice.feasibility_evidence.internvl_mean_tokens
+% 11747.9985 (11,748) and .qwen_mean_tokens 3110.5199 (3,111), rounded to the nearest token; arm_choice.reason "43-55 GPU-h training alone";
+% cap 30 GPU-h (P141 L13-14); "not run in any form" (P141 L14, issue-141-closeout.md L7). Commit 0fa497c before launch; "No amendments." (issue-141-closeout.md L3).
+
+% Paragraph purpose: Report the pre-registered endpoints, then the arm's M1 and behaviour, then the prediction and replay.
+Table~\ref{tab:appendix-zeroshot} gives the endpoints. On P2 the upper bound of $D_3$ exceeds the $\pm 0.05$ margin by 0.001, so the frozen rule returns INCONCLUSIVE rather than EQUIVALENT. The arm's M1 is 0.026 [0.000, 0.063] on the validation panel, 0.017 [0.000, 0.051] on P2, and 0.022 [0.003, 0.046] pooled, below the exact-$\epsilon$ 0.75 rung on every panel. All 1,592 model calls produced a valid choice through the first extractor rule. Heap-head agreement minus chance is $+0.003$ and $+0.001$, the last-label rate is 0.328 and 0.285 against a chance rate of about 0.13 to 0.14, and 4 of 46 episodes solve at $2R_t$ (descriptive). The pre-registered prediction, $D_3$ within the margin with $S$ and the adapter contrast $A$ separated below on both panels, held. All 46/46 episodes were independently replayed with no mismatch.
+% Evidence: primary.p2.ci95[1] 0.05114 vs margin 0.05 (issue-141-closeout.md L32); per_panel.v2.m1_arm 0.0260, .m1_arm_ci95 [0.0, 0.0625]; per_panel.p2.m1_arm 0.0170,
+% .m1_arm_ci95 [0.0, 0.0511]; pooled.m1_arm 0.0217, .m1_arm_ci95 [0.0027, 0.0462]; ladder_position.*.next_higher_rung exact-eps-0.75 (descriptive, P141 L66);
+% per_panel.{v2,p2}.behaviour.model_calls 836 + 756 (stored-row sum 1,592), valid_output_rate 1.0, extraction_rules.json_object on every call;
+% .teacher_agreement_minus_chance 0.0034 / 0.0012; .last_label_rate 0.3283 / 0.2847; last-label chance about 0.13-0.14 per issue-141-closeout.md L46;
+% terminations.goal_reached 3 + 1 of 24 + 22 (issue-141-closeout.md L48-49). Prediction P141 L72, held per issue-141-closeout.md L54-59.
+% episode_accounting.{v2,p2}.episodes_replayed 24 / 22, replay_mismatches [] (issue-141-closeout.md L66). Rounded half-up to 3 dp from the named keys.
+
+\begin{table}[t]
+\caption{Zero-shot base against random-valid ($D_3$), the exact-$\epsilon$ 0.75 rung ($S$), and the three-seed adapter ($A$), with paired task-clustered 95\% intervals (10,000 draws, seed 133) and exact sign-flip $p$ values (descriptive). Panel endpoints are pre-registered and pooled entries are descriptive.}
+\label{tab:appendix-zeroshot}
+\centering\scriptsize
+\setlength{\tabcolsep}{3pt}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lccc}
+\hline
+ & Validation (12) & P2 (11) & Pooled (23, descriptive) \\
+\hline
+$D_3$ & $+0.005$ $[-0.025, +0.044]$ & $+0.001$ $[-0.048, +0.051]$ & $+0.003$ $[-0.024, +0.033]$ \\
+verdict, $p$ & EQUIVALENT, 0.906 & INCONCLUSIVE, 1.000 & EQUIVALENT, 0.896 \\
+$S$ vs 0.75 & $-0.321$ $[-0.422, -0.226]$ & $-0.188$ $[-0.239, -0.140]$ & $-0.257$ $[-0.324, -0.197]$ \\
+verdict, $p$ & SEPARATED\_BELOW, $4.88\times10^{-4}$ & SEPARATED\_BELOW, $9.77\times10^{-4}$ & SEPARATED\_BELOW, $2.38\times10^{-7}$ \\
+$A$ vs adapter & $-0.280$ $[-0.425, -0.142]$ & $-0.415$ $[-0.589, -0.248]$ & $-0.344$ $[-0.459, -0.232]$ \\
+verdict, $p$ & SEPARATED\_BELOW, 0.004 & SEPARATED\_BELOW, 0.004 & SEPARATED\_BELOW, $7.63\times10^{-6}$ \\
+\hline
+\end{tabular}}
+% Evidence: outputs/choice-frontier/v6/metrics/analysis.json primary.{v2,p2}.{D3,ci95,verdict,sign_flip_p}; co_primary.{v2,p2}.{S,A}.{value,ci95,verdict,sign_flip_p};
+% pooled.{D3,S,A}.{D3|S|value,ci95,verdict,sign_flip.p_two_sided} (P141 L57-59, L65-67). Values rounded half-up to 3 dp from the named keys; p values below 0.001
+% rounded to 3 significant figures (raw 0.00048828125, 0.0009765625, 2.384e-07, 7.629e-06).
+\end{table}
+
 \section{Results Detail: External Identity Audit}
 \label{app:results-external}
 
@@ -1379,13 +1428,15 @@ ScienceWorld \citep{wang2022scienceworld} & EMNLP 2022 & B & yes & divergent \\
 GLAM (BabyAI-Text) & ICML 2023 & B & yes & divergent \\
 WebShop & NeurIPS 2022 & B & no & divergent \\
 RAP & EMNLP 2023 & C & no & divergent \\
-LLM-First Search \citep{herr2025llmfirst} & arXiv 2025 & C & no & saturated \\
+LLM-First Search \citep{herr2025llmfirst} & arXiv 2025 & C & no$^{\dagger}$ & saturated$^{\dagger}$ \\
 EmbodiedBench & ICML 2025 & B & no & divergent \\
 \hline
+\multicolumn{5}{l}{$^{\dagger}$Audited later with a GPU reference model, and the prediction held under the paper's budget (Appendix~\ref{app:results-external-lfs}).} \\
 \end{tabular}
 \end{table}
 % Evidence: issue-137-survey.md Candidate table (venue, interface type, CPU feasible?, prediction columns) and Selection by the fixed rule
 % (E137-40, E137-42, E137-43). Only LLM-First Search predicts saturated per the survey's closing statement.
+% Dagger note: audited later on GPU (#142); the prediction held under the paper budget (issue-142-closeout.md L3-5).
 
 % Paragraph purpose: Give the frozen audit protocol and its results.
 The frozen protocol takes the first 200 test variations under the paper's 100-step limit with five random-valid seeds (17, 5077, 6131, 7409, and 8527), and ten re-run episodes are byte-identical. The reference completes 183 of 200 (0.915), including 3/9 boil, 6/9 melt, 4/9 freeze, 6/9 change-state, 135/135 use-thermometer, and 29/29 measure-melting-point variations, and falls short only where 17 of the 36 Matter variations need more than 100 moves. Random-valid completes none, and 997 of its 1000 episodes end in a failure score.
@@ -1401,6 +1452,48 @@ The slice covers 6 of 30 task types (200 of 1,819 test variations), on all of wh
 % Evidence: issue-137-closeout.md Limitations (6 of 30, 200 of 1,819, Random-Valid 0.00, task 4-2 outside the slice; E137-19, sheet #137
 % judgement calls 2 and 3); identity-audit.json published_model_success.value 0.084, random_fraction_of_published 0.0 (E137-09, E137-10);
 % supplementary.published_random_valid_score_same_tasks 0.0 (E137-13); upstream pin ScienceWorld 1.3.0 (E137-15).
+
+\subsection{LLM-First Search Audit}
+\label{app:results-external-lfs}
+
+% Paragraph purpose: Give the interface, the random-valid definition, the tasks, budgets, and declared deviations before any result.
+LLM-First Search is a type-C interface. The model scores candidates, and the search expands the argmax child or pops the highest-valued frontier node, so every unexpanded alternative stays in the frontier. Random-valid answers every query with independent uniform draws, spends zero tokens, and makes no model call, and a decision is one node expansion after the root. The upstream code (commit \texttt{3025bdaa}, Apache-2.0) is imported unchanged and not vendored. The fixed rule audits every configuration whose published GPT-4o win rate exceeds 10\%, which excludes Sudoku 6$\times$6 and keeps Countdown 3, 5, and 7 and Sudoku 4$\times$4, with games 0 to 19 of each, 80 tasks in all. Budgets are the paper's per-game token caps (1,000,000 for Countdown and 100,000 for Sudoku 4$\times$4). Four deviations are declared. The paper's GPT-4o is replaced by the local Qwen3-30B-A3B-Instruct-2507, so reference success is that model's, the reference runs once per task, Sudoku 6$\times$6 is excluded, and random-valid uses a faster frontier implementation that produced byte-identical logs on 57/57 probe episodes. Random-valid uses the five seeds of the first audit.
+% Evidence: issue-142-protocol.md L11-13 (type C), L57-62 (random-valid, zero tokens), L66-68 (decision), L14-16 (upstream, not vendored), L24-37 (rule, games 0-19),
+% L31-34 (caps), L191-200 (deviations 1-4); identity-audit.json interface_type C, upstream.commit 3025bdaa3add..., upstream.license Apache-2.0, tasks 80,
+% per_config.{cd3,cd5,cd7,su4}.tasks 20; lfs-probe/fast-equivalence.json checked 57, identical 57; seeds 17/5077/6131/7409/8527 (protocol L61).
+
+% Paragraph purpose: Report the replay receipts, identity result, and both budget readings, then the predictions.
+All 80/80 reference and 400/400 random-valid episodes were independently replayed with no mismatch. No pair of the 400 is identical, and the first divergence has median index 0 and maximum 2. Table~\ref{tab:appendix-lfs} gives both readings. Under the paper's budget random-valid wins every episode at every seed, so the verdict is SATURATED, and every reference loss ends at the token cap. Within the reference's own number of expansions per task, random-valid wins 0.0775 (per seed 0.0625, 0.075, 0.075, 0.0875, and 0.0875), so the verdict is CHOICE\_REGISTERED. Both pre-registered predictions held. Published GPT-4o success on these configurations is 0.768. One amendment, made before any audit episode, only reordered the smoke and audit start, and the ledger spent 2.89 of 12 GPU-h with no paid API use.
+% Evidence: identity-audit.json replay.reference {80, 80, 0, 0}, replay.random_valid {400, 400, 0, 0} (lfs/replay.json); pairs_identical 0 of pairs_checked 400;
+% first_divergence_index.median 0, .max 2; paper_budget.verdict SATURATED, .success.random_valid_per_seed all 1.0; supplementary.terminated.reference {success 66,
+% token_limit 14}; matched_decision_budget.success.random_valid_mean 0.0775, .random_valid_per_seed {0.0625, 0.075, 0.075, 0.0875, 0.0875}, .verdict CHOICE_REGISTERED;
+% prediction {paper_budget SATURATED, matched CHOICE_REGISTERED}, held per issue-142-closeout.md L3-5; published_model_success.value 0.7684 (0.768);
+% Amendment A1 issue-142-protocol.md L212-223 (commit e89a793); budget.json total_gpu_hours 2.8910, gpu_hours_cap 12.0, paid_api_usd 0.0.
+
+\begin{table}[t]
+\caption{LLM-First Search success by configuration under the paper's token budget and at the reference's own number of expansions. Differences are reference minus random-valid with task-cluster 95\% intervals (10,000 draws, seed 133, descriptive). The reference is the substituted local model.}
+\label{tab:appendix-lfs}
+\centering\scriptsize
+\setlength{\tabcolsep}{3pt}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lccccc}
+\hline
+ & & \multicolumn{2}{c}{Paper token budget} & \multicolumn{2}{c}{Matched decision budget} \\
+Configuration & Reference & Random-valid & Difference & Random-valid & Difference \\
+\hline
+Countdown 3 (20) & 1.000 & 1.000 & $0.000$ $[0.000, 0.000]$ & 0.120 & $+0.880$ $[+0.770, +0.970]$ \\
+Countdown 5 (20) & 0.750 & 1.000 & $-0.250$ $[-0.450, -0.100]$ & 0.110 & $+0.640$ $[+0.370, +0.870]$ \\
+Countdown 7 (20) & 0.650 & 1.000 & $-0.350$ $[-0.550, -0.150]$ & 0.020 & $+0.630$ $[+0.410, +0.840]$ \\
+Sudoku 4$\times$4 (20) & 0.900 & 1.000 & $-0.100$ $[-0.250, 0.000]$ & 0.060 & $+0.840$ $[+0.700, +0.950]$ \\
+\hline
+All (80) & 0.825 & 1.000 & $-0.175$ $[-0.263, -0.100]$ & 0.0775 & $+0.748$ $[+0.648, +0.838]$ \\
+Verdict & & \multicolumn{2}{c}{SATURATED} & \multicolumn{2}{c}{CHOICE\_REGISTERED} \\
+\hline
+\end{tabular}}
+% Evidence: outputs/external-audit/v2/lfs/identity-audit.json per_config.{cd3,cd5,cd7,su4}.{paper_budget,matched_decision_budget}.{success.reference,success.random_valid_mean,
+% contrast.mean_difference_reference_minus_random,contrast.bootstrap_95ci,verdict}; top-level paper_budget.* and matched_decision_budget.* (-0.175 [-0.2625, -0.1];
+% 0.7475 [0.6475, 0.8375]). Rounded half-up to 3 dp from the named keys; 0.0775 kept verbatim. Descriptive statistics per issue-142-protocol.md L144-156.
+\end{table}
 
 \section{Results Detail: Seed Replication and Follow-Up Limits}
 \label{app:results-boundary}
