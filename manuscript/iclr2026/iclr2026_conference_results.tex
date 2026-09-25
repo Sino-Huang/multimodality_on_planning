@@ -1,3 +1,7 @@
+% STATUS: #131 round 7 (2026-09-25) (Results writer): rewritten to local r7-outline Section 5 for readability only; no number added,
+% changed, or recomputed. Per-window GPU-hour pairs, rung values, C* ranges, per-seed D, last-label rates, the screen and held-out
+% definitions, and the panel-reuse paragraph left the body (receipts table, Figure 1, fig:ladder, Section 4, or appendix keep them).
+% 5.6 is one paragraph carrying sec:results-primary and sec:results-boundary.
 % STATUS: RESTRUCTURED #131 round 4 2026-09-24 (BackWriter): new order per local r4-contract "New Results order".
 % Integrated #134 (submission-order counterfactual, M4 intervals), #135 (ladder validation), #136 (scaled adapter),
 % #137 (external ScienceWorld audit). Moved verbatim to Appendix app:results-cf: tab:results-cf with its contrast
@@ -22,15 +26,15 @@
 \section{Results}
 \label{sec:results}
 
-% Paragraph purpose: Orient the reader: gate-first order, separate measures, and the development-stage frame that governs every claim in the section.
-This section reports the executed evidence in gate order, with success, validity, invariant compliance, invalid-operation charges, budget, and learned-to-control gain kept as separate measurements and operational detail in the Results Detail appendices. The random-valid and exact-classical references are oracle-assisted bounds, not learned abilities, and where they saturate they bound what the comparison can measure rather than certify policy quality. Every panel is a development panel, every enumeration-contract learned arm rests on one training seed (17) except two replication cells (Section~\ref{sec:results-boundary}), the choice-frontier adapter has three training seeds, and the frozen 45-task held-out final evaluation has not been run, so no finding here is a final comparative efficacy claim.
-% Round 5 wave 3: seed clause scoped to the enumeration contract; adapter seeds 17/29/71 per outputs/choice-frontier/v4/seeds/metrics/analysis.json primary.seeds.
+% Paragraph purpose: Orient the reader: the two checks first, then the validated measurement, then the policies it scores, under the development-stage frame.
+Results follow the thesis, with the two checks first, then the validated measurement, then the policies it scores. Each measurement is kept separate, the controls are oracle-assisted bounds rather than abilities (Section~\ref{sec:design}), and every finding is development-stage.
 
 \subsection{Gate Receipts and Executed Scope}
 \label{sec:results-gates}
 
-% Paragraph purpose: Summarize the program and follow-up receipts, the reduced-scope branches, the qualification gates, and the new separate ledgers in one paragraph, pointing to the migrated table.
-The expanded study program spent 68.5244 of its 336 GPU-hour cap (2 A100 80GB GPUs), and every executed branch, follow-up window, and CPU-only analysis reconciles with complete coverage and independent replay, including 1,152/1,152 baseline episodes. Five of seven admitted branches completed at v1 scope, and two (second backbone, generalization/robustness) stopped with terminal \textsc{valid\_stop} receipts at their v1 cost gates and completed only at reduced scope (Section~\ref{sec:results-boundary}). Before the program, the BFS pilot closed with a governed \textsc{valid\_stop} because random-valid also reached 1.0, the BFWS structural gate passed, and the 45-task held-out manifest was frozen before outcomes and never accessed (Gate Receipts appendix, Appendix~\ref{app:results-gates}, Table~\ref{tab:appendix-receipts}). The instrument-validation window spent 1.19 of 4 GPU-hours, the scaled-adapter window 4.84 of 30, the replication and held-out-panel window 15.22 of 24, the DAgger window 9.06 of 40, the zero-shot window 2.25 of 30, and the second external audit 2.89 of 12, on separate ledgers that are never summed, and the counterfactual and first external audits ran on CPU only.
+% Paragraph purpose: State that every run reconciles with its ledger and replay, the reduced-scope branches, and the qualification gates, pointing to the receipts table.
+Every executed run reconciles with its ledger and independent replay, and the program spent 68.5244 of its 336 GPU-hour cap. All 1,152/1,152 baseline episodes were independently replayed, and follow-up windows sit on separate ledgers that are never summed. Two branches stopped at their v1 cost gates with terminal governed stops (\textsc{valid\_stop}) and completed only at reduced scope. Before the program, the BFS pilot stopped because random-valid also succeeded, the BFWS structural gate passed, and the frozen 45-task final evaluation was never accessed (Gate Receipts appendix, Appendix~\ref{app:results-gates}, Table~\ref{tab:appendix-receipts}).
+% Round 7: the six per-window GPU-hour pairs (1.19/4, 4.84/30, 15.22/24, 9.06/40, 2.25/30, 2.89/12) left the body; all six are rows of tab:appendix-receipts.
 % Evidence: 2.25/30 GPU-h (#141) per issue-141-closeout.md L77 ("2.245 / 30") and outputs/choice-frontier/v6/budget.json attempts[0..4].gpu_hours,
 % cap schedule.authorization.window_gpu_hours_cap 30.0; 2.89/12 GPU-h (#142) per outputs/external-audit/v2/budget.json total_gpu_hours 2.8910 and
 % .schema.gpu_hours_cap 12.0 (issue-142-closeout.md L108). Never summed (external-audit/v2/budget.json .schema.independent; choice-frontier/v6 budget.json schedule.accounting).
@@ -51,170 +55,149 @@ The expanded study program spent 68.5244 of its 336 GPU-hour cap (2 A100 80GB GP
 \subsection{Enumeration-Contract Identity Audit}
 \label{sec:results-identity}
 
-% Paragraph purpose: Report the per-decision identity audit on the enumeration contract (V1), with its controller scope and the BFS/BFWS contrast, before any additive row is read.
-The identity audit compares random-valid against the exact reference decision by decision on every additive cell of the expanded baseline. On the additive best-first cells of our enumeration contract, where an expansion submits its complete candidate set and heap serials follow the sorted candidate order, random-valid is decision-identical to the exact reference on 48/48 pairs, so success there measures operation validity rather than choice. This is a property of this controller, not additive best-first search in general (Algorithm Invariant Definitions appendix). The BFS and BFWS cells instead register choice, with random-valid at 15/24 and 17/24 against exact at 24/24 (Table~\ref{tab:results-primary-matrix}).
+% Paragraph purpose: Report the identity audit on the enumeration contract's additive cells, its controller scope, and the BFS/BFWS contrast.
+On the enumeration contract's additive cells, random-valid never decides differently from the exact reference. The identity audit compared the two decision by decision on every additive cell of the expanded baseline. They were decision-identical on 48/48 pairs, so success there measures operation validity rather than choice. This is a property of this controller, not of additive best-first search in general (Algorithm Invariant Definitions appendix). The BFS and BFWS cells instead register choice, with random-valid at 15/24 and 17/24. The exact reference reaches 24/24 in both (Table~\ref{tab:results-primary-matrix}).
 % Evidence: identity audit executed under issue #130.
 % Evidence: outputs/native-arms/v1/identity-audit.json (pairs_checked 48, pairs_identical 48, verdict ZERO_DECISION_HEADROOM,
 % structural_basis: finish_expansion() requires the complete candidate set; heap serials from the deterministic sorted candidate
 % order; frontier evolution submission-order invariant). Moved here from the former choice-frontier subsection per review 16 I13.
 % Evidence (executed controller): examples/planning_benchmark_slice/pddl_state.py PDDLStateAuthority.applicable_actions; best_first_controller.py BestFirstController.start_expansion, apply_operation, finish_expansion.
-% V1 verbatim per local r4-contract.
+% Evidence: Table tab:results-primary-matrix (BFS RV 15/24, BFWS RV 17/24, exact 24/24).
 
-% Paragraph purpose: Report the same-runtime submission-order counterfactual (V2), the failed pre-registered prediction, and the divergence location, then the choice-frontier verdict.
-On the same runtime with heap serials assigned in submission order, the same check finds 19/48 divergent pairs, so the check can return either verdict. The pre-registered prediction of divergence on most pairs (more than 24/48) did not hold. Divergent pairs first differ between decisions 2 and 50 (median 6), and on the other 29 pairs every equal-priority tie breaks the same way under both orders (Counterfactual appendix, Appendix~\ref{app:results-counterfactual}). Under the choice-frontier contract the check diverges on 18/18 pairs (9 tasks, Figure~\ref{fig:contracts}).
+% Paragraph purpose: Report the submission-order counterfactual, the failed pre-registered prediction, the divergence location, the choice-frontier verdict, and the subsection verdict.
+The same audit returns the other verdict when only the tie-break order changes, finding 19/48 divergent pairs when heap serials follow submission order. The pre-registered prediction of divergence on most pairs (more than 24/48) failed. Divergent pairs first differ between decisions 2 and 50 (Counterfactual appendix, Appendix~\ref{app:results-counterfactual}). The median first divergence is decision 6, and on the other 29 pairs every equal-priority tie breaks the same way under both orders. Under the choice-frontier contract the audit diverges on 18/18 pairs (Figure~\ref{fig:contracts}). The audit must therefore be run on each interface before random-valid success is read as choice.
 % Evidence: #134 R1 outputs/native-arms/v1/identity-audit-submission-order.json rules.submission_order.pairs_divergent 19 /
 % pairs_identical 29; rules.sorted_candidate_order.pairs_identical 48; preregistered_prediction.held false (threshold > 24/48);
 % verdict "PREDICTION_FAILED: see preregistered_prediction" (E134-01..07). First divergence 2-50, median 6 per
 % pairs[].rules.submission_order.first_divergence_decision_index and issue-134-closeout.md R1 (E134-11). Tie-break reading per closeout R1 quote.
-% Evidence (choice frontier): outputs/choice-frontier/v1/evaluation/identity-audit.json pairs_divergent 18. V2 verbatim per local r4-contract.
+% Evidence (choice frontier): outputs/choice-frontier/v1/evaluation/identity-audit.json pairs_divergent 18. Round 7: "(9 tasks)" dropped here; 9/9 tasks stays in the next subsection.
 
 \subsection{Choice-Frontier Contract and Instrument Validation}
 \label{sec:results-ladder}
 \label{sec:results-choice-frontier}
 
-% Paragraph purpose: Give the first choice-frontier measurement in one sentence and point to its moved table and zoo.
-The choice-frontier contract lets the policy select which runtime-owned frontier state to expand next under a budget of 2$\times$ the exact-reference expansion count, and its first measurement on the reused 9-task panel passed the identity gate on 9/9 tasks with random-valid minus exact at $-0.644$ $[-0.856, -0.422]$ (Comparator-Zoo Receipts appendix, Appendix~\ref{app:results-cf}, Table~\ref{tab:results-cf}).
+% Paragraph purpose: Report that the choice-frontier contract passes the identity audit on its first panel, with the control contrast and pointers.
+The choice-frontier contract passes the identity audit on its first panel. On the reused 9-task panel, random-valid diverged from the exact reference on 9/9 tasks. Its random-valid minus exact-reference contrast is $-0.644$ $[-0.856, -0.422]$ (Comparator-Zoo Receipts appendix, Appendix~\ref{app:results-cf}, Table~\ref{tab:results-cf}).
 % Evidence: choice-frontier contract is issue #132. outputs/choice-frontier/v1/evaluation/identity-audit.json (pairs_checked 18,
 % pairs_divergent 18, pre_registered true); outputs/choice-frontier/v1/evaluation/analysis.json contrasts.random_valid_minus_exact_reference.
 % tab:results-cf and the comparator zoo (tab:results-zoo, sec:results-calibration) moved verbatim to Appendix app:results-cf in round 4.
 
-% Paragraph purpose: Report the pre-registered ladder test on the fresh panel (V3) and point to the figure and appendix detail.
-On a fresh 12-task panel from 7 domains, the pre-registered ladder test passes. M1 orders the exact reference (0.875) above exact-$\epsilon$ selectors that choose uniformly on 25\% (0.793), 50\% (0.603), and 75\% (0.347) of decisions, and random-valid (0.021) lowest, and every adjacent paired task-clustered 95\% lower bound is positive (smallest gap $+0.082$ $[+0.051, +0.111]$). Figure~\ref{fig:ladder} plots each arm, and the Choice-Frontier Validation appendix (Appendix~\ref{app:results-ladder}, Table~\ref{tab:appendix-ladder-arms}) gives panel construction, every arm's receipts, and all four paired gaps.
+% Paragraph purpose: Report the pre-registered ladder test on the fresh validation panel and point to the figures and appendix detail.
+On a fresh validation panel, the pre-registered ladder test passes. The panel has 12 tasks from 7 domains. M1 orders the exact reference (0.875) above the three exact-$\epsilon$ rungs in order, with random-valid (0.021) lowest (Figures~\ref{fig:contracts} and~\ref{fig:ladder}). Every adjacent paired task-clustered 95\% lower bound is positive, and the smallest gap is $+0.082$ $[+0.051, +0.111]$. The Choice-Frontier Validation appendix (Appendix~\ref{app:results-ladder}, Table~\ref{tab:appendix-ladder-arms}) gives panel construction, every arm's receipts, and all four paired gaps.
 % Evidence: #135 outputs/choice-frontier/v2/metrics/analysis.json instrument_validity.verdict PASS (E135-01), .tasks 12 (E135-02);
 % configs/experiments/choice-frontier-v2/membership.json task_ids (12), domains (7) (E135-63);
 % arms.{exact_reference,exact-eps-0.25,exact-eps-0.50,exact-eps-0.75,random_valid}.m1_auc 0.875/0.793/0.603/0.347/0.021 (E135-20..24);
-% instrument_validity.pairs[0].difference 0.0823 and .ci95 [0.0510, 0.1115] (E135-05, E135-06). V3 verbatim per local r4-contract.
+% instrument_validity.pairs[0].difference 0.0823 and .ci95 [0.0510, 0.1115] (E135-05, E135-06).
+% Round 7: rung values 0.793/0.603/0.347 left the prose; they are in Figure 1b, fig:ladder, and tab:appendix-ladder-arms.
 
-% Paragraph purpose: Introduce the held-out panel P2 with its amendment (V-A1) and report the ladder test on P2 and P2u.
-The held-out panel P2 has 11 tasks from 8 domains. P2 applies the validation panel's generation, cost, and screening rules to fresh seeds, and an amendment made before any evaluation episode, after the first freeze admitted 6 of the 8 required tasks, added seeds 955040--955199 with the rules unchanged. The same ladder test passes on the held-out panel P2, which is pre-registered (smallest adjacent gap $+0.130$ $[+0.070, +0.190]$), and on the unscreened panel P2u, which is descriptive. The Held-Out Panels appendix (Appendix~\ref{app:results-panels}) gives both panels' construction and all eight gaps.
+% Paragraph purpose: Report the ladder test on the held-out panel with its pre-evaluation amendment, the descriptive unscreened pass, and the subsection verdict.
+The same test passes on the held-out panel and, descriptively, on the unscreened panel. The held-out panel has 11 tasks from 8 domains, built with the validation panel's generation, cost, and screening rules on fresh seeds. After the first freeze admitted 6 of the 8 required tasks, an amendment made before any evaluation episode added seeds with the rules unchanged. The added seeds are 955040--955199. On the held-out panel the smallest adjacent gap is $+0.130$ $[+0.070, +0.190]$, and the unscreened pass is descriptive (Held-Out Panels appendix, Appendix~\ref{app:results-panels}). The rungs read the reference's own priority order, which no policy sees, so the ladder validates the measurement, not a policy.
 % Evidence: #139 outputs/choice-frontier/v4/panels/metrics/analysis.json pooled.panels.p2 11; concentration.per_panel.p2.domains (8 domains);
 % ladder_p2.verdict PASS (confirmatory, issue-139-protocol.md L93); ladder_p2.pairs[0].difference 0.1295 (0.130), .ci95 [0.0705, 0.1898] ([0.070, 0.190]);
-% unscreened_p2u.ladder.verdict PASS (descriptive, P139 L96). A1: issue-139-protocol.md L118-127 (seeds 955040-955199 at L122), issue-139-closeout.md L58 (first freeze 6 tasks / 5 domains). V-A1 verbatim per local r5-contract.
+% unscreened_p2u.ladder.verdict PASS (descriptive, P139 L96). A1: issue-139-protocol.md L118-127 (seeds 955040-955199 at L122), issue-139-closeout.md L58 (first freeze 6 tasks / 5 domains).
+% Privileged-rung verdict per local r4-contract decision 9b.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_ladder.pdf}
-\caption{M1 solve-versus-budget AUC with task-clustered 95\% intervals on the validation panel, the held-out panel P2, and the unscreened panel P2u, for the five ladder arms and the three-seed adapter mean (per-seed points faint). Ladder rungs read the privileged heap head. The P2u ladder is descriptive, and the first adapter appears on the validation panel only. The zero-shot base model appears on the validation and P2 panels.}
+\caption{M1, the area under the solve-versus-budget curve, with task-clustered 95\% intervals on the validation panel, the held-out panel (P2), and the unscreened panel (P2u). Rows are the five ladder arms, the three-seed adapter mean with faint per-seed points, the zero-shot base (validation and held-out panels), and the first adapter (validation panel only). The rungs fall in order on every panel, the dotted line marks each panel's 0.75 rung, and only on the held-out panel does the adapter's interval lie entirely right of it. The rungs read privileged information, so the ladder validates the measurement rather than a policy, and the unscreened ladder is descriptive.}
 \label{fig:ladder}
 \end{figure}
 % Evidence: #139 outputs/choice-frontier/v4/panels/metrics/analysis.json arms.{p135,p2,p2u}.{exact_reference,exact-eps-0.25,exact-eps-0.50,
 % exact-eps-0.75,random_valid,learned_adapter_s17,learned_adapter_s29,learned_adapter_s71,learned_adapter_seed_mean}.{m1,ci95};
-% figure script figures/fig_ladder.py (three-panel redraw in wave 2). V-FIG verbatim per local r5-contract. The 2x-solved values
+% figure script figures/fig_ladder.py (three-panel redraw in wave 2; dotted line = ax.axvline at each panel's exact-eps-0.75 M1). The 2x-solved values
 % are in the appendix arms table tab:appendix-ladder-arms. hadd-greedy appears only in the appendix tables (decision 9e).
 % Evidence (round 6 zero-shot row): outputs/choice-frontier/v6/metrics/analysis.json per_panel.{v2,p2}.arms.zero_shot_base.{m1,ci95} (#141; P2u not evaluated, protocol.json evaluation.p2u).
 
-% Paragraph purpose: State the ladder boundary (V3b).
-The rungs read the privileged heap head, so the ladder validates the ordering of the measurement, not any realisable policy.
-% V3b verbatim per local r4-contract (decision 9b).
-
-\subsection{Adapter Replication and Held-Out Panels}
+\subsection{Policies Scored by the Measurement}
 \label{sec:results-adapter}
 
-% Paragraph purpose: Report the pre-registered three-seed endpoint and its held-out replication (V-SEED), then the first adapter on the validation panel.
-Across three training seeds the adapter beats uniform frontier choice on the validation panel, $D_3 = +0.285$ $[+0.140, +0.433]$, with every seed positive ($+0.328$, $+0.229$, $+0.297$), which meets the pre-registered POSITIVE rule, and the result replicates on the held-out panel P2, $D_3 = +0.416$ $[+0.250, +0.591]$. A later pre-registered replication trained seeds 29 and 71 with the byte-identical recipe (Scaled Adapter appendix, Appendix~\ref{app:results-adapter}). The first adapter, re-evaluated on the validation panel, reaches M1 0.026 [0.010, 0.042], at the random-valid level, and the scaled adapter's last-label rate per seed is 0.205, 0.192, and 0.171 (chance about 0.13) against 0.300 (chance 0.144) for the first adapter on the same panel. The first adapter's post-hoc M4 intervals on the earlier 9-task panel are in the Counterfactual appendix (Appendix~\ref{app:results-counterfactual}).
+% Paragraph purpose: Report the pre-registered three-seed endpoint, its held-out replication, the replication recipe, and the first adapter.
+Across three training seeds, the adapter beats uniform choice. On the validation panel $D_3 = +0.285$ $[+0.140, +0.433]$, which meets the pre-registered positive rule. Every seed is positive (Scaled Adapter appendix, Appendix~\ref{app:results-adapter}). On the held-out panel, $D_3 = +0.416$ $[+0.250, +0.591]$. Seeds 29 and 71 were trained later with the byte-identical recipe under a pre-registered protocol. The first adapter, an earlier small-corpus adapter that differs in corpus, augmentation, sample order, and seed, reaches M1 0.026 [0.010, 0.042] on the validation panel, at the random-valid level.
+% Round 7: per-seed D (+0.328/+0.229/+0.297) moved to the appendix pointer (they are in the Scaled Adapter appendix text and tab:appendix-seed-d);
+% scaled-adapter last-label rates (0.205/0.192/0.171, chance about 0.13) are in the Scaled Adapter appendix; the first adapter's 0.300 (chance 0.144) and the M4 pointer left the body.
 % Round 6 consolidation: per-seed P2 D (+0.490/+0.268/+0.490) cut from the body for the word budget; it stays in tab:appendix-seed-d.
-% Evidence (review 21 #75): A138 per_seed.{17,29,71}.teacher_agreement_chance 0.1247 / 0.1306 / 0.1267 (re-opened 2026-09-25), written "about 0.13".
 % Evidence (replication provenance): recipe issue-138-protocol.md L11-12 ("the #136 recipe, byte-identical ... Only training_seed changes"); protocol committed f06c7ac
-% before any GPU launch (issue-138-closeout.md L5). Moved here from the boundary paragraph in round 5 wave 3.
+% before any GPU launch (issue-138-closeout.md L5).
 % Evidence: #138 outputs/choice-frontier/v4/seeds/metrics/analysis.json primary.verdict POSITIVE, primary.D3 0.2847 (0.285),
 % primary.ci95 [0.1403, 0.4326] ([0.140, 0.433]), primary.per_seed.{17,29,71} 0.3281/0.2292/0.2969 (0.328/0.229/0.297); rule P138 L31-41.
 % Evidence: #139 outputs/choice-frontier/v4/panels/metrics/analysis.json heldout_p2.primary.verdict POSITIVE, .D3 0.4159 (0.416),
-% .ci95 [0.2504, 0.5909] ([0.250, 0.591]); heldout_p2.primary.per_seed.{17,29,71} 0.4898/0.2682/0.4898 (0.490/0.268/0.490). V-SEED verbatim.
+% .ci95 [0.2504, 0.5909] ([0.250, 0.591]); heldout_p2.primary.per_seed.{17,29,71} 0.4898/0.2682/0.4898 (0.490/0.268/0.490).
 % Evidence: first adapter outputs/choice-frontier/v2/metrics/analysis.json adapter_reevaluation.learned_adapter.m1_auc 0.026,
 % CI [0.010, 0.042] (E135-41, E135-42); closeout "at the random_valid level".
 % Evidence: A138 per_seed.{17,29,71}.last_label_rate 0.2055/0.1917/0.1712 (0.205/0.192/0.171);
 % adapter_reevaluation.learned_adapter.m4_teacher_agreement.selected_last_rate 0.2997 (0.300) and .chance 0.1444 (0.144) (E135-50; re-opened 2026-09-25, rounded half-up to 3 dp).
-% Round 5 consolidation (review 20 #78b): the V6 first-adapter M4 paragraph was cut from 5.4; its numbers stay in the Counterfactual appendix (tab:appendix-m4).
 
-% Paragraph purpose: Introduce the unscreened panel P2u and state the three-panel ladder position (V-LAD2), its non-equivalence (V-NEQ), and its small-cluster caveat (V-SMALL).
-The unscreened panel P2u has 12 tasks from 7 domains. The adapter's position against the exact-$\epsilon$ rungs differs by panel, not separated from the 0.75 rung on the validation panel ($S = -0.041$ $[-0.187, +0.102]$) and below its 0.50 rung ($-0.298$ $[-0.468, -0.129]$, descriptive), interval-separated above the 0.75 rung on the held-out panel P2 ($S = +0.227$ $[+0.053, +0.403]$), and not separated from that rung on the unscreened panel P2u ($+0.002$ $[-0.145, +0.157]$, descriptive) or pooled over 35 tasks ($+0.058$ $[-0.040, +0.156]$, descriptive). No equivalence margin was pre-registered for $S$, so a non-separated $S$ is not equivalence to the rung. The P2 separation rests on 11 task clusters, with 8 positive and 3 negative per-task differences, and percentile intervals can under-cover at this size.
+% Paragraph purpose: State the three-panel ladder position, the pooled result with its non-equivalence, the 0.50-rung result, and the small-cluster caveat.
+The adapter's place on the ladder depends on the panel. It is not separated from the 0.75 rung on the validation panel ($-0.041$ $[-0.187, +0.102]$), is separated above it on the held-out panel ($+0.227$ $[+0.053, +0.403]$), and is not separated on the unscreened panel ($+0.002$ $[-0.145, +0.157]$, descriptive). Pooled over 35 tasks it is also not separated ($+0.058$ $[-0.040, +0.156]$, descriptive), and no equivalence margin was pre-registered for this difference, so non-separation is not equivalence. On the validation panel it also falls below the 0.50 rung ($-0.298$ $[-0.468, -0.129]$, descriptive). The held-out separation rests on 11 task clusters, and percentile intervals can under-cover at this size. Per-task differences there are positive on 8 tasks and negative on 3.
 % Evidence: A139 pooled.panels.p2u 12; concentration.per_panel.p2u.domains (7 domains); P2u rule issue-139-protocol.md L55-57.
 % Evidence: A138 separation.vs_eps_0.75.S -0.0413 (-0.041), .ci95 [-0.1868, 0.1017] ([-0.187, +0.102]) (co-primary);
 % separation.vs_eps_0.50.S -0.2976 (-0.298), .ci95 [-0.4684, -0.1288] ([-0.468, -0.129]) (role "descriptive only").
 % Evidence: A139 heldout_p2.separation.vs_eps_0.75.S 0.2273 (0.227), .ci95 [0.0527, 0.4027] ([0.053, 0.403]) SEPARATED_ABOVE (P139 L95);
 % unscreened_p2u.separation.vs_eps_0.75.S 0.0021 (0.002), .ci95 [-0.1455, 0.1573] ([-0.145, 0.157]) (descriptive);
-% pooled.separation_vs_eps_0.75.S 0.0580 (0.058), .ci95 [-0.0395, 0.1564] ([-0.040, 0.156]), pooled.tasks 35 (descriptive). V-LAD2 and V-NEQ verbatim (review 20 #71).
-% Evidence (V-SMALL, review 20 #77): A139 heldout_p2.separation.vs_eps_0.75.per_task_difference signs 8 positive / 3 negative / 0 zero of 11 (listing, descriptive).
+% pooled.separation_vs_eps_0.75.S 0.0580 (0.058), .ci95 [-0.0395, 0.1564] ([-0.040, 0.156]), pooled.tasks 35 (descriptive). Non-equivalence per review 20 #71.
+% Evidence (review 20 #77): A139 heldout_p2.separation.vs_eps_0.75.per_task_difference signs 8 positive / 3 negative / 0 zero of 11 (listing, descriptive).
 
-% Paragraph purpose: Report the second realisable policy (V-ZS) so the instrument is shown to rank two realisable choosers.
-A second realisable policy, the base model prompted zero-shot under the same contract, observation, and cap, is equivalent to uniform choice on the validation panel (development stage), $D_3 = +0.005$ $[-0.025, +0.044]$ within the pre-registered $\pm 0.05$ margin, and inconclusive on the held-out P2 (confirmatory, $+0.001$ $[-0.048, +0.051]$). It falls below the exact-$\epsilon$ 0.75 rung and below the adapter on both panels (adapter contrast $-0.280$ $[-0.425, -0.142]$ and $-0.415$ $[-0.589, -0.248]$), so the instrument separates the trained adapter from a zero-shot policy that it scores as uniform choice (Zero-Shot Policy appendix, Appendix~\ref{app:results-cf-zeroshot}).
+% Paragraph purpose: Report the second realisable policy with its stage labels so the measurement is shown to rank two realisable choosers.
+A zero-shot policy scores as uniform choice, so the measurement separates the two realisable policies. Prompted zero-shot under the same contract, observation, and cap, the base model is equivalent to uniform choice on the validation panel (development stage), $D_3 = +0.005$ $[-0.025, +0.044]$ within the pre-registered $\pm 0.05$ margin. On the held-out panel it is inconclusive (confirmatory, $+0.001$ $[-0.048, +0.051]$). It falls below the 0.75 rung and below the adapter on both panels (Zero-Shot Policy appendix, Appendix~\ref{app:results-cf-zeroshot}). Its contrast with the adapter is $-0.280$ $[-0.425, -0.142]$ on the validation panel. On the held-out panel that contrast is $-0.415$ $[-0.589, -0.248]$.
 % Evidence (review 21 #82b): outputs/choice-frontier/v6/metrics/analysis.json primary.v2.stage "development", primary.p2.stage "held-out confirmatory".
 % Evidence: #141 outputs/choice-frontier/v6/metrics/analysis.json primary.v2.D3 0.0052 (0.005), .ci95 [-0.025, 0.04375] ([-0.025, +0.044]),
 % .verdict EQUIVALENT; primary.p2.D3 0.0011 (0.001), .ci95 [-0.0477, 0.0511] ([-0.048, +0.051]), .verdict INCONCLUSIVE (margin 0.05, P141 L57);
 % co_primary.{v2,p2}.S.verdict SEPARATED_BELOW; co_primary.v2.A.value -0.2795 (-0.280), .ci95 [-0.4253, -0.1424]; co_primary.p2.A.value -0.4148 (-0.415),
-% .ci95 [-0.5890, -0.2481]; all SEPARATED_BELOW (P141 L58-59). Rounded half-up to 3 dp from the named keys. V-ZS verbatim per local r6-contract.
+% .ci95 [-0.5890, -0.2481]; all SEPARATED_BELOW (P141 L58-59). Rounded half-up to 3 dp from the named keys.
 
-% Paragraph purpose: Answer the screening concern with P2u (V-SCR2), define held-out (V-HO2), and report concentration and leave-one-domain-out.
-The random-control screen admits tasks on which near-uniform choice sometimes succeeds, since random-valid must reach the goal in 1 to 9 of its 10 screening episodes. The unscreened panel P2u is drawn from kept candidates outside P2, and all 12 of its tasks had 0/10 random-valid screening goals. Choice still discriminates there, since the ladder passes (descriptive), and the adapter still beats uniform choice, $D_3 = +0.149$ $[+0.030, +0.283]$, but its gain rests on 4 of 12 tasks, with the other 8 unsolved by both the adapter and random-valid (descriptive). Held-out here means the fresh panel P2, frozen before any evaluation episode from seeds on which no adapter had been evaluated (the seed extension followed a controls-only screen of the first 40 seeds), and the frozen 45-task held-out final evaluation remains unexecuted. Over the three panels the per-task difference is positive on 22 of 35 tasks, zero on 12, and negative on 1 (descriptive). Leaving out one domain at a time over the validation and held-out panels keeps $D_3$ from $+0.305$ to $+0.395$, with every lower bound at least $+0.185$ (descriptive).
+% Paragraph purpose: Report the unscreened-panel result as descriptive evidence that the gain survives without the screen (review 20 finding 70).
+Without the screen, the gain survives but rests on 4 of 12 tasks. The unscreened panel is drawn from kept candidates outside the held-out panel, and all 12 of its tasks had 0/10 random-valid screening goals. Both panels were frozen from new seeds before any evaluation episode (Section~\ref{sec:design}). The ladder passes there (descriptive), and the adapter still beats uniform choice, $D_3 = +0.149$ $[+0.030, +0.283]$. The other 8 tasks were unsolved by both the adapter and random-valid (descriptive). This is descriptive evidence that the gain survives without the screen, not evidence about where choice discriminates.
 % Evidence: A139 unscreened_p2u.primary.verdict POSITIVE, .D3 0.1490 (0.149), .ci95 [0.0295, 0.2830] ([0.030, 0.283]) (P139 L96);
-% concentration.per_panel.p2u.counts {positive 4, zero 8} (issue-139-closeout.md L73); screen rule issue-139-protocol.md L48; P2u construction L55;
-% 0/10 issue-139-closeout.md L56; unscreened_p2u.ladder.verdict PASS (descriptive). V-SCR2 and V-HO2 verbatim (review 20 #70, #73); issue-139-closeout.md L11, L58.
+% concentration.per_panel.p2u.counts {positive 4, zero 8} (issue-139-closeout.md L73); P2u construction issue-139-protocol.md L55;
+% 0/10 issue-139-closeout.md L56; unscreened_p2u.ladder.verdict PASS (descriptive). Screening reading per review 20 #70; issue-139-closeout.md L11, L58.
+% Round 7: the screen definition and the full held-out definition moved to Section 4 (Wave 1).
+
+% Paragraph purpose: Report concentration, leave-one-domain-out, and the DAgger ablation, and close with the claim frame as the subsection verdict.
+The gain is spread across tasks and domains and comes from imitating the exact reference. Over the three panels the per-task difference is positive on 22 of 35 tasks and zero on 12, with the remaining task negative (descriptive). Leaving out one domain at a time over the validation and held-out panels keeps $D_3$ from $+0.305$ to $+0.395$ (descriptive). Every such lower bound is at least $+0.185$. One on-policy DAgger round, run for one seed on half the planned corpus, does not separate the adapter from the 0.75 rung, $+0.115$ $[-0.026, +0.258]$ over the validation and held-out tasks (DAgger Ablation appendix, Appendix~\ref{app:results-cf-dagger}). The choice-quality claim is development-stage, holds relative to uniform choice and the exact-$\epsilon$ ladder on three panels with three training seeds, and carries no planning-ability or generality claim.
 % Evidence: A139 concentration.all_36_counts.{positive,zero,negative} 22/12/1 (descriptive, P139 L103).
 % Note: key concentration.all_36_counts holds the 35-task union (P2 froze at 11; issue-139-closeout.md L28).
 % Evidence: A139 concentration.leave_one_domain_out_p2_union_p135.elevators.D3 0.3048 (0.305), .ci95 lo 0.1854 (0.185);
 % .blocksworld.D3 0.3954 (0.395); every other domain's lower bound >= 0.204 (P139 L104, descriptive).
-
-% Paragraph purpose: State the claim boundary (imitation clause, V-FRAME) and the one-sentence DAgger ablation (V-DAG).
-The gain is obtained by imitating the exact reference. The choice-quality claim is development-stage, holds relative to uniform choice and the exact-$\epsilon$ ladder on three panels with three training seeds, and carries no planning-ability or generality claim. One on-policy DAgger round, run for one seed on half the planned corpus, does not separate the adapter from the 0.75 rung over the 23 validation and held-out tasks, $S = +0.115$ $[-0.026, +0.258]$ (DAgger Ablation appendix, Appendix~\ref{app:results-cf-dagger}).
-% V-FRAME verbatim.
 % Evidence: #140 outputs/choice-frontier/v5/metrics/analysis.json primary.verdict NOT_SEPARATED, primary.S_pool 0.1152 (0.115),
-% primary.ci95 [-0.0255, 0.2576] ([-0.026, 0.258]), primary.tasks 23, primary.seeds [17]; half corpus per issue-140-protocol.md L123 (A1 item 2). V-DAG verbatim.
+% primary.ci95 [-0.0255, 0.2576] ([-0.026, 0.258]), primary.tasks 23 (count kept in the DAgger Ablation appendix), primary.seeds [17]; half corpus per issue-140-protocol.md L123 (A1 item 2).
 
 \subsection{External Identity Audit}
 \label{sec:results-external}
 
-% Paragraph purpose: Report the external ScienceWorld audit (V5) with its receipts, then the survey exclusions.
-We audit ScienceWorld \citep{wang2022scienceworld} under its paper's 100-step budget with five random-valid seeds. On ScienceWorld, a published sequential-choice interface, random-valid diverges from the gold trajectory at the first decision in 1000/1000 pairs, with success 0.915 versus 0 for random-valid over 200 tasks, so success there measures choice. The audit covers 6 of its 30 task types, and none of the seven published interfaces we surveyed uses a complete-set submission contract, so the complete-set identity failure is shown only on our runtime. Four surveyed candidates were not CPU-feasible under their papers' own budgets, a judgement call for WebShop and LLM-First Search \citep{herr2025llmfirst} (External Identity Audit appendix, Appendix~\ref{app:results-external}).
+% Paragraph purpose: Report the external ScienceWorld audit with its receipts, scope, and the survey exclusions.
+On ScienceWorld \citep{wang2022scienceworld}, a published sequential-choice interface, random-valid registers choice. The audit ran five random-valid seeds on 200 tasks under the paper's 100-step budget. Random-valid diverges from the gold trajectory at the first decision in 1000/1000 pairs. Success is 0.915 for the reference versus 0 for random-valid, so success there measures choice. The audit covers 6 of its 30 task types, and four surveyed candidates were not CPU-feasible under their papers' own budgets, a judgement call for WebShop and LLM-First Search \citep{herr2025llmfirst}. None of the seven published interfaces we surveyed uses an enumeration contract, so the 48/48 identity failure is shown only on our runtime (External Identity Audit appendix, Appendix~\ref{app:results-external}).
 % Round 6 consolidation: "LLM-First Search was the only candidate predicted to saturate" cut for the body word budget; the survey table and its dagger note keep it.
 % Evidence: #137 outputs/external-audit/v1/scienceworld/identity-audit.json verdict CHOICE_REGISTERED, tasks 200, pairs_checked 1000,
 % pairs_divergent 1000, first_divergence_index max 0, success.reference 0.915, success.random_valid_mean 0.0,
 % random_valid_per_seed seeds 17/5077/6131/7409/8527 (E137-01..07); envStepLimit 100 per issue-137-closeout.md.
 % Evidence: 6 of 30 per issue-137-closeout.md Limitations (E137-19); 7 candidates, 0 type A per issue-137-survey.md and closeout Stage 1 (E137-40, E137-42).
 % Evidence: infeasible WebShop, RAP, LLM-First Search, EmbodiedBench (E137-43); WebShop/LFS judgement call and LFS the only saturated
-% prediction per closeout Limitations and issue comment 5801181178 (sheet #137 judgement call 1). V5 verbatim per local r4-contract.
+% prediction per closeout Limitations and issue comment 5801181178 (sheet #137 judgement call 1).
 
-% Paragraph purpose: Report the LLM-First Search audit (V-LFS2), a by-construction demonstration of the budget check, with the model substitution.
-On LLM-First Search \citep{herr2025llmfirst}, where the model scores candidates that a search then orders, random-valid diverges from the reference by the third decision in all 400 pairs, yet under the paper's own token budget it solves all 80 tasks (1.0) against 0.825 for the reference, because a token cap never binds a chooser that spends no tokens. This saturation holds by construction, since the frontier keeps every alternative and a chooser that spends no tokens is a complete randomized search, which here used up to 102,606 expansions against the reference's 1,300. Counted in expansions, random-valid solves 0.0775 at the reference's own count and 0.19 at twice it. The reference model is a local open-weight substitute (Qwen3-30B-A3B-Instruct) for the paper's GPT-4o, whose published success on these configurations is 0.768, and the audit covers 80 tasks from four configurations (LLM-First Search Audit appendix, Appendix~\ref{app:results-external-lfs}).
+% Paragraph purpose: Report the LLM-First Search audit as a by-construction demonstration of the budget check, with the model substitution, ending on the verdict.
+On LLM-First Search \citep{herr2025llmfirst}, random-valid success saturates the paper's token budget by construction. There the model scores candidates that a search then orders, and the audit covers 400 pairs over 80 tasks from four configurations. The reference model is a local open-weight substitute (Qwen3-30B-A3B-Instruct) for the paper's GPT-4o, whose published success on these configurations is 0.768 (LLM-First Search Audit appendix, Appendix~\ref{app:results-external-lfs}). Random-valid diverges from the reference by the third decision in every pair, yet under the token budget it solves all tasks (1.0) against 0.825 for the reference. A token cap never binds a chooser that spends no tokens, and because the frontier keeps every alternative, such a chooser is a complete randomized search, here using up to 102,606 expansions against the reference's 1,300. Counted in expansions, random-valid solves 0.0775 at the reference's own count and 0.19 at twice it, so success budgets must bind decisions.
 % Evidence (V-LFS2, review 21 #81): identity-audit.json supplementary.expansions_max.random_valid 102606, .reference 1300;
 % matched_decision_budget.random_valid_decision_budget_curve.random_valid_success [0.0775, 0.0975, 0.14, 0.17, 0.19] at multipliers [1.0 ... 2.0].
 % Evidence: #142 outputs/external-audit/v2/lfs/identity-audit.json pairs_checked 400, pairs_identical 0, first_divergence_index.max 2 (index 2 = third decision);
 % tasks 80; paper_budget.success.random_valid_mean 1.0, .reference 0.825, paper_budget.verdict SATURATED; matched_decision_budget.success.random_valid_mean
 % 0.0775 (verbatim), .verdict CHOICE_REGISTERED; published_model_success.value 0.768425 (0.768); per_config keys cd3/cd5/cd7/su4. Substitution:
 % issue-142-protocol.md L191-194 (deviation 1, Qwen/Qwen3-30B-A3B-Instruct-2507 @ 0d7cf239). Token-cap mechanism per issue-142-closeout.md L11-15.
-% #137 prediction "saturated" per issue-137-survey.md row 6 L38, held per issue-142-closeout.md L3-5. V-LFS verbatim per local r6-contract.
+% #137 prediction "saturated" per issue-137-survey.md row 6 L38, held per issue-142-closeout.md L3-5.
 
-\subsection{Enumeration-Contract Learned Results and Boundaries}
-
-\paragraph{Primary matrix.}
+\subsection{Enumeration-Contract Learned Results}
 \label{sec:results-primary}
-% Paragraph purpose: Report the BFWS development-panel contrast, the expanded-baseline totals, where learned success appears, and every scope boundary, pointing to the migrated tables.
-The single positive learned-control comparison under the enumeration contract comes from the frozen 15-task text-state BFWS development panel, where one fixed-seed process-SFT run achieved 0.933 success, versus 0.467 for the oracle-assisted random-valid control, 0.0 for the pretrained base, and 1.0 for exact execution, with a paired whole-instance bootstrap 95\% interval lower bound 0.2 on the gain (10,000 resamples). On the BFS and the two additive best-first development panels random-valid saturates at 100\%, so executable behavior there does not identify learned advantage. The expanded baseline (24 whole problems from 12 domains, four algorithms, three modalities, 576 model episodes independently replayed) gives process SFT 125/288 successes, versus 240/288 for random-valid, 0/288 for the base, and 288/288 for exact execution. Learned success appears only in the additive best-first cells, which the identity audit reads as operation validity, and process SFT scores 0/24 in every modality on the BFS and BFWS rows, where choice registers. Against random-valid, process SFT wins zero of the 72 problem-modality units in any algorithm column. These are tiny-subgroup descriptive bounds over one training seed, and the development-panel BFWS positive does not reappear on this suite (Primary-Matrix appendices, Appendices~\ref{app:results-primary} and~\ref{app:results-contrasts}, Tables~\ref{tab:results-bfws} and~\ref{tab:results-primary-matrix}).
-% Evidence: BFWS panel 0.933 / 0.467 / 0 / 1.0 and lower bound 0.2 from docs/issue-59-bfws-structural-gate.md L250-255; the held-out
-% manifest was not accessed (development-stage, one seed; stated in the section opener). Table tab:results-bfws (Appendix app:results-primary);
-% synthesis-v1/README.md and synthesis-v1/baseline-summary.csv expanded baseline (0/288, 125/288, 240/288, 288/288);
-% Table tab:results-primary-matrix (BFS RV 15/24, BFWS RV 17/24, exact 24/24, SFT 0/24) and tab:results-contrasts (0 wins of 72).
-% TODO: the final protocol's full six-measure matrix belongs to the unexecuted held-out slot.
-
-\paragraph{Secondary evidence.}
-% Paragraph purpose: Point to the appendix for failure calibration, corruption, menu manipulation, native arms, and secondary nulls.
-Failure calibration, observation corruption, menu manipulation, the image-only native arms, and the secondary panels (matched modality, generalization, DAgger, successors, curriculum, transfer, second backbone) appear with their receipts in the Results Detail appendices. All are development-stage enumeration-contract evidence outside the choice-quality claim.
-% Round 4: body summaries of #125 (failures), #126/#130 R2 (corruption), #130 R1 (menu), #129 (native arms), and the secondary
-% panels cut per local r4-contract decision 6. Labels sec:results-secondary/failures/corruption/menu/native now sit on the
-% matching appendix section headings (app:results-secondary/failures/corruption/menu/native), so every \ref resolves.
-
-\paragraph{Development-stage boundary.}
 \label{sec:results-boundary}
-% Paragraph purpose: Close the section with the development-stage boundary, the seed-replication summary, and the open markers.
-All results are development-stage, and the frozen 45-task held-out final primary evaluation is unexecuted, so no final efficacy finding exists. Every enumeration-contract learned cell uses seed 17 except two prospective replication cells ($n{=}3$, Seed Replication appendix, Appendix~\ref{app:results-boundary}). The full-scope v1 generalization and second-backbone branches were withdrawn after terminal VALID\_STOP receipts (closed 2026-09-21). Code and evidence bundles will be provided as anonymous supplementary material.
+% Paragraph purpose: Report the BFWS development-panel contrast, the expanded-baseline totals, where learned success appears, the single-seed descriptive scope, and the pointer to the secondary evidence.
+Under the enumeration contract, the only positive learned contrast comes from one development panel, and the expanded matrix shows no gain where choice registers. On the frozen text-state BFWS development panel, one fixed-seed process-SFT run succeeds at 0.933 against 0.467 for random-valid (Table~\ref{tab:results-bfws}). The paired bootstrap 95\% lower bound on that gain is 0.2, whereas random-valid saturates the BFS and additive development panels. On the expanded baseline, process SFT succeeds on 125/288 entries against 240/288 for random-valid, all in the additive cells that the identity audit reads as validity. It scores 0/24 in every BFS and BFWS cell, where choice registers, and wins none of the 72 problem-modality units in these descriptive single-seed bounds (Primary-Matrix appendices, Appendices~\ref{app:results-primary} and~\ref{app:results-contrasts}, Table~\ref{tab:results-primary-matrix}). The BFWS positive does not reappear on this suite, and the Results Detail appendices report failure calibration, corruption, menu manipulation, image-only arms, and secondary panels outside the choice-quality claim.
+% Evidence: BFWS panel 0.933 / 0.467 / 0 / 1.0 and lower bound 0.2 from docs/issue-59-bfws-structural-gate.md L250-255; the held-out
+% manifest was not accessed (development-stage, one seed). Table tab:results-bfws (Appendix app:results-primary) keeps the 15-task size, base 0.0, and exact 1.0;
+% synthesis-v1/README.md and synthesis-v1/baseline-summary.csv expanded baseline (0/288, 125/288, 240/288, 288/288; base and exact in tab:results-primary-matrix);
+% Table tab:results-primary-matrix (BFS RV 15/24, BFWS RV 17/24, exact 24/24, SFT 0/24) and tab:results-contrasts (0 wins of 72).
+% Round 7: secondary-evidence pointer folded in; seed-replication and v1-withdrawal boundary sentences moved per outline (single-seed in Section 4.5 and
+% Limitations, withdrawal in Section 5.1, panel reuse in Section 4, 45-task unexecuted in Limitations); "Code and evidence bundles" kept in Reproducibility.
+% Labels sec:results-secondary/failures/corruption/menu/native sit on the matching appendix section headings, so every \ref resolves.
 % Evidence: seed-variance-addendum.md and Table tab:appendix-seeds (in the Statistics appendix).
+% TODO: the final protocol's full six-measure matrix belongs to the unexecuted held-out slot.
 % TODO: held-out final primary evaluation remains unexecuted.
-% Status 2026-09-21: issues #96/#98/#102/#103 CLOSED (v1 scope withdrawn); prose states the withdrawal (review 16 I12). Seed replication is issue #127.
 % TODO(release): issue #122 tracks anonymous supplementary bundles and release URLs; no URLs are yet pinned.
-
-% Paragraph purpose: State the reuse of one nine-task panel, its adaptive-overfitting risk, and the fresh validation panel that answers it, with held-out evaluation still unexecuted.
-One panel of nine low-cost tasks ($C^*$ from 3 to 6) serves the corruption suite, the native arms, menu manipulation, the first choice-frontier measurement, and the comparator zoo, and each design step on it could adapt to earlier results. The ladder test and the scaled adapter instead use a fresh panel frozen before evaluation (12 tasks, 7 domains, $C^*$ from 8 to 15), which supplies the fresh non-trivial panel that an instrument-level claim required, and the held-out panel P2 and the unscreened panel P2u were frozen from new seeds before any evaluation episode. The frozen 45-task held-out final evaluation remains unexecuted under the choice-frontier contract.
-% Evidence: outputs/choice-frontier/o4/metrics/optimal-costs.json (nine expanded-final tasks, costs 3-6); panel reuse across
-% #126 (corruption)/#129 (native arms)/#130 R1 (menu)/#132 (choice frontier)/#133 (zoo) per review 16 I17 and Section~\ref{sec:design}.
-% Evidence: #135 configs/experiments/choice-frontier-v2/membership.json task_ids 12, domains 7, frozen at commit 47de39c before evaluation
-% (E135-63); outputs/choice-frontier/v2/metrics/analysis.json optimal_costs.<task_id> range 8-15 (E135-65). #136 reuses the same
-% panel (membership_sha256 identical, E136-35).

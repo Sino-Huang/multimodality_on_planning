@@ -6,52 +6,49 @@
 % Old menu-leak, zoo, BFWS-panel, and secondary-null discussion compressed to one pointer. Numbers from
 % local://evidence-r4.md (headline set only). No new bib entries.
 % STATUS: #131 round 5 (2026-09-25). Ladder paragraph notes the held-out P2 pass; learned-result paragraph rewritten as a three-panel interpretation with pointers and V-FRAME (#138, #139); seed-17 concentration sentence removed; limitations list replaced by the six contract items; both TODO markers and Pending comments removed; Conclusion uses short V-SEED, V-LAD-S, V-FRAME. Numbers from local://evidence-r5.md.
+% STATUS: #131 round 7 (2026-09-25) readability rewrite to outline D1-D4, Limitations, C1-C5. Menu/zoo pointer and release sentence deleted (Results 5.6 and Reproducibility carry them). No number added or changed.
 \section{Discussion and Limitations}
 \label{sec:discussion}
 
-% Paragraph purpose: Interpret what the two-verdict audit and the ladder license, with pointers to the receipts.
-Because the identity check returns both verdicts on one runtime (Section~\ref{sec:results-identity}), random-valid success separates choice from validity only after the check has been run on the interface at hand. The ladder licenses reading a higher M1 as better choice on the validation panel, and the same pre-registered test passes on the held-out panel P2 (Section~\ref{sec:results-ladder}). The rungs read the privileged heap head, so the ladder validates the ordering of the measurement, not any realisable policy.
-Menu-manipulation and zoo results on the earlier contracts are in the Menu-Manipulation Receipts appendix (Appendix~\ref{app:results-menu}) and the Choice-Frontier and Comparator-Zoo Receipts appendix (Appendix~\ref{app:results-cf}).
+% Paragraph purpose: State when random-valid success separates choice from validity, and what the ladder licenses.
+Random-valid success separates choice from validity only after the identity audit has run on the interface at hand. The audit returns both verdicts on one runtime (Section~\ref{sec:results-identity}). The ladder licenses reading a higher M1 as better choice on the validation panel and the held-out panel (Section~\ref{sec:results-ladder}). Because the rungs read the reference's privileged priority order, the ladder validates the measurement, not a policy.
 
-% Paragraph purpose: Interpret the three-panel learned result, its panel-dependent rung, the screening effect, and the claim frame, with pointers to the receipts.
-The adapter chooses better than uniform frontier choice on all three panels (Section~\ref{sec:results-adapter}), but how far above chance depends on the panel. It is separated above the exact-$\epsilon$ 0.75 rung on the held-out panel P2 and not separated from that rung on the validation panel, the unscreened panel P2u, or pooled (descriptive). Its M1 of 0.151 to 0.432 remains well below the reference's 0.875.
+% Paragraph purpose: Interpret the three-panel learned result and its panel-dependent ladder position.
+The adapter chooses better than uniform choice on every panel, but how far depends on the panel (Section~\ref{sec:results-adapter}). It is separated above the 0.75 rung only on the held-out panel. Its M1 of 0.151 to 0.432 stays well below the reference's 0.875.
 % Evidence: outputs/choice-frontier/v4/panels/metrics/analysis.json arms.p2u.learned_adapter_seed_mean.m1 0.151, arms.p2.learned_adapter_seed_mean.m1 0.432, arms.*.exact_reference.m1 0.875 (rounded half-up to 3 dp from the named keys).
-On P2u, whose tasks random-valid never solved in screening, choice still discriminates, but the gain rests on 4 of 12 tasks (descriptive). The result is obtained by imitating the exact reference.
+On the unscreened panel the gain rests on 4 of 12 tasks (descriptive). The gain comes from imitating the exact reference.
 % Evidence: outputs/choice-frontier/v4/panels/metrics/analysis.json concentration.per_panel.p2u.counts positive 4, zero 8; unscreened_p2u.ladder.verdict PASS (descriptive); P2u 0/10 random-valid screening goals on all 12 tasks: docs/experiments/choice-frontier/issue-139-closeout.md L56 (#139).
 
-% Paragraph purpose: State the external anchor and its two failure modes, so the contribution is the measurement and its two checks rather than the exposure of a single flaw.
-ScienceWorld \citep{wang2022scienceworld} anchors the check on a published interface where it registers choice (Section~\ref{sec:results-external}). The complete-set identity failure is shown only on our runtime, since none of the seven surveyed published interfaces uses that contract. On the published LLM-First Search interface, whose token cap does not bind a zero-cost chooser, random-valid success saturates by construction although every decision diverges, while counted in expansions the reference's choices matter. The contribution is therefore the measurement and its two checks, not the exposure of a single flaw.
+% Paragraph purpose: Show from the external audit that both checks are needed, so the contribution is the measurement.
+The external audit shows that both checks are needed. On ScienceWorld \citep{wang2022scienceworld}, random-valid registers choice (Section~\ref{sec:results-external}). None of the seven surveyed published interfaces uses an enumeration contract, so the 48/48 identity failure is shown only on our runtime. On LLM-First Search, random-valid success saturates the token budget by construction although every decision diverges. Counted in expansions, the reference's choices matter there. The contribution is therefore the measurement and its two checks, not the exposure of one flaw.
 % Evidence: docs/experiments/external-audit/issue-137-survey.md §Candidate table (7); issue-137-closeout.md §Stage 1 survey (0 type A) (#137 E137-40, E137-42); outputs/external-audit/v2/lfs/identity-audit.json pairs_identical 0, paper_budget.verdict SATURATED, matched_decision_budget.verdict CHOICE_REGISTERED (#142).
 
-% Paragraph purpose: State the portable rule of the audit.
-The portable rule has two checks before random-valid success is read as choice. The per-decision identity audit must find divergent pairs, and the success budget must bind decisions, the compute-matched-baseline principle \citep{li2019random}, since a token or time budget that a zero-cost chooser never exhausts lets uniform choice become exhaustive randomized search. When either check fails, success reports operation validity or search coverage rather than choice. Under a contract that passes both, a learned policy's difference from random-valid should be reported with its position on a privileged exact-$\epsilon$ ladder, because the difference alone does not locate choice quality.
+% Paragraph purpose: State the portable rule of the two checks.
+Before random-valid success is read as choice, an interface must pass two checks. The identity audit must find divergent pairs. The budget check must show that the success budget binds decisions, the compute-matched-baseline principle \citep{li2019random}. A budget that a zero-cost chooser never exhausts turns uniform choice into exhaustive randomized search. When either check fails, success reports validity or search coverage, not choice. Under a passing contract, report a policy's difference from random-valid together with its ladder position.
 
 % Paragraph purpose: List the limitations, one line each.
 \paragraph{Limitations.}
 \begin{itemize}
-\item \emph{Ladder position.} Separated above the exact-$\epsilon$ 0.75 rung only on the held-out panel, not on the validation panel, the unscreened panel, or pooled.
-\item \emph{Screening.} P2 is screened like the validation panel, and on the unscreened panel the gain rests on 4 of 12 tasks.
-\item \emph{Seeds.} Three training seeds, and seed 29 is weakest on every panel (descriptive).
+\item \emph{Ladder position.} The adapter is separated above the 0.75 rung only on the held-out panel, not on the validation panel, the unscreened panel, or pooled.
+\item \emph{Screening.} The held-out panel is screened like the validation panel, and on the unscreened panel the gain rests on 4 of 12 tasks.
+\item \emph{Seeds.} There are three training seeds, and seed 29 is weakest on every panel (descriptive).
 % Evidence: seed 29 lowest per panel: outputs/choice-frontier/v4/seeds/metrics/analysis.json primary.per_seed.29; outputs/choice-frontier/v4/panels/metrics/analysis.json heldout_p2.primary.per_seed.29, unscreened_p2u.primary.per_seed.29 (#138, #139).
-\item \emph{Held-out evaluation.} The frozen 45-task held-out final evaluation is unexecuted.
-\item \emph{Prediction.} The submission-order divergence was weaker than pre-registered.
+\item \emph{Final evaluation.} The frozen 45-task final evaluation is unexecuted.
+\item \emph{Prediction.} The pre-registered majority prediction for submission-order divergence failed.
 \item \emph{Runtime.} The runtime never chooses or repairs operands, so no result shows unassisted internal search.
 \item \emph{External audit.} The LLM-First Search reference uses a substituted local model, and the audit covers 80 tasks from four configurations.
 % Evidence: outputs/external-audit/v2/lfs/identity-audit.json tasks 80, per_config {cd3, cd5, cd7, su4}; configs/experiments/external-audit-v2/lfs-reference-server.json .model (Qwen3-30B-A3B-Instruct) (#142).
 \item \emph{Second policy.} The second realisable policy is zero-shot, and the trained second backbone was not run.
 \end{itemize}
-% Paragraph purpose: State the pending release.
-Code and evidence bundles will be provided as anonymous supplementary material.
-% Evidence: #122 release/handoff open.
-% TODO(release): issue #122 tracks anonymous supplementary bundles and pending release URLs.
 
 \section{Conclusion}
 \label{sec:conclusion}
 
-% Paragraph purpose: Give the scoped answer, the validated measurement, the three-seed learned result with its panel-dependent rung, and the claim frame.
-On our runtime a per-decision identity check returns both verdicts. The redesigned choice-frontier measurement passes a pre-registered ladder test, and a scaled adapter beats uniform choice across three seeds, $D_3 = +0.285$ $[+0.140, +0.433]$, and on the held-out panel P2, $D_3 = +0.416$ $[+0.250, +0.591]$.
-% Evidence: outputs/choice-frontier/v4/seeds/metrics/analysis.json primary.D3, primary.ci95; outputs/choice-frontier/v4/panels/metrics/analysis.json heldout_p2.primary.D3, heldout_p2.primary.ci95 (#138, #139).
-It is interval-separated above the exact-$\epsilon$ 0.75 rung on the held-out panel ($+0.227$ $[+0.053, +0.403]$) but not separated from that rung on the validation panel ($-0.041$ $[-0.187, +0.102]$), the unscreened panel, or pooled over 35 tasks ($+0.058$ $[-0.040, +0.156]$, descriptive).
+% Paragraph purpose: Give the thesis as an answer, the two checks, the validated measurement, the learned result with its ladder position, and the claim frame.
+Random-valid success measures choice only on an interface that passes the identity audit and the budget check. Our runtime's identity audit returns both verdicts, and a zero-cost chooser saturates LLM-First Search's token budget by construction. The measurement passes a pre-registered ladder test, and a trained adapter beats uniform choice across three seeds, $D_3 = +0.285$ $[+0.140, +0.433]$.
+% Evidence: outputs/choice-frontier/v4/seeds/metrics/analysis.json primary.D3, primary.ci95 (#138).
+On the held-out panel, $D_3 = +0.416$ $[+0.250, +0.591]$.
+% Evidence: outputs/choice-frontier/v4/panels/metrics/analysis.json heldout_p2.primary.D3, heldout_p2.primary.ci95 (#139).
+It is separated above the 0.75 rung on the held-out panel ($+0.227$ $[+0.053, +0.403]$) but not separated from that rung on the validation panel ($-0.041$ $[-0.187, +0.102]$), the unscreened panel, or pooled over 35 tasks ($+0.058$ $[-0.040, +0.156]$, descriptive).
 % Evidence: outputs/choice-frontier/v4/panels/metrics/analysis.json heldout_p2.separation.vs_eps_0.75.S, .ci95; outputs/choice-frontier/v4/seeds/metrics/analysis.json separation.vs_eps_0.75.S, .ci95; v4/panels analysis.json unscreened_p2u.separation.vs_eps_0.75.verdict NOT_SEPARATED; pooled.tasks 35, pooled.separation_vs_eps_0.75.S, .ci95 (#138, #139).
 The choice-quality claim is development-stage, holds relative to uniform choice and the exact-$\epsilon$ ladder on three panels with three training seeds, and carries no planning-ability or generality claim.
-On LLM-First Search a zero-cost chooser saturates the paper's token budget by construction, so success must also be counted against a budget that binds decisions.
