@@ -2,6 +2,13 @@
 
 The record of what changed in the ICLR 2026 manuscript and why. Newest first. Each entry names the commit, the scope of the change, and the review or ticket it answered. Review findings and their status live in `review-log.md`; claim vocabulary and boundaries live in `CONTEXT.md`.
 
+## 2026-09-25 — round 8 review 23 author decisions (MEANING-class findings)
+
+- 97 accepted: the title answer is scoped to frontier selection in greedy best-first search and weighted A* (the only choice-frontier algorithms), better than random-valid, without approaching the reference. No BFS or BFWS cell shows learned success. The answer appears in the abstract, Discussion, and Conclusion, and Section 3 states the algorithm scope.
+- 98 accepted: Box 1 step 1 reports the divergent fraction and the first-divergence index, and success reads as choice only if random-valid's success also falls below the reference's (the Section 5.1 definition). The Figure 1 caption drops "register choice" for submission-order ties, and the at-risk row is scoped to the additive cells. The reviewer's optional 46/48 is WONTFIX (no new numbers).
+- 99 accepted: the ladder validates M1 along the ε axis only. 5.2 states that a privileged selector reaching the goal in fewer decisions scores above the reference. The Discussion reads the adapter as beating random-valid in M1, without the closeness gloss. A "Ladder axis" limitation is added. The structured-error ladder experiment is out of scope.
+- 101 accepted: Table 24 fills the four budget cells with units in words only (no new numerals), each with a comment to `issue-137-survey.md`, plus one survey sentence noting that only LLM-First Search counts tokens. 108 accepted: LFG is named as the closest published analogue, screened out for lacking a harness, with no ablation number. The body reads "audited-candidate interfaces".
+
 ## 2026-09-25 — round 8 opening, Phase 0 decisions (content and framing; no new experiments or numbers)
 
 - Wave 0 (read only): `local://content-audit.md` (paper-reviewer ContentAudit: review-22 reasons, candidate ranking, novelty check against primary sources, protocol box and survey proposal, claim mismatches M1-M12, weakest pages), `local://skim-audit.md` (scout: cold-read protocol re-run), and `local://oracle.md` (oracle: storyline and significance). Baseline body metrics (`check.py metrics -v`): 261 sentences, mean 17.5 words, maximum 38, 0 over 40, abstract 200 words, 0 paragraphs over 6 sentences. `check.py diff r7-final r8-base`: no token change.
