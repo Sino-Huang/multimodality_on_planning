@@ -2,6 +2,27 @@
 
 The record of what changed in the ICLR 2026 manuscript and why. Newest first. Each entry names the commit, the scope of the change, and the review or ticket it answered. Review findings and their status live in `review-log.md`; claim vocabulary and boundaries live in `CONTEXT.md`.
 
+## 2026-09-25 — round 8 waves 1-5, review 23, and consolidation (`ee477aa`..`f126e53`)
+
+- Phase 0 (`ee477aa`) and scaffold (`e15a916`): the title became the registered OpenReview title. The hub gained a kernel-only `protocolbox` float, and Main drafted Box 1 (`box:procedure`) at the end of Section 4. The outline is `local://r8-outline.md` (copy in `manuscript-handoff/r8/`).
+- Wave 1 (`db79b62`): the abstract, Introduction, Figure 1 caption, Discussion, and Conclusion lead with the validate-before-score measurement.
+  - The Introduction runs stakes, then mechanism, then measurement, then what it orders, then portability. Its stakes paragraph uses 48/48, 125 of 288, and the seed-replication cell (+0.875 over the base, −0.125 against random-valid, moved from `tab:appendix-seeds` with its comment). Its mechanism paragraph gives the serial rule, 19/48, and saturation versus divergence.
+  - The paper now lists three contributions. The Discussion gains an implications paragraph with three practices. The Limitations gain the Menu-surface bullet.
+  - The Conclusion drops its repeated intervals, which Table 1 and the abstract keep.
+- Wave 2 (`59eb8c9`): Sections 3 and 4 tightened. The observation adapter m is distinguished from the trained adapter.
+  - 5.1 folds into Section 4, and `sec:results-gates` moves there. The McNemar sentence moves to the Statistics appendix.
+  - Table 24 gains audited and budget-unit columns plus reference rows for our contracts.
+  - Related Work states the novelty precisely and credits `yang2020nasevaluation` (verified) next to `li2019random`. The unrun distractor-test sentence moves to the Limitations.
+- Wave 3 (`6bc6902`): Results follow Box 1. 5.6 merges into 5.2 ("The Identity Audit and What It Changes", which carries `sec:results-identity`, `sec:results-primary`, and `sec:results-boundary`). Meaning fixes a, b, c, d, and f are applied. Repeated intervals move to Table 1 or the appendix tables, each of which already held them.
+- Wave 4 (`4fbdd63`): prose names checked, and first-use definitions added (task-algorithm pairs, cells, expanded baseline, descriptive, zero-shot base, gold trajectory, search coverage). "Realisable policy" is retired. An appendix roadmap paragraph and new appendix labels are added. Appendix sentences over 40 words are split.
+- Wave 5 (`c7e6ae5`): review 23 (WEAK REJECT, rating 4; S 3, P 3, C 2; 0 CRITICAL, 5 MAJOR, 12 MINOR, findings 97-113) and cold read C appended. The reviewer confirmed that no rendered number is new against `7bf48aa` and that both figure scripts pass.
+- Consolidation (`20510e4`, `de77048`, `f126e53`): every finding 97-113 and cold-read item is CLOSED. The author decisions on 97, 98, 99, 101, and 108 are recorded above.
+  - New verified keys: `shah2023lfg` (PMLR v229) and `sai2021perturbation` (ACL Anthology).
+  - Figure 1 art (`fig_contracts.py`): "submission-order ties", "Priority heap (sorted ties, order-invariant)", "ε 0.25", and the exact-reference label over its own dot. The script was re-run, its asserts pass, and Main inspected the PNG over three renders. `fig_ladder.py` was re-run, and its asserts pass.
+- Body metrics (`check.py metrics -v`), before (`r8-base`) → after (`r8-final`): 261 → 284 sentences; mean 17.5 → 17.9 words; maximum 38 → 40; over 40 words 0 → 0; abstract 200 → 200 words; paragraphs over 6 sentences 0 of 87 → 0 of 100.
+- Numbers: `check.py diff r7-final r8-final` shows two new body tokens, +0.875 and −0.125. Both moved from appendix `tab:appendix-seeds` (rendered since before `7bf48aa`) with their evidence comment. Review 23 confirmed that no rendered number is new against `7bf48aa`. Body tokens that left the body survive in the appendix, each checked in the PDF text: 68.5244, 1,152/1,152, 17/24, +0.305/+0.395/+0.185, 955040, −0.644, −0.298, the zero-shot held-out and contrast intervals, and "decisions 2 and 50".
+- Build: 40 pages, 0 errors, 0 undefined, 0 overfull, 0 bibtex warnings. The Conclusion ends on p.9, and the Reproducibility Statement (outside the page limit) starts on p.10. No visible TODO, and all headline strings are present.
+
 ## 2026-09-25 — round 8 review 23 author decisions (MEANING-class findings)
 
 - 97 accepted: the title answer is scoped to frontier selection in greedy best-first search and weighted A* (the only choice-frontier algorithms), better than random-valid, without approaching the reference. No BFS or BFWS cell shows learned success. The answer appears in the abstract, Discussion, and Conclusion, and Section 3 states the algorithm scope.
