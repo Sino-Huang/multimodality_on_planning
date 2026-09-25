@@ -2,6 +2,18 @@
 
 The record of what changed in the ICLR 2026 manuscript and why. Newest first. Each entry names the commit, the scope of the change, and the review or ticket it answered. Review findings and their status live in `review-log.md`; claim vocabulary and boundaries live in `CONTEXT.md`.
 
+## 2026-09-25 — round 7 opening, Phase 0 decisions (readability and style; no new experiments or numbers)
+
+- Wave 0 (read only): `local://style-sheet.md` (16 checkable principles from ResNet, MAE, ImageNet CVPR 2009, and ILSVRC IJCV 2015) and `local://readability-audit.md` (per-paragraph table, jargon inventory, thesis test, ten worst problems). Baseline body metrics (Main's detex script, captions and tables excluded): 199 sentences, mean 25.0 words, maximum 69, 25 sentences over 40 words, 1 paragraph over 6 sentences, abstract 216 words. Baseline build 38 pages, main text 9 pages.
+- Author decisions (all defaults):
+  - Thesis A: a random-valid control's success measures choice only when its decisions can differ from the reference's and the budget binds decisions; the paper builds a search-choice measurement that passes both checks and a pre-registered ladder test, and uses it to score learned search policies.
+  - Terminology: the prose-name table in `CONTEXT.md` ("Prose Names (round 7)"). "Held-out" now has one referent (P2); the 45-task manifest is "the frozen 45-task final evaluation". Labels and keys unchanged.
+  - Figure 1: `fig:contracts` (label kept) moves to the Introduction and is redrawn as a thesis teaser, with the enumeration-contract audit in panel (a) and the choice-frontier audit plus the validation-panel ladder in panel (b), using only values already in the body. `fig:ladder` stays in Results.
+  - Section order kept; sections tightened. Abstract at most 200 words in problem, observation, method, findings, boundary order. The enumeration-contract learned results (5.6) compress to one body paragraph.
+  - Finding 40: replace the LLM-usage sentence with a precise statement (agent-drafted text and figure scripts, agent citation pass with human-verified sources, agent review rounds, author verification of every number and claim). Finding 40 moves from WONTFIX to fixed in round 7.
+  - Title unchanged.
+  - Meaning-adjacent defaults accepted: repeated caveats kept in full once each in the abstract, at the result, and in the Limitations or Conclusion, and as short clauses elsewhere; the two random-valid samplers get distinct prose glosses; "development-stage" and "privileged" are glossed once.
+
 ## 2026-09-25 — review 21 and consolidation (`58e661e`)
 
 - Review 21 (paper-reviewer, at `ba7d4d2`): WEAK REJECT, **rating 4** (Soundness 3, Presentation 2, Contribution 2, confidence 4). 0 CRITICAL, 1 MAJOR, and 5 MINOR findings (81-84 plus the 75 and 80 remainders). Every rendered number matches the pinned artifacts. The reviewer re-ran the 30 fig_ladder checks (all pass) and confirmed findings 69-74 and 76-79. Main text is 9 pages.
