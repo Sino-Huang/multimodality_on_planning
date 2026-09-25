@@ -285,6 +285,11 @@ LLM-First Search audit (external v2) & \#142 & \textsc{saturated} (paper budget)
 % zoo 638/638 and 696/696 per issue-139-closeout.md L113-115; A138 primary.verdict POSITIVE. v5 window "Total 9.06 / 40 GPU-h."
 % issue-140-closeout.md L72; cap outputs/choice-frontier/v5/budget.json schedule.window_gpu_hours_cap 40.0; A140 primary.verdict NOT_SEPARATED;
 % episode_accounting.{v2,p2}.episodes_replayed 24 / 22, replay_mismatches [] (issue-140-closeout.md L53). Never summed (B4 schedule.accounting.transfers).
+% Evidence (round 6 rows): v6 window "2.245 / 30" issue-141-closeout.md L77 (stored-row sum of outputs/choice-frontier/v6/budget.json attempts[0..4].gpu_hours,
+% cap schedule.window_gpu_hours_cap 30.0); outputs/choice-frontier/v6/metrics/analysis.json primary.v2.verdict EQUIVALENT, primary.p2.verdict INCONCLUSIVE,
+% episode_accounting.{v2,p2}.episodes_replayed 24 / 22, replay_mismatches [] (46/46, issue-141-closeout.md L66). External v2: outputs/external-audit/v2/budget.json
+% total_gpu_hours 2.8910, .schema.gpu_hours_cap 12.0; outputs/external-audit/v2/lfs/identity-audit.json paper_budget.verdict SATURATED; replay.reference {80, match 80},
+% replay.random_valid {400, match 400}, mismatch 0 (lfs/replay.json). Never summed (.schema.independent).
 \end{table}
 
 % Paragraph purpose: Preserve the synthesis-snapshot attempt count and account for both later addenda.
@@ -300,9 +305,11 @@ The observation-corruption suite added 2.22 GPU-h to the generalization branch. 
 
 % Paragraph purpose: Give each follow-up window's ledger and coverage detail, kept separate from the program total.
 \paragraph{Follow-up windows.}
-Each follow-up window keeps its own ledger, and none is added to the program's 68.52/336 GPU-h. The native-arms window (v1 probes, then v2 training and evaluation) spent 3.2086 of 12 GPU-h. Its 216 new bindings (144 model episodes and 72 CPU random-valid episodes) and 72 reused comparators were all independently replayed. The R1-R4 follow-up window spent 7.7998 of 36 GPU-h across two ledgers. It was resized from 20 GPU-h before any outcome, because its frozen worst-case estimate of 27.04 GPU-h including spend exceeded the initial cap, and realized cost landed at 29\% of that estimate. The choice-frontier window spent 1.069 of 12 GPU-h (training 0.81, smoke 0.052, model evaluation 0.208), with corpus derivation and controls on CPU. Its 144 panel episodes were replayed and its 58 preparation episodes re-derived bit-exact. The comparator zoo launched no GPU job. It replayed all 432 zoo bindings, of which 342 are new CPU episodes and 90 are reused 2$\times$ random-valid controls. The three-seed replication and the held-out panels shared one window, which spent 15.22 of 24 GPU-h, and the DAgger ablation window spent 9.06 of 40 GPU-h, including 1.79 GPU-h charged for a cancelled collection. Failed attempts retain their hours in every window.
+Each follow-up window keeps its own ledger, and none is added to the program's 68.52/336 GPU-h. The native-arms window (v1 probes, then v2 training and evaluation) spent 3.2086 of 12 GPU-h. Its 216 new bindings (144 model episodes and 72 CPU random-valid episodes) and 72 reused comparators were all independently replayed. The R1-R4 follow-up window spent 7.7998 of 36 GPU-h across two ledgers. It was resized from 20 GPU-h before any outcome, because its frozen worst-case estimate of 27.04 GPU-h including spend exceeded the initial cap, and realized cost landed at 29\% of that estimate. The choice-frontier window spent 1.069 of 12 GPU-h (training 0.81, smoke 0.052, model evaluation 0.208), with corpus derivation and controls on CPU. Its 144 panel episodes were replayed and its 58 preparation episodes re-derived bit-exact. The comparator zoo launched no GPU job. It replayed all 432 zoo bindings, of which 342 are new CPU episodes and 90 are reused 2$\times$ random-valid controls. The three-seed replication and the held-out panels shared one window, which spent 15.22 of 24 GPU-h, and the DAgger ablation window spent 9.06 of 40 GPU-h, including 1.79 GPU-h charged for a cancelled collection. The zero-shot window spent 2.25 of 30 GPU-h, and the LLM-First Search audit spent 2.89 of 12 GPU-h on its reference server with no paid API use. Failed attempts retain their hours in every window.
 % Evidence: 15.22 / 24 issue-139-closeout.md L144; 9.06 / 40 issue-140-closeout.md L72; 1.79 GPU-h issue-140-closeout.md L80
 % (B5 attempts[2].gpu_hours 0.8974 and attempts[3].gpu_hours 0.8973, status failed, cancelled under A1).
+% Evidence (round 6): 2.25 / 30 issue-141-closeout.md L77 and outputs/choice-frontier/v6/budget.json attempts[0..4].gpu_hours; 2.89 / 12
+% outputs/external-audit/v2/budget.json total_gpu_hours 2.8910, .schema.gpu_hours_cap 12.0, .schema.paid_api_usd 0.0 (issue-142-closeout.md L108).
 % Window ids: native arms #128 (v1 probes) / #129 (v2); R1-R4 window #130; choice frontier #132; zoo #133.
 % Evidence: issue-129-closeout.md (Delivered: 144 GPU model episodes, 72 CPU random_valid, 72/72 comparators, 3.2086 / 12.0);
 % issue-130-closeout.md Verification & budget (27.04 GPU-h estimand, 29%) and the #131 status comment (7.7998 / 36, resized from 20);
@@ -578,7 +585,7 @@ The expanded study program ran on 2 A100 80GB GPUs under a 336 GPU-hour cap with
 % Status 2026-09-21: issues #96/#98/#102/#103 are CLOSED (supervisor decision, v1 scope withdrawn); prose states the withdrawal (review 16 I12).
 
 % Paragraph purpose: Record the follow-up windows' receipts on their own ledgers, reported separately from the main program.
-Follow-up windows executed after the program on separate GPU ledgers (Table~\ref{tab:appendix-receipts}) and on CPU only (the comparator zoo, the counterfactual audit, and the external audit). These windows are reported separately and never summed with the main program ledger. The native-arms window spent 3.2086 of 12 GPU-hours, the R1-R4 follow-up window spent 7.7998 of 36, and the choice-frontier window spent 1.069 of 12.
+Follow-up windows executed after the program on separate GPU ledgers (Table~\ref{tab:appendix-receipts}) and on CPU only (the comparator zoo, the counterfactual audit, and the first external audit). These windows are reported separately and never summed with the main program ledger. The native-arms window spent 3.2086 of 12 GPU-hours, the R1-R4 follow-up window spent 7.7998 of 36, and the choice-frontier window spent 1.069 of 12.
 % Window ids: native arms #128/#129, R1-R4 window #130, choice frontier #132, zoo #133.
 % Evidence: Sigma attempts[].gpu_hours in outputs/native-arms/v1/budget.json (3.20857, cap 12.0), outputs/reviewer-v130/v1+v2/budget.json
 % (3.98625 + 3.81354 = 7.79978, cap 36), outputs/choice-frontier/v1/budget.json (1.06939, cap 12); docs/experiments/native-arms/issue-129-closeout.md (3.2086 / 12.0);
@@ -1409,7 +1416,7 @@ verdict, $p$ & SEPARATED\_BELOW, 0.004 & SEPARATED\_BELOW, 0.004 & SEPARATED\_BE
 \label{app:results-external}
 
 % Paragraph purpose: Give the survey filter, the interface types, feasibility, and the selection.
-The survey admitted published evaluations from 2022 on in which the model chooses from a runtime-supplied candidate set inside a planning or search loop, with public tasks and code. Seven candidates passed, five of type B (the model picks one valid action per step), two of type C (the model scores candidates that a search orders), and none of type A, our complete-set submission contract (Table~\ref{tab:appendix-survey}). Four are not CPU-feasible under their papers' budgets. For WebShop (free-text search, no step limit) and LLM-First Search (an unreported token cap) this was a judgement call, and LLM-First Search was the only saturated prediction. ScienceWorld is the most cited feasible candidate, and the runner-up shares its prediction.
+The survey admitted published evaluations from 2022 on in which the model chooses from a runtime-supplied candidate set inside a planning or search loop, with public tasks and code. Seven candidates passed, five of type B (the model picks one valid action per step), two of type C (the model scores candidates that a search orders), and none of type A, our complete-set submission contract (Table~\ref{tab:appendix-survey}). Four are not CPU-feasible under their papers' budgets. For WebShop (free-text search, no step limit) and LLM-First Search (an unreported token cap) this was a judgement call, and LLM-First Search was the only saturated prediction, which the later audit in the LLM-First Search Audit appendix (Appendix~\ref{app:results-external-lfs}) tested. ScienceWorld is the most cited feasible candidate, and the runner-up shares its prediction.
 % Evidence: docs/experiments/external-audit/issue-137-survey.md inclusion filter, Screened out (E137-41), Candidate table (E137-40), interface
 % types per row (5 B, 2 C, 0 A; E137-42); CPU feasibility and selection rule (E137-43, E137-44); judgement call quoted from
 % issue-137-closeout.md Limitations and issue comment 5801181178. Type definitions paraphrase the survey rows.
@@ -1486,13 +1493,13 @@ Countdown 5 (20) & 0.750 & 1.000 & $-0.250$ $[-0.450, -0.100]$ & 0.110 & $+0.640
 Countdown 7 (20) & 0.650 & 1.000 & $-0.350$ $[-0.550, -0.150]$ & 0.020 & $+0.630$ $[+0.410, +0.840]$ \\
 Sudoku 4$\times$4 (20) & 0.900 & 1.000 & $-0.100$ $[-0.250, 0.000]$ & 0.060 & $+0.840$ $[+0.700, +0.950]$ \\
 \hline
-All (80) & 0.825 & 1.000 & $-0.175$ $[-0.263, -0.100]$ & 0.0775 & $+0.748$ $[+0.648, +0.838]$ \\
+All (80) & 0.825 & 1.000 & $-0.175$ $[-0.263, -0.100]$ & 0.0775 & $+0.747$ $[+0.648, +0.838]$ \\
 Verdict & & \multicolumn{2}{c}{SATURATED} & \multicolumn{2}{c}{CHOICE\_REGISTERED} \\
 \hline
 \end{tabular}}
 % Evidence: outputs/external-audit/v2/lfs/identity-audit.json per_config.{cd3,cd5,cd7,su4}.{paper_budget,matched_decision_budget}.{success.reference,success.random_valid_mean,
 % contrast.mean_difference_reference_minus_random,contrast.bootstrap_95ci,verdict}; top-level paper_budget.* and matched_decision_budget.* (-0.175 [-0.2625, -0.1];
-% 0.7475 [0.6475, 0.8375]). Rounded half-up to 3 dp from the named keys; 0.0775 kept verbatim. Descriptive statistics per issue-142-protocol.md L144-156.
+% raw 0.7474999999999999 [0.6475, 0.8375]; rendered 0.747 from the stored raw value per Main, 2026-09-25). Rounded half-up to 3 dp; 0.0775 kept verbatim. Descriptive statistics per issue-142-protocol.md L144-156.
 \end{table}
 
 \section{Results Detail: Seed Replication and Follow-Up Limits}

@@ -2,6 +2,22 @@
 
 The record of what changed in the ICLR 2026 manuscript and why. Newest first. Each entry names the commit, the scope of the change, and the review or ticket it answered. Review findings and their status live in `review-log.md`; claim vocabulary and boundaries live in `CONTEXT.md`.
 
+## 2026-09-25 — round 6 waves 1-3 (`e2eb87c`, `865545a`, and the wave-3 commit)
+
+- Wave 1 (`e2eb87c`):
+  - 5.4 gains the zero-shot second policy: EQUIVALENT to uniform choice on the validation panel only, below the ε-0.75 rung and the adapter on both panels, "so the instrument ranks the two realisable policies".
+  - 5.5 gains the LLM-First Search audit (0/400 pairs identical, 1.0 against 0.825 under the paper budget, 0.0775 under a matched decision budget, with the model substitution stated in the body).
+  - The Discussion value anchor becomes "the measurement and its two checks", and the portable rule gains the budget-binding check.
+  - The abstract, Contribution 4, the limitations (external audit, second policy), and the Conclusion are updated.
+  - Appendix subsections: Zero-Shot Policy (`app:results-cf-zeroshot`, `tab:appendix-zeroshot`, with InternVL not run disclosed) and LLM-First Search Audit (`app:results-external-lfs`, `tab:appendix-lfs`). Ledger rows v6 2.25/30 and external v2 2.89/12, never summed. Artifact rows added.
+- Wave 2 (`865545a`): fig:ladder gains a zero-shot row (validation and P2). The asserts now round half-up with `decimal`, because the stored 0.0625 upper bound rounds to 0.062 under Python `round`. All asserts pass, and Main inspected the PNG.
+- Wave 3:
+  - Evidence-comment and style census is clean, and the stale "only predicted" survey claim is fixed.
+  - The redundant 5.5 clause is cut (body −14 words). The Reproducibility Statement points to both new subsections.
+  - The matched-budget difference is printed +0.747 from the stored raw value 0.7474999999999999.
+  - Related Work needed no change.
+- Build: 37 pages, 0 errors, 0 undefined, 0 overfull, 0 bibtex warnings. The Conclusion ends in the lower part of p.9 (main text 9 pages).
+
 ## 2026-09-25 — round 6 opening (evidence tickets #141, #142 closed)
 
 - #141 (`outputs/choice-frontier/v6/metrics/analysis.json`, protocol `0fa497c`, closeout `1c79e1e`): the InternVL arm was infeasible within 30 GPU-h, so the second realisable policy is the zero-shot base Qwen3-VL-8B. D3 is EQUIVALENT on the validation panel (+0.005 [−0.025, +0.044]) and INCONCLUSIVE on P2 (+0.001 [−0.048, +0.051]). S and the contrast against the adapter are SEPARATED_BELOW on both panels. The prediction held. 46/46 replayed. Ledger 2.25/30 GPU-h.
