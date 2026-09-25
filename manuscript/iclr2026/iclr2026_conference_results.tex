@@ -68,17 +68,6 @@ On the same runtime with heap serials assigned in submission order, the same che
 % pairs[].rules.submission_order.first_divergence_decision_index and issue-134-closeout.md R1 (E134-11). Tie-break reading per closeout R1 quote.
 % Evidence (choice frontier): outputs/choice-frontier/v1/evaluation/identity-audit.json pairs_divergent 18. V2 verbatim per local r4-contract.
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=\linewidth]{figures/fig_contracts.pdf}
-\caption{Enumeration versus choice-frontier contract. Under the enumeration contract random-valid is decision-identical to the exact reference on 48/48 additive pairs of the 24-task baseline, and 19/48 pairs diverge when the same runtime assigns heap serials in submission order. Under the choice-frontier contract, on a separate 9-task panel with its own uniform-menu control, the identity gate diverges on 18/18 pairs (9 tasks), and random-valid minus exact is $-0.644$ $[-0.856, -0.422]$.}
-\label{fig:contracts}
-% Evidence: outputs/native-arms/v1/identity-audit.json (pairs_identical 48); outputs/choice-frontier/v1/evaluation/identity-audit.json
-% (pairs_divergent 18); analysis.json contrasts.random_valid_minus_exact_reference (-0.644 [-0.856, -0.422]). Moved from App T (finding 50).
-% Evidence (19/48): outputs/native-arms/v1/identity-audit-submission-order.json rules.submission_order.pairs_divergent (#134 R1).
-% Figure file updated by Main in wave 2.
-\end{figure}
-
 \subsection{Choice-Frontier Contract and Instrument Validation}
 \label{sec:results-ladder}
 \label{sec:results-choice-frontier}
