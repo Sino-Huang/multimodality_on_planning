@@ -1,3 +1,4 @@
+% STATUS: #131 round 7 Wave 4 (2026-09-25). "heap serials follow submission order" -> "equal-priority ties break in submission order". No number added, moved, or deleted.
 % STATUS: #131 round 7 (2026-09-25) (Results writer): rewritten to local r7-outline Section 5 for readability only; no number added,
 % changed, or recomputed. Per-window GPU-hour pairs, rung values, C* ranges, per-seed D, last-label rates, the screen and held-out
 % definitions, and the panel-reuse paragraph left the body (receipts table, Figure 1, fig:ladder, Section 4, or appendix keep them).
@@ -65,7 +66,7 @@ On the enumeration contract's additive cells, random-valid never decides differe
 % Evidence: Table tab:results-primary-matrix (BFS RV 15/24, BFWS RV 17/24, exact 24/24).
 
 % Paragraph purpose: Report the submission-order counterfactual, the failed pre-registered prediction, the divergence location, the choice-frontier verdict, and the subsection verdict.
-The same audit returns the other verdict when only the tie-break order changes, finding 19/48 divergent pairs when heap serials follow submission order. The pre-registered prediction of divergence on most pairs (more than 24/48) failed. Divergent pairs first differ between decisions 2 and 50 (Counterfactual appendix, Appendix~\ref{app:results-counterfactual}). The median first divergence is decision 6, and on the other 29 pairs every equal-priority tie breaks the same way under both orders. Under the choice-frontier contract the audit diverges on 18/18 pairs (Figure~\ref{fig:contracts}). The audit must therefore be run on each interface before random-valid success is read as choice.
+The same audit returns the other verdict when only the tie-break order changes, finding 19/48 divergent pairs when equal-priority ties break in submission order. The pre-registered prediction of divergence on most pairs (more than 24/48) failed. Divergent pairs first differ between decisions 2 and 50 (Counterfactual appendix, Appendix~\ref{app:results-counterfactual}). The median first divergence is decision 6, and on the other 29 pairs every equal-priority tie breaks the same way under both orders. Under the choice-frontier contract the audit diverges on 18/18 pairs (Figure~\ref{fig:contracts}). The audit must therefore be run on each interface before random-valid success is read as choice.
 % Evidence: #134 R1 outputs/native-arms/v1/identity-audit-submission-order.json rules.submission_order.pairs_divergent 19 /
 % pairs_identical 29; rules.sorted_candidate_order.pairs_identical 48; preregistered_prediction.held false (threshold > 24/48);
 % verdict "PREDICTION_FAILED: see preregistered_prediction" (E134-01..07). First divergence 2-50, median 6 per

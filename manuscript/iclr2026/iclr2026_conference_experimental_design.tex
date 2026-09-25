@@ -11,6 +11,7 @@
 % screen, held-out definition, and panel-reuse sentences copied from Results/Introduction with their comments;
 % CHOICE_SENSITIVE/ZERO_DECISION_HEADROOM, K=8, k=3, M2/M3, the fifteen-test family, C* ranges, estimand symbol D,
 % rung values, 16 updates, 95% percentile, and adapter seed identities removed from the body (appendix/figures keep them).
+% STATUS: #131 round 7 Wave 4 (2026-09-25). LoRA expanded at first use. No number added, moved, or deleted.
 \section{Experimental Design}
 \label{sec:design}
 
@@ -63,7 +64,7 @@ Each choice-frontier result has a rule frozen before its outcome. The ladder tes
 % with Amendment A1 (commit e89a793) before any audit episode (L212).
 
 % Paragraph purpose: Define the enumeration-contract conditions, recipe, backbones, and compute cap.
-The enumeration-contract study compares process SFT with its controls. Each cell holds the pretrained base, process SFT, SFT plus two DAgger iterations \citep{ross2011dagger}, and an exposure-matched continued-SFT control. SFT trains a fresh LoRA adapter \citep{hu2022lora} for one epoch on 512 replay-verified records. The BFWS gate checkpoint used two epochs on 47,780 records. The backbone is Qwen3-VL-8B-Instruct \citep{bai2025qwen3vl} (revision \texttt{0c351dd0}), with InternVL3.5-8B \citep{wang2025internvl35} second. All runs share a 336 GPU-hour cap.
+The enumeration-contract study compares process SFT with its controls. Each cell holds the pretrained base, process SFT, SFT plus two DAgger iterations \citep{ross2011dagger}, and an exposure-matched continued-SFT control. SFT trains a fresh low-rank adaptation (LoRA) adapter \citep{hu2022lora} for one epoch on 512 replay-verified records. The BFWS gate checkpoint used two epochs on 47,780 records. The backbone is Qwen3-VL-8B-Instruct \citep{bai2025qwen3vl} (revision \texttt{0c351dd0}), with InternVL3.5-8B \citep{wang2025internvl35} second. All runs share a 336 GPU-hour cap.
 % Evidence: docs/issue-59-bfws-structural-gate.md L10-13 (47,780 train records, two epochs, seed 17); expanded-study recipe (512 records, one epoch, 16 updates) per
 % outputs/expanded-study/v1/seed-replication/analysis.json and synthesis-v1/README.md; backbone revision 0c351dd0 per
 % docs/experiments/expanded-study/goal10-completion-audit.json L7 (0c351dd01ed87e9c1b53cbc748cba10e6187ff3b) and seed-replication-amendment.md L68.

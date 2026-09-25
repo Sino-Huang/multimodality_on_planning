@@ -5,13 +5,15 @@
 % STATUS: #131 round 5 (2026-09-25). Learned-result paragraph uses V-SEED, V-LAD-S, and a shortened V-SCR (#138, #139); contribution 3 reworded to three panels; closing uses V-FRAME then V-HO, replacing the single-seed frame and the duplicated held-out clause. Numbers from local://evidence-r5.md.
 % STATUS: #131 round 6 (2026-09-25). External-anchor sentence adds LLM-First Search (V-LFS mirror, V-ANCHOR sense); Contribution 4 reworded (#142). Numbers from local://evidence-r6.md.
 % STATUS: #131 round 7 (2026-09-25). Rewritten to the r7 outline (I1-I6, contributions, Figure 1 caption for the Wave-3 teaser). Per-seed D3 values, the 25/50/75 percent rung values, the 24-task and 9-task caption counts, the -0.644 interval, "seven" surveyed interfaces, "first 40 seeds", and the VALID_STOP withdrawal sentence deleted here (kept in Results, Section 4, or figures).
+% STATUS: #131 round 7 Wave 4 (2026-09-25). BFS expanded and additive best-first glossed at first use (sentence split); "the budget check" defined in the thesis sentence; "zero-cost" -> "zero-token". No number added, moved, or deleted.
 \section{Introduction}
 \label{sec:introduction}
 
 % Paragraph purpose: State why search choice needs its own measurement, the policy/runtime mechanism and scope, and the natural control.
 A learned search policy is useful only if it chooses well among valid operations, yet its success can also reflect validity alone.
 On classical planning probes \citep{valmeekam2023critical,stein2025autoplanbench,kokel2026acpbenchhard}, off-the-shelf language models improve at operational reasoning but not at structural enumeration \citep{huang2026twodistinct}.
-We train a Search Process Policy to emit Typed Search Operations, which a no-repair Trusted Search Runtime validates, over BFS, width-based, and additive best-first search under text, visual, and multimodal observations (Section~\ref{sec:policy}).
+We train a Search Process Policy to emit Typed Search Operations, which a no-repair Trusted Search Runtime validates, under text, visual, and multimodal observations (Section~\ref{sec:policy}).
+The declared algorithms are breadth-first search (BFS), width-based search, and additive best-first search, which is best-first search ordered by the additive heuristic $h_{\rm add}$.
 The natural control is random-valid, uniform over valid operations, but without a check a benchmark can credit validity as choice.
 
 \begin{figure}[t]
@@ -41,7 +43,7 @@ Process supervised fine-tuning (SFT) solved 125 of 288 baseline entries, all in 
 % Evidence: BFS/BFWS SFT 0/24: Results Table tab:results-primary-matrix.
 
 % Paragraph purpose: State the thesis as two checks, then the choice-frontier contract, M1, and the ladder that validates it, with the privileged-rung boundary.
-Random-valid success therefore measures choice only if the identity audit finds divergent decisions and the budget check finds that the budget binds them.
+Random-valid success therefore measures choice only if the identity audit finds divergent decisions and the budget check, a test of whether the success budget binds decisions, finds that it does.
 We build a choice-frontier contract, where the policy picks the runtime-owned frontier state to expand under a budget of twice the reference's expansion count (Figure~\ref{fig:contracts}b).
 M1, the area under the solve-versus-budget curve, is first validated by a pre-registered ladder of exact-$\epsilon$ selectors, which randomize a fraction $\epsilon$ of reference decisions.
 On the validation panel, 12 fresh tasks from 7 domains, the ladder passes.
@@ -69,7 +71,7 @@ Success is 0.915 for the reference and 0 for random-valid, so it measures choice
 % Evidence: outputs/external-audit/v1/scienceworld/identity-audit.json pairs_divergent 1000 of pairs_checked 1000, first_divergence_index.max 0, success.reference 0.915, success.random_valid_mean 0.0, tasks 200 (#137 E137-02..06).
 The audit covers 6 of 30 task types, and no surveyed interface uses an enumeration contract, so the 48/48 failure is shown only on our runtime.
 % Evidence: 6 of 30 from docs/experiments/external-audit/issue-137-closeout.md §Limitations; 0 type A from issue-137-survey.md §Candidate table and issue-137-closeout.md §Stage 1 survey (#137 E137-19, E137-40, E137-42).
-On LLM-First Search \citep{herr2025llmfirst}, a zero-cost chooser saturates the token caps by construction, so success must count against a budget that binds decisions (Section~\ref{sec:results-external}).
+On LLM-First Search \citep{herr2025llmfirst}, a zero-token chooser saturates the token caps by construction, so success must count against a budget that binds decisions (Section~\ref{sec:results-external}).
 % Evidence: outputs/external-audit/v2/lfs/identity-audit.json paper_budget.verdict SATURATED, paper_budget.success.random_valid_mean 1.0; supplementary.tokens_median.random_valid 0.0 (#142).
 
 % Paragraph purpose: State the four contributions without numbers; receipts are in the paragraphs above.

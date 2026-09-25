@@ -9,11 +9,12 @@
 % STATUS: #131 round 7 (2026-09-25) readability rewrite to outline 3.1-3.4: titular opening sentence; notation cut to
 % x, A, m, B, o_t (task tuple, u_t, M_t, phi_m, c_t, and the dataset symbol dropped); invariant sentence split; new
 % decision-contracts paragraph moved from Section 4 and Results 5.3; "exact teacher" -> "exact reference".
+% STATUS: #131 round 7 Wave 4 (2026-09-25). Search Memory glossed at first use; "the heap" -> "the runtime's priority heap"; DAgger expanded once. No number added, moved, or deleted.
 \section{Search Process Policy}
 \label{sec:policy}
 
 % Paragraph purpose: Say what a Search Process Policy is and fix its episode and observation with minimal notation.
-A Search Process Policy executes a declared search algorithm one typed operation at a time. An episode fixes $(x, A, m, B)$, which are a task $x$ in a deterministic grounded planning domain, a declared algorithm $A$ given as input, an observation adapter $m$, and a frozen budget $B$. At step $t$ the policy sees an observation $o_t$, a text, visual, or multimodal rendering of the decision context. The observation must expose every fact the exact reference uses at step $t$. Search Memory and candidates stay textual.
+A Search Process Policy executes a declared search algorithm one typed operation at a time. An episode fixes $(x, A, m, B)$, which are a task $x$ in a deterministic grounded planning domain, a declared algorithm $A$ given as input, an observation adapter $m$, and a frozen budget $B$. At step $t$ the policy sees an observation $o_t$, a text, visual, or multimodal rendering of the decision context. The observation must expose every fact the exact reference uses at step $t$. Search Memory (the runtime-held search state defined below) and the candidates stay textual.
 
 % Paragraph purpose: Define Typed Search Operation, Search Memory, Algorithm Invariant, and Trusted Search Runtime with the ownership rule.
 Four definitions fix what the policy owns and what the runtime owns. \textbf{Typed Search Operation.} The policy emits a type from $A$'s vocabulary plus every exploration-determining operand, and an emission that omits one is invalid. \textbf{Search Memory.} This is bounded state held by the runtime (frontier, visited table, BFWS novelty counters), not model state, and $o_t$ is the policy's only channel to history.
@@ -24,9 +25,9 @@ Four definitions fix what the policy owns and what the runtime owns. \textbf{Typ
 \textbf{Trusted Search Runtime.} The runtime only validates, applies, persists, or rejects operations and never chooses omitted operands, reorders candidates, or repairs, so raw emissions replay to the same trace (Operation Schemas appendix, Appendix~\ref{appendix}, and Algorithm Invariant Definitions appendix).
 
 % Paragraph purpose: Define the two decision contracts in one place and point to the schematic and the appendix table.
-The runtime supports two decision contracts, and they differ in what the policy chooses. Under the enumeration contract, each expansion submits its complete candidate set, and the heap orders it. Under the choice-frontier contract, the policy selects which runtime-owned frontier state to expand next, under a budget of twice the exact reference's expansion count. Figure~\ref{fig:contracts} and Table~\ref{tab:design-contracts} (Decision Contracts appendix) compare the two contracts.
+The runtime supports two decision contracts, and they differ in what the policy chooses. Under the enumeration contract, each expansion submits its complete candidate set, and the runtime's priority heap orders it. Under the choice-frontier contract, the policy selects which runtime-owned frontier state to expand next, under a budget of twice the exact reference's expansion count. Figure~\ref{fig:contracts} and Table~\ref{tab:design-contracts} (Decision Contracts appendix) compare the two contracts.
 % Evidence: docs/experiments/choice-frontier/issue-132-design.md sections 2 and 6 (contract inversion, atomic expansion,
 % goal at selection, decision_cap = expansion_cap = 2 x reference_expansions); comment moved here from Section 4 in round 7.
 
 % Paragraph purpose: Define the learning objective, process supervision on trusted Search-Trace Segments, with optional DAgger.
-Process supervision is token-level cross-entropy cloning of the exact reference's operation on Search-Trace Segments, which are bounded slices of replay-verified exact traces. Optional DAgger \citep{ross2011dagger} adds the exact reference's corrections on visited contexts.
+Process supervision is token-level cross-entropy cloning of the exact reference's operation on Search-Trace Segments, which are bounded slices of replay-verified exact traces. Optional DAgger (dataset aggregation) \citep{ross2011dagger} adds the exact reference's corrections on visited contexts.
