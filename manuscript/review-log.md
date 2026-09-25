@@ -33,6 +33,336 @@ Single record of every review the manuscript has received: what draft state it r
 | 18 | 2026-09-23 | paper-reviewer (area-chair tier) | Round-3 re-review at `19a641b` (clean tree): nine section files, hub, six bibs, log/blg, rendered 29-page PDF, both figure assets and scripts, headline numbers re-derived from the pinned JSONs, ledgers, and episode stores | WEAK REJECT (0 CRITICAL, 6 MAJOR, 13 MINOR, counting the 2 partial remainders) | SUPERSEDED by 19 (all findings closed except 49 and 60, carried into 19 and blocked on issue #134) |
 | 19 | 2026-09-23 | paper-reviewer (area-chair tier) | Round-3 re-review at `1281c1b` (clean tree): nine section files, hub, six bibs, log/blg, rendered 29-page PDF, both figure assets and scripts, numbers re-checked against the pinned JSONs, CSVs, and ledgers, and a sample of the new `%` Evidence comments checked for path and key | WEAK REJECT (0 CRITICAL, 1 MAJOR, 8 MINOR) | CLOSED (`59e8714`; 49 and 60 closed with #134; 40 WONTFIX) |
 | 20 | 2026-09-25 | paper-reviewer (area-chair tier) | Round-5 re-review at `0277de7` (clean tree): rendered 35-page PDF, nine section files, hub, six bibs, log/blg, all three figure scripts and PNGs (28/28 fig_ladder asserts re-run), every round-5 number and all cells of Tables 19-21 re-derived from the pinned #138-#140 JSONs and ledgers, 16 `%` Evidence comments checked | WEAK REJECT, rating 4 (S 3 / P 2 / C 2, confidence 4); 0 CRITICAL, 2 MAJOR, 10 MINOR | CLOSED (70-80 `e7346aa`; 69 `e7346aa` + `e2eb87c` after #141/#142; 40 WONTFIX) |
+| 21 | 2026-09-25 | paper-reviewer (area-chair tier) | Round-6 re-review at `ba7d4d2` (clean tree): rendered 37-page PDF, word diffs since `0277de7`, figures and scripts (30/30 fig_ladder checks re-run), every round-6 number and all cells of Tables 22 and 24 re-derived from the #141/#142 JSONs and ledgers, 14 `%` Evidence comments checked | WEAK REJECT, rating 4 (S 3 / P 2 / C 2, confidence 4); 0 CRITICAL, 1 MAJOR, 5 MINOR | OPEN |
+
+## Live fixlist — review 21 (2026-09-25)
+
+**Verdict:** WEAK REJECT. 0 CRITICAL, 1 MAJOR, 5 MINOR.
+- MAJOR: finding 81.
+- MINOR: new findings 82-84, and the partial remainders of review-20 findings 75 and 80.
+- Fix class: MEANING for 81. WORDING for 82-84 and for both remainders.
+- Finding 40 (LLM-usage statement) is WONTFIX by author decision. It is reported below as a compliance risk and is outside the rating and the finding count.
+
+Most damaging issue: **finding 81** (Axis 2 with Axis 1). The new external result and the second check of the portable rule both rest on the LLM-First Search (LFS) SATURATED verdict, and that verdict could not have lost.
+- The paper's own V.1 says the frontier keeps every alternative, and random-valid spends zero tokens under a token-only cap. It is therefore a complete randomized search on finite, solvable puzzles.
+- The #142 protocol states this before the audit ("random_valid is a complete randomized search. The probe won 100/100 non-audited episodes within the guard").
+- The paper nonetheless presents it as "Both pre-registered predictions held" (V.1) and as "a failure the per-decision audit does not detect" (Discussion). The Introduction generalises it to "success saturates unless the budget binds decisions".
+- The matched-budget reading compares random-valid against a reference whose success at its own expansion count equals its token-budget success by construction.
+
+Genre: BENCHMARK (+ FINDINGS)
+
+Δbelief: On the authors' additive best-first runtime, the per-decision identity check returns both verdicts (48/48 identical under sorted serials, 19/48 divergent under submission-order serials). A choice-frontier contract passes a pre-registered exact-ε ladder on a validation panel and a screened held-out panel. An imitation-trained VLM adapter beats uniform frontier choice (D3 +0.285, held-out +0.416, unscreened +0.149) but is interval-separated above the ε-0.75 rung only on the 11-task held-out panel. A zero-shot base model scores as uniform choice. On LFS, a zero-token uniform chooser solves every task under the paper's token caps. The update a skimming reviewer takes away is "before reading random-valid success as choice, check that decisions diverge and that the budget binds decisions". The second half is the established compute-matched-baseline principle, and here it is shown on a case whose outcome was guaranteed.
+
+Ledger: Verified: 69, 70, 71, 72, 73, 74, 76, 77 (wording; p-value part declined by author), 78, 79; round-4 closures 49, 60, #137 reframe, review-16 finding 15, 51, 52 · Partial: 75, 80 · Regressed: none · Not addressed: none · Wontfix: 40 (unchanged, App Y p.37 L1985) · New: 81-84
+
+**Reviewer summary:**
+
+> This round-6 re-review covers HEAD `ba7d4d2` on a clean tree: the review-20 consolidation `e7346aa` and round 6 (`e2eb87c`, `865545a`, `bded653`), which integrates #141 (zero-shot second policy) and #142 (LLM-First Search audit). I read all 37 pages of the rendered PDF text, the word-level diffs of every section file since `0277de7`, both figure PNGs, `fig_ladder.py`, the log, blg, and bbl, the new `CONTEXT.md` "External audit claim" entry, the round-6 changelog entries, and the #141/#142 protocols, feasibility note, and closeouts.
+>
+> The build is clean. The Conclusion ends on **p.9 L477**, so the main text is exactly 9 pages against the 9-page limit, with no slack left.
+>
+> Every number checked in the rendered PDF matches its pinned artifact. The artifacts behind review 20 are md5-identical, so its re-derivations stand. I re-derived every new number from `v6/metrics/analysis.json`, `external-audit/v2/lfs/identity-audit.json`, both new ledgers, and `protocol.json`, including every cell of Tables 22 and 24 and the Figure 2 zero-shot row. Re-running the 30 `fig_ladder.py` value checks read-only against the JSONs, with the script's half-up `Decimal` rule, gives 30/30 pass. The rounding in one Table 24 cell is noted below; it is not a mismatch.
+>
+> I checked 14 evidence comments, 10 of them from round 6. Twelve resolve fully. One names a non-existent key path, and two lean on a non-repository "local evidence sheet §9" (80 remainder).
+>
+> Every review-20 fix landed. 75 is missing one chance rate, and 80 has new instances of the same pattern.
+>
+> The paper's remaining problem is what the two new experiments can bear:
+> - The LFS saturation is a construction, not a test (81).
+> - The zero-shot policy's equivalence verdict is the development-stage one, while the confirmatory held-out verdict is INCONCLUSIVE. Its prompt carries an undisclosed goal-similarity instruction (82).
+> - Table 22 pairs "EQUIVALENT" with large sign-flip p values (83).
+> - The abstract has grown to 327 words carrying 31 decimal numbers (84).
+
+### Rating
+
+**Rating: 4** (ICLR 2026 scale {0, 2, 4, 6, 8, 10}; 4 = marginally below the acceptance threshold)
+
+- **Soundness: 3** (good). Every endpoint is pre-registered with a frozen verdict rule, every episode is independently replayed, the paper uses paired task-clustered intervals and three training seeds, and it reports its own failures (the #134 prediction, DAgger, P2u, and the InternVL arm not run). Two things cap soundness. The LFS SATURATED verdict could not have lost, and its matched-budget contrast is reference-conditioned (81). The one interval-separated ladder position rests on 11 task clusters.
+- **Presentation: 2** (fair). The paper is honest and exact, but a first-time reader struggles:
+  - The abstract has 327 words and 31 decimal numbers, and two of its sentences need re-reading (84).
+  - The main text fills exactly 9 pages with contract, panel, and ledger jargon.
+  - The appendix runs to 26 lettered sections, 25 tables, and 37 pages.
+- **Contribution: 2** (fair). The per-decision identity audit is a clean, cheap check, and the ladder-validated choice measurement is careful. Both new experiments land where they had to:
+  - The zero-shot policy scores as uniform choice, so it re-confirms that the instrument separates the trained adapter from chance, which D3 already showed.
+  - The LFS saturation follows from completeness plus a zero-cost chooser.
+
+  The failure the audit exposes is still shown only on the authors' runtime, the learned result is modest, and there is one backbone.
+- **Confidence: 4.** I verified all numbers against the artifacts myself. The published-practice anchors were checked against the ICLR 2026 LLM policy, the LFS abstract, and Semantic Scholar records (URLs below).
+
+**Strongest reasons for acceptance:**
+- The evaluation discipline is rare for the area. Protocols were frozen before outcomes, amendments were disclosed as made before evaluation, all episodes were independently replayed, and failed predictions are reported (#134 PREDICTION_FAILED, #140 NOT_SEPARATED and INCONCLUSIVE, InternVL not run).
+- The per-decision identity check returns both verdicts on one runtime, and there are now two published-interface audits: ScienceWorld registers choice (0.915 against 0), and LFS saturates under token caps (1.0 against 0.825).
+- The choice-frontier instrument is validated by a pre-registered monotone ladder that replicates on a held-out panel (smallest gap +0.130 [+0.070, +0.190]). It does not credit an untrained realisable policy: the zero-shot D3 is +0.005 [−0.025, +0.044].
+- The portable rule (Discussion p.9 L442-448) is now stated, and it is falsifiable.
+
+**Strongest reasons against acceptance:**
+- (i) The new external-audit contribution is a construction, not an empirical finding (81).
+  - LFS's own evaluation never runs a random-valid control, so no published result changes. The CONTEXT entry itself forbids claiming otherwise.
+  - The rule the audit supports ("the success budget must bind decisions") is the standard compute-matched-baseline principle; random search under a matched evaluation budget is the classic NAS baseline, Li & Talwalkar, UAI 2019 (https://arxiv.org/abs/1902.07638; Semantic Scholar 35a59bd09974c7fc78cf681f77f7301e180fd23c; fetched 2026-09-25).
+- (ii) The instrument has still ranked exactly one non-trivial realisable policy, the authors' imitation adapter. The second policy is at chance.
+- (iii) The learned result is small and fragile:
+  - It is separated above the ε-0.75 rung only on the 11-task P2, with 8 positive and 3 negative per-task differences.
+  - It is not separated from that rung on the validation panel, the unscreened panel, or pooled.
+  - The unscreened gain rests on 4 of 12 tasks.
+- (iv) The "vision-language" framing rests on one visual-only choice-frontier adapter and one backbone. There is no modality comparison under the choice-frontier contract, and every enumeration-contract learned result is null or below random-valid.
+
+**What would move the rating up one step (4 → 6):**
+1. **(81)** Rewrite the LFS result as what it is:
+   - State in 5.5 and V.1 that saturation follows by construction from a complete frontier and a zero-cost chooser. Disclose the 500,000-expansion guard, random-valid's median 201 and maximum 102,606 expansions against the reference's median 29.5 and maximum 1,300, and the pre-audit probe's 100/100.
+   - Report the stored random-valid decision-budget curve (0.0775 at 1×, 0.19 at 2×, normalised AUC 0.135) instead of the single reference-conditioned point.
+   - Drop the "failure the audit does not detect" framing, and cite the compute-matched-baseline precedent.
+
+   This costs no new experiment, and the space is covered by the 84 cuts.
+2. Put one non-trivial second policy through the instrument. The InternVL arm was ruled out against a self-imposed 30 GPU-h ticket cap, while the main program spent 68.5 of its 336 GPU-h. A one-seed InternVL cell (about 7-9 GPU-h per cell by the protocol's own estimate; two algorithms, descriptive) would test whether M1 plus the ladder orders two trained policies. That is what "a validated search-choice measurement" promises.
+3. Optionally, and the most value-changing: one modality contrast under the choice-frontier contract, for example the same adapter recipe with a text-rendered frontier menu against the scene-only observation, on the validation panel and P2. The title's "vision-language" claim currently has no choice-frontier evidence behind it.
+
+**Finding 40 (compliance risk, outside the rating and the count):** App Y p.37 L1985 (appendix.tex L1558) reads "An LLM was used only for polishing language; the scientific content is entirely original."
+- ICLR 2026 policy says "Any use of an LLM must be disclosed" and asks authors to "explicitly state how they used LLMs in their submission". It names drafting sections and research-assistant use (analysis, code) as uses to disclose, and names desk rejection as a possible consequence (https://blog.iclr.cc/2025/08/26/policies-on-large-language-model-usage-at-iclr-2026/, fetched 2026-09-25).
+- `manuscript/changelog.md` round 6 again records agent-drafted sections, figures, and evidence sheets ("two scouts", "figure-only paper-writer", "front and back writers steered").
+- If those agents are LLMs, the statement understates the use. Not re-argued: WONTFIX per the round-5 Phase 0 decision, item 8.
+
+### Build, page count, figures
+
+- **Build:** `iclr2026_conference.log` (2026-09-25 12:14:47.955) is newer than every `.tex`; the newest is appendix.tex at 12:14:47.151. `.blg`/`.bbl` (12:10:41) are newer than every `.bib`; the newest is related_refs.bib at 02:16:12. Counts:
+  - `^!` errors: 0
+  - LaTeX and package warnings: 0
+  - "undefined" (references or citations): 0
+  - Overfull: 0 (63 underfull)
+  - BibTeX `warning$`: 0 across six databases
+  - 45 unique `\citation` keys and 45 `\bibitem`s, including `asai2016tiebreaking` and `orseau2021policyguided`
+  - "Output written on iclr2026_conference.pdf (37 pages, 456277 bytes)"
+
+  `manuscript/manuscript.pdf` has 37 pages. Its `pdftotext -layout` text differs from `iclr2026/iclr2026_conference.pdf` only in column whitespace in Tables 6 and 17 (24 lines, all spacing). **PASS.**
+- **Page count:** The Conclusion ends on **PDF p.9, L477**. The Reproducibility Statement (L479) and References (L490) begin on p.9. Main text, title through Conclusion, is **9 pages** against the 9-page limit. **PASS**, with zero slack, so every fix below must be space-neutral. 84's cuts pay for 81's disclosures.
+- **Visible TODO:** a `grep -c TODO` of the rendered text returns 0. **PASS.**
+- **fig:ladder (Figure 2, p.6 L290-307; `figures/fig_ladder.png`, 1791×698):**
+  - Three panels as before, plus a new "zero-shot base" row (open diamond) on the validation panel (0.026) and P2 (0.017), placed between the adapter mean and the first adapter.
+  - The labels are legible, with no clipping or overlap. The zero-shot interval whiskers ([0.000, 0.063] and [0.000, 0.051]) are barely visible at print size; this is noted, not ranked.
+  - The caption now says "The P2u ladder is descriptive, and the first adapter appears on the validation panel only. The zero-shot base model appears on the validation and P2 panels." Review-20 78(c) is closed.
+  - `fig_ladder.py` now rounds half-up with `Decimal(repr(v))` (L72-74) and holds 4 `assert` statements. Their loops cover **30 value checks**: 28 (m, lo, hi) triples and per-seed values from `v4/panels arms.{p135,p2,p2u}.*` plus the first adapter from `v2 adapter_reevaluation.learned_adapter.*`, and 2 zero-shot triples from `v6 per_panel.{v2,p2}.{m1_arm, m1_arm_ci95}`.
+  - I re-executed exactly these comparisons in a throwaway script against the pinned JSONs, without writing any figure: **30/30 pass.**
+- **fig:contracts (Figure 1, p.6 L270-286):** the script, PNG, and values are unchanged since review 20 (`git diff 0277de7..HEAD` is empty for `fig_contracts.*`).
+
+### Numbers re-check
+
+**Artifact state.** The review-20 artifacts are md5-identical:
+
+| artifact | md5 prefix |
+|---|---|
+| v4/seeds/metrics/analysis.json | d5c3828cba0f |
+| v4/panels/metrics/analysis.json | fa5399d9a0f6 |
+| v5/metrics/analysis.json | 29d08e8bcbea |
+| v4/budget.json | c58180f1c1c7 |
+| v5/budget.json | 178f3023fc53 |
+| v2/metrics/analysis.json | c609286a7e3f |
+| native-arms submission-order audit | 6f523484d3d0 |
+| ScienceWorld audit | 83d4265671a7 |
+
+So every review-20 re-derivation stands. I confirmed that the headline strings still render unchanged: 0.875 / 0.793 / 0.603 / 0.347 / 0.021, +0.082 [+0.051, +0.111], +0.285 [+0.140, +0.433], +0.416 [+0.250, +0.591], +0.149 [+0.030, +0.283], −0.041, −0.298, +0.227, +0.002, and +0.058 with their intervals, 22 of 35, +0.305 to +0.395, +0.130 [+0.070, +0.190], +0.115, −0.030, 0.205 → 0.137, 15.22/24, 9.06/40, 48/48, 19/48, 0.915, and 1000/1000. Tables 19-21 are cell-for-cell unchanged; the appendix diff touches only comments.
+
+**New artifacts:**
+
+| artifact | mtime | md5 prefix |
+|---|---|---|
+| `outputs/choice-frontier/v6/metrics/analysis.json` | 05:02 | c2073fc9e4f3 |
+| `outputs/choice-frontier/v6/budget.json` | — | 67f97c42d4b3 |
+| `outputs/external-audit/v2/lfs/identity-audit.json` | 05:43 | d94f54e35f55 |
+| `outputs/external-audit/v2/budget.json` | — | ea23ac570b5c |
+
+The last evidence commit is `53751f0`, and the evidence tree is clean. In the table below, V6 = `outputs/choice-frontier/v6/metrics/analysis.json`, LFS = `outputs/external-audit/v2/lfs/identity-audit.json`, and P6 = `configs/experiments/choice-frontier-v6/protocol.json`.
+
+| claim (rendered) | PDF location | artifact : key | match |
+|---|---|---|---|
+| zero-shot D3 +0.005 [−0.025, +0.044] EQUIVALENT (validation); +0.001 [−0.048, +0.051] INCONCLUSIVE (P2) | p.7 L345-346, Table 22 p.35 L1840 | V6 primary.v2 {D3 0.005208, ci95 [−0.025, 0.04375], verdict EQUIVALENT, stage "development"}; primary.p2 {D3 0.001136, ci95 [−0.04773, 0.05114], INCONCLUSIVE, stage "held-out confirmatory"} | yes (stage labels: finding 82) |
+| adapter contrast −0.280 [−0.425, −0.142] and −0.415 [−0.589, −0.248] | p.7 L347-348, Table 22 L1843 | V6 co_primary.v2.A {value −0.27951, ci95 [−0.42535, −0.14236]}; co_primary.p2.A {−0.41477, [−0.58902, −0.24811]}; both SEPARATED_BELOW | yes |
+| **Table 22** (tab:appendix-zeroshot), all 27 cells | p.35 L1839-1843 | D3 row: primary.* and pooled.D3 {0.003261, [−0.02391, 0.03315], EQUIVALENT}. p row: sign_flip_p 0.90625 / 1.0 / 0.896484. S row: co_primary.{v2,p2}.S {−0.32083 [−0.421875, −0.22604]; −0.1875 [−0.23864, −0.13977]}; pooled.S {−0.25707 [−0.32446, −0.19728]}; p 4.8828e-4 / 9.7656e-4 / 2.3842e-7. A row: pooled.A {−0.34420 [−0.45924, −0.23188]}; p 0.0039063 / 0.0039063 / 7.6294e-6. All verdicts match | yes, all 27 (half-up: −0.1875 → −0.188, 0.04375 → 0.044) |
+| zero-shot M1 0.026 [0.000, 0.063], 0.017 [0.000, 0.051], 0.022 [0.003, 0.046] pooled | p.35 L1866-1867; Fig. 2 | V6 per_panel.v2 {m1_arm 0.026042, ci95 [0.0, 0.0625]}; per_panel.p2 {0.017045, [0.0, 0.051136]}; pooled {0.021739, [0.002717, 0.046196]} | yes (0.0625 → 0.063 half-up) |
+| 1,592 calls, all valid via first extractor rule; heap-head − chance +0.003 / +0.001; last-label 0.328 / 0.285 (chance about 0.13-0.14); 4 of 46 solve | p.35 L1867-1870 | V6 per_panel.{v2,p2}.behaviour: model_calls 836 + 756; extraction_rules.json_object 836 / 756; valid_output_rate 1.0; teacher_agreement_minus_chance 0.00339 / 0.00117; last_label_rate 0.32828 / 0.28472; teacher_agreement_chance 0.1418 / 0.1322; terminations.goal_reached 3 + 1 | yes |
+| 46/46 replayed; no amendment | p.35 L1859, L1863, L1871-1872 | V6 episode_accounting.{v2,p2}.episodes_replayed 24 / 22; issue-141-closeout.md L3 (`0fa497c` before launch) and L66 | yes |
+| InternVL 11,748 against 3,111 tokens; 43-55 GPU-h against 30 | p.35 L1860-1862 | P6 arm_choice.feasibility_evidence.{internvl_mean_tokens 11747.999, qwen_mean_tokens 3110.520}; arm_choice.reason "6 cells = 43-55 GPU-h training alone" | yes |
+| zero-shot prompt: "one appended system sentence asking for a single JSON choice" | p.35 L1857-1858 | P6 arm.system_message_suffix holds **two** sentences, the JSON format and "Choose the frontier state whose scene appears closest to satisfying the goal pages." | **incomplete description** (finding 82) |
+| ledgers 2.25/30 (v6) and 2.89/12 (external v2) | p.5 L245-246, Table 2 p.17 L890-893, p.18 L965-967 | Σ attempts[].gpu_hours for v6/budget.json = 2.245242 (5 attempts, all succeeded; schedule.authorization.window_gpu_hours_cap 30.0); external-audit/v2/budget.json total_gpu_hours 2.891025 = Σ attempts 0.008972 + 2.882053, schema.gpu_hours_cap 12.0, paid_api_usd 0.0 | yes |
+| LFS: all 400 pairs diverge, by the third decision; first-divergence median 0, max 2 | p.1 L033-034, p.2 L078, p.8 L379, p.36 L1921 | LFS pairs_checked 400, pairs_identical 0, first_divergence_index {min 0, median 0, max 2, pairs_diverging_at_0 380} | yes |
+| LFS 1.0 against 0.825 under the paper budget; 0.0775 matched; per seed 0.0625 / 0.075 / 0.075 / 0.0875 / 0.0875 | p.1 L034-036, p.2 L079, p.8 L380-382, p.36 L1922-1925 | LFS paper_budget.success {reference 0.825, random_valid_mean 1.0, every seed 1.0}, verdict SATURATED; matched_decision_budget.success {random_valid_mean 0.0775, per_seed as printed, reference 0.825}, verdict CHOICE_REGISTERED; prediction {SATURATED, CHOICE_REGISTERED} | yes |
+| every reference loss ends at the token cap | p.36 L1923 | LFS supplementary.terminated.reference {success 66, token_limit 14} | yes |
+| GPT-4o published 0.768 | p.8 L384, p.36 L1926 | LFS published_model_success.value 0.768425 = mean of {cd3 100.0, cd5 63.16, cd7 47.37, su4 96.84}; issue-142-protocol.md L29-34 table | yes |
+| token caps 1,000,000 and 100,000; Sudoku 6×6 excluded; games 0-19; 80 tasks; upstream `3025bdaa`; 57/57 byte-identical probe | p.36 L1912-1919 | issue-142-protocol.md L22-37 (Sudoku 6×6 win rate 2.22%); LFS upstream.commit 3025bdaa3add…, license Apache-2.0, tasks 80; `outputs/external-audit/v2/lfs-probe/fast-equivalence.json` {checked 57, identical 57} | yes |
+| 80/80 and 400/400 replayed | p.36 L1920, Table 2 L892-893 | LFS replay.reference {80, match 80}, replay.random_valid {400, match 400}, mismatch 0 | yes |
+| **Table 24** (tab:appendix-lfs), all 30 cells | p.36 L1894-1899 | LFS per_config.{cd3,cd5,cd7,su4}.{paper_budget,matched_decision_budget}.{success.reference, success.random_valid_mean, contrast.mean_difference_reference_minus_random, contrast.bootstrap_95ci, verdict}. cd3 1.0 / 1.0 / 0.0 [0, 0] / 0.12 / 0.88 [0.77, 0.97]; cd5 0.75 / 1.0 / −0.25 [−0.45, −0.10] / 0.11 / 0.64 [0.37, 0.87]; cd7 0.65 / 1.0 / −0.35 [−0.55, −0.15] / 0.02 / 0.63 [0.41, 0.84]; su4 0.9 / 1.0 / −0.10 [−0.25, 0.0] / 0.06 / 0.84 [0.70, 0.95]; All 0.825 / 1.0 / −0.175 [−0.2625, −0.10] / 0.0775 / 0.7474999999999999 [0.6475, 0.8375] | yes, all 30. Note: the "All" matched difference prints +0.747 from the stored float, while its exact value 0.825 − 0.0775 = 0.7475 would print 0.748 under the paper's stated half-up rule, and the same cell's endpoints 0.6475 and 0.8375 are rounded up. Immaterial (0.001) and disclosed in the source comment; noted, not ranked |
+| last-label 0.300 (chance 0.144) for the first adapter | p.7 L333 | v2 adapter_reevaluation.learned_adapter.m4_teacher_agreement.{selected_last_rate 0.29975, chance 0.14436} | yes (scaled adapter's chance missing: 75 remainder) |
+| metric note: exact reference 0.875 by construction; hadd-greedy 0.882 / 0.928 / 0.906 | App I p.22 L1173-1174 | v4/panels arms.{p135,p2,p2u}.exact_reference.m1 0.875; hadd-greedy.m1 0.88229 / 0.92841 / 0.90625 | yes |
+| P2 small-cluster disclosure: 11 clusters, 8 positive and 3 negative | p.7 L341-343, App U.1 p.33 | v4/panels heldout_p2.separation.vs_eps_0.75.per_task_difference: negative on 15puzzle-955075, blocksworld-955022, blocksworld-955127; positive on the other 8 | yes |
+| Orseau & Lelis 2021; Asai & Fukunaga 2016 | p.2 L105-107; References p.9 (Asai) and p.12 (Orseau) | bbl `orseau2021policyguided` DOI 10.1609/aaai.v35i14.17469; `asai2016tiebreaking` DOI 10.1609/aaai.v30i1.10071. Both match the Semantic Scholar records 53ae4b740f4a870004f9f840a731a0e051eb2b95 and 47be28eee56a6171ae0b1a26c3692221f2d6cc15 (review 20) | yes |
+
+**Stored LFS values the paper does not report** (used in finding 81): supplementary.expansions_median {random_valid 201.0, reference 29.5}; expansions_max {random_valid 102,606, reference 1,300}; tokens_median.random_valid 0.0; matched_decision_budget.random_valid_decision_budget_curve.random_valid_success at 1× / 1.25× / 1.5× / 1.75× / 2× = 0.0775 / 0.0975 / 0.14 / 0.17 / 0.19, auc_normalized 0.1353; reference_success_at_own_budget 0.825 (the same as its token-budget success); matched_decision_budget.contrast.tasks_random_better 4. The protocol and closeout add the 500,000-expansion safety guard, which "never bound" (issue-142-closeout.md), and the pre-audit probe "won 100/100 non-audited episodes within the guard" (issue-142-protocol.md, Pre-registered prediction).
+
+### Evidence-comment spot-check
+
+I checked 14 comments, 10 of them from round 6. For each I checked that the path exists and that the key and value, or the line reference, match.
+
+1. **[r6]** results.tex, 5.5 LFS paragraph comment: LFS pairs_checked 400 ✓, pairs_identical 0 ✓, first_divergence_index.max 2 ✓, tasks 80 ✓, paper_budget.* 1.0 / 0.825 / SATURATED ✓, matched 0.0775 / CHOICE_REGISTERED ✓, published_model_success.value 0.768425 ✓. `issue-142-protocol.md` L191-194 is deviation 1, the Qwen3-30B-A3B-Instruct-2507 @ `0d7cf239` substitution ✓. `issue-142-closeout.md` L11-15 is the token-cap mechanism ✓. `issue-137-survey.md` row 6 at L38 is LFS ✓. Closeout L3-5 "Both predictions held" ✓.
+2. **[r6]** results.tex, 5.4 zero-shot comment: V6 primary.v2.* and primary.p2.* values and verdicts ✓. The margin at "P141 L57" is the D3 rule ✓, and S and A at L58-59 ✓. co_primary.*.A values ✓.
+3. **[r6]** results.tex, 5.1 ledger comment: `issue-141-closeout.md` L77 "2.245 / 30" ✓; v6 budget.json attempts[0..4].gpu_hours sum 2.2452 ✓. **"cap schedule.window_gpu_hours_cap 30.0" names a key that does not exist**: the cap is at `schedule.authorization.window_gpu_hours_cap`, and `schedule.window_gpu_hours_cap` returns null (80 remainder). External v2 total_gpu_hours 2.8910 ✓, schema.gpu_hours_cap 12.0 ✓, schema.independent ✓, closeout L108 "Total 2.89 GPU-h of the 12 GPU-h cap" ✓.
+4. **[r6]** results.tex, fig:ladder zero-shot-row comment: V6 per_panel.{v2,p2}.arms.zero_shot_base.{m1,ci95} exist and match ✓. P6 evaluation.p2u = "not evaluated" ✓.
+5. **[r6]** appendix.tex, U.3 arm comment: P6 arm.condition zero_shot_base ✓, arm.adapter null ✓, arm.system_message_suffix ✓ (two sentences; see 82), arm.extraction has 3 rules ✓, inference.do_sample false ✓. The comment writes "inference_seed 17", but the key is top-level `inference_seed`, not under `inference` (resolves as a top-level key). evaluation.model_episodes 46 ✓. InternVL tokens 11747.9985 / 3110.5199 ✓; "P141 L13-14" is the feasibility bullets ✓.
+6. **[r6]** appendix.tex, U.3 results comment: primary.p2.ci95[1] 0.05114 against margin 0.05, closeout L32 ✓; per_panel.* m1_arm and ci95 ✓; model_calls 836 + 756 ✓; teacher_agreement_minus_chance ✓; last_label_rate ✓; closeout L46 chance ≈ 0.13-0.14 ✓; L48-49 3/24 and 1/22 ✓; prediction at P141 L72 ✓; closeout L66 replay ✓.
+7. **[r6]** appendix.tex, Table 22 comment: primary.{v2,p2}.{D3, ci95, verdict, sign_flip_p} ✓; co_primary.{v2,p2}.{S,A}.{value, ci95, verdict, sign_flip_p} ✓; pooled.{D3,S,A}.{…, sign_flip.p_two_sided} ✓; raw p values 0.00048828125, 0.0009765625, 2.384e-07, 7.629e-06 ✓; P141 L65-67 pooled and sign-flip descriptive ✓.
+8. **[r6]** appendix.tex, V.1 design comment: `issue-142-protocol.md` L57-62 random-valid, zero tokens, seeds ✓; `lfs-probe/fast-equivalence.json` {checked 57, identical 57} ✓; LFS upstream.commit and license ✓; per_config.*.tasks 20 ✓.
+9. **[r6]** appendix.tex, V.1 results comment: replay.* ✓; supplementary.terminated.reference {success 66, token_limit 14} ✓; per-seed matched values ✓; A1 at protocol L212 "(2026-09-25 02:50 AEST, commit e89a793, before any audit episode)" ✓.
+10. **[r6]** appendix.tex, Table 24 comment: per_config and top-level keys ✓. The raw 0.7474999999999999 [0.6475, 0.8375] is recorded ✓. "rendered 0.747 from the stored raw value per Main, 2026-09-25" gives a person as provenance, not an artifact; noted.
+11. **[r6]** introduction.tex / abstract.tex, P2u "never solved in screening" comments: concentration.per_panel.p2u.counts positive 4 ✓. **"P2u 0/10 random-valid goals on all 12 tasks, local evidence sheet §9 (#139)" is the only source named for the 0/10 claim**, and that sheet is in neither repository (80 remainder). The repository source exists (`issue-139-closeout.md` L56, "All 12 happen to have 0/10 random goals.") and is cited in the results.tex comment, but not here.
+12. **[r6]** discussion.tex, external-anchor comment: `issue-137-survey.md` "## Candidate table (7 candidates)" at L29 ✓; LFS pairs_identical 0, paper_budget.verdict SATURATED, matched verdict CHOICE_REGISTERED ✓.
+13. **[r5-consolidation]** results.tex, last-label comment: v2 selected_last_rate 0.2997 and chance 0.1444 ✓.
+14. **[r5-consolidation]** results.tex and appendix.tex V-SMALL comments: 8 positive, 3 negative, 0 zero of 11, with the negatives named correctly ✓. The DAgger pointer is now `issue-140-protocol.md` L123 (A1 item 2) ✓, fixing review-20 finding 80.
+
+**Tally:** 12 of 14 resolve fully. Comment 3 names a non-existent key path. Comment 11 relies on a non-repository sheet. Both are recorded under the 80 remainder.
+
+### Verification of review-20 findings (69-80) and earlier closures
+
+| # | sev (r20) | r21 result | evidence at `ba7d4d2` |
+|---|---|---|---|
+| 69 | MAJOR | **VERIFIED** (all three prescribed parts landed) | (a) Portable rule: Discussion p.9 L442-448 "The portable rule has two checks before random-valid success is read as choice. The per-decision identity audit must find divergent pairs, and the success budget must bind decisions … a learned policy's difference from random-valid should be reported with its position on a privileged exact-ϵ ladder". (b) Second realisable policy: 5.4 p.7 L344-349 and App U.3 (zero-shot base; the InternVL arm was ruled out before any outcome and is disclosed at p.35 L1860-1863 and in Limitations p.9 L462). (c) LFS audit: 5.5 p.8 L378-385, App V.1. What the new evidence can bear is raised separately as 81 and 82. |
+| 70 | MAJOR | **VERIFIED** | 5.4 p.7 L350-355 "The random-control screen admits tasks on which near-uniform choice sometimes succeeds, since random-valid must reach the goal in 1 to 9 of its 10 screening episodes. … all 12 of its tasks had 0/10 random-valid screening goals. Choice still discriminates there, since the ladder passes (descriptive), and … its gain rests on 4 of 12 tasks". Intro p.2 L070-072, Discussion p.9 L433-435, and the abstract p.1 L027-029 match. `grep enriches` returns 0 hits. |
+| 71 | MINOR | **VERIFIED** | "not separated from that rung on the validation panel" in the abstract p.1 L030-031, Intro p.2 L069, 5.4 p.7 L336, Discussion p.9 L432, and Conclusion p.9 L472. The non-equivalence sentence is at 5.4 p.7 L340-341 and App U.1. `grep 'sits at\|at that rung'` returns no ladder-position hit. |
+| 72 | MINOR | **VERIFIED** | App U.2 p.34 L1834-1835 "therefore produces no detectable change in measured choice quality, since ∆ is inconclusive against the ±0.05 margin, and the ablation is inconclusive." |
+| 73 | MINOR | **VERIFIED** | Intro p.2 L093-095 and 5.4 p.7 L355-357 "from seeds on which no adapter had been evaluated (the seed extension followed a controls-only screen of the first 40 seeds)". |
+| 74 | MINOR | **VERIFIED** | (a) App J p.22 L1187 "Follow-up windows executed after the program on separate GPU ledgers (Table 2) and on CPU only (the comparator zoo, the counterfactual audit, and the first external audit)". (b) App J p.23 "one training run at seed 17 per enumeration-contract model and cell". (c) Design p.5 L219 "At submission (receipts in Table 2)". (d) Letter ranges dropped; the text now reads "Results Detail appendices" (p.4 L196, p.5 L228, p.8 L405). (e) Table 2 p.17 L887-888 "and 88/88 P2 plus 96/96 P2u learned episodes". |
+| 75 | MINOR | **PARTIAL** (remainder MINOR, WORDING) | 5.4 p.7 L332-334 "the scaled adapter's last-label rate per seed is 0.205, 0.192, and 0.171 against 0.300 (chance 0.144) for the first adapter on the same panel". The dangling table pointer is gone and the units are unified, and App U now carries the per-seed rates. **Remaining:** the scaled adapter's own chance rate (about 0.125-0.131, v4/seeds per_seed.*.teacher_agreement_chance 0.1247 / 0.1306 / 0.1267) is still missing, so a reader compares 0.205 against 0.300 with only one baseline. **Fix:** "…0.205, 0.192, and 0.171 (chance about 0.13) against 0.300 (chance 0.144)…". It is space-neutral: 4 words. |
+| 76 | MINOR | **VERIFIED** | App I p.22 L1173-1174 "Because goal selection is the (Rt+1)-th decision, the exact reference fails at m = 1 and scores M1 = 0.875 by construction, and arms that reach the goal in fewer decisions can exceed it (privileged hadd-greedy 0.882, 0.928, and 0.906)". Design p.4 L172 "defines the imitation target". The Discussion's "remains far from the reference" is replaced (p.9 L433). |
+| 77 | MINOR | **VERIFIED** (wording). The p-value part was declined by author decision (changelog, review-20 entry: "no unpinned p-value"); not re-argued. | 5.4 p.7 L341-343 and App U.1: "The P2 separation rests on 11 task clusters, with 8 positive and 3 negative per-task differences, and percentile intervals can under-cover at this size." Observation only: #141 now pins exact sign-flip p values for the zero-shot contrasts, "answering review 20's small-cluster concern" (P141 L67), but not for the adapter's P2 S that the concern was about. |
+| 78 | MINOR | **VERIFIED** | (a) Abstract p.1 L020 "The solve-versus-budget area M1", L026 "D3, adapter minus random-valid M1 averaged over three seeds"; Intro p.2 L060 and L066. (b) The first-adapter M4 paragraph is out of 5.4, leaving a pointer at p.7 L333-334. (c) The Figure 2 caption is fixed. (d) Discussion p.9 L433 "Its M1 of 0.151 to 0.432 remains well below the reference's 0.875." The abstract's new D3 sentence introduces a grammar problem (84). |
+| 79 | MINOR | **VERIFIED** | Related Work p.2 L105-107 cites Orseau & Lelis (2021) and Asai & Fukunaga (2016). Both bib entries match their Semantic Scholar records. |
+| 80 | MINOR | **PARTIAL** (remainder MINOR, WORDING) | The named locations are fixed: the L124 → L123 pointer, and "local evidence-r5.md" is replaced by "rounded half-up to 3 dp from the named keys". **New instances of the same pattern in round 6:** (i) abstract.tex and introduction.tex comments name "local evidence sheet §9 (#139)" as the only source for the P2u 0/10 claim; (ii) the results.tex 5.1 ledger comment cites the non-existent key `schedule.window_gpu_hours_cap` (the actual key is `schedule.authorization.window_gpu_hours_cap`); (iii) the Table 24 comment cites "per Main" as provenance. **Fix:** replace (i) with `issue-139-closeout.md` L56, correct (ii), and replace (iii) with "rounded half-up from the stored repr". |
+| 49, 60 (round 4, #134) | — | **VERIFIED (no regression)** | 5.2 p.5 L258-263 still reports 19/48, "did not hold", and decisions 2-50 (median 6). App S p.31 carries "PREDICTION FAILED" and "a property of the executed serial rule". Table 15 keeps the task-clustered M4 intervals. |
+| #137 reframe | — | **VERIFIED**, updated as the author decided | Discussion p.9 L437-441 "The complete-set identity failure is shown only on our runtime, since none of the seven surveyed published interfaces uses that contract. … The contribution is therefore the measurement and its two checks, not the exposure of a single flaw." The CONTEXT "External audit claim" entry is respected: no claim that the published GPT-4o results are invalid. |
+| Review-16 finding 15 | — | **VERIFIED (present)** | Related Work p.3 L133-134 "This paper operationalizes the known admissible-action handicap in search-execution evaluation with a per-decision identity audit that returns both verdicts on one runtime…". |
+| 51, 52 hedges | — | **VERIFIED** | 51: Related Work p.3 L131-133 and App P p.28 L1470-1471. 52: App R p.30 L1593 "no last-label comparator and no equivalence claim", L1616-1617 "do not establish a position habit". |
+| 40 | MAJOR | WONTFIX (unchanged) | App Y p.37 L1985. The compliance risk is reported above. |
+
+### Placeholder and claim-discipline check
+
+- **Visible `[TODO`:** 0. **PASS.**
+- **3 seeds; DAgger single seed; held-out = P2 only; P2 screened; three-part ladder position; privileged rungs; #134 failed; A1 disclosures:** all unchanged from review 20 and still present. **PASS.**
+- **No equivalence claim without margin:** **PASS for the adapter**, now "not separated" everywhere plus the non-equivalence sentence. **Zero-shot:** the equivalence claim uses the pre-registered ±0.05 margin (P141 L57). But Table 22 also prints "EQUIVALENT" for the **pooled** 23 tasks (descriptive), whereas `CONTEXT.md` says "equivalence to uniform choice is claimed only on the validation panel". And the validation verdict is the protocol's development-stage verdict (finding 82).
+- **No planning-ability claim:** **PASS.**
+- **External-audit claim (new CONTEXT entry):** "may not generalise to agent benchmarks at large or claim the published GPT-4o results are invalid". Neither is claimed outright. But the Intro p.2 L080 "so success saturates unless the budget binds decisions" and the Conclusion p.9 L476-477 "On a published interface, success saturates under a budget that does not bind decisions, so the audit needs both checks" state a general rule from one interface whose outcome was guaranteed (finding 81).
+- **Old and new contract not compared as performance rows:** **PASS** (Table 25 caption).
+- **Round-6 amendment disclosure:** #141 "no amendment followed" (p.35 L1863) ✓. #142 A1 "made before any audit episode, only reordered the smoke and audit start" (p.36 L1926-1927) ✓. Design p.5 L216-217 says both protocols were frozen before their outcomes ✓.
+
+### New findings
+
+**Axis and genre coverage** (everything not listed as a finding passes or is n/a):
+- **Axis 1:** the 10-minute test delivers the Δbelief above. The new external result's value is finding 81.
+- **Axis 2:** falsifiability passes for #141, whose zero-shot arm could have come out POSITIVE. **It fails for #142's primary reading (81).**
+  - HARKing scan: 4 new bare-fact generalisations. The three most damaging are "so success saturates unless the budget binds decisions" (Intro p.2 L080), "a failure the per-decision audit does not detect and a decision-matched budget does" (Discussion p.9 L440), and "On a published interface, success saturates under a budget that does not bind decisions, so the audit needs both checks" (Conclusion p.9 L476-477). The fourth is "so the instrument ranks the two realisable policies" (p.7 L348).
+  - Wording register passes. Statistical hygiene: finding 83.
+- **Axis 3:** findings 82(d) and 83.
+- **Axis 4:** findings 81 and 82.
+- **Axis 5:** finding 84. The experiment order still runs an elimination tournament. The zero-shot block ends in a local verdict. The LFS block ends in a verdict that its own construction guarantees (81).
+- **BENCHMARK checklist:**
+  - Two bottlenecks: pass (the contract and M1 with the ladder).
+  - Definitions against near-miss alternatives: pass. The new near miss (token-denominated against decision-denominated budgets) is argued in the Discussion.
+  - Headline findings as claims: pass.
+  - Adoption risks: screening is now answered honestly (70 verified). A budget-denomination risk is added but supported only by a guaranteed case (81).
+
+#### 81 · MAJOR · Axis 2 + Axis 1 (the LLM-First Search saturation could not have lost, yet carries a contribution, the portable rule's second check, and the Conclusion) · `iclr2026_conference_results.tex; iclr2026_conference_appendix.tex; iclr2026_conference_discussion.tex; iclr2026_conference_introduction.tex; iclr2026_conference_abstract.tex`
+
+- **Location:**
+  - Abstract p.1 L033-036 (abstract.tex L25): "yet solves every task under the paper's token budget (1.0 versus 0.825 for a substituted reference model), and a decision-matched budget restores the contrast (0.0775)."
+  - Intro p.2 L077-080 (introduction.tex L31): "…and only 0.0775 at the reference's decision count, so success saturates unless the budget binds decisions".
+  - Contribution 4, p.2 L088-089.
+  - 5.5 p.8 L378-383 (results.tex L184): "…yet under the paper's own token budget it solves all 80 tasks (1.0) against 0.825 for the reference, because a token cap never binds a chooser that spends no tokens. Given only the reference's own number of expansions, random-valid solves 0.0775…".
+  - App V.1 p.36 L1909-1911 "every unexpanded alternative stays in the frontier. Random-valid … spends zero tokens" and L1922-1926 "Under the paper's budget random-valid wins every episode at every seed, so the verdict is SATURATED … Both pre-registered predictions held."
+  - Discussion p.9 L438-441 (discussion.tex L23): "random-valid success instead saturates under the paper's own budget although every decision diverges, a failure the per-decision audit does not detect and a decision-matched budget does."
+  - Conclusion p.9 L476-477 (discussion.tex L57): "On a published interface, success saturates under a budget that does not bind decisions, so the audit needs both checks."
+- **Issue:**
+  - (i) **The SATURATED outcome was guaranteed.** Random-valid spends zero tokens, so the token cap never stops it. The frontier keeps every alternative, and every audited game is solvable, so random-valid is a complete randomized search that must eventually win.
+    - The #142 protocol says exactly this before the audit: "random_valid is a complete randomized search. The probe won 100/100 non-audited episodes within the guard." The only way to lose was the 500,000-expansion safety guard, which "never bound" (closeout).
+    - The paper does not disclose the guard, the probe, or the expansion counts: random-valid median 201 and maximum 102,606, against the reference's median 29.5 and maximum 1,300 (LFS supplementary.*).
+    - "Both pre-registered predictions held" therefore reads as a risky test that passed, when one of the two predictions could not have failed. Under the Axis 2 rule, a result that could not have lost is a demonstration, not evidence.
+  - (ii) **The matched-budget reading is reference-conditioned.** Random-valid gets the reference's own expansion count on each task, so the reference's success under this reading equals its token-budget success by construction (`reference_success_at_own_budget` 0.825). The +0.747 difference in Table 24 compares a post-hoc stopping budget against itself.
+    - The artifact stores the budget curve, which the paper does not report: random-valid reaches 0.0775 at 1×, 0.14 at 1.5×, and 0.19 at 2× the reference's expansions (normalised AUC 0.135). That curve is the non-conditioned evidence that choices matter.
+    - "Restores the contrast (0.0775)" also labels a success rate as a contrast.
+  - (iii) **The value anchor.** LFS's published evaluation compares LLM-guided searches (ToT-BFS, BestFS, MCTS) and reports no random-valid control (https://arxiv.org/abs/2506.05213, fetched 2026-09-25). So no published number changes, as the CONTEXT entry itself requires.
+    - What remains is the rule "the success budget must bind decisions". That is the established compute-matched-baseline principle, for example random search under a matched evaluation budget as the NAS baseline (Li & Talwalkar, UAI 2019, https://arxiv.org/abs/1902.07638; Semantic Scholar 35a59bd09974c7fc78cf681f77f7301e180fd23c).
+    - Its instance here is guaranteed by construction, so the belief update is one a search-literate reader already holds.
+  - (iv) **The generalisation.** The Intro's "so success saturates unless the budget binds decisions" and the Conclusion's "so the audit needs both checks" state a general law from one interface whose outcome was fixed in advance. The Discussion's "a failure the per-decision audit does not detect" blames the audit for something outside its scope: the audit correctly returned 0/400 identical.
+- **Fix:**
+  - 5.5, space-neutral: replace "Given only the reference's own number of expansions, random-valid solves 0.0775, so success there measures choice only under a budget that binds decisions" with "This saturation is guaranteed: the frontier keeps every alternative, so a zero-token chooser is a complete randomized search, which here used up to 102,606 expansions against the reference's 1,300. Counted in expansions, random-valid solves 0.0775 at the reference's own count and 0.19 at twice it."
+  - V.1: disclose the 500,000-expansion guard (never bound) and the pre-audit probe (100/100). Change "Both pre-registered predictions held" to "The matched-budget prediction held, and the paper-budget saturation follows by construction." Add a sentence stating that the reference's matched-budget success equals its token-budget success by construction. Report the stored budget curve (1×-2×) in Table 24 or its caption.
+  - Discussion L438-441: "On LLM-First Search, whose token cap does not bind a zero-cost chooser, random-valid success saturates by construction, although every decision diverges. Counted in expansions, the reference's choices matter." Cite the compute-matched-baseline precedent in the portable-rule paragraph.
+  - Intro L080 and Conclusion L476-477: drop the general "success saturates unless …". Write, for example, "on LLM-First Search a zero-cost chooser saturates under the paper's token caps by construction, so success must be counted against a budget that binds decisions".
+  - Abstract: "…and at the reference's own number of expansions random-valid solves only 0.0775."
+  - Pay for the space with the 84 cuts.
+- **Why it changes the verdict:** Contribution 4, the second check of the portable rule, the Discussion's value sentence, and the Conclusion's last sentence all rest on this result. Framed as a guaranteed demonstration of a known principle, it is honest and still useful. Framed as a pre-registered test of a newly found failure mode, it overstates.
+- **Fix class:** MEANING (it changes what the LFS result is claimed to show, from a tested failure mode to a by-construction demonstration)
+- **Status:** OPEN
+
+#### 82 · MINOR · Axis 4 + Axis 3 (zero-shot policy: undisclosed prompt instruction, unstated verdict stages, notation reuse) · `iclr2026_conference_results.tex; iclr2026_conference_appendix.tex`
+
+- **Location:**
+  - App U.3 p.35 L1856-1858 (appendix.tex L1376): "given the frozen scene-only choice-frontier observation, one appended system sentence asking for a single JSON choice".
+  - 5.4 p.7 L344-349 (results.tex L149): "is equivalent to uniform choice on the validation panel, D3 = +0.005 [−0.025, +0.044] within the pre-registered ±0.05 margin, and inconclusive on P2 … so the instrument ranks the two realisable policies".
+  - Table 22 p.35 L1836-1843: "Panel endpoints are pre-registered and pooled entries are descriptive" and "Pooled (23, descriptive) … EQUIVALENT, 0.896".
+- **Issue:**
+  - (a) **Prompt.** The appended suffix (P6 `arm.system_message_suffix`) is two sentences. The second is a zero-shot policy instruction: "Choose the frontier state whose scene appears closest to satisfying the goal pages." The paper describes only the format request, so a reader cannot tell that the zero-shot policy was given a goal-similarity heuristic. That changes what "zero-shot" means here.
+  - (b) **Stage.** The #141 protocol states "Verdicts on P2 are held-out confirmatory; verdicts on the #135 panel are development-stage" (P141, the line after the endpoint list; V6 `primary.v2.stage` "development", `primary.p2.stage` "held-out confirmatory"). The body's equivalence claim is the development-stage verdict, and the confirmatory one is INCONCLUSIVE. Neither the body nor Table 22 says so.
+  - (c) **Pooled equivalence.** Table 22 prints a pooled EQUIVALENT verdict, while `CONTEXT.md` says "equivalence to uniform choice is claimed only on the validation panel".
+  - (d) **Notation.** D3 is defined as "adapter minus random-valid M1 averaged over three seeds" (abstract, Intro). For the zero-shot arm it names a single greedy realisation at one inference seed (P141 "One realisation per (task, algorithm)").
+  - (e) **The ranking claim.** "Ranks the two realisable policies" is literally true. But because the zero-shot arm scores as uniform choice, the ranking re-states D3's separation of the adapter from chance; it does not order two non-trivial choosers.
+- **Fix:**
+  - (a) U.3: "one appended system message stating the JSON format and asking for the frontier state whose scene appears closest to satisfying the goal pages".
+  - (b) 5.4: "…is equivalent to uniform choice on the validation panel (development stage), D3 = …, and inconclusive on the held-out P2 (confirmatory)…". Add the stage to the Table 22 column headers.
+  - (c) Print the pooled verdict as "(within margin, descriptive)" or drop it.
+  - (d) Write D for the zero-shot arm, or define "D3" once as the endpoint name for both arms.
+  - (e) "…so the instrument separates the trained adapter from a zero-shot policy that it scores as uniform choice".
+- **Fix class:** WORDING
+- **Status:** OPEN
+
+#### 83 · MINOR · Axis 2 statistical hygiene (sign-flip p values printed beside EQUIVALENT verdicts; the convention is absent from the Statistics appendix) · `iclr2026_conference_appendix.tex`
+
+- **Location:** Table 22 p.35 L1840 (appendix.tex L1403): "verdict, p | EQUIVALENT, 0.906 | INCONCLUSIVE, 1.000 | EQUIVALENT, 0.896". Statistics appendix p.19-20, which has no sign-flip entry. Its own rule at p.19: "Wherever the text reports a non-material contrast …, an adjacent sentence states that non-significance is not equivalence."
+- **Issue:**
+  - An exact sign-flip p tests a zero mean difference. Printed in the same cell as "EQUIVALENT", p = 0.906 invites exactly the reading the Statistics appendix forbids: a large p taken as support for equivalence. The equivalence verdict actually comes from the interval inside ±0.05.
+  - The Statistics appendix does not define the sign-flip convention (exact, all 2^n vectors, two-sided, descriptive) now used in Table 22.
+- **Fix:** Drop the p value from the D3 row, or print it in its own row with the note "p tests a zero difference; EQUIVALENT is the ±0.05 margin rule". Add one sentence to the Statistics appendix defining the exact sign-flip p (V6 `per_panel.*.*.sign_flip.{exact, sign_vectors, statistic}`) as descriptive.
+- **Fix class:** WORDING
+- **Status:** OPEN
+
+#### 84 · MINOR · Axis 5 (abstract length, number density, and two garbled sentences) · `iclr2026_conference_abstract.tex`
+
+- **Location:**
+  - Abstract p.1 L013-038: 327 words and 31 decimal numbers.
+  - L026-027 (abstract.tex L20): "A scaled adapter beats uniform choice on D3, adapter minus random-valid M1 averaged over three seeds (+0.285 [+0.140, +0.433]), and on a held-out panel (+0.416 …)".
+  - L027-028: "On an unscreened panel whose tasks random-valid never solved in screening, the gain is …".
+  - L036: "restores the contrast (0.0775)".
+- **Issue:**
+  - "Beats uniform choice on D3 … and on a held-out panel" reads D3 as a panel.
+  - "Unscreened … in screening" reads as a contradiction until the reader learns that screening ran but did not gate admission.
+  - 0.0775 is a success rate, not a contrast (see 81).
+  - An abstract of more than 300 words with 31 decimals and six bracketed intervals buries the Δbelief a skimming reviewer should get in 10 seconds. The 164-word abstract of review 13 carried the same claim structure.
+- **Fix:**
+  - Keep one interval per result and cut the rung values (0.793, 0.603, 0.347) to "and the three exact-ε rungs in order".
+  - "A scaled adapter beats uniform choice by D3 = +0.285 [+0.140, +0.433] (adapter minus random-valid M1, three seeds) and by +0.416 on a held-out panel."
+  - "On a panel admitted without the random-control screen (all its tasks had 0/10 screening goals), the gain is +0.149 …".
+  - Apply the 81 wording.
+  - Target 220 words or fewer. The freed lines also give the main text the room 81 needs.
+- **Fix class:** WORDING
+- **Status:** OPEN
+
+### What would change the verdict
+
+The numbers are right, the pre-registration is real, and every review-20 fix landed except two small remainders (75 and 80). The paper stays at WEAK REJECT, rating 4, for a reason that is no longer about honesty of reporting. The two new experiments came out as they had to.
+
+The LFS audit (81) is a guaranteed demonstration. Its SATURATED verdict follows from a complete frontier and a zero-cost chooser, as the #142 protocol and the pre-audit probe (100/100) already showed. Its matched-budget contrast is conditioned on the reference's own stopping point. The zero-shot policy (82) scores as uniform choice, so the instrument has still ordered only one non-trivial realisable policy.
+
+What would move it to BORDERLINE (rating 6):
+- **81, zero experiments:** state the LFS saturation as by construction, report the stored budget curve (0.0775 at 1×, 0.19 at 2×), disclose the expansion counts and the guard, and cite the compute-matched-baseline precedent. Paid for by the 84 abstract cuts.
+- **One trained second policy through the instrument:** a one-seed InternVL3.5 cell on the validation panel and P2, about 7-9 GPU-h per cell by the #141 protocol's own estimate. That would show M1 plus the ladder orders two trained choosers. The 30 GPU-h ticket cap that ruled it out is self-imposed.
+
+The single most value-changing addition is a modality contrast under the choice-frontier contract, for example a text-rendered menu against the scene-only observation with the same recipe. The title's "vision-language" framing currently has no choice-frontier evidence behind it.
+
+The MINOR items (82-84 and the 75 and 80 remainders) are cheap and space-neutral. None changes the rating on its own.
 
 ## Live fixlist — review 20 (2026-09-25)
 
