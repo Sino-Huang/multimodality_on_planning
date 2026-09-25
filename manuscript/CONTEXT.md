@@ -97,3 +97,19 @@ Prose only. Labels, citation keys, table headers, figure text, and JSON keys are
 Body retirements: M2, M3, M4, C*, CHOICE_SENSITIVE, and ZERO_DECISION_HEADROOM leave the body (appendix only). BFWS and SFT are expanded once, and VALID_STOP is glossed once or leaves the body.
 
 Caveat placement: each repeated caveat (claim frame, privileged rungs, 45-task final evaluation unexecuted, held-out definition) is stated in full once in the abstract, once at its result, and once in the Limitations or Conclusion, and elsewhere as a short clause. No caveat is deleted outright.
+
+## Round 8 Framing (author decision 2026-09-25)
+
+**Title**: "Can Vision-Language Models Learn to Execute Classical Search Algorithms?" (registered on OpenReview). The abstract answers the title question at development stage: answering it requires a measurement that separates choice from validity, and under that measurement a trained, scene-only VLM adapter chooses better than uniform choice on three development panels without reaching the reference. No planning-ability or generality claim.
+
+**Primary contribution (validate-before-score measurement)**: An interface is admitted only after the identity audit finds divergent decisions and a decision-counted budget binds them (the compute-matched-baseline principle, Li & Talwalkar). M1 then passes a pre-registered exact-ε ladder on the validation and held-out panels before any policy is scored. The rungs are privileged, so the ladder validates the measurement, not a policy. The adapter is a worked use of the measurement. The budget check is never listed as a contribution of this paper.
+
+**Box 1 (the procedure)**: The protocol box at the end of Section 4. Prose name "Box 1" or "the procedure in Box 1". It uses only thresholds and outcomes already rendered, each with a copied evidence comment.
+
+**Identity-audit framing**: The 48/48 follows from the executed serial rule (App S), which the contract specification does not reveal. A decision-level audit detects it, and success saturation alone cannot, because random-valid also saturated the BFS development panel whose expanded-baseline decisions diverge. The 48/48 is shown only on our runtime.
+
+**External audits**: ScienceWorld is "a positive control" for the identity audit. LLM-First Search is "a by-construction illustration" of the budget check. Neither is described as testing "each check".
+
+**Ladder license**: A higher M1 reads as choice closer to the reference's along the ladder's ε axis. The reference's M1 of 0.875 is fixed by construction (goal selection is the (R+1)-th decision).
+
+**Observation scope**: The choice-frontier observation is scene-only, and no modality is compared under that contract. The text, visual, and multimodal matrix belongs to the enumeration contract.
