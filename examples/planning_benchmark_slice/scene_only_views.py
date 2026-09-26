@@ -53,8 +53,12 @@ def _declared_scene_size(manifest):
     return value
 
 
-def materialize_task(root, task_id, source_manifest, states, output, progress):
-    """Rasterize selected retained vector stages, never ask a planner for scenes."""
+def materialize_task(root, task_id, source_manifest, states, output, progress, vfg_transform=None):
+    """Rasterize selected retained vector stages, never ask a planner for scenes.
+
+    `vfg_transform` is a renderer-only layout repair applied to each retained VFG before
+    rasterization (e.g. `scene_profiles.compact_grid_vfg` for Sokoban); it never changes states.
+    """
     manifest = read_json(root / source_manifest)
     if manifest["task_id"] != task_id:
         raise ValueError("scene-only task/source binding differs")
@@ -78,6 +82,8 @@ def materialize_task(root, task_id, source_manifest, states, output, progress):
         "scene_size": scene_size,
         "label_size": 0,
     }
+    if vfg_transform is not None:
+        recipe_binding["vfg_transform"] = vfg_transform.__name__
     if recipe_path.exists():
         retained_recipe = read_json(recipe_path)
         legacy_recipe = {**recipe_binding, "scene_size": SCENE_SIZE}
@@ -104,6 +110,8 @@ def materialize_task(root, task_id, source_manifest, states, output, progress):
         if not selected:
             continue
         payload = read_json(root / binding["vfg"])
+        if vfg_transform is not None:
+            payload = vfg_transform(payload)
         for stage, state in selected:
             path = output / f"state-{state:06d}.png"
             if not path.exists():

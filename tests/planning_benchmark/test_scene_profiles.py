@@ -65,6 +65,71 @@ def test_sokoban_alpha_renaming_preserves_replayed_search_states():
     assert renamed["decisions"] == original["decisions"]
 
 
+def _board(row0, col0):
+    sprites = [
+        {"name": f"pos{row0 + r}_{col0 + c}", "x": (row0 + r) * 100, "y": (col0 + c) * 100, "width": 100, "height": 100}
+        for r in range(5)
+        for c in range(5)
+    ]
+    return {"visualStages": [{"visualSprites": sprites}], "imageTable": {}}
+
+
+def test_sokoban_generator_names_are_reanchored_to_the_backend_cell_one_layout():
+    from examples.planning_benchmark_slice.scene_profiles import compact_grid_vfg
+
+    # The retained backend VFG of bfs/sokoban-train-easy-0000 (names pos1_1..pos5_5) places pos1_1 at
+    # (0.188, 0.344, 0.188, 0.344); generator names pos571_61.. must land on the same cells.
+    offset = compact_grid_vfg(_board(571, 61))["visualStages"][0]["visualSprites"]
+    first = next(s for s in offset if s["name"] == "pos571_61")
+    assert (first["minX"], first["maxX"], first["minY"], first["maxY"]) == (0.188, 0.344, 0.188, 0.344)
+    last = next(s for s in offset if s["name"] == "pos575_65")
+    assert (last["maxX"], last["maxY"]) == (0.969, 0.969)
+    anchored = _board(1, 1)
+    for sprite in anchored["visualStages"][0]["visualSprites"]:
+        sprite.update(minX=0.0, maxX=0.0, minY=0.0, maxY=0.0)
+    reanchored = compact_grid_vfg(anchored)["visualStages"][0]["visualSprites"]
+    assert [(s["x"], s["y"]) for s in reanchored] == [(s["x"], s["y"]) for s in anchored["visualStages"][0]["visualSprites"]]
+
+
+def _prefab_png(image):
+    import base64
+    from io import BytesIO
+
+    buffer = BytesIO()
+    image.save(buffer, format="PNG")
+    return base64.b64encode(buffer.getvalue()).decode()
+
+
+def test_identity_tinted_opaque_prefab_renders_its_picture_not_a_white_box(tmp_path):
+    import json
+
+    from PIL import Image
+
+    from scripts.planimation_phase1_frames import render_vfg_to_local_png_frames
+
+    opaque = Image.new("RGBA", (10, 10), (200, 180, 120, 255))
+    mask = Image.new("RGBA", (10, 10), (0, 0, 0, 0))
+    mask.paste((255, 255, 255, 255), (2, 2, 8, 8))
+    white, red = {"r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0}, {"r": 1.0, "g": 0.0, "b": 0.0, "a": 1.0}
+    sprite = {"minY": 0.0, "maxY": 1.0}
+    payload = {
+        "imageTable": {"m_keys": ["img-floor", "img-mask"], "m_values": [_prefab_png(opaque), _prefab_png(mask)]},
+        "visualStages": [
+            {
+                "visualSprites": [
+                    {**sprite, "name": "floor", "prefabimage": "img-floor", "color": white, "minX": 0.0, "maxX": 0.5},
+                    {**sprite, "name": "tile", "prefabimage": "img-mask", "color": red, "minX": 0.5, "maxX": 1.0},
+                ]
+            }
+        ],
+    }
+    render_vfg_to_local_png_frames(json.dumps(payload).encode(), tmp_path, 0, 0, canvas_size=20, draw_labels=False)
+    frame = Image.open(tmp_path / "frame_000.png").convert("RGB")
+    assert frame.getpixel((5, 10)) == (200, 180, 120)
+    assert frame.getpixel((15, 10)) == (255, 0, 0)
+    assert frame.getpixel((10, 0)) == (255, 255, 255)
+
+
 @pytest.mark.parametrize(
     "domain,path,spatial",
     [

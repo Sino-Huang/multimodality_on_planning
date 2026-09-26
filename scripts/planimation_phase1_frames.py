@@ -124,9 +124,14 @@ def render_vfg_to_local_png_frames(
                 draw.rectangle([left, top, right, bottom], fill=rgba, outline=(0, 0, 0, 255))
             else:
                 resized = prefab_image.resize((width, height))
-                tinted = Image.new("RGBA", (width, height), rgba)
-                tinted.putalpha(ImageOps.autocontrast(resized.split()[-1]))
-                canvas.alpha_composite(tinted, (left, top))
+                if rgba == (255, 255, 255, 255) and resized.getchannel("A").getextrema() == (255, 255):
+                    # An identity-tinted opaque prefab (Sokoban, Snake tiles) carries its picture in RGB;
+                    # using its alpha as a mask would paint a white box on the white canvas.
+                    canvas.alpha_composite(resized, (left, top))
+                else:
+                    tinted = Image.new("RGBA", (width, height), rgba)
+                    tinted.putalpha(ImageOps.autocontrast(resized.split()[-1]))
+                    canvas.alpha_composite(tinted, (left, top))
             if draw_labels and (
                 sprite.get("name") in object_names
                 or sprite.get("showName")

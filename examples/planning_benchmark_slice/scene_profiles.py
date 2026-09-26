@@ -207,3 +207,43 @@ def require_grid_shape_icons(context: dict[str, Any], stages: list[dict[str, Any
             sprite = sprites.get(obj, {})
             if sprite.get("prefabImage", sprite.get("prefabimage")) != icon:
                 raise RuntimeError(f"grid scene does not preserve the declared shape for {obj}")
+
+
+def compact_grid_vfg(payload: dict[str, Any], margin: int = 100, padding: int = 20) -> dict[str, Any]:
+    """Re-anchor a `distribute_grid_around_point` layout at grid cell (1, 1).
+
+    The backend places a cell at (row * margin, col * margin) from the digits in its object
+    name and always includes the origin in the panel, so generator names such as
+    `pos571_61` shrink the whole board into one corner pixel. Shifting every sprite by the same
+    whole number of cells and recomputing the backend's panel normalization
+    (`Transfer.get_panel_size`/`transfer`) yields the layout the backend produces for the
+    names `pos1_1 ...`; relative geometry is unchanged. A board already anchored at cell (1, 1)
+    is returned with identical coordinates.
+    """
+    sprites = [sprite for stage in payload["visualStages"] for sprite in stage["visualSprites"]]
+    if not sprites or any(isinstance(s[k], bool) or not isinstance(s[k], int) for s in sprites for k in "xy"):
+        raise RuntimeError("grid re-anchoring requires resolved integer sprite coordinates")
+    dx = min(s["x"] for s in sprites) // margin * margin - margin
+    dy = min(s["y"] for s in sprites) // margin * margin - margin
+    if dx < 0 or dy < 0:
+        raise RuntimeError("grid re-anchoring expects a board at or beyond cell (1, 1)")
+    panel = max(max(s["x"] - dx + s["width"] for s in sprites), max(s["y"] - dy + s["height"] for s in sprites))
+    panel += 2 * padding
+    stages = []
+    for stage in payload["visualStages"]:
+        moved = []
+        for sprite in stage["visualSprites"]:
+            x, y = sprite["x"] - dx, sprite["y"] - dy
+            moved.append(
+                {
+                    **sprite,
+                    "x": x,
+                    "y": y,
+                    "minX": round((x + padding) / panel, 3),
+                    "maxX": round((x + sprite["width"] + padding) / panel, 3),
+                    "minY": round((y + padding) / panel, 3),
+                    "maxY": round((y + sprite["height"] + padding) / panel, 3),
+                }
+            )
+        stages.append({**stage, "visualSprites": moved})
+    return {**payload, "visualStages": stages}

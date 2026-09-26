@@ -76,3 +76,19 @@ stored in bf16 (~58 GB; a declared deviation from the fp32 adapters of #112-#141
 The ticket sets no GPU cap. The full design is ~4.6x the 336 GPU-h of the whole nine-day
 expanded study. The author chooses the authorized budget and the corresponding scope; the protocol
 is then frozen against that cap.
+
+## Author decision (2026-09-26, before any protocol)
+
+- **Cap 800 GPU-h.** Scope is the main grid without the 32,768 rung: {BFS, BFWS} x {text,
+  visual, multimodal} x sizes 512, 1,024, 2,048, 4,096, 8,192, 16,384 x seeds 17/29/71
+  (108 cells), the controls, and one compute-matched control. Recomputed with the rates above:
+  training ~302 GPU-h and evaluation ~303 GPU-h (all-succeed; ~606 at the 2x cap), so ~615 GPU-h
+  expected and ~770 with the x1.25 margin.
+- **Dropped by the author:** the model-size axis (Qwen3-VL-2B/4B/32B), the InternVL3.5-8B cell
+  and the 32,768 rung. N90 is right-censored at 16,384 where 90 % is not reached.
+- **Adapters are saved in bf16.** This is a declared deviation from the fp32 adapters of #112-#141.
+- **Resumability required** (author, 2026-09-26): the host may reboot. Every stage must resume
+  from its last durable state with one command: training resumes from mid-cell checkpoints,
+  evaluation from per-episode journals, and the cell queue is idempotent.
+- The 12,994 + 12,115 BFS operations of the 90-task #74 source corpus (train + dev tasks, disjoint
+  from any panel) cover 16,384, so no new BFS traces are needed.

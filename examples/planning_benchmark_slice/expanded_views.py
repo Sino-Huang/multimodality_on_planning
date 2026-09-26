@@ -9,20 +9,32 @@ from .pddl_state import GroundedAction, PDDLStateAuthority
 from .scene_assets import read_json
 from .visual_episode import VisualSession, VisualTaskViews
 
-_RENDER_OVERRIDE_KEYS = {"canvas_size", "layout_offset"}
+_RENDER_OVERRIDE_KEYS = {"canvas_size", "layout_offset", "grid_anchor"}
 
 
 def apply_render_overrides(payload, overrides=None):
-    """Return renderer input/settings; preserve the original payload when unset."""
+    """Return renderer input/settings; preserve the original payload when unset.
+
+    `grid_anchor: true` re-anchors a name-derived grid layout (Sokoban generator names) with
+    `scene_profiles.compact_grid_vfg` before any offset is applied.
+    """
 
     if not overrides:
         return payload, {"canvas_size": 128}
     if set(overrides) - _RENDER_OVERRIDE_KEYS:
         raise ValueError("unsupported expanded-view render override")
+    if overrides.get("grid_anchor", False) is not False:
+        if overrides["grid_anchor"] is not True:
+            raise ValueError("render override grid_anchor must be true when present")
+        from .scene_profiles import compact_grid_vfg
+
+        payload = compact_grid_vfg(payload)
     canvas_size = overrides.get("canvas_size", 128)
-    offset = overrides.get("layout_offset", [0.0, 0.0])
     if not isinstance(canvas_size, int) or canvas_size <= 0:
         raise ValueError("render override canvas_size must be a positive integer")
+    if "layout_offset" not in overrides:
+        return payload, {"canvas_size": canvas_size}
+    offset = overrides["layout_offset"]
     if (
         not isinstance(offset, list)
         or len(offset) != 2
