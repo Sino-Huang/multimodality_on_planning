@@ -17,15 +17,6 @@ We fine-tune a vision-language model to act as a \textbf{Search Process Policy},
 % development-run value, not a frozen final-evaluation value, and the runtime-side Search Memory is not capacity-bounded in code
 % (search_memory.py SearchMemory holds the full frontier and visited set), so no capacity is stated in prose.
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=\linewidth]{figures/fig_contracts.pdf}
-\caption{\textbf{What one valid step contains under each algorithm.} Top: the policy reads an observation and emits one typed operation; the runtime checks and applies it, and the first invalid operation ends the episode. Bottom: the first two steps on the ferry task of Figure~\ref{fig:teaser}a. Grey fields are copied from the observation; orange fields must be derived by the policy.}
-\label{fig:contracts}
-% Evidence (top loop): figures/fig_contracts.py asserts the accepted first operation, state-representation recipe and current-state page in outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__ferry-compact-915000/best_first_add_greedy-process_sft.json.gz events[0]; the unmodified scene comes from outputs/expanded-study/v1/panel-v2/views/ferry-compact-915000/unlabelled/state-000000.png.
-% Evidence (bottom columns): outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__ferry-compact-915000/{bfs,best_first_width,best_first_add_greedy,best_first_add_w3}-exact_reference.json.gz events[0:2]; fig_contracts.py asserts BFS frontier and queue positions, BFWS indexed-argument translation and copied eval.frontier, additive candidate rows and emitted keys, and weighted A* priority g+3h.
-\end{figure}
-
 % Paragraph purpose: State what a valid step contains under BFS and BFWS, separating the values the observation supplies from the bookkeeping the policy must emit.
 In every algorithm, the runtime expands the head of its frontier and lists that state's grounded successors as candidates (Figure~\ref{fig:contracts}). A valid step names this state and inserts one listed successor, and a retire step closes the expansion once none is left. Under BFS, the policy picks a candidate flagged as unvisited and emits the bookkeeping of a first-in, first-out (FIFO) queue: its position at the back of the queue and whether this step removes the head. Under BFWS \citep{lipovetzky2017bestfirst}, each candidate is flagged as a duplicate or not, and each new one carries the runtime's evaluation of its novelty, its number of unachieved goals, and the frontier position this priority implies. The policy picks a non-duplicate candidate and copies that position.
 % Evidence (BFS): examples/planning_benchmark_slice/bfs_model_input.py L101-109 (candidates: grounded_action, target_state_id, visited),
@@ -37,6 +28,15 @@ In every algorithm, the runtime expands the head of its frontier and lists that 
 % bfws_model_input.py L219-259 (model-visible candidate: dup, eval {frontier, novel, novelty, partition, priority, residual}, fact deltas);
 % bfws_issue59.py L585-611 (transition must copy the candidate's frontier_intent; retirement rejected while a non-duplicate remains) and
 % L1029-1051 exact_bfws_model_output (first non-duplicate candidate in list order).
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/fig_contracts.pdf}
+\caption{\textbf{What one valid step contains under each algorithm.} Top: the policy reads an observation and emits one typed operation; the runtime checks and applies it, and the first invalid operation ends the episode. Bottom: the first two steps on the ferry task of Figure~\ref{fig:teaser}a. Grey fields are copied from the observation; orange fields must be derived by the policy.}
+\label{fig:contracts}
+% Evidence (top loop): figures/fig_contracts.py asserts the accepted first operation, state-representation recipe and current-state page in outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__ferry-compact-915000/best_first_add_greedy-process_sft.json.gz events[0]; the unmodified scene comes from outputs/expanded-study/v1/panel-v2/views/ferry-compact-915000/unlabelled/state-000000.png.
+% Evidence (bottom columns): outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__ferry-compact-915000/{bfs,best_first_width,best_first_add_greedy,best_first_add_w3}-exact_reference.json.gz events[0:2]; fig_contracts.py asserts BFS frontier and queue positions, BFWS indexed-argument translation and copied eval.frontier, additive candidate rows and emitted keys, and weighted A* priority g+3h.
+\end{figure}
 
 % Paragraph purpose: State what a valid step contains under the two additive best-first variants, where the runtime computes every ordering value, and name the resulting setting the enumeration contract.
 The two additive variants are greedy best-first search \citep{bonet2001planning}, ordered by $h_{\rm add}$, and weighted A* \citep{hart1968formal,pohl1970heuristic}, ordered by $g + 3h_{\rm add}$. Each candidate row lists $g$, $h_{\rm add}$, and the priority, all computed by the runtime, which also keeps the priority heap and its tie-break rule. The policy names the expanded state and one candidate not yet submitted, and emits no heuristic value or frontier position. In all four algorithms, each expansion thus submits every new successor, and the observation supplies the values that fix the frontier order. We call this setting the \textbf{enumeration contract}.

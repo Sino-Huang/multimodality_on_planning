@@ -1,71 +1,64 @@
 \section{Introduction}
 \label{sec:introduction}
 
-% Paragraph purpose: Set up the question for planning readers: fine-tuning targets the plan, classical planning is built on search algorithms, whether a model can learn to execute them from their traces is open, and the question extends to VLMs.
-The planning community often probes language models by fine-tuning them on planning problems, and the training target is usually the plan, the action sequence a planner returns, rather than the search that found it \citep{pallagani2022plansformer,rossetti2024learning,bohnet2024exploring,belcamino2026generalization}.
-Yet classical planning is built on search algorithms, from blind breadth-first search (BFS) to best-first width search (BFWS) \citep{lipovetzky2017bestfirst} and heuristic best-first search \citep{hart1968formal,bonet2001planning}.
-Models have been trained on A* traces in mazes, Sokoban, and Blocksworld \citep{lehnert2024beyond,saha2024system1x}, but how well a model learns to execute classical planning algorithms from their search traces is still open.
-The question extends to vision-language models (VLMs), because embodied agents increasingly plan from what they see \citep{merler2025viplan,xu2025visual,hao2025simulation}.
-% Sources: plan-target fine-tuning and trace-training credits follow Section 2 (related_work.tex ¶1-2 source comments); VLM planners over images per Section 2 ¶4.
+% Paragraph purpose: Background. Planning fine-tuning targets the plan, which records the outcome of search but not its procedure; plan-trained models show surface-form sensitivity.
+The automated planning community has probed the planning ability of large language models by fine-tuning them on planning problems, and the training target is almost always the plan, the action sequence a planner returns, rather than the search that found it \citep{pallagani2022plansformer,rossetti2024learning,bohnet2024exploring,belcamino2026generalization}.
+A plan records the outcome of a search but not the procedure behind it, and there are signs that plan-trained models rely partly on the surface form of their training plans.
+\citet{belcamino2026generalization} report that a model trained on 40,000 plans loses significant accuracy when symbols are anonymized or plans are serialized more compactly, although neither change alters what the plans mean.
+% Sources: arXiv:2601.14456 abstract (40k IPC-2023 plans; "Symbol anonymization and compact serialization cause significant performance drops despite preserving plan semantics"), checked 2026-09-26. Their unseen-domain result (0%) is deliberately not cited here: we did not test unseen domains.
 
-% Paragraph purpose: State what we do in plain terms: which model, algorithms, domains, and observations; the model executes every search step; the runtime checks each step and stops at the first invalid one, so success means a valid, goal-reaching search; and what random-valid is.
-We fine-tune low-rank adapters \citep{hu2022lora} for Qwen3-VL-8B \citep{bai2025qwen3vl} on the search traces of four algorithms: BFS, BFWS, and greedy and weighted-A* best-first search with the additive heuristic $h_{\rm add}$ \citep{bonet2001planning}.
-The tasks come from 12 PDDL domains, and each state is given as a text, visual (image), or multimodal (combined) observation.
-At each step, a runtime lists as text the applicable actions, the resulting states, and facts such as visited flags and BFWS novelty values. The model reads them and names the state to expand, the successors to add, and any priority values the algorithm needs.
-Each step is one training record, so a trace can be much longer than its plan: on the ferry task of Figure~\ref{fig:teaser}a, the 4-action plan takes 11 greedy best-first operations.
-% Evidence (Fig. 1a ferry example, 4-action plan vs 11 greedy best-first operations, one step per record): teaser specification from Main (2026-09-26); figures/fig_teaser.py must assert both counts when the Figures agent regenerates panel (a).
-The runtime keeps the frontier, checks each step against the declared algorithm's rules, and ends the episode at the first step that breaks them.
-A solved episode is therefore a valid run of the declared search that reaches the goal (Section~\ref{sec:policy}).
-Our main control, random-valid, picks uniformly among valid steps. Because the runtime supplies the candidates and orders the frontier, it is an oracle-assisted bound on validity, not a competing learner (Section~\ref{sec:design}).
-% Evidence: 12 domains, 24 tasks per cell, Qwen3-VL-8B-Instruct rev 0c351dd0: docs/experiments/expanded-study/synthesis-v1/README.md §2 and baseline-summary.csv; docs/experiments/expanded-study/goal10-completion-audit.json (revision).
-% Evidence: runtime-supplied grounded candidates as text in every observation type, and random-valid as an oracle-assisted valid-operation control: synthesis-v1/README.md claim baseline-controls and "Claim boundaries"; appendix text-scaffold caveat (drafts/pre_storyline_v2/iclr2026_conference_appendix.tex L517).
+% Paragraph purpose: Research gap and why it matters now. Search is what makes planners domain-independent; traces target the procedure; prior trace training uses one algorithm (A*); the question extends to VLMs.
+Classical planners owe their domain independence to search: one algorithm solves tasks in any PDDL domain, and search algorithms differ mainly in how they order the states still to be expanded.
+A search trace records every one of these steps, so training on traces targets the procedure itself.
+Prior work has trained models on search traces \citep{lehnert2024beyond,saha2024system1x}, but these studies centre on A* in mazes, Sokoban, and Blocksworld, so how the choice of search algorithm affects what a model learns remains underexplored.
+The question extends to vision-language models (VLMs), because recent embodied agents use VLMs to perceive a scene and plan from it end to end \citep{merler2025viplan,xu2025visual,hao2025simulation}, and how the observation modality affects learning to search is unknown.
+% Sources: trace-training credits per Section 2 ¶2 (Searchformer: A* in mazes and Sokoban, arXiv:2402.14083 abstract; System-1.x: A* main experiments in mazes and Blocksworld, BFS/DFS only as a maze appendix study showing its planner works with either, arXiv:2407.14414 Sec. 4.3 and App. B Fig. 6). "Centre on A*" replaces the earlier "single algorithm, not compared" wording, which was wrong for System-1.x (author-approved fix 2026-09-26).
 
-% Paragraph purpose: F1. All four algorithms are learnable at very different data costs; give the 512-record grid, the large-corpus development runs with their unmatched-panel qualifier, and the second-backbone replication.
-All four algorithms are learnable, but their data costs differ widely (Section~\ref{sec:results-data-cost}, Figure~\ref{fig:teaser}b).
-With 512 training records per adapter, the two additive variants solve 125 of 144 episodes (24 tasks, three observation types), while BFS and BFWS solve none (Table~\ref{tab:results-main}).
-% Evidence: docs/experiments/expanded-study/synthesis-v1/baseline-summary.csv process_sft rows: additive successes 22+20+22+18+21+22 = 125 of 6 x 24 = 144; bfs and best_first_width 0/24 in every modality. 512 records, one epoch, 16 updates, seed 17: synthesis-v1/README.md and outputs/expanded-study/v1/seed-replication/analysis.json.
-Larger text-observation corpora make both learnable.
-With 12,994 records, BFS reaches 1.0 success on a 15-task development panel, on which random-valid also reaches 1.0.
-With 47,780 records, BFWS reaches 0.933 on another 15-task panel, against 0.467 for random-valid.
-These runs use separate, smaller development panels, so this is not a matched-size comparison.
-% Evidence (BFS): data/bfs_pilot_v6/ms-swift-process/manifest.json counts.train 12994 (dev 12115; v6 corpus; appendix BFS pilot corpus paragraph); docs/experiments/deadline-study/prior-evidence.json historical_bfs_stages[stage v8] (selected_tasks 15, process SFT and random_valid invariant-valid success 1.0, base 0.0, outcome VALID_STOP).
-% Evidence (BFWS): docs/issue-59-bfws-structural-gate.md L250-255 (seed-17 two-epoch checkpoint, 0.933333 vs random-valid 0.466667, base 0, exact 1.0, 15 tasks); 47,780 train rows per docs/issue-58-bfws-text-corpus.md L39-46.
-A second backbone, InternVL3.5-8B \citep{wang2025internvl35}, shows the same split at 512 records, solving 31 of 36 greedy best-first episodes and no BFS episode.
-% Evidence: outputs/expanded-study/v1/second-backbone-v2/evaluation/analysis.json (BFS process_sft 0/36, base 0/36; synthesis-v1/README.md claim second-backbone-v2-null); second-backbone-v3/evaluation/analysis.json and docs/experiments/native-arms/issue-130-closeout.md L42 (greedy 31/36 = 11/10/10 of 12, base 0/36).
+% Paragraph purpose: What we do, without experimental setup. Why these four algorithms (three ways of ordering a search), that the model executes the search and learns from the full trace, and the three observation types.
+We study these questions by fine-tuning a VLM on the search traces of four algorithms that cover three ways of ordering a search.
+Breadth-first search (BFS) is blind: it expands states in the order they were generated.
+Best-first width search (BFWS) \citep{lipovetzky2017bestfirst} orders states by novelty, preferring states that make a fact or pair of facts true for the first time, and breaks ties by the number of unachieved goals.
+Greedy best-first search and weighted A* order states by the additive heuristic $h_{\rm add}$ \citep{bonet2001planning}, an estimate of the distance to the goal, and differ in whether the cost of the path so far also counts.
+The model executes the search itself, one operation at a time, and learns from the full trace rather than the plan alone (Figure~\ref{fig:teaser}a).
+We train and test it on 12 PDDL domains, with each state shown as text, as an image, or as both, which we call text, visual, and multimodal observations.
+% Evidence (algorithm definitions as implemented): configs/experiments/bfws_phase_trace_v1.json algorithm {variant full_bfws_goal_count, novelty_partition unachieved_goal_count, novelty_precision 2, priority [novelty_bucket, unachieved_goal_count, path_depth, generation_serial]}; configs/experiments/issue71/matrix.json algorithm_settings (bfs FIFO; best_first_width "full_bfws_goal_count, unpruned"; best_first_add_w3 "g + 3*h_add, reopen"; best_first_add_greedy "h_add, no reopening"). BFWS is goal-aware (goal-count tie-break) and unpruned, so it is not described as blind or as pruning.
+% Evidence (12 domains, three observation types): docs/experiments/expanded-study/baseline-protocol.json (algorithms, modalities); synthesis-v1/README.md §2.
 
-% Paragraph purpose: F2. The learned execution rests on the text channel; give the corruption contrasts, and scope the finding to the textual candidate list the runtime supplies.
-Across observation types, the learned execution rests on the text (Section~\ref{sec:results-modality}, Figure~\ref{fig:teaser}c).
-For the additive adapters, shuffling the text lowers success by 0.944 with text and 0.722 with multimodal observations.
-Blanking or degrading the images lowers it by at most 0.111, and the intervals for these image corruptions all include zero.
-% Evidence: outputs/expanded-study/v1/modality-stress/analysis.json contrasts by family x arm (text-shuffled text -0.944 [-1.000, -0.833], text-shuffled multimodal -0.722 [-0.889, -0.500], visual-blank and visual-degraded -0.056 / -0.111 with upper endpoints +0.000); docs/experiments/expanded-study/issue-126-closeout.md; appendix table tab:results-corruption.
-Because the candidate list stays textual in every observation type, this shows that the trained models read the textual serialization, not that images are useless in principle.
+% Paragraph purpose: Bridge from setup to findings. Announce that every algorithm is learnable and preview the two counter-intuitive findings (BFS most expensive; images contribute little).
+Our results show that a VLM can learn to execute every one of these algorithms, and two findings run against a natural expectation: the simplest algorithm, blind BFS, is among the most expensive to learn, and the images a VLM receives contribute little to what it learns.
+% Scope: "images contribute little" rests on the corruption study of the additive adapters (next paragraphs and Section 5.2).
 
-% Paragraph purpose: F3. The learned heuristic search holds up under task variations, scoped to the two additive adapters with saturated controls, and juxtaposed (not compared) with reported plan-training sensitivity.
-The learned heuristic search also holds up under task variations (Section~\ref{sec:results-robustness}).
-We tested the two additive adapters on 25 variant tasks from five families. They succeed on 128 of 150 episodes, the pretrained base on none, and random-valid and the exact reference (the declared algorithm run by the runtime) on all.
-Success stays between 26 and 29 of 30 under object renaming, name compression, image restyling, and scale-up, and falls to 19 of 30 under shifted initial states.
-% Evidence: docs/experiments/expanded-study/synthesis-v1/README.md §6 and claim generalization-v2-headline (learned 128/150, base 0/150, random_valid 750/750, exact_reference 150/150; object-renaming 29/30, name-compression 27/30, render-restyle 27/30, scale-up 26/30, shifted-init 19/30).
-\citet{belcamino2026generalization} report significant drops for a plan-trained model under symbol anonymization and compact plan serialization.
-Their model writes whole plans, ours emits single search steps over runtime-supplied candidates, and we ran no plan-trained baseline, so the results are juxtaposed, not compared.
-% Sources: arXiv:2601.14456 abstract ("Symbol anonymization and compact serialization cause significant performance drops despite preserving plan semantics"), checked 2026-09-26.
+% Paragraph purpose: F1. Data cost depends on the algorithm; success rates, not raw counts.
+The data cost of learning depends strongly on the algorithm (Section~\ref{sec:results-data-cost}, Figure~\ref{fig:teaser}b).
+Weighted A* and greedy best-first search reach success rates of 0.833 and 0.903 from a small training set, whereas BFS and BFWS remain at 0 and reach 1.0 and 0.933 only with over an order of magnitude more data.
+% Evidence (512-record grid, 24 tasks x 3 observation types): docs/experiments/expanded-study/synthesis-v1/baseline-summary.csv process_sft rows: best_first_add_w3 20+18+22 = 60/72 = 0.833; best_first_add_greedy 22+22+21 = 65/72 = 0.903; bfs and best_first_width 0/24 in every observation type.
+% Evidence (larger runs; separate 15-task development panels, 3 and 2 epochs; unmatched, stated in Section 5.1 and the Figure 1 caption): BFS 12,994 train records (data/bfs_pilot_v6/ms-swift-process/manifest.json counts.train) -> 1.0 (docs/experiments/deadline-study/prior-evidence.json historical_bfs_stages v8 process_sft_invariant_valid_success); BFWS 47,780 (data/bfws_phase_v1/corpus-release/training/manifest.json counts.train) -> 0.933333 (docs/issue-59-bfws-structural-gate.md). 12,994/512 = 25x and 47,780/512 = 93x, so "over an order of magnitude".
 
-% Paragraph purpose: F4. BFWS-trace adapters raise FOLIO accuracy under all three observations; state that the gain is not significant after Holm correction and that these adapters solve no planning task at 512 records.
-Training on BFWS traces also transfers beyond planning (Section~\ref{sec:results-transfer}).
-The BFWS adapters raise FOLIO logical-reasoning accuracy \citep{han2022folio} from 0.600 to 0.660, 0.645, and 0.645 with text, visual, and multimodal observations, and no adapter moves GSM8K or HumanEval accuracy \citep{cobbe2021gsm8k,chen2021humaneval} by more than 0.04.
-The gain is consistent but not statistically significant, since no transfer comparison survives Holm correction over 36 comparisons \citep{holm1979simple}.
-These are the 512-record adapters, so the BFWS adapter that improves FOLIO solves none of the 24 planning tasks.
-% Evidence: docs/experiments/expanded-study/synthesis-v1/transfer-accuracy.csv (folio base 0.600; iw_text 0.660, iw_visual 0.645, iw_multimodal 0.645; gsm8k 0.945-0.965 vs base 0.955; humaneval 0.756-0.817 vs base 0.780, so every adapter within 0.04 of the base, derived); transfer-paired.csv (36 McNemar comparisons, min Holm-adjusted p 0.8156, smallest raw p 0.0227 folio/iw_text); BFWS process_sft 0/24 in baseline-summary.csv.
+% Paragraph purpose: F2. The learned search relies on the text rather than the images; multimodal contrast only.
+The learned search relies on the text rather than the images (Section~\ref{sec:results-modality}, Figure~\ref{fig:teaser}c).
+When the model sees both, shuffling the text lowers its success by 0.722, whereas blanking or degrading the image lowers it by at most 0.111.
+% Evidence: outputs/expanded-study/v1/modality-stress/analysis.json contrasts.degradation_by_family_modality (text-shuffled__multimodal-state -0.722 [-0.889, -0.500]; visual-blank__multimodal-state and visual-degraded__multimodal-state -0.111 [-0.278, 0.000]). Scope (stated in Section 5.2): corruption study on the additive adapters, 9 tasks x 2 algorithms; the candidate list is text in every observation type.
 
-% Paragraph purpose: State the three contributions, each a bold lead phrase and one plain sentence.
+% Paragraph purpose: F3. The learned heuristic search is insensitive to surface representations, where plan-trained models are reported to be sensitive (Belcamino's phrasing); also holds on larger tasks.
+The learned heuristic search is also insensitive to the surface representation of a task (Section~\ref{sec:results-robustness}).
+Plan-trained models have been reported to show strong sensitivity to surface representations, losing significant accuracy under symbol anonymization that preserves plan semantics \citep{belcamino2026generalization}, but our trace-trained models show no such drop.
+Their success stays at 0.967 under object renaming and 0.900 under name compression and image restyling, holds at 0.867 on scaled-up tasks, and falls to 0.633 only when the initial state is shifted.
+% Evidence: docs/experiments/expanded-study/synthesis-v1/README.md §6 robustness table (object-renaming 29/30, name-compression 27/30, render-restyle 27/30, scale-up 26/30, shifted-init 19/30; learned 128/150, base 0/150, random_valid 750/750, exact_reference 150/150). Scope (stated in Section 5.3): additive adapters only; no plan-only baseline.
+% Sources: arXiv:2601.14456 abstract ("instance-wise symbol anonymization"; "significant performance drops despite preserving plan semantics, thus revealing strong sensitivity to surface representations"), checked 2026-09-26.
+
+% Paragraph purpose: Bridge + F4. Transfer of search skills beyond planning is of wide interest; BFWS traces behave differently from the other algorithms on FOLIO; hedged as a possible research direction.
+Whether search skills learned in one setting carry over to reasoning more generally is a question of wide interest \citep{gandhi2024stream,opedal2026learning}, and here width-based traces behave differently from the rest.
+Training on BFWS traces raises accuracy on the FOLIO logical-reasoning benchmark \citep{han2022folio} from 0.600 to as much as 0.660 (Section~\ref{sec:results-transfer}), whereas training on the other three algorithms leaves it at or below 0.605, and no trained model changes GSM8K or HumanEval accuracy by more than 0.04 \citep{cobbe2021gsm8k,chen2021humaneval}.
+This suggests that width-based search teaches a skill that reaches beyond planning, which may be worth pursuing as a research direction in its own right.
+% Evidence: docs/experiments/expanded-study/synthesis-v1/transfer-accuracy.csv (folio base 0.600; iw_text 0.660, iw_visual 0.645, iw_multimodal 0.645; bfs 0.600-0.605; astar_w3/greedy 0.575-0.590; gsm8k 0.945-0.965 vs base 0.955; humaneval 0.756-0.817 vs base 0.780, max |delta| 0.037).
+% Boundary (author decision 2026-09-26: kept out of the Introduction, must stay in Section 5.4): no comparison survives Holm over 36 (transfer-paired.csv min holm_p 0.8156, smallest raw p 0.0227 folio/iw_text); the BFWS adapters are the 512-record ones, which solve 0/24 planning tasks (baseline-summary.csv).
+
+% Paragraph purpose: State the three contributions, each a bold lead phrase and one plain sentence, in the vocabulary of the paragraphs above (no implementation terms or raw counts).
 We make three contributions.
 \begin{itemize}[leftmargin=*,itemsep=1pt,parsep=1pt,topsep=2pt]
-    \item \textbf{An empirical study of search-trace supervision for VLMs.} We fine-tune a VLM on traces of four classical search algorithms over 12 PDDL domains and three observation types, scoring only fully valid searches.
-    \item \textbf{Data-cost and observation-channel findings.} The additive variants are learned from 512 records, BFS and BFWS need over ten times more, and the learned execution depends on the text in the observation.
-    \item \textbf{Evidence on robustness and transfer.} The learned heuristic search withstands renaming, restyling, and scale-up, and BFWS traces give a consistent but non-significant FOLIO gain.
+    \item \textbf{A study of learning search from traces.} We fine-tune a VLM on the traces of blind, width-based, and heuristic search over 12 PDDL domains, with text, visual, and multimodal observations.
+    \item \textbf{What learning depends on.} The data cost of learning a search algorithm varies by over an order of magnitude across algorithms, and the learned search relies on the text rather than the images.
+    \item \textbf{What the learned search carries.} Trace-trained heuristic search is insensitive to the surface representation of a task, and width-based traces point to a reasoning skill that reaches beyond planning.
 \end{itemize}
-% Evidence: "over an order of magnitude": 12,994 / 512 and 47,780 / 512 (derived, both > 10); release: the Reproducibility Statement promises anonymous supplementary material only (TODO(release) #122), so no release is claimed here.
-
-% Paragraph purpose: State the evidence boundary once and point to the appendix choice-frontier study.
-All results are development-stage: they use development panels and one training seed, except two three-seed replication cells, and the frozen 45-task final evaluation has not been run (Section~\ref{sec:design}).
-Appendix~\ref{sec:results-choice-frontier} reports a separate study in which the model chooses which frontier state to expand from rendered scenes alone.
-% Evidence: seeds 17/29/71 on two replication cells per docs/experiments/expanded-study/issue-127-closeout.md and outputs/expanded-study/v1/seed-replication/analysis.json; frozen 45-task manifest unexecuted (CONTEXT.md Prose Names).
+% Evidence: "over an order of magnitude": 12,994 / 512 = 25x and 47,780 / 512 = 93x (see F1 evidence comment). No release is claimed (Reproducibility Statement promises anonymous supplementary material only, TODO(release) #122).
+% Removed 2026-09-26 (author decision): the evidence-boundary paragraph (development-stage status, seeds, unexecuted frozen 45-task evaluation) and the pointer to the appendix choice-frontier study. The boundary is stated in the Discussion limitations (discussion.tex, Stage and Seeds items).
