@@ -1,0 +1,29 @@
+% Selection rules fixed before inspecting candidate episodes; figures are illustrative descriptive development-stage examples, not new efficacy claims.
+% Evidence: outputs/choice-frontier/v4/seeds/metrics/all-episode-metrics.json records.{task,algorithm,arm,training_seed,auc,decision_cap,termination}; outputs/choice-frontier/v2/metrics/all-episode-metrics.json records.{task,algorithm,arm,auc}; outputs/choice-frontier/v4/panels/metrics/all-episode-metrics.json.p2[].{task,algorithm,arm,decision_cap,termination}.
+% Evidence: outputs/choice-frontier/v4/seeds/metrics/all-episode-metrics.json records.{task,algorithm,training_seed,auc,teacher_agreements,teacher_decisions}; outputs/choice-frontier/v2/metrics/all-episode-metrics.json records.{task,algorithm,arm,auc}; outputs/choice-frontier/v3/evaluation/episodes/choice-frontier-v2__grid-expanded-935016/best_first_add_w3-learned_adapter-s17-17.json.gz events and result; outputs/choice-frontier/v2/zoo/episodes/choice-frontier-v2__grid-expanded-935016/best_first_add_w3-{exact_reference,random_valid}-m2-17.json.gz events and result. Script asserts three-seed M1 0.792, five-seed random-valid M1 0.075, difference 0.717, goal at decision 10 for exact and adapter, random-valid cap 18, displayed decision indices, and adapter reference-head agreement 7/9.
+% Evidence: outputs/choice-frontier/v2/views/grid-expanded-935016/scenes/catalog.json.gz stored_scene_size=[128,128], path_bindings, states[].scene_path; v3/evaluation/views/.../views.json.gz states[].scene_path. Script re-renders each selected frame at 128 px, asserts pixel equality with its cached policy PNG, and then uses identical renderer arguments at 256 px without labels. Catalog frames use their original empty object-name set; episode frames use task_context.objects_by_type.
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=.94\linewidth]{figures/fig_qualitative_success.pdf}
+\caption{\textbf{On a solved validation task, the adapter follows the reference to the goal.} In this rule-selected weighted-A* episode, the seed-17 adapter agrees with the reference on 7/9 comparable decisions, and both reach the goal at decision 10, while random-valid exhausts its decision cap at 18. Rows show expanded scenes, and the plot traces their $h_{\mathrm{add}}$ after the first expansion. The example is illustrative, not an efficacy estimate.}
+\label{fig:qualitative-success}
+\end{figure}
+
+% Evidence: outputs/choice-frontier/v3/evaluation/episodes/choice-frontier-v2__grid-expanded-935016/best_first_add_w3-learned_adapter-s17-17.json.gz events[9].{menu,raw_output,trusted_runtime_result}, previous event frontier_after.head and all prior admissions[].trusted_runtime_result.h; v3/evaluation/views/.../views.json.gz states[].vfg; script asserts the twelve displayed h_add values [6,10,2,4,2,10,2,5,2,3,8,0] and menu decision 10.
+% Evidence: outputs/choice-frontier/v4/seeds/metrics/all-episode-metrics.json records.{teacher_agreements,teacher_decisions,teacher_chance_sum,task,algorithm,training_seed}; outputs/choice-frontier/v3/evaluation/episodes/ and outputs/choice-frontier/v4/seeds/evaluation/episodes/ adapter events.{menu,raw_output,trusted_runtime_result.admissions}; script asserts 429/2117 agreement, uniform teacher-chance sum 269.711, 2231 total rank-histogram decisions, observed bins [1041,392,295,279,224], uniform expected bins [650.023,420.860,431.063,420.860,308.195].
+% Evidence: fig_qualitative.py verifies every displayed menu thumbnail against its source 128 px PNG before rendering the same VFG at 256 px.
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=.94\linewidth]{figures/fig_qualitative_decision.pdf}
+\caption{\textbf{The adapter picks the reference's state at the episode's largest menu and prefers low-$h_{\mathrm{add}}$ states overall.} At decision 10 of Figure~\ref{fig:qualitative-success}, the adapter and the privileged reference both select $c_{11}$ from 12 choices. The policy sees only opaque labels and scenes, not the heuristic values or the reference pick. The histogram describes the adapter's heuristic ranks across validation decisions against uniform choice on the same menus and is not an efficacy estimate.}
+\label{fig:qualitative-decision}
+\end{figure}
+
+% Evidence: outputs/choice-frontier/v4/panels/metrics/all-episode-metrics.json.p2[].{task,algorithm,arm,training_seed,decision_cap,decisions,termination}; outputs/choice-frontier/v4/panels/p2/evaluation/episodes/choice-frontier-v4__15puzzle-expanded-955075/best_first_add_greedy-learned_adapter-s17-17.json.gz events[].trusted_runtime_result.{expanded_state_id,admissions} and result; outputs/choice-frontier/v4/panels/p2/zoo/episodes/choice-frontier-v4__15puzzle-expanded-955075/best_first_add_greedy-exact_reference-m2-17.json.gz events and result; script asserts cap 92, exact goal decision 47, adapter minimum h_add=9 at decision 40 and final h_add=35 at decision 92.
+% Evidence: outputs/choice-frontier/v4/panels/views/15puzzle-expanded-955075/scenes/frames/state-{000000,000060}.png and p2/evaluation/views/.../state-000126.png are original cached 128x128 policy scenes. The initial scene omits embedded tile glyphs present in later cached frames; a direct VFG re-render changes its content, so the displayed pixels come from the cached PNGs.
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=.94\linewidth]{figures/fig_qualitative_failure.pdf}
+\caption{\textbf{On a held-out puzzle, the adapter stalls where the reference solves.} On this rule-selected puzzle, the reference reaches the goal at decision 47, while every adapter seed exhausts the cap at 92. The shown seed-17 adapter's best-so-far $h_{\mathrm{add}}$ stops improving at 9 after decision 40. The first cached scene lacks tile glyphs that later scenes show. The trace is illustrative and does not establish why the adapter fails.}
+\label{fig:qualitative-failure}
+\end{figure}

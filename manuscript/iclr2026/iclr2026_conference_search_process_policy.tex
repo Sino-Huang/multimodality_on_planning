@@ -1,42 +1,69 @@
-% STATUS: DRAFTED 2026-09-21 by the Search Process Policy agent. Full section
-% written per D10 + Section Blueprint. Citations added to
-% iclr2026_conference_policy_refs.bib (hart1968formal, pohl1970heuristic,
-% bonet2001planning, lipovetzky2017bfws, ross2011dagger; all verified against
-% Crossref/PMLR metadata on 2026-09-21). No new macros; only frozen labels
-% sec:design and appendix are referenced.
-% STATUS: #131 round 2 Wave 2 (finding 6, page limit). Halved: contract kept as compact definitions; BFS worked
-% example and restatements cut (BFS operand checks are in Appendix Operation Schemas).
-% STATUS: #131 round 7 (2026-09-25) readability rewrite to outline 3.1-3.4: titular opening sentence; notation cut to
-% x, A, m, B, o_t (task tuple, u_t, M_t, phi_m, c_t, and the dataset symbol dropped); invariant sentence split; new
-% decision-contracts paragraph moved from Section 4 and Results 5.3; "exact teacher" -> "exact reference".
-% STATUS: #131 round 7 Wave 4 (2026-09-25). Search Memory glossed at first use; "the heap" -> "the runtime's priority heap"; DAgger expanded once. No number added, moved, or deleted.
-% STATUS: #131 review 22 (2026-09-25). Finding 94: scene-only choice-frontier observation stated (Choice-Frontier Contract appendix, Menu and observation paragraph), "candidates stay textual" scoped to the enumeration contract. Finding 96: invariant sentence split per algorithm family, FIFO expanded. Cold read: ownership-split opener. No number added, moved, or deleted.
-% STATUS: #131 round 8 (2026-09-25). Idea-first opening; m named "the observation adapter m" once, distinct from the trained adapter; invariant sentence names weighted A* and greedy best-first as the two additive best-first variants; scene-only sentence adds "so no observation modality is compared under this contract"; definitions tightened. No number added, moved, or deleted.
-% STATUS: #131 round 8 Wave 4 (2026-09-25). Consistency pass: m clause reads "the observation adapter m, distinct from the trained adapter scored in Section 5". No number added, moved, or deleted.
-% STATUS: #131 round 8 consolidation (2026-09-25). Finding 97: added the algorithm scope sentence to the contracts paragraph. No number added, moved, or deleted.
-\section{Search Process Policy}
+\section{Learning to Execute Search from Traces}
 \label{sec:policy}
 
-% Paragraph purpose: Say what a Search Process Policy is and fix its episode and observation with minimal notation.
-A Search Process Policy executes a declared search algorithm one typed operation at a time, and the runtime makes every one of its decisions checkable. An episode fixes $(x, A, m, B)$, a task $x$ in a deterministic grounded planning domain, a declared algorithm $A$ given as input, the observation adapter $m$, distinct from the trained adapter scored in Section~\ref{sec:results}, and a frozen budget $B$. At step $t$, $m$ renders the decision context as a text, visual, or multimodal observation $o_t$ that exposes every fact the exact reference uses. Under the enumeration contract, Search Memory (the runtime-held search state defined below) and the candidates stay textual.
+% Paragraph purpose: Formulate the task: an episode, one operation per step, a runtime that validates and applies each operation and ends the episode on the first invalid one, and the observation as the policy's only view of runtime-held search state.
+We fine-tune a vision-language model to act as a \textbf{Search Process Policy}, which executes a declared search algorithm one step at a time instead of writing a plan. An episode fixes a task $x$ in a deterministic grounded PDDL domain, a declared algorithm $A$, an observation type $m$, and a decision budget $B$. At each step $t$, the policy reads an observation $o_t$ and emits one \textbf{Typed Search Operation}, a structured record naming an operation of $A$ and every operand that determines exploration. A \textbf{Trusted Search Runtime} checks the operation against the \textbf{Algorithm Invariant} of $A$, the ordering and bookkeeping rules that define it (Appendix~\ref{app:invariants}), and applies it. The runtime never fills in a missing operand or repairs an emission, and the first invalid step ends the episode (Appendix~\ref{app:runtime}). The frontier, visited set, and BFWS novelty tables live in the runtime's \textbf{Search Memory}, so $o_t$ is the policy's only view of the search.
+% Evidence (runtime picks the expanded state, validates, ends on first invalid step): examples/planning_benchmark_slice/visual_bfs.py
+% L52-93 (active = memory.frontier[0]) and L134-140 (deterministic_invalid_operation ends the episode); bfws_issue59.py L478-485,
+% L551-556; best_first_development.py L434-449, L475-476; runtime never repairs: appendix app:runtime.
+% Evidence (observation contents): bfs_model_input.py L101-136 (frontier_head, frontier_size, successor_candidates with visited flag,
+% accepted_deltas); bfws_model_input.py L82-113 (head, open, priority, deltas, candidates); best_first_model_input.py L18-48, L65-113
+% (current g/h/priority, search_memory counts, frontier_head, successor_candidates table).
+% Evidence (recent-operation window, kept out of prose): each observation carries the 16 most recently accepted operations:
+% visual_episode.py L391 accepted_delta_limit=16 (BFWS); visual_bfs.py L41 accepted_delta_limit=16 (BFS); best_first_development.py
+% L402 accepted_delta_limit default 16 (additive; VisualSession passes no override); docs/issue-58-bfws-text-corpus.md L48 ("16 accepted deltas").
+% TODO: the fixed Search Memory capacity for the frozen 45-task final evaluation is an open pre-registration
+% prerequisite (writing_design_tree.md; appendix "Final primary evaluation prerequisites"). The 16-operation window above is the
+% development-run value, not a frozen final-evaluation value, and the runtime-side Search Memory is not capacity-bounded in code
+% (search_memory.py SearchMemory holds the full frontier and visited set), so no capacity is stated in prose.
 
-% Paragraph purpose: State the ownership split and define Typed Search Operation and Search Memory.
-The runtime owns all search state and every check, and the policy owns only the operations it emits. \textbf{Typed Search Operation.} The policy emits a type from $A$'s vocabulary plus every exploration-determining operand, and an emission missing one is invalid. \textbf{Search Memory.} This is bounded runtime state (frontier, visited table, BFWS novelty counters), not model state, and $o_t$ is the policy's only channel to history.
-% TODO: the fixed Search Memory capacity value is an open pre-registration
-% prerequisite (writing_design_tree.md); pin the value here once frozen.
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/fig_contracts.pdf}
+\caption{\textbf{What one valid step contains under each algorithm.} Top: the policy reads an observation and emits one typed operation; the runtime checks and applies it, and the first invalid operation ends the episode. Bottom: the first two steps on the ferry task of Figure~\ref{fig:teaser}a. Grey fields are copied from the observation; orange fields must be derived by the policy.}
+\label{fig:contracts}
+% Evidence (top loop): figures/fig_contracts.py asserts the accepted first operation, state-representation recipe and current-state page in outputs/expanded-study/v1/baseline/episodes/visual-state/expanded-final__ferry-compact-915000/best_first_add_greedy-process_sft.json.gz events[0]; the unmodified scene comes from outputs/expanded-study/v1/panel-v2/views/ferry-compact-915000/unlabelled/state-000000.png.
+% Evidence (bottom columns): outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__ferry-compact-915000/{bfs,best_first_width,best_first_add_greedy,best_first_add_w3}-exact_reference.json.gz events[0:2]; fig_contracts.py asserts BFS frontier and queue positions, BFWS indexed-argument translation and copied eval.frontier, additive candidate rows and emitted keys, and weighted A* priority g+3h.
+\end{figure}
 
-% Paragraph purpose: Define the Algorithm Invariant, one check per algorithm family, and its limit.
-\textbf{Algorithm Invariant.} The runtime checks deterministic per-algorithm properties on every operation. BFS must expand in first-in, first-out (FIFO) order, and BFWS must follow novelty and goal-count priority \citep{lipovetzky2017bestfirst}. The two additive best-first variants, weighted A* \citep{hart1968formal,pohl1970heuristic} and greedy best-first search \citep{bonet2001planning}, must follow $g + 3h_{\rm add}$ and $h_{\rm add}$ order respectively under a declared tie-break. Compliance establishes neither termination, completeness, optimality, nor success.
-% Evidence (executed additive controller): examples/planning_benchmark_slice/pddl_state.py PDDLStateAuthority.applicable_actions and best_first_controller.py BestFirstController.start_expansion, apply_operation; equal-priority tie-breaking and serial assignment are pinned in Appendix B. BFWS tie-breaking remains separately unpinned.
+% Paragraph purpose: State what a valid step contains under BFS and BFWS, separating the values the observation supplies from the bookkeeping the policy must emit.
+In every algorithm, the runtime expands the head of its frontier and lists that state's grounded successors as candidates (Figure~\ref{fig:contracts}). A valid step names this state and inserts one listed successor, and a retire step closes the expansion once none is left. Under BFS, the policy picks a candidate flagged as unvisited and emits the bookkeeping of a first-in, first-out (FIFO) queue: its position at the back of the queue and whether this step removes the head. Under BFWS \citep{lipovetzky2017bestfirst}, each candidate is flagged as a duplicate or not, and each new one carries the runtime's evaluation of its novelty, its number of unachieved goals, and the frontier position this priority implies. The policy picks a non-duplicate candidate and copies that position.
+% Evidence (BFS): examples/planning_benchmark_slice/bfs_model_input.py L101-109 (candidates: grounded_action, target_state_id, visited),
+% L110-133 (frontier_head, frontier_size); visual_bfs.py L96-127 (source must equal the active head; visit_target true, evaluate_target false;
+% retire_source must equal "head still in frontier"; target_position must equal len(frontier) - retire; action must be an unvisited listed
+% candidate, any order accepted per module docstring L1; retire_frontier only when no unvisited candidate remains).
+% Evidence (BFWS): bfws_episode.py L341-391 build_bfws_observation (duplicate flag; evaluation with novelty_bucket, partition = unachieved-goal
+% count, priority (novelty, goal count, depth, serial), frontier_intent {retire_source, target_position} simulated in canonical action order);
+% bfws_model_input.py L219-259 (model-visible candidate: dup, eval {frontier, novel, novelty, partition, priority, residual}, fact deltas);
+% bfws_issue59.py L585-611 (transition must copy the candidate's frontier_intent; retirement rejected while a non-duplicate remains) and
+% L1029-1051 exact_bfws_model_output (first non-duplicate candidate in list order).
 
-% Paragraph purpose: Define the Trusted Search Runtime by what it never does.
-\textbf{Trusted Search Runtime.} The runtime only validates, applies, persists, or rejects operations and never chooses omitted operands, reorders candidates, or repairs, so raw emissions replay to the same trace (Operation Schemas appendix, Appendix~\ref{appendix}, and Algorithm Invariant Definitions appendix).
+% Paragraph purpose: State what a valid step contains under the two additive best-first variants, where the runtime computes every ordering value, and name the resulting setting the enumeration contract.
+The two additive variants are greedy best-first search \citep{bonet2001planning}, ordered by $h_{\rm add}$, and weighted A* \citep{hart1968formal,pohl1970heuristic}, ordered by $g + 3h_{\rm add}$. Each candidate row lists $g$, $h_{\rm add}$, and the priority, all computed by the runtime, which also keeps the priority heap and its tie-break rule. The policy names the expanded state and one candidate not yet submitted, and emits no heuristic value or frontier position. In all four algorithms, each expansion thus submits every new successor, and the observation supplies the values that fix the frontier order. We call this setting the \textbf{enumeration contract}.
+% Evidence (additive): best_first_controller.py L16-36 (priority h for greedy, g + 3h for best_first_add_w3), L208-229 start_expansion (pops the
+% heap head, computes candidates, fixes generation serials in applicable-action order), L238-297 apply_operation (source must be the popped
+% head; action must be a listed, not-yet-submitted candidate; runtime pushes (priority, serial) onto the heap), L340-352 finish_expansion
+% (every candidate must be submitted); BestFirstOperation L39-48 has only source_state_id and action. best_first_model_input.py L12-15 system
+% message ("The trusted runtime owns h_add, scalar priority, duplicate detection, the frontier, and state transitions"), L92-106 candidate columns.
+% Evidence (every new successor submitted): BFS retirement only with no unvisited candidate (visual_bfs.py L106-110); BFWS retirement rejected
+% while a non-duplicate remains (bfws_issue59.py L592-594); additive finish_expansion requires all candidates submitted (best_first_controller.py L343).
 
-% Paragraph purpose: Define the two decision contracts in one place and point to the schematic and the appendix table.
-The runtime supports two decision contracts, which differ in what the policy chooses. Under the enumeration contract, each expansion submits its complete candidate set, and the runtime's priority heap orders it. Under the choice-frontier contract, the policy selects which runtime-owned frontier state to expand next, under a budget of twice the exact reference's expansion count. The choice-frontier contract runs the two additive best-first variants. Its observation is scene-only, with rendered scenes of the initial state and each frontier state plus goal pages, and opaque labels are the only candidate text, so no observation modality is compared under this contract (Choice-Frontier Contract appendix). Figure~\ref{fig:contracts} and Table~\ref{tab:design-contracts} (Decision Contracts appendix) compare the two contracts.
-% Evidence (scene-only observation): appendix Choice-Frontier Contract, Menu and observation paragraph (unlabelled 128px initial-state scene, one per frontier state, partial-goal pages; text payload carries only the algorithm name, label list, representation tag, schema version, legend); docs/experiments/choice-frontier/issue-132-design.md section 2.
-% Evidence: docs/experiments/choice-frontier/issue-132-design.md sections 2 and 6 (contract inversion, atomic expansion,
-% goal at selection, decision_cap = expansion_cap = 2 x reference_expansions); comment moved here from Section 4 in round 7.
+% Paragraph purpose: Define the three observation types, credit the external scene renderer, and state that only state facts become images while the candidate list stays textual.
+The three observation types differ only in how the task's facts reach the model. The text observation lists the objects, static facts, initial and current states, and goal. The visual observation replaces these facts with images: scenes of the initial and current states drawn by the external Planimation renderer\footnote{\url{https://github.com/planimation/backend}}, and pages that render the static facts and goal. The multimodal observation gives both. In all three, the candidates, frontier summary, and recent operations stay in text, so only state facts become images.
+% Evidence: examples/planning_benchmark_slice/modality_pages.py L75-102 fact_blocks (task-context: objects, types, static, initial facts;
+% current-state; goal); scene_only_views.py L45-46 static_blocks (task-context without initial facts), L180-198 (image roles task-context,
+% initial-state, current-state, goal; no images for text-state, L204, L223); modality_pages.py L243-258 (state facts, task_context and
+% goal_atoms are removed from the serialized payload; the semantic fact blocks are kept unless the representation is visual-state) and
+% L270-275 (the family serializer's candidate and search-memory text is kept in every modality); expanded_baseline.py L9-12 (the main grid
+% runs visual_episode.VisualSession with ExpandedTaskViews). Planimation is credited as an external renderer, not a contribution.
 
-% Paragraph purpose: Define the learning objective, process supervision on trusted Search-Trace Segments, with optional DAgger.
-Process supervision is token-level cross-entropy cloning of the exact reference's operation on Search-Trace Segments, bounded slices of replay-verified exact traces. Optional DAgger (dataset aggregation) \citep{ross2011dagger} adds the exact reference's corrections on visited contexts.
+% Paragraph purpose: Define the training target (token-level cross-entropy on Search-Trace Segments of exact-reference traces) and contrast it with a plan target in one sentence.
+We train on the search trace, not the plan. Each training record, a \textbf{Search-Trace Segment}, pairs the observation at one step of a replay-verified trace of the exact reference (the declared algorithm run by the runtime) with the operation emitted there. The loss is token-level cross-entropy on that operation. A plan target would supervise only the returned action sequence, not the search steps behind it.
+% Evidence: appendix app:data-splits (corpora built from replay-verified trusted traces; e.g. BFS v6 corpus from 90 replay-verified traces);
+% exact-reference operation per decision: visual_episode.py L403-433 reference_output; bfs_model_input.py L117-136 (accepted_deltas in each input).
+
+% Paragraph purpose: Point to the appendix study in which the policy chooses the frontier state from scenes, without comparing it with the enumeration contract here.
+Under the enumeration contract, the runtime decides which state is expanded next. An appendix study lets the policy make this choice from rendered scenes alone, under a choice-frontier contract for the two additive variants (Appendix~\ref{app:cf-contract}).
+% Evidence (scene-only observation, additive-only scope): appendix Choice-Frontier Contract, Menu and observation paragraph (unlabelled
+% 128px initial-state scene, one per frontier state, partial-goal pages; text payload carries only the algorithm name, label list,
+% representation tag, schema version, legend); docs/experiments/choice-frontier/issue-132-design.md sections 2 and 6.

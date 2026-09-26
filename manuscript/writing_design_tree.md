@@ -1,6 +1,6 @@
 # Manuscript Design Tree
 
-> **Historical (2026-09-23 note).** Written against the evidence boundary of 2026-08-31 and kept as the record of the drafting plan and of the unexecuted held-out evaluation's prerequisites. Issue statuses and open-branch statements inside are historical; current status lives in `changelog.md`, `review-log.md`, and the GitHub issues.
+> **Historical (2026-09-23 note).** Written against the evidence boundary of 2026-08-31 and kept as the record of the drafting plan and of the unexecuted held-out evaluation's prerequisites. Issue statuses and open-branch statements inside are historical; current status lives in `changelog.md` and the GitHub issues.
 
 ## Evidence Boundary
 
@@ -102,5 +102,4 @@ This update records what issues #112-#128 changed after the 2026-08-31 audit. De
 - Existing Abstract/Introduction/appendix text moved byte-exactly; new sections are heading + label + `% STATUS` stubs with no placeholder prose.
 - Frozen labels (listed in the hub): sec:introduction, sec:related, sec:policy, sec:design, sec:results, sec:discussion, sec:conclusion, appendix. Cross-section `\ref` is read-only against these; no agent adds a label another file references.
 - Bibliography ownership: `iclr2026_conference.bib` is legacy and closed to new keys; each section owns its `iclr2026_conference_<section>_refs.bib` (related/policy/design/results/discussion), all listed in the hub `\bibliography{...}`. Citation-key namespace: author+year+slug, no renames.
-- Reviewer audit (AlignReviewer2, 2026-09-21): SATISFACTORY with required changes R1-R4 (bib ownership, Method split per D4, reproducibility stub, label freeze); all applied.
 - #127 closed 2026-09-21 (COMPLETED): prospective training-seed replication executed for exactly two cells (seeds 17/29/71 frozen pre-launch; 534 new episodes independently replayed; addendum seed-variance-addendum.md). Headline process-SFT cell replicates (21/24, 21/24, 22/24; primary contrast positive every seed, no sign flip); DAgger iteration-1 vs continued-SFT null replicates at every seed (0/72 both arms); iteration-2 DAgger verdict unchanged. Aggregation is descriptive (n=3); Cell A covers one of three pooled headline modalities; every other cell remains single-seed. The blanket single-training-seed boundary is superseded only for these two cells. Program ledger: 68.5244/336 GPU-h. Verification: prose of the rebuilt PDF is byte-identical to the pre-split PDF except the six new stub headings, the shifted References position, and one added page header; 0 log errors.

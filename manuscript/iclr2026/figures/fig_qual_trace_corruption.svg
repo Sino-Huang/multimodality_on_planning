@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="396pt" height="100.8pt" viewBox="0 0 396 100.8" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-09-26T03:49:34.860066</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.10.8, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 100.8 
+L 396 100.8 
+L 396 0 
+L 0 0 
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g clip-path="url(#p504a7fdbb3)">
+    <image xlink:href="data:image/png;base64,
+iVBORw0KGgoAAAANSUhEUgAAADoAAAA6CAYAAADhu0ooAAAA3UlEQVR4nOXbMU4DMRBA0b9/Iw6wNbRcIJwJem5Dw4nIKeAUSCujDWVSpkjyXzG2ZiRLbkYuxtMYYxCw28I0TdyzMcb/Rb9eH0+K+49vDm9PZ/O3SCIkQiJ2W9i/f54tvjz/nORutUVLhERIhERMxyfg7+G08rDnnkiEREiEpJpRgERIhERIhERIhERIhERIhERIhERIhERIhERIhERIhERIhERIhERIhERIhERIhERIhERIhERIhERIhJc8bJvkWdf1uN/Wa5rs8ZKHbd9K5nlmWZbjek3fTKbKQNUfE00rGi0XTLEAAAAASUVORK5CYII=" id="image3eb2593904" transform="scale(1 -1) translate(0 -41.76)" x="9.9" y="-33.966" width="41.76" height="41.76"/>
+   </g>
+  </g>
+  <g id="axes_2">
+   <g clip-path="url(#p4b99975080)">
+    <image xlink:href="data:image/png;base64,
+iVBORw0KGgoAAAANSUhEUgAAADoAAAA6CAYAAADhu0ooAAAAdElEQVR4nOXOMQEAIAzAsFLlcw4u2NEoyJmZS4BESIRESIRESIRESIRESIRESIRESIRESIRESIRESIRESIRESIRESIRESIRESIRESIRESIRESIRESIRESIRESIRESIRESIRESIRESIRESIRESIRESITbgV8e8CkC85ujzbsAAAAASUVORK5CYII=" id="imaged726afebc0" transform="scale(1 -1) translate(0 -41.76)" x="61.38" y="-33.966" width="41.76" height="41.76"/>
+   </g>
+  </g>
+  <g id="axes_3">
+   <g clip-path="url(#p6270ad8e3b)">
+    <image xlink:href="data:image/png;base64,
+iVBORw0KGgoAAAANSUhEUgAAADoAAAA6CAYAAADhu0ooAAABKklEQVR4nOXWQUrDQBjF8f88QigBK0YQlLaLggfwDK7ceABv4k0E7yOU7ly7c1cIiCBKNRl3k47QXWlt32/1Mi+EEL5hEuaP95EVP6FIuf18X604ubpJeXB+yX9WVVV2LUwIE8JEccZbtrAsBynPFrOsG5/epjyZTtknwoQwUYyv77KF1+/+SHnQU9ZdVP1JNGG/CBPChDAR4sdz9gu4jGXKL19tdvPoaJTysByyT4QJYUKYCLFdZHsU+j2KjjkUwoQwEWKMf0b3MAkTwoQwIUwIE8KEMCFMCBPChDAhTAgTwoQwIUwIE8KEMCFMCBPChDAhTAgTwoQwIUwIE8KEMCFMFJt6UNd1aztp999TmBAmik2NatM0a8e1ruusCyGwbcKEMKFdv8C2/AJGHC22jHaqmQAAAABJRU5ErkJggg==" id="image5de83f45c1" transform="scale(1 -1) translate(0 -41.76)" x="112.86" y="-33.966" width="41.76" height="41.76"/>
+   </g>
+  </g>
+  <g id="text_1">
+   <text style="font-weight: 700; font-size: 7.4px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #253746" x="8.712" y="9.072" transform="rotate(-0 8.712 9.072)">Test-time corruption · same task and greedy checkpoints</text>
+  </g>
+  <g id="text_2">
+   <text style="font-size: 6.1px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #253746" x="30.492" y="87.192" transform="rotate(-0 30.492 87.192)">Clean</text>
+  </g>
+  <g id="text_3">
+   <text style="font-size: 6.1px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #253746" x="81.972" y="87.192" transform="rotate(-0 81.972 87.192)">Blank</text>
+  </g>
+  <g id="text_4">
+   <text style="font-size: 6.1px; font-family: 'DejaVu Sans'; text-anchor: middle; fill: #253746" x="133.452" y="87.192" transform="rotate(-0 133.452 87.192)">Degraded</text>
+  </g>
+  <g id="text_5">
+   <text style="font-weight: 700; font-size: 6.4px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #596a76" x="9.9" y="27.216" transform="rotate(-0 9.9 27.216)">Policy scene variants</text>
+  </g>
+  <g id="text_6">
+   <text style="font-weight: 700; font-size: 6.5px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #d55e00" x="172.26" y="27.4176" transform="rotate(-0 172.26 27.4176)">Shuffled text</text>
+  </g>
+  <g id="text_7">
+   <text style="font-size: 6.1px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #253746" x="172.26" y="39.9168" transform="rotate(-0 172.26 39.9168)">Text: repeats unstack(b1,b4) at call 2</text>
+  </g>
+  <g id="text_8">
+   <text style="font-size: 6.1px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #253746" x="172.26" y="50.2992" transform="rotate(-0 172.26 50.2992)">Multimodal: repeats it at call 3</text>
+  </g>
+  <g id="text_9">
+   <text style="font-size: 6.1px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #253746" x="172.26" y="60.6816" transform="rotate(-0 172.26 60.6816)">Both rejected; previously submitted from s0</text>
+  </g>
+  <g id="text_10">
+   <text style="font-weight: 700; font-size: 6.5px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #009e73" x="172.26" y="74.088" transform="rotate(-0 172.26 74.088)">Blank / degraded images</text>
+  </g>
+  <g id="text_11">
+   <text style="font-size: 6.1px; font-family: 'DejaVu Sans'; text-anchor: start; fill: #253746" x="172.26" y="86.688" transform="rotate(-0 172.26 86.688)">Visual + multimodal: goal in 18 calls each</text>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="p504a7fdbb3">
+   <rect x="9.9" y="34.146" width="41.58" height="41.58"/>
+  </clipPath>
+  <clipPath id="p4b99975080">
+   <rect x="61.38" y="34.146" width="41.58" height="41.58"/>
+  </clipPath>
+  <clipPath id="p6270ad8e3b">
+   <rect x="112.86" y="34.146" width="41.58" height="41.58"/>
+  </clipPath>
+ </defs>
+</svg>

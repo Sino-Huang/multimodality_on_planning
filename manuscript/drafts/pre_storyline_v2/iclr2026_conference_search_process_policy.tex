@@ -1,0 +1,35 @@
+\section{Search Process Policy}
+\label{sec:policy}
+
+% Paragraph purpose: Define a Search Process Policy and fix what an episode contains and what the policy observes, crediting the external scene renderer.
+A Search Process Policy executes a declared search algorithm one typed operation at a time, under a runtime that checks each decision. An episode fixes $(x, A, m, B)$: a task $x$ in a deterministic grounded planning domain; a declared algorithm $A$; the observation adapter $m$, distinct from the trained adapter scored in Section~\ref{sec:results}; and a frozen budget $B$. At step $t$, $m$ renders the decision context as a text, visual, or multimodal observation $o_t$ that exposes every fact the exact reference uses.
+Visual scenes use the external Planimation renderer\footnote{\url{https://github.com/planimation/backend}}. The contribution here is the search-decision interface and its evaluation, not the rendering backend.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/fig_contracts.pdf}
+\caption{\textbf{The policy emits typed decisions, and the runtime owns the checks and Search Memory.} The runtime validates, applies, or rejects each emitted operation without repair (top). (a) Under enumeration, submitted candidates enter a priority heap that sorts ties. (b) Under choice-frontier, the policy's choice of an opaque label determines the expanded state.}
+\label{fig:contracts}
+% Evidence: figures/fig_contracts.py reads a raw episode operation, panel-v2 scene and goal pages, and the choice-frontier menu; outputs/native-arms/v1/identity-audit.json documents sorted-tie runtime behavior.
+% Evidence: outputs/expanded-study/v1/panel-v2/views/ferry-compact-915000/manifest.json task_context.canonical_goal; fig_contracts.py asserts at(c0,l1) before transcribing it beside the original goal page.
+\end{figure}
+
+% Paragraph purpose: State the ownership split: the policy owns the operations it emits (Typed Search Operation), and the runtime owns the search state (Search Memory), so the observation is the policy's only view of history.
+The policy owns only the operations it emits, and the runtime owns all search state and every check (Figure~\ref{fig:contracts}). Each emission is a \textbf{Typed Search Operation}, a type from $A$'s vocabulary plus every exploration-determining operand, and an emission missing one is invalid. Search state lives in the runtime's bounded \textbf{Search Memory} (frontier, visited table, BFWS novelty counters), not in the model, so $o_t$ is the policy's only channel to history.
+% Evidence: outputs/choice-frontier/v4/seeds/evaluation/{episodes,views}/; figures/fig_contracts.py checks the plotted episode data.
+% TODO: the fixed Search Memory capacity value is an open pre-registration
+% prerequisite (writing_design_tree.md); pin the value here once frozen.
+
+% Paragraph purpose: Define the Algorithm Invariant and the Trusted Search Runtime: the runtime checks every operation against the declared algorithm but never makes a search decision for the policy, and compliance is not success.
+On every operation, the runtime checks a deterministic \textbf{Algorithm Invariant} of the declared algorithm. BFS must expand in first-in, first-out (FIFO) order, and BFWS must follow novelty and goal-count priority \citep{lipovetzky2017bestfirst}. The two additive best-first variants, weighted A* \citep{hart1968formal,pohl1970heuristic} and greedy best-first search \citep{bonet2001planning}, must follow $g + 3h_{\rm add}$ and $h_{\rm add}$ order respectively under a declared tie-break.
+% Evidence (executed additive controller): examples/planning_benchmark_slice/pddl_state.py PDDLStateAuthority.applicable_actions and best_first_controller.py BestFirstController.start_expansion, apply_operation; equal-priority tie-breaking and serial assignment are pinned in Appendix B. BFWS tie-breaking remains separately unpinned.
+The \textbf{Trusted Search Runtime} only validates, applies, persists, or rejects operations. It never chooses an omitted operand, reorders candidates on the policy's behalf, or repairs an emission, so the raw emissions replay to the same trace (Appendices~\ref{appendix}--\ref{app:runtime}). Invariant compliance does not establish termination, completeness, optimality, or success.
+
+% Paragraph purpose: Define the two decision contracts by what the policy chooses under each, with the choice-frontier algorithm scope, budget, and scene-only observation.
+The two decision contracts differ in what the policy chooses. Under the enumeration contract, each expansion submits its complete candidate set, and the runtime's priority heap orders it. Search Memory and the candidates stay textual even when $o_t$ is visual. Under the choice-frontier contract, the policy selects which runtime-owned frontier state to expand next, under a budget of twice the exact reference's expansion count. This contract runs only the two additive best-first variants. Its observation is scene-only: rendered scenes of the initial state and each frontier state, plus goal pages, with opaque labels as the only candidate text. No observation modality is therefore compared under this contract (Appendix~\ref{app:cf-contract}). Figure~\ref{fig:contracts} and Table~\ref{tab:design-contracts} in Appendix~\ref{app:design-contracts} compare them.
+% Evidence (scene-only observation): appendix Choice-Frontier Contract, Menu and observation paragraph (unlabelled 128px initial-state scene, one per frontier state, partial-goal pages; text payload carries only the algorithm name, label list, representation tag, schema version, legend); docs/experiments/choice-frontier/issue-132-design.md section 2.
+% Evidence: docs/experiments/choice-frontier/issue-132-design.md sections 2 and 6 (contract inversion, atomic expansion,
+% goal at selection, decision_cap = expansion_cap = 2 x reference_expansions); comment moved here from Section 4.
+
+% Paragraph purpose: Define the learning objective, process supervision on trusted Search-Trace Segments, with optional DAgger.
+Training uses process supervision, token-level cross-entropy cloning of the exact reference's operation on Search-Trace Segments, bounded slices of replay-verified exact traces. Optional DAgger (dataset aggregation) \citep{ross2011dagger} adds the exact reference's corrections on visited contexts.

@@ -1,0 +1,51 @@
+\section{Discussion and Limitations}
+\label{sec:discussion}
+
+% Paragraph purpose: The takeaway: success on a search-execution interface can measure validity rather than choice, so a measurement must be validated before it scores policies, and ours is, with privileged rungs that validate the measurement, not a policy.
+Success on a search-execution interface can measure validity rather than choice, and on our runtime a tie-break change alone decides which (Section~\ref{sec:results-identity}). A measurement must therefore be validated before it scores policies. Ours passes the identity audit, counts its budget in decisions following the compute-matched-baseline principle \citep{li2019random}, and passes the pre-registered ladder on two panels (Section~\ref{sec:results-ladder}).
+% (moved out of prose; kept in Results Section 5.1 and Table tab:results-identity; Counterfactual appendix) Evidence (moved from Results 5.2, already in the body): outputs/native-arms/v1/identity-audit.json pairs_identical 48 of 48; #134 outputs/native-arms/v1/identity-audit-submission-order.json rules.submission_order.pairs_divergent 19 of 48.
+The rungs read the reference's priority order, which no policy sees, so the ladder validates the measurement, not a policy.
+
+% Paragraph purpose: The development-stage answer to the title is narrow: a trained scene-only adapter beats random-valid at frontier choice in the two additive best-first variants, stays well below the reference, and nothing is learned under the enumeration contract.
+The answer to the title is therefore narrow. Imitation teaches a scene-only vision-language model adapter some frontier choice, enough to beat random-valid on all three panels (descriptively on the unscreened panel), but it does not reproduce the reference's choices: the adapter's M1 stays well below the exact reference's, and it clears the 0.75 rung on one panel only (Section~\ref{sec:results-adapter}, Table~\ref{tab:appendix-panel-arms}). What we observe is learned choice in greedy best-first search and weighted A*, not execution of search in general.
+% (0.151, 0.432, and 0.875 moved out of prose; kept in Table tab:appendix-panel-arms; 0.875 by construction also in Results Section 5.2 and the Choice-Frontier Contract appendix) Evidence: outputs/choice-frontier/v4/panels/metrics/analysis.json arms.p2u.learned_adapter_seed_mean.m1 0.151, arms.p2.learned_adapter_seed_mean.m1 0.432, arms.*.exact_reference.m1 0.875 (rounded half-up to 3 dp from the named keys).
+% Evidence (copied from the Metrics appendix, "scores M1 = 0.875 by construction"): goal-at-selection rule in the Expansion and budget paragraph above (issue-132-design.md section 2); A139 arms.{p135,p2,p2u}.exact_reference.m1 0.875;
+% arms.{p135,p2,p2u}.hadd-greedy.m1 0.8823 / 0.9284 / 0.90625, rounded half-up to 3 dp from the named keys.
+No enumeration-contract BFS or BFWS cell shows learned success.
+
+% Paragraph purpose: Box 1 yields three practices, each justified by a failure we observed: designers audit decisions and count budgets in decisions, trainers report the gain over random-valid with its ladder position.
+Box~\ref{box:procedure} turns these lessons into three practices. Benchmark designers should audit decisions on the executed runtime and report the divergent fraction, because the specification hid our identity failure. They should count budgets in decisions or expansions whenever a zero-token control exists, since it spends nothing under a token budget. Policy trainers should report the gain over random-valid with its ladder position, split by audit verdict. A gain over the base is not choice (Table~\ref{tab:appendix-seeds}), and a gain over random-valid is not near-reference choice unless it separates from a rung.
+% Evidence: outputs/expanded-study/v1/seed-replication/analysis.json baseline_process_sft.per_seed.{17,29,71}.successes (21, 21, 22 of 24)
+% and .contrasts.process_sft_minus_{pretrained_base,random_valid}.difference; bootstrap seed 1729, 10000 resamples.
+
+% Paragraph purpose: The external audits matter because they run steps 1 and 2 on published interfaces and bound the identity failure to our runtime.
+The external audits show that steps 1 and 2 run on published interfaces: ScienceWorld \citep{wang2022scienceworld} is a positive control and LLM-First Search a by-construction illustration of the budget step (Section~\ref{sec:results-external}). None of the seven audited-candidate interfaces uses an enumeration contract, so the 48/48 identity failure is shown only on our runtime.
+% Evidence: docs/experiments/external-audit/issue-137-survey.md §Candidate table (7); issue-137-closeout.md §Stage 1 survey (0 type A) (#137 E137-40, E137-42); outputs/external-audit/v2/lfs/identity-audit.json pairs_identical 0, paper_budget.verdict SATURATED, matched_decision_budget.verdict CHOICE_REGISTERED (#142).
+% Evidence (48/48, copied from Box 1): outputs/native-arms/v1/identity-audit.json pairs_identical 48 of pairs_checked 48 (#134 E134-03).
+
+% Paragraph purpose: State each limitation once in full with its consequence (designated full-statement location for the caveats).
+\paragraph{Limitations.}
+\begin{itemize}
+\item \emph{Ladder position.} The adapter is separated above the 0.75 rung only on the held-out panel, not on the validation panel, the unscreened panel, or pooled.
+\item \emph{Ladder axis.} M1 is validated only along the ladder's $\epsilon$ axis, and a privileged selector that reaches the goal in fewer decisions scores above the reference.
+\item \emph{Screening.} The held-out panel is screened like the validation panel, and the unscreened gain rests on 4 of 12 tasks.
+% Evidence: outputs/choice-frontier/v4/panels/metrics/analysis.json concentration.per_panel.p2u.counts positive 4, zero 8; unscreened_p2u.ladder.verdict PASS (descriptive); P2u 0/10 random-valid screening goals on all 12 tasks: docs/experiments/choice-frontier/issue-139-closeout.md L56 (#139).
+\item \emph{Seeds.} Only three training seeds were run, and seed 29 is weakest on every panel (descriptive).
+% Evidence: seed 29 lowest per panel: outputs/choice-frontier/v4/seeds/metrics/analysis.json primary.per_seed.29; outputs/choice-frontier/v4/panels/metrics/analysis.json heldout_p2.primary.per_seed.29, unscreened_p2u.primary.per_seed.29 (#138, #139).
+\item \emph{Final evaluation.} The frozen 45-task final evaluation is unexecuted, so every result is development-stage.
+\item \emph{Prediction.} Our pre-registered majority prediction for submission-order divergence failed.
+\item \emph{Runtime.} The runtime never chooses or repairs operands, so no result shows the model searching without runtime validation.
+\item \emph{External audit.} The LLM-First Search audit substitutes a local reference model and covers 80 tasks from four configurations, so it does not test the published results.
+% Evidence: outputs/external-audit/v2/lfs/identity-audit.json tasks 80, per_config {cd3, cd5, cd7, su4}; configs/experiments/external-audit-v2/lfs-reference-server.json .model (Qwen3-30B-A3B-Instruct) (#142).
+\item \emph{Second policy.} The second policy scored is zero-shot, and the trained second backbone never ran under the choice-frontier contract, so ordering two trained choosers that both beat random-valid is untested.
+\item \emph{Menu surface.} Our enumeration-contract menu manipulations cannot separate surface-following from state grounding without the unrun fixed-versus-random distractor-position test.
+\item \emph{Modality.} The choice-frontier observation is scene-only, so no modality is compared under that contract.
+\end{itemize}
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+% Paragraph purpose: Lead with the validate-before-score contribution, answer the title at development stage for the two additive best-first variants only, and close with the claim frame.
+We validate a search-choice measurement before it scores any policy. Scored this way, a trained scene-only adapter learns to choose which frontier state to expand in greedy best-first search and weighted A* better than random-valid on three development panels, without approaching the reference.
+% (moved out of prose; D3 point estimate and interval kept in Table tab:results-panels, the abstract, and the Introduction; rung verdicts kept in the Limitations and Table tab:results-panels) Evidence: outputs/choice-frontier/v4/seeds/metrics/analysis.json primary.D3, primary.ci95 (#138); outputs/choice-frontier/v4/panels/metrics/analysis.json heldout_p2.separation.vs_eps_0.75.verdict (#139).
+No enumeration-contract BFS or BFWS cell shows learned success. The development-stage answer to the title is therefore limited to these two variants, with no planning-ability or generality claim.

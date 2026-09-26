@@ -17,31 +17,26 @@ Numbers are read from pinned evidence files in the evidence repository:
       per_panel.p2.m1_arm / per_panel.p2.m1_arm_ci95  (zero-shot base, P2 panel)
 Run: python fig_ladder.py [EVIDENCE_ROOT]  -> fig_ladder.pdf, fig_ladder.svg, fig_ladder.png
 """
-import json
-from decimal import Decimal, ROUND_HALF_UP
-import sys
 from pathlib import Path
 
-import matplotlib
-matplotlib.use("Agg")
+from _style import ARM_STYLE, assert_3dp, f3, load_json
+
 import matplotlib.pyplot as plt
 
 HERE = Path(__file__).resolve().parent
-ROOT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(
-    "/data/scratch/projects/punim0478/sukaih/multimodality_on_planning")
-
-
-def load(rel):
-    return json.loads((ROOT / rel).read_text())
-
 
 CI = "m1_task_cluster_95pct_ci_10000_seed133"
-v2 = load("outputs/choice-frontier/v2/metrics/analysis.json")
-v4 = load("outputs/choice-frontier/v4/panels/metrics/analysis.json")
-v6 = load("outputs/choice-frontier/v6/metrics/analysis.json")
+v2 = load_json("outputs/choice-frontier/v2/metrics/analysis.json")
+v4 = load_json("outputs/choice-frontier/v4/panels/metrics/analysis.json")
+v6 = load_json("outputs/choice-frontier/v6/metrics/analysis.json")
 
 PANELS = [("p135", "Validation (12 tasks)"), ("p2", "Held-out P2 (11 tasks)"),
           ("p2u", "Unscreened P2u (12 tasks)")]
+# Evidence: v2 arms.exact_reference.tasks_present; v4 ladder_p2.tasks and
+# unscreened_p2u.ladder.tasks support the displayed panel sizes.
+assert v2["arms"]["exact_reference"]["tasks_present"] == 12
+assert v4["ladder_p2"]["tasks"] == 11
+assert v4["unscreened_p2u"]["ladder"]["tasks"] == 12
 LADDER = [("exact reference", "exact_reference"), ("exact-\u03b5 0.25", "exact-eps-0.25"),
           ("exact-\u03b5 0.50", "exact-eps-0.50"), ("exact-\u03b5 0.75", "exact-eps-0.75"),
           ("random-valid", "random_valid"), ("adapter, 3-seed mean", "learned_adapter_seed_mean")]
@@ -69,15 +64,6 @@ EXPECTED = {
 }
 
 
-def f3(v):
-    """3-dp string, half-up (the paper's convention; Python round() is half-even on binary floats)."""
-    return str(Decimal(repr(v)).quantize(Decimal("0.001"), rounding=ROUND_HALF_UP))
-
-
-def r3(*vals):
-    return tuple(float(f3(v)) for v in vals)
-
-
 # data[panel] = {"rows": [(label, m, lo, hi)], "seeds": [m...], "first": (m, lo, hi) or None}
 data = {}
 for pk, _ in PANELS:
@@ -85,33 +71,28 @@ for pk, _ in PANELS:
     rows = []
     for label, k in LADDER:
         m, (lo, hi) = arms[k]["m1"], arms[k]["ci95"]
-        got = r3(m, lo, hi)
-        assert got == EXPECTED[pk][k], f"{pk}/{k}: got {got}, expected {EXPECTED[pk][k]}"
+        assert_3dp((m, lo, hi), EXPECTED[pk][k])
         rows.append((label, m, lo, hi))
     seeds = []
     for k in SEEDS:
         m = arms[k]["m1"]
-        assert r3(m) == (EXPECTED[pk][k],), f"{pk}/{k}: got {r3(m)[0]}, expected {EXPECTED[pk][k]}"
+        assert_3dp(m, EXPECTED[pk][k])
         seeds.append(m)
     data[pk] = {"rows": rows, "seeds": seeds, "first": None, "zero": None}
 
 fa = v2["adapter_reevaluation"]["learned_adapter"]
 first = (fa["m1_auc"], *fa[CI])
-assert r3(*first) == EXPECTED["p135"]["first_adapter"], \
-    f"p135/first adapter (v2): got {r3(*first)}, expected {EXPECTED['p135']['first_adapter']}"
+assert_3dp(first, EXPECTED["p135"]["first_adapter"])
 data["p135"]["first"] = first
 
 ZERO_EXPECTED = {"p135": ("v2", (0.026, 0.000, 0.063)), "p2": ("p2", (0.017, 0.000, 0.051))}
 for pk, (v6k, exp) in ZERO_EXPECTED.items():
     zp = v6["per_panel"][v6k]
     zero = (zp["m1_arm"], *zp["m1_arm_ci95"])
-    assert r3(*zero) == exp, f"{pk}/zero-shot base (v6 per_panel.{v6k}): got {r3(*zero)}, expected {exp}"
+    assert_3dp(zero, exp)
     data[pk]["zero"] = zero
 
-plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 8,
-                     "pdf.fonttype": 42, "svg.fonttype": "none"})
 GREY, SEED_GREY = "#555555", "#AAAAAA"
-LADDER_COLS = ["#003F66", "#0072B2", "#3B97CF", "#7FBDE3", "#B7D9EE"]
 YS = [0, 1, 2, 3, 4, 5.3, 6.3, 7.3]  # ladder x5, adapter mean, zero-shot base, first adapter
 LABELS = [l for l, _ in LADDER] + ["zero-shot base", "first adapter"]
 XMIN, XMAX = -0.02, 1.08
@@ -119,24 +100,24 @@ XMIN, XMAX = -0.02, 1.08
 fig, axes = plt.subplots(1, 3, sharey=True, figsize=(6.0, 2.35))
 
 
-def draw(ax, i, y, m, lo, hi):
-    if i < 5:
-        c, mk, fc, ms = LADDER_COLS[i], "o", LADDER_COLS[i], 4.2
-        ec = "#003F66" if i == 4 else c
-        lc = ec
-    elif i == 5:
-        c, mk, fc, ec, ms, lc = "black", "s", "black", "black", 4.0, "black"
-    elif i == 6:  # zero-shot base
-        c, mk, fc, ec, ms, lc = "#333333", "D", "white", "#333333", 3.8, "#333333"
-    else:
-        c, mk, fc, ec, ms, lc = "black", "s", "white", "black", 4.0, "black"
-    ax.plot([lo, hi], [y, y], color=lc, lw=1.1, solid_capstyle="butt", zorder=2)
+def draw(ax, key, y, m, lo, hi):
+    style = ARM_STYLE[key]
+    c = style["color"]
+    mk = style["marker"]
+    fc = style["facecolor"]
+    ec = style["edgecolor"]
+    ms = 3.8 if mk == "D" else 4.0 if mk == "s" else 4.2
+    ax.plot([lo, hi], [y, y], color=c, lw=1.1, solid_capstyle="butt", zorder=2)
     ax.plot(m, y, mk, ms=ms, mfc=fc, mec=ec, mew=0.8, zorder=4)
     right = max(hi, m)
+    # The dotted 0.75 rung crosses the low-valued random-valid label on P2/P2u.
+    label_box = dict(facecolor="white", edgecolor="none", pad=0.1) if key == "random_valid" else None
     if right > 0.85:  # no room to the right: place label left of the interval
-        ax.text(min(lo - 0.035, m - 0.045), y, f3(m), va="center", ha="right", fontsize=8)
+        ax.text(min(lo - 0.035, m - 0.045), y, f3(m), va="center", ha="right",
+                fontsize=8, bbox=label_box)
     else:
-        ax.text(max(right + 0.035, m + 0.045), y, f3(m), va="center", ha="left", fontsize=8)
+        ax.text(max(right + 0.035, m + 0.045), y, f3(m), va="center", ha="left",
+                fontsize=8, bbox=label_box)
 
 
 for j, (ax, (pk, title)) in enumerate(zip(axes, PANELS)):
@@ -147,11 +128,11 @@ for j, (ax, (pk, title)) in enumerate(zip(axes, PANELS)):
     ax.plot(d["seeds"], [YS[5]] * len(d["seeds"]), "o", ms=2.6, mfc=SEED_GREY, mec="none",
             alpha=0.8, zorder=3)
     for i, (_, m, lo, hi) in enumerate(d["rows"]):
-        draw(ax, i, YS[i], m, lo, hi)
+        draw(ax, LADDER[i][1], YS[i], m, lo, hi)
     if d["zero"] is not None:
-        draw(ax, 6, YS[6], *d["zero"])
+        draw(ax, "zero_shot_base", YS[6], *d["zero"])
     if d["first"] is not None:
-        draw(ax, 7, YS[7], *d["first"])
+        draw(ax, "first_adapter", YS[7], *d["first"])
     ax.set_title(title, fontsize=8, pad=3)
     ax.set_xlim(XMIN, XMAX)
     ax.set_xticks([0, 0.5, 1.0])

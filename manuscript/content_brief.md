@@ -1,6 +1,6 @@
 # Content Brief
 
-> **Superseded (2026-09-23).** Pre-#129 evidence snapshot with an audit boundary of 2026-09-21, kept as the drafting record. Its progress list and numbers no longer describe the draft. Authoritative sources now: `changelog.md`, `review-log.md`, `CONTEXT.md`, and the pinned closeouts and artifacts under `docs/experiments/` and `outputs/` in the main repository. Do not take status or numbers from this file.
+> **Superseded (2026-09-23).** Pre-#129 evidence snapshot with an audit boundary of 2026-09-21, kept as the drafting record. Its progress list and numbers no longer describe the draft. Authoritative sources now: `changelog.md`, `CONTEXT.md`, and the pinned closeouts and artifacts under `docs/experiments/` and `outputs/` in the main repository. Do not take status or numbers from this file.
 
 ## Progress
 - Manuscript genre and central contribution: REVISED to a development-stage map of when executable search control is learnable and when it fails to generalize.
@@ -57,6 +57,6 @@
 - [RESOLVED: prior-work citations] The Introduction cites the original planning-probe sources and arXiv:2607.11197 at their appropriate claim boundaries.
 
 ## Next
-- The revised Abstract and Introduction were updated on 2026-09-21 to the #115-#128 evidence and rebuilt with `manuscript/build_pdf.sh`; a reviewer agent audits manuscript/ alignment against issues #115-#128 after the rebuild.
+- The revised Abstract and Introduction were updated on 2026-09-21 to the #115-#128 evidence and rebuilt with `manuscript/build_pdf.sh`.
 - The following session should begin Results (sourced from synthesis-v1, failure-mechanism-analysis.md, and the #126 closeout), then Related Work and Method. The detailed experimental ledger belongs in Results rather than the Abstract.
 - Layout (2026-09-21): the paper is split into per-section `\input` files, one owner per file (`iclr2026_conference_<section>.tex`); the hub is prose-free. Write Results in `iclr2026_conference_results.tex`, Related Work in `iclr2026_conference_related_work.tex`, and the formal contract and protocol in `iclr2026_conference_search_process_policy.tex` / `iclr2026_conference_experimental_design.tex` (D4 names). New citations go to that section's own `*_refs.bib`, never the legacy bib.

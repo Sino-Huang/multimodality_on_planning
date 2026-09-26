@@ -1,122 +1,71 @@
-% STATUS: REVISED R3b for findings #12, #13, #19, and #24. Pending evidence marked and transfer scope corrected.
-% STATUS: #131 round 2 (2026-09-23). Headline and results map restructured so the audit arc leads; BFWS positive demoted to one contrast; contributions and evidence boundary rewritten; #128 image-only-arm marker retired (executed under #129); held-out evaluation stated in prose. Numbers copied from iclr2026_conference_results.tex (commit 2569773).
-% STATUS: #131 round 2 Wave 2 (finding 6, page limit). Background lead-in merged into one paragraph; mechanism and study-design paragraphs compressed; results map and contributions keep every Wave-1 scoped claim.
-% STATUS: #131 round 4 (2026-09-24). Reframed around separating choice from validity (#134-#137). Findings use V1, V2, V3, V3b, V4, V4b, V5 verbatim; closing uses V7. Menu, zoo, #132 first-measurement, BFWS-panel, failure, corruption, backbone, and secondary-null material moved out of the Introduction (kept in Results/appendix).
-% STATUS: #131 round 5 (2026-09-25). Learned-result paragraph uses V-SEED, V-LAD-S, and a shortened V-SCR (#138, #139); contribution 3 reworded to three panels; closing uses V-FRAME then V-HO, replacing the single-seed frame and the duplicated held-out clause. Numbers from local://evidence-r5.md.
-% STATUS: #131 round 6 (2026-09-25). External-anchor sentence adds LLM-First Search (V-LFS mirror, V-ANCHOR sense); Contribution 4 reworded (#142). Numbers from local://evidence-r6.md.
-% STATUS: #131 round 7 (2026-09-25). Rewritten to the r7 outline (I1-I6, contributions, Figure 1 caption for the Wave-3 teaser). Per-seed D3 values, the 25/50/75 percent rung values, the 24-task and 9-task caption counts, the -0.644 interval, "seven" surveyed interfaces, "first 40 seeds", and the VALID_STOP withdrawal sentence deleted here (kept in Results, Section 4, or figures).
-% STATUS: #131 round 7 Wave 4 (2026-09-25). BFS expanded and additive best-first glossed at first use (sentence split); "the budget check" defined in the thesis sentence; "zero-cost" -> "zero-token". No number added, moved, or deleted.
-% STATUS: #131 review 22 (2026-09-25). Findings 85 (caption scope, reused 9-task panel, point-estimate note), 86 (external-audit topic sentence), 87 (LFS success saturates under the caps), 88 (thesis "We argue", Contribution 4 as an audit, "binds decisions" defined), 90 (held-out referent), 95 (computed priority order), 80 comment, and cold-read openers. No number added, moved, or deleted.
-% STATUS: #131 round 8 (2026-09-25). Rewritten to the r8 outline (I1-I6, three contributions with the validate-before-score measurement first, boundary kept, Figure 1 caption leads with the takeaway and glosses 0.875 as fixed by construction). huang2026twodistinct sentence cut (Related Work absorbs the key). Copied with comments: seed-replication +0.875/-0.125 (tab:appendix-seeds), 15/24 against 24/24 (results 5.2), held-out smallest gap +0.130 [+0.070, +0.190] (results 5.3), 0.0775 (results 5.5). Deleted here: rung contrasts -0.041 [-0.187, +0.102], +0.227 [+0.053, +0.403], +0.058 [-0.040, +0.156], and "35 tasks" (kept in Table tab:results-panels, the abstract, and Results).
-% STATUS: #131 round 8 Wave 4 (2026-09-25). Consistency pass: "task-algorithm pairs" and "task-algorithm-observation entries of the expanded baseline" defined at first body use; "descriptive" glossed once (no pre-registered rule); zero-shot base glossed as the pretrained Qwen3-VL-8B-Instruct prompted without training; gold trajectory glossed; "the first adapter" -> "an earlier small-corpus adapter" (the name is given once in Results). No number added, moved, or deleted.
-% STATUS: #131 round 8 consolidation (2026-09-25). Findings 97 (Conclusion scoped answer), 98 (caption: register-choice replaced, Box 1 scope, dotted-line gloss), 100 (I6 topic and C3: steps 1-2 only), 103 (I5 topic and C3: first adapter is trained), 104 (I3: contract spec), 105 (I5: trained by imitation), 106 (I2: never beats random-valid), 108 (audited-candidate), 109 (C1: budget credited, primary), 112a (BFS comment). I6 paragraph compressed to pay for additions. No number added or recomputed.
 \section{Introduction}
 \label{sec:introduction}
 
-% Paragraph purpose: Pose the title question as a measurement problem and set up the policy, runtime, algorithms, observations, and the natural control.
-To ask whether a vision-language model can learn to execute a classical search algorithm, we need a success measure that responds to the model's choices.
-Prior probes evaluate language models on classical planning \citep{valmeekam2023critical,stein2025autoplanbench,kokel2026acpbenchhard}.
-We instead train a Search Process Policy to emit Typed Search Operations, which a no-repair Trusted Search Runtime validates (Section~\ref{sec:policy}).
-The declared algorithms are breadth-first search (BFS), Best-First Width Search (BFWS), and additive best-first search, which is best-first search ordered by the additive heuristic $h_{\rm add}$.
-The policy acts under one of two decision contracts, with text, visual, or multimodal observations under the first and scene-only observations under the second.
-The natural control is random-valid, which chooses uniformly over valid operations.
+% Paragraph purpose: Set up the question for planning readers: fine-tuning targets the plan, classical planning is built on search algorithms, whether a model can learn to execute them from their traces is open, and the question extends to VLMs.
+The planning community often probes language models by fine-tuning them on planning problems, and the training target is usually the plan, the action sequence a planner returns, rather than the search that found it \citep{pallagani2022plansformer,rossetti2024learning,bohnet2024exploring,belcamino2026generalization}.
+Yet classical planning is built on search algorithms, from blind breadth-first search (BFS) to best-first width search (BFWS) \citep{lipovetzky2017bestfirst} and heuristic best-first search \citep{hart1968formal,bonet2001planning}.
+Models have been trained on A* traces in mazes, Sokoban, and Blocksworld \citep{lehnert2024beyond,saha2024system1x}, but how well a model learns to execute classical planning algorithms from their search traces is still open.
+The question extends to vision-language models (VLMs), because embodied agents increasingly plan from what they see \citep{merler2025viplan,xu2025visual,hao2025simulation}.
+% Sources: plan-target fine-tuning and trace-training credits follow Section 2 (related_work.tex ¶1-2 source comments); VLM planners over images per Section 2 ¶4.
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=\linewidth]{figures/fig_contracts.pdf}
-\caption{Validate before score (steps 1 and 3 of Box~\ref{box:procedure}). Random-valid success measures choice only on an interface where its decisions can diverge from the exact reference's, and the measure must order privileged reference-derived selectors before it scores any policy. (a)~Under the enumeration contract, random-valid makes the exact reference's decisions on 48/48 additive pairs, and 19/48 pairs diverge when ties break in submission order. (b)~Under the choice-frontier contract, 18/18 pairs on the reused 9-task panel diverge. On the validation panel, M1 falls from 0.875 for the exact reference, a value fixed by construction, through the exact-$\epsilon$ rungs, which randomize a fraction $\epsilon$ of reference decisions, to 0.021 for random-valid (point estimates, with intervals in Figure~\ref{fig:ladder}). The dotted line marks the 0.75 rung. The adapter's three-seed mean is 0.306. Success therefore measures validity in the additive cells of (a) under sorted tie-breaking and choice in (b), and the rungs read privileged information. In the BFS and BFWS cells of (a), random-valid's decisions diverge and its success falls below the reference's, and submission-order ties make 19/48 pairs divergent (Section~\ref{sec:results-identity}).}
-\label{fig:contracts}
-% Evidence (a, 48/48): outputs/native-arms/v1/identity-audit.json (pairs_identical 48).
-% Evidence (a, 19/48): outputs/native-arms/v1/identity-audit-submission-order.json rules.submission_order.pairs_divergent (#134 R1).
-% Evidence (b, 18/18): outputs/choice-frontier/v1/evaluation/identity-audit.json (pairs_divergent 18).
-% Evidence (b, validation-panel ladder; key paths as read by figures/fig_ladder.py): outputs/choice-frontier/v4/panels/metrics/analysis.json
-% arms.p135.exact_reference.m1 (0.875), arms.p135.exact-eps-0.25.m1 (0.793), arms.p135.exact-eps-0.50.m1 (0.603),
-% arms.p135.exact-eps-0.75.m1 (0.347), arms.p135.random_valid.m1 (0.021), arms.p135.learned_adapter_seed_mean.m1 (0.306); intervals at arms.p135.<arm>.ci95.
-% Evidence (0.875 fixed by construction; copied from the appendix M1 definition, "scores M1 = 0.875 by construction"):
-% Evidence (review 20 #76): goal-at-selection rule in the Expansion and budget paragraph above (issue-132-design.md section 2); A139 arms.{p135,p2,p2u}.exact_reference.m1 0.875;
-% Figure file redrawn by Main in Wave 3.
-\end{figure}
+% Paragraph purpose: State what we do in plain terms: which model, algorithms, domains, and observations; the model executes every search step; the runtime checks each step and stops at the first invalid one, so success means a valid, goal-reaching search; and what random-valid is.
+We fine-tune low-rank adapters \citep{hu2022lora} for Qwen3-VL-8B \citep{bai2025qwen3vl} on the search traces of four algorithms: BFS, BFWS, and greedy and weighted-A* best-first search with the additive heuristic $h_{\rm add}$ \citep{bonet2001planning}.
+The tasks come from 12 PDDL domains, and each state is given as a text, visual (image), or multimodal (combined) observation.
+At each step, a runtime lists as text the applicable actions, the resulting states, and facts such as visited flags and BFWS novelty values. The model reads them and names the state to expand, the successors to add, and any priority values the algorithm needs.
+Each step is one training record, so a trace can be much longer than its plan: on the ferry task of Figure~\ref{fig:teaser}a, the 4-action plan takes 11 greedy best-first operations.
+% Evidence (Fig. 1a ferry example, 4-action plan vs 11 greedy best-first operations, one step per record): teaser specification from Main (2026-09-26); figures/fig_teaser.py must assert both counts when the Figures agent regenerates panel (a).
+The runtime keeps the frontier, checks each step against the declared algorithm's rules, and ends the episode at the first step that breaks them.
+A solved episode is therefore a valid run of the declared search that reaches the goal (Section~\ref{sec:policy}).
+Our main control, random-valid, picks uniformly among valid steps. Because the runtime supplies the candidates and orders the frontier, it is an oracle-assisted bound on validity, not a competing learner (Section~\ref{sec:design}).
+% Evidence: 12 domains, 24 tasks per cell, Qwen3-VL-8B-Instruct rev 0c351dd0: docs/experiments/expanded-study/synthesis-v1/README.md §2 and baseline-summary.csv; docs/experiments/expanded-study/goal10-completion-audit.json (revision).
+% Evidence: runtime-supplied grounded candidates as text in every observation type, and random-valid as an oracle-assisted valid-operation control: synthesis-v1/README.md claim baseline-controls and "Claim boundaries"; appendix text-scaffold caveat (drafts/pre_storyline_v2/iclr2026_conference_appendix.tex L517).
 
-% Paragraph purpose: Show the stakes, namely that random-valid can reproduce the reference so that every process-SFT success measures validity.
-Random-valid can make every decision the reference makes, and then a learned gain is validity, not choice.
-Under our enumeration contract, each expansion submits its complete candidate set.
-In its additive best-first cells, random-valid makes exactly the decisions of the exact reference, the declared algorithm run as specified, on 48/48 task-algorithm pairs (Figure~\ref{fig:contracts}a).
-% Evidence: outputs/native-arms/v1/identity-audit.json (48/48, additive pairs only); outputs/native-arms/v1/identity-audit-submission-order.json rules.sorted_candidate_order.pairs_identical 48 (#134 E134-03).
-Process supervised fine-tuning (SFT) solved 125 of the expanded baseline's 288 task-algorithm-observation entries, all in these cells, and 0/24 in each BFS and BFWS cell (Section~\ref{sec:results-identity}).
-% Evidence: 125/288 per docs/experiments/expanded-study/synthesis-v1/README.md and synthesis-v1/baseline-summary.csv (process SFT baseline successes, additive cells only).
-% Evidence: BFS/BFWS SFT 0/24: Results Table tab:results-primary-matrix.
-In the greedy additive replication cell on the same 24-task panel, SFT beats the base at every seed ($+0.875$ at two of three) and never beats random-valid ($-0.125$ at those two, descriptive).
-% Evidence: outputs/expanded-study/v1/seed-replication/analysis.json baseline_process_sft.per_seed.{17,29,71}.successes (21, 21, 22 of 24)
-% and .contrasts.process_sft_minus_{pretrained_base,random_valid}.difference; bootstrap seed 1729, 10000 resamples.
-The replication uses seeds 17/29/71 and is descriptive, with no pre-registered rule (Statistics appendix, Table~\ref{tab:appendix-seeds}).
+% Paragraph purpose: F1. All four algorithms are learnable at very different data costs; give the 512-record grid, the large-corpus development runs with their unmatched-panel qualifier, and the second-backbone replication.
+All four algorithms are learnable, but their data costs differ widely (Section~\ref{sec:results-data-cost}, Figure~\ref{fig:teaser}b).
+With 512 training records per adapter, the two additive variants solve 125 of 144 episodes (24 tasks, three observation types), while BFS and BFWS solve none (Table~\ref{tab:results-main}).
+% Evidence: docs/experiments/expanded-study/synthesis-v1/baseline-summary.csv process_sft rows: additive successes 22+20+22+18+21+22 = 125 of 6 x 24 = 144; bfs and best_first_width 0/24 in every modality. 512 records, one epoch, 16 updates, seed 17: synthesis-v1/README.md and outputs/expanded-study/v1/seed-replication/analysis.json.
+Larger text-observation corpora make both learnable.
+With 12,994 records, BFS reaches 1.0 success on a 15-task development panel, on which random-valid also reaches 1.0.
+With 47,780 records, BFWS reaches 0.933 on another 15-task panel, against 0.467 for random-valid.
+These runs use separate, smaller development panels, so this is not a matched-size comparison.
+% Evidence (BFS): data/bfs_pilot_v6/ms-swift-process/manifest.json counts.train 12994 (dev 12115; v6 corpus; appendix BFS pilot corpus paragraph); docs/experiments/deadline-study/prior-evidence.json historical_bfs_stages[stage v8] (selected_tasks 15, process SFT and random_valid invariant-valid success 1.0, base 0.0, outcome VALID_STOP).
+% Evidence (BFWS): docs/issue-59-bfws-structural-gate.md L250-255 (seed-17 two-epoch checkpoint, 0.933333 vs random-valid 0.466667, base 0, exact 1.0, 15 tasks); 47,780 train rows per docs/issue-58-bfws-text-corpus.md L39-46.
+A second backbone, InternVL3.5-8B \citep{wang2025internvl35}, shows the same split at 512 records, solving 31 of 36 greedy best-first episodes and no BFS episode.
+% Evidence: outputs/expanded-study/v1/second-backbone-v2/evaluation/analysis.json (BFS process_sft 0/36, base 0/36; synthesis-v1/README.md claim second-backbone-v2-null); second-backbone-v3/evaluation/analysis.json and docs/experiments/native-arms/issue-130-closeout.md L42 (greedy 31/36 = 11/10/10 of 12, base 0/36).
 
-% Paragraph purpose: Give the mechanism, namely one executed serial rule, the failed prediction, and why saturation cannot stand in for a per-decision audit.
-The identity is a property of executed code, which the contract specification does not reveal.
-It follows from the runtime's serial rule, which breaks ties in sorted candidate order (Counterfactual appendix, Appendix~\ref{app:results-counterfactual}).
-% Evidence: first divergence 2-50, median 6 (E134-11); ferry-expanded-915109 both algorithms flip (E134-12); tie-break and scope reading per issue-134-closeout.md R1.
-The identity audit, a decision-by-decision comparison of random-valid with the exact reference, finds 19/48 divergent pairs when ties instead break in submission order.
-% Evidence: outputs/native-arms/v1/identity-audit-submission-order.json rules.submission_order.pairs_divergent 19 (#134 E134-04).
-A pre-registered prediction of more than 24/48 divergent pairs failed.
-% Evidence: preregistered_prediction.held false; threshold > 24/48 at preregistered_prediction.variant_diverges_in_most_pairs (#134 E134-02, E134-07).
-Saturation alone does not separate the cases, because random-valid also saturated the BFS development panel.
-% Evidence: docs/experiments/deadline-study/prior-evidence.json historical_bfs_stages[stage v8].metrics.random_valid_invariant_valid_success 1.0 (outcome VALID_STOP);
-% the held-out manifest was not accessed (development-stage, one seed). Table tab:results-bfws (Appendix app:results-primary) keeps the 15-task size, base 0.0, and exact 1.0;
-On the expanded baseline, random-valid's BFS decisions nonetheless diverge from the reference's, and it solves 15/24 against 24/24 (Section~\ref{sec:results-identity}).
-% Evidence: Table tab:results-primary-matrix (BFS RV 15/24, BFWS RV 17/24, exact 24/24).
+% Paragraph purpose: F2. The learned execution rests on the text channel; give the corruption contrasts, and scope the finding to the textual candidate list the runtime supplies.
+Across observation types, the learned execution rests on the text (Section~\ref{sec:results-modality}, Figure~\ref{fig:teaser}c).
+For the additive adapters, shuffling the text lowers success by 0.944 with text and 0.722 with multimodal observations.
+Blanking or degrading the images lowers it by at most 0.111, and the intervals for these image corruptions all include zero.
+% Evidence: outputs/expanded-study/v1/modality-stress/analysis.json contrasts by family x arm (text-shuffled text -0.944 [-1.000, -0.833], text-shuffled multimodal -0.722 [-0.889, -0.500], visual-blank and visual-degraded -0.056 / -0.111 with upper endpoints +0.000); docs/experiments/expanded-study/issue-126-closeout.md; appendix table tab:results-corruption.
+Because the candidate list stays textual in every observation type, this shows that the trained models read the textual serialization, not that images are useless in principle.
 
-% Paragraph purpose: State the primary contribution, namely the admitted choice-frontier measurement and the ladder that validates it before any policy is scored, with the privileged-rung boundary.
-We therefore validate the measurement before scoring any policy, starting from a choice-frontier contract in which the policy picks the runtime-owned frontier state to expand.
-It passes the identity audit with 18/18 divergent pairs (Figure~\ref{fig:contracts}b), and its budget counts decisions, twice the reference's expansion count, applying the compute-matched-baseline principle \citep{li2019random}.
-M1, the area under the solve-versus-budget curve, must then pass a pre-registered ladder of exact-$\epsilon$ selectors, which randomize a fraction $\epsilon$ of reference decisions.
-On the validation panel, 12 fresh tasks from 7 domains, the ladder passes with smallest adjacent gap $+0.082$ $[+0.051, +0.111]$.
-% Evidence: configs/experiments/choice-frontier-v2/membership.json task_ids (12), domains (7); outputs/choice-frontier/v2/metrics/analysis.json instrument_validity.verdict PASS (#135 E135-01..16).
-% Evidence: outputs/choice-frontier/v2/metrics/analysis.json instrument_validity.pairs[0].difference and .ci95 (#135 E135-05, E135-06).
-It passes again on the held-out panel, with smallest gap $+0.130$ $[+0.070, +0.190]$ (Section~\ref{sec:results-ladder}).
-% Evidence: #139 outputs/choice-frontier/v4/panels/metrics/analysis.json pooled.panels.p2 11; concentration.per_panel.p2.domains (8 domains);
-% ladder_p2.verdict PASS (confirmatory, issue-139-protocol.md L93); ladder_p2.pairs[0].difference 0.1295 (0.130), .ci95 [0.0705, 0.1898] ([0.070, 0.190]);
-The rungs read the reference's computed priority order, which is never shown to a policy, so the ladder validates the measurement, not a policy, and Box~\ref{box:procedure} states the procedure.
+% Paragraph purpose: F3. The learned heuristic search holds up under task variations, scoped to the two additive adapters with saturated controls, and juxtaposed (not compared) with reported plan-training sensitivity.
+The learned heuristic search also holds up under task variations (Section~\ref{sec:results-robustness}).
+We tested the two additive adapters on 25 variant tasks from five families. They succeed on 128 of 150 episodes, the pretrained base on none, and random-valid and the exact reference (the declared algorithm run by the runtime) on all.
+Success stays between 26 and 29 of 30 under object renaming, name compression, image restyling, and scale-up, and falls to 19 of 30 under shifted initial states.
+% Evidence: docs/experiments/expanded-study/synthesis-v1/README.md §6 and claim generalization-v2-headline (learned 128/150, base 0/150, random_valid 750/750, exact_reference 150/150; object-renaming 29/30, name-compression 27/30, render-restyle 27/30, scale-up 26/30, shifted-init 19/30).
+\citet{belcamino2026generalization} report significant drops for a plan-trained model under symbol anonymization and compact plan serialization.
+Their model writes whole plans, ours emits single search steps over runtime-supplied candidates, and we ran no plan-trained baseline, so the results are juxtaposed, not compared.
+% Sources: arXiv:2601.14456 abstract ("Symbol anonymization and compact serialization cause significant performance drops despite preserving plan semantics"), checked 2026-09-26.
 
-% Paragraph purpose: Report what the validated measurement orders, namely two policies at the random-valid level and the trained adapter above it, with its ladder position.
-The validated measurement scores the zero-shot base and an earlier small-corpus adapter at the random-valid level and the trained adapter above it.
-The zero-shot base is equivalent to random-valid on the validation panel (development stage), and the earlier small-corpus adapter scores at its level (descriptive, Section~\ref{sec:results-adapter}).
-% Evidence (zero-shot base gloss, round 8 Wave 4): configs/experiments/choice-frontier-v6/protocol.json arm.condition zero_shot_base, model revision 0c351dd0, arm.adapter null (Zero-Shot Policy appendix, "pretrained Qwen3-VL-8B-Instruct base with no adapter").
-% Evidence (review 21 #82b): outputs/choice-frontier/v6/metrics/analysis.json primary.v2.stage "development", primary.p2.stage "held-out confirmatory".
-% Evidence: first adapter outputs/choice-frontier/v2/metrics/analysis.json adapter_reevaluation.learned_adapter.m1_auc 0.026,
-% CI [0.010, 0.042] (E135-41, E135-42); closeout "at the random_valid level".
-The trained adapter's gain $D_3$, its M1 minus random-valid's averaged over three training seeds, is $+0.285$ $[+0.140, +0.433]$ on the validation panel, with every seed positive.
-% Evidence: outputs/choice-frontier/v4/seeds/metrics/analysis.json primary.verdict POSITIVE, primary.D3, primary.ci95, primary.per_seed.{17,29,71} (#138).
-On the held-out panel, frozen before any evaluation episode, $D_3 = +0.416$ $[+0.250, +0.591]$.
-% Evidence: outputs/choice-frontier/v4/panels/metrics/analysis.json heldout_p2.primary.verdict POSITIVE, heldout_p2.primary.D3, heldout_p2.primary.ci95 (#139).
-On the unscreened panel, of tasks random-valid never solved in screening, the gain is $+0.149$ $[+0.030, +0.283]$, resting on 4 of 12 tasks (descriptive).
-% Evidence: outputs/choice-frontier/v4/panels/metrics/analysis.json unscreened_p2u.primary.D3, unscreened_p2u.primary.ci95, unscreened_p2u.primary.verdict POSITIVE; concentration.per_panel.p2u.counts positive 4; never solved in screening: P2u 0/10 random-valid goals on all 12 tasks, docs/experiments/choice-frontier/issue-139-closeout.md L56 (#139).
-The adapter is separated above the 0.75 rung only on the held-out panel, not on the validation panel, the unscreened panel, or pooled (Table~\ref{tab:results-panels}), and the adapter is trained only by imitating the exact reference.
-% Evidence: outputs/choice-frontier/v4/panels/metrics/analysis.json heldout_p2.separation.vs_eps_0.75.S, .ci95; outputs/choice-frontier/v4/seeds/metrics/analysis.json separation.vs_eps_0.75.S, .ci95; v4/panels analysis.json unscreened_p2u.separation.vs_eps_0.75.verdict NOT_SEPARATED; pooled.tasks 35, pooled.separation_vs_eps_0.75.S, .ci95 (#138, #139).
+% Paragraph purpose: F4. BFWS-trace adapters raise FOLIO accuracy under all three observations; state that the gain is not significant after Holm correction and that these adapters solve no planning task at 512 records.
+Training on BFWS traces also transfers beyond planning (Section~\ref{sec:results-transfer}).
+The BFWS adapters raise FOLIO logical-reasoning accuracy \citep{han2022folio} from 0.600 to 0.660, 0.645, and 0.645 with text, visual, and multimodal observations, and no adapter moves GSM8K or HumanEval accuracy \citep{cobbe2021gsm8k,chen2021humaneval} by more than 0.04.
+The gain is consistent but not statistically significant, since no transfer comparison survives Holm correction over 36 comparisons \citep{holm1979simple}.
+These are the 512-record adapters, so the BFWS adapter that improves FOLIO solves none of the 24 planning tasks.
+% Evidence: docs/experiments/expanded-study/synthesis-v1/transfer-accuracy.csv (folio base 0.600; iw_text 0.660, iw_visual 0.645, iw_multimodal 0.645; gsm8k 0.945-0.965 vs base 0.955; humaneval 0.756-0.817 vs base 0.780, so every adapter within 0.04 of the base, derived); transfer-paired.csv (36 McNemar comparisons, min Holm-adjusted p 0.8156, smallest raw p 0.0227 folio/iw_text); BFWS process_sft 0/24 in baseline-summary.csv.
 
-% Paragraph purpose: Show that steps 1 and 2 of the procedure run on published interfaces, with ScienceWorld as a positive control and LLM-First Search as a by-construction illustration of the budget step.
-Steps 1 and 2 of Box~\ref{box:procedure} run on two published interfaces, one audited instance each.
-ScienceWorld \citep{wang2022scienceworld} is a positive control, with 1000/1000 divergent pairs over 200 tasks and success of 0.915 versus 0.
-% Evidence: outputs/external-audit/v1/scienceworld/identity-audit.json pairs_divergent 1000 of pairs_checked 1000, first_divergence_index.max 0, success.reference 0.915, success.random_valid_mean 0.0, tasks 200 (#137 E137-02..06).
-No audited-candidate interface uses an enumeration contract, so the 48/48 failure is shown only on our runtime.
-% Evidence: 6 of 30 from docs/experiments/external-audit/issue-137-closeout.md §Limitations; 0 type A from issue-137-survey.md §Candidate table and issue-137-closeout.md §Stage 1 survey (#137 E137-19, E137-40, E137-42).
-LLM-First Search \citep{herr2025llmfirst} is a by-construction illustration of the budget step, since a zero-token chooser solves every task under its token caps.
-% Evidence: outputs/external-audit/v2/lfs/identity-audit.json paper_budget.verdict SATURATED, paper_budget.success.random_valid_mean 1.0; supplementary.tokens_median.random_valid 0.0 (#142).
-Counted in expansions, random-valid solves 0.0775 at the reference's expansion count (Section~\ref{sec:results-external}).
-% matched_decision_budget.random_valid_decision_budget_curve.random_valid_success [0.0775, 0.0975, 0.14, 0.17, 0.19] at multipliers [1.0 ... 2.0].
-
-% Paragraph purpose: State the three contributions without numbers, the validate-before-score measurement first; receipts are in the paragraphs above.
-This paper makes three contributions, the first primary.
-
+% Paragraph purpose: State the three contributions, each a bold lead phrase and one plain sentence.
+We make three contributions.
 \begin{itemize}[leftmargin=*,itemsep=1pt,parsep=1pt,topsep=2pt]
-    \item \textbf{A validate-before-score search-choice measurement, admitted by the identity audit and a decision-counted budget (the compute-matched-baseline principle of \citealp{li2019random}), whose M1 passes a pre-registered privileged ladder on validation and held-out panels before any policy is scored.}
-    \item \textbf{Evidence that the admission step is needed. On one runtime the identity audit returns both verdicts from a tie-break change alone, and it locates every process-SFT success on the expanded baseline in cells where success measures validity.}
-    \item \textbf{A worked use and a portable procedure (Box~\ref{box:procedure}). The measurement scores the trained adapter above random-valid on three panels, and the zero-shot base and an earlier small-corpus adapter at its level. Its first two steps run on two published interfaces, one audited instance each, crediting the budget step to the compute-matched-baseline principle \citep{li2019random}.}
+    \item \textbf{An empirical study of search-trace supervision for VLMs.} We fine-tune a VLM on traces of four classical search algorithms over 12 PDDL domains and three observation types, scoring only fully valid searches.
+    \item \textbf{Data-cost and observation-channel findings.} The additive variants are learned from 512 records, BFS and BFWS need over ten times more, and the learned execution depends on the text in the observation.
+    \item \textbf{Evidence on robustness and transfer.} The learned heuristic search withstands renaming, restyling, and scale-up, and BFWS traces give a consistent but non-significant FOLIO gain.
 \end{itemize}
+% Evidence: "over an order of magnitude": 12,994 / 512 and 47,780 / 512 (derived, both > 10); release: the Reproducibility Statement promises anonymous supplementary material only (TODO(release) #122), so no release is claimed here.
 
-% Paragraph purpose: Close with the evidence boundary.
-Every claim is development-stage, measured on development panels, not on the frozen 45-task final evaluation, which is unexecuted.
-Held-out means only the fresh 11-task held-out panel, drawn from seeds no adapter had been evaluated on (Section~\ref{sec:design}).
-Enumeration-contract cells are single-seed except two replication cells (seeds 17/29/71, descriptive $n{=}3$).
-We make no planning-ability or generality claim.
-% Evidence: seeds 17/29/71 on two replication cells per docs/experiments/expanded-study/issue-127-closeout.md and outputs/expanded-study/v1/seed-replication/analysis.json.
-% Held-out final evaluation (frozen 45-task manifest): unexecuted, no open ticket (review 20 finding 73). "first 40 seeds" deleted here; stated in Section 4.
-% #128 image-only-arm marker retired: executed under the #129 v2 amendment (v1 gate retained as history in Results).
+% Paragraph purpose: State the evidence boundary once and point to the appendix choice-frontier study.
+All results are development-stage: they use development panels and one training seed, except two three-seed replication cells, and the frozen 45-task final evaluation has not been run (Section~\ref{sec:design}).
+Appendix~\ref{sec:results-choice-frontier} reports a separate study in which the model chooses which frontier state to expand from rendered scenes alone.
+% Evidence: seeds 17/29/71 on two replication cells per docs/experiments/expanded-study/issue-127-closeout.md and outputs/expanded-study/v1/seed-replication/analysis.json; frozen 45-task manifest unexecuted (CONTEXT.md Prose Names).

@@ -1,0 +1,100 @@
+\section{Introduction}
+\label{sec:introduction}
+
+% Paragraph purpose: Pose the title question as a measurement problem and set up the policy, runtime, algorithms, contracts, and the natural control.
+Can a vision-language model learn to execute a classical search algorithm?
+Answering requires a success measure that responds to the model's choices (Figure~\ref{fig:teaser}).
+Prior probes evaluate language models on classical planning \citep{valmeekam2023critical,stein2025autoplanbench,kokel2026acpbenchhard}.
+We instead train a Search Process Policy to emit Typed Search Operations, which a no-repair Trusted Search Runtime validates (Section~\ref{sec:policy}).
+The declared algorithms are breadth-first search (BFS), Best-First Width Search (BFWS), and additive best-first search, guided by the additive heuristic $h_{\rm add}$, in greedy and weighted-A* variants.
+Observations are text, visual, or multimodal under an enumeration contract and scene-only under a choice-frontier contract.
+The natural control is random-valid, which chooses uniformly among valid operations.
+
+
+% Paragraph purpose: Show why success can mislead: under the enumeration contract random-valid makes the reference's decisions, so every process-SFT success measures validity, not choice.
+Success reflects choice only when random-valid decides differently from the exact reference (the declared algorithm run as specified). Under the enumeration contract, it need not.
+Each expansion there submits its complete candidate set, and in the additive best-first cells random-valid makes exactly the reference's decisions on 48/48 task-algorithm pairs (Figure~\ref{fig:teaser}).
+% Evidence: outputs/native-arms/v1/identity-audit.json (48/48, additive pairs only); outputs/native-arms/v1/identity-audit-submission-order.json rules.sorted_candidate_order.pairs_identical 48 (#134 E134-03).
+On the expanded baseline, our main enumeration-contract grid (Section~\ref{sec:design}), every success of process supervised fine-tuning (SFT) falls in these cells, and SFT solves no BFS or BFWS task (Table~\ref{tab:results-identity}).
+% (moved out of prose; kept in Table tab:results-identity, Total row) 125 of 288 entries.
+% Evidence: 125/288 per docs/experiments/expanded-study/synthesis-v1/README.md and synthesis-v1/baseline-summary.csv (process SFT baseline successes, additive cells only).
+% (moved out of prose; kept in Table tab:results-identity and Table tab:results-primary-matrix) 0/24 in each BFS and BFWS cell.
+% Evidence: BFS/BFWS SFT 0/24: Results Table tab:results-primary-matrix.
+SFT's gains here are gains in validity: in a three-seed replication cell, it beats the pretrained base at every seed but never beats random-valid (descriptive, with no pre-registered rule, Table~\ref{tab:appendix-seeds}).
+% (moved out of prose; kept in Table tab:appendix-seeds) +0.875 over the base and -0.125 against random-valid at two of three seeds; the 24-task panel size.
+% Evidence: outputs/expanded-study/v1/seed-replication/analysis.json baseline_process_sft.per_seed.{17,29,71}.successes (21, 21, 22 of 24)
+% and .contrasts.process_sft_minus_{pretrained_base,random_valid}.difference; bootstrap seed 1729, 10000 resamples.
+
+% Paragraph purpose: Explain why the identity is hidden: it follows from an executed tie-break rule that the contract specification does not reveal, and success saturation cannot detect it.
+The identity is easy to miss because it lives in executed code, not in the contract specification.
+The runtime's serial rule breaks equal-priority ties in sorted candidate order.
+% Evidence: first divergence 2-50, median 6 (E134-11); ferry-expanded-915109 both algorithms flip (E134-12); tie-break and scope reading per issue-134-closeout.md R1.
+The identity audit, a decision-by-decision comparison of random-valid with the exact reference, confirms the cause: with ties broken in submission order, 19/48 pairs diverge, although our pre-registered majority prediction failed (Appendix~\ref{app:results-counterfactual}).
+% Evidence: outputs/native-arms/v1/identity-audit-submission-order.json rules.submission_order.pairs_divergent 19 (#134 E134-04).
+% (moved out of prose; kept in Results Section 5.2, sec:results-identity) the prediction threshold of more than 24/48.
+% Evidence: preregistered_prediction.held false; threshold > 24/48 at preregistered_prediction.variant_diverges_in_most_pairs (#134 E134-02, E134-07).
+Success saturation cannot reveal the identity: random-valid also saturated the BFS development panel, yet its BFS decisions diverge from the reference's on the expanded baseline (Section~\ref{sec:results-identity}).
+% Evidence: docs/experiments/deadline-study/prior-evidence.json historical_bfs_stages[stage v8].metrics.random_valid_invariant_valid_success 1.0 (outcome VALID_STOP);
+% the held-out manifest was not accessed (development-stage, one seed). Table tab:results-bfws (Appendix app:results-primary) keeps the 15-task size, base 0.0, and exact 1.0;
+% (moved out of prose; kept in Table tab:results-identity) random-valid BFS 15/24 against the reference's 24/24.
+% Evidence: Table tab:results-primary-matrix (BFS RV 15/24, BFWS RV 17/24, exact 24/24).
+
+% Paragraph purpose: State the approach, validate the measurement before scoring: admit the choice-frontier contract by the identity audit and a decision-counted budget, then require M1 to pass the privileged ladder.
+We therefore validate the measurement before scoring any policy, starting from the choice-frontier contract, where the policy picks which frontier state to expand.
+This contract passes the identity audit, with random-valid diverging on 18/18 pairs (Figure~\ref{fig:teaser}), and its budget counts decisions, following the compute-matched-baseline principle \citep{li2019random}.
+% Evidence: outputs/choice-frontier/v1/evaluation/identity-audit.json pairs_divergent 18 of pairs_checked 18 (#132).
+M1, the area under the solve-versus-budget curve, must then pass a pre-registered ladder of exact-$\epsilon$ selectors.
+These replace a fraction $\epsilon$ of reference decisions with random-valid choices, so a valid M1 must order them by $\epsilon$.
+M1 passes on the validation and held-out panels (Section~\ref{sec:results-ladder}).
+% (moved out of prose; kept in Section 4, sec:design, validation-panel sentence) the validation panel's 12 tasks from 7 domains.
+% Evidence: configs/experiments/choice-frontier-v2/membership.json task_ids (12), domains (7); outputs/choice-frontier/v2/metrics/analysis.json instrument_validity.verdict PASS (#135 E135-01..16).
+% Evidence: #139 outputs/choice-frontier/v4/panels/metrics/analysis.json pooled.panels.p2 11; ladder_p2.verdict PASS (confirmatory, issue-139-protocol.md L93).
+Because the rungs read the reference's computed priority order, which no policy sees, the ladder validates the measurement, not a policy (Box~\ref{box:procedure}).
+
+% Paragraph purpose: Report what the validated measurement shows: the trained adapter beats random-valid, two other policies score at its level, and the ladder position and imitation training bound the gain.
+Under this measurement, the trained adapter beats random-valid.
+The gain $D_3$, the adapter's M1 minus random-valid's averaged over three training seeds, is $+0.285$ on the validation panel and $+0.416$ on the held-out panel, and both intervals exclude zero (Table~\ref{tab:results-panels}).
+% (moved out of prose; kept in Table tab:results-panels) intervals [+0.140, +0.433] and [+0.250, +0.591]; per-seed values (every seed positive) in Table tab:appendix-seed-d.
+% Evidence: outputs/choice-frontier/v4/seeds/metrics/analysis.json primary.verdict POSITIVE, primary.D3, primary.ci95, primary.per_seed.{17,29,71} (#138).
+% Evidence: outputs/choice-frontier/v4/panels/metrics/analysis.json heldout_p2.primary.verdict POSITIVE, heldout_p2.primary.D3, heldout_p2.primary.ci95 (#139).
+Descriptively, the gain also holds on the unscreened panel, whose tasks random-valid never solved in screening, but it rests on a minority of them.
+% (moved out of prose; kept in Table tab:results-panels, 4/8/0 sign column, and the Discussion Limitations) 4 of 12 tasks.
+% Evidence: outputs/choice-frontier/v4/panels/metrics/analysis.json unscreened_p2u.primary.D3, unscreened_p2u.primary.ci95, unscreened_p2u.primary.verdict POSITIVE; concentration.per_panel.p2u.counts positive 4; never solved in screening: P2u 0/10 random-valid goals on all 12 tasks, docs/experiments/choice-frontier/issue-139-closeout.md L56 (#139).
+By contrast, the zero-shot base is equivalent to random-valid on the validation panel (development stage), and an earlier small-corpus adapter scores at its level (descriptive, Section~\ref{sec:results-adapter}).
+% Evidence (zero-shot base gloss): configs/experiments/choice-frontier-v6/protocol.json arm.condition zero_shot_base, model revision 0c351dd0, arm.adapter null (Zero-Shot Policy appendix, "pretrained Qwen3-VL-8B-Instruct base with no adapter").
+% Evidence: outputs/choice-frontier/v6/metrics/analysis.json primary.v2.stage "development", primary.p2.stage "held-out confirmatory".
+% Evidence: first adapter outputs/choice-frontier/v2/metrics/analysis.json adapter_reevaluation.learned_adapter.m1_auc 0.026,
+% CI [0.010, 0.042] (E135-41, E135-42); closeout "at the random_valid level".
+The trained adapter is separated above the 0.75 rung only on the held-out panel, not on the validation panel, the unscreened panel, or pooled, and it is trained only by imitating the exact reference.
+% Evidence: outputs/choice-frontier/v4/panels/metrics/analysis.json heldout_p2.separation.vs_eps_0.75.S, .ci95; outputs/choice-frontier/v4/seeds/metrics/analysis.json separation.vs_eps_0.75.S, .ci95; v4/panels analysis.json unscreened_p2u.separation.vs_eps_0.75.verdict NOT_SEPARATED; pooled.tasks 35, pooled.separation_vs_eps_0.75.S, .ci95 (#138, #139).
+
+% Paragraph purpose: Show that steps 1 and 2 of Box 1 run on published interfaces (ScienceWorld a positive control, LLM-First Search a by-construction illustration of the budget step), and bound the 48/48 failure to our runtime.
+The first two steps of Box~\ref{box:procedure} also run on published interfaces, one audited instance each.
+ScienceWorld \citep{wang2022scienceworld} is a positive control: random-valid diverges at the first decision of every audited pair and never succeeds, while the reference usually does.
+% (moved out of prose; kept in Results Section 5.5, sec:results-external, and the ScienceWorld audit appendix) reference success 0.915 against 0 for random-valid.
+% Evidence: outputs/external-audit/v1/scienceworld/identity-audit.json pairs_divergent 1000 of pairs_checked 1000, first_divergence_index.max 0, success.reference 0.915, success.random_valid_mean 0.0, tasks 200 (#137 E137-02..06).
+LLM-First Search \citep{herr2025llmfirst} is a by-construction illustration of the budget step: random-valid, spending no tokens, solves every task under its token caps but rarely within the reference's expansion count (Section~\ref{sec:results-external}).
+% Evidence: outputs/external-audit/v2/lfs/identity-audit.json paper_budget.verdict SATURATED, paper_budget.success.random_valid_mean 1.0; supplementary.tokens_median.random_valid 0.0 (#142).
+% (moved out of prose; kept in Table tab:appendix-lfs, All row) random-valid success 0.0775 at the reference's expansion count.
+% matched_decision_budget.random_valid_decision_budget_curve.random_valid_success [0.0775, 0.0975, 0.14, 0.17, 0.19] at multipliers [1.0 ... 2.0].
+No audited-candidate interface uses an enumeration contract, so the 48/48 identity failure is shown only on our runtime.
+% Evidence: 6 of 30 from docs/experiments/external-audit/issue-137-closeout.md §Limitations; 0 type A from issue-137-survey.md §Candidate table and issue-137-closeout.md §Stage 1 survey (#137 E137-19, E137-40, E137-42).
+
+% Paragraph purpose: State the three contributions without numbers, the validate-before-score measurement first; each is a bold lead phrase and one plain sentence.
+We make three contributions, of which the first is primary.
+
+\begin{itemize}[leftmargin=*,itemsep=1pt,parsep=1pt,topsep=2pt]
+    \item \textbf{A validate-before-score measurement of search choice.} The identity audit and a decision-counted budget \citep{li2019random} admit the interface, and M1 passes a pre-registered privileged ladder before any policy is scored.
+    \item \textbf{Evidence that admission is needed.} On one runtime, a tie-break change alone flips the audit's verdict, and every process-SFT success on the expanded baseline lies where success measures validity.
+    \item \textbf{A worked use and a portable procedure (Box~\ref{box:procedure}).} The measurement scores the trained adapter above random-valid on three panels, and the procedure's first two steps run on two published interfaces, crediting the budget step to \citet{li2019random}.
+\end{itemize}
+
+% Paragraph purpose: Close with the evidence boundary.
+All claims are development-stage, measured on development panels, and the frozen 45-task final evaluation is unexecuted.
+Held-out means only the fresh held-out panel, drawn from seeds on which no adapter had been evaluated (Section~\ref{sec:design}).
+Enumeration-contract cells are single-seed except two three-seed replication cells.
+We make no planning-ability or generality claim.
+% (moved out of prose; kept in the seed-replication appendix app:results-boundary and Table tab:appendix-seeds) seeds 17/29/71; (kept in Table tab:results-panels and fig:ladder) the held-out panel's 11 tasks.
+% Evidence: seeds 17/29/71 on two replication cells per docs/experiments/expanded-study/issue-127-closeout.md and outputs/expanded-study/v1/seed-replication/analysis.json.
+% Held-out final evaluation (frozen 45-task manifest): unexecuted, no open ticket. "first 40 seeds" deleted here; stated in Section 4.
+% #128 image-only-arm marker retired: executed under the #129 v2 amendment (v1 gate retained as history in Results).

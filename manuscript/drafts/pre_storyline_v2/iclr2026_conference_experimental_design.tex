@@ -1,0 +1,130 @@
+\section{Experimental Design}
+\label{sec:design}
+
+% Paragraph purpose: Say that two oracle-assisted controls bound every learned result, and define random-valid under each contract.
+Every learned result is read against two oracle-assisted controls: the exact reference, which runs the declared algorithm, and random-valid. Both read the runtime's valid-operation list or the reference trace, so their scores are bounds, not abilities, and a saturated control leaves any gain unmeasurable rather than zero. Under the enumeration contract, random-valid is uniform over valid operations, drawing one listed candidate per decision, seeded, with no retry or repair. The candidates are successor rows under additive search, non-duplicate evaluated successors at an admissible frontier position under BFWS, and unvisited successors under BFS, else a frontier-retire operation. Under the choice-frontier contract, it is uniform over the offered frontier.
+% Evidence (executed code, read-only): examples/planning_benchmark_slice/visual_episode.py L356 (random.Random(seed)) and
+% reference_output L403-433 (dispatch; BFS: random.choice over successor_candidates with visited false, else retire_frontier);
+% best_first_development.py L519-521 random_valid_best_first_output (generator.randrange over successor_candidates.rows);
+% bfws_issue59.py L1054-1084 random_valid_bfws_model_output (skips duplicate / unevaluated candidates and inadmissible
+% target_position, generator.choice, else retire_frontier); no retry or repair loop in any sampler; one submit_output per decision.
+% Choice frontier: choice_frontier.py L319-320 (random.choice over the pending menu_binding labels) and
+% outputs/choice-frontier/v1/evaluation/identity-audit.json basis ("random_valid (uniform menu choice)").
+
+% Paragraph purpose: Say why the identity audit comes first and what role it plays under each contract.
+The identity audit compares random-valid with the exact reference decision by decision, because where they never diverge, success measures validity, not choice. It is a pre-registered pass condition on the choice-frontier contract, passed by any divergence over frozen task-algorithm pairs without re-runs, and diagnostic on the enumeration contract's additive cells.
+% Evidence: docs/experiments/choice-frontier/issue-132-design.md sections 2 and 6 (identity-audit gate and verdict rule);
+% issue-132-closeout.md Erratum item 5; outputs/native-arms/v1/identity-audit.json (enumeration-contract audit).
+
+% Paragraph purpose: Say that the choice-frontier panels grow more independent of the design, and define the held-out panel once, in full.
+Choice-frontier results come from reused, freshly frozen, and new-seed panels, each kind further removed from our design decisions. The first measurement used the reused 9-task panel, low-cost tasks from 8 domains shared with other experiments, so its design could adapt to earlier results.
+% Evidence: docs/experiments/choice-frontier/issue-132-design.md sections 3--6 (36 GPU + 108 CPU = 144 episodes);
+% outputs/choice-frontier/o4/metrics/optimal-costs.json (nine tasks, 8 domains, 7 compact / 2 expanded, C* 3-6); panel reuse per
+The ladder test and the adapter use the validation panel, 12 fresh tasks from 7 domains frozen before evaluation.
+% Evidence: #135 configs/experiments/choice-frontier-v2/membership.json task_ids 12, domains 7, frozen at commit 47de39c before evaluation
+% (E135-63). #136 reuses the same panel (membership_sha256 identical, E136-35). Copied from Results 5.6.
+The held-out panel (P2 in figures and tables) applies the same rules to new seeds on which no adapter had been evaluated, their range extended once before any evaluation episode (Appendix~\ref{app:results-panels}). Held-out means this panel only, never the frozen 45-task final evaluation, which remains unexecuted.
+% Evidence: #139 issue-139-protocol.md with Amendment A1 before any evaluation episode (L118-127); P2 screened / P2u unscreened rules
+% L36, L48-50, L55-57; held-out manifest never read (issue-139-closeout.md L11, L58). "first 40 seeds" per issue-139-closeout.md L58.
+
+% Paragraph purpose: Say what the random-valid screen selects and how the unscreened panel removes that selection.
+The validation and held-out panels pass a random-valid screen that admits a task only if 1 to 9 of its 10 episodes reach the goal, keeping tasks on which near-uniform choice sometimes succeeds. The unscreened panel (P2u), frozen with the held-out panel before evaluation, removes this selection by drawing kept candidates outside the held-out panel without the screen.
+% Evidence: screen rule issue-139-protocol.md L48 (1 to 9 of 10 random-valid screening goals).
+% Copied from Results 5.4 ("random-control screen").
+
+% Paragraph purpose: Give the validate-before-score procedure as four imperative steps, each with its rule and threshold (Box 1).
+\begin{protocolbox}[!t]
+\caption{Validate before score. Four steps admit random-valid as a choice control and validate the success measure before any policy is scored.}
+\label{box:procedure}
+\begin{tcolorbox}[
+  title={Four-step validation},
+  colbacktitle=black!60,
+  coltitle=white,
+  colback=black!3,
+  colframe=black!60,
+  fonttitle=\bfseries,
+  fontupper=\small,
+  boxrule=0.5pt,
+  boxsep=5pt]
+\textbf{Inputs.} The executed interface (per-decision candidate set, ordering, tie-break rule), the exact reference, and seeded random-valid with no retry or repair.
+
+\smallskip
+\textbf{1. Identity audit.} Compare random-valid with the exact reference decision by decision on the same tasks and seeds, reporting the divergent fraction and first divergence. Read success as choice only where decisions diverge and random-valid's success falls below the reference's. Otherwise success measures validity, which saturation alone cannot reveal (Section~\ref{sec:results-identity}).
+
+\smallskip
+\textbf{2. Budget check.} If a zero-token control exists, follow the compute-matched-baseline principle \citep{li2019random}. Count the budget in the units that the control spends, decisions or expansions, and report its success at the reference's count and at twice it. The check fails if the control saturates in its native unit but not in decisions (Section~\ref{sec:results-external}).
+
+\smallskip
+\textbf{3. Ladder.} If the reference computes a priority order, freeze a fresh panel before evaluation and pre-register the order exact reference, $\epsilon$ 0.25, 0.50, 0.75, random-valid. Each exact-$\epsilon$ rung replaces a fraction $\epsilon$ of reference decisions with random-valid choices. Score M1, the area under the solve-versus-budget curve up to twice the reference's expansion count. The ladder passes only if all four adjacent paired task-clustered 95\% lower bounds are positive along the $\epsilon$ axis. The rungs are privileged, so a pass validates the measurement, not a policy (Section~\ref{sec:results-ladder}).
+
+\smallskip
+\textbf{4. Report.} Give the policy's difference from random-valid with a paired task-clustered interval and a pre-registered margin (0.05 here), its ladder position, per-task signs, screened and unscreened panels, and training seeds. Non-separation from a rung is not equivalence (Section~\ref{sec:results-adapter}).
+
+\smallskip
+\textbf{Where a step was at risk (one audited instance each).} Complete-set submission with a priority heap and sorted tie-breaking failed step~1 (our enumeration contract's additive cells, 48/48). Per-step choice among valid actions passed step~1 (ScienceWorld). Model-scored candidates on a frontier that keeps every alternative, under a token budget, failed step~2 by construction (LLM-First Search).
+
+\smallskip
+\textbf{If a step fails,} change the contract (for example, let the policy choose the frontier state, or break ties in submission order) and audit again.
+\end{tcolorbox}
+% Evidence (step 3 rule): #135 docs/experiments/choice-frontier/issue-135-protocol.md (commit f823850 before task generation); outputs/choice-frontier/v2/metrics/analysis.json
+% instrument_validity.rule (PASS: all four paired task-cluster 95% lower bounds > 0), .tasks 12, .bootstrap draws 10000 / seed 133 (E135-01..03).
+% Evidence (step 3 rungs; copied from the Figure 1 caption comment, Introduction): outputs/choice-frontier/v4/panels/metrics/analysis.json
+% arms.p135.exact_reference.m1 (0.875), arms.p135.exact-eps-0.25.m1 (0.793), arms.p135.exact-eps-0.50.m1 (0.603),
+% arms.p135.exact-eps-0.75.m1 (0.347), arms.p135.random_valid.m1 (0.021), arms.p135.learned_adapter_seed_mean.m1 (0.306); intervals at arms.p135.<arm>.ci95.
+% Evidence (step 4 margin): outputs/choice-frontier/v3/metrics/analysis.json primary.materiality_margin 0.05,
+% primary.equivalence_margin 0.05 (E136-02, E136-04, E136-05); configs/experiments/choice-frontier-v3/protocol.json
+% analysis.materiality_margin 0.05 (E136-04).
+% Evidence (48/48): outputs/native-arms/v1/identity-audit.json pairs_identical 48 of pairs_checked 48; outputs/native-arms/v1/identity-audit-submission-order.json rules.sorted_candidate_order.pairs_identical 48 (#134 E134-03).
+% Evidence (ScienceWorld passes step 1): outputs/external-audit/v1/scienceworld/identity-audit.json pairs_divergent 1000 of pairs_checked 1000, verdict CHOICE_REGISTERED (#137).
+% Evidence (LLM-First Search, step 2 by construction): outputs/external-audit/v2/lfs/identity-audit.json paper_budget.verdict SATURATED; matched_decision_budget.verdict CHOICE_REGISTERED; issue-142-protocol.md L166-167 (probe 100/100) (#142).
+\end{protocolbox}
+
+% Paragraph purpose: Say that every choice-frontier verdict follows a rule frozen before its outcome, and name the rules.
+Each choice-frontier verdict follows a rule frozen before its outcome. The ladder uses Box~\ref{box:procedure}'s pass rule. The adapter rule requires a positive difference from random-valid in M1, with a materiality margin of 0.05 and an equivalence margin of $\pm 0.05$. Later frozen protocols add three training seeds, two fresh panels, a zero-shot policy, and a second external audit.
+% Evidence: #135 docs/experiments/choice-frontier/issue-135-protocol.md (commit f823850 before task generation); outputs/choice-frontier/v2/metrics/analysis.json
+% instrument_validity.rule (PASS: all four paired task-cluster 95% lower bounds > 0), .tasks 12, .bootstrap draws 10000 / seed 133 (E135-01..03).
+% Evidence: #136 configs/experiments/choice-frontier-v3/protocol.json (commit ecdda03 before generation); outputs/choice-frontier/v3/metrics/analysis.json
+% primary.estimand, primary.rule, primary.materiality_margin 0.05, primary.equivalence_margin 0.05 (E136-02, E136-04, E136-05).
+% Evidence: #138 protocol commit f06c7ac before any GPU launch (issue-138-closeout.md L5); #139 protocol with Amendment A1 before any
+% evaluation episode; #141 protocol commit 0fa497c before any GPU launch (issue-141-closeout.md L3); #142 protocol issue-142-protocol.md
+% with Amendment A1 (commit e89a793) before any audit episode (L212).
+
+% Paragraph purpose: Say what the enumeration-contract study compares, on which grid, and under which budget; defer recipes to the appendix.
+The enumeration-contract study compares process SFT with the pretrained base, SFT plus two DAgger iterations \citep{ross2011dagger}, and an exposure-matched continued-SFT control. It trains low-rank adaptation (LoRA) adapters \citep{hu2022lora} on replay-verified examples with Qwen3-VL-8B-Instruct \citep{bai2025qwen3vl} and uses InternVL3.5-8B \citep{wang2025internvl35} as a second backbone (Appendix~\ref{app:data-splits}).
+% Evidence: docs/issue-59-bfws-structural-gate.md L10-13 (47,780 train records, two epochs, seed 17); expanded-study recipe (512 records, one epoch, 16 updates) per
+% outputs/expanded-study/v1/seed-replication/analysis.json and synthesis-v1/README.md; backbone revision 0c351dd0 per
+% docs/experiments/expanded-study/goal10-completion-audit.json L7 (0c351dd01ed87e9c1b53cbc748cba10e6187ff3b) and seed-replication-amendment.md L68.
+% Evidence: 336 GPU-hour cap per docs/experiments/expanded-study/issue-127-closeout.md (68.5244 / 336) and Table tab:appendix-receipts.
+The arms run on the expanded baseline of text, visual, and multimodal observations over 24 tasks from 12 domains, with one algorithm under one observation per cell. Budgets count decision calls, charge invalid operations, cap adapters at twice the exact reference's count, and price the base at one call. An episode ends at its first invalid emission and counts only after independent replay. Contrasts use a paired whole-instance bootstrap (Appendix~\ref{app:statistics}).
+% (moved out of prose; kept in Table tab:results-identity, "Total (of 288)" row) 288 episodes per arm.
+% Evidence: 24 tasks, 12 domains, 288 episodes per arm per docs/experiments/expanded-study/synthesis-v1/README.md and baseline-summary.csv;
+% bootstrap 10,000 resamples, seed 1729 per synthesis-v1/baseline-contrasts.csv (Table tab:results-contrasts caption).
+
+% Paragraph purpose: Say that every executed run is accounted for and replayed, and state the seed scope of the enumeration-contract cells.
+Every executed run reconciles with its ledger and independent replay (Appendix~\ref{app:results-gates}, Table~\ref{tab:appendix-receipts}). Enumeration-contract learned cells are single-seed, except two replicated over three training seeds.
+\label{sec:results-gates}
+% Evidence: 2.25/30 GPU-h (#141) per issue-141-closeout.md L77 ("2.245 / 30") and outputs/choice-frontier/v6/budget.json attempts[0..4].gpu_hours,
+% cap schedule.authorization.window_gpu_hours_cap 30.0; 2.89/12 GPU-h (#142) per outputs/external-audit/v2/budget.json total_gpu_hours 2.8910 and
+% .schema.gpu_hours_cap 12.0 (issue-142-closeout.md L108). Never summed (external-audit/v2/budget.json .schema.independent; choice-frontier/v6 budget.json schedule.accounting).
+% Evidence: 68.5244 / 336 per docs/experiments/expanded-study/issue-127-closeout.md; 1,152/1,152 per synthesis-v1/README.md;
+% follow-up windows per issue-129/130/132 closeouts and the #133 closing comment (GPU ledgers native-arms/v1, reviewer-v130/v1+v2,
+% choice-frontier/v1 budget.json; zoo CPU only). BFS pilot 1.0 / random-valid 1.0 per docs/experiments/deadline-study/prior-evidence.json
+% historical_bfs_stages[stage v8].metrics (process_sft_invariant_valid_success 1.0, random_valid_invariant_valid_success 1.0, outcome VALID_STOP).
+% Addenda are #126 (corruption) and #127 (seed replication); follow-up windows are #129, #130 (R1-R4), #132, and #133.
+% Evidence: 1.19/4 GPU-h (#135) per outputs/choice-frontier/v2/budget.json attempts[].gpu_hours and the #135 closing comment 5797898541 (LED-1).
+% Evidence: 4.84/30 GPU-h (#136) per outputs/choice-frontier/v3/budget.json attempts[].gpu_hours and the #136 closing comment 5800787379 (LED-2).
+% Evidence: 15.22/24 GPU-h (#138 + #139) per issue-139-closeout.md L144 and outputs/choice-frontier/v4/budget.json attempts[].gpu_hours;
+% 9.06/40 GPU-h (#140) per issue-140-closeout.md L72 and outputs/choice-frontier/v5/budget.json attempts[].gpu_hours. Never summed.
+% Evidence: #134 and #137 CPU-only per issue-134-closeout.md ("no GPU was used") and issue-137-closeout.md (LED-3, LED-4). Never summed.
+% Status 2026-09-21: issues #96/#98/#102/#103 CLOSED (supervisor decision, v1 scope withdrawn); prose states the withdrawal.
+% TODO: the authorized held-out final primary evaluation on the frozen
+% 45-task manifest remains unexecuted; no final efficacy number exists.
+% Evidence (follow-ups and seeds, former exploratory-follow-ups paragraph): follow-up protocols are issues #128--#133; docs/experiments/native-arms/native-arms-design.md; issue-130-design.md; issue-133-protocol.md.
+% (moved out of prose; kept in Appendix app:statistics, Seed-variance addendum, and the Introduction) seeds 17/29/71.
+% Evidence: seed replication per issue #127 (docs/experiments/expanded-study/issue-127-closeout.md); replication protocol frozen 2026-09-20.
+% TODO(panel-overlap): issue-54-operator-runbook.md and issue-59-bfws-structural-gate.md pin the selection rules but not their
+% shared task identities. A 2026-09-23 search found no pinned post-#126 retention manifest. Count stays open.
+% Status 2026-09-21: issues #96/#98/#102/#103 CLOSED (supervisor decision, v1 scope withdrawn); only reduced v2 scopes executed.
+% Held-out final primary evaluation: no open ticket; stated in prose with no visible marker per the round-2 TODO convention.
+
+

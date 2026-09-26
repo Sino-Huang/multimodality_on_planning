@@ -1,21 +1,8 @@
-% STATUS: REVISED #131 round 2 2026-09-23: compute envelope extended to the follow-up windows (each with
-% its own cap, never summed with the program); replay receipts for #129, #130, #132, #133; CPU-only
-% choice-frontier corpus and zoo; seed policy covers the follow-ups. Release paragraph stays pending (#122).
-% STATUS: REVISED R3a 2026-09-22 for finding #26. Three paragraphs
-% covering frozen protocol discipline with episode-level replay verification,
-% released artifacts with exact corpus counts, and the compute envelope with
-% statistical procedures. Single TODO marker for pending public release URLs
-% (#122). No new citations.
-% STATUS: #131 round 7 Wave 4 (2026-09-25). Split into six sentences with the round-7 names; every appendix pointer and the supplementary-material sentence kept. No number.
-% STATUS: #131 round 8 Wave 4 (2026-09-25). Box 1 named as the procedure; appendix names and labels aligned with the appendix roadmap (new labels app:runtime, app:data-splits, app:receipts, app:statistics, app:cf-contract). No number.
 \section*{Reproducibility Statement}
 
-% Paragraph purpose: Name Box 1 as the procedure and point to the appendices that specify the runtime, splits, ledgers, statistics, and the choice-frontier contract.
-Box~\ref{box:procedure} states the validate-before-score procedure, and each Results subsection reports one of its steps. Reproduction details are in the Trusted Search Runtime (Appendix~\ref{app:runtime}), Data and Split Procedures (Appendix~\ref{app:data-splits}), Receipt Tables (Appendix~\ref{app:receipts}), and Statistics (Appendix~\ref{app:statistics}) appendices. The Choice-Frontier Contract and Comparator Selectors appendix (Appendix~\ref{app:cf-contract}) specifies the choice-frontier contract.
+% Paragraph purpose: Point to the appendices that specify the operation schemas, invariants, runtime, corpora and splits, training recipes, and statistics behind the trace-learning study.
+Appendices~\ref{appendix}, \ref{app:invariants}, and~\ref{app:runtime} specify the operation schemas, algorithm invariants, and runtime that check every search step. Appendix~\ref{app:data-splits} gives the trace corpora, splits, and training recipes, and Appendix~\ref{app:statistics} the statistical procedures. The corruption, robustness, transfer, and second-backbone analyses are detailed in Appendices~\ref{app:results-corruption} and~\ref{app:results-secondary}.
 
-% Paragraph purpose: Point to the follow-up appendices and artifact tables, and state the anonymous-release boundary.
-The Counterfactual (Appendix~\ref{app:results-counterfactual}), Choice-Frontier Validation (Appendix~\ref{app:results-ladder}), Scaled Adapter (Appendix~\ref{app:results-adapter}), and External Identity Audit (Appendix~\ref{app:results-external}) appendices report the follow-ups. The Held-Out Panels (Appendix~\ref{app:results-panels}), DAgger Ablation (Appendix~\ref{app:results-cf-dagger}), and Zero-Shot Policy (Appendix~\ref{app:results-cf-zeroshot}) appendices sit under the Scaled Adapter appendix, and the LLM-First Search Audit appendix (Appendix~\ref{app:results-external-lfs}) sits under the External Identity Audit appendix. Table~\ref{tab:appendix-receipts} holds the ledgers, and Table~\ref{tab:appendix-artifacts} indexes the pinned evidence paths. Code and evidence bundles will be provided as anonymous supplementary material.
-% Round 4 wave 3: pointer updated from app:results-cf to the four round-4 appendices (#134-#137) and the ledger rows; no new numbers.
-% Round 5 wave 3: letter range (app:results-counterfactual to app:results-external) replaced by prose names; Held-Out Panels (#139) and DAgger Ablation (#140) added.
-% Round 6 wave 3: Zero-Shot Policy (#141) and LLM-First Search Audit (#142) pointers added by prose name.
+% Paragraph purpose: Point to the appendix frontier-choice study, the run ledgers, and the artifact index, and state the anonymous-release boundary.
+Appendix~\ref{app:cf-contract} specifies the frontier-choice study, whose held-out panels, DAgger ablation, and zero-shot policy are reported in Appendices~\ref{app:results-panels}, \ref{app:results-cf-dagger}, and~\ref{app:results-cf-zeroshot}. Table~\ref{tab:appendix-receipts} holds the run ledgers, and Table~\ref{tab:appendix-artifacts} indexes the pinned evidence paths. Code and evidence bundles will be provided as anonymous supplementary material.
 % TODO(release): issue #122 tracks the anonymous supplementary bundles and future release URLs; none are assigned yet.

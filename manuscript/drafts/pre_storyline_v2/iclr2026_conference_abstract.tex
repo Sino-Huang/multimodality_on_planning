@@ -1,0 +1,16 @@
+% The non-floating teaser stays immediately below the title, above the abstract.
+\vspace{-14pt}
+\begin{center}
+\includegraphics[width=\textwidth]{figures/fig_teaser.pdf}
+\captionof{figure}{\textbf{Success reflects choices only if they change the search.} (a)~On additive tasks, runtime tie-breaking makes random-valid (uniform valid choices) reproduce exact search. (b)~When the model picks the state to expand (one illustrative blocksworld step), random-valid and exact search diverge, and a trained adapter scores between them.}
+\label{fig:teaser}
+% Evidence (a, 48/48): outputs/native-arms/v1/identity-audit.json pairs_identical and pairs_checked (additive pairs).
+% Evidence (b, 18/18): outputs/choice-frontier/v1/evaluation/identity-audit.json pairs_divergent and pairs_checked.
+% Evidence (b, scenes): outputs/choice-frontier/v4/seeds/evaluation/{episodes,views}/choice-frontier-v2__blocksworld-expanded-935004/best_first_add_greedy-learned_adapter-s29-17* events[6] (first qualifying menu, 3 states; reference = preceding frontier head, privileged); scenes are the unchanged cached 128 px policy PNGs listed in outputs/choice-frontier/v2/views/blocksworld-expanded-935004/unlabelled/task.json scenes (recipe scene-only-128-unlabelled-v1); figures/fig_teaser.py asserts all of these.
+% Evidence (b, strip): outputs/choice-frontier/v4/panels/metrics/analysis.json arms.p135.{random_valid,learned_adapter_seed_mean,exact_reference}.m1 (0.021, 0.306, 0.875), asserted at 3 dp in figures/fig_teaser.py; plotted as positions only, no value printed. Full ladder: fig:ladder.
+\end{center}
+\vspace{-10pt}
+
+\begin{abstract}
+The automated planning community has probed the planning ability of large language models by fine-tuning them on planning-problem corpora, but the training target is almost always the \emph{plan} (i.e., the action sequence a planner returns), rather than the search that found it. Yet classical planning offers many search algorithms, and how well a model learns to execute them from its reasoning trace is still an open question. As embodied agents increasingly plan from what they see, the question extends to vision-language models (VLMs). We fine-tune a VLM on the search traces of four classical algorithms, breadth-first search (BFS), best-first width search (BFWS), and greedy and weighted-$A^*$ best-first search with the additive heuristic, across 12 PDDL domains with text, image, and combined observations. We find that all four algorithms are learnable, but at very different data costs: BFS and BFWS require over an order of magnitude more training data than the $A^*$ variants to reach the same performance. Across observation types, text encodes the learned knowledge: shuffling the text lowers success by up to 0.94, while blanking the images costs at most 0.11. Where plan-trained models have been reported to degrade under symbol renaming, trace-trained models stay robust to renaming, restyling, and scale-up. Training on width-based traces even transfers beyond planning, raising logical-reasoning accuracy on FOLIO from 0.600 to 0.660. Together, these results establish search traces as a practical supervision target for planning research, alongside plans.
+\end{abstract}
