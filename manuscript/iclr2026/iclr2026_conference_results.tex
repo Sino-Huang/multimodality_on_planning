@@ -1,162 +1,150 @@
-\section{Results}
+\section{Results and Discussion}
 \label{sec:results}
+\label{sec:discussion}
 
-% Paragraph purpose: Map the four subsections onto findings F1-F4 and say once how the two controls are read.
-This section reports four findings. Section~\ref{sec:results-data-cost} shows that all four algorithms can be learned from traces, at very different data costs. Section~\ref{sec:results-modality} shows that the learned execution relies on the text of each observation, Section~\ref{sec:results-robustness} that it keeps working under task variations, and Section~\ref{sec:results-transfer} that BFWS traces bring a small, not statistically significant gain in logical reasoning. Two controls appear throughout. Random-valid emits a uniformly drawn valid operation at each decision, and the exact reference runs the declared algorithm itself. Both read the runtime's list of valid operations, so we treat them as oracle-assisted bounds on what valid execution reaches, not as learned abilities (Section~\ref{sec:design}).
+% Paragraph purpose: Map the three subsections onto the Introduction's findings and contributions (what each level costs; what the learned search carries), and restate the two findings that run against expectation.
+A VLM learns both levels of search from traces, and the two levels differ in what they cost. Sections~\ref{sec:results-data-cost} and~\ref{sec:results-search-control} report what each level costs, which is our second contribution, and Section~\ref{sec:results-transfer} reports what the learned search carries beyond planning, our third. Two results run against a natural expectation: the simplest algorithm, blind BFS, needs over an order of magnitude more data to execute than a small training set provides, whereas the choice that a heuristic search computes from an estimate is learned from images of the open nodes alone. Each subsection reports its result and then discusses what it shows.
+% Evidence: see the evidence comments of each subsection below.
 
-\subsection{All Four Algorithms Are Learnable, at Different Data Costs}
+\subsection{Executing BFS and BFWS Is Learnable, but Only with Far More Data}
 \label{sec:results-data-cost}
 
-% Paragraph purpose: State the main-grid result: at 512 records the two additive variants are learned and BFS/BFWS are not, with the base failing on format.
-With 512 training records per adapter, fine-tuning teaches the two additive variants but not BFS or BFWS (Table~\ref{tab:results-main}, top). Each record is one search decision taken from a replay-verified reference trace. The greedy best-first and weighted-A* adapters solve 125/144 task-observation entries, whereas the pretrained base solves none and mostly fails its first decision on output format (Table~\ref{tab:appendix-rejection}). The BFS and BFWS adapters solve 0/24 tasks under every observation.
-% Evidence: docs/experiments/expanded-study/synthesis-v1/baseline-summary.csv (48 rows; episodes 24 per cell): process_sft best_first_add_w3 text 20 / visual 18 / multimodal 22,
-% best_first_add_greedy text 22 / visual 22 / multimodal 21 (sum 125 of 144 additive entries); process_sft bfs and best_first_width 0 in all three modalities;
-% pretrained_base 0 in every cell. Recipe 512 records, one epoch, 16 updates, seed 17 per synthesis-v1/README.md and outputs/expanded-study/v1/seed-replication/analysis.json.
-% Evidence (record = one decision): docs/issue-58-bfws-text-corpus.md L39-46 and appendix BFWS corpus paragraph (69,019 teacher decisions = 69,019 process records).
-% Evidence (base on format): docs/experiments/expanded-study/failure-mechanism-analysis.md headline profile (base 447/447 failures on the first decision, 379 malformed_output), Table tab:appendix-rejection.
+% Paragraph purpose: The small set teaches neither algorithm in any observation type; state how each algorithm fails and what random-valid shows about the tasks.
+A small training set does not teach the model to execute BFS or BFWS in any observation type (Table~\ref{tab:results-main}, top). Trained on 512 reference operations for one epoch, the adapters solve none of the 24 tasks under text, visual or multimodal observations, and every episode ends on an invalid operation. The two algorithms fail in different ways (Figure~\ref{fig:qual-trace-failures} in Appendix~\ref{app:qualitative}). BFS adapters write well-formed steps that name an unvisited successor but give the wrong head-removal flag $r$ or queue position $p$ of Eq.~(\ref{eq:operation}). BFWS adapters never write a well-formed operation, so each episode ends at its opening decision. Random-valid solves 15 of the 24 BFS tasks and 17 of the 24 BFWS tasks, so a valid but random execution already reaches most goals within the budget, and the adapters fall short of it only through invalid operations.
+% Evidence (0/24, all three observation types; controls): docs/experiments/expanded-study/synthesis-v1/baseline-summary.csv rows {text,visual,multimodal}-state x {bfs,best_first_width}:
+% process_sft successes 0 of 24, invalid_operations 24 of 24 episodes (every episode ends on an invalid operation); random_valid bfs 15, best_first_width 17; exact_reference 24; pretrained_base 0.
+% Evidence (512 records, one epoch, seed 17): outputs/matched_modalities/v3/training/text-state/bfs/report.json and v5/training/visual-state/best_first_width/report.json (train_records 512, seed 17, steps 16, training_settings.epochs 1).
+% Evidence (BFS failure mode): docs/experiments/expanded-study/failure-mechanism-tables/failures-by-cell.csv bfs x process_sft only other_invariant_violation / invalid_frontier_operation, no malformed_output;
+% example outputs/expanded-study/v1/baseline/episodes/text-state/expanded-final__visitall-expanded-921100/bfs-process_sft.json.gz event 1 (well-formed move to an unvisited candidate with retire_source true and target_position 0
+% after the head was already retired; rejected, termination deterministic_invalid_operation).
+% Evidence (BFWS failure mode): failures-by-cell.csv best_first_width x process_sft malformed_output 24/24 per observation type; baseline-summary.csv best_first_width process_sft decisions 24 and expansions 0 per observation type (one decision per episode).
 
-% Paragraph purpose: Say once, plainly, that random-valid's full additive score is expected behaviour of the control, with the appendix pointer.
-Random-valid solves every additive task, which is the expected behavior of this control. In the additive cells the runtime supplies the grounded candidates and orders the priority queue, so on these tasks any valid emission reproduces the reference's search (Appendix~\ref{sec:results-identity}). The additive result therefore shows that the adapters learned to execute the algorithm's steps validly, and random-valid marks the ceiling that valid execution reaches.
-% Evidence: baseline-summary.csv random_valid best_first_add_w3 and best_first_add_greedy 24/24 in all three modalities (144/144).
-% Evidence (runtime supplies and orders candidates; decision identity): outputs/native-arms/v1/identity-audit.json pairs_checked 48, pairs_identical 48 (additive task-algorithm pairs),
-% structural_basis finish_expansion() requires the complete candidate set, heap serials from the sorted candidate order. Detail re-homed in the appendix under sec:results-identity.
+% Paragraph purpose: Report the larger development runs by observation type with random-valid alongside, saying which runs beat the control and which does not.
+With over an order of magnitude more data, the model executes both algorithms from text and from images (Table~\ref{tab:results-main}, bottom). From text, BFS trained on 12,994 operations solves every task of its panel at each of five training seeds, and BFWS trained on 47,780 solves 14 of 15 tasks. From images, which in these runs keep object names in some domains (Section~\ref{sec:design}), BFS trained on 11,911 operations solves all 75 episodes (15 tasks, five rollout seeds each), and BFWS trained on 14,225 solves 50 of 75. Three of the four runs exceed random-valid, text BFWS by 0.467 with a paired bootstrap 95\% lower bound of 0.2. The pretrained base solves no task in any run.
+% Evidence (text BFS): data/bfs_pilot_v6/ms-swift-process/manifest.json counts.train 12994; docs/issue-52-54-training-framework-research.md L100 (three epochs), L102 (seeds 17/29/43/71/101);
+% docs/experiments/deadline-study/prior-evidence.json historical_bfs_stages[stage v8]: selected_tasks 15, per_seed 17/29/43/71/101 process_sft_invariant_valid_success 1.0 and random_valid 1.0 each, base 0.0, exact 1.0.
+% Evidence (text BFWS): docs/issue-58-bfws-text-corpus.md L46 and docs/issue-59-bfws-structural-gate.md L10-13 (47,780 train records, one two-epoch seed-17 run); L244-255 (15-task panel;
+% process SFT 0.933333 = 14/15, random-valid 0.466667, base 0, exact 1.0, absolute gain 0.466667, paired whole-instance bootstrap lower bound 0.2).
+% Evidence (visual): outputs/visual_development/issue75-32k-v5/attempt-001/training.json training_runs (bfs train_records 11911, 746 steps; best_first_width 14225, 890 steps; seed 17; 746 = 2 x ceil(11911/32), i.e. two epochs);
+% docs/experiments/deadline-study/core-results.csv issue 75 visual-state rows: bfs process_sft 75/75, random_valid 53/75 (0.707), base 0/75, exact 15/15; best_first_width process_sft 50/75 (0.667), random_valid 39/75 (0.520), base 0/75, exact 15/15.
+% Derived: gains over random-valid visual BFS 1.000 - 0.707 = +0.293, visual BFWS 0.667 - 0.520 = +0.147 (no interval computed); 11,911 / 512 = 23x (smallest larger run).
 
-% Paragraph purpose: Report the large-corpus development runs in which BFS and BFWS are learned, and state that they are not a matched-size comparison.
-BFS and BFWS become learnable when the corpus grows by more than an order of magnitude, although we tested no corpus size between 512 and about 11,900 records, so the minimum that suffices is unknown (Table~\ref{tab:results-main}, bottom). Text BFS adapters trained on 12,994 records for three epochs solve every task of a 15-task development panel at each of five training seeds, and random-valid also solves every task there. A text BFWS adapter trained on 47,780 records for two epochs reaches 0.933 on another 15-task panel, against 0.467 for random-valid, and the paired bootstrap 95\% lower bound on its gain is 0.2. A visual run on 43,876 records across the four algorithms, including 11,911 for BFS and 14,225 for BFWS, solves 75/75 BFS episodes (random-valid 53/75) and 50/75 BFWS episodes (random-valid 39/75), and both additive adapters solve every episode, as random-valid does. These runs use their own development panels and schedules, so they are not a matched-size comparison with the main grid. They establish that BFS and BFWS can be learned from traces, and that 512 records are not enough under our recipe.
-% Evidence (BFS text): docs/experiments/deadline-study/prior-evidence.json historical_bfs_stages[stage v8]: selected_tasks 15, metrics.process_sft_invariant_valid_success 1.0,
-% metrics.random_valid_invariant_valid_success 1.0, base 0.0, exact 1.0, outcome VALID_STOP; final checkpoints checkpoint-1221 from five training seeds (17/29/43/71/101), each 1.0 (per_seed).
-% Evidence (12,994 records, v6 text-state corpus): data/bfs_pilot_v6/ms-swift-process/manifest.json counts.train 12994, counts.dev 12115 (appendix BFS pilot corpus paragraph); docs/issue-54-operator-runbook.md L116 (v6 checkpoint-1221).
-% Evidence (three epochs): docs/issue-52-54-training-framework-research.md L100 ("bf16, three epochs, global batch size 32"); consistent with checkpoint-1221 = 3 x ceil(12,994/32) = 3 x 407 (derived).
-% Evidence (BFWS text): docs/issue-59-bfws-structural-gate.md L10-13 (47,780 train records, one two-epoch seed-17 run) and L244-255 (15-task panel, 60 replayed episodes;
-% process SFT 0.933333, random-valid 0.466667, base 0, exact 1.0, paired whole-instance bootstrap gain lower bound 0.2).
-% Evidence (visual #75): docs/experiments/issue75/v5-completion.md L14-18 (43,876 records, two epochs, training seed 17, evaluation seeds 17/29/43/71/101, 42 task groups / 54 cases)
-% and L27-32 (BFS 75/75 vs random-valid 53/75; BFWS 50/75 = 66.7% vs 39/75; w3 and greedy 60/60 vs 60/60; base 0%);
-% per-algorithm train_records bfs 11911, best_first_width 14225, best_first_add_w3 9398, best_first_add_greedy 8342 per outputs/visual_development/issue75-32k-v5/attempt-001/training.json
-% training_runs[].train_records (same values in docs/experiments/issue75/v5-completion-verification.json L24-59); run totals also in docs/experiments/deadline-study/report.md L33-60.
-% Evidence (order of magnitude, derived): smallest large-corpus BFS/BFWS count 11,911 / 512 = 23.3x. No corpus size between 512 and 11,911 records was trained for BFS or BFWS (main grid 512; development runs 11,911 / 12,994 / 14,225 / 47,780).
-% Not in the table: text additive large-corpus runs #65/#66 (115/115 learned and 115/115 random-valid on 23 tasks x 5 rollout seeds, two epochs) per
-% docs/issue-65-best-first-add-w3-development.md L85-99 and docs/issue-66-best-first-add-greedy-development.md; per-algorithm train record counts not stated there.
+% Paragraph purpose: State the unmatched boundary of the data-cost comparison and what it leaves open.
+These runs show that enough data suffices but do not measure how much is needed. Each ran for two or three epochs on its own 15-task panel, so it differs from the small set in tasks, schedule and panel, and we trained no BFS or BFWS set between 512 and 11,911 operations. The smallest sufficient size, and whether it differs between BFS and BFWS, remain open.
+% Evidence: epochs and panels as in the paragraph above; small set one epoch on 24 tasks (Section 4). No BFS/BFWS training size between 512 and 11,911 exists in the evidence repo (small set 512; larger runs 11,911 / 12,994 / 14,225 / 47,780).
+
+% Paragraph purpose: Discussion. More on-policy correction and a second model do not rescue the small set; state only what the two controls show, without a causal reading of the failure modes.
+Neither on-policy correction nor a different model rescues the small set. Two rounds of DAgger \citep{ross2011dagger}, which add the model's own mistakes with the reference's corrections to the training set, lift small-set BFS from 0 to only 1 of its 72 evaluation episodes, the same as continuing supervised training on the same number of records, while random-valid solves 45. Trained on the same small set, InternVL3.5-8B \citep{wang2025internvl35} also solves none of 36 BFS episodes, so the small-set failure is specific to neither the training recipe nor the backbone.
+% Evidence (DAgger, BFS small set): docs/experiments/expanded-study/synthesis-v1/dagger-summary.csv unseen: dagger_iteration_2 1/72, continued_sft_iteration_2 1/72, original_process_sft 0/72, random_valid 45/72, exact_reference 72/72 (24 tasks x 3 observation types); exposure-matched continued SFT per Appendix app:results-secondary DAgger paragraph (#78-#84).
+% Evidence (second model): outputs/expanded-study/v1/second-backbone-v2/evaluation/analysis.json (protocol expanded-second-backbone-v2, BFS, 12 tasks x 3 observation types, process_sft 0/36, base 0/36; 512 records, seed 17 per synthesis-v1/README.md L125).
+% Removed 2026-09-26 (author request): the causal reading "points to the amount of data as the bottleneck" and the untested failure-mode interpretation (bookkeeping vs ordering rule). The paragraph now reports only what DAgger and the second backbone show.
+
+% Paragraph purpose: Discussion. Why the runtime supplies successors: when the model generates successor states itself, BFS search collapses; ties back to the design choice in Section 3 and to operational reasoning.
+Supplying the successors is what keeps these results about search. In a separate BFS experiment, adapters trained to generate each successor state themselves were exactly right on 65 of 109 predictions, and because one wrong state ends the episode, the search reached the goal in 1 of 45 episodes, against 45 of 45 when the runtime supplies the successors. Generating successors is the operational reasoning that \citet{huang2026twodistinct} separate from reasoning about the structure of the search, and it would dominate any measurement of search if the model had to do both.
+% Evidence: docs/experiments/expanded-study/successor-evaluation.md L17-31 (canonical BFS, trusted arm 45/45; model-generated arm 1/45, single success elevators-compact-914002 multimodal; rejection terminates with no trusted replacement); synthesis-v1/successor-summary.csv; exactly correct 65/109 per Appendix app:results-secondary (Model-generated successors paragraph, synthesis-v1/README.md successor section); examples/planning_benchmark_slice/expanded_successor.py L80, L138 (algorithm bfs).
 
 \begin{table}[t]
-\caption{\textbf{All four algorithms are learnable, but BFS and BFWS need far larger corpora.} Top: the main grid, with one adapter per algorithm and observation trained on 512 records for one epoch. Entries count solved tasks out of 24 from 12 domains. Base and controls do not vary with observation, and the total row counts all three observations. Bottom: large-corpus development runs, each on its own development panel and schedule, reported as success rates. These panels differ from the main grid and from each other, so the two blocks are not a matched-size comparison. Random-valid and exact are oracle-assisted bounds that read the runtime's valid-operation list.}
+\caption{\textbf{Executing BFS and BFWS fails from a small training set and succeeds from far larger ones.} Success rate of the trained adapter; the pretrained base solves no task and the exact reference solves every task.}
 \label{tab:results-main}
 \centering\footnotesize
-\setlength{\tabcolsep}{3pt}
-\begin{tabular}{@{}l|c|ccc|cc@{}}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}llrrc@{}}
 \toprule[0.4mm]
-\rowcolor{mygray} & & \multicolumn{3}{c|}{\textbf{SFT}} & & \\
-\rowcolor{mygray}\textbf{Algorithm} & \textbf{Base} & text & visual & multimodal & \textbf{Random-valid} & \textbf{Exact} \\
+\rowcolor{mygray}\textbf{Algorithm} & \textbf{Observation} & \textbf{Operations} & \textbf{Epochs} & \textbf{Trained} \\
 \midrule
-BFS & 0 & 0 & 0 & 0 & 15 & 24 \\
-BFWS & 0 & 0 & 0 & 0 & 17 & 24 \\
-Weighted A* ($w{=}3$) & 0 & 20 & 18 & 22 & 24 & 24 \\
-Greedy best-first & 0 & 22 & 22 & 21 & 24 & 24 \\
+\multicolumn{5}{@{}l}{\emph{Small set}} \\
+BFS & text, visual, multimodal & 512 & 1 & 0.000 \\
+BFWS & text, visual, multimodal & 512 & 1 & 0.000 \\
 \midrule
-Additive total (of 144) & 0 & \multicolumn{3}{c|}{125} & 144 & 144 \\
-\bottomrule
-\end{tabular}
-
-\vspace{6pt}
-\begin{tabular}{@{}llrccccc@{}}
-\toprule[0.4mm]
-\rowcolor{mygray}\textbf{Algorithm} & \textbf{Obs.} & \textbf{Records} & \textbf{Epochs} & \textbf{Development panel} & \textbf{SFT} & \textbf{Random-valid} & \textbf{Exact} \\
-\midrule
-BFS & text & 12,994 & 3 & 15 tasks & 1.000 & 1.000 & 1.000 \\
-BFWS & text & 47,780 & 2 & 15 tasks & 0.933 & 0.467 & 1.000 \\
-\midrule
-BFS & visual & 11,911 & 2 & \multirow{4}{*}{42 task groups} & 1.000 & 0.707 & 1.000 \\
-BFWS & visual & 14,225 & 2 & & 0.667 & 0.520 & 1.000 \\
-Weighted A* ($w{=}3$) & visual & 9,398 & 2 & & 1.000 & 1.000 & 1.000 \\
-Greedy best-first & visual & 8,342 & 2 & & 1.000 & 1.000 & 1.000 \\
+\multicolumn{5}{@{}l}{\emph{Larger training runs}} \\
+BFS & text & 12,994 & 3 & 1.000 \\
+BFWS & text & 47,780 & 2 & 0.933 \\
+BFS & visual & 11,911 & 2 & 1.000 \\
+BFWS & visual & 14,225 & 2 & 0.667 \\
 \bottomrule
 \end{tabular}
 \end{table}
-% Evidence (top block): docs/experiments/expanded-study/synthesis-v1/baseline-summary.csv columns (modality, algorithm, arm, episodes 24, successes), all 48 rows:
-% pretrained_base 0 in every cell; process_sft bfs 0/0/0, best_first_width 0/0/0, best_first_add_w3 text 20 / visual 18 / multimodal 22,
-% best_first_add_greedy text 22 / visual 22 / multimodal 21; random_valid bfs 15, best_first_width 17, additive 24 in all three modalities;
-% exact_reference 24 in every cell. Additive totals over three modalities: base 0, SFT 125, random-valid 144, exact 144 (of 144).
-% Evidence (bottom block, BFS text): prior-evidence.json historical_bfs_stages[v8] (15 tasks; SFT 1.0, random-valid 1.0, exact 1.0); records and epochs as in the paragraph above.
-% Evidence (bottom block, BFWS text): docs/issue-59-bfws-structural-gate.md L10-13, L250-255 (47,780 records, two epochs; 0.933333 / 0.466667 / exact 1.0), rounded to 3 dp.
-% Evidence (bottom block, visual): docs/experiments/deadline-study/prior-evidence.json visual block (training_records 43876, training_epochs 2; bfs random_valid 0.7066666666666667,
-% best_first_width random_valid 0.52, additive random_valid 1.0, exact_reference 1.0 for all four); SFT 75/75, 50/75, 60/60, 60/60 per issue75/v5-completion.md L29-32;
-% record counts per outputs/visual_development/issue75-32k-v5/attempt-001/training.json training_runs[].train_records. Exact succeeds on 54/54 cases (v5-completion.md L34).
+% Evidence (top block): docs/experiments/expanded-study/synthesis-v1/baseline-summary.csv, identical per observation type: bfs pretrained_base 0/24, process_sft 0/24, random_valid 15/24 = 0.625, exact_reference 24/24;
+% best_first_width pretrained_base 0/24, process_sft 0/24, random_valid 17/24 = 0.708, exact_reference 24/24.
+% Evidence (bottom block): text BFS prior-evidence.json historical_bfs_stages[v8] (base 0.0, SFT 1.0, random-valid 1.0, exact 1.0; five training seeds); text BFWS issue-59-bfws-structural-gate.md L250-255
+% (0, 0.933333, 0.466667, 1.0); visual core-results.csv issue 75 (bfs 0/75, 75/75, 53/75, 15/15; best_first_width 0/75, 50/75, 39/75, 15/15). Records and epochs as in the paragraph evidence above.
 
-% Paragraph purpose: Offer one tentative explanation of why BFS and BFWS cost more, grounded in what a valid step must contain (Section 3), and show that the 512-record failures differ by algorithm in the way the explanation expects.
-One explanation, which we have not tested, is that BFS and BFWS steps each ask more of the policy than an additive step does, in different ways. The runtime flags each candidate as unvisited or duplicate and computes the BFWS novelty, goal count, and implied frontier position. A BFS step must still pick an unvisited candidate and emit first-in, first-out bookkeeping, meaning the candidate's queue position and whether the step removes the head. A BFWS step must follow a larger operation and observation format, with object arguments written as indices and more fields to copy, including the frontier position that the runtime's priority implies. An additive step only names the expanded state and one listed candidate, with no position or heuristic value (Section~\ref{sec:policy}). The 512-record failures split the same way. Of the 72 BFS failures, 68 are well-formed steps that name a listed successor but misstate the queue bookkeeping, and the other 4 retire the frontier too early. Every BFWS failure is a first operation that does not follow the BFWS operation format (Figure~\ref{fig:qual-trace-failures}, Appendix~\ref{app:results-failures}).
-% Evidence (what a valid step contains): Section 3 (search_process_policy.tex L30, L42) and its evidence comments L31-39, L43-47:
-% BFS visual_bfs.py L96-127 (action must be an unvisited listed candidate; target_position = len(frontier) - retire; retire_source = head still in frontier);
-% BFWS bfws_episode.py L341-391 and bfws_issue59.py L585-611 (runtime computes duplicate flag, novelty, partition = unachieved-goal count, priority, frontier_intent;
-% transition must copy the candidate's frontier_intent); bfws_model_input.py L69, L230 (object symbols mapped to integer indices; candidate action args written as indices),
-% L219-259 (candidate fields dup, eval {frontier, novel, novelty, partition, priority, residual}, fact deltas);
-% additive best_first_controller.py L39-48 BestFirstOperation has only source_state_id and action,
-% best_first_model_input.py L12-15 ("The trusted runtime owns h_add, scalar priority, duplicate detection, the frontier, and state transitions").
-% The explanation is a hypothesis (consistent with the Discussion), not a tested cause.
-% Evidence (failures by algorithm, 512-record main grid, 72 episodes per algorithm): docs/experiments/expanded-study/failure-mechanism-tables/failures-by-cell.csv
-% best_first_width process_sft malformed_output 24/24 in each modality (72/72); bfs process_sft rows other_invariant_violation 26/26/24 and invalid_frontier_operation 1/1/2
-% over 27 episodes per modality (these strata include 3 development tasks per modality, so they total 80 of 81, not 72).
-% Main-grid split 68/72 successor steps misstating retire_source / target_position and 4/72 premature retire_frontier; BFWS 72/72 malformed at decision 0
-% (32 unparseable, 40 parseable with invented schema keys, 17 of which name the reference action): counted by Main from the main-grid episodes
-% (outputs/expanded-study/v1 baseline episode store), not re-counted by the Results writer. fig:qual-trace-failures is defined by the Figures agent in qualitative_figures.tex.
-% Evidence (every 512-record BFS/BFWS episode fails): failure-mechanism-analysis.md headline profile "every baseline SFT BFS and best-first-width episode fails (144/144)".
+\subsection{Choosing the Next Node Is Learnable from Images Alone}
+\label{sec:results-search-control}
 
-% Paragraph purpose: Report that the main-grid pattern survives seed replication and a second backbone, with the backbone's scope.
-The main-grid pattern holds across training seeds and on a second backbone. Retraining the greedy multimodal cell with seeds 17, 29, and 71 solves 21, 21, and 22 of 24 tasks (Table~\ref{tab:appendix-seeds}). InternVL3.5-8B \citep{wang2025internvl35}, trained with the same 512-record recipe and evaluated on 12-task subsets of the main panel, solves 31/36 greedy best-first entries and 0/36 BFS entries, and its base solves none in either cell (Appendix~\ref{app:results-secondary}). Because this backbone shares the Qwen3 language-model family with our primary one, the replication varies the vision encoder and multimodal recipe rather than the language model.
-% Evidence (seeds): outputs/expanded-study/v1/seed-replication/analysis.json baseline_process_sft.per_seed.{17,29,71}.successes (21, 21, 22 of 24); Cell A = best_first_add_greedy x multimodal-state (Table tab:appendix-seeds).
-% Evidence (InternVL BFS): outputs/expanded-study/v1/second-backbone-v2/evaluation/{evidence,analysis}.json; synthesis-v1/README.md claim second-backbone-v2-null
-% (12-task key-cell panel; pretrained_base 0/36, process_sft 0/36); training 512 records x 16 updates, seed 17 (issue-123-closeout.md L23-26).
-% Evidence (InternVL greedy): outputs/expanded-study/v1/second-backbone-v3/evaluation/evidence.json by_condition process_sft 31/36 (11/10/10 of 12), base 0/36.
-% Task lists of v2 and v3 differ (issue-130-closeout.md), hence "12-task subsets".
-% Evidence (shared LLM family): synthesis-v1/README.md boundary list ("InternVL3.5-8B shares the Qwen3-8B LLM family, so the replication contrast is the vision tower, connector, image tokenization and multimodal recipe").
+% Paragraph purpose: Headline node-choice result on both held-out panels against random choice and the reference, with the seed range.
+Trained on reference choices and shown only images of the open nodes, the VLM chooses which node GBFS and WA* expand next far better than random choice on held-out tasks (Figure~\ref{fig:node-choice}a--c). Within twice the reference's number of expansions, it solves 0.621 of the tasks on held-out 1 and 0.278 on held-out 2, averaged over three training seeds whose values span 0.545 to 0.682 and 0.208 to 0.333. Random valid choices solve 0.036 and 0.017, and the reference solves every task.
+% Evidence: outputs/choice-frontier/v4/panels/metrics/analysis.json arms.p2 (held-out 1, 11 tasks x GBFS/WA*) .solved_at_2: learned_adapter_s17 0.636, s29 0.545, s71 0.682 (mean 0.621), random_valid 0.036, exact_reference 1;
+% arms.p2u (held-out 2, 12 tasks x GBFS/WA*): learned s17 0.333, s29 0.208, s71 0.292 (mean 0.278), random_valid 0.017, exact_reference 1. Seed means derived (1.864/3, 0.833/3).
 
-\subsection{Text Carries the Learned Execution}
-\label{sec:results-modality}
+% Paragraph purpose: Place the learned choices on the validated area measure: contrast with random, position relative to the exact-epsilon ladder, and the zero-shot base at random level.
+An area measure places the learned choices well above random choice and well below the reference. This measure, M1, is the area under the solved fraction as the budget grows from one to two times the reference's expansions, and it orders a ladder of privileged selectors, the reference with a fraction $\epsilon$ of its choices made at random, as expected on both panels (Appendix~\ref{sec:results-choice-frontier}). The three-seed mean M1 exceeds that of random choice by $D_3=+0.416$ $[+0.250, +0.591]$ on held-out 1 and $+0.149$ $[+0.030, +0.283]$ on held-out 2 (95\% task-cluster bootstrap). On held-out 1 it also exceeds the $\epsilon=0.75$ rung, by $+0.227$ $[+0.053, +0.403]$. It is not separated from that rung on held-out 2, nor over 35 tasks that pool both panels with the third 12-task panel ($+0.058$ $[-0.040, +0.156]$). The same VLM without the adapter, told the output format and asked for the open node that looks closest to the goal, makes only valid choices yet stays at the level of random choice ($D_3=+0.005$ on the third panel and $+0.001$ on held-out 1), so the gain comes from training on the traces.
+% Evidence (M1 definition, ladder): docs/experiments/choice-frontier/issue-135-protocol.md L47 (exact-eps-E: with probability E choose uniformly among the menu, else the heap head), L55 (M1 = trapezoidal solve-versus-budget AUC over multipliers 1 to 2), L59 (ladder test);
+% issue-139-closeout.md L17 (P2 ladder PASS, confirmatory) and L22 (P2u ladder PASS, descriptive).
+% Evidence (contrasts): docs/experiments/choice-frontier/issue-139-closeout.md L18 (P2 D3 +0.416 [+0.250, +0.591]), L19 (P2 S vs eps-0.75 +0.227 [+0.053, +0.403] SEPARATED_ABOVE), L20 (P2u D3 +0.149 [+0.030, +0.283]),
+% L21 (P2u S +0.002 [-0.145, +0.157] NOT_SEPARATED), L24 (pooled 35 tasks = #135 development panel 12 + P2 11 + P2u 12; S +0.058 [-0.040, +0.156] NOT_SEPARATED), L26 (task-cluster bootstrap Random(133), 10,000 draws, seeds averaged inside each draw), L37 ("roughly that of an exact policy that randomises 75% of its choices").
+% Non-separation is stated as "not separated", not as equivalence or as closeness to a ladder rung (no margin pre-registered for S; Appendix app:statistics Materiality paragraph). Removed 2026-09-26 (author request): the closing clause that read the pooled non-separation as placing the learned choices "near" the epsilon=0.75 rung.
+% Evidence (zero-shot base): docs/experiments/choice-frontier/issue-141-closeout.md L8-12 (frozen base, no adapter, one appended sentence with output format and "closest to satisfying the goal pages", cap 2 x R_t),
+% L21-22 (D3 +0.005 [-0.025, +0.044] EQUIVALENT on the #135 development panel; +0.001 [-0.048, +0.051] INCONCLUSIVE by 0.001 on P2), L44-51 (836/836 and 756/756 outputs valid).
 
-% Paragraph purpose: Report the corruption result and why the claim rests on shuffling rather than masking.
-The trained controllers depend on the text of their observations and hardly on the images. We corrupted the observations of the frozen additive adapters at test time, without retraining, on 9 tasks under both additive algorithms (Figure~\ref{fig:teaser}c, Table~\ref{tab:results-corruption}). Shuffling the text while leaving its operations copyable changes success by $-0.944$ $[-1.000, -0.833]$ in the text arm and by $-0.722$ in the multimodal arm. Blanking or degrading the images changes success by at most $-0.111$, and every visual interval includes zero. Masking the text also collapses success, but it does so by breaking the output format, since every masked episode emits only invalid operations. The channel claim therefore rests on shuffling.
-% Evidence: outputs/expanded-study/v1/modality-stress/analysis.json contrasts by family x modality (issue #126; values as tabulated in docs/experiments/expanded-study/issue-126-closeout.md):
-% text-shuffled text arm -0.944 [-1.000, -0.833]; text-shuffled multimodal -0.722 [-0.889, -0.500]; visual-blank and visual-degraded visual -0.056, multimodal -0.111,
-% intervals [-0.167, +0.000] and [-0.278, +0.000]; k = 9 tasks x 2 additive algorithms per cell (Table tab:results-corruption in the appendix).
-% Evidence (masking is format destruction): outputs/native-arms/v1/r2-decomposition.json text-masked text-state and multimodal-state cells all_invalid 18/18 each
-% (18 invalid operations over 18 decisions); docs/experiments/native-arms/issue-130-closeout.md R2 ("survives only in the shuffled form").
-% Cross-file: Figure fig:teaser panel (c) is expected to show this corruption result (Figures agent, wave 2).
+% Paragraph purpose: Discussion. What the learned choices prefer: low-h_add states far more often than uniform, yet the exact reference choice only modestly above chance; the model learned a coarse preference, not the ordering.
+The learned choices follow the heuristic coarsely rather than exactly (Figure~\ref{fig:node-choice}d). On the held-out panels, 46.4\% of its choices fall in the lowest fifth of the menu ranked by $h_{\rm add}$, against 25.0\% expected from uniform choice on the same menus, yet it picks the reference node in only 24.1\% of decisions, against 12.4\% by chance. The model has thus learned from the images a preference for states that look close to the goal, although not the exact order that $h_{\rm add}$ imposes.
+% Evidence: figures/fig_node_choice.py panel d (report fig_node_choice_report.md): held-out 1 + 2, seeds 17/29/71, GBFS and WA*, 3,373 non-singleton decisions (165 singleton menus excluded); lowest rank bin 1,566/3,373 = 46.4% vs uniform expectation 842.0/3,373 = 25.0%; heap-head agreement 813/3,373 = 24.1% vs chance 418.8/3,373 = 12.4%; h_add recovered from trusted admissions in the outputs/choice-frontier/v4/panels episodes (never shown to the model).
 
-% Paragraph purpose: Carry boundary 4: candidates are text in every observation, image-only arms still solve with only the textual menu, and interpret for planning readers.
-This finding has a specific scope. In all three observation types of the main grid, the runtime supplies the grounded candidate list and the search memory as text, and only the state and goal become images. Image-only arms that drop every textual aid except the task interface and this candidate menu still solve 18/18 tasks, and blanking every image of the arm that also sees rendered history leaves its success unchanged (Appendix~\ref{app:results-native}). For planning, the result means that the trained controllers read the textual serialization of the search, so rendering the state does not yet add information that the model uses. It does not show that images are useless for planning in principle.
-% Evidence (text channel in every observation): appendix Modality Adapters paragraphs visual-state ("Search Memory contents and the grounded candidate list remain in the textual serialization,
-% even in this adapter") and text-scaffold caveat; synthesis-v1/README.md boundary ("shared text pages/goal context remain in every modality").
-% Evidence (native arms): docs/experiments/native-arms/issue-129-closeout.md Results and Interpretation (visual-nomem-state and visual-seq-state each 18/18 clean, zero invalid operations;
-% seq blank-all and degrade-all corrupted-minus-clean 0.000 [0.000, 0.000]); docs/experiments/native-arms/native-arms-design.md (removed and retained keys: static task interface and grounded unscored candidate menu kept as text).
+% Paragraph purpose: Discussion. A menu-position shortcut in the first, smaller attempt, and how position-balanced training removed it; a lesson for image-menu choice.
+As with execution, a small training set was not enough, and the way it failed shows that the training data must hide the position of the answer. Trained on 512 choices per algorithm with each menu in one order, the model picked the last label in 54.5\% of its decisions, against 12.0\% for the reference choices it was trained on, and chose the reference node less often than chance (17.4\% against 26.9\%), so it behaved like a random picker. With 2,048 choices, each shown in two menu orders, the last-label rate fell to 20.5\% and agreement with the reference rose above chance (21.0\% against 12.5\%).
+% Evidence: docs/experiments/choice-frontier/issue-132-closeout.md L142-148 (erratum item 4: 132 multi-option decisions, heap-head 17.4% vs chance 26.9%, last label 54.5%, first label 2.3%, teacher corpus last label 12.0%, chance 10.4%); appendix app:cf-contract Corpus derivation (512 training records per algorithm, no augmentation in #132);
+% issue-136-closeout.md L25-26 (v3 adapter on the development panel: heap-head agreement 0.210 vs chance 0.125, +0.085 [+0.020, +0.177]; last-label rate 0.205, first-label 0.090), L64-66 (two copies per record, target-is-last share 17.58% vs chance 17.58%).
 
-\subsection{Robustness to Task Variations}
-\label{sec:results-robustness}
+% Paragraph purpose: Discussion. Where node choice works across domains, with the qualitative decision of Figure fig:domains b; bound the effect by the screen on held-out 1 and the concentration on held-out 2.
+Node choice works in some domains and not in others (Figure~\ref{fig:domains}b). On the area measure, the model beats random choice on every Elevators, Ferry and Grid task across the three panels. In the held-out Depot decision of Figure~\ref{fig:domains}b, the six open states differ only in where the trucks and crates stand, and the model picks the one that WA* ranks first, without seeing any heuristic value. Leaving out any one domain keeps the gain over random choice between $+0.305$ and $+0.395$ on the third panel and held-out 1, so no single domain carries it, and one round of DAgger did not measurably change choice quality (Appendix~\ref{sec:results-choice-frontier}).
+% Evidence (per-domain signs): figures/fig_task_gains.py assertions (adapter minus random-valid M1 per task, development / held-out 1 / held-out 2): elevators 935000, 935013, 955007, 955078 > 0; ferry 955007, 955075, 955037, 955048 > 0; grid 935016, 955007, 955021, 955003 > 0; 15puzzle 935006 < 0, 955075, 955000, 955002 = 0; blocksworld 935004, 955127 > 0 and 935001, 955022, 955000, 955001 = 0.
+% Evidence (screen, concentration): issue-139-protocol.md L44-57; issue-139-closeout.md L36, L68, L73 (P2u 4 > 0, 8 = 0; zero tasks unsolved by adapter and random within 2 R_t).
+% Evidence (leave-one-domain-out, DAgger): issue-139-closeout.md L75-87 (D3 +0.305 to +0.395 on #135 + P2, 23 tasks, every lower bound >= +0.185); issue-140-closeout.md L9-11 (seed 17; Delta -0.030 [-0.114, +0.057], INCONCLUSIVE).
 
-% Paragraph purpose: Report robustness v2 on the additive adapters, per family, with saturated controls and the scope boundary.
-The learned additive search keeps working when tasks are varied. We evaluated the six main-grid additive adapters, two algorithms under three observations, on 25 derived tasks drawn five each from five variation families and frozen before execution. They solve 128/150 episodes, while the pretrained base solves 0/150 (Appendix~\ref{app:results-secondary}). By family, they solve 29/30 with renamed objects, 27/30 with compressed names, 27/30 with restyled renderings, and 26/30 on scaled-up instances. Tasks that start from a shifted initial state are the hardest, at 19/30. Random-valid (750/750) and the exact reference (150/150) saturate, so these counts show that learned execution survives the variations, not that it exceeds the controls. Each family holds five tasks, so per-family counts are descriptive. We tested only the two additive adapters on variants, not BFS or BFWS.
-% Evidence: docs/experiments/expanded-study/synthesis-v1/README.md claim generalization-v2-headline (128/150 learned, 0/150 base; object-renaming 29/30, name-compression 27/30,
-% render-restyle 27/30, scale-up 26/30, shifted-init 19/30); docs/experiments/expanded-study/issue-124-closeout.md L68-89 (25 variants = uniform k=5 per family, membership frozen
-% before execution; 6 of the 12 frozen main-grid adapters, best_first_add_greedy + best_first_add_w3 x three modalities; random_valid 750/750, exact_reference 150/150)
-% and L140-143 (bfs and best_first_width priced out by the frozen admission); outputs/expanded-study/v1/generalization-robustness/evaluation.json.
-% Evidence (descriptive per family): README.md reduced-scope boundary ("family strata hold 5 problems each (<8) ... descriptive-only").
-% Name compression is lossy in the text serialization (issue-124-closeout.md L111-114); kept in the appendix paragraph, not repeated here.
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.95\linewidth]{figures/fig_node_choice.pdf}
+\caption{\textbf{Learned node choice beats random choice on every panel and prefers low-$h_{\rm add}$ states.} (a)--(c)~Fraction of tasks solved as the budget grows from one to two times the reference's expansions, for the learned model (mean of three training seeds; band: their range), random choice, the untrained model (third panel and held-out 1 only), and the reference with a fraction $\epsilon$ of its choices made at random. The reference needs one decision beyond its expansions to select the goal, so it solves nothing at multiplier 1. (d)~Within-menu $h_{\rm add}$ rank of the learned choices on both held-out panels, against uniform choice on the same menus.}
+\label{fig:node-choice}
+% Evidence: figures/fig_node_choice.py assertions; report fig_node_choice_report.md.
+\end{figure}
 
-% Paragraph purpose: Juxtapose with plan-trained models reported to degrade under anonymization, with boundary 2 wording.
-These variations resemble those under which a plan-trained model has been reported to degrade. \citet{belcamino2026generalization} fine-tune a 1.7B-parameter language model on domain-problem-plan tuples and report significant drops under instance-wise symbol anonymization and compact plan serialization. The two setups differ. Their model writes a whole plan, while ours emits one search step at a time from grounded candidates that the runtime supplies. We ran no plan-only baseline, and our controls saturate, so the two results sit side by side and cannot be ranked against each other.
-% Source: arXiv:2601.14456, abstract ("fine-tune a 1.7B-parameter LLM on 40,000 domain-problem-plan tuples ... Symbol anonymization and compact serialization cause significant
-% performance drops despite preserving plan semantics"), read 2026-09-26. Contrast is a juxtaposition across setups (contract boundary 2).
-
-\subsection{Transfer Beyond Planning}
+\subsection{Width-Based Traces Hint at Transfer Beyond Planning}
 \label{sec:results-transfer}
 
-% Paragraph purpose: Report the BFWS FOLIO gain under all three observations, the math/code ranges, and the Holm result.
-Training on BFWS traces raises logical-reasoning accuracy under all three observations, a consistent but not statistically significant gain. We evaluated all 12 main-grid adapters zero-shot on frozen subsets of FOLIO \citep{han2022folio} (200 items), GSM8K \citep{cobbe2021gsm8k} (200), and HumanEval \citep{chen2021humaneval} (164). On FOLIO the BFWS adapters score 0.660, 0.645, and 0.645 (text, visual, multimodal) against 0.600 for the base, while the other adapters score between 0.575 and 0.605. GSM8K accuracy stays between 0.945 and 0.965 for every adapter (base 0.955), and HumanEval between 0.756 and 0.817 (base 0.780). No adapter-versus-base comparison survives Holm correction over all 36 comparisons \citep{holm1979simple}. The smallest raw McNemar $p$ \citep{mcnemar1947note} is 0.023, for the text BFWS adapter on FOLIO, and the minimum adjusted $p$ is 0.82 (Table~\ref{tab:results-transfer}, Appendix~\ref{app:results-secondary}). A leakage screen finds no content overlap between the benchmarks and the planning corpus.
-% Evidence: docs/experiments/expanded-study/synthesis-v1/transfer-accuracy.csv (FOLIO base 0.6; iw_text 0.66, iw_visual 0.645, iw_multimodal 0.645; other adapters 0.575-0.605;
-% GSM8K base 0.955, adapters 0.945-0.965; HumanEval base 0.7804878 (0.780), adapters 0.7560976 (0.756, iw_multimodal) to 0.8170732 (0.817, astar_w3_text)). "iw" is the BFWS adapter.
-% Evidence (Holm): synthesis-v1/README.md claim transfer-null and section 7 (transfer-paired.csv; transfer-paired-analysis.json): 36 McNemar exact comparisons, 0 survive Holm,
-% min adjusted p 0.8156 (0.82), smallest raw p 0.0227 (0.023) for folio/iw_text at +12 examples; leakage 7/564 items sharing only trivial numeric 8-grams, zero content overlap (transfer/leakage.json).
+% Paragraph purpose: Report FOLIO for BFWS vs BFS vs base, GSM8K/HumanEval unchanged, and that the adapters solve no planning task.
+Training on BFWS traces raises FOLIO accuracy under all three observation types, whereas BFS traces leave it at the base level. On FOLIO (200 items) the BFWS adapters score 0.660, 0.645 and 0.645 (text, visual, multimodal) against 0.600 for the base, and the BFS adapters score 0.600, 0.605 and 0.605. On GSM8K and HumanEval no adapter moves accuracy by more than 0.024 from the base (0.955 and 0.780). These are the small-set adapters of Section~\ref{sec:results-data-cost}, so the FOLIO gain comes from adapters that solve no planning task. Table~\ref{tab:results-transfer} lists every accuracy. The contrast between the two algorithms is the part worth following up: both adapters saw the same tasks and observations, and only the width-based traces, which rank states by whether they make new facts true, moved the FOLIO score at all. Whether this reflects the novelty computation, the longer operation format, or chance is open.
+% Evidence (accuracy): docs/experiments/expanded-study/synthesis-v1/transfer-accuracy.csv folio base 120/200 = 0.600; iw_text 0.66, iw_visual 0.645, iw_multimodal 0.645; bfs_text 0.600, bfs_visual 0.605, bfs_multimodal 0.605
+% ("iw" = best_first_width = BFWS per configs/experiments/expanded-study/transfer-protocol-v2.json cells.iw_*.algorithm).
+% Evidence (GSM8K/HumanEval): transfer-accuracy.csv bfs_* and iw_* rows: gsm8k 0.945-0.965 vs base 0.955 (max |delta| 0.010); humaneval 0.756 (iw_multimodal) to 0.799 (bfs_visual) vs base 0.780 (max |delta| 0.0244, iw_multimodal).
+% Evidence (tests): docs/experiments/expanded-study/synthesis-v1/transfer-paired.csv bfs_* and iw_* rows (18 = 2 algorithms x 3 observation types x 3 benchmarks): folio iw_text delta +12 (18 cell-only vs 6 base-only), mcnemar_exact_p 0.02266;
+% Holm recomputed 2026-09-26 over these 18 raw p values: smallest adjusted 18 x 0.02266 = 0.408, next 17 x 0.0784 > 1, so none significant. The holm_p column in the CSV is over the former 36-comparison family and is not used.
+% Evidence (small-set adapters, 0/24): transfer-protocol-v2.json cells.iw_*.checkpoint = outputs/matched_modalities/{v3,v5}/training/<observation>/best_first_width/final (the 512-record adapters); baseline-summary.csv best_first_width and bfs process_sft 0/24 in every observation type.
+\begin{table}[t]
+\caption{\textbf{The BFWS-trace adapters show the largest FOLIO gain over the base.} Accuracy of the 512-record BFS and BFWS adapters on FOLIO, GSM8K, and HumanEval; t/v/m denote the training observation.}
+\label{tab:results-transfer}
+\centering\footnotesize
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}llccc@{}}
+\toprule[0.4mm]
+\rowcolor{mygray}\textbf{Adapter} & \textbf{Modality} & \textbf{FOLIO} & \textbf{GSM8K} & \textbf{HumanEval} \\
+\midrule
+Base & --- & 0.600 & 0.955 & 0.780 \\
+\midrule
+BFS (\texttt{bfs}) & t & 0.600 & 0.950 & 0.793 \\
+ & v & 0.605 & 0.945 & 0.799 \\
+ & m & 0.605 & 0.965 & 0.780 \\
+\midrule
+BFWS (\texttt{iw}) & t & 0.660 & 0.960 & 0.768 \\
+ & v & 0.645 & 0.965 & 0.762 \\
+ & m & 0.645 & 0.960 & 0.756 \\
+\bottomrule
+\end{tabular}
+% Evidence: docs/experiments/expanded-study/synthesis-v1/transfer-accuracy.csv (per-adapter accuracy per benchmark) and transfer-paired.csv.
+\end{table}
 
-% Paragraph purpose: State that the transfer adapters are the 512-record adapters, so the FOLIO-gaining BFWS adapter solves 0/24 planning tasks, with one hedged reading.
-These are the 512-record adapters of the main grid, so the BFWS adapter that gains on FOLIO solves 0/24 planning tasks. The FOLIO gain thus appears without any planning success at that budget. One speculative reading, which we have not tested, is that exposure to the novelty and duplicate checks in BFWS traces helps with logical entailment.
-% Evidence: transfer evaluated "all 12 verified planning adapters" (synthesis-v1/README.md section 7); configs/experiments/expanded-study/transfer-protocol.json and transfer-protocol-v2.json
-% checkpoints outputs/matched_modalities/{v3,v5}/training/<modality>/<algorithm>/final (e.g. iw_text = v3 text-state best_first_width), the same frozen 12-adapter bank used by the
-% generalization and modality-stress protocols (512-record main-grid adapters, contract section 3 item 3);
-% baseline-summary.csv best_first_width process_sft 0/24 in text, visual, and multimodal. The mechanism sentence is speculation and labelled as such.
+% Removed 2026-09-26 (author decision: text-based GBFS/WA* execution is not reported): the additive rows of the old main table and the 125/144 additive result (best_first_add_w3 / best_first_add_greedy process_sft),
+% the random-valid saturation paragraph and its identity-audit pointer, the visual additive development rows (9,398 / 8,342 records), the tentative BFS/BFWS/additive cost explanation, the seed-replication and
+% second-backbone paragraph (its greedy half was additive execution), the whole "Text Carries the Learned Execution" subsection (observation corruption and image-only native arms, additive adapters only),
+% the whole "Robustness to Task Variations" subsection (additive adapters only) with its Belcamino juxtaposition, and the transfer Holm family over 36 comparisons (it included the astar_* adapters).

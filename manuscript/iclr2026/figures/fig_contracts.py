@@ -1,13 +1,8 @@
-"""Figure 2: a typed search loop and the first two valid ferry steps under three algorithms.
+"""Figure 2: BFS/BFWS execution and image-based GBFS/WA* node choice.
 
-Evidence: outputs/expanded-study/v1/baseline/episodes/text-state/
-expanded-final__ferry-compact-915000/{bfs,best_first_width,
-best_first_add_greedy,best_first_add_w3}-exact_reference.json.gz;
-outputs/expanded-study/v1/baseline/episodes/visual-state/
-expanded-final__ferry-compact-915000/best_first_add_greedy-process_sft.json.gz;
-outputs/expanded-study/v1/panel-v2/views/ferry-compact-915000/
-unlabelled/state-000000.png.
-Run from this directory: python fig_contracts.py [EVIDENCE_ROOT].
+The upper panel retains one BFS ferry step. The lower panel contrasts the
+two levels, using execution traces and a recorded, shuffled image menu.
+Run: source ~/cd_vlaplan && python fig_contracts.py [EVIDENCE_ROOT]
 """
 
 import gzip
@@ -21,223 +16,342 @@ from PIL import Image
 from _style import EVIDENCE_ROOT
 
 HERE = Path(__file__).resolve().parent
+BASE = Path("outputs/expanded-study/v1/baseline/episodes/text-state")
 TASK = "expanded-final__ferry-compact-915000"
-BASE = Path("outputs/expanded-study/v1/baseline/episodes")
 SCENE = Path("outputs/expanded-study/v1/panel-v2/views/ferry-compact-915000/unlabelled/state-000000.png")
-ALGO_STYLE = {"bfs": "#0072B2", "best_first_width": "#009E73",
-              "best_first_add_greedy": "#D55E00"}
-INK = "#213548"
-COPIED = "#596775"
-DERIVED = "#D55E00"
-W, H = 5.5, 2.35
-
-
-def episode(modality, algorithm, arm):
-    path = BASE / modality / TASK / f"{algorithm}-{arm}.json.gz"
-    with gzip.open(EVIDENCE_ROOT / path, "rt") as stream:
-        data = json.load(stream)
-    assert data["task_id"] == "expanded-final/ferry-compact-915000"
-    assert data["model_id"] == "Qwen/Qwen3-VL-8B-Instruct"
-    if arm == "process_sft":
-        assert data["checkpoint"] == (
-            "outputs/matched_modalities/v5/training/visual-state/best_first_add_greedy/final")
-    assert data["result"]["algorithm_invariants_hold"]
-    assert all(event["accepted"] for event in data["events"][:2])
-    return data["events"][:2]
+CHOICE_BASE = Path("outputs/choice-frontier/v1/evaluation")
+CHOICE_EPISODE = CHOICE_BASE / "episodes" / TASK / "best_first_add_greedy-exact_reference-17.json.gz"
+CHOICE_PROTOCOL = Path("configs/experiments/choice-frontier/choice-frontier-protocol-v1.json")
+# Same algorithm colours, ink, and sans-serif font as fig_teaser.py / _style.py.
+ALGORITHMS = (
+    ("bfs", "BFS", "#0072B2", r"$\kappa_{\mathcal{A}}=\langle\sigma\rangle$  (FIFO)"),
+    ("best_first_width", "BFWS", "#009E73", r"$\kappa_{\mathcal{A}}=\langle w,\mathrm{\#}g,g,\sigma\rangle$"),
+)
+INK, MUTED, LINE = "#213548", "#596775", "#CED8DF"
+W, H = 5.5, 2.8
 
 
 def action_name(action):
     return f"{action['name']}({','.join(action['args'])})"
 
 
-def verify_evidence():
-    visual = episode("visual-state", "best_first_add_greedy", "process_sft")
-    assert visual[0]["raw_output"] == ('{"action":{"args":["l1","l0"],"name":"sail"},'
-                                         '"source_state_id":"s0"}')
-    assert visual[0]["view"]["state_representation"] == "scene-only-128-unlabelled-v1"
-    assert ["current-state", 0, 0] in visual[0]["view"]["input_pages"]
+def evidence():
+    """Assert both execution operations and the recorded image-choice menu."""
+    first, operations = {}, {}
+    for algorithm, _, _, _ in ALGORITHMS:
+        with gzip.open(EVIDENCE_ROOT / BASE / TASK / f"{algorithm}-exact_reference.json.gz", "rt") as stream:
+            episode = json.load(stream)
+        assert episode["task_id"] == "expanded-final/ferry-compact-915000"
+        assert episode["result"]["algorithm_invariants_hold"]
+        event = episode["events"][0]
+        assert event["index"] == 0 and event["accepted"]
+        assert event["view"]["state"] == 0
+        assert ["current-state", 0, 0] in event["view"]["input_pages"]
+        first[algorithm] = event["input"]
+        raw = json.loads(event["raw_output"])
+        operations[algorithm] = raw["typed_operation"] if "typed_operation" in raw else raw
+        assert operations[algorithm]["action"] == {"name": "sail", "args": ["l1", "l0"]}
 
-    bfs = episode("text-state", "bfs", "exact_reference")
-    first_head = bfs[0]["input"]["search_memory"]["frontier_head"]
-    for i, event in enumerate(bfs):
-        memory = event["input"]["search_memory"]
-        candidates = memory["successor_candidates"]
-        operation = json.loads(event["raw_output"])["typed_operation"]
-        assert memory["frontier_size"] == 1
-        assert [action_name(row["grounded_action"]) for row in candidates] == [
-            "sail(l1,l0)", "sail(l1,l2)"]
-        assert [row["visited"] for row in candidates] == ([False, False] if i == 0
-                                                              else [True, False])
-        assert operation["action"] == candidates[i]["grounded_action"]
-        assert operation["source_state_id"] == first_head
-        assert operation["frontier_intent"] == {
-            "retire_source": i == 0, "target_position": i}
-        assert operation["frontier_intent"]["target_position"] == (
-            memory["frontier_size"] - int(operation["frontier_intent"]["retire_source"]))
-        assert operation["visit_target"] is True
-        assert operation["evaluate_target"] is False
+    bfs = first["bfs"]
+    memory = bfs["search_memory"]
+    candidates = memory["successor_candidates"]
+    assert [action_name(row["grounded_action"]) for row in candidates] == ["sail(l1,l0)", "sail(l1,l2)"]
+    assert [row["visited"] for row in candidates] == [False, False]
+    assert bfs["goal_atoms"] == ["at(c0,l1)"]
+    assert bfs["observation"]["state_atoms"] == ["at(c0,l2)", "at-ferry(l1)", "empty-ferry"]
+    op = operations["bfs"]
+    assert op["source_state_id"] == memory["frontier_head"] == bfs["observation"]["state_id"]
+    assert memory["frontier_size"] == 1
+    assert op["frontier_intent"] == {"retire_source": True, "target_position": 0}
+    assert op["frontier_intent"]["target_position"] == memory["frontier_size"] - int(op["frontier_intent"]["retire_source"])
+    assert op["visit_target"] and not op["evaluate_target"]
 
-    bfws = episode("text-state", "best_first_width", "exact_reference")
-    objects = bfws[0]["input"]["task_context"]["objects"]
+    bfws = first["best_first_width"]
+    objects = bfws["task_context"]["objects"]
     assert objects == ["c0", "l0", "l1", "l2"]
-    for i, event in enumerate(bfws):
-        candidates = event["input"]["observation"]["candidates"]
-        operation = json.loads(event["raw_output"])["typed_operation"]
-        assert len(candidates) == 2
-        assert candidates[0]["action"] == {"name": "sail", "args": [2, 1]}
-        assert candidates[0]["dup"] == (i == 1)
-        assert (candidates[0]["eval"] is None) == (i == 1)
-        chosen = candidates[i]
-        assert chosen["dup"] is False
-        assert chosen["eval"]["novelty"] == 1
-        assert chosen["eval"]["partition"] == 1
-        assert chosen["eval"]["frontier"] == {
-            "retire_source": i == 0, "target_position": i}
-        assert operation["frontier_intent"] == chosen["eval"]["frontier"]
-        assert operation["action"] == {
-            "name": chosen["action"]["name"],
-            "args": [objects[index] for index in chosen["action"]["args"]]}
-        assert operation["source_state_id"] == event["input"]["observation"]["state"]["state_id"] == "$"
-        assert operation["visit_target"] is True
-        assert operation["evaluate_target"] is True
-
-    additive = episode("text-state", "best_first_add_greedy", "exact_reference")
-    first = additive[0]["input"]["successor_candidates"]
-    columns = first["columns"]
-    selected = [{name: value for name, value in zip(columns, row)} for row in first["rows"]]
-    assert len(selected) == 2
-    assert [(row["action"], row["g"], row["h"], row["priority"], row["target_state_id"])
-            for row in selected] == [(["sail", "l1", "l0"], 1, 4, 4, "s1"),
-                                    (["sail", "l1", "l2"], 1, 3, 3, "s2")]
-    assert additive[1]["input"]["successor_candidates"]["rows"] == first["rows"][1:]
-    for i, event in enumerate(additive):
-        operation = json.loads(event["raw_output"])
-        assert set(operation) == {"action", "source_state_id"}
-        assert operation["action"] == {"name": selected[i]["action"][0],
-                                       "args": selected[i]["action"][1:]}
-        assert operation["source_state_id"] == event["input"]["current"]["state_id"] == "s0"
-    weighted = episode("text-state", "best_first_add_w3", "exact_reference")
-    weighted_first = weighted[0]["input"]["successor_candidates"]
-    assert weighted_first["columns"] == columns
-    weighted_rows = [dict(zip(columns, row)) for row in weighted_first["rows"]]
-    assert [(row["action"], row["g"], row["h"], row["target_state_id"])
-            for row in weighted_rows] == [(row["action"], row["g"], row["h"],
-                                           row["target_state_id"]) for row in selected]
-    assert all(row["priority"] == row["g"] + 3 * row["h"] for row in weighted_rows)
-    assert [event["raw_output"] for event in weighted] == [event["raw_output"] for event in additive]
-    assert weighted[1]["input"]["successor_candidates"]["rows"] == weighted_first["rows"][1:]
-    assert visual[0]["raw_output"] == additive[0]["raw_output"]
-    return visual
+    rows = bfws["observation"]["candidates"]
+    decoded = [{"name": row["action"]["name"], "args": [objects[i] for i in row["action"]["args"]]} for row in rows]
+    assert decoded == [row["grounded_action"] for row in candidates]
+    assert all(not row["dup"] for row in rows)
+    op = operations["best_first_width"]
+    assert op["source_state_id"] == bfws["observation"]["state"]["state_id"] == bfws["search_memory"]["head"] == "$"
+    assert op["action"] == decoded[0]
+    assert op["frontier_intent"] == rows[0]["eval"]["frontier"] == {"retire_source": True, "target_position": 0}
+    assert op["visit_target"] and op["evaluate_target"]
+    assert rows[0]["eval"]["priority"] == [1, 1, 1, 1]
+    assert rows[0]["eval"]["novelty"] == rows[0]["eval"]["partition"] == 1
 
 
-def text(ax, x, y, value, *, color=INK, size=6.15, bold=False):
-    ax.text(x, y, value, ha="left", va="center", color=color, fontsize=size,
-            weight="bold" if bold else "normal")
+    with Image.open(EVIDENCE_ROOT / SCENE) as image:
+        assert image.size == (128, 128)
+        scene = image.convert("RGB").copy()
+    menu, reference = choice_evidence()
+    return candidates, bfs["goal_atoms"][0], bfs["observation"]["state_atoms"], operations, scene, menu, reference
 
 
-def card(ax, x, y, w, h, lines, *, heading_lines=1):
-    ax.add_patch(FancyBboxPatch((x, y), w, h, boxstyle="round,pad=.015,rounding_size=.035",
-                                facecolor="#F5F8FA", edgecolor="#CFDBE3", lw=.65))
-    for offset, line in enumerate(lines):
-        ax.text(x + w / 2, y + h / 2 + (len(lines) - 1) * .043 - .086 * offset,
-                line, color=INK, ha="center", va="center", fontsize=6,
-                weight="bold" if offset < heading_lines else "normal")
+def choice_evidence():
+    """Resolve the recorded menu through its original view store, without scores."""
+    with gzip.open(EVIDENCE_ROOT / CHOICE_EPISODE, "rt") as stream:
+        episode = json.load(stream)
+    assert episode["task_id"] == "expanded-final/ferry-compact-915000"
+    assert episode["algorithm"] == "best_first_add_greedy"
+    assert episode["condition"] == "exact_reference"
+    assert episode["result"]["algorithm_invariants_hold"]
+    event = episode["events"][2]
+    assert event["decision_index"] == 2
+    assert event["menu"] == [
+        {"choice": "c0", "state_ref": "s3"},
+        {"choice": "c1", "state_ref": "s1"},
+    ]
+    assert event["input"]["frontier_menu"] == {"choices": ["c0", "c1"]}
+    assert set(event["input"]) == {"algorithm", "frontier_menu", "representation", "schema_version"}
+    assert event["view"]["menu_size"] == 2
+    pages = event["view"]["input_pages"]
+    assert pages == [["task-context", None, 0], ["initial-state", 0, 0],
+                     ["frontier-choice", 3, 0], ["frontier-choice", 1, 0], ["goal", None, 0]]
+    reference = json.loads(event["raw_output"])["expand_choice"]
+    assert reference == "c0"
+    runtime = event["trusted_runtime_result"]
+    assert runtime["accepted"] and runtime["status"] == "expanded"
+    assert runtime["expanded_state_id"] == "s3"
+    assert episode["events"][1]["trusted_runtime_result"]["frontier_after"]["head"]["state_id"] == "s3"
+    admissions = [a["trusted_runtime_result"] for e in episode["events"][:2]
+                  for a in e["trusted_runtime_result"]["admissions"]]
+    enqueued = {a["target_state_id"]: a for a in admissions if a["status"] == "enqueued"}
+    assert enqueued["s3"]["h"] == enqueued["s3"]["priority"] == 2
+    assert enqueued["s1"]["h"] == enqueued["s1"]["priority"] == 4
+    assert min(event["menu"], key=lambda row: enqueued[row["state_ref"]]["priority"])["choice"] == reference
+    assert any(a["trusted_runtime_result"]["status"] == "enqueued" for a in runtime["admissions"])
 
-
-def arrow(ax, start, end, *, color=COPIED):
-    ax.add_patch(FancyArrowPatch(start, end, arrowstyle="-|>", mutation_scale=7,
-                                 lw=.8, color=color))
-
-
-def column(ax, x, title, algorithm):
-    width = 1.76
-    ax.add_patch(FancyBboxPatch((x, .048), width, 1.625,
-                                boxstyle="round,pad=.005,rounding_size=.035",
-                                facecolor="#F8FAFC", edgecolor="#D5E0E7", lw=.7))
-    text(ax, x + .08, 1.57, title, color=ALGO_STYLE[algorithm], size=7.1, bold=True)
-    text(ax, x + .08, 1.46, "observation supplies", size=6, bold=True)
-    text(ax, x + .08, .91 if algorithm == "best_first_width" else .99,
-         "policy emits", size=6, bold=True)
-    return x + .09
+    protocol = json.loads((EVIDENCE_ROOT / CHOICE_PROTOCOL).read_text())
+    report_path = protocol["evaluation"]["panel_view_report"]
+    assert report_path == "outputs/expanded-study/v1/panel-v2/reference-views.json"
+    report = json.loads((EVIDENCE_ROOT / report_path).read_text())
+    task = next(row for row in report["tasks"] if row["row"]["task_id"] == episode["task_id"])
+    native = task["native_views"]
+    assert native["recipe_id"] == "scene-only-128-unlabelled-v1"
+    with gzip.open(EVIDENCE_ROOT / episode["view_output"] / "views.json.gz", "rt") as stream:
+        retained = json.load(stream)
+    assert retained["source_manifest"] == native["source_manifest"]
+    assert not retained["states"] and not retained["scene_only_paths"]
+    manifest = json.loads((EVIDENCE_ROOT / native["source_manifest"]).read_text())
+    with gzip.open(EVIDENCE_ROOT / manifest["scene_catalog"], "rt") as stream:
+        catalog = json.load(stream)
+    assert catalog["states"][3]["atoms"] == ["at-ferry(l2)", "on(c0)"]
+    assert catalog["states"][1]["atoms"] == ["at(c0,l2)", "at-ferry(l0)", "empty-ferry"]
+    for path in native["static_pages"] + native["goal_pages"] + [native["scenes"]["0"]]:
+        assert (EVIDENCE_ROOT / path).is_file()
+    menu = []
+    for row, page in zip(event["menu"], pages[2:4]):
+        index = page[1]
+        path = native["scenes"][str(index)]
+        assert path == str(SCENE.parent / f"state-{index:06d}.png")
+        with Image.open(EVIDENCE_ROOT / path) as image:
+            assert image.size == (128, 128)
+            menu.append((row["choice"], image.convert("RGB").copy()))
+    # The same search-control records verify the weight in the WA* key.
+    weighted_path = CHOICE_EPISODE.with_name("best_first_add_w3-exact_reference-17.json.gz")
+    with gzip.open(EVIDENCE_ROOT / weighted_path, "rt") as stream:
+        weighted = json.load(stream)
+    assert weighted["algorithm"] == "best_first_add_w3"
+    for event in weighted["events"]:
+        for admission in event["trusted_runtime_result"].get("admissions", []):
+            values = admission["trusted_runtime_result"]
+            assert values["priority"] == values["g"] + 3 * values["h"]
+    return menu, reference
 
 
 def main():
-    verify_evidence()
-    with Image.open(EVIDENCE_ROOT / SCENE) as image:
-        assert image.size == (128, 128)
-        scene = image.copy()
-
-    fig = plt.figure(figsize=(W, H), facecolor="white")
+    candidates, goal, facts, operations, scene, menu, reference = evidence()
+    fig = plt.figure(figsize=(W, H), dpi=300, facecolor="white")
     ax = fig.add_axes((0, 0, 1, 1))
-    ax.set(xlim=(0, W), ylim=(0, H))
+    ax.set(xlim=(0, W), ylim=(-.05, H - .05))
     ax.axis("off")
+    boxes, arrows, ownership = {}, {}, {}
 
-    image_ax = fig.add_axes((.05 / W, 1.94 / H, .40 / W, .40 / H))
-    image_ax.imshow(scene, interpolation="nearest")
-    image_ax.axis("off")
-    image_ax.add_patch(Rectangle((0, 0), 1, 1, transform=image_ax.transAxes,
-                                 edgecolor="#C8D6DF", facecolor="none", lw=.7))
-    card(ax, .51, 1.95, .74, .37, ["Observation", "text / visual /", "multimodal"])
-    card(ax, 1.36, 1.95, .84, .37,
-         ["Search Process", "Policy", "Qwen3-VL-8B", "+ LoRA"], heading_lines=2)
-    card(ax, 2.31, 1.95, .84, .37,
-         ["Typed Search", "Operation", "sail(l1,l0)", "from s0"], heading_lines=2)
-    card(ax, 3.26, 1.95, 1.14, .37,
-         ["Trusted Search", "Runtime", "check → apply, or", "reject and end episode"], heading_lines=2)
-    card(ax, 4.51, 1.95, .90, .37, ["Search Memory", "frontier · visited", "novelty tables"])
-    for end, start in [(.51, .45), (1.36, 1.25), (2.31, 2.20), (3.26, 3.15), (4.51, 4.40)]:
-        arrow(ax, (start, 2.135), (end, 2.135))
-    text(ax, .08, 1.84, "candidate rows stay text in every observation type", size=6, color=COPIED)
-    ax.plot([5.11, 5.11, .80], [1.975, 1.75, 1.75], color=COPIED, lw=.75)
-    arrow(ax, (.80, 1.75), (.80, 1.975))
-    ax.plot([.05, 5.45], [1.715, 1.715], color="#D5E0E7", lw=.7)
+    def text(x, y, label, size=6.5, color=INK, inside=(), on_arrow=(), **kwargs):
+        artist = ax.text(x, y, label, fontsize=size, color=color, va="center", **kwargs)
+        ownership[artist] = (inside, on_arrow)
+        return artist
 
-    b = column(ax, .05, "BFS", "bfs")
-    text(ax, b, 1.35, "frontier_size: 1 → 1", color=COPIED)
-    text(ax, b, 1.24, "sail(l1,l0): new → visited", color=COPIED)
-    text(ax, b, 1.13, "sail(l1,l2): new → new", color=COPIED)
-    text(ax, b, .85, "1 action: sail(l1,l0) · source: head", color=COPIED, size=6)
-    text(ax, b, .73, "retire: true · position: 0", color=DERIVED)
-    text(ax, b, .61, "both: visit true · evaluate false")
-    text(ax, b, .49, "2 action: sail(l1,l2) · source: s0", color=COPIED, size=6)
-    text(ax, b, .37, "retire: false · position: 1", color=DERIVED)
-    text(ax, b, .195, "Queue fields derived from frontier size", size=6)
-    text(ax, b, .095, "and step's place in the expansion.", size=6)
+    def box(name, x, y, width, height, face="#F6F8FA", edge=LINE):
+        patch = FancyBboxPatch((x, y), width, height,
+                              boxstyle="round,pad=0.012,rounding_size=0.025",
+                              facecolor=face, edgecolor=edge, linewidth=.65)
+        ax.add_patch(patch)
+        boxes[name] = patch
 
-    f = column(ax, 1.87, "BFWS", "best_first_width")
-    text(ax, f, 1.35, "sail [2,1] · dup: false", color=COPIED)
-    text(ax, f, 1.24, "novelty: 1 · goals left: 1", color=COPIED)
-    text(ax, f, 1.13, "eval.frontier: {true, 0}", color=COPIED)
-    text(ax, f, 1.02, "step 2 [2,1]: dup:true · eval:null", color=COPIED, size=6)
-    text(ax, f, .80, "1 action: sail", color=COPIED)
-    text(ax, f + .67, .80, "(l1,l0)", color=DERIVED)
-    text(ax, f + 1.08, .80, "· source: $", color=COPIED, size=6)
-    text(ax, f, .69, "both: visit/evaluate true")
-    text(ax, f, .58, "frontier_intent: {true, 0}", color=COPIED)
-    text(ax, f, .47, "2 action: sail", color=COPIED)
-    text(ax, f + .67, .47, "(l1,l2)", color=DERIVED)
-    text(ax, f + 1.08, .47, "· source: $", color=COPIED, size=6)
-    text(ax, f, .36, "frontier_intent: {false, 1}", color=COPIED)
-    text(ax, f, .195, "Position supplied in candidate eval;", size=6)
-    text(ax, f, .095, "copied, not derived by the policy.", size=6)
+    def arrow(name, start, end):
+        patch = FancyArrowPatch(start, end, arrowstyle="-|>", mutation_scale=7,
+                                linewidth=.85, color=MUTED)
+        ax.add_patch(patch)
+        arrows[name] = patch
 
-    a = column(ax, 3.69, "Additive · greedy best-first", "best_first_add_greedy")
-    text(ax, a, 1.35, "sail(l1,l0)  g:1 h:4 p:4 → s1", color=COPIED, size=6)
-    text(ax, a, 1.24, "sail(l1,l2)  g:1 h:3 p:3 → s2", color=COPIED, size=6)
-    text(ax, a, .85, "1 action: sail(l1,l0)", color=COPIED)
-    text(ax, a, .73, "source_state_id: s0", color=COPIED)
-    text(ax, a, .61, "2 action: sail(l1,l2)", color=COPIED)
-    text(ax, a, .49, "source_state_id: s0", color=COPIED)
-    text(ax, a, .32, "Runtime computes g, h and priority.", size=6)
-    text(ax, a, .195, "Runtime keeps the priority heap;", size=6)
-    text(ax, a, .095, "weighted A*: priority g + 3h.", size=6)
+    def route(name, xs, ys):
+        arrows[name], = ax.plot(xs, ys, color=MUTED, lw=.85)
 
-    for ext in ("pdf", "svg"):
-        fig.savefig(HERE / f"fig_contracts.{ext}")
+    text(.06, 2.66, "a  One step at inference", size=8, weight="bold")
+    text(5.40, 2.66, r"Training: $(o_t,a_t^*)$ from reference trace $\tau^*$", ha="right", color=MUTED)
+
+    # Generic queue at expansion start; blank chips are not a ferry snapshot.
+    text(.08, 2.47, r"search state $M_t$", weight="bold")
+    text(.08, 2.335, r"open list ordered by $\kappa_{\mathcal{A}}$")
+    for i in range(4):
+        box(f"node{i}", .09 + .265 * i, 2.065, .22, .18,
+            face="#DCEAF4" if i == 0 else "#F6F8FA",
+            edge="#0072B2" if i == 0 else LINE)
+    text(.20, 2.155, r"$n_t$", ha="center", weight="bold", inside=("node0",))
+    text(.60, 1.995, r"head = $n_t$", ha="center", color=MUTED)
+    box("closed", .16, 1.765, .91, .16)
+    text(.615, 1.845, "closed / visited", ha="center", color=MUTED, inside=("closed",))
+
+    box("observation", 1.23, 1.605, 3.15, .835, face="white")
+    text(1.39, 2.51, r"observation $o_t$", weight="bold")
+    ax.imshow(scene, extent=(1.41, 2.09, 1.75, 2.43),
+              interpolation="nearest", aspect="equal", zorder=2)
+    text(1.75, 1.67, "current state (image)", ha="center", inside=("observation",))
+    box("facts", 2.19, 1.74, 1.01, .66)
+    text(2.24, 2.305, "state facts (text)", weight="bold", inside=("facts", "observation"))
+    for y, fact in zip((2.18, 2.055, 1.93), facts):
+        text(2.24, y, fact, inside=("facts", "observation"))
+    text(2.24, 1.815, f"goal: {goal}", inside=("facts", "observation"))
+    box("candidates", 3.34, 1.81, .97, .59)
+    text(3.39, 2.305, r"candidates $C_t$", weight="bold", inside=("candidates", "observation"))
+    text(3.39, 2.17, "always text", color=MUTED, inside=("candidates", "observation"))
+    for y, row in zip((2.04, 1.91), candidates):
+        text(3.39, y, action_name(row["grounded_action"]), inside=("candidates", "observation"))
+    # Deliberately outside the observation group, with a visible lower gutter.
+    text(1.45, 1.505, "text: facts as text · visual: facts as images · multimodal: both", color=MUTED)
+    arrow("observe", (1.14, 2.15), (1.215, 2.15))
+
+    box("vlm", 4.64, 1.975, .69, .435, face="#EAF1F6", edge="#9AAFBF")
+    text(4.985, 2.275, "VLM", size=8, weight="bold", ha="center", inside=("vlm",))
+    text(4.985, 2.09, r"$p_\theta$", size=9, ha="center", inside=("vlm",))
+    arrow("model_input", (4.395, 2.18), (4.62, 2.18))
+    text(4.985, 1.86, "one per step", color=MUTED, ha="center")
+
+    route("output", [5.40, 5.40, 1.42], [2.18, 1.36, 1.36])
+    arrow("output_start", (5.345, 2.18), (5.40, 2.18))
+    arrow("output_end", (1.60, 1.36), (1.34, 1.36))
+    intent = operations["bfs"]["frontier_intent"]
+    action = action_name(operations["bfs"]["action"])
+    emitted = (r"BFS: $a_t=\langle src,\mathrm{" + action + r"},"
+               + rf"r=\mathrm{{{str(intent['retire_source']).lower()}}},p={intent['target_position']}\rangle$")
+    text(3.40, 1.36, emitted, size=7, ha="center", on_arrow=("output",),
+         bbox={"facecolor": "white", "edgecolor": "none", "pad": 2})
+
+    box("runtime", .10, 1.215, 1.22, .37)
+    text(.71, 1.495, "runtime", weight="bold", ha="center", inside=("runtime",))
+    text(.71, 1.325, r"$a_t\in V_{\mathcal{A}}(M_t)$?", size=8, ha="center", inside=("runtime",))
+    route("update", [.10, .035, .035, .09], [1.40, 1.40, 2.155, 2.155])
+    arrow("update_end", (.035, 2.155), (.09, 2.155))
+    text(.08, 1.675, r"✓ $M_{t+1}=T_{\mathcal{A}}(M_t,a_t)$", size=6.5)
+    arrow("reject", (1.10, 1.20), (1.43, 1.16))
+    text(1.49, 1.16, "× episode ends", color=MUTED)
+    text(3.40, 1.205, r"$n_t$: node under expansion; $src=n_t$", color=MUTED, ha="center")
+    ax.plot([.06, 5.43], [1.10, 1.10], color=LINE, lw=.65)
+
+    text(.06, .995, "b  Execution (BFS, BFWS)", size=8, weight="bold")
+    text(.08, .86, r"Ferry, first step: $src=n_t$, " + f"$o$ = {action}")
+    for index, (algorithm, title, color, key) in enumerate(ALGORITHMS):
+        x, width = .07 + 1.30 * index, 1.24
+        name = f"algorithm{index}"
+        patch = Rectangle((x, .10), width, .67, facecolor="#F8FAFC", edgecolor="none")
+        ax.add_patch(patch)
+        boxes[name] = patch
+        ax.plot([x, x + width], [.77, .77], color=color, lw=2.2, solid_capstyle="butt")
+        text(x + .045, .68, title, size=7, weight="bold", inside=(name,))
+        text(x + .045, .55, key, inside=(name,))
+        text(x + .045, .425, r"write $\langle src,o,r,p\rangle$", inside=(name,))
+        intent = operations[algorithm]["frontier_intent"]
+        values = rf"$r=\mathrm{{{str(intent['retire_source']).lower()}}},\ p={intent['target_position']}$"
+        text(x + .045, .30, ("derive " if index == 0 else "copy ") + values, weight="bold", inside=(name,))
+        text(x + .045, .18, r"$p=|\mathrm{open}|-r$" if index == 0 else "from candidate", color=MUTED, inside=(name,))
+    text(.08, .015, "runtime selects head; retire ends expansion", color=MUTED)
+
+    text(2.72, .995, "Search control (GBFS, WA*)", size=8, weight="bold")
+    text(2.72, .85, r"$\kappa_{\mathcal{A}}$: GBFS $h_{\mathrm{add}}$; WA* $g+3h_{\mathrm{add}}$")
+    text(2.72, .74, "shuffled menu · no scores", color=MUTED)
+    for index, (label, image) in enumerate(menu):
+        x, size = 2.77 + .56 * index, .42
+        ax.imshow(image, extent=(x, x + size, .24, .24 + size),
+                  interpolation="nearest", aspect="equal", zorder=2)
+        if label == reference:
+            patch = Rectangle((x - .015, .225), size + .03, size + .03,
+                              facecolor="none", edgecolor="#D55E00", linewidth=1.1)
+            ax.add_patch(patch)
+            boxes["reference_choice"] = patch
+        text(x + size / 2, .165, label + (" (ref.)" if label == reference else ""),
+             ha="center", weight="bold" if label == reference else "normal")
+    text(2.72, .015, "+ initial and goal pages", color=MUTED)
+    arrow("choice_input", (3.82, .53), (4.01, .53))
+    text(4.12, .67, "VLM writes", weight="bold")
+    text(4.12, .51, r"$\langle\mathrm{expand},c\rangle$", size=7)
+    text(4.05, .335, r"runtime expands $c$")
+    text(4.05, .195, "and inserts successors")
+    text(4.05, .015, r"ref.: smallest $\kappa_{\mathcal{A}}$", color=MUTED)
+
+    # Geometry is checked on the final 300-dpi rendering, not guessed widths.
+    def intersects_stroke(path, bounds):
+        # CLOSEPOLY has a dummy vertex (often 0,0), not a drawn segment to it.
+        # Flatten curves and test real segments so arrowheads do not create
+        # spurious diagonals across the entire figure.
+        start = previous = None
+        for vertices, code in path.iter_segments(curves=False):
+            if code == path.MOVETO:
+                start = previous = vertices[-2:]
+            else:
+                current = start if code == path.CLOSEPOLY else vertices[-2:]
+                if type(path)([previous, current]).intersects_bbox(bounds, filled=False):
+                    return True
+                previous = current
+        return False
+
+    fig.canvas.draw()
+    renderer = fig.canvas.get_renderer()
+    padding = 2 * fig.dpi / 72
+    issues = []
+    for label, (containers, owned_arrows) in ownership.items():
+        assert label.get_fontsize() >= 6.5
+        extent = label.get_window_extent(renderer)
+        if not (fig.bbox.contains(extent.x0, extent.y0) and fig.bbox.contains(extent.x1, extent.y1)):
+            issues.append(("canvas", label.get_text()))
+        for name in containers:
+            inner = boxes[name].get_window_extent(renderer).padded(-padding)
+            if not (inner.contains(extent.x0, extent.y0) and inner.contains(extent.x1, extent.y1)):
+                issues.append(("box padding", name, label.get_text()))
+            if name.startswith("algorithm"):
+                right = boxes[name].get_window_extent(renderer).x1 - extent.x1
+                if right < .04 * fig.dpi:
+                    issues.append(("card right padding", name, label.get_text()))
+        for name, patch in boxes.items():
+            border = patch.get_path().transformed(patch.get_transform())
+            stroke = patch.get_linewidth() * fig.dpi / 144
+            if intersects_stroke(border, extent.padded(stroke)):
+                issues.append(("box border", name, label.get_text()))
+        for name, artist in arrows.items():
+            if name not in owned_arrows:
+                path = artist.get_path().transformed(artist.get_transform())
+                stroke = artist.get_linewidth() * fig.dpi / 144
+                if intersects_stroke(path, extent.padded(stroke)):
+                    issues.append(("arrow collision", name, label.get_text()))
+        for image in ax.images:
+            if extent.overlaps(image.get_window_extent(renderer)):
+                issues.append(("image collision", label.get_text()))
+    labels = list(ownership)
+    for index, label in enumerate(labels):
+        extent = label.get_window_extent(renderer)
+        for other in labels[index + 1:]:
+            if extent.overlaps(other.get_window_extent(renderer)):
+                issues.append(("text collision", label.get_text(), other.get_text()))
+    assert W <= 5.5 and H <= 2.8
+    assert not issues, "\n".join(map(str, issues))
+    for extension in ("pdf", "svg"):
+        fig.savefig(HERE / f"fig_contracts.{extension}")
     fig.savefig(HERE / "fig_contracts.png", dpi=300)
     plt.close(fig)
-    print("fig_contracts: main-grid visual process_sft + four text exact-reference episodes; "
-          "BFS derived queue fields, BFWS copied frontier, additive runtime values verified")
+    print(f"fig_contracts: evidence, {len(ownership)} text bounds, 2-pt box padding, "
+          f"card right padding, text/image, and box-border/arrow collisions passed; {W} x {H} in")
 
 
 if __name__ == "__main__":

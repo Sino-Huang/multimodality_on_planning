@@ -10,8 +10,7 @@ Numbers are read from pinned evidence files in the evidence repository:
       arms.<panel>.learned_adapter_s17.m1, .learned_adapter_s29.m1, .learned_adapter_s71.m1
           (per-seed points, m1 only)
   outputs/choice-frontier/v2/metrics/analysis.json
-      adapter_reevaluation.learned_adapter.m1_auc / .m1_task_cluster_95pct_ci_10000_seed133
-          (first adapter, validation panel only)
+      arms.exact_reference.tasks_present  (validation-panel task count)
   outputs/choice-frontier/v6/metrics/analysis.json
       per_panel.v2.m1_arm / per_panel.v2.m1_arm_ci95  (zero-shot base, validation panel)
       per_panel.p2.m1_arm / per_panel.p2.m1_arm_ci95  (zero-shot base, P2 panel)
@@ -25,7 +24,6 @@ import matplotlib.pyplot as plt
 
 HERE = Path(__file__).resolve().parent
 
-CI = "m1_task_cluster_95pct_ci_10000_seed133"
 v2 = load_json("outputs/choice-frontier/v2/metrics/analysis.json")
 v4 = load_json("outputs/choice-frontier/v4/panels/metrics/analysis.json")
 v6 = load_json("outputs/choice-frontier/v6/metrics/analysis.json")
@@ -48,7 +46,7 @@ EXPECTED = {
              "random_valid": (0.021, 0.007, 0.038),
              "learned_adapter_seed_mean": (0.306, 0.158, 0.455),
              "learned_adapter_s17": 0.349, "learned_adapter_s29": 0.250,
-             "learned_adapter_s71": 0.318, "first_adapter": (0.026, 0.010, 0.042)},
+             "learned_adapter_s71": 0.318},
     "p2": {"exact_reference": (0.875, 0.875, 0.875), "exact-eps-0.25": (0.745, 0.685, 0.805),
            "exact-eps-0.50": (0.507, 0.445, 0.566), "exact-eps-0.75": (0.205, 0.145, 0.269),
            "random_valid": (0.016, 0.000, 0.048),
@@ -64,7 +62,7 @@ EXPECTED = {
 }
 
 
-# data[panel] = {"rows": [(label, m, lo, hi)], "seeds": [m...], "first": (m, lo, hi) or None}
+# data[panel] = {"rows": [(label, m, lo, hi)], "seeds": [m...], "zero": (m, lo, hi) or None}
 data = {}
 for pk, _ in PANELS:
     arms = v4["arms"][pk]
@@ -78,12 +76,7 @@ for pk, _ in PANELS:
         m = arms[k]["m1"]
         assert_3dp(m, EXPECTED[pk][k])
         seeds.append(m)
-    data[pk] = {"rows": rows, "seeds": seeds, "first": None, "zero": None}
-
-fa = v2["adapter_reevaluation"]["learned_adapter"]
-first = (fa["m1_auc"], *fa[CI])
-assert_3dp(first, EXPECTED["p135"]["first_adapter"])
-data["p135"]["first"] = first
+    data[pk] = {"rows": rows, "seeds": seeds, "zero": None}
 
 ZERO_EXPECTED = {"p135": ("v2", (0.026, 0.000, 0.063)), "p2": ("p2", (0.017, 0.000, 0.051))}
 for pk, (v6k, exp) in ZERO_EXPECTED.items():
@@ -93,8 +86,8 @@ for pk, (v6k, exp) in ZERO_EXPECTED.items():
     data[pk]["zero"] = zero
 
 GREY, SEED_GREY = "#555555", "#AAAAAA"
-YS = [0, 1, 2, 3, 4, 5.3, 6.3, 7.3]  # ladder x5, adapter mean, zero-shot base, first adapter
-LABELS = [l for l, _ in LADDER] + ["zero-shot base", "first adapter"]
+YS = [0, 1, 2, 3, 4, 5.3, 6.3]  # ladder x5, adapter 3-seed mean, zero-shot base
+LABELS = [l for l, _ in LADDER] + ["zero-shot base"]
 XMIN, XMAX = -0.02, 1.08
 
 fig, axes = plt.subplots(1, 3, sharey=True, figsize=(6.0, 2.35))
@@ -131,8 +124,6 @@ for j, (ax, (pk, title)) in enumerate(zip(axes, PANELS)):
         draw(ax, LADDER[i][1], YS[i], m, lo, hi)
     if d["zero"] is not None:
         draw(ax, "zero_shot_base", YS[6], *d["zero"])
-    if d["first"] is not None:
-        draw(ax, "first_adapter", YS[7], *d["first"])
     ax.set_title(title, fontsize=8, pad=3)
     ax.set_xlim(XMIN, XMAX)
     ax.set_xticks([0, 0.5, 1.0])
@@ -148,7 +139,7 @@ for j, (ax, (pk, title)) in enumerate(zip(axes, PANELS)):
 
 axes[0].set_yticks(YS)
 axes[0].set_yticklabels(LABELS)
-axes[0].set_ylim(7.8, -0.6)
+axes[0].set_ylim(6.8, -0.6)
 fig.tight_layout(pad=0.4, w_pad=0.8)
 for ext in ("pdf", "svg"):
     fig.savefig(HERE / f"fig_ladder.{ext}", bbox_inches="tight", pad_inches=0.02)
@@ -163,6 +154,3 @@ for pk, title in PANELS:
     if d["zero"] is not None:
         m, lo, hi = d["zero"]
         print(f"  zero-shot base: {f3(m)} [{f3(lo)}, {f3(hi)}]")
-    if d["first"] is not None:
-        m, lo, hi = d["first"]
-        print(f"  first adapter: {f3(m)} [{f3(lo)}, {f3(hi)}]")

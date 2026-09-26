@@ -42,5 +42,4 @@ ARM_STYLE = {
     "random_valid": {"color": "#777777", "marker": "o", "facecolor": "white", "edgecolor": "#777777"},
     "learned_adapter_seed_mean": {"color": "#D55E00", "marker": "s", "facecolor": "#D55E00", "edgecolor": "#D55E00"},
     "zero_shot_base": {"color": "#333333", "marker": "D", "facecolor": "white", "edgecolor": "#333333"},
-    "first_adapter": {"color": "#D55E00", "marker": "s", "facecolor": "white", "edgecolor": "#D55E00"},
 }
