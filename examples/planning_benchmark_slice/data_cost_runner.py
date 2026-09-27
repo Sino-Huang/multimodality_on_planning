@@ -1110,10 +1110,13 @@ def ensure_schedule(root: Path) -> dict[str, Any]:
 
 def worker_command(gpu: int) -> list[str]:
     # A login shell sources the project environment (HF_HOME, PYTHONPATH, ...); the GPU is pinned AFTER sourcing.
+    # expandable_segments: the allocator setting only (no numerics); the BFWS multimodal 512 cell OOMed with
+    # 16 GB reserved-but-unallocated (amendment A1).
     return [
         "bash",
         "-lc",
         f"source {ENV_SCRIPT} && export CUDA_VISIBLE_DEVICES={gpu} && "
+        "export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True && "
         f"exec python scripts/run_data_cost.py worker --gpu {gpu}",
     ]
 

@@ -206,3 +206,19 @@ stop is reached, the unrun units are the latest in the frozen order (seed 71 fir
 
 `outputs/data-cost/v1/metrics/analysis.json`, `data-cost-curves.{pdf,png}`, the ledger
 `outputs/data-cost/v1/budget.json`, and the closeout `issue-147-closeout.md`.
+
+## Amendment A1 (2026-09-27, infrastructure only; no recipe, set, panel or analysis change)
+
+- **Allocator.** Unit `train:best_first_width:multimodal-state:512:17` failed at update 9/16 with CUDA OOM on
+  GPU 1 while 15.95 GB was reserved but unallocated (fragmentation). Worker jobs now export
+  `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True` (allocator behaviour only; no numerics). The unit reruns
+  from scratch (it has no mid-cell checkpoint), within the one-retry rule.
+- **Resume verified.** Both workers were SIGKILLed (supervisors and process groups, no completion hook) and
+  `run_data_cost.py resume` was run from a bare `env -i` login shell: it reconciled both attempts as
+  interrupted, relaunched attempt 2 on each GPU with the same MASTER_PORTs (18860/18861), re-claimed the stale
+  units, and `train:bfs:text-state:1024:17` resumed from `checkpoint-16`.
+- **Cost observation (no decision attached).** The measured per-update cost exceeds the feasibility rates
+  because these sets carry longer inputs than the v5 512 sets (mean complete-input tokens, BFWS 512: 5,422 /
+  9,506 / 13,519 text/visual/multimodal vs v5 1,895 / 2,998 / 3,583; BFWS 16,384: 3,059 / 4,746 / 6,437; BFS
+  1.2-1.4x v5). Projected training rises to ~450-470 GPU-h, so the 760 GPU-h stop may be reached before the
+  last seed-71 units; per the frozen order those units would be reported as missing.
