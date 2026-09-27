@@ -1,0 +1,637 @@
+{
+ "all_exact_reach_goal": true,
+ "native_prefix_gate": true,
+ "panels": {
+  "p2": "5c009e856a191ff279195985bec7ddf3bf0041b7ec9ea7dc89fc248e18e114e5",
+  "p2u": "495e752e3fa27815d4a7149d69f0786970ce7f59b90f5df388562943fab2f464"
+ },
+ "protocol_id": "choice-frontier-v7-node-choice-v1",
+ "r_t_rule": "bfs/best_first_width: uncapped exact node-choice expansions (no overflow rule); additive: frozen #139 values",
+ "schema_version": "choice_frontier_v7_panels_v1",
+ "tasks": [
+  {
+   "R": {
+    "best_first_add_greedy": 46,
+    "best_first_add_w3": 12,
+    "best_first_width": 428,
+    "bfs": 196
+   },
+   "domain": "15puzzle",
+   "exact_termination": {
+    "best_first_add_greedy": "goal_reached",
+    "best_first_add_w3": "goal_reached",
+    "best_first_width": "goal_reached",
+    "bfs": "goal_reached"
+   },
+   "group": "p2",
+   "native_prefix_gate": {
+    "best_first_add_greedy": true,
+    "best_first_add_w3": true,
+    "best_first_width": true,
+    "bfs": true
+   },
+   "task_id": "choice-frontier-v4/15puzzle-expanded-955075",
+   "task_path": "outputs/choice-frontier/v4/panels/candidates/15puzzle-expanded-955075/task.json"
+  },
+  {
+   "R": {
+    "best_first_add_greedy": 23,
+    "best_first_add_w3": 24,
+    "best_first_width": 77,
+    "bfs": 327
+   },
+   "domain": "blocksworld",
+   "exact_termination": {
+    "best_first_add_greedy": "goal_reached",
+    "best_first_add_w3": "goal_reached",
+    "best_first_width": "goal_reached",
+    "bfs": "goal_reached"
+   },
+   "group": "p2",
+   "native_prefix_gate": {
+    "best_first_add_greedy": true,
+    "best_first_add_w3": true,
+    "best_first_width": true,
+    "bfs": true
+   },
+   "task_id": "choice-frontier-v4/blocksworld-expanded-955022",
+   "task_path": "outputs/choice-frontier/v4/panels/candidates/blocksworld-expanded-955022/task.json"
+  },
+  {
+   "R": {
+    "best_first_add_greedy": 15,
+    "best_first_add_w3": 15,
+    "best_first_width": 58,
+    "bfs": 116
+   },
+   "domain": "blocksworld",
+   "exact_termination": {
+    "best_first_add_greedy": "goal_reached",
+    "best_first_add_w3": "goal_reached",
+    "best_first_width": "goal_reached",
+    "bfs": "goal_reached"
+   },
+   "group": "p2",
+   "native_prefix_gate": {
+    "best_first_add_greedy": true,
+    "best_first_add_w3": true,
+    "best_first_width": true,
+    "bfs": true
+   },
+   "task_id": "choice-frontier-v4/blocksworld-expanded-955127",
+   "task_path": "outputs/choice-frontier/v4/panels/candidates/blocksworld-expanded-955127/task.json"
+  },
+  {
+   "R": {
+    "best_first_add_greedy": 15,
+    "best_first_add_w3": 15,
+    "best_first_width": 27,
+    "bfs": 41
+   },
+   "domain": "depot",
+   "exact_termination": {
+    "best_first_add_greedy": "goal_reached",
+    "best_first_add_w3": "goal_reached",
+    "best_first_width": "goal_reached",
+    "bfs": "goal_reached"
+   },
+   "group": "p2",
+   "native_prefix_gate": {
+    "best_first_add_greedy": true,
+    "best_first_add_w3": true,
+    "best_first_width": true,
+    "bfs": true
+   },
+   "task_id": "choice-frontier-v4/depot-expanded-955042",
+   "task_path": "outputs/choice-frontier/v4/panels/candidates/depot-expanded-955042/task.json"
+  },
+  {
+   "R": {
+    "best_first_add_greedy": 10,
+    "best_first_add_w3": 10,
+    "best_first_width": 18,
+    "bfs": 41
+   },
+   "domain": "elevators",
+   "exact_termination": {
+    "best_first_add_greedy": "goal_reached",
+    "best_first_add_w3": "goal_reached",
+    "best_first_width": "goal_reached",
+    "bfs": "goal_reached"
+   },
+   "group": "p2",
+   "native_prefix_gate": {
+    "best_first_add_greedy": true,
+    "best_first_add_w3": true,
+    "best_first_width": true,
+    "bfs": true
+   },
+   "task_id": "choice-frontier-v4/elevators-expanded-955007",
+   "task_path": "outputs/choice-frontier/v4/panels/candidates/elevators-expanded-955007/task.json"
+  },
+  {
+   "R": {
+    "best_first_add_greedy": 9,
+    "best_first_add_w3": 9,
+    "best_first_width": 14,
+    "bfs": 34
+   },
+   "domain": "ferry",
+   "exact_termination": {
+    "best_first_add_greedy": "goal_reached",
+    "best_first_add_w3": "goal_reached",
+    "best_first_width": "goal_reached",
+    "bfs": "goal_reached"
+   },
+   "group": "p2",
+   "native_prefix_gate": {
+    "best_first_add_greedy": true,
+    "best_first_add_w3": true,
+    "best_first_width": true,
+    "bfs": true
+   },
+   "task_id": "choice-frontier-v4/ferry-expanded-955007",
+   "task_path": "outputs/choice-frontier/v4/panels/candidates/ferry-expanded-955007/task.json"
+  },
+  {
+   "R": {
+    "best_first_add_greedy": 9,
+    "best_first_add_w3": 9,
+    "best_first_width": 11,
+    "bfs": 37
+   },
+   "domain": "ferry",
+   "exact_termination": {
+    "best_first_add_greedy": "goal_reached",
+    "best_first_add_w3": "goal_reached",
+    "best_first_width": "goal_reached",
+    "bfs": "goal_reached"
+   },
+   "group": "p2",
+   "native_prefix_gate": {
+    "best_first_add_greedy": true,
+    "best_first_add_w3": true,
+    "best_first_width": true,
+    "bfs": true
+   },
+   "task_id": "choice-frontier-v4/ferry-expanded-955075",
+   "task_path": "outputs/choice-frontier/v4/panels/candidates/ferry-expanded-955075/task.json"
+  },
+  {
+   "R": {
+    "best_first_add_greedy": 11,
+    "best_first_add_w3": 11,
+    "best_first_width": 63,
+    "bfs": 60
+   },
+   "domain": "grid",
+   "exact_termination": {
+    "best_first_add_greedy": "goal_reached",
+    "best_first_add_w3": "goal_reached",
+    "best_first_width": "goal_reached",
+    "bfs": "goal_reached"
+   },
+   "group": "p2",
+   "native_prefix_gate": {
+    "best_first_add_greedy": true,
+    "best_first_add_w3": true,
+    "best_first_width": true,
+    "bfs": true
+   },
+   "task_id": "choice-frontier-v4/grid-expanded-955007",
+   "task_path": "outputs/choice-frontier/v4/panels/candidates/grid-expanded-955007/task.json"
+  },
+  {
+   "R": {
+    "best_first_add_greedy": 14,
+    "best_first_add_w3": 14,
+    "best_first_width": 80,
+    "bfs": 82
+   },
+   "domain": "grid",
+   "exact_termination": {
+    "best_first_add_greedy": "goal_reached",
+    "best_first_add_w3": "goal_reached",
+    "best_first_width": "goal_reached",
+    "bfs": "goal_reached"
+   },
+   "group": "p2",
+   "native_prefix_gate": {
+    "best_first_add_greedy": true,
+    "best_first_add_w3": true,
+    "best_first_width": true,
+    "bfs": true
+   },
+   "task_id": "choice-frontier-v4/grid-expanded-955021",
+   "task_path": "outputs/choice-frontier/v4/panels/candidates/grid-expanded-955021/task.json"
+  },
+  {
+   "R": {
+    "best_first_add_greedy": 30,
+    "best_first_add_w3": 45,
+    "best_first_width": 54,
+    "bfs": 79
+   },
+   "domain": "towers_of_hanoi",
+   "exact_termination": {
+    "best_first_add_greedy": "goal_reached",
+    "best_first_add_w3": "goal_reached",
+    "best_first_width": "goal_reached",
+    "bfs": "goal_reached"
+   },
+   "group": "p2",
+   "native_prefix_gate": {
+    "best_first_add_greedy": true,
+    "best_first_add_w3": true,
+    "best_first_width": true,
+    "bfs": true
+   },
+   "task_id": "choice-frontier-v4/towers_of_hanoi-expanded-955031",
+   "task_path": "outputs/choice-frontier/v4/panels/candidates/towers_of_hanoi-expanded-955031/task.json"
+  },
+  {
+   "R": {
+    "best_first_add_greedy": 15,
+    "best_first_add_w3": 19,
+    "best_first_width": 9,
+    "bfs": 327
+   },
+   "domain": "visitall",
+   "exact_termination": {
+    "best_first_add_greedy": "goal_reached",
+    "best_first_add_w3": "goal_reached",
+    "best_first_width": "goal_reached",
+    "bfs": "goal_reached"
+   },
+   "group": "p2",
+   "native_prefix_gate": {
+    "best_first_add_greedy": true,
+    "best_first_add_w3": true,
+    "best_first_width": true,
+    "bfs": true
+   },
+   "task_id": "choice-frontier-v4/visitall-expanded-955170",
+   "task_path": "outputs/choice-frontier/v4/panels/candidates/visitall-expanded-955170/task.json"
+  },
+  {
+   "R": {
+    "best_first_add_greedy": 8,
+    "best_first_add_w3": 8,
+    "best_first_width": 19,
+    "bfs": 170
+   },
+   "domain": "15puzzle",
+   "exact_termination": {
+    "best_first_add_greedy": "goal_reached",
+    "best_first_add_w3": "goal_reached",
+    "best_first_width": "goal_reached",
+    "bfs": "goal_reached"
+   },
+   "group": "p2u",
+   "native_prefix_gate": {
+    "best_first_add_greedy": true,
+    "best_first_add_w3": true,
+    "best_first_width": true,
+    "bfs": true
+   },
+   "task_id": "choice-frontier-v4/15puzzle-expanded-955000",
+   "task_path": "outputs/choice-frontier/v4/panels/candidates/15puzzle-expanded-955000/task.json"
+  },
+  {
+   "R": {
+    "best_first_add_greedy": 8,
+    "best_first_add_w3": 8,
+    "best_first_width": 301,
+    "bfs": 310
+   },
+   "domain": "15puzzle",
+   "exact_termination": {
+    "best_first_add_greedy": "goal_reached",
+    "best_first_add_w3": "goal_reached",
+    "best_first_width": "goal_reached",
+    "bfs": "goal_reached"
+   },
+   "group": "p2u",
+   "native_prefix_gate": {
+    "best_first_add_greedy": true,
+    "best_first_add_w3": true,
+    "best_first_width": true,
+    "bfs": true
+   },
+   "task_id": "choice-frontier-v4/15puzzle-expanded-955002",
+   "task_path": "outputs/choice-frontier/v4/panels/candidates/15puzzle-expanded-955002/task.json"
+  },
+  {
+   "R": {
+    "best_first_add_greedy": 26,
+    "best_first_add_w3": 26,
+    "best_first_width": 108,
+    "bfs": 371
+   },
+   "domain": "blocksworld",
+   "exact_termination": {
+    "best_first_add_greedy": "goal_reached",
+    "best_first_add_w3": "goal_reached",
+    "best_first_width": "goal_reached",
+    "bfs": "goal_reached"
+   },
+   "group": "p2u",
+   "native_prefix_gate": {
+    "best_first_add_greedy": true,
+    "best_first_add_w3": true,
+    "best_first_width": true,
+    "bfs": true
+   },
+   "task_id": "choice-frontier-v4/blocksworld-expanded-955000",
+   "task_path": "outputs/choice-frontier/v4/panels/candidates/blocksworld-expanded-955000/task.json"
+  },
+  {
+   "R": {
+    "best_first_add_greedy": 21,
+    "best_first_add_w3": 23,
+    "best_first_width": 27,
+    "bfs": 384
+   },
+   "domain": "blocksworld",
+   "exact_termination": {
+    "best_first_add_greedy": "goal_reached",
+    "best_first_add_w3": "goal_reached",
+    "best_first_width": "goal_reached",
+    "bfs": "goal_reached"
+   },
+   "group": "p2u",
+   "native_prefix_gate": {
+    "best_first_add_greedy": true,
+    "best_first_add_w3": true,
+    "best_first_width": true,
+    "bfs": true
+   },
+   "task_id": "choice-frontier-v4/blocksworld-expanded-955001",
+   "task_path": "outputs/choice-frontier/v4/panels/candidates/blocksworld-expanded-955001/task.json"
+  },
+  {
+   "R": {
+    "best_first_add_greedy": 10,
+    "best_first_add_w3": 10,
+    "best_first_width": 29,
+    "bfs": 46
+   },
+   "domain": "depot",
+   "exact_termination": {
+    "best_first_add_greedy": "goal_reached",
+    "best_first_add_w3": "goal_reached",
+    "best_first_width": "goal_reached",
+    "bfs": "goal_reached"
+   },
+   "group": "p2u",
+   "native_prefix_gate": {
+    "best_first_add_greedy": true,
+    "best_first_add_w3": true,
+    "best_first_width": true,
+    "bfs": true
+   },
+   "task_id": "choice-frontier-v4/depot-expanded-955045",
+   "task_path": "outputs/choice-frontier/v4/panels/candidates/depot-expanded-955045/task.json"
+  },
+  {
+   "R": {
+    "best_first_add_greedy": 10,
+    "best_first_add_w3": 10,
+    "best_first_width": 17,
+    "bfs": 45
+   },
+   "domain": "depot",
+   "exact_termination": {
+    "best_first_add_greedy": "goal_reached",
+    "best_first_add_w3": "goal_reached",
+    "best_first_width": "goal_reached",
+    "bfs": "goal_reached"
+   },
+   "group": "p2u",
+   "native_prefix_gate": {
+    "best_first_add_greedy": true,
+    "best_first_add_w3": true,
+    "best_first_width": true,
+    "bfs": true
+   },
+   "task_id": "choice-frontier-v4/depot-expanded-955051",
+   "task_path": "outputs/choice-frontier/v4/panels/candidates/depot-expanded-955051/task.json"
+  },
+  {
+   "R": {
+    "best_first_add_greedy": 17,
+    "best_first_add_w3": 17,
+    "best_first_width": 69,
+    "bfs": 459
+   },
+   "domain": "driverlog",
+   "exact_termination": {
+    "best_first_add_greedy": "goal_reached",
+    "best_first_add_w3": "goal_reached",
+    "best_first_width": "goal_reached",
+    "bfs": "goal_reached"
+   },
+   "group": "p2u",
+   "native_prefix_gate": {
+    "best_first_add_greedy": true,
+    "best_first_add_w3": true,
+    "best_first_width": true,
+    "bfs": true
+   },
+   "task_id": "choice-frontier-v4/driverlog-expanded-955001",
+   "task_path": "outputs/choice-frontier/v4/panels/candidates/driverlog-expanded-955001/task.json"
+  },
+  {
+   "R": {
+    "best_first_add_greedy": 14,
+    "best_first_add_w3": 14,
+    "best_first_width": 92,
+    "bfs": 199
+   },
+   "domain": "driverlog",
+   "exact_termination": {
+    "best_first_add_greedy": "goal_reached",
+    "best_first_add_w3": "goal_reached",
+    "best_first_width": "goal_reached",
+    "bfs": "goal_reached"
+   },
+   "group": "p2u",
+   "native_prefix_gate": {
+    "best_first_add_greedy": true,
+    "best_first_add_w3": true,
+    "best_first_width": true,
+    "bfs": true
+   },
+   "task_id": "choice-frontier-v4/driverlog-expanded-955002",
+   "task_path": "outputs/choice-frontier/v4/panels/candidates/driverlog-expanded-955002/task.json"
+  },
+  {
+   "R": {
+    "best_first_add_greedy": 9,
+    "best_first_add_w3": 9,
+    "best_first_width": 19,
+    "bfs": 41
+   },
+   "domain": "elevators",
+   "exact_termination": {
+    "best_first_add_greedy": "goal_reached",
+    "best_first_add_w3": "goal_reached",
+    "best_first_width": "goal_reached",
+    "bfs": "goal_reached"
+   },
+   "group": "p2u",
+   "native_prefix_gate": {
+    "best_first_add_greedy": true,
+    "best_first_add_w3": true,
+    "best_first_width": true,
+    "bfs": true
+   },
+   "task_id": "choice-frontier-v4/elevators-expanded-955078",
+   "task_path": "outputs/choice-frontier/v4/panels/candidates/elevators-expanded-955078/task.json"
+  },
+  {
+   "R": {
+    "best_first_add_greedy": 8,
+    "best_first_add_w3": 8,
+    "best_first_width": 11,
+    "bfs": 33
+   },
+   "domain": "ferry",
+   "exact_termination": {
+    "best_first_add_greedy": "goal_reached",
+    "best_first_add_w3": "goal_reached",
+    "best_first_width": "goal_reached",
+    "bfs": "goal_reached"
+   },
+   "group": "p2u",
+   "native_prefix_gate": {
+    "best_first_add_greedy": true,
+    "best_first_add_w3": true,
+    "best_first_width": true,
+    "bfs": true
+   },
+   "task_id": "choice-frontier-v4/ferry-expanded-955037",
+   "task_path": "outputs/choice-frontier/v4/panels/candidates/ferry-expanded-955037/task.json"
+  },
+  {
+   "R": {
+    "best_first_add_greedy": 8,
+    "best_first_add_w3": 8,
+    "best_first_width": 15,
+    "bfs": 36
+   },
+   "domain": "ferry",
+   "exact_termination": {
+    "best_first_add_greedy": "goal_reached",
+    "best_first_add_w3": "goal_reached",
+    "best_first_width": "goal_reached",
+    "bfs": "goal_reached"
+   },
+   "group": "p2u",
+   "native_prefix_gate": {
+    "best_first_add_greedy": true,
+    "best_first_add_w3": true,
+    "best_first_width": true,
+    "bfs": true
+   },
+   "task_id": "choice-frontier-v4/ferry-expanded-955048",
+   "task_path": "outputs/choice-frontier/v4/panels/candidates/ferry-expanded-955048/task.json"
+  },
+  {
+   "R": {
+    "best_first_add_greedy": 9,
+    "best_first_add_w3": 9,
+    "best_first_width": 36,
+    "bfs": 38
+   },
+   "domain": "grid",
+   "exact_termination": {
+    "best_first_add_greedy": "goal_reached",
+    "best_first_add_w3": "goal_reached",
+    "best_first_width": "goal_reached",
+    "bfs": "goal_reached"
+   },
+   "group": "p2u",
+   "native_prefix_gate": {
+    "best_first_add_greedy": true,
+    "best_first_add_w3": true,
+    "best_first_width": true,
+    "bfs": true
+   },
+   "task_id": "choice-frontier-v4/grid-expanded-955003",
+   "task_path": "outputs/choice-frontier/v4/panels/candidates/grid-expanded-955003/task.json"
+  },
+  {
+   "R": {
+    "best_first_add_greedy": 3,
+    "best_first_add_w3": 3,
+    "best_first_width": 5,
+    "bfs": 6
+   },
+   "domain": "storage",
+   "exact_termination": {
+    "best_first_add_greedy": "goal_reached",
+    "best_first_add_w3": "goal_reached",
+    "best_first_width": "goal_reached",
+    "bfs": "goal_reached"
+   },
+   "group": "smoke",
+   "native_prefix_gate": {
+    "best_first_add_greedy": true,
+    "best_first_add_w3": true,
+    "best_first_width": true,
+    "bfs": true
+   },
+   "task_id": "expanded-final/storage-compact-919000",
+   "task_path": "outputs/expanded-study/v1/panel/candidates/storage-compact-919000/task.json"
+  },
+  {
+   "R": {
+    "best_first_add_greedy": 4,
+    "best_first_add_w3": 4,
+    "best_first_width": 5,
+    "bfs": 6
+   },
+   "domain": "elevators",
+   "exact_termination": {
+    "best_first_add_greedy": "goal_reached",
+    "best_first_add_w3": "goal_reached",
+    "best_first_width": "goal_reached",
+    "bfs": "goal_reached"
+   },
+   "group": "smoke",
+   "native_prefix_gate": {
+    "best_first_add_greedy": true,
+    "best_first_add_w3": true,
+    "best_first_width": true,
+    "bfs": true
+   },
+   "task_id": "expanded-final/elevators-compact-914002",
+   "task_path": "outputs/expanded-study/v1/panel/candidates/elevators-compact-914002/task.json"
+  },
+  {
+   "R": {
+    "best_first_add_greedy": 4,
+    "best_first_add_w3": 4,
+    "best_first_width": 7,
+    "bfs": 7
+   },
+   "domain": "ferry",
+   "exact_termination": {
+    "best_first_add_greedy": "goal_reached",
+    "best_first_add_w3": "goal_reached",
+    "best_first_width": "goal_reached",
+    "bfs": "goal_reached"
+   },
+   "group": "smoke",
+   "native_prefix_gate": {
+    "best_first_add_greedy": true,
+    "best_first_add_w3": true,
+    "best_first_width": true,
+    "bfs": true
+   },
+   "task_id": "expanded-final/ferry-compact-915000",
+   "task_path": "outputs/expanded-study/v1/panel/candidates/ferry-compact-915000/task.json"
+  }
+ ]
+}
