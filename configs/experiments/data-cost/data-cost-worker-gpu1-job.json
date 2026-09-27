@@ -1,0 +1,20 @@
+{
+ "job_id": "data-cost-worker-gpu1",
+ "branch": "data_cost",
+ "gpus": [
+  1
+ ],
+ "max_seconds": 604800,
+ "total": 115,
+ "command": [
+  "bash",
+  "-lc",
+  "source ~/cd_vlaplan && export CUDA_VISIBLE_DEVICES=1 && export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True && exec python scripts/run_data_cost.py worker --gpu 1"
+ ],
+ "completion_hook": [
+  "bash",
+  "-lc",
+  "source ~/cd_vlaplan && export CUDA_VISIBLE_DEVICES= && exec python scripts/run_data_cost.py hook"
+ ],
+ "resume_reason": "amendment A1: expandable_segments allocator after OOM; simulated crash to verify resume"
+}
