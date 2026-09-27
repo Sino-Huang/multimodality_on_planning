@@ -1,0 +1,155 @@
+{
+  "schema": "data_cost_protocol_v1",
+  "study_id": "data-cost-v1",
+  "issue": 147,
+  "frozen_before": "any #147 training or model episode",
+  "author_decisions": "docs/experiments/data-cost/issue-147-feasibility.md#author-decision-2026-09-26-before-any-protocol",
+  "cap_gpu_hours": 800.0,
+  "worker_stop_gpu_hours": 760.0,
+  "algorithms": [
+    "bfs",
+    "best_first_width"
+  ],
+  "modalities": [
+    "text-state",
+    "visual-state",
+    "multimodal-state"
+  ],
+  "sizes": [
+    512,
+    1024,
+    2048,
+    4096,
+    8192,
+    16384
+  ],
+  "training_seeds": [
+    17,
+    29,
+    71
+  ],
+  "epochs": 1,
+  "compute_matched_control": {
+    "algorithm": "bfs",
+    "modality": "text-state",
+    "size": 2048,
+    "epochs": 8,
+    "seed": 17,
+    "updates": 512,
+    "epoch_order_seed": "data-cost-v1:order:bfs:2048:17:epoch{e}"
+  },
+  "dropped_by_author": [
+    "32768 rung",
+    "Qwen3-VL-2B/4B/32B model-size axis",
+    "InternVL3.5-8B cell"
+  ],
+  "state_representation": "scene-only-128-unlabelled-v1",
+  "vfg_transforms": {
+    "sokoban": "compact_grid_vfg"
+  },
+  "recipe": {
+    "source": "configs/experiments/matched-modalities/study-v5.json#training",
+    "model_id": "Qwen/Qwen3-VL-8B-Instruct",
+    "model_revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+    "lora": {
+      "r": 64,
+      "alpha": 128,
+      "dropout": 0.05,
+      "exclude": ".*visual.*"
+    },
+    "lr": 0.0001,
+    "global_batch": 32,
+    "sample_order_seed": "data-cost-v1:order:{algorithm}:{size}:{seed}",
+    "checkpoint_every_updates": 16,
+    "final_adapter_dtype": "bfloat16"
+  },
+  "panel": {
+    "path": "configs/experiments/data-cost/panel.json",
+    "membership_sha256": "b7f41bab3c5276af0c759adc225611549bfa3a966af616fd8915a1458341cfce",
+    "file_sha256": "44eba3652988cca48d297e120aaf70a30fe890f2d54bd773d4c45f20356747d9",
+    "tasks": 30,
+    "domains": 15,
+    "reference_views": "outputs/data-cost/v1/panel/reference-views.json",
+    "reference_views_sha256": "94d883e6970bbe13e640f07d641f68b5554d64a4fb1f3ea9b4007c4eafcd2569"
+  },
+  "training_sets": {
+    "path": "configs/experiments/data-cost/training-sets.json",
+    "sha256": "e2335480a9be3df2c14062b39d0cc2bcfb10a632ef598f10e3c689eb42777a4d",
+    "membership": "configs/experiments/data-cost/membership.json",
+    "membership_sha256": "1c7b6f0af241d4fd9f0d31f2de83dbf7f80b40e3737337f2ef9519ffc1bca9e7",
+    "scene_views": "outputs/data-cost/v1/preparation/scene-views.json",
+    "scene_views_sha256": "10d29cbc22322772ca6f7d0ccbe95fa9739c6c8d0d6992a6ae6bf5817c45e393"
+  },
+  "sufficiency": {
+    "path": "outputs/data-cost/v1/preparation/sufficiency.json",
+    "sha256": "4aa15c8298ad74e8f6a393fb9a69c20fded68f36791ccbfcf1e45e7721bfd2b6",
+    "primary": "all 15 domains",
+    "secondary": "PASS domains only, visual and multimodal"
+  },
+  "evaluation": {
+    "decoding": "greedy",
+    "evaluation_seed": 17,
+    "cap": "2 x exact-reference decisions",
+    "max_new_tokens": 384,
+    "context_tokens": 32768,
+    "controls": {
+      "exact_reference": [
+        17
+      ],
+      "random_valid": [
+        17,
+        5077,
+        6131,
+        7409,
+        8527
+      ],
+      "pretrained_base": "2 algorithms x 3 modalities",
+      "control_modality": "text-state (observation-independent)"
+    }
+  },
+  "metrics": {
+    "success": "invariant_valid_success",
+    "valid_operation_rate": "accepted model operations / model calls",
+    "first_invalid_step": "1-based decision index of first rejected operation; censored if none"
+  },
+  "analysis": {
+    "n_q": [
+      0.5,
+      0.9
+    ],
+    "interpolation": "linear in log2 N at first upward crossing of the 3-seed mean curve; <=512 left, >16384 right-censored",
+    "bootstrap": {
+      "unit": "task",
+      "draws": 10000,
+      "rng": "random.Random(147)",
+      "interval": "95% percentile",
+      "seeds": "averaged inside each draw"
+    },
+    "contrasts": {
+      "per_size": [
+        "bfs-best_first_width per modality (3)",
+        "text-visual, text-multimodal, visual-multimodal per algorithm (6)"
+      ],
+      "tests": 54,
+      "p": "two-sided bootstrap, 2 x min tail",
+      "adjustment": "Holm over 54",
+      "label": "SEPARATED iff Holm p < 0.05"
+    },
+    "compute_matched": "S(2048x8)-S(2048x1), S(16384x1)-S(2048x8), bfs text seed 17, paired task bootstrap, descriptive",
+    "node_choice": "outputs/choice-frontier/v4/seeds/metrics/analysis.json (#136/#138), reused"
+  },
+  "execution": {
+    "runner": "scripts/run_data_cost.py",
+    "schedule": "docs/experiments/data-cost/schedule.json",
+    "schedule_sha256": "bcf1311d7e687a340917238978881d527cd99d1124826c7157f6932801c3c268",
+    "ledger": "outputs/data-cost/v1/budget.json",
+    "master_port_pool": [
+      18860,
+      18861,
+      18862,
+      18863
+    ],
+    "resume": "source ~/cd_vlaplan && python scripts/run_data_cost.py resume",
+    "unit_retry": "1 infrastructure retry; blocked after 2 failures"
+  }
+}

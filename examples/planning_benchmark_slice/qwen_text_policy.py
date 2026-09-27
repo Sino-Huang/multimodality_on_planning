@@ -224,7 +224,9 @@ class BatchedPolicyAdapter:
         policy_message_builder: Callable[[Mapping[str, Any]], list[dict[str, Any]]] = qwen_text_policy_messages,
         backbone: dict | None = None,
         page_processor: Any = None,
+        autocast_adapter_dtype: bool = True,
     ) -> None:
+        """``autocast_adapter_dtype=False`` (opt-in) keeps stored bf16 LoRA weights in bf16 at load."""
         for name, value in (
             ("max_new_tokens", max_new_tokens),
             ("max_context_tokens", max_context_tokens),
@@ -262,6 +264,7 @@ class BatchedPolicyAdapter:
         self.policy_message_builder = policy_message_builder
         self.backbone = backbone
         self.page_processor = page_processor
+        self.autocast_adapter_dtype = autocast_adapter_dtype
         self.processor = AutoProcessor.from_pretrained(model_id, revision=revision, local_files_only=True)
         tokenizer = getattr(self.processor, "tokenizer", None)
         if tokenizer is not None:
@@ -424,12 +427,15 @@ class BatchedPolicyAdapter:
                 self.model,
                 adapter_path,
                 adapter_name=adapter_id,
+                autocast_adapter_dtype=self.autocast_adapter_dtype,
             ).to(self.device)
             self.model.eval()
             self._peft_wrapped = True
             self._loaded_adapters.add(adapter_id)
         elif adapter_id not in self._loaded_adapters:
-            self.model.load_adapter(adapter_path, adapter_name=adapter_id)
+            self.model.load_adapter(
+                adapter_path, adapter_name=adapter_id, autocast_adapter_dtype=self.autocast_adapter_dtype
+            )
             self._loaded_adapters.add(adapter_id)
         self.model.set_adapter(adapter_id)
         yield

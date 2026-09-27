@@ -1,0 +1,43 @@
+{
+  "program_id": "data-cost-v1",
+  "status": "authorized_followup_window",
+  "issue": 147,
+  "authorization": {
+    "granted_by": "author decision 2026-09-26 (docs/experiments/data-cost/issue-147-feasibility.md)",
+    "window_gpu_hours_cap": 800.0,
+    "basis": "108 main cells + compute-matched control + 6 base evaluations; ~615 GPU-h expected, ~770 with x1.25"
+  },
+  "start_utc": "2026-09-26T00:00:00Z",
+  "gpu_cutoff_utc": "2026-11-15T00:00:00Z",
+  "handoff_deadline_utc": "2026-11-16T00:00:00Z",
+  "deadline_kind": "soft_handoff",
+  "hardware": {
+    "gpus": 2,
+    "model": "NVIDIA A100 80GB",
+    "preserve_unrelated_processes": true,
+    "max_own_model_workers_per_gpu": 1
+  },
+  "experiment_gpu_hours_cap": 800.0,
+  "allocations_gpu_hours": {
+    "data_cost": 800.0
+  },
+  "accounting": {
+    "metric": "sum of own allocated model-worker GPU durations across devices; include model loading, saves, failures and retries",
+    "ledger": "outputs/data-cost/v1/budget.json",
+    "worker_stop_rule": "a worker claims no new unit once charged GPU-h (terminal attempts + running elapsed) exceeds 760.0",
+    "reset_on_resume": false,
+    "automatic_total_extension": false
+  },
+  "master_port_pool": [
+    18860,
+    18861,
+    18862,
+    18863
+  ],
+  "backend_ports": [
+    18092,
+    18093,
+    18094,
+    18095
+  ]
+}

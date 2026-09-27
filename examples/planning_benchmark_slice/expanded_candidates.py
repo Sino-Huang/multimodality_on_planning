@@ -170,14 +170,16 @@ def screen(root, protocol, profile, seed, exclusions):
             if limits.get("grounding_metric") == "current_additive_type_pruned_assignments"
             else report["cartesian_grounding_estimate"]
         )
-        if report["grounding_estimate"] > limits["grounding_estimate_ceiling"]:
+        # A null ceiling records the estimate without admission (#147: bfs/bfws never ground operators).
+        ceiling = limits["grounding_estimate_ceiling"]
+        if ceiling is not None and report["grounding_estimate"] > ceiling:
             raise RuntimeError("grounding_estimate_ceiling")
         if task_semantics(task["domain_pddl"], task["problem_pddl"]) in exclusions:
             raise RuntimeError("historical_task_overlap")
         if authority.is_goal(authority.initial_state):
             raise RuntimeError("initial_goal")
         row = dict(
-            task_id=f"expanded-final/{profile['domain']}-{profile['stratum']}-{seed}",
+            task_id=f"{protocol.get('task_id_prefix', 'expanded-final')}/{profile['domain']}-{profile['stratum']}-{seed}",
             domain=profile["domain"],
             difficulty=profile["stratum"],
             split="test",

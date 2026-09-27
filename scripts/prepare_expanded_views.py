@@ -18,7 +18,9 @@ from examples.planning_benchmark_slice.scene_only_views import materialize_task,
 from examples.planning_benchmark_slice.source_goal import source_task
 
 
-def prepare_task(protocol, group, index):
+def prepare_task(protocol, group, index, *, render_overrides=None, vfg_transform=None, endpoint=None):
+    """Opt-in `render_overrides`/`vfg_transform` repair layouts (Sokoban); `endpoint` overrides the
+    default 18092+index%4 renderer. Unset keeps prior output."""
     import torch
 
     torch.set_num_threads(2)
@@ -57,7 +59,7 @@ def prepare_task(protocol, group, index):
             root=ROOT,
             row=row,
             profile=ROOT / profiles[row["domain"]],
-            endpoint=f"http://127.0.0.1:{18092+index%4}",
+            endpoint=endpoint or f"http://127.0.0.1:{18092+index%4}",
             output=scene_output,
             timeout=30,
             preflight=False,
@@ -87,6 +89,7 @@ def prepare_task(protocol, group, index):
             reference_costs=row["reference_costs"],
             complete_reference_coverage=True,
             full_reachable_closure=False,
+            **({"render_overrides": render_overrides} if render_overrides else {}),
         ),
     )
     native = materialize_task(
@@ -96,6 +99,7 @@ def prepare_task(protocol, group, index):
         range(len(catalog["states"])),
         output / "unlabelled",
         progress,
+        vfg_transform=vfg_transform,
     )
     views = SceneOnlyViews(ROOT, {row["task_id"]: native})
     processor = frozen_processor()

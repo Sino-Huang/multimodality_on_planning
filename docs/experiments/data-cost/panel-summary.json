@@ -1,0 +1,765 @@
+{
+  "panel": "configs/experiments/data-cost/panel.json",
+  "membership_sha256": "b7f41bab3c5276af0c759adc225611549bfa3a966af616fd8915a1458341cfce",
+  "selected_count": 30,
+  "target_problems": 30,
+  "missing_strata": [],
+  "historical_contexts_compared": 484,
+  "screened_candidates": 109,
+  "strata": [
+    {
+      "domain": "15puzzle",
+      "stratum": "compact",
+      "seeds_available": 16,
+      "seeds_tried": 3,
+      "rejections": {
+        "historical_task_overlap": 1,
+        "historical_object_renaming_overlap": 1
+      },
+      "selected_task": "data-cost/15puzzle-compact-947002",
+      "selected_seed": 947002,
+      "reference_costs": {
+        "bfs": {
+          "decisions": 37,
+          "expansions": 20
+        },
+        "best_first_width": {
+          "decisions": 9,
+          "expansions": 4
+        }
+      },
+      "reference_input_maxima": {
+        "text-state": 3005,
+        "visual-state": 4132,
+        "multimodal-state": 5468
+      }
+    },
+    {
+      "domain": "15puzzle",
+      "stratum": "expanded",
+      "seeds_available": 64,
+      "seeds_tried": 1,
+      "rejections": {},
+      "selected_task": "data-cost/15puzzle-expanded-947100",
+      "selected_seed": 947100,
+      "reference_costs": {
+        "bfs": {
+          "decisions": 224,
+          "expansions": 128
+        },
+        "best_first_width": {
+          "decisions": 14,
+          "expansions": 7
+        }
+      },
+      "reference_input_maxima": {
+        "text-state": 3031,
+        "visual-state": 4158,
+        "multimodal-state": 5494
+      }
+    },
+    {
+      "domain": "blocksworld",
+      "stratum": "compact",
+      "seeds_available": 16,
+      "seeds_tried": 2,
+      "rejections": {
+        "generator_failed": 1
+      },
+      "selected_task": "data-cost/blocksworld-compact-948001",
+      "selected_seed": 948001,
+      "reference_costs": {
+        "bfs": {
+          "decisions": 114,
+          "expansions": 81
+        },
+        "best_first_width": {
+          "decisions": 57,
+          "expansions": 36
+        }
+      },
+      "reference_input_maxima": {
+        "text-state": 1810,
+        "visual-state": 3151,
+        "multimodal-state": 3498
+      }
+    },
+    {
+      "domain": "blocksworld",
+      "stratum": "expanded",
+      "seeds_available": 16,
+      "seeds_tried": 5,
+      "rejections": {
+        "exact_reference_failed:bfs:expansion_budget_exhausted": 4
+      },
+      "selected_task": "data-cost/blocksworld-expanded-948104",
+      "selected_seed": 948104,
+      "reference_costs": {
+        "bfs": {
+          "decisions": 106,
+          "expansions": 53
+        },
+        "best_first_width": {
+          "decisions": 85,
+          "expansions": 36
+        }
+      },
+      "reference_input_maxima": {
+        "text-state": 1847,
+        "visual-state": 3156,
+        "multimodal-state": 3535
+      }
+    },
+    {
+      "domain": "depot",
+      "stratum": "compact",
+      "seeds_available": 64,
+      "seeds_tried": 2,
+      "rejections": {
+        "initial_goal": 1
+      },
+      "selected_task": "data-cost/depot-compact-949001",
+      "selected_seed": 949001,
+      "reference_costs": {
+        "bfs": {
+          "decisions": 12,
+          "expansions": 8
+        },
+        "best_first_width": {
+          "decisions": 9,
+          "expansions": 7
+        }
+      },
+      "reference_input_maxima": {
+        "text-state": 2405,
+        "visual-state": 3933,
+        "multimodal-state": 4868
+      }
+    },
+    {
+      "domain": "depot",
+      "stratum": "expanded",
+      "seeds_available": 16,
+      "seeds_tried": 1,
+      "rejections": {},
+      "selected_task": "data-cost/depot-expanded-949100",
+      "selected_seed": 949100,
+      "reference_costs": {
+        "bfs": {
+          "decisions": 57,
+          "expansions": 42
+        },
+        "best_first_width": {
+          "decisions": 26,
+          "expansions": 15
+        }
+      },
+      "reference_input_maxima": {
+        "text-state": 2409,
+        "visual-state": 3901,
+        "multimodal-state": 4872
+      }
+    },
+    {
+      "domain": "driverlog",
+      "stratum": "compact",
+      "seeds_available": 16,
+      "seeds_tried": 1,
+      "rejections": {},
+      "selected_task": "data-cost/driverlog-compact-950000",
+      "selected_seed": 950000,
+      "reference_costs": {
+        "bfs": {
+          "decisions": 63,
+          "expansions": 46
+        },
+        "best_first_width": {
+          "decisions": 58,
+          "expansions": 41
+        }
+      },
+      "reference_input_maxima": {
+        "text-state": 2040,
+        "visual-state": 3740,
+        "multimodal-state": 4503
+      }
+    },
+    {
+      "domain": "driverlog",
+      "stratum": "expanded",
+      "seeds_available": 16,
+      "seeds_tried": 7,
+      "rejections": {
+        "exact_reference_failed:bfs:expansion_budget_exhausted": 6
+      },
+      "selected_task": "data-cost/driverlog-expanded-950106",
+      "selected_seed": 950106,
+      "reference_costs": {
+        "bfs": {
+          "decisions": 182,
+          "expansions": 92
+        },
+        "best_first_width": {
+          "decisions": 48,
+          "expansions": 20
+        }
+      },
+      "reference_input_maxima": {
+        "text-state": 2195,
+        "visual-state": 3735,
+        "multimodal-state": 4658
+      }
+    },
+    {
+      "domain": "elevators",
+      "stratum": "compact",
+      "seeds_available": 16,
+      "seeds_tried": 3,
+      "rejections": {
+        "historical_task_overlap": 2
+      },
+      "selected_task": "data-cost/elevators-compact-951002",
+      "selected_seed": 951002,
+      "reference_costs": {
+        "bfs": {
+          "decisions": 8,
+          "expansions": 6
+        },
+        "best_first_width": {
+          "decisions": 8,
+          "expansions": 6
+        }
+      },
+      "reference_input_maxima": {
+        "text-state": 1573,
+        "visual-state": 2898,
+        "multimodal-state": 3261
+      }
+    },
+    {
+      "domain": "elevators",
+      "stratum": "expanded",
+      "seeds_available": 16,
+      "seeds_tried": 3,
+      "rejections": {
+        "historical_task_overlap": 2
+      },
+      "selected_task": "data-cost/elevators-expanded-951102",
+      "selected_seed": 951102,
+      "reference_costs": {
+        "bfs": {
+          "decisions": 59,
+          "expansions": 41
+        },
+        "best_first_width": {
+          "decisions": 30,
+          "expansions": 18
+        }
+      },
+      "reference_input_maxima": {
+        "text-state": 1778,
+        "visual-state": 2989,
+        "multimodal-state": 3466
+      }
+    },
+    {
+      "domain": "ferry",
+      "stratum": "compact",
+      "seeds_available": 64,
+      "seeds_tried": 2,
+      "rejections": {
+        "initial_goal": 1
+      },
+      "selected_task": "data-cost/ferry-compact-952001",
+      "selected_seed": 952001,
+      "reference_costs": {
+        "bfs": {
+          "decisions": 13,
+          "expansions": 8
+        },
+        "best_first_width": {
+          "decisions": 11,
+          "expansions": 6
+        }
+      },
+      "reference_input_maxima": {
+        "text-state": 1746,
+        "visual-state": 2999,
+        "multimodal-state": 3434
+      }
+    },
+    {
+      "domain": "ferry",
+      "stratum": "expanded",
+      "seeds_available": 16,
+      "seeds_tried": 1,
+      "rejections": {},
+      "selected_task": "data-cost/ferry-expanded-952100",
+      "selected_seed": 952100,
+      "reference_costs": {
+        "bfs": {
+          "decisions": 42,
+          "expansions": 29
+        },
+        "best_first_width": {
+          "decisions": 17,
+          "expansions": 11
+        }
+      },
+      "reference_input_maxima": {
+        "text-state": 1840,
+        "visual-state": 3097,
+        "multimodal-state": 3528
+      }
+    },
+    {
+      "domain": "freecell",
+      "stratum": "compact",
+      "seeds_available": 16,
+      "seeds_tried": 1,
+      "rejections": {},
+      "selected_task": "data-cost/freecell-compact-953000",
+      "selected_seed": 953000,
+      "reference_costs": {
+        "bfs": {
+          "decisions": 52,
+          "expansions": 34
+        },
+        "best_first_width": {
+          "decisions": 20,
+          "expansions": 8
+        }
+      },
+      "reference_input_maxima": {
+        "text-state": 2372,
+        "visual-state": 3760,
+        "multimodal-state": 4835
+      }
+    },
+    {
+      "domain": "freecell",
+      "stratum": "expanded",
+      "seeds_available": 16,
+      "seeds_tried": 1,
+      "rejections": {},
+      "selected_task": "data-cost/freecell-expanded-953100",
+      "selected_seed": 953100,
+      "reference_costs": {
+        "bfs": {
+          "decisions": 89,
+          "expansions": 59
+        },
+        "best_first_width": {
+          "decisions": 34,
+          "expansions": 17
+        }
+      },
+      "reference_input_maxima": {
+        "text-state": 2486,
+        "visual-state": 3748,
+        "multimodal-state": 4949
+      }
+    },
+    {
+      "domain": "grid",
+      "stratum": "compact",
+      "seeds_available": 16,
+      "seeds_tried": 1,
+      "rejections": {},
+      "selected_task": "data-cost/grid-compact-954000",
+      "selected_seed": 954000,
+      "reference_costs": {
+        "bfs": {
+          "decisions": 24,
+          "expansions": 13
+        },
+        "best_first_width": {
+          "decisions": 27,
+          "expansions": 13
+        }
+      },
+      "reference_input_maxima": {
+        "text-state": 2292,
+        "visual-state": 3794,
+        "multimodal-state": 4755
+      }
+    },
+    {
+      "domain": "grid",
+      "stratum": "expanded",
+      "seeds_available": 16,
+      "seeds_tried": 1,
+      "rejections": {},
+      "selected_task": "data-cost/grid-expanded-954100",
+      "selected_seed": 954100,
+      "reference_costs": {
+        "bfs": {
+          "decisions": 163,
+          "expansions": 94
+        },
+        "best_first_width": {
+          "decisions": 154,
+          "expansions": 87
+        }
+      },
+      "reference_input_maxima": {
+        "text-state": 2692,
+        "visual-state": 3980,
+        "multimodal-state": 5155
+      }
+    },
+    {
+      "domain": "gripper",
+      "stratum": "compact",
+      "seeds_available": 16,
+      "seeds_tried": 2,
+      "rejections": {
+        "historical_object_renaming_overlap": 1
+      },
+      "selected_task": "data-cost/gripper-compact-955001",
+      "selected_seed": 955001,
+      "reference_costs": {
+        "bfs": {
+          "decisions": 83,
+          "expansions": 54
+        },
+        "best_first_width": {
+          "decisions": 43,
+          "expansions": 22
+        }
+      },
+      "reference_input_maxima": {
+        "text-state": 1782,
+        "visual-state": 3007,
+        "multimodal-state": 3470
+      }
+    },
+    {
+      "domain": "gripper",
+      "stratum": "expanded",
+      "seeds_available": 64,
+      "seeds_tried": 49,
+      "rejections": {
+        "exact_reference_failed:bfs:expansion_budget_exhausted": 37,
+        "historical_task_overlap": 9,
+        "historical_object_renaming_overlap": 2
+      },
+      "selected_task": "data-cost/gripper-expanded-955148",
+      "selected_seed": 955148,
+      "reference_costs": {
+        "bfs": {
+          "decisions": 151,
+          "expansions": 82
+        },
+        "best_first_width": {
+          "decisions": 77,
+          "expansions": 36
+        }
+      },
+      "reference_input_maxima": {
+        "text-state": 1859,
+        "visual-state": 3027,
+        "multimodal-state": 3547
+      }
+    },
+    {
+      "domain": "logistics",
+      "stratum": "compact",
+      "seeds_available": 64,
+      "seeds_tried": 1,
+      "rejections": {},
+      "selected_task": "data-cost/logistics-compact-956000",
+      "selected_seed": 956000,
+      "reference_costs": {
+        "bfs": {
+          "decisions": 31,
+          "expansions": 19
+        },
+        "best_first_width": {
+          "decisions": 19,
+          "expansions": 11
+        }
+      },
+      "reference_input_maxima": {
+        "text-state": 2091,
+        "visual-state": 3243,
+        "multimodal-state": 3779
+      }
+    },
+    {
+      "domain": "logistics",
+      "stratum": "expanded",
+      "seeds_available": 16,
+      "seeds_tried": 1,
+      "rejections": {},
+      "selected_task": "data-cost/logistics-expanded-956100",
+      "selected_seed": 956100,
+      "reference_costs": {
+        "bfs": {
+          "decisions": 29,
+          "expansions": 22
+        },
+        "best_first_width": {
+          "decisions": 21,
+          "expansions": 11
+        }
+      },
+      "reference_input_maxima": {
+        "text-state": 2047,
+        "visual-state": 3210,
+        "multimodal-state": 3735
+      }
+    },
+    {
+      "domain": "snake",
+      "stratum": "compact",
+      "seeds_available": 16,
+      "seeds_tried": 1,
+      "rejections": {},
+      "selected_task": "data-cost/snake-compact-957000",
+      "selected_seed": 957000,
+      "reference_costs": {
+        "bfs": {
+          "decisions": 103,
+          "expansions": 48
+        },
+        "best_first_width": {
+          "decisions": 49,
+          "expansions": 21
+        }
+      },
+      "reference_input_maxima": {
+        "text-state": 3658,
+        "visual-state": 5180,
+        "multimodal-state": 7671
+      }
+    },
+    {
+      "domain": "snake",
+      "stratum": "expanded",
+      "seeds_available": 16,
+      "seeds_tried": 1,
+      "rejections": {},
+      "selected_task": "data-cost/snake-expanded-957100",
+      "selected_seed": 957100,
+      "reference_costs": {
+        "bfs": {
+          "decisions": 24,
+          "expansions": 10
+        },
+        "best_first_width": {
+          "decisions": 10,
+          "expansions": 5
+        }
+      },
+      "reference_input_maxima": {
+        "text-state": 3741,
+        "visual-state": 5229,
+        "multimodal-state": 7754
+      }
+    },
+    {
+      "domain": "sokoban",
+      "stratum": "compact",
+      "seeds_available": 16,
+      "seeds_tried": 8,
+      "rejections": {
+        "exact_reference_failed:bfs:expansion_budget_exhausted": 7
+      },
+      "selected_task": "data-cost/sokoban-compact-958007",
+      "selected_seed": 958007,
+      "reference_costs": {
+        "bfs": {
+          "decisions": 163,
+          "expansions": 94
+        },
+        "best_first_width": {
+          "decisions": 88,
+          "expansions": 46
+        }
+      },
+      "reference_input_maxima": {
+        "text-state": 3756,
+        "visual-state": 6089,
+        "multimodal-state": 8544
+      }
+    },
+    {
+      "domain": "sokoban",
+      "stratum": "expanded",
+      "seeds_available": 16,
+      "seeds_tried": 1,
+      "rejections": {},
+      "selected_task": "data-cost/sokoban-expanded-958100",
+      "selected_seed": 958100,
+      "reference_costs": {
+        "bfs": {
+          "decisions": 229,
+          "expansions": 128
+        },
+        "best_first_width": {
+          "decisions": 178,
+          "expansions": 88
+        }
+      },
+      "reference_input_maxima": {
+        "text-state": 4569,
+        "visual-state": 6812,
+        "multimodal-state": 10132
+      }
+    },
+    {
+      "domain": "storage",
+      "stratum": "compact",
+      "seeds_available": 64,
+      "seeds_tried": 1,
+      "rejections": {},
+      "selected_task": "data-cost/storage-compact-959000",
+      "selected_seed": 959000,
+      "reference_costs": {
+        "bfs": {
+          "decisions": 10,
+          "expansions": 7
+        },
+        "best_first_width": {
+          "decisions": 8,
+          "expansions": 7
+        }
+      },
+      "reference_input_maxima": {
+        "text-state": 3425,
+        "visual-state": 5149,
+        "multimodal-state": 6663
+      }
+    },
+    {
+      "domain": "storage",
+      "stratum": "expanded",
+      "seeds_available": 16,
+      "seeds_tried": 1,
+      "rejections": {},
+      "selected_task": "data-cost/storage-expanded-959100",
+      "selected_seed": 959100,
+      "reference_costs": {
+        "bfs": {
+          "decisions": 100,
+          "expansions": 58
+        },
+        "best_first_width": {
+          "decisions": 51,
+          "expansions": 31
+        }
+      },
+      "reference_input_maxima": {
+        "text-state": 4380,
+        "visual-state": 5905,
+        "multimodal-state": 7618
+      }
+    },
+    {
+      "domain": "towers_of_hanoi",
+      "stratum": "compact",
+      "seeds_available": 64,
+      "seeds_tried": 2,
+      "rejections": {
+        "historical_task_overlap": 1
+      },
+      "selected_task": "data-cost/towers_of_hanoi-compact-960001",
+      "selected_seed": 960001,
+      "reference_costs": {
+        "bfs": {
+          "decisions": 102,
+          "expansions": 76
+        },
+        "best_first_width": {
+          "decisions": 57,
+          "expansions": 42
+        }
+      },
+      "reference_input_maxima": {
+        "text-state": 1995,
+        "visual-state": 3156,
+        "multimodal-state": 3683
+      }
+    },
+    {
+      "domain": "towers_of_hanoi",
+      "stratum": "expanded",
+      "seeds_available": 16,
+      "seeds_tried": 2,
+      "rejections": {
+        "historical_task_overlap": 1
+      },
+      "selected_task": "data-cost/towers_of_hanoi-expanded-960101",
+      "selected_seed": 960101,
+      "reference_costs": {
+        "bfs": {
+          "decisions": 82,
+          "expansions": 59
+        },
+        "best_first_width": {
+          "decisions": 47,
+          "expansions": 34
+        }
+      },
+      "reference_input_maxima": {
+        "text-state": 1988,
+        "visual-state": 3149,
+        "multimodal-state": 3676
+      }
+    },
+    {
+      "domain": "visitall",
+      "stratum": "compact",
+      "seeds_available": 16,
+      "seeds_tried": 2,
+      "rejections": {
+        "historical_task_overlap": 1
+      },
+      "selected_task": "data-cost/visitall-compact-961001",
+      "selected_seed": 961001,
+      "reference_costs": {
+        "bfs": {
+          "decisions": 64,
+          "expansions": 27
+        },
+        "best_first_width": {
+          "decisions": 13,
+          "expansions": 5
+        }
+      },
+      "reference_input_maxima": {
+        "text-state": 2168,
+        "visual-state": 3768,
+        "multimodal-state": 4631
+      }
+    },
+    {
+      "domain": "visitall",
+      "stratum": "expanded",
+      "seeds_available": 16,
+      "seeds_tried": 2,
+      "rejections": {
+        "exact_reference_failed:bfs:expansion_budget_exhausted": 1
+      },
+      "selected_task": "data-cost/visitall-expanded-961101",
+      "selected_seed": 961101,
+      "reference_costs": {
+        "bfs": {
+          "decisions": 197,
+          "expansions": 102
+        },
+        "best_first_width": {
+          "decisions": 14,
+          "expansions": 6
+        }
+      },
+      "reference_input_maxima": {
+        "text-state": 2159,
+        "visual-state": 3732,
+        "multimodal-state": 4622
+      }
+    }
+  ],
+  "model_calls": 0
+}

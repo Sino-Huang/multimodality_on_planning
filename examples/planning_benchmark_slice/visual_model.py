@@ -174,16 +174,35 @@ def _default_dataset_factory(root, config, algorithm, split):
 
 
 def train_visual(
-    config, root, algorithm, output, *, deadline, progress, resume=False, dataset_factory=None, init_adapter=None
+    config,
+    root,
+    algorithm,
+    output,
+    *,
+    deadline,
+    progress,
+    resume=False,
+    dataset_factory=None,
+    init_adapter=None,
+    save_steps=None,
+    save_total_limit=None,
+    bf16_final_adapter=False,
+    teacher_diagnostics=True,
 ):
-    """``init_adapter`` continues training an existing LoRA adapter (fresh optimizer and scheduler)."""
+    """``init_adapter`` continues training an existing LoRA adapter (fresh optimizer and scheduler).
+
+    Opt-in (defaults keep the frozen v3/v5 behaviour): ``save_steps``/``save_total_limit`` override the
+    checkpoint cadence; ``bf16_final_adapter`` casts the trained LoRA weights to bfloat16 before the final
+    save (PEFT then stores them without upcasting); ``teacher_diagnostics=False`` skips the dev-split
+    teacher-forced evaluations (for empty diagnostic sets).
+    """
 
     from torch.utils.data import SequentialSampler
     from transformers import Trainer, TrainerCallback, TrainingArguments
 
     factory = dataset_factory or _default_dataset_factory
     dataset = factory(root, config, algorithm, "train")
-    diagnostics = factory(root, config, algorithm, "dev")
+    diagnostics = factory(root, config, algorithm, "dev") if teacher_diagnostics else []
     training = config["training"]
     total = math.ceil(len(dataset) / training["global_batch_size"]) * training["epochs"]
     started = time.monotonic()
@@ -227,7 +246,7 @@ def train_visual(
                 total=total,
                 eta_seconds=(time.monotonic() - started) / max(1, state.global_step) * (total - state.global_step),
             )
-            if state.global_step in {max(1, total // 3), max(1, 2 * (total // 3))}:
+            if teacher_diagnostics and state.global_step in {max(1, total // 3), max(1, 2 * (total // 3))}:
                 control.should_evaluate = True
             if time.monotonic() >= deadline:
                 control.should_save = True
@@ -261,8 +280,8 @@ def train_visual(
         seed=config["training_seed"],
         data_seed=config["training_seed"],
         logging_steps=1,
-        save_steps=max(1, total // 3),
-        save_total_limit=3,
+        save_steps=save_steps or max(1, total // 3),
+        save_total_limit=save_total_limit or 3,
         report_to=[],
         remove_unused_columns=False,
         dataloader_num_workers=0,
@@ -271,13 +290,19 @@ def train_visual(
         model=model,
         args=args,
         train_dataset=dataset,
-        eval_dataset=diagnostics,
+        eval_dataset=diagnostics if teacher_diagnostics else None,
         data_collator=VisualCollator(frozen_processor().processor),
         callbacks=[Progress()],
     )
     trainer.train(resume_from_checkpoint=str(checkpoints[-1]) if resume and checkpoints else None)
     if trainer.state.global_step != total:
         raise RuntimeError("VALID_STOP: training clock expired before final checkpoint")
+    if bf16_final_adapter:
+        import torch
+
+        for parameter in model.parameters():
+            if parameter.requires_grad:
+                parameter.data = parameter.data.to(torch.bfloat16)
     trainer.save_model(str(output / "final"))
     trainer.state.save_to_json(str(output / "training_state.json"))
     return {

@@ -1,0 +1,793 @@
+{
+  "program_id": "data-cost-v1",
+  "panel_id": "data-cost-panel-v1",
+  "frozen_at": 1790431937.9869654,
+  "protocol": "configs/experiments/data-cost/panel-protocol.json",
+  "algorithms": [
+    "bfs",
+    "best_first_width"
+  ],
+  "modalities": [
+    "text-state",
+    "visual-state",
+    "multimodal-state"
+  ],
+  "reference_decision_multiplier": 2,
+  "evaluation_seed": 17,
+  "view_report": "outputs/data-cost/v1/panel/reference-views.json",
+  "view_runtime": "examples.planning_benchmark_slice.expanded_views.ExpandedTaskViews",
+  "task_count": 30,
+  "target_problems": 30,
+  "domains_with_both_strata": [
+    "15puzzle",
+    "blocksworld",
+    "depot",
+    "driverlog",
+    "elevators",
+    "ferry",
+    "freecell",
+    "grid",
+    "gripper",
+    "logistics",
+    "snake",
+    "sokoban",
+    "storage",
+    "towers_of_hanoi",
+    "visitall"
+  ],
+  "missing_strata": [],
+  "membership_sha256": "b7f41bab3c5276af0c759adc225611549bfa3a966af616fd8915a1458341cfce",
+  "membership_sha256_scope": "sha256 of compact JSON of sorted [task_id, reference_costs] pairs",
+  "tasks": [
+    {
+      "row": {
+        "task_id": "data-cost/15puzzle-compact-947002",
+        "domain": "15puzzle",
+        "difficulty": "compact",
+        "split": "test",
+        "task_path": "outputs/data-cost/v1/panel/candidates/15puzzle-compact-947002/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 37,
+            "expansions": 20
+          },
+          "best_first_width": {
+            "decisions": 9,
+            "expansions": 4
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/data-cost/tasks/15puzzle-compact.json",
+      "reference_paths": {
+        "bfs": "outputs/data-cost/v1/panel/candidates/15puzzle-compact-947002/reference-bfs.json.gz",
+        "best_first_width": "outputs/data-cost/v1/panel/candidates/15puzzle-compact-947002/reference-best_first_width.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "data-cost/15puzzle-expanded-947100",
+        "domain": "15puzzle",
+        "difficulty": "expanded",
+        "split": "test",
+        "task_path": "outputs/data-cost/v1/panel/candidates/15puzzle-expanded-947100/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 224,
+            "expansions": 128
+          },
+          "best_first_width": {
+            "decisions": 14,
+            "expansions": 7
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/data-cost/tasks/15puzzle-expanded.json",
+      "reference_paths": {
+        "bfs": "outputs/data-cost/v1/panel/candidates/15puzzle-expanded-947100/reference-bfs.json.gz",
+        "best_first_width": "outputs/data-cost/v1/panel/candidates/15puzzle-expanded-947100/reference-best_first_width.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "data-cost/blocksworld-compact-948001",
+        "domain": "blocksworld",
+        "difficulty": "compact",
+        "split": "test",
+        "task_path": "outputs/data-cost/v1/panel/candidates/blocksworld-compact-948001/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 114,
+            "expansions": 81
+          },
+          "best_first_width": {
+            "decisions": 57,
+            "expansions": 36
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/data-cost/tasks/blocksworld-compact.json",
+      "reference_paths": {
+        "bfs": "outputs/data-cost/v1/panel/candidates/blocksworld-compact-948001/reference-bfs.json.gz",
+        "best_first_width": "outputs/data-cost/v1/panel/candidates/blocksworld-compact-948001/reference-best_first_width.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "data-cost/blocksworld-expanded-948104",
+        "domain": "blocksworld",
+        "difficulty": "expanded",
+        "split": "test",
+        "task_path": "outputs/data-cost/v1/panel/candidates/blocksworld-expanded-948104/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 106,
+            "expansions": 53
+          },
+          "best_first_width": {
+            "decisions": 85,
+            "expansions": 36
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/data-cost/tasks/blocksworld-expanded.json",
+      "reference_paths": {
+        "bfs": "outputs/data-cost/v1/panel/candidates/blocksworld-expanded-948104/reference-bfs.json.gz",
+        "best_first_width": "outputs/data-cost/v1/panel/candidates/blocksworld-expanded-948104/reference-best_first_width.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "data-cost/depot-compact-949001",
+        "domain": "depot",
+        "difficulty": "compact",
+        "split": "test",
+        "task_path": "outputs/data-cost/v1/panel/candidates/depot-compact-949001/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 12,
+            "expansions": 8
+          },
+          "best_first_width": {
+            "decisions": 9,
+            "expansions": 7
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/data-cost/tasks/depot-compact.json",
+      "reference_paths": {
+        "bfs": "outputs/data-cost/v1/panel/candidates/depot-compact-949001/reference-bfs.json.gz",
+        "best_first_width": "outputs/data-cost/v1/panel/candidates/depot-compact-949001/reference-best_first_width.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "data-cost/depot-expanded-949100",
+        "domain": "depot",
+        "difficulty": "expanded",
+        "split": "test",
+        "task_path": "outputs/data-cost/v1/panel/candidates/depot-expanded-949100/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 57,
+            "expansions": 42
+          },
+          "best_first_width": {
+            "decisions": 26,
+            "expansions": 15
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/data-cost/tasks/depot-expanded.json",
+      "reference_paths": {
+        "bfs": "outputs/data-cost/v1/panel/candidates/depot-expanded-949100/reference-bfs.json.gz",
+        "best_first_width": "outputs/data-cost/v1/panel/candidates/depot-expanded-949100/reference-best_first_width.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "data-cost/driverlog-compact-950000",
+        "domain": "driverlog",
+        "difficulty": "compact",
+        "split": "test",
+        "task_path": "outputs/data-cost/v1/panel/candidates/driverlog-compact-950000/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 63,
+            "expansions": 46
+          },
+          "best_first_width": {
+            "decisions": 58,
+            "expansions": 41
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/data-cost/tasks/driverlog-compact.json",
+      "reference_paths": {
+        "bfs": "outputs/data-cost/v1/panel/candidates/driverlog-compact-950000/reference-bfs.json.gz",
+        "best_first_width": "outputs/data-cost/v1/panel/candidates/driverlog-compact-950000/reference-best_first_width.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "data-cost/driverlog-expanded-950106",
+        "domain": "driverlog",
+        "difficulty": "expanded",
+        "split": "test",
+        "task_path": "outputs/data-cost/v1/panel/candidates/driverlog-expanded-950106/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 182,
+            "expansions": 92
+          },
+          "best_first_width": {
+            "decisions": 48,
+            "expansions": 20
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/data-cost/tasks/driverlog-expanded.json",
+      "reference_paths": {
+        "bfs": "outputs/data-cost/v1/panel/candidates/driverlog-expanded-950106/reference-bfs.json.gz",
+        "best_first_width": "outputs/data-cost/v1/panel/candidates/driverlog-expanded-950106/reference-best_first_width.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "data-cost/elevators-compact-951002",
+        "domain": "elevators",
+        "difficulty": "compact",
+        "split": "test",
+        "task_path": "outputs/data-cost/v1/panel/candidates/elevators-compact-951002/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 8,
+            "expansions": 6
+          },
+          "best_first_width": {
+            "decisions": 8,
+            "expansions": 6
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/data-cost/tasks/elevators-compact.json",
+      "reference_paths": {
+        "bfs": "outputs/data-cost/v1/panel/candidates/elevators-compact-951002/reference-bfs.json.gz",
+        "best_first_width": "outputs/data-cost/v1/panel/candidates/elevators-compact-951002/reference-best_first_width.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "data-cost/elevators-expanded-951102",
+        "domain": "elevators",
+        "difficulty": "expanded",
+        "split": "test",
+        "task_path": "outputs/data-cost/v1/panel/candidates/elevators-expanded-951102/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 59,
+            "expansions": 41
+          },
+          "best_first_width": {
+            "decisions": 30,
+            "expansions": 18
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/data-cost/tasks/elevators-expanded.json",
+      "reference_paths": {
+        "bfs": "outputs/data-cost/v1/panel/candidates/elevators-expanded-951102/reference-bfs.json.gz",
+        "best_first_width": "outputs/data-cost/v1/panel/candidates/elevators-expanded-951102/reference-best_first_width.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "data-cost/ferry-compact-952001",
+        "domain": "ferry",
+        "difficulty": "compact",
+        "split": "test",
+        "task_path": "outputs/data-cost/v1/panel/candidates/ferry-compact-952001/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 13,
+            "expansions": 8
+          },
+          "best_first_width": {
+            "decisions": 11,
+            "expansions": 6
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/data-cost/tasks/ferry-compact.json",
+      "reference_paths": {
+        "bfs": "outputs/data-cost/v1/panel/candidates/ferry-compact-952001/reference-bfs.json.gz",
+        "best_first_width": "outputs/data-cost/v1/panel/candidates/ferry-compact-952001/reference-best_first_width.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "data-cost/ferry-expanded-952100",
+        "domain": "ferry",
+        "difficulty": "expanded",
+        "split": "test",
+        "task_path": "outputs/data-cost/v1/panel/candidates/ferry-expanded-952100/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 42,
+            "expansions": 29
+          },
+          "best_first_width": {
+            "decisions": 17,
+            "expansions": 11
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/data-cost/tasks/ferry-expanded.json",
+      "reference_paths": {
+        "bfs": "outputs/data-cost/v1/panel/candidates/ferry-expanded-952100/reference-bfs.json.gz",
+        "best_first_width": "outputs/data-cost/v1/panel/candidates/ferry-expanded-952100/reference-best_first_width.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "data-cost/freecell-compact-953000",
+        "domain": "freecell",
+        "difficulty": "compact",
+        "split": "test",
+        "task_path": "outputs/data-cost/v1/panel/candidates/freecell-compact-953000/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 52,
+            "expansions": 34
+          },
+          "best_first_width": {
+            "decisions": 20,
+            "expansions": 8
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/data-cost/tasks/freecell-compact.json",
+      "reference_paths": {
+        "bfs": "outputs/data-cost/v1/panel/candidates/freecell-compact-953000/reference-bfs.json.gz",
+        "best_first_width": "outputs/data-cost/v1/panel/candidates/freecell-compact-953000/reference-best_first_width.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "data-cost/freecell-expanded-953100",
+        "domain": "freecell",
+        "difficulty": "expanded",
+        "split": "test",
+        "task_path": "outputs/data-cost/v1/panel/candidates/freecell-expanded-953100/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 89,
+            "expansions": 59
+          },
+          "best_first_width": {
+            "decisions": 34,
+            "expansions": 17
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/data-cost/tasks/freecell-expanded.json",
+      "reference_paths": {
+        "bfs": "outputs/data-cost/v1/panel/candidates/freecell-expanded-953100/reference-bfs.json.gz",
+        "best_first_width": "outputs/data-cost/v1/panel/candidates/freecell-expanded-953100/reference-best_first_width.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "data-cost/grid-compact-954000",
+        "domain": "grid",
+        "difficulty": "compact",
+        "split": "test",
+        "task_path": "outputs/data-cost/v1/panel/candidates/grid-compact-954000/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 24,
+            "expansions": 13
+          },
+          "best_first_width": {
+            "decisions": 27,
+            "expansions": 13
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/data-cost/tasks/grid-compact.json",
+      "reference_paths": {
+        "bfs": "outputs/data-cost/v1/panel/candidates/grid-compact-954000/reference-bfs.json.gz",
+        "best_first_width": "outputs/data-cost/v1/panel/candidates/grid-compact-954000/reference-best_first_width.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "data-cost/grid-expanded-954100",
+        "domain": "grid",
+        "difficulty": "expanded",
+        "split": "test",
+        "task_path": "outputs/data-cost/v1/panel/candidates/grid-expanded-954100/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 163,
+            "expansions": 94
+          },
+          "best_first_width": {
+            "decisions": 154,
+            "expansions": 87
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/data-cost/tasks/grid-expanded.json",
+      "reference_paths": {
+        "bfs": "outputs/data-cost/v1/panel/candidates/grid-expanded-954100/reference-bfs.json.gz",
+        "best_first_width": "outputs/data-cost/v1/panel/candidates/grid-expanded-954100/reference-best_first_width.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "data-cost/gripper-compact-955001",
+        "domain": "gripper",
+        "difficulty": "compact",
+        "split": "test",
+        "task_path": "outputs/data-cost/v1/panel/candidates/gripper-compact-955001/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 83,
+            "expansions": 54
+          },
+          "best_first_width": {
+            "decisions": 43,
+            "expansions": 22
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/data-cost/tasks/gripper-compact.json",
+      "reference_paths": {
+        "bfs": "outputs/data-cost/v1/panel/candidates/gripper-compact-955001/reference-bfs.json.gz",
+        "best_first_width": "outputs/data-cost/v1/panel/candidates/gripper-compact-955001/reference-best_first_width.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "data-cost/gripper-expanded-955148",
+        "domain": "gripper",
+        "difficulty": "expanded",
+        "split": "test",
+        "task_path": "outputs/data-cost/v1/panel/candidates/gripper-expanded-955148/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 151,
+            "expansions": 82
+          },
+          "best_first_width": {
+            "decisions": 77,
+            "expansions": 36
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/data-cost/tasks/gripper-expanded.json",
+      "reference_paths": {
+        "bfs": "outputs/data-cost/v1/panel/candidates/gripper-expanded-955148/reference-bfs.json.gz",
+        "best_first_width": "outputs/data-cost/v1/panel/candidates/gripper-expanded-955148/reference-best_first_width.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "data-cost/logistics-compact-956000",
+        "domain": "logistics",
+        "difficulty": "compact",
+        "split": "test",
+        "task_path": "outputs/data-cost/v1/panel/candidates/logistics-compact-956000/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 31,
+            "expansions": 19
+          },
+          "best_first_width": {
+            "decisions": 19,
+            "expansions": 11
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/data-cost/tasks/logistics-compact.json",
+      "reference_paths": {
+        "bfs": "outputs/data-cost/v1/panel/candidates/logistics-compact-956000/reference-bfs.json.gz",
+        "best_first_width": "outputs/data-cost/v1/panel/candidates/logistics-compact-956000/reference-best_first_width.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "data-cost/logistics-expanded-956100",
+        "domain": "logistics",
+        "difficulty": "expanded",
+        "split": "test",
+        "task_path": "outputs/data-cost/v1/panel/candidates/logistics-expanded-956100/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 29,
+            "expansions": 22
+          },
+          "best_first_width": {
+            "decisions": 21,
+            "expansions": 11
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/data-cost/tasks/logistics-expanded.json",
+      "reference_paths": {
+        "bfs": "outputs/data-cost/v1/panel/candidates/logistics-expanded-956100/reference-bfs.json.gz",
+        "best_first_width": "outputs/data-cost/v1/panel/candidates/logistics-expanded-956100/reference-best_first_width.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "data-cost/snake-compact-957000",
+        "domain": "snake",
+        "difficulty": "compact",
+        "split": "test",
+        "task_path": "outputs/data-cost/v1/panel/candidates/snake-compact-957000/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 103,
+            "expansions": 48
+          },
+          "best_first_width": {
+            "decisions": 49,
+            "expansions": 21
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/data-cost/tasks/snake-compact.json",
+      "reference_paths": {
+        "bfs": "outputs/data-cost/v1/panel/candidates/snake-compact-957000/reference-bfs.json.gz",
+        "best_first_width": "outputs/data-cost/v1/panel/candidates/snake-compact-957000/reference-best_first_width.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "data-cost/snake-expanded-957100",
+        "domain": "snake",
+        "difficulty": "expanded",
+        "split": "test",
+        "task_path": "outputs/data-cost/v1/panel/candidates/snake-expanded-957100/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 24,
+            "expansions": 10
+          },
+          "best_first_width": {
+            "decisions": 10,
+            "expansions": 5
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/data-cost/tasks/snake-expanded.json",
+      "reference_paths": {
+        "bfs": "outputs/data-cost/v1/panel/candidates/snake-expanded-957100/reference-bfs.json.gz",
+        "best_first_width": "outputs/data-cost/v1/panel/candidates/snake-expanded-957100/reference-best_first_width.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "data-cost/sokoban-compact-958007",
+        "domain": "sokoban",
+        "difficulty": "compact",
+        "split": "test",
+        "task_path": "outputs/data-cost/v1/panel/candidates/sokoban-compact-958007/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 163,
+            "expansions": 94
+          },
+          "best_first_width": {
+            "decisions": 88,
+            "expansions": 46
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/data-cost/tasks/sokoban-compact.json",
+      "reference_paths": {
+        "bfs": "outputs/data-cost/v1/panel/candidates/sokoban-compact-958007/reference-bfs.json.gz",
+        "best_first_width": "outputs/data-cost/v1/panel/candidates/sokoban-compact-958007/reference-best_first_width.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "data-cost/sokoban-expanded-958100",
+        "domain": "sokoban",
+        "difficulty": "expanded",
+        "split": "test",
+        "task_path": "outputs/data-cost/v1/panel/candidates/sokoban-expanded-958100/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 229,
+            "expansions": 128
+          },
+          "best_first_width": {
+            "decisions": 178,
+            "expansions": 88
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/data-cost/tasks/sokoban-expanded.json",
+      "reference_paths": {
+        "bfs": "outputs/data-cost/v1/panel/candidates/sokoban-expanded-958100/reference-bfs.json.gz",
+        "best_first_width": "outputs/data-cost/v1/panel/candidates/sokoban-expanded-958100/reference-best_first_width.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "data-cost/storage-compact-959000",
+        "domain": "storage",
+        "difficulty": "compact",
+        "split": "test",
+        "task_path": "outputs/data-cost/v1/panel/candidates/storage-compact-959000/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 10,
+            "expansions": 7
+          },
+          "best_first_width": {
+            "decisions": 8,
+            "expansions": 7
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/data-cost/tasks/storage-compact.json",
+      "reference_paths": {
+        "bfs": "outputs/data-cost/v1/panel/candidates/storage-compact-959000/reference-bfs.json.gz",
+        "best_first_width": "outputs/data-cost/v1/panel/candidates/storage-compact-959000/reference-best_first_width.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "data-cost/storage-expanded-959100",
+        "domain": "storage",
+        "difficulty": "expanded",
+        "split": "test",
+        "task_path": "outputs/data-cost/v1/panel/candidates/storage-expanded-959100/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 100,
+            "expansions": 58
+          },
+          "best_first_width": {
+            "decisions": 51,
+            "expansions": 31
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/data-cost/tasks/storage-expanded.json",
+      "reference_paths": {
+        "bfs": "outputs/data-cost/v1/panel/candidates/storage-expanded-959100/reference-bfs.json.gz",
+        "best_first_width": "outputs/data-cost/v1/panel/candidates/storage-expanded-959100/reference-best_first_width.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "data-cost/towers_of_hanoi-compact-960001",
+        "domain": "towers_of_hanoi",
+        "difficulty": "compact",
+        "split": "test",
+        "task_path": "outputs/data-cost/v1/panel/candidates/towers_of_hanoi-compact-960001/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 102,
+            "expansions": 76
+          },
+          "best_first_width": {
+            "decisions": 57,
+            "expansions": 42
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/data-cost/tasks/towers_of_hanoi-compact.json",
+      "reference_paths": {
+        "bfs": "outputs/data-cost/v1/panel/candidates/towers_of_hanoi-compact-960001/reference-bfs.json.gz",
+        "best_first_width": "outputs/data-cost/v1/panel/candidates/towers_of_hanoi-compact-960001/reference-best_first_width.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "data-cost/towers_of_hanoi-expanded-960101",
+        "domain": "towers_of_hanoi",
+        "difficulty": "expanded",
+        "split": "test",
+        "task_path": "outputs/data-cost/v1/panel/candidates/towers_of_hanoi-expanded-960101/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 82,
+            "expansions": 59
+          },
+          "best_first_width": {
+            "decisions": 47,
+            "expansions": 34
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/data-cost/tasks/towers_of_hanoi-expanded.json",
+      "reference_paths": {
+        "bfs": "outputs/data-cost/v1/panel/candidates/towers_of_hanoi-expanded-960101/reference-bfs.json.gz",
+        "best_first_width": "outputs/data-cost/v1/panel/candidates/towers_of_hanoi-expanded-960101/reference-best_first_width.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "data-cost/visitall-compact-961001",
+        "domain": "visitall",
+        "difficulty": "compact",
+        "split": "test",
+        "task_path": "outputs/data-cost/v1/panel/candidates/visitall-compact-961001/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 64,
+            "expansions": 27
+          },
+          "best_first_width": {
+            "decisions": 13,
+            "expansions": 5
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/data-cost/tasks/visitall-compact.json",
+      "reference_paths": {
+        "bfs": "outputs/data-cost/v1/panel/candidates/visitall-compact-961001/reference-bfs.json.gz",
+        "best_first_width": "outputs/data-cost/v1/panel/candidates/visitall-compact-961001/reference-best_first_width.json.gz"
+      }
+    },
+    {
+      "row": {
+        "task_id": "data-cost/visitall-expanded-961101",
+        "domain": "visitall",
+        "difficulty": "expanded",
+        "split": "test",
+        "task_path": "outputs/data-cost/v1/panel/candidates/visitall-expanded-961101/task.json",
+        "trace_paths": {},
+        "reference_costs": {
+          "bfs": {
+            "decisions": 197,
+            "expansions": 102
+          },
+          "best_first_width": {
+            "decisions": 14,
+            "expansions": 6
+          }
+        }
+      },
+      "source_snapshot": "configs/experiments/data-cost/tasks/visitall-expanded.json",
+      "reference_paths": {
+        "bfs": "outputs/data-cost/v1/panel/candidates/visitall-expanded-961101/reference-bfs.json.gz",
+        "best_first_width": "outputs/data-cost/v1/panel/candidates/visitall-expanded-961101/reference-best_first_width.json.gz"
+      }
+    }
+  ]
+}
