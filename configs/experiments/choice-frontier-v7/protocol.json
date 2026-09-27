@@ -1,0 +1,149 @@
+{
+  "schema_version": "choice_frontier_v7_protocol_v1",
+  "protocol_id": "choice-frontier-v7-node-choice-v1",
+  "program_id": "choice-frontier-v7",
+  "issue": 146,
+  "design_doc": "docs/experiments/choice-frontier/issue-146-protocol.md",
+  "feasibility": "docs/experiments/choice-frontier/issue-146-feasibility.md",
+  "schedule": "docs/experiments/choice-frontier/schedule-v7.json",
+  "ledger": "outputs/choice-frontier/v7/budget.json",
+  "output_root": "outputs/choice-frontier/v7",
+  "model_id": "Qwen/Qwen3-VL-8B-Instruct",
+  "model_revision": "0c351dd01ed87e9c1b53cbc748cba10e6187ff3b",
+  "algorithms": ["bfs", "best_first_width", "best_first_add_greedy", "best_first_add_w3"],
+  "observations": ["text", "visual", "multimodal"],
+  "training_seeds": [17, 29, 71],
+  "inference_seed": 17,
+  "contract": {
+    "runtime": "examples/planning_benchmark_slice/node_choice.py",
+    "views": "examples/planning_benchmark_slice/node_choice_views.py",
+    "payload_schema": "node_choice_model_input_v1",
+    "representations": {"text": "text-node-choice", "visual": "visual-node-choice", "multimodal": "multimodal-node-choice"},
+    "menu_permutation_function": "examples/planning_benchmark_slice/choice_frontier.py::permuted_menu (master seed 51131)",
+    "output": {"expand_choice": "c<i>"},
+    "kappa": {
+      "bfs": "generation serial (FIFO); duplicates = generated set",
+      "best_first_width": "(novelty bucket precision 2 within #g partition, unachieved goal count, depth, generation serial); unpruned; duplicates = generated set",
+      "best_first_add_greedy": "frozen ChoiceFrontierController heap head (h_add, serial)",
+      "best_first_add_w3": "frozen ChoiceFrontierController heap head (g + 3 h_add, serial)"
+    },
+    "goal_test": "at selection for all four algorithms (declared deviation from native BFWS goal-at-generation)",
+    "budget": "decision cap = expansion cap = 2 x R_t",
+    "node_observation": "state only in every observation type; no depth, serial, score, novelty, membership or history (author decision)",
+    "overflow_rule": {"context_tokens": 32768, "output_tokens": 384, "token_limit": 32384, "applies_to": "every arm, controls included", "termination_reason": "observation_overflow"},
+    "arms": ["exact_reference", "random_valid", "process_sft", "zero_shot_base"]
+  },
+  "reuse": {
+    "additive_visual_adapters": {
+      "17": "outputs/choice-frontier/v3/training/<algorithm>/seed-17/final",
+      "29": "outputs/choice-frontier/v4/seeds/training/<algorithm>/seed-29/final",
+      "71": "outputs/choice-frontier/v4/seeds/training/<algorithm>/seed-71/final"
+    },
+    "additive_visual_learned_episodes": "outputs/choice-frontier/v4/panels/<panel>/evaluation/episodes",
+    "additive_visual_controls": "recomputed under the v7 contract; equality with outputs/choice-frontier/v4/panels/<panel>/zoo checked"
+  },
+  "gates": {
+    "native_prefix": {
+      "bfs": "exact node-choice expansion sequence == bfs_pilot.exact_fifo_bfs expanded_state_ids",
+      "best_first_width": "bfws_episode.run_best_first_width expansion sequence is a prefix (truncated corpus episodes: compared to the shorter length)",
+      "additive": "R_t == frozen #139 membership value"
+    },
+    "identity": "per algorithm and observation: seed-17 random_valid vs exact_reference expanded-state sequences on pooled panel tasks; CHOICE_SENSITIVE iff >= 1 non-trivial (menu >= 2 somewhere in exact) task diverges, else ZERO_DECISION_HEADROOM (reported, no re-run)"
+  },
+  "panels": {
+    "p2": {"membership": "configs/experiments/choice-frontier-v4/membership-p2.json", "membership_sha256": "5c009e856a191ff279195985bec7ddf3bf0041b7ec9ea7dc89fc248e18e114e5", "tasks": 11, "views": "outputs/choice-frontier/v4/panels/p2/reference-views.json"},
+    "p2u": {"membership": "configs/experiments/choice-frontier-v4/membership-p2u.json", "membership_sha256": "495e752e3fa27815d4a7149d69f0786970ce7f59b90f5df388562943fab2f464", "tasks": 12, "views": "outputs/choice-frontier/v4/panels/p2u/reference-views.json"},
+    "pooled_tasks": 23,
+    "r_t": "bfs/best_first_width: uncapped exact node-choice expansions (no overflow rule); additive: frozen #139 values",
+    "record": "configs/experiments/choice-frontier-v7/panels.json"
+  },
+  "corpus": {
+    "task_pool": "configs/experiments/choice-frontier-v3/training-tasks.json",
+    "task_pool_sha256": "97dc70ac5a3070da1cb5e6c59e0142c960b9b9d71b904e3710d3ef666b470995",
+    "walk_order": "non-excluded rows in file order (#136 seed-major walk)",
+    "teacher": "uncapped exact_reference node-choice episode from PDDL",
+    "eligibility": "menu >= 2 and multimodal observation input_tokens + 384 <= 32768",
+    "records_per_task": 64,
+    "records_per_algorithm": 2048,
+    "diagnostic_records": 16,
+    "derivation_timeout_seconds": 600,
+    "render_backend": "http://127.0.0.1:18880",
+    "render_profiles": "configs/experiments/issue71/v2/render.json",
+    "additive_membership": "configs/experiments/choice-frontier-v3/membership.json",
+    "additive_membership_sha256": "f5cc9b2ac3b2fe8e94b7a8039e6b9cd828c701a8c5b707ddd7a3b01b2ca8c077",
+    "additive_store": "outputs/choice-frontier/v3/preparation/store.json",
+    "additive_overflow_rule": "a #136 record whose multimodal observation overflows is dropped from both additive text/multimodal cells and counted; no replacement",
+    "augmentations": 2,
+    "augmentation_function": "scripts/run_choice_frontier_v3.py::augment_menu",
+    "augmentation_check": "target-is-last share within +-5 pp of mean(1/menu size)",
+    "sample_order": "random.Random('order:17') for every seed",
+    "membership": "configs/experiments/choice-frontier-v7/membership.json"
+  },
+  "training": {
+    "study": "configs/experiments/matched-modalities/study-v5.json",
+    "study_sha256": "1f15184667b5076edc808838f450500bc6ac502cfb61c3d972cdc5ebb211d72b",
+    "epochs": 1,
+    "samples_per_cell": 4096,
+    "optimizer_updates": 128,
+    "global_batch_size": 32,
+    "microbatch_size": 1,
+    "learning_rate": 0.0001,
+    "lr_scheduler": "cosine",
+    "warmup_ratio": 0.03,
+    "lora": {"r": 64, "alpha": 128, "dropout": 0.05, "target_modules": "all-linear", "exclude_modules": ".*visual.*"},
+    "dtype": "bfloat16",
+    "adapter_dtype": "float32",
+    "checkpoint_every_updates": 16,
+    "teacher_diagnostics_at_updates": [42, 84],
+    "cells": {
+      "keyed": "{bfs, best_first_width} x {text, visual, multimodal} x {17, 29, 71}",
+      "additive": "{best_first_add_greedy, best_first_add_w3} x {text, multimodal} x {17, 29, 71}",
+      "count": 30
+    },
+    "adapter_path": "outputs/choice-frontier/v7/training/<algorithm>/<observation>/seed-<seed>/final"
+  },
+  "smoke_gate": {
+    "subset": ["expanded-final/storage-compact-919000", "expanded-final/elevators-compact-914002", "expanded-final/ferry-compact-915000"],
+    "panel": "configs/experiments/expanded-study/final-panel.json",
+    "panel_view_report": "outputs/expanded-study/v1/panel-v2/reference-views.json",
+    "cells": "every new (algorithm, observation) cell at seed 17 (10 cells)",
+    "measure": "accepted calls / model calls over the 3 episodes",
+    "threshold": 0.5,
+    "fail_rule": "the cell's learned evaluation is gated out for all three seeds; verdict SMOKE_FAIL"
+  },
+  "evaluation": {
+    "learned": "30 new cells x 23 pooled tasks, greedy, inference seed 17",
+    "zero_shot_base": "12 cells x 23 tasks, one realisation (seed 17), cap 2 x R_t, #141 extractor re-applied at replay",
+    "zero_shot_suffix": {
+      "visual": " Reply with exactly one JSON object and nothing else, of the form {\"expand_choice\": \"<label>\"}, where <label> is one of the frontier_menu choices (c0, c1, ...). Choose the frontier state whose scene appears closest to satisfying the goal pages.",
+      "text": " Reply with exactly one JSON object and nothing else, of the form {\"expand_choice\": \"<label>\"}, where <label> is one of the frontier_menu choices (c0, c1, ...). Choose the frontier state whose facts appear closest to satisfying the goal constraints.",
+      "multimodal": " Reply with exactly one JSON object and nothing else, of the form {\"expand_choice\": \"<label>\"}, where <label> is one of the frontier_menu choices (c0, c1, ...). Choose the frontier state whose scene and facts appear closest to satisfying the goal constraints and pages."
+    },
+    "controls": {"exact_reference": [17], "random_valid": [17, 5077, 6131, 7409, 8527]},
+    "inference": {"dtype": "float32", "attention": "visual_sdpa", "do_sample": false, "max_batch_size": 2, "max_padded_batch_input_tokens": 24000, "single_input_above_batch_cap_up_to": 32384, "kv_cache": "per_call_only"},
+    "replay": "every episode independently replayed; 0 mismatch; complete coverage or explicit missingness"
+  },
+  "analysis": {
+    "m1": {"multipliers": [1, 1.25, 1.5, 1.75, 2], "weights": [0.125, 0.25, 0.25, 0.25, 0.125]},
+    "bootstrap": {"unit": "task cluster", "seed": 133, "draws": 10000, "interval": "95% percentile"},
+    "primary": "per (algorithm, observation) cell on the pooled 23 tasks: D3 = mean_s M1(learned, s) - M1(random_valid 5-seed mean); #138 verdict rule delta 0.05; Holm over 12 cells alpha 0.05 with one-sided bootstrap p",
+    "secondary": ["per panel D3 (P2, P2u)", "text/image split contrasts on learned M1 and on D3, per algorithm and pooled", "learned vs exact", "learned vs zero-shot", "zero-shot vs random", "kappa-head agreement minus chance", "overflow and invalid counts"],
+    "sensitivity": "exclude (task, algorithm) pairs where exact_reference overflows under any observation type"
+  },
+  "budget": {
+    "cap_gpu_hours": 400.0,
+    "worker_stop_gpu_hours": 380.0,
+    "estimate_expected_gpu_hours": 227,
+    "estimate_cap_bound_gpu_hours": 325,
+    "priority": ["training (keyed before additive) + seed-17 smoke", "learned evaluation", "zero-shot evaluation"],
+    "max_slot_failures": 2
+  },
+  "hardware": {"host": "spartan-gpgpu170", "gpus": 2, "model": "NVIDIA H100 80GB PCIe", "gpu_cutoff_utc": "2026-10-11T06:00:00Z"},
+  "ports": {"master_port_pool": [18870, 18871, 18872, 18873], "worker_master_port": {"0": 18870, "1": 18871}, "render_backends": {"gpu0": 18878, "gpu1": 18879, "cpu_preparation": 18880}},
+  "declared_code_surface": [
+    "examples/planning_benchmark_slice/node_choice.py",
+    "examples/planning_benchmark_slice/node_choice_views.py",
+    "scripts/run_choice_frontier_v7.py",
+    "tests/planning_benchmark/test_node_choice.py"
+  ]
+}
