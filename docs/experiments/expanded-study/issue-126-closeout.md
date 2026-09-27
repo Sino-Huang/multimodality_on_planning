@@ -8,9 +8,10 @@ coverage or explicit missingness.
 
 ## Delivered
 
-- **Frozen design gate**: `configs/experiments/expanded-study/modality-stress-protocol.json`
-  + `docs/experiments/expanded-study/modality-stress-design.md`, frozen before any
-  corrupted-observation model outcome (commit `78b51e0`). Admission
+- **Frozen design gate**: `configs/experiments/expanded-study/modality-stress-protocol.json`,
+  frozen before any corrupted-observation model outcome (commit `78b51e0`; the prose
+  design doc was later removed because this study covers only the additive
+  enumeration arms, which have zero decision headroom). Admission
   `outputs/expanded-study/v1/modality-stress/admission.json` recomputed by
   `scripts/qualify_expanded_modality_stress.py` from existing evidence only:
   **PASS, k = 9 source tasks**, membership sha256

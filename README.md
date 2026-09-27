@@ -18,7 +18,7 @@
 
 In StarVLA (also a pun on "start VLA" ),  each functional component (model, data, trainer, config, evaluation, etc.) follows a top-down, intuitive separation and high-cohesion, low-coupling principle, enabling plug-and-play design, rapid prototyping, and independent debugging.
 
-Planning research in this repository is governed by the Search Process Policy program. The active study trains VLMs to execute BFS, IW, A*+h_max, and A*+landmark-count through a trusted search runtime; external search memory (frontier, visited/best-depth, novelty, and landmark state) is a runtime/data boundary, not an internal unbounded model state. The active research execution tree is GitHub issue #38 (`Spec: Teach VLMs executable search processes across modalities`) and its ready-for-agent tickets #39-#108.
+Planning research in this repository is governed by the Search Process Policy program. The study fine-tunes a VLM on search traces at two levels: it executes BFS and BFWS through a trusted search runtime, and it chooses which open node greedy best-first search and weighted A* (both over h_add) expand next from rendered scenes (choice-frontier, #132–#141). Executing greedy best-first search or weighted A* under the enumeration contract is not a search-learning measure: the runtime computes h_add and the heap order, so random-valid decides exactly as the reference (48/48 pairs, `outputs/native-arms/v1/identity-audit.json`, #130/#134); the earlier optimal A* (h_max, landmark-count) arm was retired. External search memory (frontier, visited set, novelty tables) is a runtime/data boundary, not an internal unbounded model state. The research execution tree is GitHub issue #38 (`Spec: Teach VLMs executable search processes across modalities`) and its tickets.
 
 ## News
 
