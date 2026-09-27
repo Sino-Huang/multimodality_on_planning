@@ -1,0 +1,47 @@
+{
+ "accounting": {
+  "automatic_total_extension": false,
+  "ledger": "outputs/choice-frontier/v7/budget.json",
+  "metric": "sum of own allocated model-worker GPU durations across devices; include model loading, saves, failures and retries",
+  "preserve_prior_ledgers": true,
+  "reset_on_resume": false,
+  "transfers": "none; independent of every prior window",
+  "worker_stop_rule": "a worker claims no new slot once charged GPU-h exceeds 380.0"
+ },
+ "allocations_gpu_hours": {
+  "choice_frontier": 400.0
+ },
+ "authorization": {
+  "basis": "30 training cells + 30 learned and 12 zero-shot evaluation cells on P2+P2u; ~227 GPU-h expected, ~325 at the 2R cap",
+  "granted_by": "author decision 2026-09-27 (docs/experiments/choice-frontier/issue-146-feasibility.md)",
+  "window_gpu_hours_cap": 400.0
+ },
+ "backend_ports": {
+  "cpu": 18880,
+  "gpu0": 18878,
+  "gpu1": 18879
+ },
+ "deadline_kind": "soft_handoff",
+ "execution_authorization": "protocol committed before any derivation; membership and panels committed before any control or training; code and job files committed before their first launch; no outcome-selected variants; independent replay of every episode",
+ "experiment_gpu_hours_cap": 400.0,
+ "gpu_cutoff_utc": "2026-10-11T06:00:00Z",
+ "handoff_deadline_utc": "2026-10-11T12:00:00Z",
+ "hardware": {
+  "gpus": 2,
+  "host": "spartan-gpgpu170",
+  "max_own_model_workers_per_gpu": 1,
+  "model": "NVIDIA H100 80GB PCIe",
+  "preserve_unrelated_processes": true
+ },
+ "issue": 146,
+ "master_port_pool": [
+  18870,
+  18871,
+  18872,
+  18873
+ ],
+ "program_id": "choice-frontier-v7",
+ "qualification_safety_factor": 1.25,
+ "start_utc": "2026-09-27T00:00:00Z",
+ "status": "authorized_followup_window"
+}

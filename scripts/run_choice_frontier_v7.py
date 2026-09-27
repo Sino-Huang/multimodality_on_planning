@@ -2081,7 +2081,9 @@ def job_document(gpu: int, job_id: str, max_seconds: int, reason: str | None) ->
     return job
 
 
-def launch(gpus=(0, 1), reason: str | None = None, dry_run: bool = False) -> list[dict]:
+def launch(gpus=(0, 1), reason: str | None = None, dry_run: bool = False, write_only: bool = False) -> list[dict]:
+    """Launch one queue worker per GPU; ``write_only`` writes the job files (for committing before launch)."""
+
     from examples.planning_benchmark_slice.expanded_scheduler import alive, charged, timestamp
 
     schedule = ensure_schedule()
@@ -2130,9 +2132,18 @@ def launch(gpus=(0, 1), reason: str | None = None, dry_run: bool = False) -> lis
         if dry_run:
             item["action"] = "would_launch"
             continue
-        (ROOT / job_path).write_text(
-            json.dumps(job_document(item["gpu"], item["job_id"], seconds, text), indent=1) + "\n"
-        )
+        if (ROOT / job_path).exists():
+            job = json.loads((ROOT / job_path).read_text())
+            if job["job_id"] != item["job_id"] or job["gpus"] != [item["gpu"]]:
+                raise ValueError(f"existing job file differs: {job_path}")
+            item["max_seconds"] = job["max_seconds"]
+        else:
+            (ROOT / job_path).write_text(
+                json.dumps(job_document(item["gpu"], item["job_id"], seconds, text), indent=1) + "\n"
+            )
+        if write_only:
+            item["action"] = "job_written"
+            continue
         completed = subprocess.run(
             [
                 sys.executable,
@@ -2335,6 +2346,7 @@ def main(argv=None) -> int:
     lp = sub.add_parser("launch")
     lp.add_argument("--gpus", type=int, nargs="+", default=[0, 1])
     lp.add_argument("--dry-run", action="store_true")
+    lp.add_argument("--write-only", action="store_true")
     rp = sub.add_parser("resume")
     rp.add_argument("--reason")
     sub.add_parser("status")
@@ -2358,7 +2370,7 @@ def main(argv=None) -> int:
     elif args.stage == "worker":
         result = worker(args.gpu, args.max_slots)
     elif args.stage == "launch":
-        result = launch(tuple(args.gpus), dry_run=args.dry_run)
+        result = launch(tuple(args.gpus), dry_run=args.dry_run, write_only=args.write_only)
     elif args.stage == "resume":
         stamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         reconciled = reconcile()
