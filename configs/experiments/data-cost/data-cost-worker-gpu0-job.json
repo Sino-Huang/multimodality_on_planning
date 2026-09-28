@@ -16,5 +16,5 @@
   "-lc",
   "source ~/cd_vlaplan && export CUDA_VISIBLE_DEVICES= && exec python scripts/run_data_cost.py hook"
  ],
- "resume_reason": "amendment A1: expandable_segments allocator after OOM; simulated crash to verify resume"
+ "resume_reason": "node move 2026-09-28: old allocation spartan-gpgpu137 workers SIGKILLed 19:32 AEST (rc -9, both GPUs); resumed on spartan-gpgpu070 (2x A100 80GB, same filesystem); queue claims, checkpoints and journals resume"
 }
