@@ -1200,23 +1200,31 @@ def session_for(task: dict, cell: dict, views: NodeChoiceTaskViews, checkpoint: 
         seed=INFERENCE_SEED,
         adapter_id=checkpoint,
         token_limit=TOKEN_LIMIT,
-        token_counter=placeholder_counter(algorithm, cell["observation"], views.text, views.page_counts()),
+        token_counter=placeholder_counter(
+            algorithm, cell["observation"], views.text, views.page_counts(), system=system_message(cell)
+        ),
     )
+
+
+def system_message(cell: dict) -> str:
+    """The complete system message the model receives (zero-shot appends the #141 format sentence)."""
+
+    if cell["condition"] == "zero_shot_base":
+        return zero_shot_system(cell["algorithm"], cell["observation"])
+    return SYSTEM_MESSAGES[cell["algorithm"]]
 
 
 def observe(views: NodeChoiceTaskViews, session: NodeChoiceSession, request, cell: dict, *, pixels: bool) -> dict:
-    example = views.observe_nodes(
-        cell["algorithm"], cell["observation"], dict(request.model_input), session.menu_states(request), pixels=pixels
+    """The model input; its binding token count covers the complete input, system message included."""
+
+    return views.observe_nodes(
+        cell["algorithm"],
+        cell["observation"],
+        dict(request.model_input),
+        session.menu_states(request),
+        pixels=pixels,
+        system=system_message(cell),
     )
-    if cell["condition"] == "zero_shot_base":
-        system = example["messages"][0]
-        if system["content"] != SYSTEM_MESSAGES[cell["algorithm"]]:
-            raise ValueError("node-choice observation lacks the frozen system message")
-        example["messages"] = [
-            {**system, "content": zero_shot_system(cell["algorithm"], cell["observation"])},
-            *example["messages"][1:],
-        ]
-    return example
 
 
 def submitted_output(cell: dict, raw: str) -> tuple[str, str | None]:

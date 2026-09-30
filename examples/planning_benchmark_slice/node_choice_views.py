@@ -151,8 +151,13 @@ def build_node_observation(
     scene_path: Callable[[int], str] | None,
     menu_indices: list[int] | None,
     loader: Callable[[str, str], Any] | None = None,
+    system: str | None = None,
 ) -> dict[str, Any]:
-    """System + payload text (+ role-labelled pages for visual/multimodal) and its exact token count."""
+    """System + payload text (+ role-labelled pages for visual/multimodal) and its exact token count.
+
+    ``system`` overrides the algorithm's system message (the zero-shot arm appends its format
+    sentence); the count always covers the complete input the model receives.
+    """
 
     user_text = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
     content: list[dict[str, Any]] = [{"type": "text", "text": user_text}]
@@ -184,7 +189,8 @@ def build_node_observation(
             bindings.append(["goal", None, i])
         for label, image in pages:
             content.extend([{"type": "text", "text": f"Page role: {label}"}, {"type": "image", "image": image}])
-    messages = [{"role": "system", "content": SYSTEM_MESSAGES[algorithm]}, {"role": "user", "content": content}]
+    system_message = SYSTEM_MESSAGES[algorithm] if system is None else system
+    messages = [{"role": "system", "content": system_message}, {"role": "user", "content": content}]
     count = frozen_processor().count(messages, image_sizes=sizes)
     return {
         "messages": messages,
@@ -202,7 +208,11 @@ def build_node_observation(
 
 
 def placeholder_counter(
-    algorithm: str, observation: str, context: TextContext | None, page_counts: tuple[int, int]
+    algorithm: str,
+    observation: str,
+    context: TextContext | None,
+    page_counts: tuple[int, int],
+    system: str | None = None,
 ) -> TokenCounter:
     """CPU token counter with placeholder page paths (pixels never read; sizes are fixed)."""
 
@@ -218,6 +228,7 @@ def placeholder_counter(
             goal_pages=["goal"] * goal_count,
             scene_path=lambda index: f"scenes/state-{index:06d}.png",
             menu_indices=list(range(1, len(menu_states) + 1)),
+            system=system,
         )["binding"]["input_tokens"]
 
     return count
@@ -245,6 +256,7 @@ class NodeChoiceTaskViews(ChoiceFrontierTaskViews):
         menu_states: list[CanonicalState],
         *,
         pixels: bool = True,
+        system: str | None = None,
     ) -> dict[str, Any]:
         payload = node_payload(model_input, observation, self.text, menu_states)
         native = self.scene_views.tasks[self.row["task_id"]]
@@ -257,6 +269,7 @@ class NodeChoiceTaskViews(ChoiceFrontierTaskViews):
                 goal_pages=[],
                 scene_path=None,
                 menu_indices=None,
+                system=system,
             )
         menu_indices = [self.indices[self.key(state.atoms, state.fluents)] for state in menu_states]
         for index in menu_indices:
@@ -284,6 +297,7 @@ class NodeChoiceTaskViews(ChoiceFrontierTaskViews):
             scene_path=scene_path,
             menu_indices=menu_indices,
             loader=loader if pixels else None,
+            system=system,
         )
 
 
