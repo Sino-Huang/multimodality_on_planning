@@ -2140,7 +2140,7 @@ def launch(gpus=(0, 1), reason: str | None = None, dry_run: bool = False, write_
         if dry_run:
             item["action"] = "would_launch"
             continue
-        if (ROOT / job_path).exists():
+        if (ROOT / job_path).exists() and not item["needs_reason"]:
             job = json.loads((ROOT / job_path).read_text())
             if job["job_id"] != item["job_id"] or job["gpus"] != [item["gpu"]]:
                 raise ValueError(f"existing job file differs: {job_path}")

@@ -4,7 +4,7 @@
  "gpus": [
   0
  ],
- "max_seconds": 604800,
+ "max_seconds": 440254,
  "total": 72,
  "command": [
   "bash",
@@ -15,5 +15,6 @@
   "bash",
   "-lc",
   "source ~/cd_vlaplan && export CUDA_VISIBLE_DEVICES= && exec python scripts/run_choice_frontier_v7.py hook"
- ]
+ ],
+ "resume_reason": "zero-shot overflow-counter fix (9ce2cfb): workers stopped by SIGTERM after zeroshot-bfs-multimodal failed; learned evaluation complete; zero-shot rerun from scratch"
 }
