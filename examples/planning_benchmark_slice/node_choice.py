@@ -56,7 +56,7 @@ REPRESENTATIONS = {
     "visual": "visual-node-choice",
     "multimodal": "multimodal-node-choice",
 }
-ARMS = ("pretrained_base", "zero_shot_base", "process_sft", "random_valid", "exact_reference")
+ARMS = ("pretrained_base", "zero_shot_base", "process_sft", "random_valid", "exact_reference", "scored_heuristic")
 EPISODE_SCHEMA = "node_choice_model_episode_v1"
 _SYSTEM_TAIL = (
     "Your choice selects which frontier state the runtime expands next; selecting the goal state solves the task."

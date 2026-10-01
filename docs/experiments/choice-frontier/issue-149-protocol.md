@@ -246,3 +246,27 @@ interval; adapter seeds averaged inside each draw, random-valid's 5 seeds averag
    rollouts and before EI training.
 4. Schedule and job files before the first GPU launch.
 5. Analyzer, figure and closeout: the evidence commit.
+
+## Amendment A1 (2026-10-01, before any panel, label, control or model episode)
+
+Implementation details fixed while writing the code; no outcome exists.
+
+1. **h_add adapters on S0 are re-run, not reused.** The #139 S0 visual episodes ran under the
+   `visual-choice-frontier-v1` contract, which has no overflow rule. To keep every D1/Test A–D
+   contrast inside one contract, all h_add adapter cells (both algorithms, both observations, three
+   seeds) run on S0 under the §4 node-choice contract (+≈ 3.6 GPU-h, inside the cap). The #139 and
+   #146 S0 episodes are compared descriptively as a cross-run reproducibility check.
+2. **D3 encoder details.** Each backbone uses its own pretrained normalisation (ImageNet mean/std
+   for ResNet-18; mean/std 0.5 from timm's `pretrained_cfg` for the ViT). BatchNorm layers keep
+   their pretrained running statistics (eval mode) while their affine weights train, because goal
+   pages are encoded in small per-task batches. Batches hold about four tasks (per-task chunks of
+   batch/4, shuffled with `random.Random(seed)`). Ranker pairs are unique unordered within-menu
+   pairs with different non-null h\*.
+3. **EI membership is per observation.** `membership-ei.json` holds one training/diagnostic list
+   per observation (the visual and text rollouts select different episodes); its sha covers both.
+   Visual EI records bind the rollout's live-rendered scenes; text EI records need none.
+4. **Scorer timeouts.** In `gbfs_hstar_oracle`, an FD timeout scores like a dead end (+∞) and is
+   counted.
+5. **D3 replay.** Image-scorer episodes are verified by independent replay plus the stored-score
+   argmin check; they are not re-scored on GPU (floating-point non-determinism). `goal_count` and
+   `gbfs_hstar_oracle` episodes are re-scored exactly.

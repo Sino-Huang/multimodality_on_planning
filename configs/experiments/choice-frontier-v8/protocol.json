@@ -1871,5 +1871,19 @@
       "1": 18895
     },
     "prep_backend_port": 18896
-  }
+  },
+  "amendments": [
+    {
+      "id": "A1",
+      "date": "2026-10-01",
+      "before": "any panel, label, control or model episode",
+      "items": [
+        "h_add adapter cells re-run on S0 under the node-choice contract; #139/#146 S0 episodes descriptive only",
+        "D3: per-backbone pretrained normalisation; BatchNorm running stats frozen; ~4 tasks per batch; unique unordered ranker pairs",
+        "EI membership per observation (cells_by_observation), sha over both",
+        "hstar_oracle: FD timeout scores +inf and is counted",
+        "D3 episodes verified by replay + stored-score argmin; goal_count and hstar_oracle re-scored exactly"
+      ]
+    }
+  ]
 }
