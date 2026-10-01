@@ -1160,6 +1160,7 @@ def run_train(method: str, observation: str, seed: int, *, deadline: float, prog
         dataset_factory=factory,
         save_steps=v7.CHECKPOINT_EVERY,
         save_total_limit=1,
+        teacher_diagnostics=bool(membership["cells"][GREEDY]["diagnostic"]),
     )
     expected = [r["record_id"] for r in v7.NodeChoiceDataset(store, membership, GREEDY, observation, "train").records]
     if result["training_record_ids"] != expected:

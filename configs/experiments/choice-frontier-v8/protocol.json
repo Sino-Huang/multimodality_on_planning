@@ -1884,6 +1884,16 @@
         "hstar_oracle: FD timeout scores +inf and is counted",
         "D3 episodes verified by replay + stored-score argmin; goal_count and hstar_oracle re-scored exactly"
       ]
+    },
+    {
+      "id": "A2",
+      "date": "2026-10-02",
+      "before": "any EI training or evaluation episode",
+      "items": [
+        "EI records: visual 1252 / text 1976 training, 0 diagnostics; all used; steps 79 / 124",
+        "teacher_diagnostics=False when the diagnostic split is empty",
+        "workers stopped (SIGTERM) and relaunched as attempt 2 with the change"
+      ]
     }
   ]
 }

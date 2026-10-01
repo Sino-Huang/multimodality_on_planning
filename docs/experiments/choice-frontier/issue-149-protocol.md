@@ -270,3 +270,17 @@ Implementation details fixed while writing the code; no outcome exists.
 5. **D3 replay.** Image-scorer episodes are verified by independent replay plus the stored-score
    argmin check; they are not re-scored on GPU (floating-point non-determinism). `goal_count` and
    `gbfs_hstar_oracle` episodes are re-scored exactly.
+
+## Amendment A2 (2026-10-02, after the expert-iteration rollouts, before any EI training or evaluation episode)
+
+Trigger: the §7 walk produced fewer than 2,048 + 16 records (no evaluation outcome exists).
+
+- Solved rollouts (of 236 corpus tasks): visual 128 / 113 / 127, text 216 / 209 / 211 (seeds
+  17 / 29 / 71). Tasks with at least one solved rollout: visual 149, text 224.
+- Records: visual 1,252, text 1,976 training records and 0 diagnostics. As §7 states, all are used;
+  steps = ceil(2·records / 32) = 79 (visual) and 124 (text).
+- With an empty diagnostic split, `train_visual` runs with `teacher_diagnostics=False`, so the
+  teacher-forced checkpoints at ⅓ and ⅔ of training are skipped for the EI cells. Diagnostics are
+  monitoring only; no test uses them.
+- The workers were stopped (SIGTERM) before any EI training slot was claimed and relaunched with
+  this change (attempt 2). Evaluation and D3 journals resume.
