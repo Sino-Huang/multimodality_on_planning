@@ -4,7 +4,7 @@
  "gpus": [
   0
  ],
- "max_seconds": 575940,
+ "max_seconds": 545252,
  "total": 56,
  "command": [
   "bash",
@@ -15,5 +15,6 @@
   "bash",
   "-lc",
   "source ~/cd_vlaplan && export CUDA_VISIBLE_DEVICES= && exec python scripts/run_choice_frontier_v8.py hook"
- ]
+ ],
+ "resume_reason": "Amendment A2: workers stopped by operator (SIGTERM) to load the empty-diagnostic-split change before any EI training; queue claims, journals and D3 outputs resume"
 }
