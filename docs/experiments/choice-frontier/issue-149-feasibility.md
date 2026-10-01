@@ -144,3 +144,11 @@ The full scope at the cap is ~6.6 days on two GPUs; expected ~5 days. #147 stays
 
 The author sets the GPU cap and the scope (both algorithms or GBFS only for D1; three seeds or seed
 17 for the new adapters). The protocol is then frozen against that cap.
+
+## Author decision (2026-10-01, before any protocol)
+
+- **Cap 320 GPU-h. Full scope:** D1 for greedy and w3 × visual and text × seeds 17/29/71 (frozen
+  #138/#146 adapters) plus the zero-shot text cells; D2a h\*-target and D2b expert-iteration
+  adapters for greedy × visual and text × seeds 17/29/71; D3 regressors and rankers.
+- **Design choices 1–5 above are frozen as proposed.**
+- **Hardware:** gpgpu170 (2 × H100 80GB PCIe).
