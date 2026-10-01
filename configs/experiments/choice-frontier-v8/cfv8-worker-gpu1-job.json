@@ -1,0 +1,19 @@
+{
+ "job_id": "cfv8-worker-gpu1",
+ "branch": "choice_frontier",
+ "gpus": [
+  1
+ ],
+ "max_seconds": 575940,
+ "total": 56,
+ "command": [
+  "bash",
+  "-lc",
+  "source ~/cd_vlaplan && export CUDA_VISIBLE_DEVICES=1 && export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True && exec python scripts/run_choice_frontier_v8.py worker --gpu 1"
+ ],
+ "completion_hook": [
+  "bash",
+  "-lc",
+  "source ~/cd_vlaplan && export CUDA_VISIBLE_DEVICES= && exec python scripts/run_choice_frontier_v8.py hook"
+ ]
+}
