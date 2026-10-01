@@ -156,7 +156,7 @@ scenes to text. Whether it matches the manuscript's main-grid wording is for the
    - Fix: the counter and the observation binding now include the system message the model actually receives.
    - Learned episodes were unaffected: their system message is the counted one, and 690/690 replay.
    - Both workers were stopped (SIGTERM, recorded as `failed`). The 67 pre-fix zero-shot episodes and the failure record were moved to `outputs/choice-frontier/v7/superseded/zeroshot-pre-fix/`. All 276 zero-shot episodes were rerun from scratch.
-   - No outcome was inspected before the fix. The trigger was a runtime refusal, and no rule changed.
+   - No zero-shot outcome was looked at before the fix. An interim run of the analyzer had shown only the learned-arm test-1 verdicts, and the fix does not touch the learned arm. The trigger was a runtime refusal, and no rule changed.
 2. **Idle worker stopped.** Once only one slot remained, the GPU0 worker of attempt 2 was polling and charging idle time, so it was stopped (12.7 GPU-h recorded).
 
 ## Limitations
